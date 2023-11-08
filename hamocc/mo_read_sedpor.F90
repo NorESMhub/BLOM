@@ -88,9 +88,9 @@ contains
     endif
 
     ! Open netCDF data file
-    IF(mnproc==1) THEN
+    if (mnproc==1) THEN
       ncstat = NF90_OPEN(trim(sedporfile),NF90_NOWRITE, ncid)
-      IF (ncstat.NE.NF90_NOERR ) THEN
+      if (ncstat.NE.NF90_NOERR ) THEN
         call xchalt('(read_sedpor: Problem with netCDF1)')
         stop '(read_sedpor: Problem with netCDF1)'
       END IF
@@ -100,9 +100,9 @@ contains
     call read_netcdf_var(ncid,'sedpor',sed_por_in(1,1,1),ks,0,0)
 
     ! Close file
-    IF(mnproc==1) THEN
+    if (mnproc==1) THEN
       ncstat = NF90_CLOSE(ncid)
-      IF ( ncstat .NE. NF90_NOERR ) THEN
+      if ( ncstat .NE. NF90_NOERR ) THEN
         call xchalt('(read_sedpor: Problem with netCDF200)')
         stop '(read_sedpor: Problem with netCDF200)'
       END IF

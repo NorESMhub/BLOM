@@ -70,11 +70,11 @@ contains
 
     ! Calculate global total air-sea flux [kmol]
     ztmp1(:,:)   = 0.0
-    DO j=1,kpje
-      DO i=1,kpie
+    do j=1,kpje
+      do i=1,kpie
         ztmp1(i,j) = atmflx(i,j,iatmco2)*pdlxp(i,j)*pdlyp(i,j) ![kmol CO2/ m2] * [m] * [m]
-      ENDDO
-    ENDDO
+      enddo
+    enddo
 
     call xcsum(co2flux,ztmp1,ips)
 
@@ -82,11 +82,11 @@ contains
     co2flux_ppm  = co2flux*12.*1.e-12*pg2ppm ! [kmol C] -> [ppm]
 
     ! Update atmospheric pCO2
-    DO  j=1,kpje
-      DO  i=1,kpie
+    do  j=1,kpje
+      do  i=1,kpie
         atm(i,j,iatmco2)=atm(i,j,iatmco2) + co2flux_ppm
-      ENDDO
-    ENDDO
+      enddo
+    enddo
 
     if (use_cisonew) then
       co213flux    = 0.0
@@ -95,12 +95,12 @@ contains
       ! Calculate global total air-sea flux for C isotopes [kmol]
       ztmp1(:,:)   = 0.0
       ztmp2(:,:)   = 0.0
-      DO j=1,kpje
-        DO i=1,kpie
+      do j=1,kpje
+        do i=1,kpie
           ztmp1(i,j) = atmflx(i,j,iatmc13)*pdlxp(i,j)*pdlyp(i,j) ![kmol 13CO2/ m2] * [m] * [m]
           ztmp2(i,j) = atmflx(i,j,iatmc14)*pdlxp(i,j)*pdlyp(i,j) ![kmol 14CO2/ m2] * [m] * [m]
-        ENDDO
-      ENDDO
+        enddo
+      enddo
 
       call xcsum(co213flux,ztmp1,ips)
       call xcsum(co214flux,ztmp2,ips)
@@ -112,9 +112,9 @@ contains
       ! Calculate sum of 14C decay. Only decay in ocean, so only ocean tracers.
       totc14dec    = 0.0
       ztmp1(:,:)   = 0.0
-      DO k=1,kpke
-        DO j=1,kpje
-          DO i=1,kpie
+      do k=1,kpke
+        do j=1,kpje
+          do i=1,kpie
             vol        = pdlxp(i,j)*pdlyp(i,j)*pddpo(i,j,k)*omask(i,j) ! ocean volume
             ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,isco214)*vol*(1.0-c14dec)
             ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,idet14) *vol*(1.0-c14dec)*rcar
@@ -129,29 +129,29 @@ contains
               ztmp1(i,j) = ztmp1(i,j)+sedlay(i,j,k,issso14) *vol*(1.0-c14dec)*rcar
               ztmp1(i,j) = ztmp1(i,j)+sedlay(i,j,k,isssc14) *vol*(1.0-c14dec)
             endif
-          ENDDO
-        ENDDO
-      ENDDO
+          enddo
+        enddo
+      enddo
 
       call xcsum(totc14dec,ztmp1,ips)
 
       ! Update atmospheric p13CO2 and p14CO2
-      DO  j=1,kpje
-        DO  i=1,kpie
+      do  j=1,kpje
+        do  i=1,kpie
           atm(i,j,iatmc13)=atm(i,j,iatmc13) + co213flux_ppm
           atm(i,j,iatmc14)=atm(i,j,iatmc14) + co214flux_ppm
           atm(i,j,iatmc14)=atm(i,j,iatmc14) + totc14dec*14.*1.e-12*pg2ppm*12./14. ! add 14C decay (ppm)
-        ENDDO
-      ENDDO
+        enddo
+      enddo
 
-      IF (mnproc.eq.1) THEN
+      if (mnproc.eq.1) THEN
         write(io_stdo_bgc,*) ' '
         write(io_stdo_bgc,*) 'Boxatm fluxes (ppm)'
         write(io_stdo_bgc,*) ' co213flux_ppm: ',co213flux_ppm
         write(io_stdo_bgc,*) ' co214flux_ppm: ',co214flux_ppm
         write(io_stdo_bgc,*) ' totc14dec (ppm): ',(totc14dec*14.*1.e-12*pg2ppm*12./14.)
         write(io_stdo_bgc,*) ' '
-      ENDIF
+      endif
 
     endif ! end of use_cisonew
 

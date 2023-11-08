@@ -92,20 +92,20 @@ contains
     ! local variables
     integer :: i,j,errstat,dummymask(2)
 
-    IF (mnproc.eq.1) THEN
+    if (mnproc.eq.1) THEN
       write(io_stdo_bgc,*)' '
       write(io_stdo_bgc,*)'***************************************************'
       write(io_stdo_bgc,*)'iHAMOCC: Initialization of module mo_read_rivin:'
       write(io_stdo_bgc,*)' '
-    ENDIF
+    endif
 
     ! Allocate field to hold river fluxes
-    IF (mnproc.eq.1) THEN
+    if (mnproc.eq.1) THEN
       write(io_stdo_bgc,*)'Memory allocation for variable rivflx ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
       write(io_stdo_bgc,*)'Third  dimension   : ',nriv
-    ENDIF
+    endif
 
     allocate (rivflx(kpie,kpje,nriv),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory rivflx'
@@ -135,9 +135,9 @@ contains
     call ncread('DET',riv_idet2d,dummymask,0,0.)
     call ncfcls
 
-    DO j=1,kpje
-      DO i=1,kpie
-        IF(omask(i,j).GT.0.5) THEN
+    do j=1,kpje
+      do i=1,kpie
+        if (omask(i,j).GT.0.5) THEN
 
           rivflx(i,j,irdin)    = riv_DIN2d(i,j)
           rivflx(i,j,irdip)    = riv_DIP2d(i,j)
@@ -147,9 +147,9 @@ contains
           rivflx(i,j,irdoc)    = riv_idoc2d(i,j)
           rivflx(i,j,irdet)    = riv_idet2d(i,j)
 
-        ENDIF
-      ENDDO
-    ENDDO
+        endif
+      enddo
+    enddo
 
   end subroutine ini_read_rivin
 

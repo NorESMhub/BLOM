@@ -68,28 +68,28 @@ contains
     integer             :: ncid,ncstat,ncvarid,errstat
 
     ! allocate field to hold iron deposition fluxes
-    IF (mnproc.eq.1) THEN
+    if (mnproc.eq.1) THEN
       write(io_stdo_bgc,*)' '
       write(io_stdo_bgc,*)'***************************************************'
       write(io_stdo_bgc,*)'iHAMOCC: Initialization of module mo_fedep:'
       write(io_stdo_bgc,*)' '
-    ENDIF
+    endif
 
-    IF (mnproc.eq.1) THEN
+    if (mnproc.eq.1) THEN
       write(io_stdo_bgc,*)'Memory allocation for variable dustflx ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
       write(io_stdo_bgc,*)'Third dimension    :  12'
-    ENDIF
+    endif
 
     allocate (dustflx(kpie,kpje,12),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory dustflx'
     dustflx(:,:,:) = 0.0
 
     ! Open netCDF data file
-    IF(mnproc==1) THEN
+    if (mnproc==1) THEN
       ncstat = NF90_OPEN(trim(fedepfile),NF90_NOWRITE, ncid)
-      IF (ncstat.NE.NF90_NOERR ) THEN
+      if (ncstat.NE.NF90_NOERR ) THEN
         call xchalt('(get_dust: Problem with netCDF1)')
         stop '(get_dust: Problem with netCDF1)'
       END IF
@@ -99,9 +99,9 @@ contains
     call read_netcdf_var(ncid,'DUST',dustflx(1,1,1),12,0,0)
 
     ! Close file
-    IF(mnproc==1) THEN
+    if (mnproc==1) THEN
       ncstat = NF90_CLOSE(ncid)
-      IF ( ncstat .NE. NF90_NOERR ) THEN
+      if ( ncstat .NE. NF90_NOERR ) THEN
         call xchalt('(get_dust: Problem with netCDF200)')
         stop '(get_dust: Problem with netCDF200)'
       END IF

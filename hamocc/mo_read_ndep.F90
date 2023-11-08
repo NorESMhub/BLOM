@@ -95,12 +95,12 @@ contains
     ! Initialise the module
     if (.not. lini) then
 
-      IF (mnproc.eq.1) THEN
+      if (mnproc.eq.1) THEN
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'***************************************************'
         write(io_stdo_bgc,*)'iHAMOCC: Initialization of module mo_read_ndep:'
         write(io_stdo_bgc,*)' '
-      ENDIF
+      endif
 
       ! Check if nitrogen deposition file exists. If not, abort.
       inquire(file=ndepfile,exist=file_exists)
@@ -112,11 +112,11 @@ contains
       endif
 
       ! Allocate field to hold N-deposition fluxes
-      IF (mnproc.eq.1) THEN
+      if (mnproc.eq.1) THEN
         write(io_stdo_bgc,*)'Memory allocation for variable ndepread ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
-      ENDIF
+      endif
 
       allocate (ndepread(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory ndep'

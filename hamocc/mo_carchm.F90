@@ -172,11 +172,11 @@ contains
     !$OMP  ,frac_dicg,flux13d,flux13u,flux14d,flux14u,dissol13,dissol14   &
     !$OMP  ,flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub           &
     !$OMP  ,j,i)
-    DO k=1,kpke
-      DO j=1,kpje
-        DO i=1,kpie
+    do k=1,kpke
+      do j=1,kpje
+        do i=1,kpie
 
-          IF(omask(i,j).gt.0.5.and.pddpo(i,j,k).GT.dp_min) THEN
+          if (omask(i,j).gt.0.5.and.pddpo(i,j,k).GT.dp_min) THEN
 
             ! Carbon chemistry: Calculate equilibrium constants and solve for [H+] and
             ! carbonate alkalinity (ac)
@@ -394,20 +394,20 @@ contains
                 !      unit of [cfc11_atm(i,j)*ppair/p0] should be in [pptv]
                 !      unit of [flx11-12] is in [kmol / m2]
 
-                IF (pglat(i,j).GE.10) THEN
+                if (pglat(i,j).GE.10) THEN
                   atm_cfc11=atm_cfc11_nh
                   atm_cfc12=atm_cfc12_nh
                   atm_sf6=atm_sf6_nh
-                ELSE IF (pglat(i,j).LE.-10) THEN
+                else if (pglat(i,j).LE.-10) THEN
                   atm_cfc11=atm_cfc11_sh
                   atm_cfc12=atm_cfc12_sh
                   atm_sf6=atm_sf6_sh
-                ELSE
+                else
                   fact=(pglat(i,j)-(-10))/20.
                   atm_cfc11=fact*atm_cfc11_nh+(1-fact)*atm_cfc11_sh
                   atm_cfc12=fact*atm_cfc12_nh+(1-fact)*atm_cfc12_sh
                   atm_sf6=fact*atm_sf6_nh+(1-fact)*atm_sf6_sh
-                ENDIF
+                endif
 
                 ! Use conversion of 9.86923e-6 [std atm / Pascal]
                 ! Surface flux of cfc11
@@ -561,10 +561,10 @@ contains
 
             endif
 
-          ENDIF ! omask>0.5
-        ENDDO
-      ENDDO
-    ENDDO
+          endif ! omask>0.5
+        enddo
+      enddo
+    enddo
     !$OMP END PARALLEL DO
 
     ! C14 decay in the sediment (could be moved to sediment part)
@@ -707,13 +707,13 @@ contains
 
     !---------------------- Pressure effect on Ks (Millero, 95) --------------------
     ! index: K1 1, K2 2, Kb 3, Kw 4, Ks 5, Kf 6, Kspc 7, Kspa 8, K1p 9, K2p 10, K3p 11
-    DO js = 1,11
+    do js = 1,11
       deltav      = a0(js) + a1(js) * temp + a2(js) * temp * temp
       deltak      = b0(js) + b1(js) * temp + b2(js) * temp * temp
       zprb        = prb / ( rgas * tk )
       zprb2       = prb * zprb
       lnkpok0(js) = - ( deltav * zprb + 0.5 * deltak * zprb2 )
-    ENDDO
+    enddo
 
     K1   = K1   * exp( lnkpok0(1)  )
     K2   = K2   * exp( lnkpok0(2)  )
@@ -779,7 +779,7 @@ contains
     sti = 0.14 * scl / 96.062      ! Morris & Riley (1966)
     ft = 0.000067 * scl / 18.9984  ! Riley (1965)
 
-    iflag: DO jit = 1,niter
+    iflag: do jit = 1,niter
       hso4 = sti / ( 1. + Ks1 / ( ah1 / ( 1. + sti / Ks1 ) ) )
       hf   = 1. / ( 1. + Kf / ah1 )
       hsi  = 1./ ( 1. + ah1 / Ksi )
@@ -796,7 +796,7 @@ contains
       else
         exit iflag
       endif
-    ENDDO iflag
+    enddo iflag
 
   end subroutine carchm_solve
 
@@ -852,7 +852,7 @@ contains
     ah1=1.e-8
     dic_h2co3 = Kh * pco2 * 1e-6
 
-    iflag: DO jit = 1,niter
+    iflag: do jit = 1,niter
       hso4 = sti / ( 1. + Ks1 / ( ah1 / ( 1. + sti / Ks1 ) ) )
       hf   = 1. / ( 1. + Kf / ah1 )
       hsi  = 1./ ( 1. + ah1 / Ksi )
@@ -869,7 +869,7 @@ contains
       else
         exit iflag
       endif
-    ENDDO iflag
+    enddo iflag
 
     dic_hco3  = Kh * K1 *      pco2 * 1e-6 / ah1
     dic_co3   = Kh * K1 * K2 * pco2 * 1e-6 / ah1**2

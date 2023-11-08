@@ -81,96 +81,96 @@ contains
     ! Local variables
     integer :: errstat
 
-    IF (mnproc.eq.1) THEN
+    if (mnproc.eq.1) THEN
       write(io_stdo_bgc,*)' '
       write(io_stdo_bgc,*)'***************************************************'
       write(io_stdo_bgc,*)'Memory allocation for module mo_intfcblom :'
       write(io_stdo_bgc,*)' '
-    ENDIF
+    endif
 
-    IF (mnproc.eq.1) THEN
+    if (mnproc.eq.1) THEN
       write(io_stdo_bgc,*)'Memory allocation for variable bgc_dx, bgc_dy ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
-    ENDIF
+    endif
     allocate (bgc_dx(kpie,kpje),stat=errstat)
     allocate (bgc_dy(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory bgc_dx, bgc_dy'
     bgc_dx(:,:) = 0.0
     bgc_dy(:,:) = 0.0
 
-    IF (mnproc.eq.1) THEN
+    if (mnproc.eq.1) THEN
       write(io_stdo_bgc,*)'Memory allocation for variable bgc_dp ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
       write(io_stdo_bgc,*)'Third dimension    : ',kpke
-    ENDIF
+    endif
     allocate (bgc_dp(kpie,kpje,kpke),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory bgc_dp'
     bgc_dp(:,:,:) = 0.0
 
-    IF (mnproc.eq.1) THEN
+    if (mnproc.eq.1) THEN
       write(io_stdo_bgc,*)'Memory allocation for variable bgc_rho ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
       write(io_stdo_bgc,*)'Third dimension    : ',kpke
-    ENDIF
+    endif
     allocate (bgc_rho(kpie,kpje,kpke),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory bgc_dp'
     bgc_rho(:,:,:) = 0.0
 
-    IF(mnproc.eq.1) THEN
+    if (mnproc.eq.1) THEN
       write(io_stdo_bgc,*)'Memory allocation for variable omask ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
-    ENDIF
+    endif
     allocate(omask(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory omask'
     omask(:,:) = 0.0
 
     if (.not. use_sedbypass) then
-      IF(mnproc.eq.1) THEN
+      if (mnproc.eq.1) THEN
         write(io_stdo_bgc,*)'Memory allocation for variable sedlay2 ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
         write(io_stdo_bgc,*)'Third dimension    : ',2*ks
         write(io_stdo_bgc,*)'Fourth dimension   : ',nsedtra
-      ENDIF
+      endif
       allocate (sedlay2(kpie,kpje,2*ks,nsedtra),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory sedlay2'
       sedlay2(:,:,:,:) = 0.0
 
-      IF(mnproc.eq.1) THEN
+      if (mnproc.eq.1) THEN
         write(io_stdo_bgc,*)'Memory allocation for variable powtra2 ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
         write(io_stdo_bgc,*)'Third dimension    : ',2*ks
         write(io_stdo_bgc,*)'Fourth dimension   : ',npowtra
-      ENDIF
+      endif
       allocate (powtra2(kpie,kpje,2*ks,npowtra),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory powtra2'
       powtra2(:,:,:,:) = 0.0
 
-      IF(mnproc.eq.1) THEN
+      if (mnproc.eq.1) THEN
         write(io_stdo_bgc,*)'Memory allocation for variable burial2 ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
         write(io_stdo_bgc,*)'Third dimension    : ',2
         write(io_stdo_bgc,*)'Fourth dimension   : ',nsedtra
-      ENDIF
+      endif
       allocate (burial2(kpie,kpje,2,nsedtra),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory burial2'
       burial2(:,:,:,:) = 0.0
     endif
 
     if (use_BOXATM) then
-      IF (mnproc.eq.1) THEN
+      if (mnproc.eq.1) THEN
         write(io_stdo_bgc,*)'Memory allocation for variable atm2 ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
         write(io_stdo_bgc,*)'Third dimension    : ',2
         write(io_stdo_bgc,*)'Fourth dimension   : ',natm
-      ENDIF
+      endif
       allocate (atm2(kpie,kpje,2,natm),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory atm2'
       atm2(:,:,:,:) = 0.0

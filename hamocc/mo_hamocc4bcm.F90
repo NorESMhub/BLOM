@@ -111,9 +111,9 @@ contains
     integer :: nspin,it
     logical :: lspin
 
-    IF (mnproc.eq.1) THEN
+    if (mnproc.eq.1) THEN
       write(io_stdo_bgc,*) 'iHAMOCC',KLDTDAY,LDTRUNBGC,NDTDAYBGC
-    ENDIF
+    endif
 
     !--------------------------------------------------------------------
     ! Increment bgc time step counter of run (initialized in HAMOCC_INIT).
@@ -134,11 +134,11 @@ contains
     ! Pass net solar radiation
     !
     !$OMP PARALLEL DO PRIVATE(i)
-    DO  j=1,kpje
-      DO  i=1,kpie
+    do  j=1,kpje
+      do  i=1,kpie
         strahl(i,j)=pfswr(i,j)
-      ENDDO
-    ENDDO
+      enddo
+    enddo
     !$OMP END PARALLEL DO
 
     !--------------------------------------------------------------------
@@ -146,24 +146,24 @@ contains
     !
     if (trim(ocn_co2_type) == 'diagnostic' .or. trim(ocn_co2_type) == 'prognostic') then
       !$OMP PARALLEL DO PRIVATE(i)
-      DO  j=1,kpje
-        DO  i=1,kpie
+      do  j=1,kpje
+        do  i=1,kpie
           atm(i,j,iatmco2)=patmco2(i,j)
-        ENDDO
-      ENDDO
+        enddo
+      enddo
       !$OMP END PARALLEL DO
       !if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting co2 from atm'
     endif
 
     if (use_BROMO) then
       !$OMP PARALLEL DO PRIVATE(i)
-      DO  j=1,kpje
-        DO  i=1,kpie
-          IF (patmbromo(i,j).gt.0.) THEN
+      do  j=1,kpje
+        do  i=1,kpie
+          if (patmbromo(i,j).gt.0.) THEN
             atm(i,j,iatmbromo)=patmbromo(i,j)
-          ENDIF
-        ENDDO
-      ENDDO
+          endif
+        enddo
+      enddo
       !$OMP END PARALLEL DO
       if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting bromoform from atm'
     endif
@@ -177,10 +177,10 @@ contains
     endif
 
     if (use_PBGC_CK_TIMESTEP) then
-      IF (mnproc.eq.1) THEN
+      if (mnproc.eq.1) THEN
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'before BGC: call INVENTORY'
-      ENDIF
+      endif
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
 
@@ -197,10 +197,10 @@ contains
     call ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 
     if (use_PBGC_CK_TIMESTEP   ) then
-      IF (mnproc.eq.1) THEN
+      if (mnproc.eq.1) THEN
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'after OCPROD: call INVENTORY'
-      ENDIF
+      endif
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
 
@@ -219,20 +219,20 @@ contains
     enddo
 
     if (use_PBGC_CK_TIMESTEP   ) then
-      IF (mnproc.eq.1) THEN
+      if (mnproc.eq.1) THEN
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'after LIMIT: call INVENTORY'
-      ENDIF
+      endif
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
 
     call cyano(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
 
     if (use_PBGC_CK_TIMESTEP   ) then
-      IF (mnproc.eq.1) THEN
+      if (mnproc.eq.1) THEN
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'after CYANO: call INVENTORY'
-      ENDIF
+      endif
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
 
@@ -240,10 +240,10 @@ contains
          psicomo,ppao,pfu10,ptho,psao)
 
     if (use_PBGC_CK_TIMESTEP   ) then
-      IF (mnproc.eq.1) THEN
+      if (mnproc.eq.1) THEN
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'after CARCHM: call INVENTORY'
-      ENDIF
+      endif
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
 
@@ -251,10 +251,10 @@ contains
     call apply_ndep(kpie,kpje,kpke,pddpo,omask,ndep)
 
     if (use_PBGC_CK_TIMESTEP ) then
-      IF (mnproc.eq.1) THEN
+      if (mnproc.eq.1) THEN
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'after N deposition: call INVENTORY'
-      ENDIF
+      endif
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
 
@@ -262,10 +262,10 @@ contains
     call apply_rivin(kpie,kpje,kpke,pddpo,omask,rivin)
 
     if (use_PBGC_CK_TIMESTEP ) then
-      IF (mnproc.eq.1) THEN
+      if (mnproc.eq.1) THEN
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'after river input: call INVENTORY'
-      ENDIF
+      endif
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
 
@@ -273,10 +273,10 @@ contains
     call apply_oafx(kpie,kpje,kpke,pddpo,omask,oafx)
 
     if (use_PBGC_CK_TIMESTEP ) then
-      IF (mnproc.eq.1) THEN
+      if (mnproc.eq.1) THEN
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'after ocean alkalinization: call INVENTORY'
-      ENDIF
+      endif
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
 
@@ -286,10 +286,10 @@ contains
     endif
 
     if (use_PBGC_CK_TIMESTEP ) then
-      IF (mnproc.eq.1) THEN
+      if (mnproc.eq.1) THEN
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'after ATMOTR: call INVENTORY'
-      ENDIF
+      endif
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
 
@@ -327,29 +327,29 @@ contains
       enddo
 
       if (use_PBGC_CK_TIMESTEP ) then
-        IF (mnproc.eq.1) THEN
+        if (mnproc.eq.1) THEN
           write(io_stdo_bgc,*)' '
           write(io_stdo_bgc,*)'after POWACH: call INVENTORY'
-        ENDIF
+        endif
         call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
       endif
 
       ! Sediment is shifted once a day (on both time levels!)
-      IF(KLDTDAY .EQ. 1 .OR. KLDTDAY .EQ. 2) THEN
-        IF (mnproc.eq.1) THEN
+      if (KLDTDAY .EQ. 1 .OR. KLDTDAY .EQ. 2) THEN
+        if (mnproc.eq.1) THEN
           write(io_stdo_bgc,*)' '
           write(io_stdo_bgc,*) 'Sediment shifting ...'
-        ENDIF
+        endif
         call sedshi(kpie,kpje,omask)
-      ENDIF
+      endif
 
     endif ! .not. use_sedbypass
 
     if (use_PBGC_CK_TIMESTEP ) then
-      IF (mnproc.eq.1) THEN
+      if (mnproc.eq.1) THEN
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'after BGC: call INVENTORY'
-      ENDIF
+      endif
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
 
@@ -357,22 +357,22 @@ contains
     ! Pass co2 flux. Convert unit from kmol/m^2 to kg/m^2/s.
 
     !$OMP PARALLEL DO PRIVATE(i)
-    DO  j=1,kpje
-      DO  i=1,kpie
+    do  j=1,kpje
+      do  i=1,kpie
         if(omask(i,j) .gt. 0.5) pflxco2(i,j)=-44.*atmflx(i,j,iatmco2)/dtbgc
-      ENDDO
-    ENDDO
+      enddo
+    enddo
     !$OMP END PARALLEL DO
 
     !--------------------------------------------------------------------
     ! Pass dms flux. Convert unit from kmol/m^2 to kg/m^2/s.
 
     !$OMP PARALLEL DO PRIVATE(i)
-    DO  j=1,kpje
-      DO  i=1,kpie
+    do  j=1,kpje
+      do  i=1,kpie
         if(omask(i,j) .gt. 0.5) pflxdms(i,j)=-62.13*atmflx(i,j,iatmdms)/dtbgc
-      ENDDO
-    ENDDO
+      enddo
+    enddo
     !$OMP END PARALLEL DO
 
     !--------------------------------------------------------------------
@@ -380,15 +380,15 @@ contains
     ! Negative values to the atmosphere
 
     !$OMP PARALLEL DO PRIVATE(i)
-    DO  j=1,kpje
-      DO  i=1,kpie
+    do  j=1,kpje
+      do  i=1,kpie
         if (use_BROMO) then
           if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=-252.7*atmflx(i,j,iatmbromo)/dtbgc
         else
           if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=0.0
         endif
-      ENDDO
-    ENDDO
+      enddo
+    enddo
     !$OMP END PARALLEL DO
     !--------------------------------------------------------------------
 

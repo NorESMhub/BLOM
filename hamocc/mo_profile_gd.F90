@@ -165,12 +165,12 @@ contains
 
               enddo loop_obs
 
-            ENDDO ! k=1,kpke
+            enddo ! k=1,kpke
 
-          ENDIF ! omask > 0.5
+          endif ! omask > 0.5
 
-        ENDDO
-      ENDDO
+        enddo
+      enddo
 
       call clean_Gdata()
 

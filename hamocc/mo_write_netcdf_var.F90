@@ -72,7 +72,7 @@ contains
     else
       ndims=4
     endif
-    IF(IOTYPE==0) THEN
+    if (IOTYPE==0) THEN
 
       allocate(start(ndims))
       allocate(count(ndims))
@@ -134,7 +134,7 @@ contains
       enddo
       deallocate(start,count)
 
-    ELSE IF(IOTYPE==1) THEN
+    else if (IOTYPE==1) THEN
 
 #ifdef PNETCDF
       allocate(istart(ndims))
@@ -203,8 +203,8 @@ contains
       ! endif
 
       deallocate(istart,icount,arr_g1)
+    end if
 #endif
-    ENDIF
 
   end subroutine write_netcdf_var
 

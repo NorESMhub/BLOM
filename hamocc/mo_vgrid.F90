@@ -112,34 +112,34 @@ contains
     bolay(:,:)=0.0
 
     !$OMP PARALLEL DO PRIVATE(i,k)
-    DO j=1,kpje
-      DO i=1,kpie
+    do j=1,kpje
+      do i=1,kpie
 
-        DO k=kpke,1,-1
-          IF(pddpo(i,j,k).GT.dp_min_sink) THEN
+        do k=kpke,1,-1
+          if (pddpo(i,j,k).GT.dp_min_sink) THEN
             bolay(i,j)=pddpo(i,j,k)
             kbo(i,j)=k
             exit
-          ENDIF
-        ENDDO
+          endif
+        enddo
 
-      ENDDO
-    ENDDO
+      enddo
+    enddo
     !$OMP END PARALLEL DO
 
     !$OMP PARALLEL DO PRIVATE(i,k)
-    DO j=1,kpje
-      DO i=1,kpie
+    do j=1,kpje
+      do i=1,kpie
 
         kwrbioz(i,j)=1
-        DO k=2,kpke
-          IF(pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k) .lt. dp_ez ) THEN
+        do k=2,kpke
+          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k) .lt. dp_ez ) THEN
             kwrbioz(i,j)=k
-          ENDIF
-        END DO
+          endif
+        enddo
 
-      END DO
-    END DO
+      enddo
+    enddo
     !$OMP END PARALLEL DO
 
     k0100(:,:)=0
@@ -149,46 +149,46 @@ contains
     k4000(:,:)=0
 
     !$OMP PARALLEL DO PRIVATE(i,k)
-    DO j=1,kpje
-      DO i=1,kpie
+    do j=1,kpje
+      do i=1,kpie
 
-        DO k=2,kpke
-          IF(pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 100.0 ) THEN
+        do k=2,kpke
+          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 100.0 ) THEN
             k0100(i,j)=k
             exit
-          ENDIF
-        END DO
+          endif
+        enddo
 
-        DO k=2,kpke
-          IF(pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 500.0 ) THEN
+        do k=2,kpke
+          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 500.0 ) THEN
             k0500(i,j)=k
             exit
-          ENDIF
-        END DO
+          endif
+        enddo
 
-        DO k=2,kpke
-          IF(pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 1000.0 ) THEN
+        do k=2,kpke
+          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 1000.0 ) THEN
             k1000(i,j)=k
             exit
-          ENDIF
-        END DO
+          endif
+        enddo
 
-        DO k=2,kpke
-          IF(pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 2000.0 ) THEN
+        do k=2,kpke
+          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 2000.0 ) THEN
             k2000(i,j)=k
             exit
-          ENDIF
-        END DO
+          endif
+        enddo
 
-        DO k=2,kpke
-          IF(pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 4000.0 ) THEN
+        do k=2,kpke
+          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 4000.0 ) THEN
             k4000(i,j)=k
             exit
-          ENDIF
-        END DO
+          endif
+        enddo
 
-      END DO
-    END DO
+      enddo
+    enddo
     !$OMP END PARALLEL DO
 
   end subroutine set_vgrid
@@ -211,72 +211,72 @@ contains
     ! Local variables
     integer :: errstat
 
-    IF (mnproc.eq.1) THEN
+    if (mnproc.eq.1) THEN
       write(io_stdo_bgc,*)' '
       write(io_stdo_bgc,*)'***************************************************'
       write(io_stdo_bgc,*)'Memory allocation for module mo_vgrid :'
       write(io_stdo_bgc,*)' '
-    ENDIF
+    endif
 
-    IF (mnproc.eq.1) THEN
+    if (mnproc.eq.1) THEN
       write(io_stdo_bgc,*)'Memory allocation for variable ptiestu ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
       write(io_stdo_bgc,*)'Third dimension    : ',kpke+1
-    ENDIF
+    endif
 
     allocate (ptiestu(kpie,kpje,kpke+1),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory ptiestu'
     ptiestu(:,:,:) = 0.0
 
 
-    IF (mnproc.eq.1) THEN
+    if (mnproc.eq.1) THEN
       write(io_stdo_bgc,*)'Memory allocation for variable ptiestw ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
       write(io_stdo_bgc,*)'Third dimension    : ',kpke+1
-    ENDIF
+    endif
 
     allocate (ptiestw(kpie,kpje,kpke+1),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory ptiestw'
     ptiestw(:,:,:) = 0.0
 
 
-    IF(mnproc.eq.1) THEN
+    if (mnproc.eq.1) THEN
       write(io_stdo_bgc,*)'Memory allocation for variable kmle ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
-    ENDIF
+    endif
 
     allocate(kmle(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory kmle'
     kmle(:,:) = kmle_static
 
-    IF(mnproc.eq.1) THEN
+    if (mnproc.eq.1) THEN
       write(io_stdo_bgc,*)'Memory allocation for variable kbo ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
-    ENDIF
+    endif
 
     allocate(kbo(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory kbo'
     kbo(:,:) = 0
 
-    IF(mnproc.eq.1) THEN
+    if (mnproc.eq.1) THEN
       write(io_stdo_bgc,*)'Memory allocation for variable kwrbioz...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
-    ENDIF
+    endif
 
     allocate(kwrbioz(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory kwrbioz'
     kwrbioz(:,:) = 0
 
-    IF(mnproc.eq.1) THEN
+    if (mnproc.eq.1) THEN
       write(io_stdo_bgc,*)'Memory allocation for variables k0100, k0500, k1000, k2000 ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
-    ENDIF
+    endif
 
     allocate(k0100(kpie,kpje),stat=errstat)
     allocate(k0500(kpie,kpje),stat=errstat)
@@ -290,11 +290,11 @@ contains
     k2000(:,:) = 0
     k4000(:,:) = 0
 
-    IF(mnproc.eq.1) THEN
+    if (mnproc.eq.1) THEN
       write(io_stdo_bgc,*)'Memory allocation for variable bolay ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
-    ENDIF
+    endif
 
     allocate (bolay(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory bolay'

@@ -70,9 +70,9 @@ contains
     !
     !  Define variable
     !
-    IF(mnproc==1 .AND. IOTYPE==0) THEN
+    if (mnproc==1 .AND. IOTYPE==0) THEN
       ncstat = NF90_DEF_VAR(kcid,yshort(1:kshort),NF90_DOUBLE,kcdims,kcvarid)
-      IF ( ncstat .NE. NF90_NOERR ) THEN
+      if ( ncstat .NE. NF90_NOERR ) THEN
         write(kunit,*) 'Problems with definition of NetCDF variable:'
         write(kunit,*) 'kcid           : ',kcid
         write(kunit,*) 'kshort         : ',kshort
@@ -84,12 +84,12 @@ contains
         write(kunit,*) ystring
         call xchalt('(netcdf_def_vardb)')
         stop '(netcdf_def_vardb)'
-      ENDIF
+      endif
       !
       !  Set unit
       !
       ncstat = NF90_PUT_ATT(kcid,kcvarid,'units',yunit(1:kunitl))
-      IF ( ncstat .NE. NF90_NOERR ) THEN
+      if ( ncstat .NE. NF90_NOERR ) THEN
         write(kunit,*) 'Problems with definition of unit:'
         write(kunit,*) 'kcid          : ',kcid
         write(kunit,*) 'kcvarid       : ',kcvarid
@@ -99,12 +99,12 @@ contains
         write(kunit,*) ystring
         call xchalt('(netcdf_def_vardb)')
         stop '(netcdf_def_vardb)'
-      ENDIF
+      endif
       !
       !  Set long name
       !
       ncstat = NF90_PUT_ATT(kcid,kcvarid,'long_name',ylong(1:klong))
-      IF ( ncstat .NE. NF90_NOERR ) THEN
+      if ( ncstat .NE. NF90_NOERR ) THEN
         write(kunit,*) 'Problems with definition of long name:'
         write(kunit,*) 'kcid         : ',kcid
         write(kunit,*) 'kcvarid      : ',kcvarid
@@ -114,12 +114,12 @@ contains
         write(kunit,*) ystring
         call xchalt('(netcdf_def_vardb)')
         stop '(netcdf_def_vardb)'
-      ENDIF
+      endif
       !
       !  Set missing value
       !
       ncstat = NF90_PUT_ATT(kcid,kcvarid,'missing_value',pmissing)
-      IF ( ncstat .NE. NF90_NOERR ) THEN
+      if ( ncstat .NE. NF90_NOERR ) THEN
         write(kunit,*) 'Problems with definition of missing value:'
         write(kunit,*) 'kcid     : ',kcid
         write(kunit,*) 'kcvarid  : ',kcvarid
@@ -128,14 +128,14 @@ contains
         write(kunit,*) ystring
         call xchalt('(netcdf_def_vardb)')
         stop '(netcdf_def_vardb)'
-      ENDIF
-    ELSE IF(IOTYPE==1) THEN
+      endif
+    else if (IOTYPE==1) THEN
 #ifdef PNETCDF
       !
       !  Define variable
       !
       ncstat = nfmpi_def_var(kcid,yshort(1:kshort),nf_double,kdims,kcdims,kcvarid)
-      IF ( ncstat .NE. NF_NOERR ) THEN
+      if ( ncstat .NE. NF_NOERR ) THEN
         write(kunit,*) 'Problems with definition of NetCDF variable:'
         write(kunit,*) 'kcid           : ',kcid
         write(kunit,*) 'kshort         : ',kshort
@@ -147,13 +147,13 @@ contains
         write(kunit,*) ystring
         call xchalt('(pnetcdf_def_vardb)')
         stop '(pnetcdf_def_vardb)'
-      ENDIF
+      endif
       !
       !  Set unit
       !
       clen=len(trim(yunit(1:kunitl)))
       ncstat = NFMPI_PUT_ATT_TEXT(kcid,kcvarid,'units',clen,yunit(1:kunitl))
-      IF ( ncstat .NE. NF_NOERR ) THEN
+      if ( ncstat .NE. NF_NOERR ) THEN
         write(kunit,*) 'Problems with definition of unit:'
         write(kunit,*) 'kcid          : ',kcid
         write(kunit,*) 'kcvarid       : ',kcvarid
@@ -163,13 +163,13 @@ contains
         write(kunit,*) ystring
         call xchalt('(pnetcdf_def_vardb)')
         stop '(pnetcdf_def_vardb)'
-      ENDIF
+      endif
       !
       !  Set long name
       !
       clen=len(trim(ylong(1:klong)))
       ncstat = NFMPI_PUT_ATT_TEXT(kcid,kcvarid,'long_name',clen,ylong(1:klong))
-      IF ( ncstat .NE. NF_NOERR ) THEN
+      if ( ncstat .NE. NF_NOERR ) THEN
         write(kunit,*) 'Problems with definition of long name:'
         write(kunit,*) 'kcid         : ',kcid
         write(kunit,*) 'kcvarid      : ',kcvarid
@@ -179,13 +179,13 @@ contains
         write(kunit,*) ystring
         call xchalt('(pnetcdf_def_vardb)')
         stop '(pnetcdf_def_vardb)'
-      ENDIF
+      endif
       !
       !  Set missing value
       !
       clen=1
       ncstat = NFMPI_PUT_ATT_DOUBLE(kcid,kcvarid,'missing_value',NF_DOUBLE,clen,pmissing)
-      IF ( ncstat .NE. NF_NOERR ) THEN
+      if ( ncstat .NE. NF_NOERR ) THEN
         write(kunit,*) 'Problems with definition of missing value:'
         write(kunit,*) 'kcid     : ',kcid
         write(kunit,*) 'kcvarid  : ',kcvarid
@@ -194,9 +194,9 @@ contains
         write(kunit,*) ystring
         call xchalt('(pnetcdf_def_vardb)')
         stop '(pnetcdf_def_vardb)'
-      ENDIF
+      endif
 #endif
-    ENDIF
+    endif
 
   end subroutine netcdf_def_vardb
 

@@ -122,59 +122,59 @@ contains
     else
 
       ztmp1(:,:)=0.0
-      DO k=1,ks
-        DO j=1,kpje
-          DO i=1,kpie
+      do k=1,ks
+        do j=1,kpje
+          do i=1,kpie
             ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*seddw(k)                       &
                  &       *dlxp(i,j)*dlyp(i,j)*porwat(i,j,k)
-          ENDDO
-        ENDDO
-      ENDDO
+          enddo
+        enddo
+      enddo
 
       call xcsum(zsedtotvol,ztmp1,ips)
 
-      DO l=1,npowtra
+      do l=1,npowtra
         ztmp1(:,:)=0.0
-        DO k=1,ks
-          DO j=1,kpje
-            DO i=1,kpie
+        do k=1,ks
+          do j=1,kpje
+            do i=1,kpie
               vol    = seddw(k)*dlxp(i,j)*dlyp(i,j)*porwat(i,j,k)
               ztmp1(i,j)= ztmp1(i,j) + omask(i,j)*powtra(i,j,k,l)*vol
-            ENDDO
-          ENDDO
-        ENDDO
+            enddo
+          enddo
+        enddo
 
         call xcsum(zpowtratot(l),ztmp1,ips)
         zpowtratoc(l) = zpowtratot(l)/zsedtotvol
-      ENDDO
+      enddo
 
       !=== non aqueous sediment tracer
       !----------------------------------------------------------------------
       zburial = sum2d_array(burial, nsedtra)
 
-      DO l=1,nsedtra
+      do l=1,nsedtra
         ztmp1(:,:)=0.0
-        DO k=1,ks
-          DO j=1,kpje
-            DO i=1,kpie
+        do k=1,ks
+          do j=1,kpje
+            do i=1,kpie
               vol = porsol(i,j,k)*seddw(k)*dlxp(i,j)*dlyp(i,j)
               ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*sedlay(i,j,k,l)*vol
-            ENDDO
-          ENDDO
-        ENDDO
+            enddo
+          enddo
+        enddo
 
         call xcsum(zsedlayto(l),ztmp1,ips)
-      ENDDO
+      enddo
 
       ztmp1(:,:)=0.0
-      DO k=1,ks
-        DO j=1,kpje
-          DO i=1,kpie
+      do k=1,ks
+        do j=1,kpje
+          do i=1,kpie
             vol = porsol(i,j,k)*seddw(k)*dlxp(i,j)*dlyp(i,j)
             ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*sedhpl(i,j,k)*vol
-          ENDDO
-        ENDDO
-      ENDDO
+          enddo
+        enddo
+      enddo
 
       call xcsum(zsedhplto,ztmp1,ips)
 
@@ -187,38 +187,38 @@ contains
     zocetratoc = 0.
 
     ztmp1(:,:)=0.0
-    DO k=1,kpke
-      DO j=1,kpje
-        DO i=1,kpie
-          IF(ddpo(i,j,k).gt.dp_min) THEN
+    do k=1,kpke
+      do j=1,kpje
+        do i=1,kpie
+          if (ddpo(i,j,k).gt.dp_min) THEN
             ztmp1(i,j) = ztmp1(i,j)                                          &
                  &       + omask(i,j)*dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
-          ENDIF
-        ENDDO
-      ENDDO
-    ENDDO
+          endif
+        enddo
+      enddo
+    enddo
 
     call xcsum(ztotvol,ztmp1,ips)
 
-    DO l=1,nocetra
+    do l=1,nocetra
       ztmp1(:,:)=0.0
-      DO k=1,kpke
-        DO j=1,kpje
-          DO i=1,kpie
-            IF(ddpo(i,j,k).gt.dp_min) THEN
+      do k=1,kpke
+        do j=1,kpje
+          do i=1,kpie
+            if (ddpo(i,j,k).gt.dp_min) THEN
               vol = dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
               ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*ocetra(i,j,k,l)*vol
               !             if (ocetra(i,j,k,l).lt.0.0) then
               !      write(io_stdo_bgc,*) 'ocetra -ve', l,ocetra(i,j,k,l)
               !             endif
-            ENDIF
-          ENDDO
-        ENDDO
-      ENDDO
+            endif
+          enddo
+        enddo
+      enddo
 
       call xcsum(zocetratot(l),ztmp1,ips)
       zocetratoc(l) = zocetratot(l)/ztotvol
-    ENDDO
+    enddo
 
     !=== additional ocean tracer
     !----------------------------------------------------------------------
@@ -227,17 +227,17 @@ contains
 
     ztmp1(:,:)=0.0
     ztmp2(:,:)=0.0
-    DO k=1,kpke
-      DO j=1,kpje
-        DO i=1,kpie
-          IF(ddpo(i,j,k).gt.dp_min) THEN
+    do k=1,kpke
+      do j=1,kpje
+        do i=1,kpie
+          if (ddpo(i,j,k).gt.dp_min) THEN
             vol = dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
             ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*hi(i,j,k) *vol
             ztmp2(i,j) = ztmp2(i,j) + omask(i,j)*co3(i,j,k)*vol
-          ENDIF
-        ENDDO
-      ENDDO
-    ENDDO
+          endif
+        enddo
+      enddo
+    enddo
 
     call xcsum(zhito ,ztmp1,ips)
     call xcsum(zco3to,ztmp2,ips)
@@ -250,12 +250,12 @@ contains
     k=1
     ztmp1(:,:)=0.0
     ztmp2(:,:)=0.0
-    DO j=1,kpje
-      DO i=1,kpie
+    do j=1,kpje
+      do i=1,kpie
         ztmp1(i,j) = omask(i,j)*dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
         ztmp2(i,j) = ocetra(i,j,k,ialkali)*ztmp1(i,j)
-      ENDDO
-    ENDDO
+      enddo
+    enddo
 
     call xcsum(zvoltop,ztmp1,ips)
     call xcsum(zalkali,ztmp2,ips)
@@ -274,11 +274,11 @@ contains
     zatmn2   =0.
 
     ztmp1(:,:)=0.0
-    DO j=1,kpje
-      DO i=1,kpie
+    do j=1,kpje
+      do i=1,kpie
         ztmp1(i,j) = dlxp(i,j)*dlyp(i,j)
-      ENDDO
-    ENDDO
+      enddo
+    enddo
     call xcsum(ztotarea,ztmp1,ips)
 
     if (use_PBGC_CK_TIMESTEP) then
@@ -393,7 +393,7 @@ contains
       totaloxy = totaloxy + so2flux+sn2oflux*0.5+co2flux
     endif
 
-    IF (do_rivinpt) THEN
+    if (do_rivinpt) THEN
       totalcarbon = totalcarbon &
            - (srivflux(irdoc)+srivflux(irdet))*rcar -(srivflux(iralk)+srivflux(irdin)+srivflux(irdip)) ! =sco212
       totalnitr = totalnitr &
@@ -406,7 +406,7 @@ contains
            - (srivflux(irdoc)+srivflux(irdet))*(-24.) &
            - srivflux(irdin)*1.5 - srivflux(irdip)*2. &
            - (srivflux(iralk)+srivflux(irdin)+srivflux(irdip))    ! =sco212
-    ENDIF
+    endif
 
     !=== Compute sediment fluxes
     !----------------------------------------------------------------------
@@ -500,10 +500,10 @@ contains
         write(io_stdo_bgc,*)'Global inventory of aqueous sediment tracer'
         write(io_stdo_bgc,*)'-------------------------------------------'
         write(io_stdo_bgc,*) '       total[kmol]    concentration[mol/L]'
-        DO l=1,npowtra
+        do l=1,npowtra
           write(io_stdo_bgc,*)'No. ',l,' ',zpowtratot(l),                           &
                &     '  ',zpowtratoc(l),'  ',zsedtotvol
-        ENDDO
+        enddo
         write(io_stdo_bgc,*) ' '
 
         !=== non aqueous sediment tracer
@@ -515,10 +515,10 @@ contains
              &     '----------------------------------------------------'
         write(io_stdo_bgc,*) '        [kmol]'
 
-        DO l=1,nsedtra
+        do l=1,nsedtra
           write(io_stdo_bgc,*) 'Sediment No. ',l,' ', zsedlayto(l)
           write(io_stdo_bgc,*) 'Burial No. ',l,' ', zburial(l)
-        ENDDO
+        enddo
         write(io_stdo_bgc,*) 'hpl ', zsedhplto
         write(io_stdo_bgc,*) ' '
       endif
@@ -532,9 +532,9 @@ contains
       write(io_stdo_bgc,*) '       total[kmol]  concentration[kmol/m^3]'
       write(io_stdo_bgc,*) ' '
       write(io_stdo_bgc,*) 'ztotvol',ztotvol
-      DO l=1,nocetra
+      do l=1,nocetra
         write(io_stdo_bgc,*) 'No. ',l, zocetratot(l), zocetratoc(l)
-      ENDDO
+      enddo
 
       !=== additional ocean tracer
       !------------------------------------------------------------------
@@ -583,16 +583,16 @@ contains
       !      &               zprorca, zprcaca, zsilpro
       ! write(io_stdo_bgc,*) ' '
 
-      IF(do_ndep) write(io_stdo_bgc,*) 'NdepFlux :',sndepflux
+      if (do_ndep) write(io_stdo_bgc,*) 'NdepFlux :',sndepflux
 
       ! riverine fluxes
       !------------------------------------------------------------------
-      IF(do_rivinpt)THEN
+      if (do_rivinpt)THEN
         write(io_stdo_bgc,*) 'Riverine fluxes:'
-        DO l=1,nriv
+        do l=1,nriv
           write(io_stdo_bgc,*) 'No. ',l,srivflux(l)
-        ENDDO
-      ENDIF
+        enddo
+      endif
 
       !=== Sum of inventory
       !------------------------------------------------------------------
@@ -617,9 +617,9 @@ contains
       write(io_stdo_bgc,*) 'Detritus, Calcium Carbonate, Silicate  ',              &
            &               sum_zprorca, sum_zprcaca, sum_zsilpro
       write(io_stdo_bgc,*) ' '
-      DO l=1,npowtra
+      do l=1,npowtra
         write(io_stdo_bgc,*) 'No. ',l,' ',sum_sedfluxo(l)
-      ENDDO
+      enddo
       write(io_stdo_bgc,*) ' '
       write(io_stdo_bgc,*) 'Global total export production'
       write(io_stdo_bgc,*) '------------------------------'

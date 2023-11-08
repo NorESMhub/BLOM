@@ -83,15 +83,15 @@ contains
     fdt = dtb/365.
 
     !$OMP PARALLEL DO PRIVATE(i,k,volij)
-    DO j=1,kpje
-      DO i=1,kpie
-        IF(omask(i,j).GT.0.5) THEN
+    do j=1,kpje
+      do i=1,kpie
+        if(omask(i,j).GT.0.5) THEN
 
           ! Distribute riverine inputs over the model mixed layer
           volij = 0.
-          DO k=1,kmle(i,j)
+          do k=1,kmle(i,j)
             volij=volij+pddpo(i,j,k)
-          ENDDO
+          enddo
 
           if (use_cisonew) then
             ocetra(i,j,1:kmle(i,j),isco213)    = ocetra(i,j,1:kmle(i,j),isco213)    +                   &
@@ -142,9 +142,9 @@ contains
           rivinflx(i,j,iriron) = rivin(i,j,iriron)*fdt*dFe_frac
           rivinflx(i,j,irdoc)  = rivin(i,j,irdoc)*fdt
           rivinflx(i,j,irdet)  = rivin(i,j,irdet)*fdt
-        ENDIF
-      ENDDO
-    ENDDO
+        endif
+      enddo
+    enddo
     !$OMP END PARALLEL DO
 
   end subroutine apply_rivin

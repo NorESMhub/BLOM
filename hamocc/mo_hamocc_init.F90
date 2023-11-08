@@ -25,7 +25,7 @@ module mo_hamocc_init
 
 contains
 
-  subroutine HAMOCC_INIT(read_rest,rstfnm_hamocc)
+  subroutine hamocc_init(read_rest,rstfnm_hamocc)
 
     !******************************************************************************
     ! Initialize HAMOCC and its interface to BLOM.
@@ -113,7 +113,7 @@ contains
     read (unit=iounit, nml=BGCNML)
     close (unit=iounit)
 
-    IF (mnproc.eq.1) THEN
+    if (mnproc.eq.1) THEN
       write(io_stdo_bgc,*)
       write(io_stdo_bgc,*) 'iHAMOCC: reading namelist BGCNML'
       write(io_stdo_bgc,nml=BGCNML)
@@ -128,7 +128,7 @@ contains
           stop        '(invalid nb. of sediment spinup subcycles)'
         endif
       endif
-    ENDIF
+    endif
 
     ! init the index-mapping between pore water and ocean tracers
     call init_por2octra_mapping()
@@ -208,10 +208,10 @@ contains
     !     initialised in BELEG_VARS) to both timelevels of their respective
     !     two-time-level counterpart
     !
-    IF(read_rest.eq.1) THEN
+    if (read_rest.eq.1) THEN
       call AUFR_BGC(idm,jdm,kdm,ntr,ntrbgc,itrbgc,trc,                           &
            &   date%year,date%month,date%day,omask,rstfnm_hamocc)
-    ELSE
+    else
       trc(1:idm,1:jdm,1:kdm,      itrbgc:itrbgc+ntrbgc-1) =                      &
            &   ocetra(:,:,:,:)
       trc(1:idm,1:jdm,kdm+1:2*kdm,itrbgc:itrbgc+ntrbgc-1) =                      &
@@ -228,7 +228,7 @@ contains
         atm2(:,:,1,:)            = atm(:,:,:)
         atm2(:,:,2,:)            = atm(:,:,:)
       endif
-    ENDIF
+    endif
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)

@@ -66,26 +66,26 @@ contains
     integer :: ncid,ncstat,ncvarid,errstat
 
     ! allocate field to hold swa fields
-    IF (mnproc.eq.1) THEN
+    if (mnproc.eq.1) THEN
       write(io_stdo_bgc,*)' '
       write(io_stdo_bgc,*)'***************************************************'
       write(io_stdo_bgc,*)'iHAMOCC: Initialization of module mo_clim_swa:'
       write(io_stdo_bgc,*)' '
-    ENDIF
+    endif
 
-    IF (mnproc.eq.1) THEN
+    if (mnproc.eq.1) THEN
       write(io_stdo_bgc,*)'Memory allocation for variable swa_clim ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
-    ENDIF
+    endif
     allocate (swa_clim(kpie,kpje,1),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory swa_clim'
     swa_clim(:,:,1) = 0.0
 
     ! Open netCDF data file
-    IF(mnproc==1) THEN
+    if (mnproc==1) THEN
       ncstat = NF90_OPEN(trim(swaclimfile),NF90_NOWRITE, ncid)
-      IF (ncstat.NE.NF90_NOERR ) THEN
+      if (ncstat.NE.NF90_NOERR ) THEN
         call xchalt('(ini_swa_clim: Problem with netCDF1)')
         stop '(ini_swa_clim: Problem with netCDF1)'
       END IF
@@ -95,9 +95,9 @@ contains
     call read_netcdf_var(ncid,'swa',swa_clim(1,1,1),1,1,0)
 
     ! Close file
-    IF(mnproc==1) THEN
+    if (mnproc==1) THEN
       ncstat = NF90_CLOSE(ncid)
-      IF ( ncstat .NE. NF90_NOERR ) THEN
+      if ( ncstat .NE. NF90_NOERR ) THEN
         call xchalt('(ini_swa_clim: Problem with netCDF200)')
         stop '(ini_swa_clim: Problem with netCDF200)'
       END IF

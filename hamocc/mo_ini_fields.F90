@@ -45,8 +45,8 @@ contains
     ! local variables
     integer             :: i,j
 
-    DO j=1,kpje
-      DO i=1,kpie
+    do j=1,kpje
+      do i=1,kpie
         atm(i,j,iatmco2)  = atm_co2
         atm(i,j,iatmo2)   = atm_o2
         atm(i,j,iatmn2)   = atm_n2
@@ -60,12 +60,12 @@ contains
         if (use_BROMO) then
           atm(i,j,iatmbromo)= atm_bromo
         endif
-      ENDDO
-    ENDDO
-  END SUBROUTINE INI_FIELDS_ATM
+      enddo
+    enddo
+  end subroutine ini_fields_atm
 
 
-  SUBROUTINE INI_FIELDS_OCEAN(kpaufr,kpie,kpje,kpke,kbnd,pddpo,prho,omask,pglon,pglat)
+  subroutine ini_fields_ocean(kpaufr,kpie,kpje,kpke,kbnd,pddpo,prho,omask,pglon,pglat)
 
     !******************************************************************************
     ! Initialize bgc variables.
@@ -111,13 +111,13 @@ contains
     real    :: snow ! agg
 
     if (use_FB_BGC_OCE) then
-      DO k=1,kpke
-        DO j=1,kpje
-          DO i=1,kpie
+      do k=1,kpke
+        do j=1,kpje
+          do i=1,kpie
             abs_oce(i,j,k)=1.
-          ENDDO
-        ENDDO
-      ENDDO
+          enddo
+        enddo
+      enddo
     endif
     !
     ! Initialisation of ocean tracers and sediment
@@ -128,12 +128,12 @@ contains
     call profile_gd(kpie,kpje,kpke,kbnd,pglon,pglat,omask)
 
     ! If this is a restart run initialisation is done in aufr.F90
-    IF(kpaufr.EQ.1) RETURN
+    if (kpaufr.EQ.1) RETURN
 
-    DO k=1,kpke
-      DO j=1,kpje
-        DO i=1,kpie
-          IF (omask(i,j) .GT. 0.5 ) THEN
+    do k=1,kpke
+      do j=1,kpje
+        do i=1,kpie
+          if (omask(i,j) .GT. 0.5 ) THEN
             ! convert WOA tracers kmol/m^3 -> mol/kg; GLODAP dic and alk
             ! are already in mol/kg. We need these units here, since after
             ! initialisation the tracer field is passed to the ocean model
@@ -154,16 +154,16 @@ contains
               beta14=ocetra(i,j,k,isco214)/1000.+1.
               ocetra(i,j,k,isco214) = ocetra(i,j,k,isco212)*beta14*re14to/c14fac
             endif
-          ENDIF
-        ENDDO
-      ENDDO
-    ENDDO
+          endif
+        enddo
+      enddo
+    enddo
 
     ! Initialise remaining ocean tracers
-    DO k=1,kpke
-      DO j=1,kpje
-        DO i=1,kpie
-          IF(omask(i,j) .GT. 0.5) THEN
+    do k=1,kpke
+      do j=1,kpje
+        do i=1,kpie
+          if (omask(i,j) .GT. 0.5) THEN
             ocetra(i,j,k,igasnit)=1.e-10
             ocetra(i,j,k,idoc)   =1.e-8
             ocetra(i,j,k,iphy)   =1.e-8
@@ -217,31 +217,31 @@ contains
               ! Initialise to 0,01 pmol L-1 (Stemmler et al., 2015) => mol/kg
               ocetra(i,j,k,ibromo)= 1.e-14/prho(i,j,k)
             endif
-          ENDIF ! omask > 0.5
-        ENDDO
-      ENDDO
-    ENDDO
+          endif ! omask > 0.5
+        enddo
+      enddo
+    enddo
 
     ! Initialise preformed tracers in the mixed layer; note that the
     ! whole field has been initialised to zero above
-    DO j=1,kpje
-      DO i=1,kpie
-        IF(omask(i,j) .GT. 0.5) THEN
+    do j=1,kpje
+      do i=1,kpie
+        if (omask(i,j) .GT. 0.5) THEN
           ocetra(i,j,1:kmle(i,j),iprefo2)  = ocetra(i,j,1:kmle(i,j),ioxygen)
           ocetra(i,j,1:kmle(i,j),iprefpo4) = ocetra(i,j,1:kmle(i,j),iphosph)
           ocetra(i,j,1:kmle(i,j),iprefalk) = ocetra(i,j,1:kmle(i,j),ialkali)
           ocetra(i,j,1:kmle(i,j),iprefdic) = ocetra(i,j,1:kmle(i,j),isco212)
-        ENDIF
-      ENDDO
-    ENDDO
+        endif
+      enddo
+    enddo
 
 
     ! Initial values for sediment
     if (.not. use_sedbypass) then
-      DO  k=1,ks
-        DO  j=1,kpje
-          DO  i=1,kpie
-            IF(omask(i,j) .GT. 0.5) THEN
+      do  k=1,ks
+        do  j=1,kpje
+          do  i=1,kpie
+            if (omask(i,j) .GT. 0.5) THEN
               powtra(i,j,k,ipowaic)=ocetra(i,j,kbo(i,j),isco212)
               powtra(i,j,k,ipowaal)=ocetra(i,j,kbo(i,j),ialkali)
               powtra(i,j,k,ipowaph)=ocetra(i,j,kbo(i,j),iphosph)
@@ -264,7 +264,7 @@ contains
                 sedlay(i,j,k,isssc13)=sedlay(i,j,k,isssc12)*rco213
                 sedlay(i,j,k,isssc14)=sedlay(i,j,k,isssc12)*rco214
               endif
-            ELSE
+            else
               powtra(i,j,k,ipowno3)=rmasks
               powtra(i,j,k,ipown2) =rmasks
               powtra(i,j,k,ipowaic)=rmasks
@@ -286,19 +286,19 @@ contains
                 sedlay(i,j,k,isssc13)=rmasks
                 sedlay(i,j,k,isssc14)=rmasks
               endif
-            ENDIF
-          ENDDO
-        ENDDO
-      ENDDO
+            endif
+          enddo
+        enddo
+      enddo
 
       ! last and final sediment layer
-      DO  l=1,nsedtra
-        DO  j=1,kpje
-          DO  i=1,kpie
+      do  l=1,nsedtra
+        do  j=1,kpje
+          do  i=1,kpie
             burial(i,j,l)=0.
-          ENDDO
-        ENDDO
-      ENDDO
+          enddo
+        enddo
+      enddo
     endif
 
   end subroutine ini_fields_ocean

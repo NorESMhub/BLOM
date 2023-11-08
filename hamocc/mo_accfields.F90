@@ -247,7 +247,7 @@ contains
     call accsrf(joalkfx,oalkflx,omask,0)
 
     ! Accumulate the diagnostic mass sinking field
-    IF( domassfluxes ) THEN
+    if( domassfluxes ) THEN
       call accsrf(jcarflx0100,carflx0100,omask,0)
       call accsrf(jbsiflx0100,bsiflx0100,omask,0)
       call accsrf(jcalflx0100,calflx0100,omask,0)
@@ -266,7 +266,7 @@ contains
       call accsrf(jcarflx_bot,carflx_bot,omask,0)
       call accsrf(jbsiflx_bot,bsiflx_bot,omask,0)
       call accsrf(jcalflx_bot,calflx_bot,omask,0)
-    ENDIF
+    endif
 
     if (.not. use_sedbypass) then
       ! Accumulate diffusive fluxes between water column and sediment
@@ -344,7 +344,7 @@ contains
     endif
 
     ! Accumulate level diagnostics
-    IF (SUM(jlvlphyto+jlvlgrazer+jlvlphosph+jlvloxygen+jlvliron+      &
+    if (SUM(jlvlphyto+jlvlgrazer+jlvlphosph+jlvloxygen+jlvliron+      &
          &  jlvlano3+jlvlalkali+jlvlsilica+jlvldic+jlvldoc+jlvlpoc+jlvlcalc+&
          &  jlvlopal+jlvln2o+jlvlco3+jlvlph+jlvlomegaa+jlvlomegac+jlvlphosy+&
          &  jlvlo2sat+jlvlprefo2+jlvlprefpo4+jlvlprefalk+jlvlprefdic+       &
@@ -353,7 +353,7 @@ contains
          &  jlvld14c+jlvlbigd14c+jlvlpoc13+jlvldoc13+jlvlcalc13+jlvlphyto13+&
          &  jlvlgrazer13+jlvlnos+jlvlwphy+jlvlwnos+jlvleps+jlvlasize+       &
          &  jlvlcfc11+jlvlcfc12+jlvlsf6+jlvlbromo).NE.0) THEN
-      DO k=1,kpke
+      do k=1,kpke
         call bgczlv(pddpo,k,ind1,ind2,wghts)
         call acclvl(jlvlphyto,ocetra(1,1,1,iphy),k,ind1,ind2,wghts)
         call acclvl(jlvlgrazer,ocetra(1,1,1,izoo),k,ind1,ind2,wghts)
@@ -416,8 +416,8 @@ contains
         if (use_BROMO) then
           call acclvl(jlvlbromo,ocetra(1,1,1,ibromo),k,ind1,ind2,wghts)
         endif
-      ENDDO
-    ENDIF
+      enddo
+    endif
 
 
     if (.not. use_sedbypass) then
@@ -442,7 +442,7 @@ contains
     endif
 
     ! Write output if requested
-    DO l=1,nbgc
+    do l=1,nbgc
       nacc_bgc(l)=nacc_bgc(l)+1
       if (bgcwrt(l)) then
         if (GLB_INVENTORY(l).ne.0) then
@@ -451,7 +451,7 @@ contains
         call ncwrt_bgc(l)
         nacc_bgc(l)=0
       endif
-    ENDDO
+    enddo
 
     atmflx=0. ! nullifying atm flux here to have zero fluxes for stepwise inventory fluxes
     ndepflx=0.

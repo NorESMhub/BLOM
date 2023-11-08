@@ -547,7 +547,7 @@ contains
     dtbinv    = 1./dtb
     dtbgcinv  = 1./dtbgc
 
-    IF (mnproc.eq.1) THEN
+    if (mnproc.eq.1) THEN
       write(io_stdo_bgc,*) '****************************************************************'
       write(io_stdo_bgc,*) '* '
       write(io_stdo_bgc,*) '* Configuration: '
@@ -714,7 +714,7 @@ contains
       write(io_stdo_bgc,*) '*          calcdens     = ',calcdens
       write(io_stdo_bgc,*) '*          claydens     = ',claydens
       write(io_stdo_bgc,*) '****************************************************************'
-    ENDIF
+    endif
 
   end subroutine write_parambgc
 

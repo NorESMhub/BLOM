@@ -62,7 +62,7 @@ contains
 
     ! Read NETCDF data
 
-    IF(TYPEIO==0) THEN
+    if (TYPEIO==0) THEN
 
       start=1
       count=0
@@ -115,7 +115,7 @@ contains
         enddo
       enddo
 
-    ELSE IF(TYPEIO==1) THEN
+    else if (TYPEIO==1) THEN
 
 #ifdef PNETCDF
       allocate(arr_l(ii,jj,klev))
@@ -162,9 +162,9 @@ contains
         enddo
       enddo
 #endif
-    ELSE
+    else
       call xchalt('(read_pnetcdf_var) WRONG IOTYPE')
-    ENDIF
+    endif
 
   end subroutine read_netcdf_var
 

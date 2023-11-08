@@ -184,13 +184,13 @@ contains
       endif
     enddo
 
-    IF (mnproc.EQ.1 .AND. kplyear.GT.kplyear_old) THEN
+    if (mnproc.EQ.1 .AND. kplyear.GT.kplyear_old) THEN
       write(io_stdo_bgc,*) 'ATM NH CFC11, CFC12, SF6=',             &
            &    kplyear,atm_cfc11_nh,atm_cfc12_nh,atm_sf6_nh
       write(io_stdo_bgc,*) 'ATM SH CFC11, CFC12, SF6=',             &
            &    kplyear,atm_cfc11_sh,atm_cfc12_sh,atm_sf6_sh
       kplyear_old = kplyear
-    ENDIF
+    endif
 
   end subroutine get_cfc
 

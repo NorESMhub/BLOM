@@ -70,11 +70,11 @@ contains
     ! N-fixation by cyano bacteria (followed by remineralisation and nitrification),
     ! it is assumed here that this process is limited to the mixed layer
     !
-    DO j=1,kpje
-      DO i=1,kpie
-        IF(omask(i,j).gt.0.5) THEN
-          DO k=1,kmle(i,j)
-            IF(ocetra(i,j,k,iano3).LT.(rnit*ocetra(i,j,k,iphosph))) THEN
+    do j=1,kpje
+      do i=1,kpie
+        if (omask(i,j).gt.0.5) THEN
+          do k=1,kmle(i,j)
+            if (ocetra(i,j,k,iano3).LT.(rnit*ocetra(i,j,k,iphosph))) THEN
 
               oldocetra = ocetra(i,j,k,iano3)
               ttemp = min(40.,max(-3.,ptho(i,j,k)))
@@ -102,11 +102,11 @@ contains
 
               intnfix(i,j) = intnfix(i,j) + (ocetra(i,j,k,iano3)-oldocetra)*pddpo(i,j,k)
 
-            ENDIF
-          ENDDO
-        ENDIF
-      ENDDO
-    ENDDO
+            endif
+          enddo
+        endif
+      enddo
+    enddo
 
   end subroutine cyano
 
