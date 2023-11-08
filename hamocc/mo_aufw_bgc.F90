@@ -30,7 +30,7 @@ contains
        kplyear,kplmon,kplday,kpldtoce,omask,rstfnm)
 
     !******************************************************************************
-    ! Wwrite marine bgc restart data.
+    ! Write marine bgc restart data.
     ! Write restart data for continuation of interrupted integration.
     ! The bgc data are written to an extra file, other than the ocean data.
     ! The time stamp of the bgc restart file (idate) is taken from the
