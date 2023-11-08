@@ -1154,7 +1154,7 @@ CONTAINS
       if (nbgct_bur.NE.0) bgct_bur=0.
     endif
 
-  end subroutine ALLOC_MEM_BGCMEAN
+  end subroutine alloc_mem_bgcmean
 
 
 
