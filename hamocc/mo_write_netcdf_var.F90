@@ -203,8 +203,9 @@ contains
       ! endif
 
       deallocate(istart,icount,arr_g1)
-    end if
 #endif
+
+    end if
 
   end subroutine write_netcdf_var
 
