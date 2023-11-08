@@ -87,21 +87,21 @@ contains
     use mo_sedmnt,      only: sedlay,powtra,burial
 
     ! Arguments
-    integer, intent(in) :: kpie                                              !  1st dimension of model grid.
-    integer, intent(in) :: kpje                                              !  2nd dimension of model grid.
-    integer, intent(in) :: kpke                                              !  3rd (vertical) dimension of model grid.
-    integer, intent(in) :: kbnd                                              !  nb of halo grid points
-    real,    intent(in) :: pdlxp(kpie,kpje)                                  !  size of scalar grid cell (1st dimension) [m].
-    real,    intent(in) :: pdlyp(kpie,kpje)                                  !  size of scalar grid cell (2nd dimension) [m].
-    real,    intent(in) :: pddpo(kpie,kpje,kpke)                             !  size of scalar grid cell (3rd dimension) [m].
-    real,    intent(in) :: prho(kpie,kpje,kpke)                              !  density [g/cm^3].
-    real,    intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)          !  latitude of grid cells [deg north].
-    real,    intent(in) :: omask(kpie,kpje)                                  !  ocean mask.
-    real,    intent(in) :: psicomo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)        !  sea ice.
-    real,    intent(in) :: ppao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)           !  sea level presure [pascal].
-    real,    intent(in) :: pfu10(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)          !  forcing field wind speed.
-    real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)      !  potential temperature.
-    real,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)      !  salinity [psu].
+    integer, intent(in) :: kpie                                              ! 1st dimension of model grid.
+    integer, intent(in) :: kpje                                              ! 2nd dimension of model grid.
+    integer, intent(in) :: kpke                                              ! 3rd (vertical) dimension of model grid.
+    integer, intent(in) :: kbnd                                              ! nb of halo grid points
+    real,    intent(in) :: pdlxp(kpie,kpje)                                  ! size of scalar grid cell (1st dimension) [m].
+    real,    intent(in) :: pdlyp(kpie,kpje)                                  ! size of scalar grid cell (2nd dimension) [m].
+    real,    intent(in) :: pddpo(kpie,kpje,kpke)                             ! size of scalar grid cell (3rd dimension) [m].
+    real,    intent(in) :: prho(kpie,kpje,kpke)                              ! density [g/cm^3].
+    real,    intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)          ! latitude of grid cells [deg north].
+    real,    intent(in) :: omask(kpie,kpje)                                  ! ocean mask.
+    real,    intent(in) :: psicomo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)        ! sea ice.
+    real,    intent(in) :: ppao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)           ! sea level pressure [pascal].
+    real,    intent(in) :: pfu10(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)          ! forcing field wind speed.
+    real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)      ! potential temperature.
+    real,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)      ! salinity [psu].
 
     ! Local variables
     integer, parameter :: niter=20
