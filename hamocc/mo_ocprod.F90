@@ -1045,16 +1045,19 @@ contains
               else if (use_WLIN) then
                 wpoc   = min(wmin+wlin*ptiestu(i,j,k),     wmax)
                 wpocd  = min(wmin+wlin*ptiestu(i,j,kdonor),wmax)
+                wcal   = wcal_const
                 wcald  = wcal_const
-                wopald = wopal_const
                 wopal  = wopal_const
+                wopald = wopal_const
                 wdust  = wdust_const
                 dagg   = 0.0
               else
+                wpoc   = wpoc_const
                 wpocd  = wpoc_const
+                wcal   = wcal_const
                 wcald  = wcal_const
-                wopald = wopal_const
                 wopal  = wopal_const
+                wopald = wopal_const
                 wdust  = wdust_const
                 dagg   = 0.0
               endif
@@ -1070,46 +1073,46 @@ contains
                 endif
               endif
 
-              ocetra(i,j,k,iopal)  = (ocetra(i,j,k     ,iopal)*pddpo(i,j,k)        &
-                   + ocetra(i,j,kdonor,iopal)*wopald)/            &
+              ocetra(i,j,k,iopal)  = (ocetra(i,j,k,iopal)*pddpo(i,j,k)      &
+                   + ocetra(i,j,kdonor,iopal)*wopald)/                      &
                    (pddpo(i,j,k)+wopal)
-              ocetra(i,j,k,ifdust) = (ocetra(i,j,k     ,ifdust)*pddpo(i,j,k)       &
-                   + ocetra(i,j,kdonor,ifdust)*wdust)/            &
+              ocetra(i,j,k,ifdust) = (ocetra(i,j,k,ifdust)*pddpo(i,j,k)     &
+                   + ocetra(i,j,kdonor,ifdust)*wdust)/                      &
                    (pddpo(i,j,k)+wdust) - dagg
-              ocetra(i,j,k,idet)   = (ocetra(i,j,k     ,idet)*pddpo(i,j,k)         &
-                   + ocetra(i,j,kdonor,idet)*wpocd)/              &
+              ocetra(i,j,k,idet)   = (ocetra(i,j,k,idet)*pddpo(i,j,k)       &
+                   + ocetra(i,j,kdonor,idet)*wpocd)/                        &
                    (pddpo(i,j,k)+wpoc)
-              ocetra(i,j,k,icalc)  = (ocetra(i,j,k     ,icalc)*pddpo(i,j,k)        &
-                   + ocetra(i,j,kdonor,icalc)*wcald)/             &
+              ocetra(i,j,k,icalc)  = (ocetra(i,j,k,icalc)*pddpo(i,j,k)      &
+                   + ocetra(i,j,kdonor,icalc)*wcald)/                       &
                    (pddpo(i,j,k)+wcal)
               if (use_cisonew) then
-                ocetra(i,j,k,idet13)  = (ocetra(i,j,k     ,idet13)*pddpo(i,j,k)   &
-                     + ocetra(i,j,kdonor,idet13)*wpocd)/        &
+                ocetra(i,j,k,idet13)  = (ocetra(i,j,k,idet13)*pddpo(i,j,k)  &
+                     + ocetra(i,j,kdonor,idet13)*wpocd)/                    &
                      (pddpo(i,j,k)+wpoc)
-                ocetra(i,j,k,idet14)  = (ocetra(i,j,k     ,idet14)*pddpo(i,j,k)   &
-                     + ocetra(i,j,kdonor,idet14)*wpocd)/        &
+                ocetra(i,j,k,idet14)  = (ocetra(i,j,k,idet14)*pddpo(i,j,k)  &
+                     + ocetra(i,j,kdonor,idet14)*wpocd)/                    &
                      (pddpo(i,j,k)+wpoc)
-                ocetra(i,j,k,icalc13) = (ocetra(i,j,k     ,icalc13)*pddpo(i,j,k)  &
-                     + ocetra(i,j,kdonor,icalc13)*wcald)/       &
+                ocetra(i,j,k,icalc13) = (ocetra(i,j,k,icalc13)*pddpo(i,j,k) &
+                     + ocetra(i,j,kdonor,icalc13)*wcald)/                   &
                      (pddpo(i,j,k)+wcal)
-                ocetra(i,j,k,icalc14) = (ocetra(i,j,k     ,icalc14)*pddpo(i,j,k)  &
-                     + ocetra(i,j,kdonor,icalc14)*wcald)/       &
+                ocetra(i,j,k,icalc14) = (ocetra(i,j,k,icalc14)*pddpo(i,j,k) &
+                     + ocetra(i,j,kdonor,icalc14)*wcald)/                   &
                      (pddpo(i,j,k)+wcal)
               endif
               if (use_natDIC) then
-                ocetra(i,j,k,inatcalc)= (ocetra(i,j,k,     inatcalc)*pddpo(i,j,k) &
-                     + ocetra(i,j,kdonor,inatcalc)*wcald)/      &
+                ocetra(i,j,k,inatcalc)= (ocetra(i,j,k,inatcalc)*pddpo(i,j,k) &
+                     + ocetra(i,j,kdonor,inatcalc)*wcald)/                   &
                      (pddpo(i,j,k)+wcal)
               endif
               if (use_AGG) then
-                ocetra(i,j,k,iphy)    = (ocetra(i,j,k     ,iphy)*pddpo(i,j,k)     &
-                     + ocetra(i,j,kdonor,iphy)*wpocd)/          &
+                ocetra(i,j,k,iphy)    = (ocetra(i,j,k,iphy)*pddpo(i,j,k)     &
+                     + ocetra(i,j,kdonor,iphy)*wpocd)/                       &
                      (pddpo(i,j,k)+wpoc)
-                ocetra(i,j,k,inos)    = (ocetra(i,j,k     ,inos)*pddpo(i,j,k)     &
-                     + ocetra(i,j,kdonor,inos)*wnosd)/          &
+                ocetra(i,j,k,inos)    = (ocetra(i,j,k,inos)*pddpo(i,j,k)     &
+                     + ocetra(i,j,kdonor,inos)*wnosd)/                       &
                      (pddpo(i,j,k)+wnos) - aggregate(i,j,k)
-                ocetra(i,j,k,iadust)  = (ocetra(i,j,k     ,iadust)*pddpo(i,j,k)   &
-                     + ocetra(i,j,kdonor,iadust)*wpocd)/        &
+                ocetra(i,j,k,iadust)  = (ocetra(i,j,k,iadust)*pddpo(i,j,k)   &
+                     + ocetra(i,j,kdonor,iadust)*wpocd)/                     &
                      (pddpo(i,j,k)+wpoc)  + dagg
               endif
               kdonor = k
