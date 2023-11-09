@@ -23,6 +23,7 @@ subroutine restart_trcwt(rstfnm_ocn)
 ! --- Write tracer state to restart files
 ! --- ------------------------------------------------------------------
 !
+  use mo_restart_hamoccwt, only : restart_hamoccwt
   use mod_config, only: expcnf
   use mod_xc
 
