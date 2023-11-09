@@ -69,7 +69,8 @@ contains
                                 gammap,gammaz,grami,grazra,pi_alpha,phytomi,                       &
                                 rcalc,rcar,rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,                     &
                                 relaxfe,remido,riron,rnit,rnoi,ro2ut,ropal,                        &
-                                spemor,wcal,wdust,wopal,wpoc,zinges,alar1,alar2,alar3,             &
+                                spemor,wcal_const,wdust_const,wopal_const,wpoc_const,              &
+                                zinges,alar1,alar2,alar3,                                          &
                                 alow1,alow2,alow3,calmax,cellmass,                                 &
                                 cellsink,dustd1,dustd2,dustd3,dustsink,fractdim,                   &
                                 fse,fsh,nmldmin,plower,pupper,sinkexp,stick,tmfac,                 &
@@ -126,6 +127,7 @@ contains
     real :: dmsprod,dms_bac,dms_uv,dms_ph
     real :: dtr,dz
     real :: wpocd,wcald,wopald,dagg
+    real :: wcal,wdust,wopal,wpoc
     ! sedbypass
     real :: florca,flcaca,flsil
     ! cisonew
@@ -983,7 +985,6 @@ contains
 
     endif ! use_AGG
 
-
     !
     ! implicit method for sinking of particles:
     ! C(k,T+dt)=C(k,T) + (w*dt/ddpo(k))*(C(k-1,T+1)-C(k,T+1))
@@ -991,9 +992,10 @@ contains
     ! C(k,T+dt)=(ddpo(k)*C(k,T)+w*dt*C(k-1,T+dt))/(ddpo(k)+w*dt)
     ! sedimentation=w*dt*C(ks,T+dt)
     !
-    !$OMP PARALLEL DO PRIVATE(kdonor,wpoc,wpocd,wcal,wcald,wopal,wopald   &
-    !$OMP ,wnos,wnosd,dagg                                                &
-    !$OMP ,i,k)
+    !$OMP PARALLEL DO PRIVATE(kdonor,wpoc,wpocd, &
+    !$OMP wcal,wcald,wopal,wopald,               &
+    !$OMP wnos,wnosd,dagg,                       &
+    !$OMP i,k)
     do j = 1,kpje
       do i = 1,kpie
 
@@ -1043,13 +1045,17 @@ contains
               else if (use_WLIN) then
                 wpoc   = min(wmin+wlin*ptiestu(i,j,k),     wmax)
                 wpocd  = min(wmin+wlin*ptiestu(i,j,kdonor),wmax)
-                wcald  = wcal
-                wopald = wopal
+                wcald  = wcal_const
+                wopald = wopal_const
+                wopal  = wopal_const
+                wdust  = wdust_const
                 dagg   = 0.0
               else
-                wpocd  = wpoc
-                wcald  = wcal
-                wopald = wopal
+                wpocd  = wpoc_const
+                wcald  = wcal_const
+                wopald = wopal_const
+                wopal  = wopal_const
+                wdust  = wdust_const
                 dagg   = 0.0
               endif
 

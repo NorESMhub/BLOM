@@ -24,12 +24,11 @@ module mo_param_bgc
   !  - set bgc parameter values.
   !
   ! Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
-  !
   ! Modified
   ! J.Schwinger,        *NORCE Climate, Bergen*    2020-05-19
-  !   -split the original BELEG_BGC in two parts, BELEG_PARM and BELEG_VARS
+  ! -split the original BELEG_BGC in two parts, BELEG_PARM and BELEG_VARS
   ! jmaerz
-  !   - rename beleg_parm to mo_param_bgc
+  ! - rename beleg_parm to mo_param_bgc
   !******************************************************************************
 
   use mo_carbch,      only: atm_co2
@@ -51,20 +50,38 @@ module mo_param_bgc
   private :: calc_param_biol
   private :: rates_2_timestep
 
-  ! Model parameters
-  public :: ro2ut,rcar,rnit,rnoi,riron,rdnit0,rdnit1,rdnit2,rdn2o1,rdn2o2,atm_n2,atm_o2,atm_co2_nat,atm_bromo,re1312,              &
-            re14to,prei13,prei14,ctochl,atten_w,atten_c,atten_uv,atten_f,fetune,perc_diron,fesoly,relaxfe,phytomi,pi_alpha,bkphy,  &
-            dyphy,bluefix,tf2,tf1,tf0,tff,bifr13,bifr14,c14_t_half,rbro,fbro1,fbro2,grami,bkzoo,grazra,spemor,gammap,gammaz,ecan,  &
-            zinges,epsher,bkopal,rcalc,ropal,calmax,remido,drempoc,dremopal,dremn2o,dremsul,wpoc,wcal,wopal,wmin,wmax,wlin,        &
-            dustd1,dustd2,dustd3,dustsink,wdust,SinkExp, FractDim, Stick, cellmass, cellsink, fsh, fse,alow1, alow2,alow3,alar1,   &
-            alar2,alar3,TSFac,TMFac,vsmall,safe,pupper,plower,zdis,nmldmin,beta13,alpha14,atm_c13,atm_c14,c14fac,c14dec,           &
-            sedict,silsat,disso_poc,disso_sil,disso_caco3,sed_denit,calcwei,opalwei,orgwei,calcdens,opaldens,orgdens,claydens,     &
-            dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma
+  ! Module variables set by bgcparams namelist
+  public :: wpoc_const,wcal_const,wopal_const,wdust_const
+  public :: bkopal,bkphy,bluefix,bkzoo
+  public :: drempoc,dremopal,dremn2o,dremsul
+  public :: grazra,gammap,gammaz,spemor
+  public :: ecan,epsher,fetune
+  public :: relaxfe,rcalc,ropal
+  public :: wmin,wmax,wlin,zinges
 
-  !.................................................................................................................................
-  !.................................................................................................................................
+  ! Other module variables
+  public :: ro2ut,rcar,rnit,rnoi,riron,rdnit0,rdnit1,rdnit2,rdn2o1,rdn2o2
+  public :: atm_n2,atm_o2,atm_co2_nat,atm_bromo,re1312
+  public :: re14to,prei13,prei14,ctochl
+  public :: atten_w,atten_c,atten_uv,atten_f
+  public :: perc_diron,fesoly,phytomi,pi_alpha
+  public :: dyphy,tf2,tf1,tf0,tff,bifr13,bifr14,c14_t_half
+  public :: rbro,fbro1,fbro2,grami
+  public :: calmax,remido
+  public :: dustd1,dustd2,dustd3,dustsink
+  public :: SinkExp, FractDim, Stick, cellmass, cellsink
+  public :: fsh,fse,alow1, alow2,alow3
+  public :: alar1,alar2,alar3,TSFac,TMFac
+  public :: vsmall,safe,pupper,plower,zdis,nmldmin
+  public :: beta13,alpha14,atm_c13,atm_c14,c14fac,c14dec
+  public :: sedict,silsat,disso_poc,disso_sil,disso_caco3
+  public :: sed_denit,calcwei,opalwei,orgwei
+  public :: calcdens,opaldens,orgdens,claydens
+  public :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma
+
+  !********************************************************************
   ! Stoichiometry and fixed parameters
-  !.................................................................................................................................
+  !********************************************************************
 
   ! extended redfield ratio declaration
   ! Note: stoichiometric ratios are based on Takahashi etal. (1985)
@@ -89,9 +106,10 @@ module mo_param_bgc
   ! Decay parameter for C14, HalfLive = 5700 years
   real, parameter :: c14_t_half = 5700.*365.      ! Half life of 14C [days]
 
-  !'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+  !********************************************************************
   ! Atmosphere:
-  !'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+  !********************************************************************
+
   real, protected :: atm_n2      = 802000. ! atmosphere dinitrogen concentration
   real, protected :: atm_o2      = 196800. ! atmosphere oxygen concentration
   real, protected :: atm_co2_nat = 284.32  ! atmosphere CO2 concentration CMIP6 pre-industrial reference
@@ -110,16 +128,18 @@ module mo_param_bgc
   real, protected :: atm_c13
   real, protected :: atm_c14                      ! absolute 14c concentration in preindustrial atmosphere
 
-  !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  !********************************************************************
   ! Water column biogeochemistry
-  !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  !********************************************************************
+
   ! Initialize default biogeochemistry parameters
   ! Note that rates are initialized here in /d or equivalent and
   ! time step adjustment is done after reading the BGCPARAMS namelist
 
   !********************************************************************
-  !     Radiation and attenuation parameters
+  ! Radiation and attenuation parameters
   !********************************************************************
+
   ! parameters for sw-radiation attenuation
   ! Analog to Moore et al., Deep-Sea Research II 49 (2002), 403-462
   ! 1 kmolP = (122*12/60)*10^6 mg[Chlorophyl]
@@ -131,7 +151,7 @@ module mo_param_bgc
   ! (only if FB_BGC_OCE) [feedback bgc-ocean]
 
   !********************************************************************
-  !     Dust deposition and iron solubility parameters
+  ! Dust deposition and iron solubility parameters
   !********************************************************************
   !ik weight percent iron in dust deposition times Fe solubility
   ! the latter three values come from Johnson et al., 1997
@@ -141,7 +161,7 @@ module mo_param_bgc
   real, protected :: relaxfe    = 0.05/365.       ! 1/d complexation rate to relax iron concentration to fesoly
 
   !********************************************************************
-  !     Phytoplankton parameters (incl. cyanobacteria)
+  ! Phytoplankton parameters (incl. cyanobacteria)
   !********************************************************************
   real, protected :: phytomi    = 1.e-11          ! kmol/m3 - i.e. 1e-5 mmol P/m3 minimum concentration of phyto plankton (?js)
   real, protected :: pi_alpha   = 0.02*0.4        ! initial slope of production vs irradiance curve (alpha) (0.002 for 10 steps per day)
@@ -167,7 +187,7 @@ module mo_param_bgc
   real, protected :: tff        =  0.2395
 
   !********************************************************************
-  !     Zooplankton parameters
+  ! Zooplankton parameters
   !********************************************************************
   real, protected :: grami      = 1.e-10          ! kmol/m3 - i.e. 1e-5 mmol P/m3 minimum concentration of zooplankton
   real, protected :: bkzoo      = 8.e-8           ! kmol/m3 - i.e. 0.08 mmol P/m3 half saturation constant
@@ -182,7 +202,7 @@ module mo_param_bgc
   real, protected :: epsher                       ! dimensionless fraction - fraction of grazing egested
 
   !********************************************************************
-  !     Shell production (CaCO3 and opal) parameters
+  ! Shell production (CaCO3 and opal) parameters
   !********************************************************************
   real, protected :: bkopal     = 5.e-6           ! kmol/m3 - i.e. 4.0 mmol Si/m3 half saturation constant
   real, protected :: rcalc                        ! calcium carbonate to organic phosphorous production ratio
@@ -190,7 +210,7 @@ module mo_param_bgc
   real, protected :: calmax                       ! maximum CaCO3 production fraction
 
   !********************************************************************
-  !     Remineralization and dissolution parameters
+  ! Remineralization and dissolution parameters
   !********************************************************************
   real, protected :: remido     = 0.004           ! 1/d - remineralization rate (of DOM)
   ! deep sea remineralisation constants
@@ -200,7 +220,7 @@ module mo_param_bgc
   real, protected :: dremsul    = 0.005           ! 1/d Remineralization rate for sulphate reduction
 
   !********************************************************************
-  !     Parameters for DMS and BrO schemes
+  ! Parameters for DMS and BrO schemes
   !********************************************************************
   ! Set constants for dms scheme following Kloster et al. (2006), Table 1
   real, protected :: dmsp1 = 10.             ! 2*5. production with temp
@@ -221,15 +241,13 @@ module mo_param_bgc
   real, protected :: fbro1      = 1.0
   real, protected :: fbro2      = 1.0
 
-  !.................................................................................................................................
-
   !********************************************************************
-  !     Sinking parameters
+  ! Sinking parameters
   !********************************************************************
-  real :: wpoc                  =  5.             ! m/d   Sinking speed of detritus iris : 5.
-  real :: wcal                  = 30.             ! m/d   Sinking speed of CaCO3 shell material
-  real :: wopal                 = 30.             ! m/d   Sinking speed of opal iris : 60
-  real :: wdust                                   ! m/d   Sinking speed of dust
+  real :: wpoc_const            =  5.             ! m/d   Sinking speed of detritus iris : 5.
+  real :: wcal_const            = 30.             ! m/d   Sinking speed of CaCO3 shell material
+  real :: wopal_const           = 30.             ! m/d   Sinking speed of opal iris : 60
+  real :: wdust_const                             ! m/d   Sinking speed of dust
   real, protected :: wmin       =  1.             ! m/d   minimum sinking speed
   real, protected :: wmax       = 60.             ! m/d   maximum sinking speed
   real, protected :: wlin       = 60./2400.       ! m/d/m constant describing incr. with depth, r/a=1.0
@@ -243,9 +261,9 @@ module mo_param_bgc
   real, protected :: cellsink = 9999.
 
 
-  !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  !********************************************************************
   ! Sediment biogeochemistry
-  !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  !********************************************************************
   ! Note that the rates in the sediment are given in per second here!
   !
   real, protected :: sedict      = 1.e-9          ! m2/s Molecular diffusion coefficient
@@ -260,14 +278,14 @@ module mo_param_bgc
   real, protected :: sed_denit   = 0.01/86400.    ! 1/s Denitrification rate constant of POP
 
   !********************************************************************
-  !     Densities etc. for SEDIMENT SHIFTING
+  ! Densities etc. for SEDIMENT SHIFTING
   !********************************************************************
   ! define weight of calcium carbonate, opal, and poc [kg/kmol]
   real, parameter :: calcwei = 100.    ! 40+12+3*16 kg/kmol C
   real, parameter :: opalwei = 60.     ! 28 + 2*16  kg/kmol Si
   real, parameter :: orgwei  = 30.     ! from 12 kg/kmol * 2.5 POC[kg]/DW[kg]
-  ! after Alldredge, 1998:
-  ! POC(g)/DW(g) = 0.4 of diatom marine snow, size 1mm3
+                                       ! after Alldredge, 1998:
+                                       ! POC(g)/DW(g) = 0.4 of diatom marine snow, size 1mm3
 
   ! define densities of opal, caco3, poc [kg/m3]
   real, parameter :: calcdens = 2600.
@@ -275,15 +293,14 @@ module mo_param_bgc
   real, parameter :: orgdens  = 1000.
   real, parameter :: claydens = 2600.  ! quartz
 
-  !=================================================================================================================================
-  !=================================================================================================================================
-
+  !********************************************************************
   ! Module-wide variables used in more than one subroutine
+  !********************************************************************
   real :: beta13, alpha14, d14cat, d13c_atm
 
 contains
 
-  !---------------------------------------------------------------------------------------------------------------------------------
+  !********************************************************************
   subroutine ini_parambgc(kpie,kpje)
     !
     ! First, Initialze parameters of individual components with default values.
@@ -309,7 +326,7 @@ contains
     call write_parambgc()    ! write out used parameters and calculate back rates from /dtb to /d..
   end subroutine ini_parambgc
 
-  !---------------------------------------------------------------------------------------------------------------------------------
+  !********************************************************************
   subroutine calc_param_atm()
     !
     ! AFTER having read the namelist:
@@ -329,15 +346,15 @@ contains
     endif
   end subroutine calc_param_atm
 
-  !---------------------------------------------------------------------------------------------------------------------------------
+  !********************************************************************
   subroutine ini_param_biol()
     !
     ! BEFORE reading the namelist:
     ! Default parameters that depend on use case
     !
-    !********************************************************************
+    !*************************************************
     !     Zooplankton parameters
-    !********************************************************************
+    !*************************************************
     if (use_AGG) then
       zinges  = 0.5        ! dimensionless fraction -assimilation efficiency
       epsher  = 0.9        ! dimensionless fraction -fraction of grazing egested
@@ -349,9 +366,9 @@ contains
       epsher  = 0.8        ! dimensionless fraction -fraction of grazing egest
     endif
 
-    !********************************************************************
-    !     Shell production (CaCO3 and opal) parameters
-    !********************************************************************
+    !*************************************************
+    ! Shell production (CaCO3 and opal) parameters
+    !*************************************************
     if (use_AGG) then
       rcalc  = 14.         ! calcium carbonate to organic phosphorous production ratio
       ropal  = 10.5        ! opal to organic phosphorous production ratio
@@ -363,27 +380,25 @@ contains
       rcalc  = 40.         ! iris 40 !calcium carbonate to organic phosphorous production ratio
       ropal  = 30.         ! iris 25 !opal to organic phosphorous production ratio
     endif
-
-
   end subroutine ini_param_biol
 
-  !---------------------------------------------------------------------------------------------------------------------------------
+  !********************************************************************
   subroutine read_bgcnamelist()
     !
-    ! Read the bgcparams namelist for parameter tuning.
+    ! READ the bgcparams namelist for parameter tuning.
     ! Note that afterward, i) rates need to be adjusted for timestep
     ! and some depending parameters need re-calculation
     !
     integer  :: iounit
 
-    namelist /bgcparams/ bkphy,dyphy,bluefix,bkzoo,grazra,spemor,gammap,gammaz, &
-         ecan,zinges,epsher,bkopal,rcalc,ropal,                                 &
-         remido,drempoc,dremopal,dremn2o,dremsul,fetune,relaxfe,                &
-         wmin,wmax,wlin,wpoc,wcal,wopal
+    namelist /bgcparams/ bkphy,dyphy,bluefix,bkzoo,grazra,spemor,gammap,gammaz,  &
+                         ecan,zinges,epsher,bkopal,rcalc,ropal,                  &
+                         remido,drempoc,dremopal,dremn2o,dremsul,fetune,relaxfe, &
+                         wmin,wmax,wlin,wpoc_const,wcal_const,wopal_const
 
     open (newunit=iounit, file=bgc_namelist, status='old',action='read')
     read (unit=iounit, nml=BGCPARAMS)
-    close (unit=iounit)
+    close(unit=iounit)
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*) '------------------------------------------'
@@ -394,7 +409,7 @@ contains
 
   end subroutine read_bgcnamelist
 
-  !---------------------------------------------------------------------------------------------------------------------------------
+  !********************************************************************
   subroutine calc_param_biol()
     !
     ! AFTER reading the namelist:
@@ -411,14 +426,12 @@ contains
 
   end subroutine calc_param_biol
 
-  !---------------------------------------------------------------------------------------------------------------------------------
+  !********************************************************************
   subroutine rates_2_timestep()
     !
     ! AFTER potential update of rates, convert them to rates per timestep
     !
     use mo_control_bgc, only: dtb,dtbgc
-
-    implicit none
 
     !********************************************************************
     !     Phytoplankton parameters (incl. cyanobacteria)
@@ -464,14 +477,14 @@ contains
     !********************************************************************
     !     Sinking parameters
     !********************************************************************
-    wpoc     = wpoc*dtb       ! m/d to m/time step      Sinking speed detritusiris : 5.
-    wcal     = wcal*dtb       ! m/d to m/time step      Sinking speed CaCO3
-    wopal    = wopal*dtb      ! m/d to m/time step      Sinking speed opal iris : 60
-    wmin     = wmin*dtb       ! m/d to m/time step      minimum sinking speed
-    wmax     = wmax*dtb       ! m/d to m/time step      maximum sinking speed
-    wlin     = wlin*dtb       ! m/d/m to m/time step/m  constant describing incr. with depth, r/a=1.0
-    dustsink = dustsink*dtb   ! m/d to m/time step      Sinking speed dust (used in use_AGG)
-    wdust    = dustsink       ! m/d to m/time step      Sinking speed dust
+    wpoc_const  = wpoc_const*dtb  ! m/d to m/time step      Sinking speed detritusiris : 5.
+    wcal_const  = wcal_const*dtb  ! m/d to m/time step      Sinking speed CaCO3
+    wopal_const = wopal_const*dtb ! m/d to m/time step      Sinking speed opal iris : 60
+    wmin        = wmin*dtb        ! m/d to m/time step      minimum sinking speed
+    wmax        = wmax*dtb        ! m/d to m/time step      maximum sinking speed
+    wlin        = wlin*dtb        ! m/d/m to m/time step/m  constant describing incr. with depth, r/a=1.0
+    dustsink    = dustsink*dtb    ! m/d to m/time step      Sinking speed dust (used in use_AGG)
+    wdust_const = dustsink        ! m/d to m/time step      Sinking speed dust
 
     if(dustsink.gt.cellsink .and. use_AGG) then
       if (mnproc.eq.1)then
@@ -492,7 +505,7 @@ contains
 
   end subroutine rates_2_timestep
 
-  !---------------------------------------------------------------------------------------------------------------------------------
+  !********************************************************************
   subroutine ini_aggregation()
     !
     ! parameters needed for the aggregation module
@@ -536,7 +549,7 @@ contains
 
   end subroutine ini_aggregation
 
-  !---------------------------------------------------------------------------------------------------------------------------------
+  !********************************************************************
   subroutine write_parambgc()
     !
     ! Write parameters
@@ -609,9 +622,9 @@ contains
       write(io_stdo_bgc,*) '*          bkphy        = ',bkphy
       write(io_stdo_bgc,*) '*          bkzoo        = ',bkzoo
       write(io_stdo_bgc,*) '*          bkopal       = ',bkopal
-      write(io_stdo_bgc,*) '*          wpoc         = ',wpoc*dtbinv
-      write(io_stdo_bgc,*) '*          wcal         = ',wcal*dtbinv
-      write(io_stdo_bgc,*) '*          wopal        = ',wopal*dtbinv
+      write(io_stdo_bgc,*) '*          wpoc_const   = ',wpoc_const*dtbinv
+      write(io_stdo_bgc,*) '*          wcal_const   = ',wcal_const*dtbinv
+      write(io_stdo_bgc,*) '*          wopal_const  = ',wopal_const*dtbinv
       write(io_stdo_bgc,*) '*          drempoc      = ',drempoc*dtbinv
       write(io_stdo_bgc,*) '*          dremopal     = ',dremopal*dtbinv
       write(io_stdo_bgc,*) '*          dremn2o      = ',dremn2o*dtbinv
@@ -663,7 +676,7 @@ contains
         write(io_stdo_bgc,*) '*          dustd1       = ',dustd1
         write(io_stdo_bgc,*) '*          dustd2       = ',dustd2
         write(io_stdo_bgc,*) '*          dustsink     = ',dustsink*dtbinv
-        write(io_stdo_bgc,*) '*          wdust        = ',wdust*dtbinv
+        write(io_stdo_bgc,*) '*          wdust_const  = ',wdust_const*dtbinv
       else
         write(io_stdo_bgc,*)
         write(io_stdo_bgc,*) '****************************************************************'
