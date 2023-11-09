@@ -92,8 +92,8 @@ contains
       if (ncstat /= NF90_NOERR ) then
         call xchalt('(get_dust: Problem with netCDF1)')
         stop '(get_dust: Problem with netCDF1)'
-      END IF
-    END IF
+      end if
+    end if
 
     ! Read  data
     call read_netcdf_var(ncid,'DUST',dustflx(1,1,1),12,0,0)
@@ -104,8 +104,8 @@ contains
       if ( ncstat /=  NF90_NOERR ) then
         call xchalt('(get_dust: Problem with netCDF200)')
         stop '(get_dust: Problem with netCDF200)'
-      END IF
-    END IF
+      end if
+    end if
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*) ''

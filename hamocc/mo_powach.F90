@@ -286,7 +286,7 @@ contains
         do i = 1, kpie
           if(omask(i,j) > 0.5) then
             if(powtra(i,j,k,ipowaox) < 1.e-6) then
-              posol = denit * MIN(0.5*powtra(i,j,k,ipowno3)/114., sedlay(i,j,k,issso12))
+              posol = denit * min(0.5*powtra(i,j,k,ipowno3)/114., sedlay(i,j,k,issso12))
               umfa = porsol(i,j,k)/porwat(i,j,k)
               anaerob(i,k) = posol*umfa     !this has P units: kmol P/m3 of pore water
               if (use_cisonew) then
@@ -394,7 +394,7 @@ contains
       do i = 1, kpie
         if(omask(i,j) > 0.5) then
           satlev = keqb(11,i,j) / calcon + 2.e-5
-          undsa = MAX( satlev-powcar(i,1), 0. )
+          undsa = max( satlev-powcar(i,1), 0. )
           sedb1(i,0) = bolay(i,j) * (satlev-co3(i,j,kbo(i,j)))
           solrat(i,1) = (sedlay(i,j,1,isssc12)                                   &
                &   + prcaca(i,j) / (porsol(i,j,1)*seddw(1)))                     &
@@ -409,7 +409,7 @@ contains
       do k = 1, ks
         do i = 1, kpie
           if(omask(i,j) > 0.5) then
-            undsa = MAX( keqb(11,i,j) / calcon - powcar(i,k), 0. )
+            undsa = max( keqb(11,i,j) / calcon - powcar(i,k), 0. )
             sedb1(i,k) = seddw(k) * porwat(i,j,k) * undsa
             if (k > 1) then
               solrat(i,k) = sedlay(i,j,k,isssc12) * dissot/(1.+dissot*undsa) * porsol(i,j,k)/porwat(i,j,k)

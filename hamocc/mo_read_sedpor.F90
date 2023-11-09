@@ -93,8 +93,8 @@ contains
       if (ncstat /= NF90_NOERR ) then
         call xchalt('(read_sedpor: Problem with netCDF1)')
         stop '(read_sedpor: Problem with netCDF1)'
-      END IF
-    END IF
+      end if
+    end if
 
     ! Read  data
     call read_netcdf_var(ncid,'sedpor',sed_por_in(1,1,1),ks,0,0)
@@ -105,8 +105,8 @@ contains
       if ( ncstat /=  NF90_NOERR ) then
         call xchalt('(read_sedpor: Problem with netCDF200)')
         stop '(read_sedpor: Problem with netCDF200)'
-      END IF
-    END IF
+      end if
+    end if
 
     do k=1,ks
       do j=1,kpje

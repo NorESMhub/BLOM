@@ -200,7 +200,7 @@ contains
           ! determine whether an additional amount of clay is needed in the burial
           ! layer to fill the whole sediment; I assume that there is an infinite
           ! supply of clay from below
-          burial(i,j,issster) = burial(i,j,issster) + MAX(0.,seddef-spresent)/clafa
+          burial(i,j,issster) = burial(i,j,issster) + max(0.,seddef-spresent)/clafa
 
           ! determine new volume of buried layer
           buried=orgfa*rcar*burial(i,j,issso12) &
