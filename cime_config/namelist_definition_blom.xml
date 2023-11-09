@@ -3829,7 +3829,7 @@
       <value>.false.</value>
       <value ocn_grid="tnx1v4"> .true.</value>
     </values>
-    <desc>NOTE: HAMOCC bromoform scheme currently only supported on the tnx1v4 grid 
+    <desc>NOTE: HAMOCC bromoform scheme currently only supported on the tnx1v4 grid
     (no swa-climatology has been created for other grid configurations)</desc>
   </entry>
 
@@ -4195,7 +4195,7 @@
   <!--   <desc>Dust deposition and iron solubility parameter: 1/d complexation rate to relax iron concentration to fesoly</desc> -->
   <!-- </entry> -->
 
-  <entry id="wpoc">
+  <entry id="wpoc_const">
     <type>real</type>
     <category>bgcparams</category>
     <group>bgcparams</group>
@@ -4205,7 +4205,7 @@
     <desc>Sinking parameter: m/d   Sinking speed of detritus iris : 5.</desc>
   </entry>
 
-  <entry id="wcal">
+  <entry id="wcal_const">
     <type>real</type>
     <category>bgcparams</category>
     <group>bgcparams</group>
@@ -4215,7 +4215,7 @@
     <desc>Sinking parameter: m/d   Sinking speed of CaCO3 shell material</desc>
   </entry>
 
-  <entry id="wopal">
+  <entry id="wopal_const">
     <type>real</type>
     <category>bgcparams</category>
     <group>bgcparams</group>
