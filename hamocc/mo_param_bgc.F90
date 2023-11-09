@@ -244,20 +244,21 @@ module mo_param_bgc
   !********************************************************************
   ! Sinking parameters
   !********************************************************************
-  real :: wpoc_const            =  5.             ! m/d   Sinking speed of detritus iris : 5.
-  real :: wcal_const            = 30.             ! m/d   Sinking speed of CaCO3 shell material
-  real :: wopal_const           = 30.             ! m/d   Sinking speed of opal iris : 60
-  real :: wdust_const                             ! m/d   Sinking speed of dust
-  real, protected :: wmin       =  1.             ! m/d   minimum sinking speed
-  real, protected :: wmax       = 60.             ! m/d   maximum sinking speed
-  real, protected :: wlin       = 60./2400.       ! m/d/m constant describing incr. with depth, r/a=1.0
-  real, protected :: dustd1     = 0.0001          ! cm = 1 um, boundary between clay and silt
+  real, protected :: wpoc_const  =  5.             ! m/d   Sinking speed of detritus iris : 5.
+  real, protected :: wcal_const  = 30.             ! m/d   Sinking speed of CaCO3 shell material
+  real, protected :: wopal_const = 30.             ! m/d   Sinking speed of opal iris : 60
+  real, protected :: wdust_const                             ! m/d   Sinking speed of dust
+  real, protected :: wmin        =  1.             ! m/d   minimum sinking speed
+  real, protected :: wmax        = 60.             ! m/d   maximum sinking speed
+  real, protected :: wlin        = 60./2400.       ! m/d/m constant describing incr. with depth, r/a=1.0
+  real, protected :: dustd1      = 0.0001          ! cm = 1 um, boundary between clay and silt
   real, protected :: dustd2                       ! dust diameter squared
   real, protected :: dustd3                       ! dust diameter cubed
   real, protected :: dustsink                     ! sinking speed of dust (used use_AGG)
 
-  real, protected :: SinkExp, FractDim, Stick, cellmass, fsh, fse,alow1, alow2,alow3,alar1,alar2,alar3,TSFac,TMFac,                &
-       vsmall,safe,pupper,plower,zdis,nmldmin
+  real, protected :: SinkExp, FractDim, Stick, cellmass
+  real, protected :: fsh, fse,alow1, alow2,alow3,alar1,alar2,alar3,TSFac,TMFac
+  real, protected :: vsmall,safe,pupper,plower,zdis,nmldmin
   real, protected :: cellsink = 9999.
 
 
