@@ -122,7 +122,7 @@ contains
     ! Arguments
     integer , intent(in) :: kpie                  ! 1st dimension of model grid.
     integer , intent(in) :: kpje                  ! 2nd dimension of model grid.
-    integer , intent(in) :: kpke                  ! size of grid cell (3rd dimension) [m].
+    integer , intent(in) :: kpke                  ! 3rd (vertical) dimension of model grid.
     real    , intent(in) :: pdlxp(kpie,kpje)      ! size of scalar grid cell (1st dimension) [m].
     real    , intent(in) :: pdlyp(kpie,kpje)      ! size of scalar grid cell (2nd dimension) [m].
     real    , intent(in) :: pddpo(kpie,kpje,kpke) ! size of scalar grid cell (3rd dimension) [m].

@@ -88,8 +88,8 @@ contains
       if (ncstat /= NF90_NOERR ) then
         call xchalt('(ini_swa_clim: Problem with netCDF1)')
         stop '(ini_swa_clim: Problem with netCDF1)'
-      END IF
-    END IF
+      end if
+    end if
 
     ! Read  data
     call read_netcdf_var(ncid,'swa',swa_clim(1,1,1),1,1,0)
@@ -100,8 +100,8 @@ contains
       if ( ncstat  /=  NF90_NOERR ) then
         call xchalt('(ini_swa_clim: Problem with netCDF200)')
         stop '(ini_swa_clim: Problem with netCDF200)'
-      END IF
-    END IF
+      end if
+    end if
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*) ''

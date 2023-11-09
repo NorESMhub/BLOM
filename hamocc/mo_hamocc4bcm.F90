@@ -210,7 +210,7 @@ contains
         do J=1,kpje
           do I=1,kpie
             if (OMASK(I,J) .gt. 0.5 ) then
-              OCETRA(I,J,K,L)=MAX(0.,OCETRA(I,J,K,L))
+              OCETRA(I,J,K,L)=max(0.,OCETRA(I,J,K,L))
             endif
           enddo
         enddo

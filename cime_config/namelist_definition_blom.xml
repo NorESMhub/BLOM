@@ -3502,7 +3502,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>UNSET</value>
+      <value>''</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx2v1_20130506.nc</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx1v4_20171107.nc</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.25v4_20181004.nc</value>
@@ -3522,7 +3522,7 @@
     <desc>File name (incl. full path) for swa climatology field (needed if bromoform scheme is activated)</desc>
   </entry>
 
-  <entry id="do_rivinpt">
+  <entry id="do_rivinpt" modify_via_xml="BLOM_RIVER_NUTRIENTS">
     <type>logical</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3538,7 +3538,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>UNSET</value>
+      <value>''</value>
       <value blom_river_nutrients="yes" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx2v1_20170915.nc</value>
       <value blom_river_nutrients="yes" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx1v4_20170820.nc</value>
       <value blom_river_nutrients="yes" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx0.25v4_20170821.nc</value>
@@ -3547,7 +3547,7 @@
     <desc>File name (incl. full path) for riverine input data</desc>
   </entry>
 
-  <entry id="do_ndep">
+  <entry id="do_ndep" modify_via_xml="BLOM_N_DEPOSITION">
     <type>logical</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3564,7 +3564,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value blom_n_deposition="no">''</value>
+      <value>''</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_CMIP6_tnx2v1_20180321.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_CMIP6_tnx2v1_20200826.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx2v1_20190702.nc</value>
@@ -3587,7 +3587,7 @@
     <values>
       <value>.false.</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Logical switch to activate ocean alkalinization, for expert users only, further options are set in the namelist group bgcoafx</desc>
   </entry>
 
   <entry id="do_sedspinup" modify_via_xml="HAMOCC_SEDSPINUP">
@@ -3631,14 +3631,14 @@
     <desc>Number of subcyles per time-step for sediment spinup</desc>
   </entry>
 
-  <entry id="inidic">
+  <entry id="inidic" is_inputdata="yes">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
       <value>$DIN_LOC_ROOT/ocn/blom/inicon/glodapv2_Ct_preind_OMIPinit_20171107.nc</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Filename (incl. full path) to DIC initial values</desc>
   </entry>
 
   <entry id="inialk" is_inputdata="yes">
@@ -3648,7 +3648,7 @@
     <values>
       <value>$DIN_LOC_ROOT/ocn/blom/inicon/glodapv2_At_OMIPinit_20171107.nc</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Filename (incl. full path) to alaklinity initial values</desc>
   </entry>
 
   <entry id="inipo4" is_inputdata="yes">
@@ -3658,7 +3658,7 @@
     <values>
       <value>$DIN_LOC_ROOT/ocn/blom/inicon/woa13_phosphate_OMIPinit_20171107.nc</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Filename (incl. full path) to phosphate initial values</desc>
   </entry>
 
   <entry id="inioxy" is_inputdata="yes">
@@ -3668,7 +3668,7 @@
     <values>
       <value>$DIN_LOC_ROOT/ocn/blom/inicon/woa13_oxygen_OMIPinit_20171107.nc</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Filename (incl. full path) to oxigen initial values</desc>
   </entry>
 
   <entry id="inino3" is_inputdata="yes">
@@ -3678,7 +3678,7 @@
     <values>
       <value>$DIN_LOC_ROOT/ocn/blom/inicon/woa13_nitrate_OMIPinit_20171107.nc</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Filename (incl. full path) to nitrate initial values</desc>
   </entry>
 
   <entry id="inisil" is_inputdata="yes">
@@ -3688,7 +3688,7 @@
     <values>
       <value>$DIN_LOC_ROOT/ocn/blom/inicon/woa13_silicate_OMIPinit_20171107.nc</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Filename (incl. full path) to silicate initial values</desc>
   </entry>
 
   <entry id="inid13c" is_inputdata="yes">
@@ -3696,9 +3696,10 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>$DIN_LOC_ROOT/ocn/blom/inicon/d13C_permil_20180609.nc</value>
+      <value hamocc_ciso="no">''</value>
+      <value hamocc_ciso="yes">$DIN_LOC_ROOT/ocn/blom/inicon/d13C_permil_20180609.nc</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Filename (incl. full path) to delta 13C initial values (used if C-isotope code is activated)</desc>
   </entry>
 
   <entry id="inid14c" is_inputdata="yes">
@@ -3706,9 +3707,10 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>$DIN_LOC_ROOT/ocn/blom/inicon/d14C_permil_20180609.nc</value>
+      <value hamocc_ciso="no">''</value>
+      <value hamocc_ciso="yes">$DIN_LOC_ROOT/ocn/blom/inicon/d14C_permil_20180609.nc</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Filename (incl. full path) to delta 14C initial values (used if C-isotope code is activated)</desc>
   </entry>
 
   <entry id="with_dmsph">
@@ -3718,7 +3720,7 @@
     <values>
       <value>.false.</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Assume pH dependency of DMS production if set to .true.</desc>
   </entry>
 
   <entry id="pi_ph_file" is_inputdata="yes">
@@ -3728,9 +3730,7 @@
     <values>
       <value>''</value>
     </values>
-    <desc>
-      File name (incl. full path) for surface PI pH input data.
-    </desc>
+    <desc>File name (incl. full path) for surface PI pH input data (needed if with_dmsph=.true.)</desc>
   </entry>
 
   <entry id="l_3dvarsedpor">
@@ -3774,7 +3774,7 @@
     <values>
       <value>.true.</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Use POC sinking scheme with increasing sinking velocity with depth</desc>
   </entry>
 
   <entry id="use_cfc">
@@ -3796,7 +3796,7 @@
     <values>
       <value>.false.</value>
       <value compset="HIST_CAM60%NORESM.*">.true.</value>
-      <value compset="20TR_DATM.*">.true.</value>
+      <value compset="20TR_DATM.*_BLOM%ECO">.true.</value>
     </values>
     <desc>activates HAMOCC natural tracer code</desc>
   </entry>
@@ -3833,22 +3833,24 @@
     (no swa-climatology has been created for other grid configurations)</desc>
   </entry>
 
-  <entry id="use_sedbypass">
+  <entry id="use_sedbypass" modify_via_xml="HAMOCC_SEDBYPASS">
     <type>logical</type>
     <category>config_bgc</category>
     <group>config_bgc</group>
     <values>
       <value>.false.</value>
+      <value hamocc_sedbypass="yes">.true.</value>
     </values>
     <desc>Bypass the HAMOCC sediment code</desc>
   </entry>
 
-  <entry id="use_cisonew">
+  <entry id="use_cisonew" modify_via_xml="HAMOCC_CISO">
     <type>logical</type>
     <category>config_bgc</category>
     <group>config_bgc</group>
     <values>
       <value>.false.</value>
+      <value hamocc_ciso="yes">.true.</value>
     </values>
     <desc>activate the HAMOCC carbon isotope code</desc>
   </entry>
@@ -3870,7 +3872,7 @@
     <values>
       <value>.false.</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Use aggregation scheme for sinking of particles</desc>
   </entry>
 
   <entry id="use_fb_bgc_oce">

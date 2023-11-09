@@ -295,28 +295,28 @@ contains
             !    &              (1. + 0.0639*ptho(i,j,k)/2. * (1. + 0.0639*ptho(i,j,k)/3.)))
             pho = dtb * phofa * temfa / sqrt(phofa**2 + temfa**2)
 
-            avphy = MAX(phytomi,ocetra(i,j,k,iphy))                   ! 'available' phytoplankton
-            avgra = MAX(grami,ocetra(i,j,k,izoo))                     ! 'available' zooplankton
-            avsil = MAX(0.,ocetra(i,j,k,isilica))
-            avdic = MAX(0.,ocetra(i,j,k,isco212))
-            avanut = MAX(0.,MIN(ocetra(i,j,k,iphosph),                      &
+            avphy = max(phytomi,ocetra(i,j,k,iphy))                   ! 'available' phytoplankton
+            avgra = max(grami,ocetra(i,j,k,izoo))                     ! 'available' zooplankton
+            avsil = max(0.,ocetra(i,j,k,isilica))
+            avdic = max(0.,ocetra(i,j,k,isco212))
+            avanut = max(0.,min(ocetra(i,j,k,iphosph),                      &
                  &         rnoi*ocetra(i,j,k,iano3)))
-            avanfe = MAX(0.,MIN(avanut,ocetra(i,j,k,iiron)/riron))
+            avanfe = max(0.,min(avanut,ocetra(i,j,k,iiron)/riron))
             xa = avanfe
             xn = xa/(1.+pho*avphy/(xa+bkphy))
-            phosy = MAX(0.,xa-xn)
+            phosy = max(0.,xa-xn)
             phosy = MERGE(avdic/rcar, phosy, avdic <= rcar*phosy)     ! limit phosy by available DIC
             ya = avphy+phosy
             yn = (ya+grazra*avgra*phytomi/(avphy+bkzoo))                    &
                  &           /(1.+grazra*avgra/(avphy+bkzoo))
-            grazing = MAX(0.,ya-yn)
+            grazing = max(0.,ya-yn)
             graton = epsher*(1.-zinges)*grazing
             gratpoc = (1.-epsher)*grazing
             grawa = epsher*zinges*grazing
             bacfra=remido*ocetra(i,j,k,idoc)
 
-            phythresh = MAX(0.,(ocetra(i,j,k,iphy)-2.*phytomi))
-            zoothresh = MAX(0.,(ocetra(i,j,k,izoo)-2.*grami))
+            phythresh = max(0.,(ocetra(i,j,k,iphy)-2.*phytomi))
+            zoothresh = max(0.,(ocetra(i,j,k,izoo)-2.*grami))
             phymor = dyphy*phythresh
             exud = gammap*phythresh
             zoomor = spemor*zoothresh*zoothresh           ! *10 compared to linear in tropics (tinka)
@@ -380,11 +380,11 @@ contains
             endif
 
             if (use_AGG) then
-              delsil = MIN(ropal*phosy*avsil/(avsil+bkopal),0.5*avsil)
-              delcar = rcalc*MIN(calmax*phosy,(phosy-delsil/ropal))
+              delsil = min(ropal*phosy*avsil/(avsil+bkopal),0.5*avsil)
+              delcar = rcalc*min(calmax*phosy,(phosy-delsil/ropal))
               ! definition of delcar13/14 for the AGG scheme currently missing
             else
-              delsil = MIN(ropal*export*avsil/(avsil+bkopal),0.5*avsil)
+              delsil = min(ropal*export*avsil/(avsil+bkopal),0.5*avsil)
               delcar = rcalc * export * bkopal/(avsil+bkopal)
               if (use_cisonew) then
                 delcar13 = rcalc * export13 * bkopal/(avsil+bkopal)
@@ -441,7 +441,7 @@ contains
             ocetra(i,j,k,isilica) = ocetra(i,j,k,isilica)-delsil+dremopal*ocetra(i,j,k,iopal)
             ocetra(i,j,k,iopal) = ocetra(i,j,k,iopal)+delsil-dremopal*ocetra(i,j,k,iopal)
             ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+dtr*riron                     &
-                 &                - relaxfe*MAX(ocetra(i,j,k,iiron)-fesoly,0.)
+                 &                - relaxfe*max(ocetra(i,j,k,iiron)-fesoly,0.)
 
             if (use_BROMO) then
               ! Bromo source from phytoplankton production and sink to photolysis
@@ -541,8 +541,8 @@ contains
               avmass = ocetra(i,j,k,iphy)+ocetra(i,j,k,idet)
             endif
             temp = min(40.,max(-3.,ptho(i,j,k)))
-            phythresh = MAX(0.,(ocetra(i,j,k,iphy)-2.*phytomi))
-            zoothresh = MAX(0.,(ocetra(i,j,k,izoo)-2.*grami))
+            phythresh = max(0.,(ocetra(i,j,k,iphy)-2.*phytomi))
+            zoothresh = max(0.,(ocetra(i,j,k,izoo)-2.*grami))
             sterph = 0.5*dyphy*phythresh                                ! phytoplankton to detritus
             sterzo = spemor*zoothresh*zoothresh                         ! quadratic mortality
             if (use_cisonew) then
@@ -570,9 +570,9 @@ contains
             endif
 
             if(ocetra(i,j,k,ioxygen) > 5.e-8) then
-              pocrem = MIN(drempoc*ocetra(i,j,k,idet),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-              docrem = MIN( remido*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-              phyrem = MIN(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+              pocrem = min(drempoc*ocetra(i,j,k,idet),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+              docrem = min( remido*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+              phyrem = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2ut)
               if (use_cisonew) then
                 pocrem13 = pocrem*rdet13
                 pocrem14 = pocrem*rdet14
@@ -607,7 +607,7 @@ contains
             ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)-(rnit+1)*remin
             ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen)-ro2ut*remin
             ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+remin*riron           &
-                 &             -relaxfe*MAX(ocetra(i,j,k,iiron)-fesoly,0.)
+                 &             -relaxfe*max(ocetra(i,j,k,iiron)-fesoly,0.)
             if (use_natDIC) then
               ocetra(i,j,k,inatsco212) = ocetra(i,j,k,inatsco212)+rcar*remin
               ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)-(rnit+1)*remin
@@ -695,9 +695,9 @@ contains
                 avmass = ocetra(i,j,k,iphy) + ocetra(i,j,k,idet)
               endif
 
-              remin   = 0.05 * drempoc * MIN(ocetra(i,j,k,idet),           &
+              remin   = 0.05 * drempoc * min(ocetra(i,j,k,idet),           &
                    &    0.5 * ocetra(i,j,k,iano3) / rdnit1)
-              remin2o = dremn2o * MIN(ocetra(i,j,k,idet),                  &
+              remin2o = dremn2o * min(ocetra(i,j,k,idet),                  &
                    &    0.003 * ocetra(i,j,k,ian2o) / rdn2o1)
 
               if (use_cisonew) then
@@ -884,11 +884,11 @@ contains
                 ! very small values of nos (and asscociated high sinking speed if there is mass)
                 ! in high latitudes during winter
                 if ( k <= kmle(i,j) ) then
-                  ocetra(i,j,k,inos) = MAX(nmldmin,ocetra(i,j,k,inos))
+                  ocetra(i,j,k,inos) = max(nmldmin,ocetra(i,j,k,inos))
                 endif
 
-                ocetra(i,j,k,inos) = MAX(snow*pupper,ocetra(i,j,k,inos))
-                ocetra(i,j,k,inos) = MIN(snow*plower,ocetra(i,j,k,inos))
+                ocetra(i,j,k,inos) = max(snow*pupper,ocetra(i,j,k,inos))
+                ocetra(i,j,k,inos) = min(snow*plower,ocetra(i,j,k,inos))
 
                 avnos = ocetra(i,j,k,inos)
                 eps   = ((1.+ FractDim)*snow-avnos*cellmass)/(snow-avnos*cellmass)

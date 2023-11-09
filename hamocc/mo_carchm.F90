@@ -510,15 +510,15 @@ contains
             OmegaA(i,j,k) = omega / Kspa
             OmegaC(i,j,k) = omega / Kspc
             supsat=co3(i,j,k)-co3(i,j,k)/OmegaC(i,j,k)
-            undsa=MAX(0.,-supsat)
-            dissol=MIN(undsa,0.05*ocetra(i,j,k,icalc))
+            undsa=max(0.,-supsat)
+            dissol=min(undsa,0.05*ocetra(i,j,k,icalc))
             if (use_natDIC) then
               natomega = ( calcon * s / 35. ) * natcc
               natOmegaA(i,j,k) = natomega / Kspa
               natOmegaC(i,j,k) = natomega / Kspc
               natsupsat=natco3(i,j,k)-natco3(i,j,k)/natOmegaC(i,j,k)
-              natundsa=MAX(0.,-natsupsat)
-              natdissol=MIN(natundsa,0.05*ocetra(i,j,k,inatcalc))
+              natundsa=max(0.,-natsupsat)
+              natdissol=min(natundsa,0.05*ocetra(i,j,k,inatcalc))
             endif
             if (use_cisonew) then
               dissol13=dissol*ocetra(i,j,k,icalc13)/(ocetra(i,j,k,icalc)+safediv)
@@ -641,17 +641,17 @@ contains
     real                   :: nKhwe74,deltav,deltak,zprb,zprb2
     real                   :: lnkpok0(11)
 
-    s = MAX(25.,saln)
+    s = max(25.,saln)
     tk = temp + tzero
     tk100 = tk/100.0
     invtk = 1.0 / tk
     dlogtk = log(tk)
     is = 19.924 * s / ( 1000. - 1.005 * s )
     is2 = is * is
-    sqrtis = SQRT(is)
+    sqrtis = sqrt(is)
     s15    = s**1.5
     s2     = s * s
-    sqrts  = SQRT(s)
+    sqrts  = sqrt(s)
     scl    = s * salchl
 
     ! Kh = [CO2]/ p CO2
@@ -667,7 +667,7 @@ contains
     K1 = 10**( -1.0 * ( 3670.7 * invtk - 62.008 + 9.7944 * dlogtk - 0.0118 * s + 0.000116 * s2 ) )
     K2 = 10**( -1.0 * ( 1394.7 * invtk + 4.777 - 0.0184 * s + 0.000118 * s2 ) )
     ! Kb = [H][BO2]/[HBO2] !
-    ! Millero p.669 (1995) using DATA from Dickson (1990)
+    ! Millero p.669 (1995) using data from Dickson (1990)
     Kb = exp( ( -8966.90 - 2890.53  * sqrts - 77.942  * s + 1.728 * s15 - 0.0996 * s2 ) * invtk +    &
          ( 148.0248 + 137.1942 * sqrts + 1.62142 * s ) +                                        &
          ( -24.4344 - 25.085   * sqrts - 0.2474  * s ) * dlogtk + 0.053105 * sqrts * tk )
@@ -779,7 +779,7 @@ contains
     ! Calculate concentrations for borate, sulfate, and fluoride; see Dickson, A.G.,
     ! Sabine, C.L. and Christian, J.R. (Eds.) 2007. Guide to best practices
     ! for ocean CO2 measurements. PICES Special Publication 3, chapter 5 p. 10
-    s = MAX(25.,saln)
+    s = max(25.,saln)
     scl = s * salchl
     borat = bor1 * scl * bor2      ! Uppstrom (1974)
     sti = 0.14 * scl / 96.062      ! Morris & Riley (1966)
@@ -794,7 +794,7 @@ contains
       ab   = borat / ( 1. + ah1 / Kb )
       aw   = Kw / ah1 - ah1 / ( 1. + sti / Ks1 )
       ac   = ta + hso4 - sit * hsi - ab - aw + ft * hf - pt * hpo4
-      ah2o = SQRT( ( tc - ac )**2 + 4. * ( ac * K2 / K1 ) * ( 2. * tc - ac ) )
+      ah2o = sqrt( ( tc - ac )**2 + 4. * ( ac * K2 / K1 ) * ( 2. * tc - ac ) )
       ah2  = 0.5 * K1 / ac *( ( tc - ac ) + ah2o )
       erel = ( ah2 - ah1 ) / ah2
       if (abs( erel ).ge.eps) then
@@ -850,7 +850,7 @@ contains
     ! Calculate concentrations for borate, sulfate, and fluoride; see Dickson, A.G.,
     ! Sabine, C.L. and Christian, J.R. (Eds.) 2007. Guide to best practices
     ! for ocean CO2 measurements. PICES Special Publication 3, chapter 5 p. 10
-    s = MAX(25.,saln)
+    s = max(25.,saln)
     scl = s * salchl
     borat = bor1 * scl * bor2      ! Uppstrom (1974)
     sti = 0.14 * scl / 96.062      ! Morris & Riley (1966)
@@ -867,7 +867,7 @@ contains
       ab   = borat / ( 1. + ah1 / Kb )
       aw   = Kw / ah1 - ah1 / ( 1. + sti / Ks1 )
       ac   = ta + hso4 - sit * hsi - ab - aw + ft * hf - pt * hpo4
-      ah2o = SQRT((K1*dic_h2co3)**2 + 4.*ac*2.*K1*k2*dic_h2co3)
+      ah2o = sqrt((K1*dic_h2co3)**2 + 4.*ac*2.*K1*k2*dic_h2co3)
       ah2  = (K1*dic_h2co3 + ah2o)/(2.*ac)
       erel = ( ah2 - ah1 ) / ah2
       if (abs( erel ).ge.eps) then
