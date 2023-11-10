@@ -27,14 +27,15 @@ contains
 
   subroutine inventory_bgc(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 
-    !*******************************************************************
+    !***********************************************************************************************
     ! Calculate the BGC inventory.
     !
     ! P.Wetzel,              *MPI-Met, HH*    29.07.02
+    !
     ! Modified
     ! T. Torsvik             *UiB*            22.02.22
     !    Include option for writing inventory to netCDF file.
-    !**********************************************************************
+    !***********************************************************************************************
 
     use mod_xc,         only: mnproc,ips,nbdy,xcsum
     use mo_carbch,      only: atm,atmflx,co3,hi,ndepflx,rivinflx,ocetra,sedfluxo
@@ -42,16 +43,19 @@ contains
     use mo_biomod,      only: expoor,expoca,exposi
     use mo_param_bgc,   only: rcar,rnit
     use mo_control_bgc, only: do_ndep,do_rivinpt,io_stdo_bgc
-    use mo_bgcmean,     only: bgct2d,jco2flux,jirdin,jn2flux,jn2oflux,jndep,jo2flux,jprcaca,jprorca,jsilpro,nbgcmax,glb_inventory
-    use mo_param1_bgc,  only: ialkali,ian2o,iano3,iatmco2,iatmn2,iatmn2o,iatmo2,icalc,idet,idoc,igasnit,iopal,ioxygen,iphosph,   &
-                              iphy,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isco212,isilica,isssc12,issso12,issssil,izoo,  &
+    use mo_bgcmean,     only: bgct2d,jco2flux,jirdin,jn2flux,jn2oflux,jndep,jo2flux,jprcaca,       &
+                              jprorca,jsilpro,nbgcmax,glb_inventory
+    use mo_param1_bgc,  only: ialkali,ian2o,iano3,iatmco2,iatmn2,iatmn2o,iatmo2,icalc,idet,idoc,   &
+                              igasnit,iopal,ioxygen,iphosph,iphy,ipowaic,ipowaox,ipowaph,ipowasi,  &
+                              ipown2,ipowno3,isco212,isilica,isssc12,issso12,issssil,izoo,         &
                               irdin,irdip,irsi,iralk,irdoc,irdet,nocetra,npowtra,nsedtra,nriv
     use mo_vgrid,       only: dp_min
 
     ! NOT sedbypass
     use mo_param1_bgc,  only: ks
     use mo_sedmnt,      only: porwat,seddw,sedlay,burial,sedhpl,powtra,porsol
-    use mo_control_bgc, only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO
+    use mo_control_bgc, only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,   &
+                              use_CFC,use_natDIC,use_BROMO
 
     ! Arguments
     integer, intent(in) :: kpie,kpje,kpke
@@ -331,12 +335,12 @@ contains
     ! Units in P have a C:P Ratio of 122:1
 
     !      totalcarbon=                                                    &
-    !     & (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)               &
+    !     & (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)            &
     !     & +zocetratot(izoo))*rcar+zocetratot(isco212)+zocetratot(icalc)
 
 
-    totalcarbon=                                                           &
-         (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)             &
+    totalcarbon=                                                          &
+         (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)              &
          + zocetratot(izoo))*rcar+zocetratot(isco212)+zocetratot(icalc)   &
          + zpowtratot(ipowaic)+zsedlayto(isssc12)+zsedlayto(issso12)*rcar &
          + zburial(isssc12)+zburial(issso12)*rcar                         &
@@ -348,8 +352,8 @@ contains
       totalcarbon = totalcarbon + co2flux
     endif
 
-    totalnitr=                                                              &
-         (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)             &
+    totalnitr=                                                            &
+         (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)              &
          + zocetratot(izoo))*rnit+zocetratot(iano3)+zocetratot(igasnit)*2 &
          + zpowtratot(ipowno3)+zpowtratot(ipown2)*2                       &
          + zsedlayto(issso12)*rnit+zburial(issso12)*rnit                  &
@@ -363,28 +367,28 @@ contains
       totalnitr = totalnitr + sn2flux*2+sn2oflux*2
     endif
 
-    totalphos=                                                &
-         zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy) &
-         + zocetratot(izoo)+zocetratot(iphosph)               &
-         + zpowtratot(ipowaph)+zsedlayto(issso12)             &
-         + zburial(issso12)                                   &
+    totalphos=                                                            &
+         zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)               &
+         + zocetratot(izoo)+zocetratot(iphosph)                           &
+         + zpowtratot(ipowaph)+zsedlayto(issso12)                         &
+         + zburial(issso12)                                               &
          + zprorca
 
-    totalsil=                                                      &
-         zocetratot(isilica)+zocetratot(iopal)                   &
-         + zpowtratot(ipowasi)+zsedlayto(issssil)+zburial(issssil) &
+    totalsil=                                                             &
+         zocetratot(isilica)+zocetratot(iopal)                            &
+         + zpowtratot(ipowasi)+zsedlayto(issssil)+zburial(issssil)        &
          + zsilpro
 
-    totaloxy=                                                           &
-         (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)           &
-         + zocetratot(izoo))*(-24.)+zocetratot(ioxygen)                 &
-         + zocetratot(iphosph)*2 +zocetratot(isco212)+zocetratot(icalc) &
-         + zocetratot(iano3)*1.5+zocetratot(ian2o)*0.5                  &
-         + zsedlayto(issso12)*(-24.) + zsedlayto(isssc12)               &
-                                !+ zburial(issso12)*(-24.)   +   zburial(isssc12)               &
-         + zpowtratot(ipowno3)*1.5+zpowtratot(ipowaic)                  &
-         + zpowtratot(ipowaox)+zpowtratot(ipowaph)*2                    &
-         - sndepflux*1.5                                                &
+    totaloxy=                                                             &
+         (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)              &
+         + zocetratot(izoo))*(-24.)+zocetratot(ioxygen)                   &
+         + zocetratot(iphosph)*2 +zocetratot(isco212)+zocetratot(icalc)   &
+         + zocetratot(iano3)*1.5+zocetratot(ian2o)*0.5                    &
+         + zsedlayto(issso12)*(-24.) + zsedlayto(isssc12)                 &
+        !+ zburial(issso12)*(-24.)   +   zburial(isssc12)                  &
+         + zpowtratot(ipowno3)*1.5+zpowtratot(ipowaic)                    &
+         + zpowtratot(ipowaox)+zpowtratot(ipowaph)*2                      &
+         - sndepflux*1.5                                                  &
          + zprorca*(-24.)+zprcaca
 
     if (use_BOXATM) then
@@ -394,18 +398,14 @@ contains
     endif
 
     if (do_rivinpt) then
-      totalcarbon = totalcarbon &
-           - (srivflux(irdoc)+srivflux(irdet))*rcar -(srivflux(iralk)+srivflux(irdin)+srivflux(irdip)) ! =sco212
-      totalnitr = totalnitr &
-           - (srivflux(irdoc)+srivflux(irdet))*rnit - srivflux(irdin)
-      totalphos = totalphos &
-           -(srivflux(irdoc)+srivflux(irdet)+srivflux(irdip))
-      totalsil = totalsil &
-           - srivflux(irsi)
-      totaloxy = totaloxy                             &
-           - (srivflux(irdoc)+srivflux(irdet))*(-24.) &
-           - srivflux(irdin)*1.5 - srivflux(irdip)*2. &
-           - (srivflux(iralk)+srivflux(irdin)+srivflux(irdip))    ! =sco212
+      totalcarbon = totalcarbon- (srivflux(irdoc)+srivflux(irdet))*rcar                            &
+           &                   - (srivflux(iralk)+srivflux(irdin)+srivflux(irdip))   ! =sco212
+      totalnitr   = totalnitr  - (srivflux(irdoc)+srivflux(irdet))*rnit - srivflux(irdin)
+      totalphos   = totalphos  - (srivflux(irdoc)+srivflux(irdet)+srivflux(irdip))
+      totalsil    = totalsil   -  srivflux(irsi)
+      totaloxy    = totaloxy   - (srivflux(irdoc)+srivflux(irdet))*(-24.)                          &
+           &                   -  srivflux(irdin)*1.5 - srivflux(irdip)*2.                         &
+           &                   - (srivflux(iralk)+srivflux(irdin)+srivflux(irdip))
     endif
 
     !=== Compute sediment fluxes
@@ -633,32 +633,23 @@ contains
 
 
     subroutine write_netcdf(iogrp)
-      !**********************************************************************
+      !*********************************************************************************************
       !**** Write inventory to netCDF file.
-      !**********************************************************************
-      use netcdf,        only: nf90_clobber, nf90_close, nf90_create, nf90_def_dim,    &
-           & nf90_def_var, nf90_double, nf90_enddef, nf90_global,    &
-           & nf90_inq_dimid, nf90_inq_varid, nf90_open,              &
-           & nf90_put_att, nf90_put_var, nf90_unlimited, nf90_write
+      !*********************************************************************************************
+      use netcdf,        only: nf90_clobber, nf90_close, nf90_create, nf90_def_dim,                &
+                               nf90_def_var, nf90_double, nf90_enddef, nf90_global,                &
+                               nf90_inq_dimid, nf90_inq_varid, nf90_open,                          &
+                               nf90_put_att, nf90_put_var, nf90_unlimited, nf90_write
       use mod_types,     only: r8
       use mod_config,    only: expcnf, runid, inst_suffix
-      use mod_time,      only: date0, time0, date, time, nstep, nday_of_year,          &
-           & nstep_in_day
+      use mod_time,      only: date0, time0, date, time, nstep, nday_of_year,nstep_in_day
       use mo_bgcmean,    only: filefq_bgc, fileann_bgc, filemon_bgc,glb_fnametag
-      use mo_param1_bgc, only: idicsat,idms,ifdust,iiron,iprefalk,iprefdic,iprefo2,    &
-           & iprefpo4
-      ! AGG
-      use mo_param1_bgc, only: iadust,inos
-      ! BROMO
-      use mo_param1_bgc, only: ibromo
-      ! CFC
-      use mo_param1_bgc, only: icfc11,icfc12,isf6
-      ! cisonew
-      use mo_param1_bgc, only: icalc13,icalc14,idet13,idet14,idoc13,idoc14,           &
-           & iphy13,iphy14,isco213,isco214,izoo13,izoo14
-      ! natDIC
-      use mo_param1_bgc, only: inatalkali,inatcalc,inatsco212
-      use mo_control_bgc, only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO
+      use mo_param1_bgc, only: idicsat,idms,ifdust,iiron,iprefalk,iprefdic,iprefo2,iprefpo4,       &
+                               iadust,inos,ibromo,icfc11,icfc12,isf6,icalc13,icalc14,idet13,       &
+                               idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,   &
+                               inatalkali,inatcalc,inatsco212
+      use mo_control_bgc,only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,  &
+                               use_CFC,use_natDIC,use_BROMO
 
       implicit none
 
@@ -796,11 +787,9 @@ contains
              &   'days since ',date0%year,'-',date0%month,'-',date0%day,' 00:00'
 
         !--- Define global attributes
-        call nccheck( NF90_PUT_ATT(ncid, NF90_GLOBAL, 'title',                    &
-             &    'Global inventory for marine bgc') )
-        call nccheck( NF90_PUT_ATT(ncid, NF90_GLOBAL, 'history',                  &
-             &    'Global inventory for marine bgc') )
-        call nccheck( NF90_PUT_ATT(ncid, NF90_GLOBAL, 'date', timeunits) )
+        call nccheck(NF90_PUT_ATT(ncid,NF90_GLOBAL,'title','Global inventory for marine bgc') )
+        call nccheck(NF90_PUT_ATT(ncid,NF90_GLOBAL,'history','Global inventory for marine bgc') )
+        call nccheck(NF90_PUT_ATT(ncid,NF90_GLOBAL,'date', timeunits) )
 
         !--- Define dimensions
         if (.not. use_sedbypass) then
@@ -817,8 +806,7 @@ contains
         endif
 
         !--- Define variables : time
-        call nccheck( NF90_DEF_VAR(ncid, 'time', NF90_DOUBLE, time_dimid,         &
-             &    time_varid) )
+        call nccheck( NF90_DEF_VAR(ncid, 'time', NF90_DOUBLE, time_dimid,time_varid) )
         call nccheck( NF90_PUT_ATT(ncid, time_varid, 'units', 'days') )
 
         if (.not. use_sedbypass) then

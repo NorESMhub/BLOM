@@ -18,15 +18,15 @@
 
 module mo_control_bgc
 
-  !***********************************************************************
-  ! Control variables for bgc modules.
-  ! - declaration
+  !*************************************************************************************************
+  ! Control variables for iHAMOCC.
   !
   ! S.Legutke,        *MPI-MaD, HH*    28.02.02
+  !
   ! Modified
   ! J.Schwinger,      *Uni Research, Bergen*   2018-04-12
   ! - removed unused variables
-  !**********************************************************************
+  !*************************************************************************************************
 
   implicit none
   public
@@ -57,15 +57,15 @@ module mo_control_bgc
 
   ! Logical switches set via namelist
   logical :: l_3Dvarsedpor = .false.  ! apply lon-lat-depth variable sediment porosity via input file
-  logical :: do_ndep     =.true.      ! apply n-deposition
-  logical :: do_rivinpt  =.true.      ! apply riverine input
-  logical :: do_sedspinup=.false.     ! apply sediment spin-up
-  logical :: do_oalk     =.false.     ! apply ocean alkalinization
-  logical :: with_dmsph  =.false.     ! apply DMS with pH dependence
+  logical :: do_ndep       = .true.   ! apply n-deposition
+  logical :: do_rivinpt    = .true.   ! apply riverine input
+  logical :: do_sedspinup  = .false.  ! apply sediment spin-up
+  logical :: do_oalk       = .false.  ! apply ocean alkalinization
+  logical :: with_dmsph    = .false.  ! apply DMS with pH dependence
 
   logical :: use_BROMO              = .false.
   logical :: use_AGG                = .false.
-  logical :: use_WLIN               = .false.
+  logical :: use_WLIN               = .true.
   logical :: use_natDIC             = .false.
   logical :: use_CFC                = .false.
   logical :: use_cisonew            = .false.
@@ -99,7 +99,7 @@ contains
           bgc_namelist = 'limits'
         else
           call xchalt('cannot find limits file')
-          stop 'cannot find limits file'
+          stop        'cannot find limits file'
         endif
       endif
     endif

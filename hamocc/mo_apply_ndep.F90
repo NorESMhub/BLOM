@@ -17,21 +17,25 @@
 
 
 module mo_apply_ndep
-  !******************************************************************************
-  !  Routine for applying the nitrogen deposition flux
-  !  The routine n_deposition applies the nitrogen deposition flux to the
-  !  top-most model layer.
-  !  N deposition is activated through a logical switch 'do_ndep' read from
-  !  HAMOCC's bgcnml namelist.
+
+  !*************************************************************************************************
+  ! Routine for applying the nitrogen deposition flux. 
+  !
+  ! N-deposition is activated through a logical switch 'do_ndep' read from HAMOCC's bgcnml 
+  ! namelist. When coupled to NorESM, this is achieved by setting BLOM_N_DEPOSITION to 
+  ! TRUE in env_run.xml. 
+  !
+  ! The routine n_deposition applies the nitrogen deposition flux to the top-most model layer.
   !
   ! S.Gao             *Gfi, Bergen*             2017-08-19
+  !
   ! Modified:
   !  J. Tjiputra,      *Uni Research, Bergen*    2017-09-18
   !  -add 1 mol [H+], per mol [NO3] deposition, to alkalinity (minus 1 mol)
   !  J. Schwinger,     *NORCE climate, Bergen*   2022-05-18
   !  -seperate modules into one module that reads a specific data set, and this
   !   module that applies the n-deposition flux to the surface ocean
-  !******************************************************************************
+  !*************************************************************************************************
 
   implicit none
   private
@@ -41,13 +45,14 @@ module mo_apply_ndep
 contains
 
   subroutine apply_ndep(kpie,kpje,kpke,pddpo,omask,ndep)
-    !******************************************************************************
+    !***********************************************************************************************
     ! Apply n-deposition to the top-most model layer.
     !
     ! S. Gao               *Gfi, Bergen*    19.08.2017
+    !
     ! Modified:
-    ! Tjiputra (18.09.2017): add 1 mol [H+], per mol [NO3] deposition, to alkalinity (minus 1 mol)
-    !******************************************************************************
+    !  Tjiputra (18.09.2017): add 1 mol [H+], per mol [NO3] deposition, to alkalinity (minus 1 mol)
+    !***********************************************************************************************
 
     use mo_control_bgc, only: dtb,do_ndep
     use mo_carbch,      only: ocetra,ndepflx
@@ -85,5 +90,6 @@ contains
     enddo
 
   end subroutine apply_ndep
-
+ 
+  !*************************************************************************************************
 end module mo_apply_ndep

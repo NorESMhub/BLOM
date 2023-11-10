@@ -18,14 +18,13 @@
 
 module mo_vgrid
 
-  !******************************************************************************
-  ! Variables and routines related to vertical grid  structure
-  ! Declaration, memory allocation, and routines related to the
-  ! vertical grid structure. These have to be recalculated every
-  ! time step when iHAMOCC is coupled to BLOM.
+  !*************************************************************************************************
+  ! Variables, memory allocation, and routines related to vertical grid  structure
+  !
+  ! Vertical grid structure has to be recalculated every time step when iHAMOCC is coupled to BLOM.
   !
   !  J.Schwinger,        *NORCE Climate, Bergen*    2020-05-19
-  !******************************************************************************
+  !*************************************************************************************************
 
   implicit none
   private
@@ -63,20 +62,18 @@ module mo_vgrid
 contains
 
   subroutine set_vgrid(kpie,kpje,kpke,pddpo)
-    !******************************************************************************
+    !***********************************************************************************************
     !
     ! SET_VGRID - Calculate variables related to the vertical grid structure. This
     !             routine replaces calc_idepth and calc_bot.
     !
     !  J.Schwinger            *NORCE Climate, Bergen*       2020-05-19
     !
-    !  Purpose
-    !  -------
     !  -calculate depth of layer interfaces and centres based on layer thickness
     !  -find lowest mass containing layer in the euphotic zone
     !  -find k-index of 100,500,1000,2000, and 4000 m-surfaces
     !
-    !******************************************************************************
+    !***********************************************************************************************
 
     ! Arguments
     integer, intent(in) :: kpie                  ! 1st dimension of model grid.
@@ -195,13 +192,13 @@ contains
 
 
   subroutine alloc_mem_vgrid(kpie,kpje,kpke)
-    !******************************************************************************
+    !***********************************************************************************************
     !
     ! ALLOC_MEM_VGRID - Allocate variables in this module
     !
     !  J.Schwinger            *NORCE Climate, Bergen*       2020-05-19
     !
-    !******************************************************************************
+    !***********************************************************************************************
     use mod_xc,         only: mnproc
     use mo_control_bgc, only: io_stdo_bgc
 

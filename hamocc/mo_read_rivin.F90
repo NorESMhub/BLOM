@@ -18,36 +18,37 @@
 
 module mo_read_rivin
 
-  !********************************************************************************
-  !  Routines for reading riverine nutrient and carbon input data
+  !*************************************************************************************************
+  ! Routines for reading riverine nutrient and carbon input data
   !
-  !  BLOM_RIVER_NUTRIENTS must be set to TRUE in env_run.xml to activate
-  !  riverine nutrients.
+  ! Riverine carbon and nutrient input is activated through a logical switch 'do_rivinpt' read 
+  ! from HAMOCC's bgcnml namelist. When coupled to NorESM, this is achieved by setting 
+  ! BLOM_RIVER_NUTRIENTS to TRUE in env_run.xml.
   !
-  !  The model attempts to read nutrient fluxes from a NetCDF file
-  !  derived from the GNEWS 2000 data base, which is specified through the
-  !  namelist. The nutrient fluxes in the file are pre-interpolated to the
-  !  ocean grid.
+  ! The model attempts to read nutrient fluxes from a NetCDF file
+  ! derived from the GNEWS 2000 data base, which is specified through the
+  ! namelist. The nutrient fluxes in the file are pre-interpolated to the
+  ! ocean grid.
   !
-  !  The nutrient discharge is distributed on the ocean grid in manner that is
-  !  consistent with how model distributes its freshwater runoff.
-  !  This has been achieved by using the mapping file used to interpolate the
-  !  runoff also to interpolate the GNEWS nutrient fluxes to the ocean grid.
+  ! The nutrient discharge is distributed on the ocean grid in manner that is
+  ! consistent with how model distributes its freshwater runoff.
+  ! This has been achieved by using the mapping file used to interpolate the
+  ! runoff also to interpolate the GNEWS nutrient fluxes to the ocean grid.
   !
-  !  Since only alkalinity is available from measurements, DIC is updated using
-  !  the assumtions that a_t=a_c+a_n and DIC=a_c (a_t: total alkalinity,
-  !  a_c: carbonate alkalinity, a_n: contribution of nutrients to a_t).
-  !
+  ! Since only alkalinity is available from measurements, DIC is updated using
+  ! the assumtions that a_t=a_c+a_n and DIC=a_c (a_t: total alkalinity,
+  ! a_c: carbonate alkalinity, a_n: contribution of nutrients to a_t).
   !
   ! S. Gao,              *Gfi, Bergen*    19.08.2017
+  !
   ! Changes:
   !  J. Schwinger,     *NORCE climate, Bergen*   2020-05-27
-  !  - re-structured this module such that riverine input can be passed as an
-  !    argument to iHAMOCC's main routine
+  !   - re-structured this module such that riverine input can be passed as an
+  !     argument to iHAMOCC's main routine
   !  J. Schwinger,     *NORCE climate, Bergen*   2022-05-18
-  !  - re-structured and renamed this module such that reading and application of
-  !    data are seperated into two distinct modules
-  !********************************************************************************
+  !   - re-structured and renamed this module such that reading and application of
+  !     data are seperated into two distinct modules
+  !*************************************************************************************************
 
   use dimensions, only: idm,jdm
   use mod_xc ,    only: nbdy
@@ -74,9 +75,9 @@ module mo_read_rivin
 contains
 
   subroutine ini_read_rivin(kpie,kpje,omask)
-    !--------------------------------------------------------------------------------
+    !***********************************************************************************************
     !  Initialise reading of riverine input data (GNEWS 2000)
-    !--------------------------------------------------------------------------------
+    !***********************************************************************************************
 
     use mod_xc,         only: mnproc
     use mod_dia,        only: iotype
@@ -139,13 +140,13 @@ contains
       do i=1,kpie
         if (omask(i,j) > 0.5) then
 
-          rivflx(i,j,irdin)    = riv_DIN2d(i,j)
-          rivflx(i,j,irdip)    = riv_DIP2d(i,j)
-          rivflx(i,j,irsi)     = riv_DSI2d(i,j)
-          rivflx(i,j,iralk)    = riv_DIC2d(i,j)
-          rivflx(i,j,iriron)   = riv_DFe2d(i,j)
-          rivflx(i,j,irdoc)    = riv_idoc2d(i,j)
-          rivflx(i,j,irdet)    = riv_idet2d(i,j)
+          rivflx(i,j,irdin)  = riv_DIN2d(i,j)
+          rivflx(i,j,irdip)  = riv_DIP2d(i,j)
+          rivflx(i,j,irsi)   = riv_DSI2d(i,j)
+          rivflx(i,j,iralk)  = riv_DIC2d(i,j)
+          rivflx(i,j,iriron) = riv_DFe2d(i,j)
+          rivflx(i,j,irdoc)  = riv_idoc2d(i,j)
+          rivflx(i,j,irdet)  = riv_idet2d(i,j)
 
         endif
       enddo

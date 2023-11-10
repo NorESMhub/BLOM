@@ -20,18 +20,16 @@
 
 module mo_bgcmean
 
-  !***********************************************************************
-  ! Variables for bgcmean.
-  ! - declaration and memory allocation
-  ! - declaration of auxiliary functions
+  !*************************************************************************************************
+  ! Variables and function for selection, accumulation and averaging of output variables.
   !
   ! Patrick Wetzel    *MPI-Met, HH*    09.12.02
-  ! Ingo Bethke       *Bjer /=  C.*    05.11.09
+  ! Ingo Bethke       *Bjerknes Centre*    05.11.09
+  !
   ! J. Schwinger      *GFI, UiB        10.02.12
   !  - added variables and functions for sediment burial
   !  - added variables for CFC output
-  !  - added initialisation of namelist variables and
-  !    index arrays
+  !  - added initialisation of namelist variables and index arrays
   ! Tjiputra          *UNI-RESEARCH    25.11.15
   !  - added natural DIC/ALK/CALC/OMEGAC variables
   ! A.Moree,          *GFI, Bergen*   2018-04-12
@@ -43,14 +41,15 @@ module mo_bgcmean
   ! - removed output of AOU and added O2_sat instead
   ! - added output of omegaA
   ! - added sediment bypass preprocessor option
-  !**********************************************************************
+  !*************************************************************************************************
 
   use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,ifp,isp,ilp,mnproc,ip
   use mod_dia,        only: ddm,depthslev,depthslev_bnds,nstepinday,pbath
   use mod_nctools,    only: ncpack,nccomp,nccopa,ncwrtr
   use netcdf,         only: nf90_fill_double
   use mo_param1_bgc,  only: ks
-  use mo_control_bgc, only: use_sedbypass,use_cisonew,use_CFC,use_natDIC,use_BROMO,use_BOXATM,use_AGG
+  use mo_control_bgc, only: use_sedbypass,use_cisonew,use_CFC,use_natDIC,use_BROMO,use_BOXATM,     &
+                            use_AGG
 
   implicit none
 
@@ -86,9 +85,9 @@ module mo_bgcmean
   public  :: ks,ddm,depthslev,depthslev_bnds
 
   ! --- Averaging and writing frequencies for diagnostic output
-  integer :: nbgc
-  integer, parameter :: nbgcmax=10
-  real,    dimension(nbgcmax) ::  diagfq_bgc,filefq_bgc
+  integer                     :: nbgc
+  integer, parameter          :: nbgcmax=10
+  real,    dimension(nbgcmax) :: diagfq_bgc,filefq_bgc
   integer, dimension(nbgcmax) :: nacc_bgc
   logical, dimension(nbgcmax) :: diagmon_bgc,diagann_bgc,filemon_bgc,fileann_bgc,bgcwrt
 

@@ -18,30 +18,18 @@
 
 module mo_chemcon
 
-  !**********************************************************************
-  ! Parameter definitions for chemical formulas
-  ! - declare chemical parameters previously defined in subroutine chemcon
+  !*************************************************************************************************
+  ! Parameter definitions for chemical formulas (previously defined in subroutine chemcon)
   !
   ! J. Schwinger,    *UiB-GfI, Bergen*    2013-08-21
+  !
   ! Modified
   ! J.Schwinger,      *Uni Research, Bergen*   2018-04-12
   ! - added constants for Kh CO2 w.r.t. dry air (Weiss, 1974)
-  !**********************************************************************
+  !*************************************************************************************************
 
   implicit none
   public
-
-  ! real, parameter :: ZERO=0.
-  ! real, parameter :: TENM7=10.**(-7.0)
-  ! real, parameter :: SMICR=1.E-6
-  ! real, parameter :: THOUSI=1./1000.
-  ! real, parameter :: PERC=0.01
-  ! real, parameter :: FOURTH=0.25
-  ! real, parameter :: THIRD=1./3.
-  ! real, parameter :: HALF=0.5
-  ! real, parameter :: ONE=1.
-  ! real, parameter :: TWO=2.
-  ! real, parameter :: TEN=10.
 
   !     -----------------------------------------------------------------
   !*    BORON CONCENTRATION IN SEA WATER IN G/KG PER O/OO CL

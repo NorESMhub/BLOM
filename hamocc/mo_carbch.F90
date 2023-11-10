@@ -19,11 +19,11 @@
 
 module mo_carbch
 
-  !***********************************************************************
-  ! Variables for inorganic carbon cycle.
-  ! - declaration and memory allocation
+  !*************************************************************************************************
+  ! Variables for inorganic carbon cycle (declaration and memory allocation)
   !
   !  S.Legutke,        *MPI-MaD, HH*     31.10.01
+  !
   !  Modified
   !  Patrick Wetzel    *MPI-Met, HH*     16.04.02
   !  - new: atm, atdifv, suppco2
@@ -35,7 +35,7 @@ module mo_carbch
   !  - moved accumulation of all output fields to seperate subroutine,
   !    new global fields for output defined here
   !  - added OmegaA
-  !**********************************************************************
+  !*************************************************************************************************
 
   implicit none
   private
@@ -387,5 +387,6 @@ contains
     endif
 
   end subroutine alloc_mem_carbch
+  !*************************************************************************************************
 
 end module mo_carbch

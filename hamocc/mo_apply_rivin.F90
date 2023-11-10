@@ -18,12 +18,15 @@
 
 module mo_apply_rivin
 
-  !********************************************************************************
-  ! Routines for applying riverine nutrient and carbon input data
-  ! BLOM_RIVER_NUTRIENTS must be set to TRUE in env_run.xml to activate
-  ! riverine nutrients.
+  !*************************************************************************************************
+  ! Routines for applying riverine nutrient and carbon input data. 
+  !
+  ! Riverine carbon and nutrient input is activated through a logical switch 'do_rivinpt' read 
+  ! from HAMOCC's bgcnml namelist. When coupled to NorESM, this is achieved by setting 
+  ! BLOM_RIVER_NUTRIENTS to TRUE in env_run.xml.
   !
   ! S. Gao,              *Gfi, Bergen*    19.08.2017
+  !
   ! Modified:
   !  J. Schwinger,     *NORCE climate, Bergen*   2020-05-27
   !  - re-structured this module such that riverine input can be passed as an
@@ -32,7 +35,7 @@ module mo_apply_rivin
   !  - re-structured and renamed this module such that reading and application of
   !    data are seperated into two distinct modules
   !
-  !********************************************************************************
+  !*************************************************************************************************
 
   implicit none
   private
@@ -49,13 +52,13 @@ module mo_apply_rivin
 contains
 
   subroutine apply_rivin(kpie,kpje,kpke,pddpo,omask,rivin)
-    !--------------------------------------------------------------------------------
+    !***********************************************************************************************
     !  Apply riverine input to oceanic tracer fields
-    !--------------------------------------------------------------------------------
+    !***********************************************************************************************
 
     use mo_control_bgc, only: dtb,do_rivinpt,use_cisonew
-    use mo_param1_bgc,  only: nriv,irdin,irdip,irsi,iralk,iriron,irdoc,irdet,     &
-                              iano3,iphosph,isilica,isco212,iiron,idoc,idet,      &
+    use mo_param1_bgc,  only: nriv,irdin,irdip,irsi,iralk,iriron,irdoc,irdet,                      &
+                              iano3,iphosph,isilica,isco212,iiron,idoc,idet,                       &
                               ialkali,inatsco212,inatalkali
     use mo_param1_bgc,  only: idet13,idet14,idoc13,idoc14,isco213,isco214,safediv
     use mo_vgrid,       only: kmle
@@ -66,7 +69,7 @@ contains
     integer,intent(in) :: kpie                       ! 1st dimension of model grid.
     integer,intent(in) :: kpje                       ! 2nd dimension of model grid.
     integer,intent(in) :: kpke                       ! 3rd (vertical) dimension of model grid.
-    real,   intent(in) :: pddpo(kpie,kpje,kpke)      ! size of scalar grid cell (3rd dimension) [m].
+    real,   intent(in) :: pddpo(kpie,kpje,kpke)      ! size of grid cell (3rd dimension) [m].
     real,   intent(in) :: omask(kpie,kpje)           ! ocean mask
     real,   intent(in) :: rivin(kpie,kpje,nriv)      ! riverine input field [kmol m-2 yr-1]
 
@@ -94,46 +97,64 @@ contains
           enddo
 
           if (use_cisonew) then
-            ocetra(i,j,1:kmle(i,j),isco213)    = ocetra(i,j,1:kmle(i,j),isco213)    +                   &
-                 ocetra(i,j,1:kmle(i,j),isco213)/(ocetra(i,j,1:kmle(i,j),isco212)+safediv)*             &
-                 (rivin(i,j,iralk)*fdt/volij + rivin(i,j,irdin)*fdt/volij + rivin(i,j,irdip)*fdt/volij)
-            ocetra(i,j,1:kmle(i,j),isco214)    = ocetra(i,j,1:kmle(i,j),isco214)    +                   &
-                 ocetra(i,j,1:kmle(i,j),isco214)/(ocetra(i,j,1:kmle(i,j),isco212)+safediv)*             &
-                 (rivin(i,j,iralk)*fdt/volij + rivin(i,j,irdin)*fdt/volij + rivin(i,j,irdip)*fdt/volij)
-
-            ocetra(i,j,1:kmle(i,j),idoc13)     = ocetra(i,j,1:kmle(i,j),idoc13)     +                   &
-                 ocetra(i,j,1:kmle(i,j),idoc13)/(ocetra(i,j,1:kmle(i,j),idoc)+safediv)*                 &
-                 rivin(i,j,irdoc)*fdt/volij
-            ocetra(i,j,1:kmle(i,j),idoc14)     = ocetra(i,j,1:kmle(i,j),idoc14)     +                   &
-                 ocetra(i,j,1:kmle(i,j),idoc14)/(ocetra(i,j,1:kmle(i,j),idoc)+safediv)*                 &
-                 rivin(i,j,irdoc)*fdt/volij
-
-            ocetra(i,j,1:kmle(i,j),idet13)     = ocetra(i,j,1:kmle(i,j),idet13)     +                   &
-                 ocetra(i,j,1:kmle(i,j),idet13)/(ocetra(i,j,1:kmle(i,j),idet)+safediv)*                 &
-                 rivin(i,j,irdet)*fdt/volij
-            ocetra(i,j,1:kmle(i,j),idet14)     = ocetra(i,j,1:kmle(i,j),idet14)     +                   &
-                 ocetra(i,j,1:kmle(i,j),idet14)/(ocetra(i,j,1:kmle(i,j),idet)+safediv)*                 &
-                 rivin(i,j,irdet)*fdt/volij
+            ocetra(i,j,1:kmle(i,j),isco213) = ocetra(i,j,1:kmle(i,j),isco213) +                    &
+                 &                            ocetra(i,j,1:kmle(i,j),isco213) /                    &
+                 &                           (ocetra(i,j,1:kmle(i,j),isco212)+safediv) *           &
+                 &                           (rivin(i,j,iralk)*fdt/volij                           &
+                 &                          + rivin(i,j,irdin)*fdt/volij                           &
+                 &                          + rivin(i,j,irdip)*fdt/volij)
+            ocetra(i,j,1:kmle(i,j),isco214) = ocetra(i,j,1:kmle(i,j),isco214) +                    &
+                 &                            ocetra(i,j,1:kmle(i,j),isco214) /                    &
+                 &                           (ocetra(i,j,1:kmle(i,j),isco212)+safediv) *           &
+                 &                           (rivin(i,j,iralk)*fdt/volij                           &
+                 &                          + rivin(i,j,irdin)*fdt/volij                           &
+                 &                          + rivin(i,j,irdip)*fdt/volij)
+            ocetra(i,j,1:kmle(i,j),idoc13)  = ocetra(i,j,1:kmle(i,j),idoc13) +                     &
+                 &                            ocetra(i,j,1:kmle(i,j),idoc13) /                     &
+                 &                           (ocetra(i,j,1:kmle(i,j),idoc)+safediv) *              &
+                 &                            rivin(i,j,irdoc)*fdt/volij
+            ocetra(i,j,1:kmle(i,j),idoc14)  = ocetra(i,j,1:kmle(i,j),idoc14) +                     &
+                 &                            ocetra(i,j,1:kmle(i,j),idoc14) /                     &
+                 &                           (ocetra(i,j,1:kmle(i,j),idoc)+safediv) *              &
+                 &                            rivin(i,j,irdoc)*fdt/volij
+            ocetra(i,j,1:kmle(i,j),idet13)  = ocetra(i,j,1:kmle(i,j),idet13) +                     &
+                 &                            ocetra(i,j,1:kmle(i,j),idet13) /                     &
+                 &                           (ocetra(i,j,1:kmle(i,j),idet)+safediv) *              &
+                 &                            rivin(i,j,irdet)*fdt/volij
+            ocetra(i,j,1:kmle(i,j),idet14)  = ocetra(i,j,1:kmle(i,j),idet14) +                     &
+                 &                            ocetra(i,j,1:kmle(i,j),idet14) /                     &
+                 &                           (ocetra(i,j,1:kmle(i,j),idet)+safediv) *              &
+                 &                            rivin(i,j,irdet)*fdt/volij
           endif
 
           ! DIC is updated using the assumtions that a_t=a_c+a_n and DIC=a_c (a_t: total
           ! alkalinity, a_c: carbonate alkalinity, a_n: contribution of nutrients to a_t).
-          ocetra(i,j,1:kmle(i,j),iano3)      = ocetra(i,j,1:kmle(i,j),iano3)      + rivin(i,j,irdin)*fdt/volij
-          ocetra(i,j,1:kmle(i,j),iphosph)    = ocetra(i,j,1:kmle(i,j),iphosph)    + rivin(i,j,irdip)*fdt/volij
-          ocetra(i,j,1:kmle(i,j),isilica)    = ocetra(i,j,1:kmle(i,j),isilica)    + rivin(i,j,irsi) *fdt/volij
-          ocetra(i,j,1:kmle(i,j),isco212)    = ocetra(i,j,1:kmle(i,j),isco212)    + rivin(i,j,iralk)*fdt/volij    &
-               + rivin(i,j,irdin)*fdt/volij    &
-               + rivin(i,j,irdip)*fdt/volij
-          ocetra(i,j,1:kmle(i,j),ialkali)    = ocetra(i,j,1:kmle(i,j),ialkali)    + rivin(i,j,iralk)*fdt/volij
+          ocetra(i,j,1:kmle(i,j),iano3)   = ocetra(i,j,1:kmle(i,j),iano3)                          &
+               &                          + rivin(i,j,irdin)*fdt/volij
+          ocetra(i,j,1:kmle(i,j),iphosph) = ocetra(i,j,1:kmle(i,j),iphosph)                        &
+               &                          + rivin(i,j,irdip)*fdt/volij
+          ocetra(i,j,1:kmle(i,j),isilica) = ocetra(i,j,1:kmle(i,j),isilica)                        &
+               &                          + rivin(i,j,irsi) *fdt/volij
+          ocetra(i,j,1:kmle(i,j),iiron)   = ocetra(i,j,1:kmle(i,j),iiron)                          &
+               &                          + rivin(i,j,iriron)*fdt/volij*dFe_frac
+          ocetra(i,j,1:kmle(i,j),idoc)    = ocetra(i,j,1:kmle(i,j),idoc)                           &
+               &                          + rivin(i,j,irdoc)*fdt/volij
+          ocetra(i,j,1:kmle(i,j),idet)    = ocetra(i,j,1:kmle(i,j),idet)                           &
+               &                          + rivin(i,j,irdet)*fdt/volij
+          ocetra(i,j,1:kmle(i,j),isco212) = ocetra(i,j,1:kmle(i,j),isco212)                        &
+               &                          + rivin(i,j,iralk)*fdt/volij                             &
+               &                          + rivin(i,j,irdin)*fdt/volij                             &
+               &                          + rivin(i,j,irdip)*fdt/volij
+          ocetra(i,j,1:kmle(i,j),ialkali) = ocetra(i,j,1:kmle(i,j),ialkali)                        &
+               &                          + rivin(i,j,iralk)*fdt/volij
           if (use_natDIC) then
-            ocetra(i,j,1:kmle(i,j),inatsco212) = ocetra(i,j,1:kmle(i,j),inatsco212) + rivin(i,j,iralk)*fdt/volij &
-                 + rivin(i,j,irdin)*fdt/volij &
-                 + rivin(i,j,irdip)*fdt/volij
-            ocetra(i,j,1:kmle(i,j),inatalkali) = ocetra(i,j,1:kmle(i,j),inatalkali) + rivin(i,j,iralk)*fdt/volij
+            ocetra(i,j,1:kmle(i,j),inatsco212) = ocetra(i,j,1:kmle(i,j),inatsco212)                &
+                 &                             + rivin(i,j,iralk)*fdt/volij                        &
+                 &                             + rivin(i,j,irdin)*fdt/volij                        &
+                 &                             + rivin(i,j,irdip)*fdt/volij
+            ocetra(i,j,1:kmle(i,j),inatalkali) = ocetra(i,j,1:kmle(i,j),inatalkali)                &
+                 &                             + rivin(i,j,iralk)*fdt/volij
           endif
-          ocetra(i,j,1:kmle(i,j),iiron) = ocetra(i,j,1:kmle(i,j),iiron)      + rivin(i,j,iriron)*fdt/volij*dFe_frac
-          ocetra(i,j,1:kmle(i,j),idoc)  = ocetra(i,j,1:kmle(i,j),idoc)       + rivin(i,j,irdoc)*fdt/volij
-          ocetra(i,j,1:kmle(i,j),idet)  = ocetra(i,j,1:kmle(i,j),idet)       + rivin(i,j,irdet)*fdt/volij
 
           rivinflx(i,j,irdin)  = rivin(i,j,irdin)*fdt
           rivinflx(i,j,irdip)  = rivin(i,j,irdip)*fdt
@@ -148,5 +169,6 @@ contains
     !$OMP END PARALLEL DO
 
   end subroutine apply_rivin
+  !*************************************************************************************************
 
 end module mo_apply_rivin

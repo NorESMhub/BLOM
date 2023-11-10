@@ -50,13 +50,14 @@ module mo_read_pi_ph
 contains
 
   subroutine ini_pi_ph(kpie,kpje,omask)
-
+    !***********************************************************************************************
     ! Initialise the PI_PH field from climatology.
+    !***********************************************************************************************
 
     use mo_control_bgc,     only: io_stdo_bgc,with_dmsph
     use netcdf,             only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
     use mod_xc,             only: mnproc,xchalt
-    use mo_read_netcdf_var, only: read_netcdf_var
+    use mo_netcdf_bgcrw,    only: read_netcdf_var
 
     ! Arguments
     integer, intent(in) :: kpie
@@ -67,6 +68,13 @@ contains
     integer ::i,j,l
     real    :: pi_ph_in(kpie,kpje,pi_ph_record) ! define the fields
     integer :: ncid,ncstat
+
+    if(mnproc.eq.1) then
+      write(io_stdo_bgc,*) ''
+      write(io_stdo_bgc,*) '***************************************************'
+      write(io_stdo_bgc,*) 'iHAMOCC: Initialization of module mo_read_pi_ph:'
+      write(io_stdo_bgc,*) ''
+    endif
 
     ! Allocate pi_ph field (required argument for hmaocc4bcm)
     if(.not. allocated(pi_ph)) call alloc_pi_ph(kpie,kpje)
@@ -83,7 +91,7 @@ contains
         write(io_stdo_bgc,*) 'HAMOCC: opening PI_PH climatology file'
         if (ncstat /= NF90_NOERR ) then
           call xchalt('(ini_pi_ph: Problem with netCDF1)')
-          stop '(ini_pi_ph: Problem with netCDF1)'
+          stop        '(ini_pi_ph: Problem with netCDF1)'
         end if
       end if
       !
@@ -94,8 +102,8 @@ contains
       if (mnproc==1) then
         ncstat = NF90_CLOSE(ncid)
         if ( ncstat /=  NF90_NOERR ) then
-          call xchalt('(ini_pi_ph: Problem with netCDF200)')
-          stop '(ini_pi_ph: Problem with netCDF200)'
+          call xchalt('(ini_pi_ph: Problem with netCDF2)')
+          stop        '(ini_pi_ph: Problem with netCDF2)'
         end if
       end if
 
@@ -115,8 +123,8 @@ contains
 
   end subroutine ini_pi_ph
 
-  !**********************************************************************
   subroutine get_pi_ph(kpie,kpje,kplmon)
+    !***********************************************************************************************
     use mo_control_bgc, only: with_dmsph
 
     ! Return PI_PH field for a given month.
@@ -137,8 +145,8 @@ contains
 
   end subroutine get_pi_ph
 
-  !**********************************************************************
   subroutine alloc_pi_ph(kpie,kpje)
+    !***********************************************************************************************
     use mod_xc,         only: mnproc
     use mo_control_bgc, only: io_stdo_bgc
 
@@ -159,8 +167,8 @@ contains
 
   end subroutine alloc_pi_ph
 
-  !**********************************************************************
   subroutine alloc_pi_ph_clim(kpie,kpje)
+    !***********************************************************************************************
     use mod_xc,         only: mnproc
     use mo_control_bgc, only: io_stdo_bgc
 

@@ -27,8 +27,9 @@ contains
 
   subroutine dipowa(kpie,kpje,kpke,omask,lspin)
 
-    !**********************************************************************
-    ! diffusion of pore water
+    !***********************************************************************************************
+    ! Diffusion of pore water
+    !
     ! vertical diffusion of sediment pore water tracers
     ! calculate vertical diffusion of sediment pore water properties
     ! and diffusive flux through the ocean/sediment interface.
@@ -38,11 +39,12 @@ contains
     ! sediment layer boundary.
     !
     ! Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
+    !
     ! Modified
     ! S.Legutke,        *MPI-MaD, HH*    10.04.01
     ! - all npowtra-1 properties are diffused in 1 go.
     ! js: not mass conserving check c13/powtra/ocetra
-    !**********************************************************************
+    !***********************************************************************************************
 
     use mo_carbch,      only: ocetra, sedfluxo
     use mo_sedmnt,      only: powtra,porwat,porwah,seddw,zcoefsu,zcoeflo
@@ -111,9 +113,8 @@ contains
             ! this overwrites tredsy(k=0) for k=1
             tredsy(i,k-1,1) = tredsy(i,k,1) / tredsy(i,k-1,2)
             !                 diff upper    / conc (k-1)
-            tredsy(i,k,2)   = tredsy(i,k,2)                                     &
-                 &  - tredsy(i,k-1,3) * tredsy(i,k,1) / tredsy(i,k-1,2)
-            ! concentration - diff lower * diff upper / conc(k-1)
+            tredsy(i,k,2)   = tredsy(i,k,2) - tredsy(i,k-1,3) * tredsy(i,k,1) / tredsy(i,k-1,2)
+            !                 concentration - diff lower      * diff upper    / conc(k-1)
           endif
         enddo
       enddo
@@ -143,7 +144,7 @@ contains
           l = ks-k
           do i = 1,kpie
             if (omask(i,j) > 0.5) then
-              powtra(i,j,l,iv) = ( sedb1(i,l,iv)                               &
+              powtra(i,j,l,iv) = ( sedb1(i,l,iv)                                                   &
                    &  - tredsy(i,l,3) * powtra(i,j,l+1,iv) ) / tredsy(i,l,2)
             endif
           enddo
@@ -158,21 +159,21 @@ contains
             l = 0
             if (omask(i,j) > 0.5) then
               aprior = ocetra(i,j,kbo(i,j),iv_oc)
-              ocetra(i,j,kbo(i,j),iv_oc) =                                        &
-                   &  ( sedb1(i,l,iv) - tredsy(i,l,3) * powtra(i,j,l+1,iv) )      &
+              ocetra(i,j,kbo(i,j),iv_oc) =                                                         &
+                   &  ( sedb1(i,l,iv) - tredsy(i,l,3) * powtra(i,j,l+1,iv) )                       &
                    &  / tredsy(i,l,2)
 
               ! diffusive fluxes (positive downward)
-              sedfluxo(i,j,iv) = sedfluxo(i,j,iv)                                 &
+              sedfluxo(i,j,iv) = sedfluxo(i,j,iv)                                                  &
                    &  -(ocetra(i,j,kbo(i,j),iv_oc) - aprior)* bolay(i,j)
               if (use_natDIC) then
                 ! workaround as long as natDIC is not implemented throughout the sediment module
-                if (iv_oc==isco212) ocetra(i,j,kbo(i,j),inatsco212) =            &
-                                    ocetra(i,j,kbo(i,j),inatsco212) +            &
-                                    ocetra(i,j,kbo(i,j),isco212) - aprior
-                if (iv_oc==ialkali) ocetra(i,j,kbo(i,j),inatalkali) =            &
-                                    ocetra(i,j,kbo(i,j),inatalkali) +            &
-                                    ocetra(i,j,kbo(i,j),ialkali) - aprior
+                if (iv_oc==isco212) ocetra(i,j,kbo(i,j),inatsco212) =                              &
+                     &              ocetra(i,j,kbo(i,j),inatsco212) +                              &
+                     &              ocetra(i,j,kbo(i,j),isco212) - aprior
+                if (iv_oc==ialkali) ocetra(i,j,kbo(i,j),inatalkali) =                              &
+                     &              ocetra(i,j,kbo(i,j),inatalkali) +                              &
+                     &              ocetra(i,j,kbo(i,j),ialkali) - aprior
               endif
             endif
           enddo

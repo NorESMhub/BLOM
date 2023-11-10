@@ -17,20 +17,11 @@
 
 module mo_Gdata_read
 
-  !********************************************************************************
+  !*************************************************************************************************
+  ! Routines for reading initial condition files for OMIP-BGC, based on WOA 2013 and GLODAPv2
+  !
   ! J.Schwinger,        *Gfi, Bergen*           2011-05-19
-  ! Modified
-  ! --------
-  !    J.Schwinger,         *Uni Climate, BCCR*     2017-07-07
-  !    - adapted this module to read the initial conditions for OMIP-BGC.
-  !    J.Schwinger,      *Uni Research, Bergen*   2018-04-12
-  !     - adaptions for reading c-isotope initial values as d13C and d14C
-  ! Purpose
-  ! -------
-  !  - Routines for reading initial condition files for OMIP-BGC, which are based
-  !    on WOA 2013 and GLODAPv2 gridded data netCDF files
-  ! Description:
-  ! ------------
+  !
   !  Public routines and variable of this module:
   !  -subroutine set_Gdata
   !     Initialise global varibles and read in one data set. Must be
@@ -45,10 +36,16 @@ module mo_Gdata_read
   !     Returns the index of the region a given point belongs to. If no region
   !     is found get_region returns 0, which is the index of the 'global region'.
   !     Note that the regions are defined below in the module header.
-  !********************************************************************************
+  !
+  ! Modified
+  !    J.Schwinger,         *Uni Climate, BCCR*     2017-07-07
+  !    - adapted this module to read the initial conditions for OMIP-BGC.
+  !    J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+  !     - adaptions for reading c-isotope initial values as d13C and d14C
+  !*************************************************************************************************
 
-  use netcdf,         only: nf90_noerr,nf90_nowrite,nf90_strerror,nf90_inq_dimid, &
-                            nf90_inquire_dimension,nf90_inq_varid,nf90_get_var,   &
+  use netcdf,         only: nf90_noerr,nf90_nowrite,nf90_strerror,nf90_inq_dimid,                  &
+                            nf90_inquire_dimension,nf90_inq_varid,nf90_get_var,                    &
                             nf90_inquire_variable,nf90_get_att,nf90_close,nf90_open
   use mod_xc,         only: mnproc,xchalt
   use mo_control_bgc, only: io_stdo_bgc
@@ -305,8 +302,12 @@ contains
     var  = vname
     ddeg = inddeg
 
-    if(mnproc == 1) write(io_stdo_bgc,*) 'iHAMOCC: initialising ', trim(vname)
-
+    if(mnproc == 1) then
+	  write(io_stdo_bgc,*)
+      write(io_stdo_bgc,*) '********************************************'
+	  write(io_stdo_bgc,*) 'iHAMOCC: initialising ', trim(vname)
+    endif
+	
     call read_Gdata()
 
     ! extend data array by +/-dnmax data points in longitude
@@ -457,6 +458,7 @@ contains
       !write(*,*) '==============='
 
     enddo
+    
   end subroutine set_regional_profiles
 
 

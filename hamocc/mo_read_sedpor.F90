@@ -17,17 +17,15 @@
 
 module mo_read_sedpor
 
-  !*****************************************************************************
-  ! Routine for reading sediment porosity from netcdf file
-  ! L_SED_POR must be set to true in nml to activate
-  ! lon-lat variable sediment porosity.
+  !*************************************************************************************************
+  ! Routine for reading sediment porosity from netcdf file L_SED_POR must be set to true in nml 
+  ! to activate lon-lat variable sediment porosity.
   !
   ! The model attempts to read lon-lat-sediment depth variable porosity
   ! from the input file 'SEDPORFILE' (incl. full path)
   !
-  ! sed_por holds then the porosity that can be applied later
-  ! via mo_apply_sedpor
-  !*****************************************************************************
+  ! sed_por holds then the porosity that can be applied later via mo_apply_sedpor
+  !*************************************************************************************************
 
   implicit none
   private
@@ -45,7 +43,7 @@ contains
     use mod_xc,             only: mnproc,xchalt
     use mo_control_bgc,     only: io_stdo_bgc,l_3Dvarsedpor
     use netcdf,             only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
-    use mo_read_netcdf_var, only: read_netcdf_var
+    use mo_netcdf_bgcrw,    only: read_netcdf_var
 
     implicit none
 
@@ -77,14 +75,13 @@ contains
       write(io_stdo_bgc,*) ''
       write(io_stdo_bgc,*) 'read_sedpor: Cannot find sediment porosity file... '
       call xchalt('(read_sedpor)')
-      stop '(read_sedpor)'
+      stop        '(read_sedpor)'
     endif
 
     ! read sediment porosity from file
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*) ''
-      write(io_stdo_bgc,*) 'read_sedpor: read sediment porosity from ',       &
-           trim(sedporfile)
+      write(io_stdo_bgc,*) 'read_sedpor: read sediment porosity from ',trim(sedporfile)
     endif
 
     ! Open netCDF data file
@@ -92,7 +89,7 @@ contains
       ncstat = NF90_OPEN(trim(sedporfile),NF90_NOWRITE, ncid)
       if (ncstat /= NF90_NOERR ) then
         call xchalt('(read_sedpor: Problem with netCDF1)')
-        stop '(read_sedpor: Problem with netCDF1)'
+        stop        '(read_sedpor: Problem with netCDF1)'
       end if
     end if
 
@@ -103,8 +100,8 @@ contains
     if (mnproc==1) then
       ncstat = NF90_CLOSE(ncid)
       if ( ncstat /=  NF90_NOERR ) then
-        call xchalt('(read_sedpor: Problem with netCDF200)')
-        stop '(read_sedpor: Problem with netCDF200)'
+        call xchalt('(read_sedpor: Problem with netCDF2)')
+        stop        '(read_sedpor: Problem with netCDF2)'
       end if
     end if
 

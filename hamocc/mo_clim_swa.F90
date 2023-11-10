@@ -18,12 +18,12 @@
 
 module mo_clim_swa
 
-  !******************************************************************************
+  !*************************************************************************************************
   ! Variables and routines for climatology short-wave fields
   ! -Declaration, memory allocation, and routines related to swa_clim fields
   !
   !  J.Tjiputra,        *NORCE Climate, Bergen*    2021-04-15
-  !******************************************************************************
+  !*************************************************************************************************
 
   implicit none
   private
@@ -43,18 +43,16 @@ contains
 
   subroutine ini_swa_clim(kpie,kpje,omask)
 
-    !******************************************************************************
-    ! Initialise the climatology SWA field module.
-    ! Initialise the climatology swa module, read in the swa (short-wave radiation)
-    ! data set.
+    !***********************************************************************************************
+    ! Initialise the climatology SWA field module, read in the swa (short-wave radiation) data set.
     !
     !  J.Tjiputra             *NORCE Climate, Bergen*       2021-04-15
-    !******************************************************************************
+    !***********************************************************************************************
 
-    use netcdf,         only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
-    use mod_xc,         only: mnproc,xchalt
-    use mo_control_bgc, only: io_stdo_bgc
-    use mo_read_netcdf_var, only: read_netcdf_var
+    use netcdf,          only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
+    use mod_xc,          only: mnproc,xchalt
+    use mo_control_bgc,  only: io_stdo_bgc
+    use mo_netcdf_bgcrw, only: read_netcdf_var
 
     ! Arguments
     integer, intent(in) :: kpie              !  1st dimension of model grid.
@@ -87,7 +85,7 @@ contains
       ncstat = NF90_OPEN(trim(swaclimfile),NF90_NOWRITE, ncid)
       if (ncstat /= NF90_NOERR ) then
         call xchalt('(ini_swa_clim: Problem with netCDF1)')
-        stop '(ini_swa_clim: Problem with netCDF1)'
+        stop        '(ini_swa_clim: Problem with netCDF1)'
       end if
     end if
 
@@ -98,8 +96,8 @@ contains
     if (mnproc==1) then
       ncstat = NF90_CLOSE(ncid)
       if ( ncstat  /=  NF90_NOERR ) then
-        call xchalt('(ini_swa_clim: Problem with netCDF200)')
-        stop '(ini_swa_clim: Problem with netCDF200)'
+        call xchalt('(ini_swa_clim: Problem with netCDF2)')
+        stop        '(ini_swa_clim: Problem with netCDF2)'
       end if
     end if
 

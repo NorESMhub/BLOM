@@ -29,20 +29,21 @@ contains
 
   subroutine sedshi(kpie,kpje,omask)
 
-    !**********************************************************************
-    ! Change specific weights for opal, CaCO3, POC include upward transport
+    !***********************************************************************************************
+    ! Sediment shifting
     !
     ! Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
+	!
     ! Modified:
     ! S.Legutke,        *MPI-MaD, HH*    10.04.01
-    ! - rename ssssil(i,j,k)=sedlay(i,j,k,issssil) etc.
+    !  - rename ssssil(i,j,k)=sedlay(i,j,k,issssil) etc.
     ! I. Kriest         *MPI-Met, HH*,   27.05.03
-    !**********************************************************************
+    !***********************************************************************************************
 
-    use mo_sedmnt,     only: burial,calfa,clafa,oplfa,orgfa,porsol,sedlay,seddw,solfu
-    use mo_param_bgc,  only: rcar
-    use mo_param1_bgc, only: isssc12,issssil,issso12,issster,ks,nsedtra, &
-                             isssc13,isssc14,issso13,issso14
+    use mo_sedmnt,      only: burial,calfa,clafa,oplfa,orgfa,porsol,sedlay,seddw,solfu
+    use mo_param_bgc,   only: rcar
+    use mo_param1_bgc,  only: isssc12,issssil,issso12,issster,ks,nsedtra,isssc13,isssc14,          &
+	                          issso13,issso14
     use mo_control_bgc, only: use_cisonew
 
     ! Arguments
@@ -71,10 +72,10 @@ contains
         do i=1,kpie
           if(omask(i,j).gt.0.5) then
             !ka          if(bolay(i,j).gt.0.) then
-            sedlo = orgfa*rcar*sedlay(i,j,k,issso12) &
-                   +calfa*sedlay(i,j,k,isssc12)      &
-                   +oplfa*sedlay(i,j,k,issssil)      &
-                   +clafa*sedlay(i,j,k,issster)
+            sedlo  = rcar*orgfa*sedlay(i,j,k,issso12) &
+                 & +      calfa*sedlay(i,j,k,isssc12) &
+                 & +      oplfa*sedlay(i,j,k,issssil) &
+                 & +      clafa*sedlay(i,j,k,issster)
             ! "full sediment has sedlo=1
             wsed(i,j)=max(0.,(sedlo-1.)/(sedlo+1.e-10))
           endif
@@ -113,10 +114,10 @@ contains
       do i=1,kpie
         if(omask(i,j).gt.0.5) then
           !ka          if(bolay(i,j).gt.0.) then
-          sedlo = orgfa*rcar*sedlay(i,j,ks,issso12) &
-                 +calfa*sedlay(i,j,ks,isssc12)      &
-                 +oplfa*sedlay(i,j,ks,issssil)      &
-                 +clafa*sedlay(i,j,ks,issster)
+          sedlo  = rcar*orgfa*sedlay(i,j,ks,issso12)  &
+               & +      calfa*sedlay(i,j,ks,isssc12)  &
+               & +      oplfa*sedlay(i,j,ks,issssil)  &
+               & +      clafa*sedlay(i,j,ks,issster)
           wsed(i,j)=max(0.,(sedlo-1.)/(sedlo+1.e-10))
         endif
       enddo !end i-loop
@@ -165,10 +166,10 @@ contains
         do i=1,kpie
           if(omask(i,j).gt.0.5) then
             !ka        if(bolay(i,j).gt.0.) then
-            sedlo=orgfa*rcar*sedlay(i,j,k,issso12) &
-                 +calfa*sedlay(i,j,k,isssc12)      &
-                 +oplfa*sedlay(i,j,k,issssil)      &
-                 +clafa*sedlay(i,j,k,issster)
+            sedlo  = rcar*orgfa*sedlay(i,j,k,issso12)  &
+                 & +      calfa*sedlay(i,j,k,isssc12)  &
+                 & +      oplfa*sedlay(i,j,k,issssil)  &
+                 & +      clafa*sedlay(i,j,k,issster)
             fulsed(i,j)=fulsed(i,j)+porsol(i,j,k)*seddw(k)*sedlo
           endif
         enddo !end i-loop
@@ -192,10 +193,10 @@ contains
           seddef=solfu(i,j)-fulsed(i,j)
 
           ! total volume of solid constituents in buried layer
-          spresent=orgfa*rcar*burial(i,j,issso12) &
-                  +calfa*burial(i,j,isssc12)      &
-                  +oplfa*burial(i,j,issssil)      &
-                  +clafa*burial(i,j,issster)
+          spresent = rcar*orgfa*burial(i,j,issso12)  &
+               &   +      calfa*burial(i,j,isssc12)  &
+               &   +      oplfa*burial(i,j,issssil)  &
+               &   +      clafa*burial(i,j,issster)
 
           ! determine whether an additional amount of clay is needed in the burial
           ! layer to fill the whole sediment; I assume that there is an infinite
@@ -203,53 +204,37 @@ contains
           burial(i,j,issster) = burial(i,j,issster) + max(0.,seddef-spresent)/clafa
 
           ! determine new volume of buried layer
-          buried=orgfa*rcar*burial(i,j,issso12) &
-                +calfa*burial(i,j,isssc12)      &
-                +oplfa*burial(i,j,issssil)      &
-                +clafa*burial(i,j,issster)
+          buried = rcar*orgfa*burial(i,j,issso12)  &
+               & +      calfa*burial(i,j,isssc12)  &
+               & +      oplfa*burial(i,j,issssil)  &
+               & +      clafa*burial(i,j,issster)
 
           ! fill the last active layer
           refill=seddef/(buried+1.e-10)
           frac = porsol(i,j,ks)*seddw(ks)
 
-          sedlay(i,j,ks,issso12)=sedlay(i,j,ks,issso12)                  &
-                                +refill*burial(i,j,issso12)/frac
-          sedlay(i,j,ks,isssc12)=sedlay(i,j,ks,isssc12)                  &
-                                +refill*burial(i,j,isssc12)/frac
-          sedlay(i,j,ks,issssil)=sedlay(i,j,ks,issssil)                  &
-                                +refill*burial(i,j,issssil)/frac
-          sedlay(i,j,ks,issster)=sedlay(i,j,ks,issster)                  &
-                                +refill*burial(i,j,issster)/frac
+          sedlay(i,j,ks,issso12)=sedlay(i,j,ks,issso12)+refill*burial(i,j,issso12)/frac
+          sedlay(i,j,ks,isssc12)=sedlay(i,j,ks,isssc12)+refill*burial(i,j,isssc12)/frac
+          sedlay(i,j,ks,issssil)=sedlay(i,j,ks,issssil)+refill*burial(i,j,issssil)/frac
+          sedlay(i,j,ks,issster)=sedlay(i,j,ks,issster)+refill*burial(i,j,issster)/frac
 
           if (use_cisonew) then
-            sedlay(i,j,ks,issso13)=sedlay(i,j,ks,issso13)               &
-                                  +refill*burial(i,j,issso13)/frac
-            sedlay(i,j,ks,isssc13)=sedlay(i,j,ks,isssc13)               &
-                                  +refill*burial(i,j,isssc13)/frac
-            sedlay(i,j,ks,issso14)=sedlay(i,j,ks,issso14)               &
-                                  +refill*burial(i,j,issso14)/frac
-            sedlay(i,j,ks,isssc14)=sedlay(i,j,ks,isssc14)               &
-                                  +refill*burial(i,j,isssc14)/frac
+            sedlay(i,j,ks,issso13)=sedlay(i,j,ks,issso13)+refill*burial(i,j,issso13)/frac
+            sedlay(i,j,ks,isssc13)=sedlay(i,j,ks,isssc13)+refill*burial(i,j,isssc13)/frac
+            sedlay(i,j,ks,issso14)=sedlay(i,j,ks,issso14)+refill*burial(i,j,issso14)/frac
+            sedlay(i,j,ks,isssc14)=sedlay(i,j,ks,isssc14)+refill*burial(i,j,isssc14)/frac
           endif
 
           ! account for losses in buried sediment
-          burial(i,j,issso12) = burial(i,j,issso12)                      &
-                              - refill*burial(i,j,issso12)
-          burial(i,j,isssc12) = burial(i,j,isssc12)                      &
-                              - refill*burial(i,j,isssc12)
-          burial(i,j,issssil) = burial(i,j,issssil)                      &
-                              - refill*burial(i,j,issssil)
-          burial(i,j,issster) = burial(i,j,issster)                      &
-                              - refill*burial(i,j,issster)
+          burial(i,j,issso12) = burial(i,j,issso12)-refill*burial(i,j,issso12)
+          burial(i,j,isssc12) = burial(i,j,isssc12)-refill*burial(i,j,isssc12)
+          burial(i,j,issssil) = burial(i,j,issssil)-refill*burial(i,j,issssil)
+          burial(i,j,issster) = burial(i,j,issster)-refill*burial(i,j,issster)
           if (use_cisonew) then
-            burial(i,j,issso13) = burial(i,j,issso13)                   &
-                                - refill*burial(i,j,issso13)
-            burial(i,j,isssc13) = burial(i,j,isssc13)                   &
-                                - refill*burial(i,j,isssc13)
-            burial(i,j,issso14) = burial(i,j,issso14)                   &
-                                - refill*burial(i,j,issso14)
-            burial(i,j,isssc14) = burial(i,j,isssc14)                   &
-                                - refill*burial(i,j,isssc14)
+            burial(i,j,issso13) = burial(i,j,issso13)-refill*burial(i,j,issso13)
+            burial(i,j,isssc13) = burial(i,j,isssc13)-refill*burial(i,j,isssc13)
+            burial(i,j,issso14) = burial(i,j,issso14)-refill*burial(i,j,issso14)
+            burial(i,j,isssc14) = burial(i,j,isssc14)-refill*burial(i,j,isssc14)
           endif
         endif
       enddo !end i-loop
@@ -263,10 +248,10 @@ contains
         do i=1,kpie
           if(omask(i,j).gt.0.5) then
             !ka        if(bolay(i,j).gt.0.) then
-            sedlo=orgfa*rcar*sedlay(i,j,k,issso12) &
-                 +calfa*sedlay(i,j,k,isssc12)      &
-                 +oplfa*sedlay(i,j,k,issssil)      &
-                 +clafa*sedlay(i,j,k,issster)
+            sedlo  = rcar*orgfa*sedlay(i,j,k,issso12)  &
+                 & +      calfa*sedlay(i,j,k,isssc12)  &
+                 & +      oplfa*sedlay(i,j,k,issssil)  &
+                 & +      clafa*sedlay(i,j,k,issster)
             wsed(i,j)=max(0.,(sedlo-1.)/(sedlo+1.e-10))
           endif
         enddo !end i-loop

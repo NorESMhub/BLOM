@@ -18,21 +18,22 @@
 
 
 module mo_boxatm
-  !******************************************************************************
-  ! This module contains the routine update_boxatm for updating a
-  ! 1-D/scalar/box atmosphere
+  !*************************************************************************************************
+  ! This module contains the routine update_boxatm for updating a 1-D/scalar/box atmosphere
+  !
   ! The global sum of the air-sea C fluxes is calculated, then converted to ppm
   ! and added to the global atmospheric concentration. For C14, an atmospheric
   ! production term corresponding to the total decay in the ocean (plus sediment
   ! if activated) is assumed.
   !
   ! A. Moree,            *GFI, Bergen*      Oct 2019
+  !
   ! Modified
   ! A. Moree,            *GFI, Bergen*      2019-10
   ! - 14C source added to atmosphere as the sum of all 14C loss (decay)
   ! J. Schwinger,        *NORCE, Bergen*    2023-08-02
   ! - ported into NorESM2 code, no functional changes
-  !******************************************************************************
+  !*************************************************************************************************
 
   implicit none
   private
@@ -47,8 +48,8 @@ contains
     use mo_control_bgc, only: io_stdo_bgc, use_cisonew, use_sedbypass
     use mo_carbch,      only: atmflx, atm, ocetra
     use mo_param_bgc,   only: rcar,c14dec
-    use mo_param1_bgc,  only: iatmco2,iatmc13,iatmc14,isco214,idet14,icalc14,idoc14, &
-                              iphy14,izoo14,ipowc14,issso14,isssc14
+    use mo_param1_bgc,  only: iatmco2,iatmc13,iatmc14,isco214,idet14,icalc14,idoc14,iphy14,izoo14, &
+                              ipowc14,issso14,isssc14
     use mo_sedmnt,      only: powtra,sedlay,seddw,porwat,porsol
 
     ! Arguments
@@ -156,5 +157,6 @@ contains
     endif ! end of use_cisonew
 
   end subroutine update_boxatm
+  !*************************************************************************************************
 
 end module mo_boxatm

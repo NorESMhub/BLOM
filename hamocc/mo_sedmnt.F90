@@ -19,16 +19,15 @@
 
 module mo_sedmnt
 
-  !******************************************************************************
-  ! Variables for sediment modules.
-  ! - declaration and memory allocation
-  ! - initialization of sediment
+  !*************************************************************************************************
+  ! Sediment variables, declaration and memory allocation, and initialization
   !
   ! S.Legutke,        *MPI-MaD, HH*    31.10.01
+  !
   ! Modified:
   ! J.Schwinger,      *Uni Research, Bergen*   2018-04-12
-  ! - added sediment bypass preprocessor option
-  !******************************************************************************
+  !  - added sediment bypass preprocessor option
+  !*************************************************************************************************
 
   use mod_xc,         only: mnproc
   use mo_param1_bgc,  only: ks,ksp,nsedtra,npowtra
@@ -71,8 +70,8 @@ module mo_sedmnt
 
 CONTAINS
 
-  !******************************************************************************
   subroutine ini_sedmnt(kpie,kpje,kpke,omask,sed_por)
+    !***********************************************************************************************
 
     use mo_param_bgc, only: claydens,calcwei,calcdens,opalwei,opaldens,orgwei,orgdens,sedict
 
@@ -126,14 +125,13 @@ CONTAINS
 
   end subroutine ini_sedmnt
 
-  !******************************************************************************
   subroutine ini_sedmnt_por(kpie,kpje,kpke,omask,sed_por)
-    !
+    !***********************************************************************************************
     ! Initialization of:
     ! - 3D porosity field (cell center and cell boundaries)
     ! - solid volume fraction at cell center
     ! - vertical molecular diffusion coefficients scaled with porosity
-    !
+    !***********************************************************************************************
     use mo_control_bgc, only: l_3Dvarsedpor
     use mo_param_bgc,   only: sedict
 
@@ -216,12 +214,10 @@ CONTAINS
 
   end subroutine ini_sedmnt_por
 
-  !******************************************************************************
   subroutine alloc_mem_sedmnt(kpie,kpje)
-
-    ! ------------------------------------------------------
+    !***********************************************************************************************
     !  Allocate variables in this module
-    ! ------------------------------------------------------
+    !***********************************************************************************************
 
     ! Arguments
     integer, intent(in) :: kpie,kpje

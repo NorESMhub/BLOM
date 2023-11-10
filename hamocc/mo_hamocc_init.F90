@@ -27,24 +27,22 @@ contains
 
   subroutine hamocc_init(read_rest,rstfnm_hamocc)
 
-    !******************************************************************************
+    !***********************************************************************************************
     ! Initialize HAMOCC and its interface to BLOM.
     ! Interface to ocean model (parameter list):
     ! - HAMOCC intialization when coupled to BLOM.
     !
     !  J.Schwinger,        *NORCE Climate, Bergen*    2020-05-25
-    !******************************************************************************
+    !***********************************************************************************************
 
     use mod_time,       only: date,baclin
-    use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,isp,ifp,ilp,             &
-                              mnproc,lp,nfu,xchalt
+    use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,isp,ifp,ilp,mnproc,lp,nfu,xchalt
     use mod_grid,       only: plon,plat
     use mod_tracers,    only: ntrbgc,ntr,itrbgc,trc
-    use mo_control_bgc, only: bgc_namelist,get_bgc_namelist,                     &
-                              do_ndep,do_rivinpt,do_oalk,do_sedspinup,           &
-                              sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,            &
-                              dtb,dtbgc,io_stdo_bgc,ldtbgc,                      &
-                              ldtrunbgc,ndtdaybgc,with_dmsph,l_3Dvarsedpor,      &
+    use mo_control_bgc, only: bgc_namelist,get_bgc_namelist,do_ndep,do_rivinpt,do_oalk,            &
+                              do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,                 &
+                              dtb,dtbgc,io_stdo_bgc,ldtbgc,                                        &
+                              ldtrunbgc,ndtdaybgc,with_dmsph,l_3Dvarsedpor,                        &
                               ocn_co2_type, use_sedbypass, use_BOXATM, use_BROMO
     use mo_param1_bgc,  only: ks,init_por2octra_mapping
     use mo_param_bgc,   only: ini_parambgc
@@ -60,12 +58,9 @@ contains
     use mo_read_pi_ph,  only: ini_pi_ph,pi_ph_file
     use mo_read_sedpor, only: read_sedpor,sedporfile
     use mo_clim_swa,    only: ini_swa_clim,swaclimfile
-    use mo_Gdata_read,  only: inidic,inialk,inipo4,inioxy,inino3,                &
-                              inisil,inid13c,inid14c
-    use mo_intfcblom,   only: alloc_mem_intfcblom,nphys,                         &
-                              bgc_dx,bgc_dy,bgc_dp,bgc_rho,                      &
-                              omask,sedlay2,powtra2,burial2,                     &
-                              blom2hamocc,atm2
+    use mo_Gdata_read,  only: inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c
+    use mo_intfcblom,   only: alloc_mem_intfcblom,nphys,bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask,        &
+                              sedlay2,powtra2,burial2,blom2hamocc,atm2
     use mo_ini_fields,  only: ini_fields_ocean,ini_fields_atm
     use mo_aufr_bgc,    only: aufr_bgc
 
@@ -78,13 +73,10 @@ contains
     integer :: iounit
     real    :: sed_por(idm,jdm,ks) = 0.
 
-    namelist /bgcnml/ atm_co2,fedepfile,do_rivinpt,rivinfile,do_ndep,ndepfile,   &
-         &   do_oalk,do_sedspinup,sedspin_yr_s,                                  &
-         &   sedspin_yr_e,sedspin_ncyc,                                          &
-         &   inidic,inialk,inipo4,inioxy,inino3,inisil,                          &
-         &   inid13c,inid14c,swaclimfile,                                        &
-         &   with_dmsph,pi_ph_file,l_3Dvarsedpor,sedporfile,                     &
-         &   ocn_co2_type
+    namelist /bgcnml/ atm_co2,fedepfile,do_rivinpt,rivinfile,do_ndep,ndepfile,do_oalk,             &
+         &            do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,                         &
+         &            inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c,swaclimfile,       &
+         &            with_dmsph,pi_ph_file,l_3Dvarsedpor,sedporfile,ocn_co2_type
     !
     ! --- Set io units and some control parameters
     !
@@ -97,7 +89,7 @@ contains
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)
-      write(io_stdo_bgc,*)'********************************************'
+      write(io_stdo_bgc,*) '********************************************'
       write(io_stdo_bgc,*) 'iHAMOCC: initialisation'
       write(io_stdo_bgc,*)
       write(io_stdo_bgc,*) 'restart',read_rest
@@ -115,17 +107,18 @@ contains
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)
+      write(io_stdo_bgc,*) '********************************************'
       write(io_stdo_bgc,*) 'iHAMOCC: reading namelist BGCNML'
       write(io_stdo_bgc,nml=BGCNML)
 
       if(do_sedspinup) then
         if(sedspin_yr_s<0 .or. sedspin_yr_e<0 .or. sedspin_yr_s>sedspin_yr_e) then
-          call xchalt('(invalid sediment spinup start/end year)')
-          stop        '(invalid sediment spinup start/end year)'
+          call xchalt('(hamocc_init: invalid sediment spinup start/end year)')
+          stop        '(hamocc_init: invalid sediment spinup start/end year)'
         endif
         if(sedspin_ncyc < 2) then
-          call xchalt('(invalid nb. of sediment spinup subcycles)')
-          stop        '(invalid nb. of sediment spinup subcycles)'
+          call xchalt('(hamocc_init: invalid nb. of sediment spinup subcycles)')
+          stop        '(hamocc_init: invalid nb. of sediment spinup subcycles)'
         endif
       endif
     endif
@@ -190,17 +183,12 @@ contains
     ! --- Initialise reading of input data (dust, n-deposition, river, etc.)
     !
     call ini_read_fedep(idm,jdm,omask)
-
     call ini_read_ndep(idm,jdm)
-
     call ini_read_rivin(idm,jdm,omask)
-
     call ini_read_oafx(idm,jdm,bgc_dx,bgc_dy,plat,omask)
-
     if (use_BROMO) then
       call ini_swa_clim(idm,jdm,omask)
     endif
-
     call ini_pi_ph(idm,jdm,omask)
     !
     ! --- Read restart fields from restart file if requested, otherwise
@@ -212,10 +200,8 @@ contains
       call AUFR_BGC(idm,jdm,kdm,ntr,ntrbgc,itrbgc,trc,                           &
            &   date%year,date%month,date%day,omask,rstfnm_hamocc)
     else
-      trc(1:idm,1:jdm,1:kdm,      itrbgc:itrbgc+ntrbgc-1) =                      &
-           &   ocetra(:,:,:,:)
-      trc(1:idm,1:jdm,kdm+1:2*kdm,itrbgc:itrbgc+ntrbgc-1) =                      &
-           &   ocetra(:,:,:,:)
+      trc(1:idm,1:jdm,1    :kdm,  itrbgc:itrbgc+ntrbgc-1) = ocetra(:,:,:,:)
+      trc(1:idm,1:jdm,kdm+1:2*kdm,itrbgc:itrbgc+ntrbgc-1) = ocetra(:,:,:,:)
       if (.not. use_sedbypass) then
         sedlay2(:,:,1:ks,:)      = sedlay(:,:,:,:)
         sedlay2(:,:,ks+1:2*ks,:) = sedlay(:,:,:,:)
@@ -232,8 +218,8 @@ contains
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)
-      write(io_stdo_bgc,*)'********************************************'
       write(io_stdo_bgc,*) 'iHAMOCC: finished initialisation'
+      write(io_stdo_bgc,*) '********************************************'
       write(io_stdo_bgc,*)
     endif
 

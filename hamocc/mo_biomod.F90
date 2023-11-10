@@ -18,11 +18,11 @@
 
 
 module mo_biomod
-  !******************************************************************************
-  !  Variables for marine biology.
-  ! - declaration and memory allocation.
+  !*************************************************************************************************
+  !  Variables for marine biology (declaration and memory allocation).
   !
   ! S.Legutke,        *MPI-MaD, HH*    31.10.01
+  !
   ! Modified
   ! I. Kriest, GEOMAR, 11.08.2016
   ! - included T-dependence of cyanobacteria growth
@@ -30,7 +30,7 @@ module mo_biomod
   ! J.Schwinger,      *Uni Research, Bergen*   2018-04-12
   ! - moved accumulation of all output fields to seperate subroutine,
   !   new global fields for output defined here
-  !******************************************************************************
+  !*************************************************************************************************
 
   implicit none
   private

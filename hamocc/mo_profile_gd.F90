@@ -27,22 +27,22 @@ contains
 
   subroutine profile_gd(kpie,kpje,kpke,kbnd,pglon,pglat,omask)
 
-    !*******************************************************************************
-    ! Initialise HAMOCC fields with gridded (1x1 deg) WOA and GLODAP
-    ! data using the module mo_Gdata_read. Note that the routine get_profile
-    ! returns the mean of all data profiles within a rectangular region
-    ! ("smoothing region") of dxy x dxy degrees extent, where dxy is an
-    ! adjustable parameter.
+    !***********************************************************************************************
+    ! Initialise HAMOCC fields with gridded (1x1 deg) WOA and GLODAP data. 
+	!
+	! Note that the routine get_profile returns the mean of all data profiles within a rectangular 
+	! region ("smoothing region") of dxy x dxy degrees extent, where dxy is an adjustable parameter.
     !
     ! J.Schwinger,      *Gfi, Bergen*            2011-05-19
+	!
     ! Modified
     ! J.Schwinger,      *Uni Climate, BCCR*      2017-07-07
-    ! - moved conversion from mumol to mol to mod_gdata_read
-    ! - changed linear interpolation from data-levels to model levels to propper
-    !   mapping of data profile to model-levels
+    !  - moved conversion from mumol to mol to mod_gdata_read
+    !  - changed linear interpolation from data-levels to model levels to propper
+    !    mapping of data profile to model-levels
     ! J.Schwinger,      *Uni Research, Bergen*   2018-04-12
-    ! - adaptions for reading c-isotope initial values as d13C and d14C
-    !*******************************************************************************
+    !  - adaptions for reading c-isotope initial values as d13C and d14C
+    !***********************************************************************************************
 
     use mod_xc,          only: xchalt
     use mo_carbch,       only: ocetra
@@ -139,10 +139,10 @@ contains
                 !    and the upper data level-boundary is higher than the lower model
                 !    level-interface => some overlap between data and model level exists.
                 !    Calculate the corresponding weight.
-                if(zbnds(2,l) > ptiestw(i,j,k) .and. zbnds(1,l) <= ptiestw(i,j,k+1))   &
-                     wgt(l) =     zbnds(2,l)-ptiestw(i,j,k)                              &
-                     - max(zbnds(1,l)-ptiestw(i,j,k),  0.0)                       &
-                     - max(zbnds(2,l)-ptiestw(i,j,k+1),0.0)
+                if(zbnds(2,l) > ptiestw(i,j,k) .and. zbnds(1,l) <= ptiestw(i,j,k+1))               &
+                     wgt(l) =     zbnds(2,l)-ptiestw(i,j,k)                                        &
+                     &      - max(zbnds(1,l)-ptiestw(i,j,k),  0.0)                                 &
+                     &      - max(zbnds(2,l)-ptiestw(i,j,k+1),0.0)
 
                 ! b) The upper data level-boundary is lower than the lower model level-interface
                 !    => all weights have been calculated, calculate concentration and exit
