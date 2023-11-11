@@ -35,12 +35,12 @@ contains
     use mo_control_bgc, only: dtbgc,use_cisonew
     use mo_param1_bgc,  only: ioxygen,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,      &
                               isilica,isssc12,issso12,issssil,issster,ks,ipowc13,ipowc14,isssc13,  &
-							  isssc14,issso13,issso14,safediv
+                              isssc14,issso13,issso14,safediv
     use mo_carbch,      only: co3,keqb,ocetra,sedfluxo
     use mo_chemcon,     only: calcon
     use mo_param_bgc,   only: rnit,ro2ut,disso_sil,silsat,disso_poc,sed_denit,disso_caco3
     use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,seddw,sedhpl,sedlay,       &
-	                          silpro,pror13,pror14,prca13,prca14
+                              silpro,pror13,pror14,prca13,prca14
     use mo_vgrid,       only: kbo,bolay
     use mo_powadi,      only: powadi
     use mo_carchm,      only: carchm_solve

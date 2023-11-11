@@ -29,12 +29,12 @@ contains
 
     !***********************************************************************************************
     ! Initialise HAMOCC fields with gridded (1x1 deg) WOA and GLODAP data. 
-	!
-	! Note that the routine get_profile returns the mean of all data profiles within a rectangular 
-	! region ("smoothing region") of dxy x dxy degrees extent, where dxy is an adjustable parameter.
+    !
+    ! Note that the routine get_profile returns the mean of all data profiles within a rectangular 
+    ! region ("smoothing region") of dxy x dxy degrees extent, where dxy is an adjustable parameter.
     !
     ! J.Schwinger,      *Gfi, Bergen*            2011-05-19
-	!
+    !
     ! Modified
     ! J.Schwinger,      *Uni Climate, BCCR*      2017-07-07
     !  - moved conversion from mumol to mol to mod_gdata_read

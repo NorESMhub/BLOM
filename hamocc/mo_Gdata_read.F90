@@ -303,9 +303,9 @@ contains
     ddeg = inddeg
 
     if(mnproc == 1) then
-	  write(io_stdo_bgc,*)
+      write(io_stdo_bgc,*)
       write(io_stdo_bgc,*) '********************************************'
-	  write(io_stdo_bgc,*) 'iHAMOCC: initialising ', trim(vname)
+      write(io_stdo_bgc,*) 'iHAMOCC: initialising ', trim(vname)
     endif
 	
     call read_Gdata()
