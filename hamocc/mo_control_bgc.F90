@@ -35,7 +35,7 @@ module mo_control_bgc
   public :: get_bgc_namelist
 
   ! Logical unit number for I/O.
-  integer :: io_stdo_bgc        !  standard out.
+  integer :: io_stdo_bgc              !  standard out.
 
   ! File containing namelists
   character(len=:), allocatable, protected :: bgc_namelist
@@ -55,26 +55,27 @@ module mo_control_bgc
   real    :: rmasks = 0.0             !  value at wet cells in sediment.
   real    :: rmasko = 99999.00        !  value at wet cells in ocean.
 
-  ! Logical switches set via namelist
-  logical :: l_3Dvarsedpor = .false.  ! apply lon-lat-depth variable sediment porosity via input file
-  logical :: do_ndep       = .true.   ! apply n-deposition
-  logical :: do_rivinpt    = .true.   ! apply riverine input
-  logical :: do_sedspinup  = .false.  ! apply sediment spin-up
-  logical :: do_oalk       = .false.  ! apply ocean alkalinization
-  logical :: with_dmsph    = .false.  ! apply DMS with pH dependence
-
-  logical :: use_BROMO              = .false.
-  logical :: use_AGG                = .false.
-  logical :: use_WLIN               = .true.
-  logical :: use_natDIC             = .false.
-  logical :: use_CFC                = .false.
-  logical :: use_cisonew            = .false.
-  logical :: use_PBGC_OCNP_TIMESTEP = .false.
-  logical :: use_PBGC_CK_TIMESTEP   = .false.
-  logical :: use_FB_BGC_OCE         = .false.
-  logical :: use_BOXATM             = .false.
-  logical :: use_sedbypass          = .false.
+  ! Switches set via namelist bgcnml
+  logical           :: l_3Dvarsedpor          = .false. ! apply spatially variable sediment porosity
+  logical           :: do_ndep                = .true.  ! apply n-deposition
+  logical           :: do_rivinpt             = .true.  ! apply riverine input
+  logical           :: do_sedspinup           = .false. ! apply sediment spin-up
+  logical           :: do_oalk                = .false. ! apply ocean alkalinization
+  logical           :: with_dmsph             = .false. ! apply DMS with pH dependence
   character(len=64) :: ocn_co2_type
+
+  ! Switches set via namelist config_bgc
+  logical           :: use_BROMO              = .false.
+  logical           :: use_AGG                = .false.
+  logical           :: use_WLIN               = .true.
+  logical           :: use_natDIC             = .false.
+  logical           :: use_CFC                = .false.
+  logical           :: use_cisonew            = .false.
+  logical           :: use_PBGC_OCNP_TIMESTEP = .false.
+  logical           :: use_PBGC_CK_TIMESTEP   = .false.
+  logical           :: use_FB_BGC_OCE         = .false.
+  logical           :: use_BOXATM             = .false.
+  logical           :: use_sedbypass          = .false.
 
 contains
 
