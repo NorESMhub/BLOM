@@ -48,23 +48,22 @@ module mo_control_bgc
   integer :: ldtbgc                   !  time step number from bgc restart file
   integer :: ldtrunbgc                !  actual time steps of run.
 
-  integer :: sedspin_yr_s = -1
-  integer :: sedspin_yr_e = -1
-  integer :: sedspin_ncyc = -1
-
   real    :: rmasks = 0.0             !  value at wet cells in sediment.
   real    :: rmasko = 99999.00        !  value at wet cells in ocean.
 
-  ! Switches set via namelist bgcnml
+  ! Variables set via namelist bgcnml
   logical           :: l_3Dvarsedpor          = .false. ! apply spatially variable sediment porosity
   logical           :: do_ndep                = .true.  ! apply n-deposition
   logical           :: do_rivinpt             = .true.  ! apply riverine input
   logical           :: do_sedspinup           = .false. ! apply sediment spin-up
   logical           :: do_oalk                = .false. ! apply ocean alkalinization
   logical           :: with_dmsph             = .false. ! apply DMS with pH dependence
+  integer           :: sedspin_yr_s           = -1      ! start year for sediment spin-up
+  integer           :: sedspin_yr_e           = -1      ! end   year for sediment spin-up
+  integer           :: sedspin_ncyc           = -1      ! sediment spin-up sub-cycles
   character(len=64) :: ocn_co2_type
 
-  ! Switches set via namelist config_bgc
+  ! Logical switches set via namelist config_bgc
   logical           :: use_BROMO              = .false.
   logical           :: use_AGG                = .false.
   logical           :: use_WLIN               = .true.
