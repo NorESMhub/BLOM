@@ -61,7 +61,9 @@ module mo_control_bgc
   integer           :: sedspin_yr_s           = -1      ! start year for sediment spin-up
   integer           :: sedspin_yr_e           = -1      ! end   year for sediment spin-up
   integer           :: sedspin_ncyc           = -1      ! sediment spin-up sub-cycles
-  character(len=64) :: ocn_co2_type
+  character(len=64) :: ocn_co2_type                     ! indicates co2 coupling to an active atm
+                                                        ! model if set to 'diagnostic' 
+                                                        ! or 'prognostic'
 
   ! Logical switches set via namelist config_bgc
   logical           :: use_BROMO              = .false.

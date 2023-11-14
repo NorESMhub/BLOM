@@ -89,7 +89,7 @@ contains
     real,    intent(in)  :: rivin  (kpie,kpje,nriv)                         ! riverine input [kmol m-2 yr-1].
     real,    intent(in)  :: ndep   (kpie,kpje)                              ! nitrogen deposition [kmol m-2 yr-1].
     real,    intent(in)  :: oafx   (kpie,kpje)                              ! alkalinity flux from alkalinization [kmol m-2 yr-1]
-    real,    intent(in)  :: pi_ph  (kpie,kpje)                              
+    real,    intent(in)  :: pi_ph  (kpie,kpje)                              ! pre-ind. pH climatology used for pH-dependent DMS fluxes [log10([H+])]
     real,    intent(in)  :: pfswr  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! solar radiation [W/m**2].
     real,    intent(in)  :: psicomo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! sea ice concentration
     real,    intent(in)  :: ppao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! sea level pressure [Pascal].
@@ -232,8 +232,7 @@ contains
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
 
-    call carchm(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,prho,pglat,omask,      &
-         &      psicomo,ppao,pfu10,ptho,psao)
+    call carchm(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,prho,pglat,omask,psicomo,ppao,pfu10,ptho,psao)
 
     if (use_PBGC_CK_TIMESTEP   ) then
       if (mnproc.eq.1) then

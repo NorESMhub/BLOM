@@ -97,34 +97,34 @@ contains
           enddo
 
           if (use_cisonew) then
-            ocetra(i,j,1:kmle(i,j),isco213) = ocetra(i,j,1:kmle(i,j),isco213) +                    &
-                 &                            ocetra(i,j,1:kmle(i,j),isco213) /                    &
-                 &                           (ocetra(i,j,1:kmle(i,j),isco212)+safediv) *           &
-                 &                           (rivin(i,j,iralk)*fdt/volij                           &
+            ocetra(i,j,1:kmle(i,j),isco213) = ocetra(i,j,1:kmle(i,j),isco213)                      &
+                 &                          + ocetra(i,j,1:kmle(i,j),isco213)                      &
+                 &                          /(ocetra(i,j,1:kmle(i,j),isco212)+safediv)             &
+                 &                          * (rivin(i,j,iralk)*fdt/volij                          &
+                 &                          +  rivin(i,j,irdin)*fdt/volij                          &
+                 &                          +  rivin(i,j,irdip)*fdt/volij)
+            ocetra(i,j,1:kmle(i,j),isco214) = ocetra(i,j,1:kmle(i,j),isco214)                      &
+                 &                          + ocetra(i,j,1:kmle(i,j),isco214)                      &
+                 &                          /(ocetra(i,j,1:kmle(i,j),isco212)+safediv)             &
+                 &                          * (rivin(i,j,iralk)*fdt/volij                          &
                  &                          + rivin(i,j,irdin)*fdt/volij                           &
                  &                          + rivin(i,j,irdip)*fdt/volij)
-            ocetra(i,j,1:kmle(i,j),isco214) = ocetra(i,j,1:kmle(i,j),isco214) +                    &
-                 &                            ocetra(i,j,1:kmle(i,j),isco214) /                    &
-                 &                           (ocetra(i,j,1:kmle(i,j),isco212)+safediv) *           &
-                 &                           (rivin(i,j,iralk)*fdt/volij                           &
-                 &                          + rivin(i,j,irdin)*fdt/volij                           &
-                 &                          + rivin(i,j,irdip)*fdt/volij)
-            ocetra(i,j,1:kmle(i,j),idoc13)  = ocetra(i,j,1:kmle(i,j),idoc13) +                     &
-                 &                            ocetra(i,j,1:kmle(i,j),idoc13) /                     &
-                 &                           (ocetra(i,j,1:kmle(i,j),idoc)+safediv) *              &
-                 &                            rivin(i,j,irdoc)*fdt/volij
-            ocetra(i,j,1:kmle(i,j),idoc14)  = ocetra(i,j,1:kmle(i,j),idoc14) +                     &
-                 &                            ocetra(i,j,1:kmle(i,j),idoc14) /                     &
-                 &                           (ocetra(i,j,1:kmle(i,j),idoc)+safediv) *              &
-                 &                            rivin(i,j,irdoc)*fdt/volij
-            ocetra(i,j,1:kmle(i,j),idet13)  = ocetra(i,j,1:kmle(i,j),idet13) +                     &
-                 &                            ocetra(i,j,1:kmle(i,j),idet13) /                     &
-                 &                           (ocetra(i,j,1:kmle(i,j),idet)+safediv) *              &
-                 &                            rivin(i,j,irdet)*fdt/volij
-            ocetra(i,j,1:kmle(i,j),idet14)  = ocetra(i,j,1:kmle(i,j),idet14) +                     &
-                 &                            ocetra(i,j,1:kmle(i,j),idet14) /                     &
-                 &                           (ocetra(i,j,1:kmle(i,j),idet)+safediv) *              &
-                 &                            rivin(i,j,irdet)*fdt/volij
+            ocetra(i,j,1:kmle(i,j),idoc13)  = ocetra(i,j,1:kmle(i,j),idoc13)                       &
+                 &                          + ocetra(i,j,1:kmle(i,j),idoc13)                       &
+                 &                          /(ocetra(i,j,1:kmle(i,j),idoc)+safediv)                &
+                 &                          * rivin(i,j,irdoc)*fdt/volij
+            ocetra(i,j,1:kmle(i,j),idoc14)  = ocetra(i,j,1:kmle(i,j),idoc14)                       &
+                 &                          + ocetra(i,j,1:kmle(i,j),idoc14)                       &
+                 &                          /(ocetra(i,j,1:kmle(i,j),idoc)+safediv)                &
+                 &                          * rivin(i,j,irdoc)*fdt/volij
+            ocetra(i,j,1:kmle(i,j),idet13)  = ocetra(i,j,1:kmle(i,j),idet13)                       &
+                 &                          + ocetra(i,j,1:kmle(i,j),idet13)                       &
+                 &                          /(ocetra(i,j,1:kmle(i,j),idet)+safediv)                &
+                 &                          * rivin(i,j,irdet)*fdt/volij
+            ocetra(i,j,1:kmle(i,j),idet14)  = ocetra(i,j,1:kmle(i,j),idet14)                       &
+                 &                          + ocetra(i,j,1:kmle(i,j),idet14)                       &
+                 &                          /(ocetra(i,j,1:kmle(i,j),idet)+safediv)                &
+                 &                          * rivin(i,j,irdet)*fdt/volij
           endif
 
           ! DIC is updated using the assumtions that a_t=a_c+a_n and DIC=a_c (a_t: total
