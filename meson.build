@@ -68,7 +68,6 @@ subdir('fuk95')
 subdir('channel')
 subdir('single_column')
 subdir('pkgs/')
-subdir('hamocc')
 
 # Handle options and add necessary flags and subfolders with source files
 
@@ -115,6 +114,7 @@ endif
 
 if get_option('ecosys')
   add_project_arguments('-DHAMOCC', language: 'fortran')
+  subdir('hamocc')
 endif
 
 if get_option('levitus2x')
