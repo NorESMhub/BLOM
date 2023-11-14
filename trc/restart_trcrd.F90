@@ -23,7 +23,10 @@ subroutine restart_trcrd(rstfnm_ocn)
 ! --- Read tracer state from restart files
 ! --- ------------------------------------------------------------------
 !
+#ifdef HAMOCC
   use mo_hamocc_init, only: hamocc_init
+#endif
+
   use mod_config, only: expcnf
   use mod_xc
 
