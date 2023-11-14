@@ -18,18 +18,16 @@
 
 module mo_read_fedep
 
-  !******************************************************************************
-  ! Routines for reading iron deposition data
-  ! Declaration, memory allocation, and routines related to reading iron
-  ! deposition input data
+  !*************************************************************************************************
+  ! Declaration, memory allocation, and routines related to reading iron deposition input data
   !
   !  J.Schwinger,      *NORCE Climate, Bergen*   2020-05-27
+  !
   !  Modified
   !  J. Schwinger,     *NORCE climate, Bergen*   2022-06-02
-  !  -revise structure of this module, split into a module for reading the
-  !   data (mo_read_fedep) and a module that applies the fluxes in core
-  !   hamocc (mo_apply_fedep)
-  !******************************************************************************
+  !   -revise structure of this module, split into a module for reading the data (mo_read_fedep)
+  !    and a module that applies the fluxes in core hamocc (mo_apply_fedep)
+  !*************************************************************************************************
 
   implicit none
   private
@@ -47,16 +45,16 @@ contains
 
   subroutine ini_read_fedep(kpie,kpje,omask)
 
-    !******************************************************************************
+    !***********************************************************************************************
     ! Initialise the iron deposition module, read in the iron (dust) data set.
     !
     ! J.Schwinger            *NORCE Climate, Bergen*       2020-05-19
-    !******************************************************************************
+    !***********************************************************************************************
 
     use netcdf,             only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
     use mod_xc,             only: mnproc,xchalt
     use mo_control_bgc,     only: io_stdo_bgc
-    use mo_read_netcdf_var, only: read_netcdf_var
+    use mo_netcdf_bgcrw,    only: read_netcdf_var
 
     ! Arguments
     integer, intent(in) :: kpie              ! 1st dimension of model grid.
@@ -91,7 +89,7 @@ contains
       ncstat = NF90_OPEN(trim(fedepfile),NF90_NOWRITE, ncid)
       if (ncstat /= NF90_NOERR ) then
         call xchalt('(get_dust: Problem with netCDF1)')
-        stop '(get_dust: Problem with netCDF1)'
+        stop        '(get_dust: Problem with netCDF1)'
       end if
     end if
 
@@ -102,8 +100,8 @@ contains
     if (mnproc==1) then
       ncstat = NF90_CLOSE(ncid)
       if ( ncstat /=  NF90_NOERR ) then
-        call xchalt('(get_dust: Problem with netCDF200)')
-        stop '(get_dust: Problem with netCDF200)'
+        call xchalt('(get_dust: Problem with netCDF2)')
+        stop        '(get_dust: Problem with netCDF2)'
       end if
     end if
 
@@ -128,12 +126,11 @@ contains
 
   subroutine get_fedep(kpie,kpje,kplmon,dust)
 
-    !******************************************************************************
+    !***********************************************************************************************
     ! Get iron (dust) deposition for current month
-    ! Initialise the iron deposition module, read in the iron (dust) data set.
     !
     !  J.Schwinger            *NORCE Climate, Bergen*       2020-05-19
-    !******************************************************************************
+    !***********************************************************************************************
 
     integer, intent(in)  :: kpie             ! 1st dimension of model grid
     integer, intent(in)  :: kpje             ! 2nd dimension of model grid

@@ -28,6 +28,15 @@ module mo_ini_fields
 contains
 
   subroutine ini_fields_atm(kpie,kpje)
+    !***********************************************************************************************
+    ! Initialize bgc variables for atmosphere (used if not coupled to an atmosphere model).
+    !
+    !  Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
+    !
+    !  Modified
+    !  J.Schwinger,        *NORCE Climate, Bergen*    2020-05-19
+    !  -split the original BELEG_BGC in two parts, BELEG_PARM (NOW MO_PARAM_BGC) and BELEG_VARS
+    !***********************************************************************************************
 
     use mo_control_bgc, only: use_natDIC,use_cisonew,use_BROMO
     use mo_param1_bgc,  only: iatmco2,iatmo2,iatmn2,iatmnco2,iatmc13,iatmc14,iatmbromo
@@ -67,27 +76,29 @@ contains
 
   subroutine ini_fields_ocean(kpaufr,kpie,kpje,kpke,kbnd,pddpo,prho,omask,pglon,pglat)
 
-    !******************************************************************************
+    !***********************************************************************************************
     ! Initialize bgc variables.
-    !  - set initial values for bgc variables.
     !
     !  Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
+    !
     !  Modified
     !  J.Schwinger,        *NORCE Climate, Bergen*    2020-05-19
     !  -split the original BELEG_BGC in two parts, BELEG_PARM (NOW MO_PARAM_BGC) and BELEG_VARS
-    !******************************************************************************
+    !***********************************************************************************************
 
     use mo_carbch,      only: co2star,co3,hi,ocetra
     use mo_param_bgc,   only: fesoly,cellmass,fractdim,bifr13,bifr14,c14fac,re1312,re14to
     use mo_biomod,      only: abs_oce
-    use mo_control_bgc, only: rmasks,use_FB_BGC_OCE, use_cisonew, use_AGG, use_CFC, use_natDIC, use_BROMO, use_sedbypass
-    use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy, &
-                              iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo, &
-                              iadust,inos,ibromo,icfc11,icfc12,isf6, &
-                              icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv, &
-                              inatcalc, &
-                              ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster,ks,nsedtra, &
-                              ipowc13,ipowc13,issso13,issso13,isssc13,ipowc14,isssc14,issso14
+    use mo_control_bgc, only: rmasks,use_FB_BGC_OCE,use_cisonew,use_AGG,use_CFC,use_natDIC,        &
+                              use_BROMO, use_sedbypass
+    use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,     &
+                              iiron,iopal,ioxygen,iphosph,iphy,iprefalk,iprefdic,iprefo2,iprefpo4, &
+                              isco212,isilica,izoo,iadust,inos,ibromo,icfc11,icfc12,isf6,          &
+                              icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,           &
+                              isco213,isco214,izoo13,izoo14,safediv,inatcalc,                      &
+                              ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,      &
+                              issso12,issssil,issster,ks,nsedtra,ipowc13,ipowc13,issso13,issso13,  &
+                              isssc13,ipowc14,isssc14,issso14
     use mo_vgrid,       only: kmle,kbo
     use mo_carbch,      only: nathi,natco3
     use mo_sedmnt,      only: sedhpl,burial,powtra,sedlay

@@ -35,14 +35,12 @@ sources += files(
   'mo_sedmnt.F90',
   'mo_vgrid.F90',
   'mo_ncout_hamocc.F90',
-  'mo_netcdf_def_vardb.F90',
+  'mo_netcdf_bgcrw.F90',
   'mo_ocprod.F90',
   'mo_powach.F90',
   'mo_powadi.F90',
   'mo_preftrc.F90',
   'mo_profile_gd.F90',
-  'mo_read_netcdf_var.F90',
   'mo_restart_hamoccwt.F90',
   'mo_sedshi.F90',
-  'mo_trc_limitc.F90',
-  'mo_write_netcdf_var.F90')
+  'mo_trc_limitc.F90')

@@ -27,11 +27,11 @@ contains
 
   subroutine cyano(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
 
-    !**********************************************************************
-    ! Nitrogen-fixation by cyano bacteria, followed by remineralisation
-    ! and nitrification
+    !***********************************************************************************************
+    ! Nitrogen-fixation by cyano bacteria, followed by remineralisation and nitrification
     !
     ! Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
+    !
     ! Modified
     ! S.Legutke,        *MPI-MaD, HH*    10.04.01
     ! - included : surface reduction of gaseous nitrogen
@@ -42,7 +42,7 @@ contains
     ! - moved accumulation of all output fields to seperate subroutine,
     !   related code-restructuring
     ! - added reduction of alkalinity through N-fixation
-    !**********************************************************************
+    !***********************************************************************************************
 
     use mo_vgrid,       only: kmle
     use mo_carbch,      only: ocetra
@@ -56,8 +56,8 @@ contains
     integer, intent(in) :: kpje                                          ! 2nd dimension of model grid.
     integer, intent(in) :: kpke                                          ! 3rd (vertical) dimension of model grid.
     integer, intent(in) :: kbnd                                          ! nb of halo grid points
-    real,    intent(in) :: pddpo(kpie,kpje,kpke)
-    real,    intent(in) :: omask(kpie,kpje)
+    real,    intent(in) :: pddpo(kpie,kpje,kpke)                         ! size of grid cell (3rd dimension) [m].
+    real,    intent(in) :: omask(kpie,kpje)                              ! land/ocean mask
     real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)  ! potential temperature.
 
     ! Local variables
@@ -83,7 +83,7 @@ contains
               nfixtfac = max(0.0,tf2*ttemp*ttemp + tf1*ttemp + tf0)/tff
 
               ocetra(i,j,k,iano3)=ocetra(i,j,k,iano3)*(1-bluefix*nfixtfac)  &
-                                + bluefix*nfixtfac*rnit*ocetra(i,j,k,iphosph)
+                   &            + bluefix*nfixtfac*rnit*ocetra(i,j,k,iphosph)
 
               dano3=ocetra(i,j,k,iano3)-oldocetra
 

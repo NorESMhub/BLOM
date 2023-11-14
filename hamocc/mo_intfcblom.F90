@@ -18,13 +18,13 @@
 
 module mo_intfcblom
 
-  !******************************************************************************
+  !*************************************************************************************************
   ! Variables for BLOM-iHAMOCC interface
   ! - Declaration and memory allocation related to the BLOM-iHAMOCC interface.
   ! - This includes 2-time-level copies of sediment and amospheric fields.
   !
   !  J.Schwinger,        *NORCE Climate, Bergen*    2020-05-19
-  !******************************************************************************
+  !*************************************************************************************************
 
   use mo_control_bgc, only: use_sedbypass,use_BOXATM
 
@@ -181,11 +181,12 @@ contains
 
   subroutine blom2hamocc(m,n,mm,nn)
 
-    !******************************************************************************
+    !***********************************************************************************************
     ! Interface between BLOM and HAMOCC.
     !
     ! K. Assmann        *GFI, UiB        initial version
     ! J. Schwinger      *GFI, UiB        2013-04-22
+    !
     ! Modified:
     ! J.Schwinger,      *Uni Research, Bergen*   2018-04-12
     ! - removed inverse of layer thickness
@@ -194,7 +195,7 @@ contains
     ! - changed ocean model from MICOM to BLOM
     ! T. Torsvik,       *University of Bergen*   2021-08-26
     ! - integrate subroutine into module mo_intfcblom
-    !******************************************************************************
+    !***********************************************************************************************
 
     use mod_constants, only: onem
     use mod_xc,        only: ii,jdm,jj,kdm,kk,ifp,isp,ilp,idm
@@ -362,8 +363,9 @@ contains
 
   subroutine hamocc2blom(m,n,mm,nn)
 
-    !******************************************************************************
+    !***********************************************************************************************
     ! Interface between BLOM and HAMOCC.
+    !
     ! Pass flux and tracer fields back from HAMOCC to BLOM.
     ! The local HAMOCC arrays are copied back in the appropriate
     ! time-level of the tracer field. Note that also sediment fields
@@ -373,6 +375,7 @@ contains
     ! performed to avoid a seperation of the two time levels.
     !
     ! J. Schwinger      *GFI, UiB        2014-05-21 initial version
+    !
     ! Modified:
     ! J.Schwinger,      *Uni Research, Bergen*   2018-04-12
     ! - added sediment bypass preprocessor option
@@ -380,7 +383,7 @@ contains
     ! - changed ocean model from MICOM to BLOM
     ! T. Torsvik,       *University of Bergen*   2021-08-26
     ! - integrate subroutine into module mo_intfcblom
-    !******************************************************************************
+    !***********************************************************************************************
 
     use mod_xc,        only: ii,jj,kk,ifp,ilp,isp
     use mod_tracers,   only: ntrbgc,itrbgc,trc
@@ -426,16 +429,16 @@ contains
         kn=k+nns
         do j=1,jj
           do l=1,isp(j)
-            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))              ! time smoothing (analog to tmsmt2.F)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))             ! time smoothing (analog to tmsmt2.F)
               sedlay2(i,j,km,:) = wts1*sedlay2(i,j,km,:)   &  ! mid timelevel
-                   + wts2*sedlay2(i,j,kn,:)   &  ! old timelevel
-                   + wts2*sedlay(i,j,k,:)        ! new timelevel
+                   &            + wts2*sedlay2(i,j,kn,:)   &  ! old timelevel
+                   &            + wts2*sedlay(i,j,k,:)        ! new timelevel
               powtra2(i,j,km,:) = wts1*powtra2(i,j,km,:)   &
-                   + wts2*powtra2(i,j,kn,:)   &
-                   + wts2*powtra(i,j,k,:)
+                   &            + wts2*powtra2(i,j,kn,:)   &
+                   &            + wts2*powtra(i,j,k,:)
               burial2(i,j,m,:)  = wts1*burial2(i,j,m,:)    &
-                   + wts2*burial2(i,j,n,:)    &
-                   + wts2*burial(i,j,:)
+                   &            + wts2*burial2(i,j,n,:)    &
+                   &            + wts2*burial(i,j,:)
             enddo
           enddo
         enddo
@@ -468,8 +471,8 @@ contains
       do j=1,jj
         do i=1,ii                                  ! time smoothing (analog to tmsmt2.F)
           atm2(i,j,m,:) = wts1*atm2(i,j,m,:)   &   ! mid timelevel
-                        + wts2*atm2(i,j,n,:)   &   ! old timelevel
-                        + wts2*atm(i,j,:)          ! new timelevel
+               &        + wts2*atm2(i,j,n,:)   &   ! old timelevel
+               &        + wts2*atm(i,j,:)          ! new timelevel
         enddo
       enddo
       !$OMP END PARALLEL DO

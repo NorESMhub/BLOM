@@ -26,16 +26,17 @@ contains
 
   subroutine preftrc(kpie,kpje,omask)
 
-    !****************************************************************
-    ! update preformed tracers in the mixed layer.
-    ! Preformed tracers are set to the value of their full counterparts
-    ! in the mixed layer.
+    !***********************************************************************************************
+    ! Update preformed tracers in the mixed layer.
+    !
+    ! Preformed tracers are set to the value of their full counterparts in the mixed layer.
     !
     ! J. Tjiputra, J.Schwinger,    *BCCR, Bergen*   2015-01-23
+	!
     ! Modified
     ! J.Tjiputra,       *Uni Research, Bergen*   2018-04-12
-    ! - added preformed DIC tracer
-    !**************************************************************************
+    !  - added preformed DIC tracer
+    !***********************************************************************************************
 
     use mo_carbch,     only: ocetra
     use mo_param1_bgc, only: ialkali,ioxygen,iphosph,iprefalk,iprefdic,iprefo2,iprefpo4,isco212

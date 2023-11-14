@@ -21,42 +21,38 @@ module mo_hamocc4bcm
   implicit none
   private
 
-  public :: HAMOCC4BCM
+  public :: hamocc4bcm
 
 contains
 
-  subroutine hamocc4bcm(kpie,kpje,kpke,kbnd,kplyear,kplmon,kplday,kldtday,&
-                        pdlxp,pdlyp,pddpo,prho,pglat,omask,               &
-                        dust,rivin,ndep,oafx,pi_ph,                       &
-                        pfswr,psicomo,ppao,pfu10,ptho,psao,               &
+  subroutine hamocc4bcm(kpie,kpje,kpke,kbnd,kplyear,kplmon,kplday,kldtday,pdlxp,pdlyp,pddpo,prho,  &
+                        pglat,omask, dust,rivin,ndep,oafx,pi_ph,pfswr,psicomo,ppao,pfu10,ptho,psao,&
                         patmco2,pflxco2,pflxdms,patmbromo,pflxbromo)
 
-    !******************************************************************************
-    ! main routine of iHAMOCC.
+    !***********************************************************************************************
+    ! Main routine of iHAMOCC.
+    !
     ! Modified:
     !  J.Schwinger       *GFI, Bergen*    2013-10-21
     !  - added GNEWS2 option for riverine input of carbon and nutrients
     !  - code cleanup
     !  J.Schwinger       *GFI, Bergen*    2014-05-21
-    !  - moved copying of tracer field to ocetra to micom2hamocc
-    !    and hamocc2micom
+    !  - moved copying of tracer field to ocetra to micom2hamocc and hamocc2micom
     !  J.Schwinger,      *Uni Research, Bergen*   2018-04-12
-    !  - moved accumulation of all output fields to seperate subroutine,
-    !    related code-restructuring
+    !  - moved accumulation of all output fields to seperate subroutine, related code-restructuring
     !  - added sediment bypass preprocessor option
     !  J.Schwinger,      *NORCE Climate, Bergen*   2020-05-28
     !  - restructuring of iHAMOCC code, cleanup parameter list
-    !  - boundary conditions (dust, riverinput, N-deposition) are now passed as
-    !    an argument
-    !******************************************************************************
+    !  - boundary conditions (dust, riverinput, N-deposition) are now passed as an argument
+    !***********************************************************************************************
 
     use mod_xc,           only: mnproc
-    use mo_carbch,        only: atmflx,ocetra,atm,&
-                                atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh
+    use mo_carbch,        only: atmflx,ocetra,atm,atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,          &
+                                atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh
     use mo_biomod,        only: strahl
-    use mo_control_bgc,   only: ldtrunbgc,dtbgc,ldtbgc,io_stdo_bgc,dtbgc,ndtdaybgc, &
-                                do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc, &
-                                use_BROMO, use_CFC, use_PBGC_CK_TIMESTEP,&
+    use mo_control_bgc,   only: ldtrunbgc,dtbgc,ldtbgc,io_stdo_bgc,dtbgc,ndtdaybgc,                &
+                                do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,               &
+                                use_BROMO, use_CFC, use_PBGC_CK_TIMESTEP,                          &
                                 use_BOXATM, use_sedbypass,ocn_co2_type
     use mo_param1_bgc,    only: iatmco2,iatmdms,nocetra,nriv,iatmbromo
     use mo_vgrid,         only: set_vgrid
@@ -75,36 +71,36 @@ contains
     use mo_carchm,        only: carchm
 
     ! Arguments
-    integer, intent(in)    :: kpie                                            ! 1st dimension of model grid.
-    integer, intent(in)    :: kpje                                            ! 2nd dimension of model grid.
-    integer, intent(in)    :: kpke                                            ! 3rd (vertical) dimension of model grid.
-    integer, intent(in)    :: kbnd                                            ! number of halo grid points.
-    integer, intent(in)    :: kplyear                                         ! current year.
-    integer, intent(in)    :: kplmon                                          ! current month.
-    integer, intent(in)    :: kplday                                          ! current day.
-    integer, intent(in)    :: kldtday                                         ! number of time step in current day.
-    real,    intent(in)    :: pdlxp  (kpie,kpje)                              ! size of grid cell (longitudinal) [m].
-    real,    intent(in)    :: pdlyp  (kpie,kpje)                              ! size of grid cell (latitudinal) [m].
-    real,    intent(in)    :: pddpo  (kpie,kpje,kpke)                         ! size of grid cell (depth) [m].
-    real,    intent(in)    :: prho   (kpie,kpje,kpke)                         ! density [g/cm^3].
-    real,    intent(in)    :: pglat  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! latitude of grid cells [deg north].
-    real,    intent(in)    :: omask  (kpie,kpje)                              ! land/ocean mask.
-    real,    intent(in)    :: dust   (kpie,kpje)                              ! dust deposition flux [kg/m2/month].
-    real,    intent(in)    :: rivin  (kpie,kpje,nriv)                         ! riverine input [kmol m-2 yr-1].
-    real,    intent(in)    :: ndep   (kpie,kpje)                              ! nitrogen deposition [kmol m-2 yr-1].
-    real,    intent(in)    :: oafx   (kpie,kpje)                              ! alkalinity flux from alkalinization [kmol m-2 yr-1]
-    real,    intent(in)    :: pi_ph  (kpie,kpje)
-    real,    intent(in)    :: pfswr  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! solar radiation [W/m**2].
-    real,    intent(in)    :: psicomo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! sea ice concentration
-    real,    intent(in)    :: ppao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! sea level pressure [Pascal].
-    real,    intent(in)    :: pfu10  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! absolute wind speed at 10m height [m/s]
-    real,    intent(in)    :: ptho   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! potential temperature [deg C].
-    real,    intent(in)    :: psao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! salinity [psu.].
-    real,    intent(in)    :: patmco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! atmospheric CO2 concentration [ppm] used in fully coupled mode
-    real,    intent(out)   :: pflxco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! CO2 flux [kg/m^2/s].
-    real,    intent(inout) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! DMS flux [kg/m^2/s].
-    real,    intent(in)    :: patmbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)    ! atmospheric bromoform concentration [ppt] used in fully coupled mode.
-    real,    intent(inout) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)    ! Bromoform flux [kg/m^2/s].
+    integer, intent(in)  :: kpie                                            ! 1st dimension of model grid.
+    integer, intent(in)  :: kpje                                            ! 2nd dimension of model grid.
+    integer, intent(in)  :: kpke                                            ! 3rd (vertical) dimension of model grid.
+    integer, intent(in)  :: kbnd                                            ! number of halo grid points.
+    integer, intent(in)  :: kplyear                                         ! current year.
+    integer, intent(in)  :: kplmon                                          ! current month.
+    integer, intent(in)  :: kplday                                          ! current day.
+    integer, intent(in)  :: kldtday                                         ! number of time step in current day.
+    real,    intent(in)  :: pdlxp  (kpie,kpje)                              ! size of grid cell (longitudinal) [m].
+    real,    intent(in)  :: pdlyp  (kpie,kpje)                              ! size of grid cell (latitudinal) [m].
+    real,    intent(in)  :: pddpo  (kpie,kpje,kpke)                         ! size of grid cell (depth) [m].
+    real,    intent(in)  :: prho   (kpie,kpje,kpke)                         ! density [g/cm^3].
+    real,    intent(in)  :: pglat  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! latitude of grid cells [deg north].
+    real,    intent(in)  :: omask  (kpie,kpje)                              ! land/ocean mask.
+    real,    intent(in)  :: dust   (kpie,kpje)                              ! dust deposition flux [kg/m2/month].
+    real,    intent(in)  :: rivin  (kpie,kpje,nriv)                         ! riverine input [kmol m-2 yr-1].
+    real,    intent(in)  :: ndep   (kpie,kpje)                              ! nitrogen deposition [kmol m-2 yr-1].
+    real,    intent(in)  :: oafx   (kpie,kpje)                              ! alkalinity flux from alkalinization [kmol m-2 yr-1]
+    real,    intent(in)  :: pi_ph  (kpie,kpje)                              ! pre-ind. pH climatology used for pH-dependent DMS fluxes [log10([H+])]
+    real,    intent(in)  :: pfswr  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! solar radiation [W/m**2].
+    real,    intent(in)  :: psicomo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! sea ice concentration
+    real,    intent(in)  :: ppao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! sea level pressure [Pascal].
+    real,    intent(in)  :: pfu10  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! absolute wind speed at 10m height [m/s]
+    real,    intent(in)  :: ptho   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! potential temperature [deg C].
+    real,    intent(in)  :: psao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! salinity [psu.].
+    real,    intent(in)  :: patmco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! atmospheric CO2 concentration [ppm] used in fully coupled mode
+    real,    intent(out) :: pflxco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! CO2 flux [kg/m^2/s].
+    real,    intent(out) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! DMS flux [kg/m^2/s].
+    real,    intent(in)  :: patmbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)    ! atmospheric bromoform concentration [ppt] used in fully coupled mode.
+    real,    intent(out) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)    ! Bromoform flux [kg/m^2/s].
 
     ! Local variables
     integer :: i,j,k,l
@@ -236,8 +232,7 @@ contains
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
 
-    call carchm(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,prho,pglat,omask,      &
-         psicomo,ppao,pfu10,ptho,psao)
+    call carchm(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,prho,pglat,omask,psicomo,ppao,pfu10,ptho,psao)
 
     if (use_PBGC_CK_TIMESTEP   ) then
       if (mnproc.eq.1) then

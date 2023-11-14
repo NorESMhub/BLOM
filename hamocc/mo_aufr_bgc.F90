@@ -26,11 +26,11 @@ module mo_aufr_bgc
 
 CONTAINS
 
-  subroutine aufr_bgc(kpie,kpje,kpke,ntr,ntrbgc,itrbgc,trc, &
-                      kplyear,kplmon,kplday,omask,rstfnm)
+  subroutine aufr_bgc(kpie,kpje,kpke,ntr,ntrbgc,itrbgc,trc,kplyear,kplmon,kplday,omask,rstfnm)
 
-    !******************************************************************************
+    !***********************************************************************************************
     ! Reads marine bgc restart data.
+    !
     ! Read restart data to continue an interrupted integration.
     ! The bgc data are read from an extra file, other than the ocean data.
     ! The time stamp of the bgc restart file (idate) is specified from the
@@ -40,6 +40,7 @@ CONTAINS
     ! difference of the offsets of restart files.
     !
     ! Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
+    !
     ! Modified:
     ! S.Legutke,        *MPI-MaD, HH*     10.04.01
     ! - extra SBR for reading bgc data from the restart file.
@@ -72,7 +73,7 @@ CONTAINS
     ! - added reading of atmosphere field for BOXATM
     ! M. Bentsen,       *NORCE, Bergen*          2020-05-03
     ! - changed ocean model from MICOM to BLOM
-    !**************************************************************************
+    !***********************************************************************************************
 
     use netcdf,             only: nf90_global,nf90_noerr,nf90_nowrite,nf90_close,                  &
                                   nf90_open,nf90_get_att,nf90_inq_varid
@@ -95,7 +96,7 @@ CONTAINS
     use mo_sedmnt,          only: sedhpl
     use mo_intfcblom,       only: sedlay2,powtra2,burial2,atm2
     use mo_param_bgc,       only: bifr13,bifr14,c14fac,re1312,re14to,prei13,prei14
-    use mo_read_netcdf_var, only: read_netcdf_var
+    use mo_netcdf_bgcrw,    only: read_netcdf_var
 
     ! Arguments
     integer,          intent(in)    :: kpie                                              ! 1st dimension of model grid.
@@ -112,7 +113,7 @@ CONTAINS
     character(len=*), intent(in)    :: rstfnm                                            ! restart file name-informations
 
     ! Local variables
-    real, allocatable :: locetra(:,:,:,:) ! local array for reading
+    real, allocatable :: locetra(:,:,:,:)          ! local array for reading
     integer   :: errstat
     integer   :: restyear                          !  year of restart file
     integer   :: restmonth                         !  month of restart file
@@ -124,17 +125,17 @@ CONTAINS
     integer   :: ncid,ncstat,ncvarid
 
 #ifdef PNETCDF
-#     include <pnetcdf.inc>
-#     include <mpif.h>
-    integer*4 ,save :: info=MPI_INFO_NULL
-    integer         :: mpicomm,mpierr,mpireq,mpistat
+#   include <pnetcdf.inc>
+#   include <mpif.h>
+    integer*4, save  :: info=MPI_INFO_NULL
+    integer          :: mpicomm,mpierr,mpireq,mpistat
     common/xcmpii/ mpicomm,mpierr,mpireq(4),mpistat(mpi_status_size,4*max(iqr,jqr))
     save  /xcmpii/
 #endif
     character(len=3) :: stripestr
     character(len=9) :: stripestr2
-    integer :: ierr,testio
-    integer :: leninrstfn
+    integer          :: ierr,testio
+    integer          :: leninrstfn
     !
     ! Allocate and initialize local array for reading (locetra)
     !
@@ -149,16 +150,16 @@ CONTAINS
 
       ncstat = NF90_OPEN(rstfnm,NF90_NOWRITE, ncid)
       if ( ncstat  /=  NF90_NOERR ) then
-        call xchalt('(AUFR: Problem with netCDF1)')
-        stop        '(AUFR: Problem with netCDF1)'
+        call xchalt('(AUFR_BGC: Problem with netCDF1)')
+        stop        '(AUFR_BGC: Problem with netCDF1)'
       endif
       !
       ! Read restart data : date
       !
       ncstat = NF90_GET_ATT(ncid, NF90_GLOBAL,'date', idate)
       if ( ncstat  /=  NF90_NOERR ) then
-        call xchalt('(AUFR: Problem reading date of restart file)')
-        stop        '(AUFR: Problem reading date of restart file)'
+        call xchalt('(AUFR_BGC: Problem reading date of restart file)')
+        stop        '(AUFR_BGC: Problem reading date of restart file)'
       endif
       restyear  = idate(1)
       restmonth = idate(2)
@@ -188,16 +189,16 @@ CONTAINS
 
       ncstat = NFMPI_OPEN(mpicomm,rstfnm,NF_NOWRITE,INFO, ncid)
       if ( ncstat  /=  NF_NOERR ) then
-        call xchalt('(AUFR: Problem with netCDF1)')
-        stop        '(AUFR: Problem with netCDF1)'
+        call xchalt('(AUFR_BGC: Problem with netCDF1)')
+        stop        '(AUFR_BGC: Problem with netCDF1)'
       endif
       !
       ! Read restart data : date
       !
       ncstat = NFMPI_GET_ATT_INT(ncid, NF_GLOBAL,'date', idate)
       if ( ncstat  /=  NF_NOERR ) then
-        call xchalt('(AUFR: Problem reading date of restart file)')
-        stop        '(AUFR: Problem reading date of restart file)'
+        call xchalt('(AUFR_BGC: Problem reading date of restart file)')
+        stop        '(AUFR_BGC: Problem reading date of restart file)'
       endif
       restyear  = idate(1)
       restmonth = idate(2)
@@ -216,8 +217,8 @@ CONTAINS
       endif
 #endif
       if(testio .eq. 0) then
-        call xchalt('(AUFR: Problem with namelist iotype)')
-        stop        '(AUFR: Problem with namelist iotype)'
+        call xchalt('(AUFR_BGC: Problem with namelist iotype)')
+        stop        '(AUFR_BGC: Problem with namelist iotype)'
       endif
 
     endif ! mnproc==1 .and. IOTYPE==0
@@ -227,14 +228,14 @@ CONTAINS
     !
     if (mnproc.eq.1) then
 
-      if ( kplyear  /=  restyear  ) write(io_stdo_bgc,*)                                      &
-           'WARNING: restart years in oce/bgc are not the same : ', kplyear,'/',restyear,' !!!'
+      if ( kplyear  /=  restyear  ) write(io_stdo_bgc,*)                                           &
+           & 'WARNING: restart years in oce/bgc are not the same : ', kplyear,'/',restyear,' !!!'
 
-      if ( kplmon   /=  restmonth ) write(io_stdo_bgc,*)                                      &
-           'WARNING: restart months in oce/bgc are not the same : ',kplmon,'/',restmonth,' !!!'
+      if ( kplmon   /=  restmonth ) write(io_stdo_bgc,*)                                           &
+           & 'WARNING: restart months in oce/bgc are not the same : ',kplmon,'/',restmonth,' !!!'
 
-      if ( kplday   /=  restday   ) write(io_stdo_bgc,*)                                      &
-           'WARNING: restart days in oce/bgc are not the same : ',  kplday,'/',restday,' !!!'
+      if ( kplday   /=  restday   ) write(io_stdo_bgc,*)                                           &
+           & 'WARNING: restart days in oce/bgc are not the same : ',  kplday,'/',restday,' !!!'
 
     endif
 
@@ -315,7 +316,7 @@ CONTAINS
       if(mnproc==1 .and. .not. lread_bro) then
         write(io_stdo_bgc,*) ' '
         write(io_stdo_bgc,*) 'AUFR_BGC info: Bromoform tracer not in restart file, '
-        write(io_stdo_bgc,*) 'Initialised to 0.01 pmol L-1 (Stemmler et al., 2015).'
+        write(io_stdo_bgc,*) ' Initialised to 0.01 pmol L-1 (Stemmler et al., 2015).'
       endif
     endif
 
@@ -572,7 +573,6 @@ CONTAINS
     ! conversion here, since tracers in the restart file are in
     ! BLOM units (mol/kg)
     !--------------------------------------------------------------------
-    !
     trc(1:kpie,1:kpje,:,itrbgc:itrbgc+ntrbgc-1)=locetra(:,:,:,:)
     deallocate(locetra)
 

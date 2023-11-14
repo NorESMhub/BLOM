@@ -19,23 +19,23 @@
 
 module mo_param_bgc
 
-  !******************************************************************************
+  !*************************************************************************************************
   ! BELEG_PARM - now mo_param_bgc - initialize bgc parameters.
-  !  - set bgc parameter values.
   !
   ! Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
+  !
   ! Modified
   ! J.Schwinger,        *NORCE Climate, Bergen*    2020-05-19
-  ! -split the original BELEG_BGC in two parts, BELEG_PARM and BELEG_VARS
+  !  - split the original BELEG_BGC in two parts, BELEG_PARM and BELEG_VARS
   ! jmaerz
-  ! - rename beleg_parm to mo_param_bgc
-  !******************************************************************************
+  !  - rename beleg_parm to mo_param_bgc
+  !*************************************************************************************************
 
   use mo_carbch,      only: atm_co2
-  use mo_control_bgc, only: io_stdo_bgc,bgc_namelist,use_AGG,use_natDIC,           &
-                            use_BROMO,use_cisonew,use_WLIN,use_FB_BGC_OCE,         &
-                            do_ndep,do_oalk,do_rivinpt,do_sedspinup,l_3Dvarsedpor, &
-                            use_BOXATM,use_CFC,use_PBGC_CK_TIMESTEP,               &
+  use mo_control_bgc, only: io_stdo_bgc,bgc_namelist,use_AGG,use_natDIC,                           &
+                            use_BROMO,use_cisonew,use_WLIN,use_FB_BGC_OCE,                         &
+                            do_ndep,do_oalk,do_rivinpt,do_sedspinup,l_3Dvarsedpor,                 &
+                            use_BOXATM,use_CFC,use_PBGC_CK_TIMESTEP,                               &
                             use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type
   use mod_xc,         only: mnproc
 
@@ -137,10 +137,9 @@ module mo_param_bgc
   ! time step adjustment is done after reading the BGCPARAMS namelist
 
   !********************************************************************
-  ! Radiation and attenuation parameters
+  ! SW-radiation and attenuation parameters
   !********************************************************************
 
-  ! parameters for sw-radiation attenuation
   ! Analog to Moore et al., Deep-Sea Research II 49 (2002), 403-462
   ! 1 kmolP = (122*12/60)*10^6 mg[Chlorophyl]
   real, parameter :: ctochl     = 60.             ! C to Chlorophyl ratio
@@ -148,7 +147,7 @@ module mo_param_bgc
   real, protected :: atten_c    = 0.03*rcar*(12./ctochl)*1.e6  ! phytoplankton attenuation in 1/m
   real, protected :: atten_uv   = 0.33
   real, protected :: atten_f    = 0.4             ! fraction of sw-radiation directly absorbed in surface layer
-  ! (only if FB_BGC_OCE) [feedback bgc-ocean]
+                                                  ! (only if FB_BGC_OCE) [feedback bgc-ocean]
 
   !********************************************************************
   ! Dust deposition and iron solubility parameters
@@ -402,10 +401,10 @@ contains
     close(unit=iounit)
 
     if (mnproc.eq.1) then
-      write(io_stdo_bgc,*) '------------------------------------------'
+      write(io_stdo_bgc,*) 
+      write(io_stdo_bgc,*)'********************************************'
       write(io_stdo_bgc,*) 'iHAMOCC: read namelist bgcparams'
       write(io_stdo_bgc,nml=BGCPARAMS)
-      write(io_stdo_bgc,*) '------------------------------------------'
     endif
 
   end subroutine read_bgcnamelist
@@ -517,15 +516,15 @@ contains
 
     SinkExp  = 0.62
     FractDim = 1.62
-    !      Stick = 0.40
-    !      Stick = 0.25
+    !Stick = 0.40
+    !Stick = 0.25
     Stick    = 0.15
     cellmass = 0.012 / rnit ![nmol P]
     !ik      cellmass = 0.0039/ rnit ![nmol P] for a 10 um diameter
     cellsink = 1.40 *dtb! [m/d]
     !ik      cellsink = 0.911 *dtb! [m/d]  for a 10 um diameter
-    !      shear = 86400. !shear in the mixed layer,   1.0  d-1
-    !      shear = 64800. !shear in the mixed layer,   0.75 d-1
+    !shear = 86400. !shear in the mixed layer,   1.0  d-1
+    !shear = 64800. !shear in the mixed layer,   0.75 d-1
     shear   = 43200. !shear in the mixed layer,   0.5  d-1
     fsh     = 0.163 * shear *dtb
     fse     = 0.125 * 3.1415927 * cellsink * 100.
@@ -533,8 +532,8 @@ contains
     !ik      alow1 = 0.001 !diameter of smallest particle [cm]
     alow2   = alow1 * alow1
     alow3   = alow2 * alow1
-    !      alar1 = 1.0 !diameter of largest particle for size dependend aggregation and sinking [cm]
-    !      alar1 = 0.75 !diameter of largest particle for size dependend aggregation and sinking [cm]
+    !alar1 = 1.0 !diameter of largest particle for size dependend aggregation and sinking [cm]
+    !alar1 = 0.75 !diameter of largest particle for size dependend aggregation and sinking [cm]
     alar1   = 0.5 !diameter of largest particle for size dependend aggregation and sinking [cm]
     vsmall  = 1.e-9
     safe    = 1.e-6
@@ -564,172 +563,171 @@ contains
     dtbgcinv  = 1./dtbgc
 
     if (mnproc.eq.1) then
-      write(io_stdo_bgc,*) '****************************************************************'
-      write(io_stdo_bgc,*) '* '
-      write(io_stdo_bgc,*) '* Configuration: '
-      write(io_stdo_bgc,*) '*          use_BROMO              = ',use_BROMO
-      write(io_stdo_bgc,*) '*          use_AGG                = ',use_AGG
-      write(io_stdo_bgc,*) '*          use_WLIN               = ',use_WLIN
-      write(io_stdo_bgc,*) '*          use_natDIC             = ',use_natDIC
-      write(io_stdo_bgc,*) '*          use_CFC                = ',use_CFC
-      write(io_stdo_bgc,*) '*          use_cisonew            = ',use_cisonew
-      write(io_stdo_bgc,*) '*          use_PBGC_OCNP_TIMESTEP = ',use_PBGC_OCNP_TIMESTEP
-      write(io_stdo_bgc,*) '*          use_PBGC_CK_TIMESTEP   = ',use_PBGC_CK_TIMESTEP
-      write(io_stdo_bgc,*) '*          use_FB_BGC_OCE BROMO   = ',use_FB_BGC_OCE
-      write(io_stdo_bgc,*) '*          use_BOXATM             = ',use_BOXATM
-      write(io_stdo_bgc,*) '*          use_sedbypass          = ',use_sedbypass
-      write(io_stdo_bgc,*) '*          ocn_co2_type           = ',ocn_co2_type
-      write(io_stdo_bgc,*) '*          do_ndep                = ',do_ndep
-      write(io_stdo_bgc,*) '*          do_rivinpt             = ',do_rivinpt
-      write(io_stdo_bgc,*) '*          do_oalk                = ',do_oalk
-      write(io_stdo_bgc,*) '*          with_dmsph             = ',with_dmsph
-      write(io_stdo_bgc,*) '*          do_sedspinup           = ',do_sedspinup
-      write(io_stdo_bgc,*) '*          l_3Dvarsedpor          = ',l_3Dvarsedpor
+      write(io_stdo_bgc,*)
+      write(io_stdo_bgc,*) '********************************************'
+      write(io_stdo_bgc,*) '* iHAMOCC configuration: '
+      write(io_stdo_bgc,*) '*   use_BROMO              = ',use_BROMO
+      write(io_stdo_bgc,*) '*   use_AGG                = ',use_AGG
+      write(io_stdo_bgc,*) '*   use_WLIN               = ',use_WLIN
+      write(io_stdo_bgc,*) '*   use_natDIC             = ',use_natDIC
+      write(io_stdo_bgc,*) '*   use_CFC                = ',use_CFC
+      write(io_stdo_bgc,*) '*   use_cisonew            = ',use_cisonew
+      write(io_stdo_bgc,*) '*   use_PBGC_OCNP_TIMESTEP = ',use_PBGC_OCNP_TIMESTEP
+      write(io_stdo_bgc,*) '*   use_PBGC_CK_TIMESTEP   = ',use_PBGC_CK_TIMESTEP
+      write(io_stdo_bgc,*) '*   use_FB_BGC_OCE BROMO   = ',use_FB_BGC_OCE
+      write(io_stdo_bgc,*) '*   use_BOXATM             = ',use_BOXATM
+      write(io_stdo_bgc,*) '*   use_sedbypass          = ',use_sedbypass
+      write(io_stdo_bgc,*) '*   ocn_co2_type           = ',ocn_co2_type
+      write(io_stdo_bgc,*) '*   do_ndep                = ',do_ndep
+      write(io_stdo_bgc,*) '*   do_rivinpt             = ',do_rivinpt
+      write(io_stdo_bgc,*) '*   do_oalk                = ',do_oalk
+      write(io_stdo_bgc,*) '*   with_dmsph             = ',with_dmsph
+      write(io_stdo_bgc,*) '*   do_sedspinup           = ',do_sedspinup
+      write(io_stdo_bgc,*) '*   l_3Dvarsedpor          = ',l_3Dvarsedpor
       write(io_stdo_bgc,*) '* '
       write(io_stdo_bgc,*) '* Values of MO_PARAM_BGC variables : '
-      write(io_stdo_bgc,*) '*          atm_co2      = ',atm_co2
+      write(io_stdo_bgc,*) '*   atm_co2      = ',atm_co2
       if (use_cisonew) then
-        write(io_stdo_bgc,*) '*          atm_c13      = ',atm_c13
-        write(io_stdo_bgc,*) '*          d13C_atm     = ',d13C_atm
-        write(io_stdo_bgc,*) '*          atm_c14      = ',atm_c14
-        write(io_stdo_bgc,*) '*          bifr13       = ',bifr13
-        write(io_stdo_bgc,*) '*          bifr14       = ',bifr14
-        write(io_stdo_bgc,*) '*          c14fac       = ',c14fac
-        write(io_stdo_bgc,*) '*          prei13       = ',prei13
-        write(io_stdo_bgc,*) '*          prei14       = ',prei14
-        write(io_stdo_bgc,*) '*          re1312       = ',re1312
-        write(io_stdo_bgc,*) '*          re14to       = ',re14to
-        write(io_stdo_bgc,*) '*          c14_t_half   = ',c14_t_half
-        write(io_stdo_bgc,*) '*          c14dec       = ',c14dec
-        write(io_stdo_bgc,*) '*          beta13       = ',beta13
-        write(io_stdo_bgc,*) '*          alpha14      = ',alpha14
-        write(io_stdo_bgc,*) '*          d14cat       = ',d14cat
-        write(io_stdo_bgc,*) '*          c14fac       = ',c14fac
+        write(io_stdo_bgc,*) '*   atm_c13      = ',atm_c13
+        write(io_stdo_bgc,*) '*   d13C_atm     = ',d13C_atm
+        write(io_stdo_bgc,*) '*   atm_c14      = ',atm_c14
+        write(io_stdo_bgc,*) '*   bifr13       = ',bifr13
+        write(io_stdo_bgc,*) '*   bifr14       = ',bifr14
+        write(io_stdo_bgc,*) '*   c14fac       = ',c14fac
+        write(io_stdo_bgc,*) '*   prei13       = ',prei13
+        write(io_stdo_bgc,*) '*   prei14       = ',prei14
+        write(io_stdo_bgc,*) '*   re1312       = ',re1312
+        write(io_stdo_bgc,*) '*   re14to       = ',re14to
+        write(io_stdo_bgc,*) '*   c14_t_half   = ',c14_t_half
+        write(io_stdo_bgc,*) '*   c14dec       = ',c14dec
+        write(io_stdo_bgc,*) '*   beta13       = ',beta13
+        write(io_stdo_bgc,*) '*   alpha14      = ',alpha14
+        write(io_stdo_bgc,*) '*   d14cat       = ',d14cat
+        write(io_stdo_bgc,*) '*   c14fac       = ',c14fac
       endif
-      write(io_stdo_bgc,*) '*          atm_o2       = ',atm_o2
-      write(io_stdo_bgc,*) '*          atm_n2       = ',atm_n2
-      write(io_stdo_bgc,*) '*          phytomi      = ',phytomi
-      write(io_stdo_bgc,*) '*          grami        = ',grami
-      write(io_stdo_bgc,*) '*          remido       = ',remido*dtbinv
-      write(io_stdo_bgc,*) '*          dyphy        = ',dyphy*dtbinv
-      write(io_stdo_bgc,*) '*          zinges       = ',zinges
-      write(io_stdo_bgc,*) '*          epsher       = ',epsher
-      write(io_stdo_bgc,*) '*          grazra       = ',grazra*dtbinv
-      write(io_stdo_bgc,*) '*          spemor       = ',spemor*dtbinv
-      write(io_stdo_bgc,*) '*          gammap       = ',gammap*dtbinv
-      write(io_stdo_bgc,*) '*          gammaz       = ',gammaz*dtbinv
-      write(io_stdo_bgc,*) '*          ecan         = ',ecan
-      write(io_stdo_bgc,*) '*          pi_alpha     = ',pi_alpha
-      write(io_stdo_bgc,*) '*          bkphy        = ',bkphy
-      write(io_stdo_bgc,*) '*          bkzoo        = ',bkzoo
-      write(io_stdo_bgc,*) '*          bkopal       = ',bkopal
-      write(io_stdo_bgc,*) '*          wpoc_const   = ',wpoc_const*dtbinv
-      write(io_stdo_bgc,*) '*          wcal_const   = ',wcal_const*dtbinv
-      write(io_stdo_bgc,*) '*          wopal_const  = ',wopal_const*dtbinv
-      write(io_stdo_bgc,*) '*          drempoc      = ',drempoc*dtbinv
-      write(io_stdo_bgc,*) '*          dremopal     = ',dremopal*dtbinv
-      write(io_stdo_bgc,*) '*          dremn2o      = ',dremn2o*dtbinv
-      write(io_stdo_bgc,*) '*          dremsul      = ',dremsul*dtbinv
-      write(io_stdo_bgc,*) '*          bluefix      = ',bluefix*dtbinv
-      write(io_stdo_bgc,*) '*          tf0          = ',tf0
-      write(io_stdo_bgc,*) '*          tf1          = ',tf1
-      write(io_stdo_bgc,*) '*          tf2          = ',tf2
-      write(io_stdo_bgc,*) '*          tff          = ',tff
-      write(io_stdo_bgc,*) '*          ro2ut        = ',ro2ut
-      write(io_stdo_bgc,*) '*          rcar         = ',rcar
-      write(io_stdo_bgc,*) '*          rnit         = ',rnit
-      write(io_stdo_bgc,*) '*          rnoi         = ',rnoi
-      write(io_stdo_bgc,*) '*          rdnit0       = ',rdnit0
-      write(io_stdo_bgc,*) '*          rdnit1       = ',rdnit1
-      write(io_stdo_bgc,*) '*          rdnit2       = ',rdnit2
-      write(io_stdo_bgc,*) '*          rdn2o1       = ',rdn2o1
-      write(io_stdo_bgc,*) '*          rdn2o2       = ',rdn2o2
-      write(io_stdo_bgc,*) '*          rcalc        = ',rcalc
-      write(io_stdo_bgc,*) '*          ropal        = ',ropal
-      write(io_stdo_bgc,*) '*          ctochl       = ',ctochl
-      write(io_stdo_bgc,*) '*          atten_w      = ',atten_w
-      write(io_stdo_bgc,*) '*          atten_c      = ',atten_c
-      write(io_stdo_bgc,*) '*          atten_f      = ',atten_f
-      write(io_stdo_bgc,*) '*          atten_uv     = ',atten_uv
-      write(io_stdo_bgc,*) '*          fetune       = ',fetune
-      write(io_stdo_bgc,*) '*          perc_diron   = ',perc_diron
-      write(io_stdo_bgc,*) '*          riron        = ',riron
-      write(io_stdo_bgc,*) '*          fesoly       = ',fesoly
-      write(io_stdo_bgc,*) '*          relaxfe      = ',relaxfe*dtbinv
-      write(io_stdo_bgc,*) '*          dmsp1        = ',dmsp1
-      write(io_stdo_bgc,*) '*          dmsp2        = ',dmsp2
-      write(io_stdo_bgc,*) '*          dmsp3        = ',dmsp3
-      write(io_stdo_bgc,*) '*          dmsp4        = ',dmsp4
-      write(io_stdo_bgc,*) '*          dmsp5        = ',dmsp5
-      write(io_stdo_bgc,*) '*          dmsp6        = ',dmsp6
+      write(io_stdo_bgc,*) '*   atm_o2       = ',atm_o2
+      write(io_stdo_bgc,*) '*   atm_n2       = ',atm_n2
+      write(io_stdo_bgc,*) '*   phytomi      = ',phytomi
+      write(io_stdo_bgc,*) '*   grami        = ',grami
+      write(io_stdo_bgc,*) '*   remido       = ',remido*dtbinv
+      write(io_stdo_bgc,*) '*   dyphy        = ',dyphy*dtbinv
+      write(io_stdo_bgc,*) '*   zinges       = ',zinges
+      write(io_stdo_bgc,*) '*   epsher       = ',epsher
+      write(io_stdo_bgc,*) '*   grazra       = ',grazra*dtbinv
+      write(io_stdo_bgc,*) '*   spemor       = ',spemor*dtbinv
+      write(io_stdo_bgc,*) '*   gammap       = ',gammap*dtbinv
+      write(io_stdo_bgc,*) '*   gammaz       = ',gammaz*dtbinv
+      write(io_stdo_bgc,*) '*   ecan         = ',ecan
+      write(io_stdo_bgc,*) '*   pi_alpha     = ',pi_alpha
+      write(io_stdo_bgc,*) '*   bkphy        = ',bkphy
+      write(io_stdo_bgc,*) '*   bkzoo        = ',bkzoo
+      write(io_stdo_bgc,*) '*   bkopal       = ',bkopal
+      write(io_stdo_bgc,*) '*   wpoc_const   = ',wpoc_const*dtbinv
+      write(io_stdo_bgc,*) '*   wcal_const   = ',wcal_const*dtbinv
+      write(io_stdo_bgc,*) '*   wopal_const  = ',wopal_const*dtbinv
+      write(io_stdo_bgc,*) '*   drempoc      = ',drempoc*dtbinv
+      write(io_stdo_bgc,*) '*   dremopal     = ',dremopal*dtbinv
+      write(io_stdo_bgc,*) '*   dremn2o      = ',dremn2o*dtbinv
+      write(io_stdo_bgc,*) '*   dremsul      = ',dremsul*dtbinv
+      write(io_stdo_bgc,*) '*   bluefix      = ',bluefix*dtbinv
+      write(io_stdo_bgc,*) '*   tf0          = ',tf0
+      write(io_stdo_bgc,*) '*   tf1          = ',tf1
+      write(io_stdo_bgc,*) '*   tf2          = ',tf2
+      write(io_stdo_bgc,*) '*   tff          = ',tff
+      write(io_stdo_bgc,*) '*   ro2ut        = ',ro2ut
+      write(io_stdo_bgc,*) '*   rcar         = ',rcar
+      write(io_stdo_bgc,*) '*   rnit         = ',rnit
+      write(io_stdo_bgc,*) '*   rnoi         = ',rnoi
+      write(io_stdo_bgc,*) '*   rdnit0       = ',rdnit0
+      write(io_stdo_bgc,*) '*   rdnit1       = ',rdnit1
+      write(io_stdo_bgc,*) '*   rdnit2       = ',rdnit2
+      write(io_stdo_bgc,*) '*   rdn2o1       = ',rdn2o1
+      write(io_stdo_bgc,*) '*   rdn2o2       = ',rdn2o2
+      write(io_stdo_bgc,*) '*   rcalc        = ',rcalc
+      write(io_stdo_bgc,*) '*   ropal        = ',ropal
+      write(io_stdo_bgc,*) '*   ctochl       = ',ctochl
+      write(io_stdo_bgc,*) '*   atten_w      = ',atten_w
+      write(io_stdo_bgc,*) '*   atten_c      = ',atten_c
+      write(io_stdo_bgc,*) '*   atten_f      = ',atten_f
+      write(io_stdo_bgc,*) '*   atten_uv     = ',atten_uv
+      write(io_stdo_bgc,*) '*   fetune       = ',fetune
+      write(io_stdo_bgc,*) '*   perc_diron   = ',perc_diron
+      write(io_stdo_bgc,*) '*   riron        = ',riron
+      write(io_stdo_bgc,*) '*   fesoly       = ',fesoly
+      write(io_stdo_bgc,*) '*   relaxfe      = ',relaxfe*dtbinv
+      write(io_stdo_bgc,*) '*   dmsp1        = ',dmsp1
+      write(io_stdo_bgc,*) '*   dmsp2        = ',dmsp2
+      write(io_stdo_bgc,*) '*   dmsp3        = ',dmsp3
+      write(io_stdo_bgc,*) '*   dmsp4        = ',dmsp4
+      write(io_stdo_bgc,*) '*   dmsp5        = ',dmsp5
+      write(io_stdo_bgc,*) '*   dmsp6        = ',dmsp6
       if (use_BROMO) then
-        write(io_stdo_bgc,*) '*          rbro         = ',rbro
-        write(io_stdo_bgc,*) '*          atm_bromo    = ',atm_bromo
-        write(io_stdo_bgc,*) '*          fbro1        = ',fbro1
-        write(io_stdo_bgc,*) '*          fbro2        = ',fbro2
+        write(io_stdo_bgc,*) '*   rbro         = ',rbro
+        write(io_stdo_bgc,*) '*   atm_bromo    = ',atm_bromo
+        write(io_stdo_bgc,*) '*   fbro1        = ',fbro1
+        write(io_stdo_bgc,*) '*   fbro2        = ',fbro2
       endif
       if (use_WLIN .and. .not. use_AGG) then
-        write(io_stdo_bgc,*) '*          wmin         = ',wmin*dtbinv
-        write(io_stdo_bgc,*) '*          wmax         = ',wmax*dtbinv
-        write(io_stdo_bgc,*) '*          wlin         = ',wlin*dtbinv
+        write(io_stdo_bgc,*) '*   wmin         = ',wmin*dtbinv
+        write(io_stdo_bgc,*) '*   wmax         = ',wmax*dtbinv
+        write(io_stdo_bgc,*) '*   wlin         = ',wlin*dtbinv
       endif
       if (.not. use_AGG) then
-        write(io_stdo_bgc,*) '*          dustd1       = ',dustd1
-        write(io_stdo_bgc,*) '*          dustd2       = ',dustd2
-        write(io_stdo_bgc,*) '*          dustsink     = ',dustsink*dtbinv
-        write(io_stdo_bgc,*) '*          wdust_const  = ',wdust_const*dtbinv
+        write(io_stdo_bgc,*) '*   dustd1       = ',dustd1
+        write(io_stdo_bgc,*) '*   dustd2       = ',dustd2
+        write(io_stdo_bgc,*) '*   dustsink     = ',dustsink*dtbinv
+        write(io_stdo_bgc,*) '*   wdust_const  = ',wdust_const*dtbinv
       else
         write(io_stdo_bgc,*)
-        write(io_stdo_bgc,*) '****************************************************************'
-        write(io_stdo_bgc,*) 'HAMOCC aggregate sinking scheme:'
-        write(io_stdo_bgc,*) '        alar1      = ',alar1
-        write(io_stdo_bgc,*) '        alar2      = ',alar2
-        write(io_stdo_bgc,*) '        alar3      = ',alar3
-        write(io_stdo_bgc,*) '        alow1      = ',alow1
-        write(io_stdo_bgc,*) '        alow2      = ',alow2
-        write(io_stdo_bgc,*) '        alow3      = ',alow3
-        write(io_stdo_bgc,*) '        calmax     = ',calmax
-        write(io_stdo_bgc,*) '        cellmass   = ',cellmass
-        write(io_stdo_bgc,*) '        cellsink   = ',cellsink
-        write(io_stdo_bgc,*) '        dustd1     = ',dustd1
-        write(io_stdo_bgc,*) '        dustd2     = ',dustd2
-        write(io_stdo_bgc,*) '        dustd3     = ',dustd3
-        write(io_stdo_bgc,*) '        fractdim   = ',fractdim
-        write(io_stdo_bgc,*) '        fse        = ',fse
-        write(io_stdo_bgc,*) '        fsh        = ',fsh
-        write(io_stdo_bgc,*) '        nmldmin    = ',nmldmin
-        write(io_stdo_bgc,*) '        plower     = ',plower
-        write(io_stdo_bgc,*) '        pupper     = ',pupper
-        write(io_stdo_bgc,*) '        safe       = ',safe
-        write(io_stdo_bgc,*) '        sinkexp    = ',sinkexp
-        write(io_stdo_bgc,*) '        stick      = ',stick
-        write(io_stdo_bgc,*) '        tmfac      = ',tmfac
-        write(io_stdo_bgc,*) '        tsfac      = ',tsfac
-        write(io_stdo_bgc,*) '        vsmall     = ',vsmall
-        write(io_stdo_bgc,*) '        zdis       = ',zdis
-        write(io_stdo_bgc,*) ' Maximum sinking speed for aggregates of '
-        write(io_stdo_bgc,*) ' maximum size ', alar1, ' cm is '
+        write(io_stdo_bgc,*) '********************************************'
+        write(io_stdo_bgc,*) '* iHAMOCC aggregate sinking scheme:'
+        write(io_stdo_bgc,*) '*   alar1      = ',alar1
+        write(io_stdo_bgc,*) '*   alar2      = ',alar2
+        write(io_stdo_bgc,*) '*   alar3      = ',alar3
+        write(io_stdo_bgc,*) '*   alow1      = ',alow1
+        write(io_stdo_bgc,*) '*   alow2      = ',alow2
+        write(io_stdo_bgc,*) '*   alow3      = ',alow3
+        write(io_stdo_bgc,*) '*   calmax     = ',calmax
+        write(io_stdo_bgc,*) '*   cellmass   = ',cellmass
+        write(io_stdo_bgc,*) '*   cellsink   = ',cellsink
+        write(io_stdo_bgc,*) '*   dustd1     = ',dustd1
+        write(io_stdo_bgc,*) '*   dustd2     = ',dustd2
+        write(io_stdo_bgc,*) '*   dustd3     = ',dustd3
+        write(io_stdo_bgc,*) '*   fractdim   = ',fractdim
+        write(io_stdo_bgc,*) '*   fse        = ',fse
+        write(io_stdo_bgc,*) '*   fsh        = ',fsh
+        write(io_stdo_bgc,*) '*   nmldmin    = ',nmldmin
+        write(io_stdo_bgc,*) '*   plower     = ',plower
+        write(io_stdo_bgc,*) '*   pupper     = ',pupper
+        write(io_stdo_bgc,*) '*   safe       = ',safe
+        write(io_stdo_bgc,*) '*   sinkexp    = ',sinkexp
+        write(io_stdo_bgc,*) '*   stick      = ',stick
+        write(io_stdo_bgc,*) '*   tmfac      = ',tmfac
+        write(io_stdo_bgc,*) '*   tsfac      = ',tsfac
+        write(io_stdo_bgc,*) '*   vsmall     = ',vsmall
+        write(io_stdo_bgc,*) '*   zdis       = ',zdis
+        write(io_stdo_bgc,*) '* Maximum sinking speed for aggregates of '
+        write(io_stdo_bgc,*) '* maximum size ', alar1, ' cm is '
         write(io_stdo_bgc,*)   cellsink/dtb*(alar1/alow1)**SinkExp, ' m/day'
-        write(io_stdo_bgc,*) ' dust diameter (cm)', dustd1
-        write(io_stdo_bgc,*) ' dust sinking speed (m/d)', dustsink / dtb
-        write(io_stdo_bgc,*) '****************************************************************'
+        write(io_stdo_bgc,*) '* dust diameter (cm)', dustd1
+        write(io_stdo_bgc,*) '* dust sinking speed (m/d)', dustsink / dtb
       endif
-      write(io_stdo_bgc,*) '* '
+      write(io_stdo_bgc,*)
+      write(io_stdo_bgc,*) '********************************************'
       write(io_stdo_bgc,*) '* Values of MO_PARAM_BGC sediment variables : '
-      write(io_stdo_bgc,*) '*          sedict       = ',sedict      * dtbgcinv
-      write(io_stdo_bgc,*) '*          disso_poc    = ',disso_poc   * dtbgcinv
-      write(io_stdo_bgc,*) '*          disso_sil    = ',disso_sil   * dtbgcinv
-      write(io_stdo_bgc,*) '*          disso_caco3  = ',disso_caco3 * dtbgcinv
-      write(io_stdo_bgc,*) '*          sed_denit    = ',sed_denit   * dtbgcinv
-      write(io_stdo_bgc,*) '*          silsat       = ',silsat
-      write(io_stdo_bgc,*) '*          orgwei       = ',orgwei
-      write(io_stdo_bgc,*) '*          opalwei      = ',opalwei
-      write(io_stdo_bgc,*) '*          calcwei      = ',calcwei
-      write(io_stdo_bgc,*) '*          orgdens      = ',orgdens
-      write(io_stdo_bgc,*) '*          opaldens     = ',opaldens
-      write(io_stdo_bgc,*) '*          calcdens     = ',calcdens
-      write(io_stdo_bgc,*) '*          claydens     = ',claydens
-      write(io_stdo_bgc,*) '****************************************************************'
+      write(io_stdo_bgc,*) '*   sedict       = ',sedict      * dtbgcinv
+      write(io_stdo_bgc,*) '*   disso_poc    = ',disso_poc   * dtbgcinv
+      write(io_stdo_bgc,*) '*   disso_sil    = ',disso_sil   * dtbgcinv
+      write(io_stdo_bgc,*) '*   disso_caco3  = ',disso_caco3 * dtbgcinv
+      write(io_stdo_bgc,*) '*   sed_denit    = ',sed_denit   * dtbgcinv
+      write(io_stdo_bgc,*) '*   silsat       = ',silsat
+      write(io_stdo_bgc,*) '*   orgwei       = ',orgwei
+      write(io_stdo_bgc,*) '*   opalwei      = ',opalwei
+      write(io_stdo_bgc,*) '*   calcwei      = ',calcwei
+      write(io_stdo_bgc,*) '*   orgdens      = ',orgdens
+      write(io_stdo_bgc,*) '*   opaldens     = ',opaldens
+      write(io_stdo_bgc,*) '*   calcdens     = ',calcdens
+      write(io_stdo_bgc,*) '*   claydens     = ',claydens
     endif
 
   end subroutine write_parambgc

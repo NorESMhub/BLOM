@@ -18,13 +18,13 @@
 
 module mo_apply_fedep
 
-  !********************************************************************************
+  !************************************************************************************************
   !  Routines for applying iron deposition data
   !  This module replaces code previously found inside the ocprod-routine and
   !  encapsulates it in a module.
   !
   !  J. Schwinger,     *NORCE climate, Bergen*   2022-05-19
-  !********************************************************************************
+  !************************************************************************************************
 
   implicit none
   private

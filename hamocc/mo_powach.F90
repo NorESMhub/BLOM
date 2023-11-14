@@ -27,20 +27,20 @@ contains
 
   subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 
-    !******************************************************************************
+    !***********************************************************************************************
     ! Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
     ! Modified: S.Legutke,   *MPI-MaD, HH*    10.04.01
-    !******************************************************************************
+    !***********************************************************************************************
 
     use mo_control_bgc, only: dtbgc,use_cisonew
-    use mo_param1_bgc,  only: ioxygen,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,&
-                              isilica,isssc12,issso12,issssil, &
-                              issster,ks,ipowc13,ipowc14,isssc13,isssc14,issso13,issso14,safediv
+    use mo_param1_bgc,  only: ioxygen,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,      &
+                              isilica,isssc12,issso12,issssil,issster,ks,ipowc13,ipowc14,isssc13,  &
+                              isssc14,issso13,issso14,safediv
     use mo_carbch,      only: co3,keqb,ocetra,sedfluxo
     use mo_chemcon,     only: calcon
     use mo_param_bgc,   only: rnit,ro2ut,disso_sil,silsat,disso_poc,sed_denit,disso_caco3
-    use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,&
-                              seddw,sedhpl,sedlay,silpro,pror13,pror14,prca13,prca14
+    use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,seddw,sedhpl,sedlay,       &
+                              silpro,pror13,pror14,prca13,prca14
     use mo_vgrid,       only: kbo,bolay
     use mo_powadi,      only: powadi
     use mo_carchm,      only: carchm_solve
@@ -84,7 +84,7 @@ contains
     !$OMP&        dissot,undsa,posol,                                       &
     !$OMP&        umfa,denit,saln,rrho,alk,c,sit,pt,                        &
     !$OMP&        K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,                       &
-    !$OMP&        ah1,ac,cu,cb,cc,satlev,                            &
+    !$OMP&        ah1,ac,cu,cb,cc,satlev,                                   &
     !$OMP&        ratc13,ratc14,rato13,rato14,poso13,poso14,                &
     !$OMP&        k,i)
 
@@ -126,8 +126,8 @@ contains
         if(omask(i,j) > 0.5) then
           undsa = silsat - powtra(i,j,1,ipowasi)
           sedb1(i,0) = bolay(i,j) * (silsat - ocetra(i,j,kbo(i,j),isilica))
-          solrat(i,1) = ( sedlay(i,j,1,issssil)                              &
-               + silpro(i,j) / (porsol(i,j,1) * seddw(1)) )                  &
+          solrat(i,1) = ( sedlay(i,j,1,issssil)                                                    &
+               + silpro(i,j) / (porsol(i,j,1) * seddw(1)) )                                        &
                * dissot / (1. + dissot * undsa) * porsol(i,j,1) / porwat(i,j,1)
         endif
       enddo
@@ -141,7 +141,7 @@ contains
           if(omask(i,j) > 0.5) then
             undsa = silsat - powtra(i,j,k,ipowasi)
             sedb1(i,k) = seddw(k) * porwat(i,j,k) * (silsat - powtra(i,j,k,ipowasi))
-            if ( k > 1 ) solrat(i,k) = sedlay(i,j,k,issssil)                    &
+            if ( k > 1 ) solrat(i,k) = sedlay(i,j,k,issssil)                                       &
                  * dissot / (1. + dissot * undsa) * porsol(i,j,k) / porwat(i,j,k)
           endif
         enddo
@@ -158,12 +158,12 @@ contains
       do i = 1, kpie
         if(omask(i,j) > 0.5) then
           if(.not. lspin) then
-            sedfluxo(i,j,ipowasi) =                                            &
-                 -(silsat - sediso(i,0) - ocetra(i,j,kbo(i,j),isilica))        &
+            sedfluxo(i,j,ipowasi) =                                                                &
+                 -(silsat - sediso(i,0) - ocetra(i,j,kbo(i,j),isilica))                            &
                  * bolay(i,j)
             ocetra(i,j,kbo(i,j),isilica) = silsat - sediso(i,0)
           endif
-          sedlay(i,j,1,issssil) =                                                &
+          sedlay(i,j,1,issssil) =                                                                  &
                sedlay(i,j,1,issssil) + silpro(i,j) / (porsol(i,j,1) * seddw(1))
         endif
       enddo
@@ -201,9 +201,9 @@ contains
         if(omask(i,j) > 0.5) then
           undsa = powtra(i,j,1,ipowaox)
           sedb1(i,0) = bolay(i,j) * ocetra(i,j,kbo(i,j),ioxygen)
-          solrat(i,1) = ( sedlay(i,j,1,issso12) + prorca(i,j)                    &
-               &   / (porsol(i,j,1) * seddw(1)) )                                &
-               &   * ro2ut * dissot / (1. + dissot * undsa)                      &
+          solrat(i,1) = ( sedlay(i,j,1,issso12) + prorca(i,j)                                      &
+               &   / (porsol(i,j,1) * seddw(1)) )                                                  &
+               &   * ro2ut * dissot / (1. + dissot * undsa)                                        &
                &   * porsol(i,j,1) / porwat(i,j,1)
         endif
       enddo
@@ -217,7 +217,7 @@ contains
           if(omask(i,j) > 0.5) then
             undsa = powtra(i,j,k,ipowaox)
             sedb1(i,k) = seddw(k) * porwat(i,j,k) * powtra(i,j,k,ipowaox)
-            if (k > 1) solrat(i,k) = sedlay(i,j,k,issso12) * ro2ut * dissot     &
+            if (k > 1) solrat(i,k) = sedlay(i,j,k,issso12) * ro2ut * dissot                        &
                  &   / (1. + dissot*undsa) * porsol(i,j,k) / porwat(i,j,k)
           endif
         enddo
@@ -368,9 +368,7 @@ contains
             K2p = keqb( 9,i,j)
             K3p = keqb(10,i,j)
 
-            call carchm_solve(saln,c,alk,sit,pt,                  &
-                              K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p, &
-                              ah1,ac,niter)
+            call carchm_solve(saln,c,alk,sit,pt,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,ah1,ac,niter)
 
             cu = ( 2. * c - ac ) / ( 2. + K1 / ah1 )
             cb = K1 * cu / ah1
@@ -396,8 +394,8 @@ contains
           satlev = keqb(11,i,j) / calcon + 2.e-5
           undsa = max( satlev-powcar(i,1), 0. )
           sedb1(i,0) = bolay(i,j) * (satlev-co3(i,j,kbo(i,j)))
-          solrat(i,1) = (sedlay(i,j,1,isssc12)                                   &
-               &   + prcaca(i,j) / (porsol(i,j,1)*seddw(1)))                     &
+          solrat(i,1) = (sedlay(i,j,1,isssc12)                                                     &
+               &   + prcaca(i,j) / (porsol(i,j,1)*seddw(1)))                                       &
                &   * dissot / (1.+dissot*undsa) * porsol(i,j,1) / porwat(i,j,1)
         endif
       enddo
@@ -430,12 +428,12 @@ contains
       ! Add sedimentation to first layer.
       do i = 1, kpie
         if(omask(i,j) > 0.5) then
-          sedlay(i,j,1,isssc12) =                                                &
+          sedlay(i,j,1,isssc12) =                                                                  &
                &   sedlay(i,j,1,isssc12) + prcaca(i,j) / (porsol(i,j,1)*seddw(1))
           if (use_cisonew) then
-            sedlay(i,j,1,isssc13) =                                             &
+            sedlay(i,j,1,isssc13) =                                                                &
                  &   sedlay(i,j,1,isssc13) + prca13(i,j) / (porsol(i,j,1)*seddw(1))
-            sedlay(i,j,1,isssc14) =                                             &
+            sedlay(i,j,1,isssc14) =                                                                &
                  &   sedlay(i,j,1,isssc14) + prca14(i,j) / (porsol(i,j,1)*seddw(1))
           endif
         endif
@@ -460,16 +458,16 @@ contains
               poso14 = posol * ratc14
             endif
             sedlay(i,j,k,isssc12) = sedlay(i,j,k,isssc12) - posol
-            powtra(i,j,k,ipowaic) = powtra(i,j,k,ipowaic)                       &
+            powtra(i,j,k,ipowaic) = powtra(i,j,k,ipowaic)                                          &
                     + posol * umfa + (aerob(i,k) + anaerob(i,k)) * 122.
-            powtra(i,j,k,ipowaal) = powtra(i,j,k,ipowaal)                       &
+            powtra(i,j,k,ipowaal) = powtra(i,j,k,ipowaal)                                          &
                     + 2. * posol * umfa - 16. * (aerob(i,k) + anaerob(i,k))
             if (use_cisonew) then
               sedlay(i,j,k,isssc13) = sedlay(i,j,k,isssc13) - poso13
               sedlay(i,j,k,isssc14) = sedlay(i,j,k,isssc14) - poso14
-              powtra(i,j,k,ipowc13) = powtra(i,j,k,ipowc13) + poso13 * umfa    &
+              powtra(i,j,k,ipowc13) = powtra(i,j,k,ipowc13) + poso13 * umfa                        &
                       + (aerob13(i,k) + anaerob13(i,k)) * 122.
-              powtra(i,j,k,ipowc14) = powtra(i,j,k,ipowc14) + poso14 * umfa    &
+              powtra(i,j,k,ipowc14) = powtra(i,j,k,ipowc14) + poso14 * umfa                        &
                       + (aerob14(i,k) + anaerob14(i,k)) * 122.
             endif
           endif
@@ -489,8 +487,7 @@ contains
     !$OMP PARALLEL DO PRIVATE(i)
     do j = 1, kpje
       do i = 1, kpie
-        sedlay(i,j,1,issster) = sedlay(i,j,1,issster)                          &
-             &   + produs(i,j) / (porsol(i,j,1) * seddw(1))
+        sedlay(i,j,1,issster) = sedlay(i,j,1,issster) + produs(i,j) / (porsol(i,j,1) * seddw(1))
       enddo
     enddo
     !$OMP END PARALLEL DO

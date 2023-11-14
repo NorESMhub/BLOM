@@ -28,13 +28,14 @@ contains
 
   subroutine powadi(j,kpie,kpje,solrat,sedb1,sediso,omask)
 
-    !**********************************************************************
-    ! vertical diffusion with simultaneous dissolution.
+    !***********************************************************************************************
+    ! Vertical diffusion with simultaneous dissolution.
     !
     ! Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
+	!
     ! Modified:  S.Legutke,  *MPI-MaD, HH*    10.04.01
     ! Method: implicit discretisation.
-    !**********************************************************************
+    !***********************************************************************************************
 
     use mo_sedmnt,     only: porwah,porwat,seddw,seddzi
     use mo_param_bgc,  only: sedict

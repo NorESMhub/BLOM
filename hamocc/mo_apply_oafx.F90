@@ -18,11 +18,11 @@
 
 module mo_apply_oafx
 
-  !******************************************************************************
+  !*************************************************************************************************
   ! Routines for applying ocean alkalinization
   !
   ! J.Schwinger             *NORCE Climate, Bergen*             2021-11-15
-  !******************************************************************************
+  !*************************************************************************************************
 
   implicit none
   private
@@ -33,11 +33,11 @@ contains
 
   subroutine apply_oafx(kpie,kpje,kpke,pddpo,omask,oafx)
 
-    !******************************************************************************
+    !***********************************************************************************************
     ! Apply alkalinization to the top-most model layer.
     !
     ! J. Schwinger            *NORCE Climate, Bergen*     2021-11-15
-    !******************************************************************************
+    !***********************************************************************************************
 
     use mo_control_bgc, only: dtb,do_oalk
     use mo_param1_bgc,  only: ialkali
@@ -45,12 +45,12 @@ contains
     use mo_read_oafx,   only: thrh_omegaa
 
     ! Arguments
-    integer, intent(in) :: kpie                       ! 1st dimension of model grid.
-    integer, intent(in) :: kpje                       ! 2nd dimension of model grid.
-    integer, intent(in) :: kpke                       ! size of grid cell (depth) [m].
-    real,    intent(in) :: pddpo(kpie,kpje,kpke)      ! land/ocean mask (1=ocean)
-    real,    intent(in) :: omask(kpie,kpje)           ! alkalinization field to apply [kmol m-2 yr-1]
-    real,    intent(in) :: oafx(kpie,kpje)
+    integer, intent(in) :: kpie                     ! 1st dimension of model grid.
+    integer, intent(in) :: kpje                     ! 2nd dimension of model grid.
+    integer, intent(in) :: kpke                     ! 3rd (vertical) dimension of model grid.
+    real,    intent(in) :: pddpo(kpie,kpje,kpke)    ! size of grid cell (depth) [m].
+    real,    intent(in) :: omask(kpie,kpje)         ! land/ocean mask (1=ocean)
+    real,    intent(in) :: oafx(kpie,kpje)          ! alkalinization field to apply [kmol m-2 yr-1]
 
     ! local variables
     integer :: i,j

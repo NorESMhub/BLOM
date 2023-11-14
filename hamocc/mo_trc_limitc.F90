@@ -26,8 +26,9 @@ contains
 
   subroutine trc_limitc(nn)
 
-    !***********************************************************************
+    !***********************************************************************************************
     ! Remove negative tracer values.
+    !
     ! Remove negative tracer values in the first layer in a mass
     ! conservative fashion (i.e. the mass deficit removed is
     ! transfered to non-negative points by a multiplicative
@@ -37,10 +38,11 @@ contains
     ! and strong precipitation.
     !
     ! J. Schwinger      *GFI, UiB        initial version, 2014-06-17
+    !
     ! Modified
     ! J.Schwinger,      *Uni Research, Bergen*   2018-04-12
-    ! - fixed a bug related to the 2 time-level scheme
-    !***********************************************************************
+    !  - fixed a bug related to the 2 time-level scheme
+    !***********************************************************************************************
 
     use mod_xc,      only: ii,jj,ips,ifp,isp,ilp,xcsum
     use mod_grid,    only: scp2

@@ -18,15 +18,15 @@
 
 module mo_control_bgc
 
-  !***********************************************************************
-  ! Control variables for bgc modules.
-  ! - declaration
+  !*************************************************************************************************
+  ! Control variables for iHAMOCC.
   !
   ! S.Legutke,        *MPI-MaD, HH*    28.02.02
+  !
   ! Modified
   ! J.Schwinger,      *Uni Research, Bergen*   2018-04-12
   ! - removed unused variables
-  !**********************************************************************
+  !*************************************************************************************************
 
   implicit none
   public
@@ -35,7 +35,7 @@ module mo_control_bgc
   public :: get_bgc_namelist
 
   ! Logical unit number for I/O.
-  integer :: io_stdo_bgc        !  standard out.
+  integer :: io_stdo_bgc              !  standard out.
 
   ! File containing namelists
   character(len=:), allocatable, protected :: bgc_namelist
@@ -48,33 +48,35 @@ module mo_control_bgc
   integer :: ldtbgc                   !  time step number from bgc restart file
   integer :: ldtrunbgc                !  actual time steps of run.
 
-  integer :: sedspin_yr_s = -1
-  integer :: sedspin_yr_e = -1
-  integer :: sedspin_ncyc = -1
-
   real    :: rmasks = 0.0             !  value at wet cells in sediment.
   real    :: rmasko = 99999.00        !  value at wet cells in ocean.
 
-  ! Logical switches set via namelist
-  logical :: l_3Dvarsedpor = .false.  ! apply lon-lat-depth variable sediment porosity via input file
-  logical :: do_ndep     =.true.      ! apply n-deposition
-  logical :: do_rivinpt  =.true.      ! apply riverine input
-  logical :: do_sedspinup=.false.     ! apply sediment spin-up
-  logical :: do_oalk     =.false.     ! apply ocean alkalinization
-  logical :: with_dmsph  =.false.     ! apply DMS with pH dependence
+  ! Variables set via namelist bgcnml
+  logical           :: l_3Dvarsedpor          = .false. ! apply spatially variable sediment porosity
+  logical           :: do_ndep                = .true.  ! apply n-deposition
+  logical           :: do_rivinpt             = .true.  ! apply riverine input
+  logical           :: do_sedspinup           = .false. ! apply sediment spin-up
+  logical           :: do_oalk                = .false. ! apply ocean alkalinization
+  logical           :: with_dmsph             = .false. ! apply DMS with pH dependence
+  integer           :: sedspin_yr_s           = -1      ! start year for sediment spin-up
+  integer           :: sedspin_yr_e           = -1      ! end   year for sediment spin-up
+  integer           :: sedspin_ncyc           = -1      ! sediment spin-up sub-cycles
+  character(len=64) :: ocn_co2_type                     ! indicates co2 coupling to an active atm
+                                                        ! model if set to 'diagnostic' 
+                                                        ! or 'prognostic'
 
-  logical :: use_BROMO              = .false.
-  logical :: use_AGG                = .false.
-  logical :: use_WLIN               = .false.
-  logical :: use_natDIC             = .false.
-  logical :: use_CFC                = .false.
-  logical :: use_cisonew            = .false.
-  logical :: use_PBGC_OCNP_TIMESTEP = .false.
-  logical :: use_PBGC_CK_TIMESTEP   = .false.
-  logical :: use_FB_BGC_OCE         = .false.
-  logical :: use_BOXATM             = .false.
-  logical :: use_sedbypass          = .false.
-  character(len=64) :: ocn_co2_type
+  ! Logical switches set via namelist config_bgc
+  logical           :: use_BROMO              = .false.
+  logical           :: use_AGG                = .false.
+  logical           :: use_WLIN               = .true.
+  logical           :: use_natDIC             = .false.
+  logical           :: use_CFC                = .false.
+  logical           :: use_cisonew            = .false.
+  logical           :: use_PBGC_OCNP_TIMESTEP = .false.
+  logical           :: use_PBGC_CK_TIMESTEP   = .false.
+  logical           :: use_FB_BGC_OCE         = .false.
+  logical           :: use_BOXATM             = .false.
+  logical           :: use_sedbypass          = .false.
 
 contains
 
@@ -99,7 +101,7 @@ contains
           bgc_namelist = 'limits'
         else
           call xchalt('cannot find limits file')
-          stop 'cannot find limits file'
+          stop        'cannot find limits file'
         endif
       endif
     endif
