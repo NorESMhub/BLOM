@@ -224,7 +224,6 @@ contains
     ! --- calculate pressure at interfaces (necesarry since p has
     ! --- not been calculated at restart)
 
-    !$OMP PARALLEL DO PRIVATE(k,kn,l,i)
     do k=1,kk
       kn=k+nn
       do j=1,jj
@@ -235,7 +234,6 @@ contains
         enddo
       enddo
     enddo
-    !$OMP END PARALLEL DO
 
     ! --- ------------------------------------------------------------------
     ! --- 2D fields
