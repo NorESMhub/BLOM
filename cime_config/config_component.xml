@@ -13,6 +13,36 @@
     <desc>Name of ocean component</desc>
   </entry>
 
+  <entry id="BLOM_TRACER_MODULES">
+    <type>char</type>
+    <valid_values>iage,iage ecosys</valid_values>
+    <default_value>iage</default_value>
+    <values>
+      <value compset="_BLOM%ECO">iage ecosys</value>
+    </values>
+    <group>build_component_blom</group>
+    <file>env_build.xml</file>
+    <desc>Optional ocean tracers.  Valid values are Any combination of: iage ecosys</desc>
+  </entry>
+
+  <entry id="BLOM_TURBULENT_CLOSURE">
+    <type>char</type>
+    <valid_values></valid_values>
+    <default_value>oneeq advection</default_value>
+    <group>build_component_blom</group>
+    <file>env_build.xml</file>
+    <desc>Optional turbulent closure.  Valid values one of: twoeq oneeq. Additional values: advection isodif</desc>
+  </entry>
+
+  <entry id="BLOM_UNIT">
+    <type>char</type>
+    <valid_values></valid_values>
+    <default_value>cgs</default_value>
+    <group>build_component_blom</group>
+    <file>env_build.xml</file>
+    <desc>Unit system.  Valid values one of: cgs mks. </desc>
+  </entry>
+
   <entry id="OCN_CO2_TYPE">
     <type>char</type>
     <valid_values>constant,prognostic,diagnostic</valid_values>
@@ -24,8 +54,8 @@
       <value compset="_DATM%CPLHIST.*_BLOM%ECO">diagnostic</value>
       <value compset="20TR_DATM%IAF.*_BLOM%ECO">diagnostic</value>
     </values>
-    <group>build_component_blom</group>
-    <file>env_build.xml</file>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
     <desc>Determines provenance of atmospheric CO2 for gas flux computation.
       This option is used in the BLOM ecosystem model.
       The default is constant.</desc>
@@ -35,21 +65,9 @@
     <type>char</type>
     <valid_values>isopyc_bulkml,cntiso_hybrid</valid_values>
     <default_value>isopyc_bulkml</default_value>
-    <group>build_component_blom</group>
-    <file>env_build.xml</file>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
     <desc>Vertical coordinate type of BLOM</desc>
-  </entry>
-
-  <entry id="BLOM_TRACER_MODULES">
-    <type>char</type>
-    <valid_values>iage,iage ecosys</valid_values>
-    <default_value>iage</default_value>
-    <values>
-      <value compset="_BLOM%ECO">iage ecosys</value>
-    </values>
-    <group>build_component_blom</group>
-    <file>env_build.xml</file>
-    <desc>Optional ocean tracers.  Valid values are Any combination of: iage ecosys</desc>
   </entry>
 
   <entry id="BLOM_COUPLING">
@@ -113,48 +131,22 @@
     <desc>Scenario for nitrogen deposition data. Requires module ecosys</desc>
   </entry>
 
-  <entry id="HAMOCC_CFC">
+  <entry id="HAMOCC_CISO">
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
     <default_value>FALSE</default_value>
-    <values>
-      <value compset="HIST_CAM60%NORESM.*_BLOM%ECO">TRUE</value>
-      <value compset="20TR_DATM.*_BLOM%ECO">TRUE</value>
-    </values>
-    <group>build_component_blom</group>
-    <file>env_build.xml</file>
-    <desc>Set preprocessor option to activate CFC code. Requires module ecosys</desc>
-  </entry>
-
-  <entry id="HAMOCC_NATTRC">
-    <type>logical</type>
-    <valid_values>TRUE,FALSE</valid_values>
-    <default_value>FALSE</default_value>
-    <values>
-      <value compset="HIST_CAM60%NORESM.*_BLOM%ECO">TRUE</value>
-      <value compset="20TR_DATM.*_BLOM%ECO">TRUE</value>
-    </values>
-    <group>build_component_blom</group>
-    <file>env_build.xml</file>
-    <desc>Set preprocessor option to activate natural tracer code. Requires module ecosys</desc>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Set preprocessor option to activate the carbon isotope code. Requires module ecosys</desc>
   </entry>
 
   <entry id="HAMOCC_SEDBYPASS">
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
     <default_value>FALSE</default_value>
-    <group>build_component_blom</group>
-    <file>env_build.xml</file>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
     <desc>Set preprocessor option to bypass the sediment code. Requires module ecosys</desc>
-  </entry>
-
-  <entry id="HAMOCC_CISO">
-    <type>logical</type>
-    <valid_values>TRUE,FALSE</valid_values>
-    <default_value>FALSE</default_value>
-    <group>build_component_blom</group>
-    <file>env_build.xml</file>
-    <desc>Set preprocessor option to activate the carbon isotope code. Requires module ecosys</desc>
   </entry>
 
   <entry id="HAMOCC_SEDSPINUP">
@@ -195,33 +187,6 @@
     <file>env_run.xml</file>
     <desc>Set the number of sub-cycles for HAMOCC sediment spin-up if HAMOCC_SEDSPINUP == TRUE. 
       Requires module ecosys</desc>
-  </entry>
-
-  <entry id="HAMOCC_DEBUG">
-    <type>logical</type>
-    <valid_values>TRUE,FALSE</valid_values>
-    <default_value>FALSE</default_value>
-    <group>build_component_blom</group>
-    <file>env_build.xml</file>
-    <desc>Set preprocessor option to activate the debugging mode for iHAMOCC. Requires module ecosys</desc>
-  </entry>
-
-  <entry id="BLOM_TURBULENT_CLOSURE">
-    <type>char</type>
-    <valid_values></valid_values>
-    <default_value>oneeq advection</default_value>
-    <group>build_component_blom</group>
-    <file>env_build.xml</file>
-    <desc>Optional turbulent closure.  Valid values one of: twoeq oneeq. Additional values: advection isodif</desc>
-  </entry>
-
-  <entry id="BLOM_UNIT">
-    <type>char</type>
-    <valid_values></valid_values>
-    <default_value>cgs</default_value>
-    <group>build_component_blom</group>
-    <file>env_build.xml</file>
-    <desc>Unit system.  Valid values one of: cgs mks. </desc>
   </entry>
 
   <description>

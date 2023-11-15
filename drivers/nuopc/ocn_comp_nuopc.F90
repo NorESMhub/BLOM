@@ -41,12 +41,12 @@ module ocn_comp_nuopc
    use shr_file_mod, only: shr_file_getUnit, shr_file_getLogUnit, &
                            shr_file_setLogUnit
    use shr_cal_mod, only : shr_cal_ymd2date
-   use mod_nuopc_methods, only: fldlist_type, tlast_coupled, fco2_requested, &
-                                fdms_requested, fbrf_requested, &
+   use mod_nuopc_methods, only: fldlist_type, fldsMax, tlast_coupled, &
                                 blom_logwrite, blom_getgindex, blom_checkmesh, &
                                 blom_setareacor, blom_getglobdim, &
                                 blom_getprecipfact, blom_accflds, &
-                                blom_importflds, blom_exportflds
+                                blom_importflds, blom_exportflds, &
+                                blom_advertise_imports, blom_advertise_exports
    use mod_xc, only: mpicom_external, lp, nfu
    use mod_cesm, only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
    use mod_config, only: inst_index, inst_name, inst_suffix
@@ -62,7 +62,6 @@ module ocn_comp_nuopc
    character(len=*), parameter :: u_FILE_u = &
       __FILE__
 
-   integer, parameter   :: fldsMax = 100
    integer              :: fldsToOcn_num = 0
    integer              :: fldsFrOcn_num = 0
    type(fldlist_type)   :: fldsToOcn(fldsMax)
@@ -74,8 +73,7 @@ module ocn_comp_nuopc
    integer              :: flds_scalar_index_ny = 0
    integer              :: flds_scalar_index_precip_factor = 0
 
-   logical              :: ldriver_has_atm_co2_diag, ldriver_has_atm_co2_prog, &
-                           ocn2glc_coupling
+   logical              :: ocn2glc_coupling, flds_dms_med
 
    integer :: dbug = 0
    logical :: profile_memory = .false.
@@ -87,42 +85,6 @@ contains
    ! ---------------------------------------------------------------------------
    ! Private procedures.
    ! ---------------------------------------------------------------------------
-
-   subroutine fldlist_add(num, fldlist, stdname, &
-                          ungridded_lbound, ungridded_ubound)
-   ! ---------------------------------------------------------------------------
-   ! Add to list of field information.
-   ! ---------------------------------------------------------------------------
-
-      ! Input/output arguments.
-      integer           , intent(inout) :: num
-      type(fldlist_type), intent(inout) :: fldlist(:)
-      character(len=*)  , intent(in)    :: stdname
-      integer, optional , intent(in)    :: ungridded_lbound, ungridded_ubound
-
-      ! Local parameters.
-      character(len=*), parameter :: &
-         subname = modname//':(fldlist_add)'
-
-      ! Local variables.
-      integer :: rc
-
-      num = num + 1
-      if (num > fldsMax) then
-         call ESMF_LogSetError(ESMF_RC_VAL_OUTOFRANGE, &
-            msg=subname//": ERROR number of field exceeded fldsMax: "// &
-                trim(stdname), &
-            line=__LINE__, file=__FILE__, rcToReturn=rc)
-         return
-      endif
-      fldlist(num)%stdname = trim(stdname)
-
-      if (present(ungridded_lbound) .and. present(ungridded_ubound)) then
-         fldlist(num)%ungridded_lbound = ungridded_lbound
-         fldlist(num)%ungridded_ubound = ungridded_ubound
-      endif
-
-   end subroutine fldlist_add
 
    subroutine fldlist_realize(state, fldlist_num, fldlist, tag, mesh, rc)
    ! ---------------------------------------------------------------------------
@@ -387,7 +349,8 @@ contains
       integer :: localPet, nthrds, shrlogunit, n
       character(len=cslen) :: starttype, stdname, cvalue, cname
       character(len=cllen) :: msg
-      logical :: isPresent, isSet, flds_co2a, flds_co2b, flds_co2c
+      logical :: isPresent, isSet
+      logical :: flds_co2a, flds_co2c
 
       ! Get debug flag.
       call NUOPC_CompAttributeGet(gcomp, name='dbug_flag', value=cvalue, &
@@ -521,75 +484,40 @@ contains
                             trim(cvalue), ESMF_LOGMSG_INFO)
       endif
 
-      ! ------------------------------------------------------------------------
-      ! Advertise import fields.
-      ! ------------------------------------------------------------------------
-
-      call fldlist_add(fldsToOcn_num, fldsToOcn, trim(flds_scalar_name))
-
-      ! From ice:
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Si_ifrac')
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Fioi_melth')
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Fioi_meltw')
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Fioi_salt')
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Fioi_bcpho')
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Fioi_bcphi')
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Fioi_flxdst')
-
-      ! From river:
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_rofl')
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_rofi')
-
-      ! From mediator:
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'So_duu10n')
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_tauy')
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_taux')
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_lat')
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_sen')
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_lwup')
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_evap')
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_swnet')
-
-      ! From wave:
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sw_lamult')
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sw_ustokes')
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sw_vstokes')
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sw_hstokes')
-
-      ! From atmosphere:
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sa_pslv')
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_lwdn')
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_snow')
-      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_rain')
-
-      ! From atm co2 fields:
-
+      ! Determine if co2 will be imported from mediator
       call NUOPC_CompAttributeGet(gcomp, name='flds_co2a', value=cvalue, rc=rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
       read(cvalue,*) flds_co2a
       call blom_logwrite(subname//': flds_co2a = '//trim(cvalue))
-
-      call NUOPC_CompAttributeGet(gcomp, name='flds_co2b', value=cvalue, rc=rc)
-      if (ChkErr(rc, __LINE__, u_FILE_u)) return
-      read(cvalue,*) flds_co2b
-      call blom_logwrite(subname//': flds_co2b = '//trim(cvalue))
 
       call NUOPC_CompAttributeGet(gcomp, name='flds_co2c', value=cvalue, rc=rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
       read(cvalue,*) flds_co2c
       call blom_logwrite(subname//': flds_co2c = '//trim(cvalue))
 
-      if (flds_co2a .or. flds_co2c) then
-         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sa_co2diag')
-         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sa_co2prog')
-         ldriver_has_atm_co2_prog = .true.
-         ldriver_has_atm_co2_diag = .true.
-      else
-         ldriver_has_atm_co2_prog = .false.
-         ldriver_has_atm_co2_diag = .false.
+      ! Determine if ocn is sending temperature and salinity data to glc
+      ! If data is sent to glc will need to determine number of ocean
+      ! levels and ocean level indices
+      call NUOPC_CompAttributeGet(gcomp, name="ocn2glc_coupling", value=cvalue, rc=rc)
+      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      read(cvalue,*) ocn2glc_coupling
+      write(msg,'(a,l1)') subname//': ocn2glc coupling is ', ocn2glc_coupling
+      call blom_logwrite(msg)
+      if (ocn2glc_coupling) then
+         call ESMF_LogSetError(ESMF_RC_NOT_IMPL, &
+            msg=subname//": ocn2glc coupling not implemented", &
+            line=__LINE__, file=u_FILE_u, rcToReturn=rc)
+         return
       endif
 
-      !TODO Determine if will get nitrogen deposition from atm
+      !NOTE: Nitrogen deposition is always sent from atm now (either CAM or DATM)
+
+      ! ------------------------------------------------------------------------
+      ! Advertise import fields.
+      ! ------------------------------------------------------------------------
+
+      call blom_advertise_imports(flds_scalar_name, fldsToOcn_num, fldsToOcn, &
+           flds_co2a, flds_co2c)
 
       do n = 1,fldsToOcn_num
          call NUOPC_Advertise(importState, standardName=fldsToOcn(n)%stdname, &
@@ -601,32 +529,7 @@ contains
       ! Advertise export fields.
       ! ------------------------------------------------------------------------
 
-      ! Determine if ocn is sending temperature and salinity data to glc
-      call NUOPC_CompAttributeGet(gcomp, name="ocn2glc_coupling", value=cvalue, rc=rc)
-      if (ChkErr(rc, __LINE__, u_FILE_u)) return
-      read(cvalue,*) ocn2glc_coupling
-      write(msg,'(a,l1)') subname//': ocn2glc coupling is ', ocn2glc_coupling
-      call blom_logwrite(msg)
-
-      ! Determine number of ocean levels and ocean level indices
-      if (ocn2glc_coupling) then
-         call ESMF_LogSetError(ESMF_RC_NOT_IMPL, &
-            msg=subname//": ocn2glc coupling not implemented", &
-            line=__LINE__, file=u_FILE_u, rcToReturn=rc)
-         return
-      endif
-
-      call fldlist_add(fldsFrOcn_num, fldsFrOcn, trim(flds_scalar_name))
-      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_omask')
-      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_t')
-      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_u')
-      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_v')
-      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_s')
-      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_dhdx')
-      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_dhdy')
-      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_bldepth')
-      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Fioo_q')
-      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fco2_ocn')
+      call blom_advertise_exports(flds_scalar_name, fldsFrOcn_num, fldsFrOcn)
 
       do n = 1,fldsFrOcn_num
          call NUOPC_Advertise(exportState, standardName=fldsFrOcn(n)%stdname, &
@@ -785,19 +688,6 @@ contains
 
       call ESMF_GridCompGet(gcomp, exportState=exportState, rc=rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
-
-      ! ------------------------------------------------------------------------
-      ! Check whether non-standard export fields are present.
-      ! ------------------------------------------------------------------------
-
-      call ESMF_StateGet(exportState, 'Faoo_fco2_ocn', itemType)
-      fco2_requested = (itemType /= ESMF_STATEITEM_NOTFOUND)
-
-      call ESMF_StateGet(exportState, 'Faoo_fdms_ocn', itemType)
-      fdms_requested = (itemType /= ESMF_STATEITEM_NOTFOUND)
-
-      call ESMF_StateGet(exportState, 'Faoo_fbrf_ocn', itemType)
-      fbrf_requested = (itemType /= ESMF_STATEITEM_NOTFOUND)
 
       ! ------------------------------------------------------------------------
       ! TODO

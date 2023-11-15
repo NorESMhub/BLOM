@@ -79,11 +79,17 @@ def buildnml(case, caseroot, compname):
     blom_coupling             = case.get_value("BLOM_COUPLING")
     blom_tracer_modules       = case.get_value("BLOM_TRACER_MODULES")
     hamocc_ciso               = case.get_value("HAMOCC_CISO")
+    hamocc_sedbypass          = case.get_value("HAMOCC_SEDBYPASS")
     hamocc_sedspinup          = case.get_value("HAMOCC_SEDSPINUP")
     hamocc_sedspinup_yr_start = case.get_value("HAMOCC_SEDSPINUP_YR_START")
     hamocc_sedspinup_yr_end   = case.get_value("HAMOCC_SEDSPINUP_YR_END")
     hamocc_sedspinup_ncycle   = case.get_value("HAMOCC_SEDSPINUP_NCYCLE")
     is_test                   = case.get_value("TEST")
+
+    blom_vcoord = case.get_value("BLOM_VCOORD")
+    turbclo = case.get_value("BLOM_TURBULENT_CLOSURE")
+    expect(blom_vcoord != "cntiso_hybrid" or not turbclo,
+           f"BLOM_VCOORD == {blom_vcoord} and BLOM_TURBULENT_CLOSURE == {turbclo} is not a valid combination")
 
     #--------------------------
     # Construct ParamGen objects:
@@ -176,6 +182,7 @@ def buildnml(case, caseroot, compname):
         config["blom_coupling"] = blom_coupling
         config["blom_tracer_modules"] = blom_tracer_modules
         config["hamocc_ciso"] = "yes" if hamocc_ciso else "no"
+        config["hamocc_sedbypass"] = "yes" if hamocc_sedbypass else "no"
         config["hamocc_sedspinup"] = "yes" if hamocc_sedspinup else "no"
         config["hamocc_sedspinup_yr_start"] = hamocc_sedspinup_yr_start
         config["hamocc_sedspinup_yr_end"] = hamocc_sedspinup_yr_end
@@ -194,12 +201,15 @@ def buildnml(case, caseroot, compname):
         #---------------------------------
         # Set all ParamGen namelist values:
         #---------------------------------
+        # Note - the following are $CASEROOT xml variables that are used
+        # in namelist_definition_blom.xml in order to do variable substitution
+        # for the final namelist value
 
         case_dict = CaseDict()
-        var_list = ('DIN_LOC_ROOT', 'RUN_TYPE', 'BLOM_VCOORD',
-                    'CCSM_CO2_PPMV', 'HAMOCC_SEDSPINUP_YR_START',
-                    'HAMOCC_SEDSPINUP_YR_END')
-
+        var_list = ('DIN_LOC_ROOT', 'RUN_TYPE', 'BLOM_VCOORD','BLOM_NDEP_SCENARIO',
+                    'CCSM_CO2_PPMV','OCN_CO2_TYPE',
+                    'HAMOCC_SEDSPINUP_YR_START','HAMOCC_SEDSPINUP_YR_END',
+		    'HAMOCC_SEDSPINUP_NCYCLE')
         for item in var_list:
             case_dict[item] = case.get_value(item)
 
@@ -245,6 +255,7 @@ def buildnml(case, caseroot, compname):
             groups.append("bgcnml")
             groups.append("bgcoafx")
             groups.append("diabgc")
+            groups.append("config_bgc")
 
         # for now don't write out bgcparams - just create an empty namelist
         # if "ecosys" in case.get_value("BLOM_TRACER_MODULES"):
