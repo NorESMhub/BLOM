@@ -477,7 +477,7 @@ contains
           enddo
         enddo
       enddo
-      !$OMP END PARALLEL DO 
+      !$OMP END PARALLEL DO
 
     endif ! .not. use_sedbypass
 

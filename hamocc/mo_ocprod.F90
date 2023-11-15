@@ -979,7 +979,7 @@ contains
     ! C(k,T+dt)=(ddpo(k)*C(k,T)+w*dt*C(k-1,T+dt))/(ddpo(k)+w*dt)
     ! sedimentation=w*dt*C(ks,T+dt)
     !
-    !$OMP PARALLEL DO PRIVATE(kdonor,wpoc,wpocd,wcal,wcald,wopal,wopald,wnos,wnosd,dagg,i,k)
+    !$OMP PARALLEL DO PRIVATE(kdonor,wpoc,wpocd,wcal,wcald,wopal,wopald,wdust,wdustd,tco,tcn,q,wnos,wnosd,dagg,i,k) ORDERED
     do j = 1,kpje
       do i = 1,kpie
 
@@ -990,7 +990,7 @@ contains
 
           kdonor = 1
           do k = 1,kpke
-
+            !$OMP ORDERED
             ! Sum up total column inventory before sinking scheme
             if( pddpo(i,j,k) > dp_min ) then
               tco( 1) = tco( 1) + ocetra(i,j,k,idet  )*pddpo(i,j,k)
@@ -1025,6 +1025,7 @@ contains
                 wnos   = wnumb(i,j,k)
                 wnosd  = wnumb(i,j,kdonor)
                 wdust  = dustsink
+                wdustd = dustsink
                 dagg   = dustagg(i,j,k)
               else if (use_WLIN) then
                 wpoc   = min(wmin+wlin*ptiestu(i,j,k),     wmax)
@@ -1034,6 +1035,7 @@ contains
                 wopal  = wopal_const
                 wopald = wopal_const
                 wdust  = wdust_const
+                wdustd = wdust_const
                 dagg   = 0.0
               else
                 wpoc   = wpoc_const
@@ -1043,6 +1045,7 @@ contains
                 wopal  = wopal_const
                 wopald = wopal_const
                 wdust  = wdust_const
+                wdustd = wdust_const
                 dagg   = 0.0
               endif
 
@@ -1057,15 +1060,15 @@ contains
                 endif
               endif
 
-              ocetra(i,j,k,iopal)  = (ocetra(i,j,k,     iopal) *pddpo(i,j,k)                       &
-                   &               +  ocetra(i,j,kdonor,iopal) *wopald)/ (pddpo(i,j,k)+wopal)
-              ocetra(i,j,k,ifdust) = (ocetra(i,j,k,     ifdust)*pddpo(i,j,k)                       &
-                   &               +  ocetra(i,j,kdonor,ifdust)*wdust) / (pddpo(i,j,k)+wdust)      &
-                                   -  dagg
               ocetra(i,j,k,idet)   = (ocetra(i,j,k,     idet)  *pddpo(i,j,k)                       &
                                    +  ocetra(i,j,kdonor,idet)  *wpocd) / (pddpo(i,j,k)+wpoc)
               ocetra(i,j,k,icalc)  = (ocetra(i,j,k,     icalc) *pddpo(i,j,k)                       &
                    &               +  ocetra(i,j,kdonor,icalc) *wcald) / (pddpo(i,j,k)+wcal)
+              ocetra(i,j,k,iopal)  = (ocetra(i,j,k,     iopal) *pddpo(i,j,k)                       &
+                   &               +  ocetra(i,j,kdonor,iopal) *wopald)/ (pddpo(i,j,k)+wopal)
+              ocetra(i,j,k,ifdust) = (ocetra(i,j,k,     ifdust)*pddpo(i,j,k)                       &
+                   &               +  ocetra(i,j,kdonor,ifdust)*wdustd)/ (pddpo(i,j,k)+wdust)      &
+                                   -  dagg
               if (use_cisonew) then
                 ocetra(i,j,k,idet13)  = (ocetra(i,j,k,     idet13) *pddpo(i,j,k)                   &
                      &                +  ocetra(i,j,kdonor,idet13) *wpocd) / (pddpo(i,j,k)+wpoc)
@@ -1137,7 +1140,7 @@ contains
                 tcn(12) = tcn(12) + ocetra(i,j,k,icalc14)*pddpo(i,j,k)
               endif
             endif
-
+            !$OMP END ORDERED
           enddo  ! loop k=1,kpke
 
 
@@ -1349,7 +1352,7 @@ contains
       ! over the water column. Detritus is kept as detritus, while opal and CaCO3
       ! are remineralised instantanously
 
-      !$OMP PARALLEL DO PRIVATE(dz,florca,flcaca,flsil,flor13,flor14,flca13,flca14,i,k)
+      !$OMP PARALLEL DO PRIVATE(dz,florca,flcaca,flsil,flor13,flor14,flca13,flca14,i,k) ORDERED
       do j=1,kpje
         do i = 1,kpie
           if(omask(i,j) > 0.5) then
@@ -1357,9 +1360,9 @@ contains
             ! calculate depth of water column
             dz = 0.0
             do k = 1,kpke
-
+              !$OMP ORDERED
               if( pddpo(i,j,k) > dp_min ) dz = dz+pddpo(i,j,k)
-
+              !$OMP END ORDERED
             enddo
 
             florca = prorca(i,j)/dz
@@ -1397,7 +1400,7 @@ contains
           endif ! omask > 0.5
         enddo
       enddo
-
+      !$OMP END PARALLEL DO
     endif ! use_sedbypass
 
     if (use_PBGC_OCNP_TIMESTEP) then
