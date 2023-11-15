@@ -124,7 +124,7 @@ contains
     real :: absorption,absorption_uv
     real :: dmsprod,dms_bac,dms_uv,dms_ph
     real :: dtr,dz
-    real :: wpocd,wcald,wopald,dagg
+    real :: wpocd,wcald,wopald,wdustd,dagg
     real :: wcal,wdust,wopal,wpoc
     ! sedbypass
     real :: florca,flcaca,flsil

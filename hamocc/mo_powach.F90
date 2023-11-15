@@ -97,7 +97,7 @@ contains
           powcar(i,k) = 0.
           anaerob(i,k)= 0.
           aerob(i,k)  = 0.
-          sulf(i,j)   = 0.
+          sulf(i,k)   = 0.
           if (use_cisonew) then
             anaerob13(i,k)=0.
             aerob13(i,k)  =0.

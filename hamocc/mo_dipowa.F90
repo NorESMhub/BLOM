@@ -66,7 +66,7 @@ contains
     real    :: tredsy(kpie,0:kpke,3)    ! redsy for 'reduced system'?
     real    :: aprior                   ! start value of oceanic tracer in bottom layer
 
-    !$OMP PARALLEL DO PRIVATE(i,k,iv,l,bolven,tredsy,sedb1,aprior,iv_oc)
+    !$OMP PARALLEL DO PRIVATE(i,k,iv,l,tredsy,sedb1,aprior,iv_oc)
     j_loop: do j=1,kpje
 
       k = 0
