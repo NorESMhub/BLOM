@@ -1,0 +1,3 @@
+./xmlchange HAMOCC_CISO=TRUE
+./xmlchange HAMOCC_SEDBYPASS=TRUE
+

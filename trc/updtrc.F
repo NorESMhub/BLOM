@@ -23,6 +23,10 @@ c --- ------------------------------------------------------------------
 c --- update tracers due to non-passive processes
 c --- ------------------------------------------------------------------
 c
+#ifdef HAMOCC
+      use mo_hamocc_step, only: hamocc_step
+#endif
+
       use mod_xc
 c
       implicit none
