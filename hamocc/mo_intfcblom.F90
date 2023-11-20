@@ -332,8 +332,17 @@ contains
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               sedlay(i,j,k,:) = sedlay2(i,j,kn,:)
               powtra(i,j,k,:) = powtra2(i,j,kn,:)
-              burial(i,j,:)   = burial2(i,j,n,:)
             enddo
+          enddo
+        enddo
+      enddo
+      !$OMP END PARALLEL DO
+
+      !$OMP PARALLEL DO PRIVATE(l,i)
+      do j=1,jj
+        do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            burial(i,j,:)   = burial2(i,j,n,:)
           enddo
         enddo
       enddo

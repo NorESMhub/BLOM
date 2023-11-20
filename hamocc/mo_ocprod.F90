@@ -1053,6 +1053,7 @@ contains
                 wpocd  = 0.0
                 wcald  = 0.0
                 wopald = 0.0
+                wdustd = 0.0
                 if (use_AGG) then
                   wnosd  = 0.0
                 else if (use_WLIN) then
