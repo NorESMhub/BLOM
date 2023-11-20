@@ -85,7 +85,6 @@ module mo_biomod
   real, dimension (:,:),   allocatable, public  :: int_chbr3_uv
 
   real, public :: growth_co2
-  real, public :: bifr13_perm
 
 CONTAINS
 
