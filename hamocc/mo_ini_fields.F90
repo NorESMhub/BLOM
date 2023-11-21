@@ -87,7 +87,7 @@ contains
     !***********************************************************************************************
 
     use mo_carbch,      only: co2star,co3,hi,ocetra
-    use mo_param_bgc,   only: fesoly,cellmass,fractdim,bifr13,bifr14,c14fac,re1312,re14to
+    use mo_param_bgc,   only: fesoly,cellmass,fractdim,bifr13_ini,bifr14_ini,c14fac,re1312,re14to
     use mo_biomod,      only: abs_oce
     use mo_control_bgc, only: rmasks,use_FB_BGC_OCE,use_cisonew,use_AGG,use_CFC,use_natDIC,        &
                               use_BROMO, use_sedbypass
@@ -213,14 +213,14 @@ contains
             if (use_cisonew) then
               rco213=ocetra(i,j,k,isco213)/(ocetra(i,j,k,isco212)+safediv)
               rco214=ocetra(i,j,k,isco214)/(ocetra(i,j,k,isco212)+safediv)
-              ocetra(i,j,k,iphy13) =ocetra(i,j,k,iphy)*rco213*bifr13
-              ocetra(i,j,k,iphy14) =ocetra(i,j,k,iphy)*rco214*bifr14
-              ocetra(i,j,k,izoo13) =ocetra(i,j,k,izoo)*rco213*bifr13
-              ocetra(i,j,k,izoo14) =ocetra(i,j,k,izoo)*rco214*bifr14
-              ocetra(i,j,k,idoc13) =ocetra(i,j,k,idoc)*rco213*bifr13
-              ocetra(i,j,k,idoc14) =ocetra(i,j,k,idoc)*rco214*bifr14
-              ocetra(i,j,k,idet13) =ocetra(i,j,k,idet)*rco213*bifr13
-              ocetra(i,j,k,idet14) =ocetra(i,j,k,idet)*rco214*bifr14
+              ocetra(i,j,k,iphy13) =ocetra(i,j,k,iphy)*rco213*bifr13_ini
+              ocetra(i,j,k,iphy14) =ocetra(i,j,k,iphy)*rco214*bifr14_ini
+              ocetra(i,j,k,izoo13) =ocetra(i,j,k,izoo)*rco213*bifr13_ini
+              ocetra(i,j,k,izoo14) =ocetra(i,j,k,izoo)*rco214*bifr14_ini
+              ocetra(i,j,k,idoc13) =ocetra(i,j,k,idoc)*rco213*bifr13_ini
+              ocetra(i,j,k,idoc14) =ocetra(i,j,k,idoc)*rco214*bifr14_ini
+              ocetra(i,j,k,idet13) =ocetra(i,j,k,idet)*rco213*bifr13_ini
+              ocetra(i,j,k,idet14) =ocetra(i,j,k,idet)*rco214*bifr14_ini
               ocetra(i,j,k,icalc13)=ocetra(i,j,k,icalc)*rco213
               ocetra(i,j,k,icalc14)=ocetra(i,j,k,icalc)*rco214
             endif
@@ -268,10 +268,10 @@ contains
               if (use_cisonew) then
                 rco213=ocetra(i,j,kbo(i,j),isco213)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
                 rco214=ocetra(i,j,kbo(i,j),isco214)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
-                powtra(i,j,k,ipowc13)=powtra(i,j,k,ipowaic)*rco213*bifr13
-                powtra(i,j,k,ipowc14)=powtra(i,j,k,ipowaic)*rco214*bifr14
-                sedlay(i,j,k,issso13)=sedlay(i,j,k,issso12)*rco213*bifr13
-                sedlay(i,j,k,issso14)=sedlay(i,j,k,issso12)*rco214*bifr14
+                powtra(i,j,k,ipowc13)=powtra(i,j,k,ipowaic)*rco213*bifr13_ini
+                powtra(i,j,k,ipowc14)=powtra(i,j,k,ipowaic)*rco214*bifr14_ini
+                sedlay(i,j,k,issso13)=sedlay(i,j,k,issso12)*rco213*bifr13_ini
+                sedlay(i,j,k,issso14)=sedlay(i,j,k,issso12)*rco214*bifr14_ini
                 sedlay(i,j,k,isssc13)=sedlay(i,j,k,isssc12)*rco213
                 sedlay(i,j,k,isssc14)=sedlay(i,j,k,isssc12)*rco214
               endif

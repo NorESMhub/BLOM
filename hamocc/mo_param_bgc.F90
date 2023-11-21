@@ -65,7 +65,7 @@ module mo_param_bgc
   public :: re14to,prei13,prei14,ctochl
   public :: atten_w,atten_c,atten_uv,atten_f
   public :: perc_diron,fesoly,phytomi,pi_alpha
-  public :: dyphy,tf2,tf1,tf0,tff,bifr13,bifr14,c14_t_half
+  public :: dyphy,tf2,tf1,tf0,tff,bifr13_ini,bifr14_ini,c14_t_half
   public :: rbro,fbro1,fbro2,grami
   public :: calmax,remido
   public :: dustd1,dustd2,dustd3,dustsink
@@ -168,8 +168,8 @@ module mo_param_bgc
   real, protected :: dyphy      = 0.004           ! 1/d -mortality rate of phytoplankton
 
   ! Initial fractionation during photosynthesis
-  real :: bifr13 = 0.98
-  real :: bifr14
+  real, protected :: bifr13_ini = 0.98
+  real, protected :: bifr14_ini
 
   ! N2-Fixation following the parameterization in Kriest and Oschlies, 2015.
   ! Factors tf2, tf1 and tf0 are a polynomial (2nd order)
@@ -415,7 +415,7 @@ contains
     ! AFTER reading the namelist:
     ! calulate parameters that depend on other tunable parameters
     !
-    bifr14  = bifr13**2
+    bifr14_ini  = bifr13_ini**2
 
     perc_diron = fetune * 0.035 * 0.01 / 55.85
 
@@ -591,8 +591,8 @@ contains
         write(io_stdo_bgc,*) '*   atm_c13      = ',atm_c13
         write(io_stdo_bgc,*) '*   d13C_atm     = ',d13C_atm
         write(io_stdo_bgc,*) '*   atm_c14      = ',atm_c14
-        write(io_stdo_bgc,*) '*   bifr13       = ',bifr13
-        write(io_stdo_bgc,*) '*   bifr14       = ',bifr14
+        write(io_stdo_bgc,*) '*   bifr13_ini   = ',bifr13_ini
+        write(io_stdo_bgc,*) '*   bifr14_ini   = ',bifr14_ini
         write(io_stdo_bgc,*) '*   c14fac       = ',c14fac
         write(io_stdo_bgc,*) '*   prei13       = ',prei13
         write(io_stdo_bgc,*) '*   prei14       = ',prei14
