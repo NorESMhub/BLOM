@@ -43,11 +43,11 @@ contains
     !  I.Kriest,              *GEOMAR*         2016-08-11
     !   - Modified stoichiometry for denitrification (affects NO3, N2, Alk)
     !  J.Schwinger,           *UNI-RESEARCH*   2017-08-30
-    !   - Removed split of the layer that only partly falls into the euphotic zone. Loops are 
+    !   - Removed split of the layer that only partly falls into the euphotic zone. Loops are
     !     now calculated over
     !      (1) layers that are completely or partly in the euphotoc zone
     !      (2) layers that do not lie within the euphotic zone.
-    !   - Moved the accumulation of global fields for output to routine hamocc4bgc. 
+    !   - Moved the accumulation of global fields for output to routine hamocc4bgc.
     !     The accumulation of local fields has been moved to the end of this routine.
     !  A.Moree,          *GFI, Bergen*   2018-04-12
     !   - new version of carbon isotope code
@@ -72,7 +72,7 @@ contains
                                 alow1,alow2,alow3,calmax,cellmass,                                 &
                                 cellsink,dustd1,dustd2,dustd3,dustsink,fractdim,                   &
                                 fse,fsh,nmldmin,plower,pupper,sinkexp,stick,tmfac,                 &
-                                tsfac,vsmall,zdis,wmin,wmax,wlin,rbro,bifr13,bifr14,               &
+                                tsfac,vsmall,zdis,wmin,wmax,wlin,rbro,                             &
                                 dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma,                     &
                                 fbro1,fbro2,atten_f,atten_c,atten_uv,atten_w,bkopal,bkphy,bkzoo
     use mo_biomod,        only: bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,bsiflx_bot, &
@@ -80,8 +80,7 @@ contains
                                 carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,carflx_bot, &
                                 expoor,exposi,expoca,intdnit,intdms_bac,intdmsprod,intdms_uv,      &
                                 intphosy,int_chbr3_prod,int_chbr3_uv,                              &
-                                phosy3d,abs_oce,strahl,asize3d,wmass,wnumb,eps3d,bifr13_perm,      &
-                                growth_co2
+                                phosy3d,abs_oce,strahl,asize3d,wmass,wnumb,eps3d
     use mo_param1_bgc,    only: ialkali,ian2o,iano3,icalc,idet,idms,idoc,ifdust,                   &
                                 igasnit,iiron,iopal,ioxygen,iphosph,iphy,isco212,                  &
                                 isilica,izoo,iadust,inos,ibromo,                                   &
@@ -124,13 +123,15 @@ contains
     real :: absorption,absorption_uv
     real :: dmsprod,dms_bac,dms_uv,dms_ph
     real :: dtr,dz
-    real :: wpocd,wcald,wopald,dagg
+    real :: wpocd,wcald,wopald,wdustd,dagg
     real :: wcal,wdust,wopal,wpoc
     ! sedbypass
     real :: florca,flcaca,flsil
     ! cisonew
     real :: phygrowth
     real :: phosy13,phosy14
+    real :: growth_co2
+    real :: bifr13,bifr14,bifr13_perm
     real :: grazing13,grazing14
     real :: graton13,graton14
     real :: gratpoc13,gratpoc14
@@ -271,7 +272,8 @@ contains
     !$OMP  ,graton13,graton14,gratpoc13,gratpoc14,grawa13,grawa14         &
     !$OMP  ,phosy13,phosy14,bacfra13,bacfra14,phymor13,phymor14,zoomor13  &
     !$OMP  ,zoomor14,excdoc13,excdoc14,exud13,exud14,export13,export14    &
-    !$OMP  ,delcar13,delcar14,dtr13,dtr14,bifr13,bifr14                   &
+    !$OMP  ,delcar13,delcar14,dtr13,dtr14,bifr13,bifr14,bifr13_perm       &
+    !$OMP  ,growth_co2,phygrowth                                          &
     !$OMP  ,bro_beta,bro_uv                                               &
     !$OMP  ,i,k)
 
@@ -979,7 +981,7 @@ contains
     ! C(k,T+dt)=(ddpo(k)*C(k,T)+w*dt*C(k-1,T+dt))/(ddpo(k)+w*dt)
     ! sedimentation=w*dt*C(ks,T+dt)
     !
-    !$OMP PARALLEL DO PRIVATE(kdonor,wpoc,wpocd,wcal,wcald,wopal,wopald,wnos,wnosd,dagg,i,k)
+    !$OMP PARALLEL DO PRIVATE(kdonor,wpoc,wpocd,wcal,wcald,wopal,wopald,wdust,wdustd,tco,tcn,q,wnos,wnosd,dagg,i,k) ORDERED
     do j = 1,kpje
       do i = 1,kpie
 
@@ -990,7 +992,7 @@ contains
 
           kdonor = 1
           do k = 1,kpke
-
+            !$OMP ORDERED
             ! Sum up total column inventory before sinking scheme
             if( pddpo(i,j,k) > dp_min ) then
               tco( 1) = tco( 1) + ocetra(i,j,k,idet  )*pddpo(i,j,k)
@@ -1025,6 +1027,7 @@ contains
                 wnos   = wnumb(i,j,k)
                 wnosd  = wnumb(i,j,kdonor)
                 wdust  = dustsink
+                wdustd = dustsink
                 dagg   = dustagg(i,j,k)
               else if (use_WLIN) then
                 wpoc   = min(wmin+wlin*ptiestu(i,j,k),     wmax)
@@ -1034,6 +1037,7 @@ contains
                 wopal  = wopal_const
                 wopald = wopal_const
                 wdust  = wdust_const
+                wdustd = wdust_const
                 dagg   = 0.0
               else
                 wpoc   = wpoc_const
@@ -1043,6 +1047,7 @@ contains
                 wopal  = wopal_const
                 wopald = wopal_const
                 wdust  = wdust_const
+                wdustd = wdust_const
                 dagg   = 0.0
               endif
 
@@ -1050,6 +1055,7 @@ contains
                 wpocd  = 0.0
                 wcald  = 0.0
                 wopald = 0.0
+                wdustd = 0.0
                 if (use_AGG) then
                   wnosd  = 0.0
                 else if (use_WLIN) then
@@ -1057,15 +1063,15 @@ contains
                 endif
               endif
 
-              ocetra(i,j,k,iopal)  = (ocetra(i,j,k,     iopal) *pddpo(i,j,k)                       &
-                   &               +  ocetra(i,j,kdonor,iopal) *wopald)/ (pddpo(i,j,k)+wopal)
-              ocetra(i,j,k,ifdust) = (ocetra(i,j,k,     ifdust)*pddpo(i,j,k)                       &
-                   &               +  ocetra(i,j,kdonor,ifdust)*wdust) / (pddpo(i,j,k)+wdust)      &
-                                   -  dagg
               ocetra(i,j,k,idet)   = (ocetra(i,j,k,     idet)  *pddpo(i,j,k)                       &
                                    +  ocetra(i,j,kdonor,idet)  *wpocd) / (pddpo(i,j,k)+wpoc)
               ocetra(i,j,k,icalc)  = (ocetra(i,j,k,     icalc) *pddpo(i,j,k)                       &
                    &               +  ocetra(i,j,kdonor,icalc) *wcald) / (pddpo(i,j,k)+wcal)
+              ocetra(i,j,k,iopal)  = (ocetra(i,j,k,     iopal) *pddpo(i,j,k)                       &
+                   &               +  ocetra(i,j,kdonor,iopal) *wopald)/ (pddpo(i,j,k)+wopal)
+              ocetra(i,j,k,ifdust) = (ocetra(i,j,k,     ifdust)*pddpo(i,j,k)                       &
+                   &               +  ocetra(i,j,kdonor,ifdust)*wdustd)/ (pddpo(i,j,k)+wdust)      &
+                                   -  dagg
               if (use_cisonew) then
                 ocetra(i,j,k,idet13)  = (ocetra(i,j,k,     idet13) *pddpo(i,j,k)                   &
                      &                +  ocetra(i,j,kdonor,idet13) *wpocd) / (pddpo(i,j,k)+wpoc)
@@ -1137,7 +1143,7 @@ contains
                 tcn(12) = tcn(12) + ocetra(i,j,k,icalc14)*pddpo(i,j,k)
               endif
             endif
-
+            !$OMP END ORDERED
           enddo  ! loop k=1,kpke
 
 
@@ -1349,7 +1355,7 @@ contains
       ! over the water column. Detritus is kept as detritus, while opal and CaCO3
       ! are remineralised instantanously
 
-      !$OMP PARALLEL DO PRIVATE(dz,florca,flcaca,flsil,flor13,flor14,flca13,flca14,i,k)
+      !$OMP PARALLEL DO PRIVATE(dz,florca,flcaca,flsil,flor13,flor14,flca13,flca14,i,k) ORDERED
       do j=1,kpje
         do i = 1,kpie
           if(omask(i,j) > 0.5) then
@@ -1357,9 +1363,9 @@ contains
             ! calculate depth of water column
             dz = 0.0
             do k = 1,kpke
-
+              !$OMP ORDERED
               if( pddpo(i,j,k) > dp_min ) dz = dz+pddpo(i,j,k)
-
+              !$OMP END ORDERED
             enddo
 
             florca = prorca(i,j)/dz
@@ -1397,7 +1403,7 @@ contains
           endif ! omask > 0.5
         enddo
       enddo
-
+      !$OMP END PARALLEL DO
     endif ! use_sedbypass
 
     if (use_PBGC_OCNP_TIMESTEP) then

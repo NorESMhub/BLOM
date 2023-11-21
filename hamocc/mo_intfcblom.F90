@@ -224,7 +224,6 @@ contains
     ! --- calculate pressure at interfaces (necesarry since p has
     ! --- not been calculated at restart)
 
-    !$OMP PARALLEL DO PRIVATE(k,kn,l,i)
     do k=1,kk
       kn=k+nn
       do j=1,jj
@@ -235,7 +234,6 @@ contains
         enddo
       enddo
     enddo
-    !$OMP END PARALLEL DO
 
     ! --- ------------------------------------------------------------------
     ! --- 2D fields
@@ -334,8 +332,17 @@ contains
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               sedlay(i,j,k,:) = sedlay2(i,j,kn,:)
               powtra(i,j,k,:) = powtra2(i,j,kn,:)
-              burial(i,j,:)   = burial2(i,j,n,:)
             enddo
+          enddo
+        enddo
+      enddo
+      !$OMP END PARALLEL DO
+
+      !$OMP PARALLEL DO PRIVATE(l,i)
+      do j=1,jj
+        do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            burial(i,j,:)   = burial2(i,j,n,:)
           enddo
         enddo
       enddo
@@ -436,10 +443,20 @@ contains
               powtra2(i,j,km,:) = wts1*powtra2(i,j,km,:)   &
                    &            + wts2*powtra2(i,j,kn,:)   &
                    &            + wts2*powtra(i,j,k,:)
-              burial2(i,j,m,:)  = wts1*burial2(i,j,m,:)    &
-                   &            + wts2*burial2(i,j,n,:)    &
-                   &            + wts2*burial(i,j,:)
             enddo
+          enddo
+        enddo
+      enddo
+      !$OMP END PARALLEL DO
+
+
+      !$OMP PARALLEL DO PRIVATE(l,i)
+      do j=1,jj
+        do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))              ! time smoothing (analog to tmsmt2.F)
+             burial2(i,j,m,:)  = wts1*burial2(i,j,m,:)       &
+                               + wts2*burial2(i,j,n,:)       &
+                               + wts2*burial(i,j,:)
           enddo
         enddo
       enddo
@@ -453,8 +470,17 @@ contains
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               sedlay2(i,j,kn,:) = sedlay(i,j,k,:)  ! new time level replaces old time level here
               powtra2(i,j,kn,:) = powtra(i,j,k,:)
-              burial2(i,j,n,:)  = burial(i,j,:)
             enddo
+          enddo
+        enddo
+      enddo
+      !$OMP END PARALLEL DO
+
+      !$OMP PARALLEL DO PRIVATE(l,i)
+      do j=1,jj
+        do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+               burial2(i,j,n,:)  = burial(i,j,:)
           enddo
         enddo
       enddo

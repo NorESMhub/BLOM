@@ -95,7 +95,7 @@ CONTAINS
     use mo_vgrid,           only: kbo
     use mo_sedmnt,          only: sedhpl
     use mo_intfcblom,       only: sedlay2,powtra2,burial2,atm2
-    use mo_param_bgc,       only: bifr13,bifr14,c14fac,re1312,re14to,prei13,prei14
+    use mo_param_bgc,       only: bifr13_ini,bifr14_ini,c14fac,re1312,re14to,prei13,prei14
     use mo_netcdf_bgcrw,    only: read_netcdf_var
 
     ! Arguments
@@ -518,14 +518,14 @@ CONTAINS
               ! Initialise the remaining 13C and 14C fields, using the restart isco212 field
               rco213=locetra(i,j,k,isco213)/(locetra(i,j,k,isco212)+safediv)
               rco214=locetra(i,j,k,isco214)/(locetra(i,j,k,isco212)+safediv)
-              locetra(i,j,k,idoc13)=locetra(i,j,k,idoc)*rco213*bifr13
-              locetra(i,j,k,idoc14)=locetra(i,j,k,idoc)*rco214*bifr14
-              locetra(i,j,k,iphy13)=locetra(i,j,k,iphy)*rco213*bifr13
-              locetra(i,j,k,iphy14)=locetra(i,j,k,iphy)*rco214*bifr14
-              locetra(i,j,k,izoo13)=locetra(i,j,k,izoo)*rco213*bifr13
-              locetra(i,j,k,izoo14)=locetra(i,j,k,izoo)*rco214*bifr14
-              locetra(i,j,k,idet13)=locetra(i,j,k,idet)*rco213*bifr13
-              locetra(i,j,k,idet14)=locetra(i,j,k,idet)*rco214*bifr14
+              locetra(i,j,k,idoc13)=locetra(i,j,k,idoc)*rco213*bifr13_ini
+              locetra(i,j,k,idoc14)=locetra(i,j,k,idoc)*rco214*bifr14_ini
+              locetra(i,j,k,iphy13)=locetra(i,j,k,iphy)*rco213*bifr13_ini
+              locetra(i,j,k,iphy14)=locetra(i,j,k,iphy)*rco214*bifr14_ini
+              locetra(i,j,k,izoo13)=locetra(i,j,k,izoo)*rco213*bifr13_ini
+              locetra(i,j,k,izoo14)=locetra(i,j,k,izoo)*rco214*bifr14_ini
+              locetra(i,j,k,idet13)=locetra(i,j,k,idet)*rco213*bifr13_ini
+              locetra(i,j,k,idet14)=locetra(i,j,k,idet)*rco214*bifr14_ini
               locetra(i,j,k,icalc13)=locetra(i,j,k,icalc)*rco213
               locetra(i,j,k,icalc14)=locetra(i,j,k,icalc)*rco214
             endif
@@ -542,8 +542,8 @@ CONTAINS
                 rco214=locetra(i,j,kbo(i,j),isco214)/(locetra(i,j,kbo(i,j),isco212)+safediv)
                 powtra2(i,j,k,ipowc13)=powtra2(i,j,k,ipowaic)*rco213
                 powtra2(i,j,k,ipowc14)=powtra2(i,j,k,ipowaic)*rco214
-                sedlay2(i,j,k,issso13)=sedlay2(i,j,k,issso12)*rco213*bifr13
-                sedlay2(i,j,k,issso14)=sedlay2(i,j,k,issso12)*rco214*bifr14
+                sedlay2(i,j,k,issso13)=sedlay2(i,j,k,issso12)*rco213*bifr13_ini
+                sedlay2(i,j,k,issso14)=sedlay2(i,j,k,issso12)*rco214*bifr14_ini
                 sedlay2(i,j,k,isssc13)=sedlay2(i,j,k,isssc12)*rco213
                 sedlay2(i,j,k,isssc14)=sedlay2(i,j,k,isssc12)*rco214
               endif
@@ -557,8 +557,8 @@ CONTAINS
               if(omask(i,j)  >  0.5) then
                 rco213=locetra(i,j,kbo(i,j),isco213)/(locetra(i,j,kbo(i,j),isco212)+safediv)
                 rco214=locetra(i,j,kbo(i,j),isco214)/(locetra(i,j,kbo(i,j),isco212)+safediv)
-                burial2(i,j,k,issso13)=burial2(i,j,k,issso12)*rco213*bifr13
-                burial2(i,j,k,issso14)=burial2(i,j,k,issso12)*rco214*bifr14
+                burial2(i,j,k,issso13)=burial2(i,j,k,issso12)*rco213*bifr13_ini
+                burial2(i,j,k,issso14)=burial2(i,j,k,issso12)*rco214*bifr14_ini
                 burial2(i,j,k,isssc13)=burial2(i,j,k,isssc12)*rco213
                 burial2(i,j,k,isssc14)=burial2(i,j,k,isssc12)*rco214
               endif

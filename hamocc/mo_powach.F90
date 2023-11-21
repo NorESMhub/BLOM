@@ -38,7 +38,8 @@ contains
                               isssc14,issso13,issso14,safediv
     use mo_carbch,      only: co3,keqb,ocetra,sedfluxo
     use mo_chemcon,     only: calcon
-    use mo_param_bgc,   only: rnit,ro2ut,disso_sil,silsat,disso_poc,sed_denit,disso_caco3
+    use mo_param_bgc,   only: rnit,rcar,rdnit1,rdnit2,ro2ut,disso_sil,silsat,disso_poc,sed_denit,  &
+                              disso_caco3
     use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,seddw,sedhpl,sedlay,       &
                               silpro,pror13,pror14,prca13,prca14
     use mo_vgrid,       only: kbo,bolay
@@ -60,9 +61,9 @@ contains
     integer :: i,j,k,l
     real    :: sedb1(kpie,0:ks),sediso(kpie,0:ks)
     real    :: solrat(kpie,ks),powcar(kpie,ks)
-    real    :: aerob(kpie,ks),anaerob(kpie,ks)
-    real    :: aerob13(kpie,ks),anaerob13(kpie,ks) ! cisonew
-    real    :: aerob14(kpie,ks),anaerob14(kpie,ks) ! cisonew
+    real    :: aerob(kpie,ks),anaerob(kpie,ks),sulf(kpie,ks)
+    real    :: aerob13(kpie,ks),anaerob13(kpie,ks),sulf13(kpie,ks) ! cisonew
+    real    :: aerob14(kpie,ks),anaerob14(kpie,ks),sulf14(kpie,ks) ! cisonew
     real    :: dissot, undsa, posol
     real    :: umfa, denit, saln, rrho, alk, c, sit, pt
     real    :: K1, K2, Kb, Kw, Ks1, Kf, Ksi, K1p, K2p, K3p
@@ -96,11 +97,14 @@ contains
           powcar(i,k) = 0.
           anaerob(i,k)= 0.
           aerob(i,k)  = 0.
+          sulf(i,k)   = 0.
           if (use_cisonew) then
             anaerob13(i,k)=0.
             aerob13(i,k)  =0.
+            sulf13(i,k)   =0.
             anaerob14(i,k)=0.
             aerob14(i,k)  =0.
+            sulf14(i,k)   =0.
           endif
         enddo
       enddo
@@ -286,7 +290,7 @@ contains
         do i = 1, kpie
           if(omask(i,j) > 0.5) then
             if(powtra(i,j,k,ipowaox) < 1.e-6) then
-              posol = denit * min(0.5*powtra(i,j,k,ipowno3)/114., sedlay(i,j,k,issso12))
+              posol = denit * min(0.25*powtra(i,j,k,ipowno3)/rdnit2, sedlay(i,j,k,issso12))
               umfa = porsol(i,j,k)/porwat(i,j,k)
               anaerob(i,k) = posol*umfa     !this has P units: kmol P/m3 of pore water
               if (use_cisonew) then
@@ -299,8 +303,8 @@ contains
               endif
               sedlay(i,j,k,issso12) = sedlay(i,j,k,issso12) - posol
               powtra(i,j,k,ipowaph) = powtra(i,j,k,ipowaph) + posol*umfa
-              powtra(i,j,k,ipowno3) = powtra(i,j,k,ipowno3) - 98.*posol*umfa
-              powtra(i,j,k,ipown2)  = powtra(i,j,k,ipown2)  + 57.*posol*umfa
+              powtra(i,j,k,ipowno3) = powtra(i,j,k,ipowno3) - rdnit1*posol*umfa
+              powtra(i,j,k,ipown2)  = powtra(i,j,k,ipown2)  + rdnit2*posol*umfa
               if (use_cisonew) then
                 sedlay(i,j,k,issso13) = sedlay(i,j,k,issso13) - poso13
                 sedlay(i,j,k,issso14) = sedlay(i,j,k,issso14) - poso14
@@ -317,15 +321,14 @@ contains
             if(powtra(i,j,k,ipowaox) < 3.e-6 .and. powtra(i,j,k,ipowno3) < 3.e-6) then
               posol = denit * sedlay(i,j,k,issso12)         ! remineralization of poc
               umfa = porsol(i,j,k) / porwat(i,j,k)
-              !this overwrites anaerob from denitrification. added =anaerob+..., works
-              anaerob(i,k) = anaerob(i,k) + posol*umfa      !this has P units: kmol P/m3 of pore water
+              sulf(i,k) = posol*umfa      !this has P units: kmol P/m3 of pore water
               if (use_cisonew) then
                 rato13 = sedlay(i,j,k,issso13) / (sedlay(i,j,k,issso12)+safediv)
                 rato14 = sedlay(i,j,k,issso14) / (sedlay(i,j,k,issso12)+safediv)
                 poso13 = posol * rato13
                 poso14 = posol * rato14
-                anaerob13(i,k) = anaerob13(i,k) + poso13*umfa !this has P units: kmol P/m3 of pore water
-                anaerob14(i,k) = anaerob13(i,k) + poso14*umfa !this has P units: kmol P/m3 of pore water
+                sulf13(i,k) = poso13*umfa !this has P units: kmol P/m3 of pore water
+                sulf14(i,k) = poso14*umfa !this has P units: kmol P/m3 of pore water
               endif
               sedlay(i,j,k,issso12) = sedlay(i,j,k,issso12) - posol
               powtra(i,j,k,ipowaph) = powtra(i,j,k,ipowaph) + posol*umfa
@@ -352,8 +355,8 @@ contains
           if(omask(i,j) > 0.5) then
             saln= min( 40., max( 0., psao(i,j,kbo(i,j))))
             rrho= prho(i,j,kbo(i,j))
-            alk = (powtra(i,j,k,ipowaal) - (anaerob(i,k)+aerob(i,k))*16.)  / rrho
-            c   = (powtra(i,j,k,ipowaic) + (anaerob(i,k)+aerob(i,k))*122.) / rrho
+            alk = (powtra(i,j,k,ipowaal) - (sulf(i,k)+aerob(i,k))*(rnit+1.) + anaerob(i,k)*(rdnit1-1.))  / rrho
+            c   = (powtra(i,j,k,ipowaic) + (anaerob(i,k)+aerob(i,k)+sulf(i,k))*rcar) / rrho
             sit =  powtra(i,j,k,ipowasi) / rrho
             pt  =  powtra(i,j,k,ipowaph) / rrho
             ah1 = sedhpl(i,j,k)
@@ -429,7 +432,7 @@ contains
       do i = 1, kpie
         if(omask(i,j) > 0.5) then
           sedlay(i,j,1,isssc12) =                                                                  &
-               &   sedlay(i,j,1,isssc12) + prcaca(i,j) / (porsol(i,j,1)*seddw(1))
+                 &   sedlay(i,j,1,isssc12) + prcaca(i,j) / (porsol(i,j,1)*seddw(1))
           if (use_cisonew) then
             sedlay(i,j,1,isssc13) =                                                                &
                  &   sedlay(i,j,1,isssc13) + prca13(i,j) / (porsol(i,j,1)*seddw(1))
@@ -459,16 +462,16 @@ contains
             endif
             sedlay(i,j,k,isssc12) = sedlay(i,j,k,isssc12) - posol
             powtra(i,j,k,ipowaic) = powtra(i,j,k,ipowaic)                                          &
-                    + posol * umfa + (aerob(i,k) + anaerob(i,k)) * 122.
+                &   + posol * umfa + (aerob(i,k) + anaerob(i,k) + sulf(i,k)) * rcar
             powtra(i,j,k,ipowaal) = powtra(i,j,k,ipowaal)                                          &
-                    + 2. * posol * umfa - 16. * (aerob(i,k) + anaerob(i,k))
+                &   + 2. * posol * umfa - (rnit+1.)*(aerob(i,k) + sulf(i,k)) + (rdnit1-1.)*anaerob(i,k)
             if (use_cisonew) then
               sedlay(i,j,k,isssc13) = sedlay(i,j,k,isssc13) - poso13
               sedlay(i,j,k,isssc14) = sedlay(i,j,k,isssc14) - poso14
               powtra(i,j,k,ipowc13) = powtra(i,j,k,ipowc13) + poso13 * umfa                        &
-                      + (aerob13(i,k) + anaerob13(i,k)) * 122.
+                 &   + (aerob13(i,k) + anaerob13(i,k) + sulf13(i,k)) * rcar
               powtra(i,j,k,ipowc14) = powtra(i,j,k,ipowc14) + poso14 * umfa                        &
-                      + (aerob14(i,k) + anaerob14(i,k)) * 122.
+                 &   + (aerob14(i,k) + anaerob14(i,k) + sulf14(i,k)) * rcar
             endif
           endif
         enddo

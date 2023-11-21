@@ -84,9 +84,6 @@ module mo_biomod
   real, dimension (:,:),   allocatable, public  :: int_chbr3_prod
   real, dimension (:,:),   allocatable, public  :: int_chbr3_uv
 
-  real, public :: growth_co2
-  real, public :: bifr13_perm
-
 CONTAINS
 
   subroutine alloc_mem_biomod(kpie,kpje,kpke)

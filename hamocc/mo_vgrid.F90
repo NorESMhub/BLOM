@@ -90,8 +90,9 @@ contains
     ! --- depth of layer kpke+1 centre
     ptiestu(:,:,kpke+1)=9000.
 
-    !$OMP PARALLEL DO PRIVATE(j,i)
+
     do k=1,kpke
+      !$OMP PARALLEL DO PRIVATE(j,i)
       do j=1,kpje
         do i=1,kpie
 
@@ -102,8 +103,9 @@ contains
 
         enddo
       enddo
+      !$OMP END PARALLEL DO
     enddo
-    !$OMP END PARALLEL DO
+
 
     kbo(:,:)  =1
     bolay(:,:)=0.0
