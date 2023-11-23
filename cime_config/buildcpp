@@ -78,20 +78,10 @@ def buildcpp(case):
     # Determine the CPP flags values needed to build the blom component
 
     ocn_grid = case.get_value("OCN_GRID")
-    blom_vcoord = case.get_value("BLOM_VCOORD")
     turbclo = case.get_value("BLOM_TURBULENT_CLOSURE")
     tracers = case.get_value("BLOM_TRACER_MODULES")
-    co2type = case.get_value("OCN_CO2_TYPE")
-    hamocc_cfc = case.get_value("HAMOCC_CFC")
-    hamocc_debug = case.get_value("HAMOCC_DEBUG")
-    hamocc_nattrc = case.get_value("HAMOCC_NATTRC")
-    hamocc_sedbypass = case.get_value("HAMOCC_SEDBYPASS")
-    hamocc_ciso = case.get_value("HAMOCC_CISO")
-    hamocc_vsls = case.get_value("HAMOCC_VSLS")
     blom_unit = case.get_value("BLOM_UNIT")
     pio_typename = case.get_value("PIO_TYPENAME", subgroup="OCN")
-
-    expect(blom_vcoord != "cntiso_hybrid" or not turbclo, "BLOM_VCOORD == {} and BLOM_TURBULENT_CLOSURE == {} is not a valid combination".format(blom_vcoord, turbclo))
 
     blom_cppdefs = ""
 
@@ -131,26 +121,7 @@ def buildcpp(case):
             if module == "iage":
                 blom_cppdefs = blom_cppdefs + " -DIDLAGE"
             elif module == "ecosys":
-                blom_cppdefs = blom_cppdefs + " -DHAMOCC -DWLIN"
-                if hamocc_cfc:
-                    blom_cppdefs = blom_cppdefs + " -DCFC"
-                if hamocc_debug:
-                    blom_cppdefs = blom_cppdefs + " -DPBGC_OCNP_TIMESTEP -DPBGC_CK_TIMESTEP"
-                if hamocc_nattrc:
-                    blom_cppdefs = blom_cppdefs + " -DnatDIC"
-                if hamocc_sedbypass:
-                    blom_cppdefs = blom_cppdefs + " -Dsedbypass"
-                if hamocc_ciso:
-                    expect(hamocc_sedbypass, "HAMOCC C-isotopes currently not supported in the sediment module. Use HAMOCC_SEDBYPASS=TRUE")
-                    blom_cppdefs = blom_cppdefs + " -Dcisonew"
-                if hamocc_vsls:
-                    blom_cppdefs = blom_cppdefs + " -DBROMO"
-                if co2type == "prognostic":
-                    blom_cppdefs = blom_cppdefs + " -DPROGCO2"
-                elif co2type == "diagnostic":
-                    blom_cppdefs = blom_cppdefs + " -DDIAGCO2"
-                elif co2type != "constant":
-                    expect(False, "CO2 type {} is not recognized".format(co2type))
+                blom_cppdefs = blom_cppdefs + " -DHAMOCC"
             else:
                 expect(False, "tracer module {} is not recognized".format(module))
 
@@ -160,9 +131,6 @@ def buildcpp(case):
         expect(blom_unit == "cgs", "Unit system {} is not recognized".format(blom_unit))
 
     blom_cppdefs = "-DMPI" + blom_cppdefs
-
-    # update the xml variable BLOM_CPPDEFS with the above definition
-    #case.set_value("BLOM_CPPDEFS", blom_cppdefs)
 
     return blom_cppdefs
 

@@ -1,8 +1,38 @@
 <?xml version="1.0"?>
 <testlist version="2.0">
-  <test name="ERB" grid="T62_tn14" compset="NOIIA" testmods="blom/default">
+  <test name="SMS_D_Ld1" grid="T62_tn14" compset="NOINYOC">
     <machines>
-      <machine name="fram" compiler="intel" category="blom"/>
+      <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
+    </machines>
+  </test>
+  <test name="ERS_Ld3" grid="T62_tn14" compset="NOINYOC">
+    <machines>
+      <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
+    </machines>
+  </test>
+  <test name="ERS_Ld3" grid="T62_tn14" compset="NOINYOC" testmods="blom/hamocc1">
+    <machines>
+      <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
+    </machines>
+  </test>
+  <test name="ERS_Ld3" grid="T62_tn14" compset="NOINYOC" testmods="blom/hamocc2">
+    <machines>
+      <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
+    </machines>
+  </test>
+  <test name="ERP_Ld3" grid="T62_tn14" compset="NOINY">
+    <machines>
+      <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
+    </machines>
+  </test>
+  <test name="ERS_Ld3" grid="T62_tn14_wtn14nw" compset="NOINY_WW3">
+    <machines>
+      <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
+    </machines>
+  </test>
+  <test name="ERS_Ld3" grid="T62_tn14_wtn14nw" compset="NOINY_WW3" testmods="blom/wavice">
+    <machines>
+      <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
     </machines>
   </test>
 </testlist>
