@@ -1,2 +1,5 @@
-sources += files('geoenv_cesmextra.F', 'mod_cesm.F90', 'sfcstr_cesm.F',
-'thermf_cesm.F')
+sources += files(
+'mod_cesm.F90',
+'mod_geoenv_cesmextra.F90',
+'mod_sfcstr_cesm.F90',
+'mod_thermf_cesm.F90')
