@@ -17,188 +17,195 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-subroutine cntiso_hybrid_forcing(m, n, mm, nn, k1m, k1n)
-! ------------------------------------------------------------------------------
-! Compute penetration factors for shortwave and brine flux and compute interface
-! buoyancy flux.
-! ------------------------------------------------------------------------------
+module mod_cntiso_hybrid_forcing
 
-   use mod_types, only: r8
-   use mod_constants, only: g, spcifh, alpha0, onem, onecm, onemu, L_mks2cgs
-   use mod_xc
-   use mod_eos, only: dsigdt0, dsigds0
-   use mod_state, only: dp, temp, saln, p
-   use mod_swabs, only: swbgal, swbgfc, swamxd
-   use mod_forcing, only: surflx, sswflx, salflx, brnflx, buoyfl, &
-                          t_sw_nonloc, s_br_nonloc
-   use mod_cmnfld, only: mlts
-   use mod_checksum, only: csdiag, chksummsk
+  use mod_types,     only: r8
+  use mod_constants, only: g, spcifh, alpha0, onem, onecm, onemu, L_mks2cgs
+  use mod_xc
+  use mod_eos,       only: dsigdt0, dsigds0
+  use mod_state,     only: dp, temp, saln, p
+  use mod_swabs,     only: swbgal, swbgfc, swamxd
+  use mod_forcing,   only: surflx, sswflx, salflx, brnflx, buoyfl, &
+                           t_sw_nonloc, s_br_nonloc
+  use mod_cmnfld,    only: mlts
+  use mod_checksum,  only: csdiag, chksummsk
 
-   implicit none
+  implicit none
+  private
 
-   ! Numeric constants for brine absorption profile.
-   real(r8), parameter :: &
-!     cbra1 = 2._r8**(1._r8/3._r8), &
-!     cbra2 = cbra1*cbra1/288._r8
-      cbra1 = 2._r8**(1._r8/3._r8), &
-      cbra2 = cbra1*cbra1/12._r8
+  public :: cntiso_hybrid_forcing
 
-   real(r8), parameter :: &
-      iL_mks2cgs = 1./L_mks2cgs
+contains
 
-   integer, intent(in) :: m, n, mm, nn, k1m, k1n
+  subroutine cntiso_hybrid_forcing(m, n, mm, nn, k1m, k1n)
+    ! ------------------------------------------------------------------------------
+    ! Compute penetration factors for shortwave and brine flux and compute interface
+    ! buoyancy flux.
+    ! ------------------------------------------------------------------------------
 
-   real(r8) :: cpi, gaa, pmax, lei, q, q3, pmaxi, nlbot, dsgdt, dsgds, &
-               hf, hfsw, hfns, sf, sfbr, sfnb
-   integer :: i, j, k, l, kmax, kn
+    ! Arguments
+    integer, intent(in) :: m, n, mm, nn, k1m, k1n
 
-   ! Set some constants:
-   cpi = 1._r8/spcifh      ! Multiplicative inverse of specific heat capacity.
-   gaa = g*alpha0*alpha0
+    ! Local variables
+    ! Numeric constants for brine absorption profile.
+    real(r8), parameter :: cbra1 = 2._r8**(1._r8/3._r8)
+    real(r8), parameter :: cbra2 = cbra1*cbra1/12._r8
+    real(r8), parameter :: iL_mks2cgs = 1./L_mks2cgs
+    ! real(r8), parameter :: cbra1 = 2._r8**(1._r8/3._r8), &
+    ! real(r8), parameter :: cbra2 = cbra1*cbra1/288._r8
+    real(r8) :: cpi, gaa, pmax, lei, q, q3, pmaxi, nlbot, dsgdt, dsgds
+    real(r8) :: hf, hfsw, hfns, sf, sfbr, sfnb
+    integer  :: i, j, k, l, kmax, kn
 
-   ! ---------------------------------------------------------------------------
-   ! Compute shortwave flux penetration factors.
-   ! ---------------------------------------------------------------------------
+    ! Set some constants:
+    cpi = 1._r8/spcifh      ! Multiplicative inverse of specific heat capacity.
+    gaa = g*alpha0*alpha0
 
-   ! Maximum pressure of shortwave absorption.
-   pmax = swamxd*onem
+    ! ---------------------------------------------------------------------------
+    ! Compute shortwave flux penetration factors.
+    ! ---------------------------------------------------------------------------
 
-!$omp parallel do private(l, i, lei, kmax, k, kn, pmaxi, nlbot)
-   do j = 1, jj
+    ! Maximum pressure of shortwave absorption.
+    pmax = swamxd*onem
+
+    !$omp parallel do private(l, i, lei, kmax, k, kn, pmaxi, nlbot)
+    do j = 1, jj
       do l = 1, isp(j)
-      do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+        do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
 
-         ! Penetration factors at layer interfaces.
-         lei = 1._r8/(swbgal(i,j)*onem)
-         kmax = 1
-         t_sw_nonloc(i,j,1) = 1._r8
-         do k = 1, kk
+          ! Penetration factors at layer interfaces.
+          lei = 1._r8/(swbgal(i,j)*onem)
+          kmax = 1
+          t_sw_nonloc(i,j,1) = 1._r8
+          do k = 1, kk
             kn = k + nn
             if (dp(i,j,kn) > onemu) then
-               t_sw_nonloc(i,j,k+1) = &
-                  swbgfc(i,j)*exp( - lei*min(pmax, p(i,j,k+1)))
-               kmax = k
+              t_sw_nonloc(i,j,k+1) = &
+                   swbgfc(i,j)*exp( - lei*min(pmax, p(i,j,k+1)))
+              kmax = k
             else
-               t_sw_nonloc(i,j,k+1) = t_sw_nonloc(i,j,k)
+              t_sw_nonloc(i,j,k+1) = t_sw_nonloc(i,j,k)
             endif
             if (p(i,j,k+1) > pmax) exit
-         enddo
+          enddo
 
-         ! Modify penetration factors so that fluxes destined to penetrate below
-         ! the lowest model layer are evenly absorbed in the water column.
-         pmaxi = 1._r8/min(pmax, p(i,j,kmax+1))
-         nlbot = t_sw_nonloc(i,j,kmax+1)
-         do k = kmax+1, kk+1
+          ! Modify penetration factors so that fluxes destined to penetrate below
+          ! the lowest model layer are evenly absorbed in the water column.
+          pmaxi = 1._r8/min(pmax, p(i,j,kmax+1))
+          nlbot = t_sw_nonloc(i,j,kmax+1)
+          do k = kmax+1, kk+1
             t_sw_nonloc(i,j,k) = 0._r8
-         enddo
-         do k = kmax, 2, -1
+          enddo
+          do k = kmax, 2, -1
             kn = k + nn
             if (dp(i,j,kn) > onemu) then
-               t_sw_nonloc(i,j,k) = t_sw_nonloc(i,j,k) - nlbot*p(i,j,k)*pmaxi
+              t_sw_nonloc(i,j,k) = t_sw_nonloc(i,j,k) - nlbot*p(i,j,k)*pmaxi
             else
-               t_sw_nonloc(i,j,k) = t_sw_nonloc(i,j,k+1)
+              t_sw_nonloc(i,j,k) = t_sw_nonloc(i,j,k+1)
             endif
-         enddo
+          enddo
 
+        enddo
       enddo
-      enddo
-   enddo
-!$omp end parallel do
+    enddo
+    !$omp end parallel do
 
-   ! ---------------------------------------------------------------------------
-   ! Compute brine flux penetration factors.
-   ! ---------------------------------------------------------------------------
+    ! ---------------------------------------------------------------------------
+    ! Compute brine flux penetration factors.
+    ! ---------------------------------------------------------------------------
 
-!$omp parallel do private(l, i, lei, pmax, kmax, k, kn, q, q3, pmaxi, nlbot)
-   do j = 1, jj
+    !$omp parallel do private(l, i, lei, pmax, kmax, k, kn, q, q3, pmaxi, nlbot)
+    do j = 1, jj
       do l = 1, isp(j)
-      do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+        do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
 
-         ! Penetration factors at layer interfaces.
-         lei = 1._r8/(mlts(i,j)*(onem*iL_mks2cgs))
-         pmax = cbra1*mlts(i,j)*(onem*iL_mks2cgs)
-         kmax = 1
-         s_br_nonloc(i,j,1) = 1._r8
-         do k = 1, kk
+          ! Penetration factors at layer interfaces.
+          lei = 1._r8/(mlts(i,j)*(onem*iL_mks2cgs))
+          pmax = cbra1*mlts(i,j)*(onem*iL_mks2cgs)
+          kmax = 1
+          s_br_nonloc(i,j,1) = 1._r8
+          do k = 1, kk
             kn = k + nn
             if (dp(i,j,kn) > onemu) then
-               q = min(cbra1, lei*p(i,j,k+1))
-               q3 = q*q*q
-!              s_br_nonloc(i,j,k+1) = &
-!                 1._r8 - cbra2*q*q3*q3*(q3*(35._r8*q3 - 182._r8) + 260._r8)
-               s_br_nonloc(i,j,k+1) = 1._r8 - cbra2*q*q3*(7._r8-2._r8*q3)
-               kmax = k
+              q = min(cbra1, lei*p(i,j,k+1))
+              q3 = q*q*q
+              !              s_br_nonloc(i,j,k+1) = &
+              !                 1._r8 - cbra2*q*q3*q3*(q3*(35._r8*q3 - 182._r8) + 260._r8)
+              s_br_nonloc(i,j,k+1) = 1._r8 - cbra2*q*q3*(7._r8-2._r8*q3)
+              kmax = k
             else
-               s_br_nonloc(i,j,k+1) = s_br_nonloc(i,j,k)
+              s_br_nonloc(i,j,k+1) = s_br_nonloc(i,j,k)
             endif
             if (p(i,j,k+1) > pmax) exit
-         enddo
+          enddo
 
-         ! Modify penetration factors so that fluxes destined to penetrate below
-         ! the lowest model layer are evenly absorbed in the water column.
-         pmaxi = 1._r8/min(pmax, p(i,j,kmax+1))
-         nlbot = s_br_nonloc(i,j,kmax+1)
-         do k = kmax+1, kk+1
+          ! Modify penetration factors so that fluxes destined to penetrate below
+          ! the lowest model layer are evenly absorbed in the water column.
+          pmaxi = 1._r8/min(pmax, p(i,j,kmax+1))
+          nlbot = s_br_nonloc(i,j,kmax+1)
+          do k = kmax+1, kk+1
             s_br_nonloc(i,j,k) = 0._r8
-         enddo
-         do k = kmax, 2, -1
+          enddo
+          do k = kmax, 2, -1
             kn = k + nn
             if (dp(i,j,kn) > onemu) then
-               s_br_nonloc(i,j,k) = s_br_nonloc(i,j,k) - nlbot*p(i,j,k)*pmaxi
+              s_br_nonloc(i,j,k) = s_br_nonloc(i,j,k) - nlbot*p(i,j,k)*pmaxi
             else
-               s_br_nonloc(i,j,k) = s_br_nonloc(i,j,k+1)
+              s_br_nonloc(i,j,k) = s_br_nonloc(i,j,k+1)
             endif
-         enddo
+          enddo
 
+        enddo
       enddo
-      enddo
-   enddo
-!$omp end parallel do
+    enddo
+    !$omp end parallel do
 
-   ! ---------------------------------------------------------------------------
-   ! Compute buoyancy flux.
-   ! ---------------------------------------------------------------------------
+    ! ---------------------------------------------------------------------------
+    ! Compute buoyancy flux.
+    ! ---------------------------------------------------------------------------
 
-!$omp parallel do private(l, i, dsgdt, dsgds, hf, hfsw, hfns, sf, sfbr, sfnb, k)
-   do j = 1, jj
+    !$omp parallel do private(l, i, dsgdt, dsgds, hf, hfsw, hfns, sf, sfbr, sfnb, k)
+    do j = 1, jj
       do l = 1, isp(j)
-      do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+        do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
 
-         ! Derivatives of potential density referenced at the surface.
-         dsgdt = dsigdt0(temp(i,j,k1n), saln(i,j,k1n))
-         dsgds = dsigds0(temp(i,j,k1n), saln(i,j,k1n))
+          ! Derivatives of potential density referenced at the surface.
+          dsgdt = dsigdt0(temp(i,j,k1n), saln(i,j,k1n))
+          dsgds = dsigds0(temp(i,j,k1n), saln(i,j,k1n))
 
-         ! Surface heat fluxes.
-         hf   = surflx(i,j) ! Total.
-         hfsw = sswflx(i,j) ! Shortwave.
-         hfns = hf - hfsw   ! Non-shortwave.
+          ! Surface heat fluxes.
+          hf   = surflx(i,j) ! Total.
+          hfsw = sswflx(i,j) ! Shortwave.
+          hfns = hf - hfsw   ! Non-shortwave.
 
-         ! Surface salt fluxes.
-         sf   = salflx(i,j) ! Total.
-         sfbr = brnflx(i,j) ! Brine.
-         sfnb = sf - sfbr   ! Non-brine.
+          ! Surface salt fluxes.
+          sf   = salflx(i,j) ! Total.
+          sfbr = brnflx(i,j) ! Brine.
+          sfnb = sf - sfbr   ! Non-brine.
 
-         ! Surface buoyancy flux [cm2 s-3].
-         buoyfl(i,j,1) = - (dsgdt*hf*cpi + dsgds*sf)*gaa
+          ! Surface buoyancy flux [cm2 s-3].
+          buoyfl(i,j,1) = - (dsgdt*hf*cpi + dsgds*sf)*gaa
 
-         ! Buoyancy flux at subsurface layer interfaces [cm2 s-3].
-         do k = 2, kk+1
+          ! Buoyancy flux at subsurface layer interfaces [cm2 s-3].
+          do k = 2, kk+1
             buoyfl(i,j,k) = - ( dsgdt*t_sw_nonloc(i,j,k)*hfsw*cpi &
-                              + dsgds*s_br_nonloc(i,j,k)*sfbr)*gaa
-         enddo
+                 + dsgds*s_br_nonloc(i,j,k)*sfbr)*gaa
+          enddo
 
+        enddo
       enddo
-      enddo
-   enddo
-!$omp end parallel do
+    enddo
+    !$omp end parallel do
 
-   if (csdiag) then
+    if (csdiag) then
       if (mnproc == 1) then
-         write (lp,*) 'cntiso_hybrid_forcing:'
+        write (lp,*) 'cntiso_hybrid_forcing:'
       endif
       call chksummsk(t_sw_nonloc, ip, kk+1, 't_sw_nonloc')
       call chksummsk(s_br_nonloc, ip, kk+1, 's_br_nonloc')
       call chksummsk(buoyfl, ip, kk+1, 'buoyfl')
-   endif
+    endif
 
-end subroutine cntiso_hybrid_forcing
+  end subroutine cntiso_hybrid_forcing
+
+end module mod_cntiso_hybrid_forcing

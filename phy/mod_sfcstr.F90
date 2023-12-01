@@ -17,36 +17,48 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-subroutine sfcstr(m, n, mm, nn, k1m, k1n)
-! ---------------------------------------------------------------------------
-! Get surface stress.
-! ---------------------------------------------------------------------------
+module mod_sfcstr
 
-   use mod_config, only: expcnf
-   use mod_xc, only: lp, mnproc, xcstop
+  use mod_config,       only: expcnf
+  use mod_xc,           only: lp, mnproc, xcstop
+  use mod_sfcstr_cesm,  only: sfcstr_cesm
+  use mod_sfcstr_ben02, only: sfcstr_ben02
 
-   implicit none
+  implicit none
+  private
 
-   integer, intent(in) :: m, n, mm, nn, k1m, k1n
+  public :: sfcstr
 
-   select case (trim(expcnf))
-      case ('cesm')
-         call sfcstr_cesm(m, n, mm, nn, k1m, k1n)
-      case ('ben02clim', 'ben02syn', 'single_column')
-         call sfcstr_ben02(m, n, mm, nn, k1m, k1n)
-      case ('fuk95')
-      case ('channel')
-      case ('isomip1')
-!        call sfcstr_isomip1(m, n, mm, nn, k1m, k1n)
-      case ('isomip2')
-!        call sfcstr_isomip2(m, n, mm, nn, k1m, k1n)
-      case default
-         if (mnproc == 1) then
-            write (lp,'(3a)') ' sfcstr: expcnf = ', trim(expcnf), &
-                              ' is unsupported!'
-         endif
-         call xcstop('(sfcstr)')
-                stop '(sfcstr)'
-   end select
+contains
 
-end subroutine sfcstr
+  subroutine sfcstr(m, n, mm, nn, k1m, k1n)
+    ! ---------------------------------------------------------------------------
+    ! Get surface stress.
+    ! ---------------------------------------------------------------------------
+
+    ! Arguments
+    integer, intent(in) :: m, n, mm, nn, k1m, k1n
+
+    select case (trim(expcnf))
+    case ('cesm')
+      call sfcstr_cesm(m, n, mm, nn, k1m, k1n)
+    case ('ben02clim', 'ben02syn', 'single_column')
+      call sfcstr_ben02(m, n, mm, nn, k1m, k1n)
+    case ('fuk95')
+    case ('channel')
+    case ('isomip1')
+      ! call sfcstr_isomip1(m, n, mm, nn, k1m, k1n)
+    case ('isomip2')
+      ! call sfcstr_isomip2(m, n, mm, nn, k1m, k1n)
+    case default
+      if (mnproc == 1) then
+        write (lp,'(3a)') ' sfcstr: expcnf = ', trim(expcnf), &
+             ' is unsupported!'
+      endif
+      call xcstop('(sfcstr)')
+      stop '(sfcstr)'
+    end select
+
+  end subroutine sfcstr
+
+end module mod_sfcstr

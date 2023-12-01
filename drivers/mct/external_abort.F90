@@ -17,21 +17,14 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-      subroutine external_abort(message)
+subroutine external_abort(msg)
+   use shr_sys_mod, only: shr_sys_abort
 
-      ! Uses modules
+   implicit none
 
-      use shr_sys_mod
+   ! Input/output arguments.
+   character(len=*), intent(in) :: msg
 
-      implicit none
+   call shr_sys_abort(msg)
 
-      ! Input/output arguments
-
-      character*(*) message
-
-      ! ----------------------------------------------------------------
-      ! Call CESM shared abort routine
-      ! ----------------------------------------------------------------
-      call shr_sys_abort(message)
-
-      end subroutine external_abort
+end subroutine external_abort
