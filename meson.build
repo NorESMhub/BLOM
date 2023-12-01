@@ -68,6 +68,8 @@ subdir('fuk95')
 subdir('channel')
 subdir('single_column')
 subdir('pkgs/')
+subdir('trc')
+subdir('idlage')
 
 # Handle options and add necessary flags and subfolders with source files
 
@@ -83,7 +85,6 @@ endif
 
 if get_option('iage') or turbclo.length() > 0 or get_option('ecosys')
   add_project_arguments('-DTRC', language: 'fortran')
-  subdir('trc')
 endif
 
 if turbclo.length() > 0
@@ -109,7 +110,6 @@ endif
 
 if get_option('iage')
   add_project_arguments('-DIDLAGE', language: 'fortran')
-  subdir('idlage')
 endif
 
 if get_option('ecosys')

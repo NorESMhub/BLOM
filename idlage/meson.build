@@ -1,1 +1,1 @@
-sources += files('idlage_init.F', 'idlage_step.F')
+sources += files('mod_idlage.F90')

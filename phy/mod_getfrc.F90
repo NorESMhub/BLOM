@@ -17,40 +17,49 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-subroutine getfrc
-! ---------------------------------------------------------------------------
-! Get forcing.
-! ---------------------------------------------------------------------------
+module mod_getfrc
 
-   use mod_config, only: expcnf
-   use mod_xc, only: lp, mnproc, xcstop
-   use mod_cesm, only: getfrc_cesm
-   use mod_ben02, only: getfrc_ben02clim, getfrc_ben02syn
+  use mod_config, only: expcnf
+  use mod_xc,     only: lp, mnproc, xcstop
+  use mod_cesm,   only: getfrc_cesm
+  use mod_ben02,  only: getfrc_ben02clim, getfrc_ben02syn
 
-   implicit none
+  implicit none
+  private
 
-   select case (trim(expcnf))
-      case ('cesm')
-         call getfrc_cesm
-      case ('ben02clim')
-         call getfrc_ben02clim
-      case ('ben02syn')
-         call getfrc_ben02syn
-      case ('channel')
-      case ('fuk95')
-      case ('isomip1')
-!        call getfrc_isomip1
-      case ('isomip2')
-!        call getfrc_isomip2
-      case ('single_column')
-         call getfrc_ben02clim  
-      case default
-         if (mnproc == 1) then
-            write (lp,'(3a)') ' getfrc: expcnf = ', trim(expcnf), &
-                              ' is unsupported!'
-         endif
-         call xcstop('(getfrc)')
-                stop '(getfrc)'
-   end select
+  public :: getfrc
 
-end subroutine getfrc
+contains
+
+  subroutine getfrc
+    ! ---------------------------------------------------------------------------
+    ! Get forcing.
+    ! ---------------------------------------------------------------------------
+
+    select case (trim(expcnf))
+    case ('cesm')
+      call getfrc_cesm
+    case ('ben02clim')
+      call getfrc_ben02clim
+    case ('ben02syn')
+      call getfrc_ben02syn
+    case ('channel')
+    case ('fuk95')
+    case ('isomip1')
+      !        call getfrc_isomip1
+    case ('isomip2')
+      !        call getfrc_isomip2
+    case ('single_column')
+      call getfrc_ben02clim
+    case default
+      if (mnproc == 1) then
+        write (lp,'(3a)') ' getfrc: expcnf = ', trim(expcnf), &
+             ' is unsupported!'
+      endif
+      call xcstop('(getfrc)')
+      stop '(getfrc)'
+    end select
+
+  end subroutine getfrc
+
+end module mod_getfrc

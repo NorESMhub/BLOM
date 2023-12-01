@@ -51,6 +51,7 @@ module ocn_comp_nuopc
    use mod_cesm, only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
    use mod_config, only: inst_index, inst_name, inst_suffix
    use mod_time, only: blom_time
+   use mod_blom_init, only: blom_init
 
    implicit none
 
@@ -806,7 +807,7 @@ contains
             call ocn_import(importState, rc)
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
          endif
-      
+
          ! Advance the model a time step.
          call blom_step
 

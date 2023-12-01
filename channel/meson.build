@@ -1,1 +1,1 @@
-sources += files('mod_channel.F90','thermf_channel.F')
+sources += files('mod_channel.F90','mod_thermf_channel.F90')

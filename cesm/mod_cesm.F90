@@ -23,23 +23,24 @@ module mod_cesm
 ! that must be available to BLOM routines.
 ! ------------------------------------------------------------------------------
 
-   use mod_types, only: r8
-   use mod_constants, only: pi
-   use mod_time, only: nstep
+   use mod_types,      only: r8
+   use mod_constants,  only: pi
+   use mod_time,       only: nstep
+   use mod_forcing,    only: trxday, srxday, swa, nsf, lip, sop, eva, rnf, rfi, &
+                             fmltfz, sfl, ztx, mty, ustarw, slp, abswnd, &
+                             lamult, lasl, ustokes, vstokes, atmco2, atmbrf, &
+                             flxdms, flxbrf
+   use mod_ben02,      only: initai, rdcsic, rdctsf, fnlzai
+   use mod_seaice,     only: ficem
+   use mod_checksum,   only: csdiag, chksummsk
+   use mod_rdcsss,     only: rdcsss
+   use mod_idarlx,     only: idarlx
    use mod_xc
-   use mod_forcing, only: trxday, srxday, swa, nsf, lip, sop, eva, rnf, rfi, &
-                          fmltfz, sfl, ztx, mty, ustarw, slp, abswnd, &
-                          lamult, lasl, ustokes, vstokes, atmco2, atmbrf, &
-                          flxdms, flxbrf
-   use mod_ben02, only: initai, rdcsic, rdctsf, fnlzai
-   use mod_seaice, only: ficem
-   use mod_checksum, only: csdiag, chksummsk
 #ifdef HAMOCC
    use mo_control_bgc, only: use_bromo
 #endif
 
    implicit none
-
    private
 
    character(len = 256) :: &

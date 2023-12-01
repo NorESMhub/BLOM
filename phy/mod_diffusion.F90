@@ -29,7 +29,6 @@ module mod_diffusion
    use mod_forcing, only: wavsrc_opt, wavsrc_none, wavsrc_param, wavsrc_extern
 
    implicit none
-
    private
 
    ! Variables to be set by namelist.
@@ -170,6 +169,7 @@ module mod_diffusion
       vsflld    ! v-component of horizontal salt flux due to lateral diffusion
                 ! [g2 cm kg-1 s-2].
 
+   ! Public variables
    public :: egc, eggam, eglsmn, egmndf, egmxdf, egidfq, &
              rhiscf, ri0, bdmc1, bdmc2, bdmldp, tkepf, bdmtyp, &
              eddf2d, edsprs, edanis, redi3d, rhsctp, tbfile, smobld, lngmtp, &
@@ -181,16 +181,19 @@ module mod_diffusion
              utflsm, vtflsm, utflld, vtflld, usfltd, vsfltd, &
              usflsm, vsflsm, usflld, vsflld, &
              Kvisc_m, Kdiff_t, Kdiff_s, &
-             t_ns_nonloc, s_nb_nonloc, mu_nonloc, mv_nonloc, &
-             readnml_diffusion, inivar_diffusion
+             t_ns_nonloc, s_nb_nonloc, mu_nonloc, mv_nonloc
+
+   ! Public routines
+   public :: readnml_diffusion, inivar_diffusion
 
 contains
 
    subroutine readnml_diffusion
-   ! ---------------------------------------------------------------------------
-   ! Read variables in the namelist group 'diffusion' and resolve options.
-   ! ---------------------------------------------------------------------------
+      ! ---------------------------------------------------------------------------
+      ! Read variables in the namelist group 'diffusion' and resolve options.
+      ! ---------------------------------------------------------------------------
 
+      ! Local variables
       character(len = 80) :: nml_fname
       integer :: ios
       logical :: fexist
@@ -373,7 +376,7 @@ contains
 
       integer :: i, j, k, l
 
-   !$omp parallel do private(i, k)
+      !$omp parallel do private(i, k)
       do j = 1 - nbdy, jj + nbdy
          do i = 1 - nbdy, ii + nbdy
             difmxp(i, j) = spval
@@ -419,10 +422,10 @@ contains
             enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
       ! Initialize isopycnal diffusivity.
-   !$omp parallel do private(k, l, i)
+      !$omp parallel do private(k, l, i)
       do j = 1, jj
          do k = 1, kk
             do l = 1, isp(j)
@@ -432,12 +435,12 @@ contains
             enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
       call xctilr(difiso, 1, kk, nbdy, nbdy, halo_ps)
 
       ! Initialize diffusive fluxes at points located upstream and downstream
       ! (in i-direction) of p-points.
-   !$omp parallel do private(k, l, i)
+      !$omp parallel do private(k, l, i)
       do j = 1, jj
          do k = 1, 2*kk
             do l = 1, isp(j)
@@ -454,7 +457,7 @@ contains
             enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
       call xctilr(umfltd, 1, 2*kk, nbdy, nbdy, halo_us)
       call xctilr(umflsm, 1, 2*kk, nbdy, nbdy, halo_us)
       call xctilr(utflld, 1, 2*kk, nbdy, nbdy, halo_us)
@@ -462,7 +465,7 @@ contains
 
       ! Initialize diffusive fluxes at points located upstream and downstream
       ! (in j-direction) of p-points.
-   !$omp parallel do private(k, l, j)
+      !$omp parallel do private(k, l, j)
       do i = 1, ii
          do k = 1, 2*kk
             do l = 1, jsp(i)
@@ -479,14 +482,14 @@ contains
             enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
       call xctilr(vmfltd, 1, 2*kk, nbdy, nbdy, halo_vs)
       call xctilr(vmflsm, 1, 2*kk, nbdy, nbdy, halo_vs)
       call xctilr(vtflld, 1, 2*kk, nbdy, nbdy, halo_vs)
       call xctilr(vsflld, 1, 2*kk, nbdy, nbdy, halo_vs)
 
       ! Initialize non-local transport.
-   !$omp parallel do private(k, l, i)
+      !$omp parallel do private(k, l, i)
       do j = 1, jj
          do l = 1, isp(j)
          do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
@@ -523,7 +526,7 @@ contains
             enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
    end subroutine inivar_diffusion
 

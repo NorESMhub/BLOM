@@ -18,92 +18,76 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
+module mod_wtime
+
+  implicit none
+  public
+
+contains
+
 #if defined(AIX)
-      REAL*8 FUNCTION WTIME()
-      IMPLICIT NONE
-C
-C     USE THE FUNCTION  RTC  TO RETURN WALL TIME.
-C
-      REAL*8 RTC
-      
-      WTIME = RTC()
-      RETURN
-C     END OF WTIME.
-      END
+
+  real*8 function wtime()
+    ! use the function  rtc  to return wall time.
+    real*8 rtc
+    wtime = rtc()
+  end function wtime
+
 #elif defined(MPI)
-      REAL*8 FUNCTION WTIME()
-      IMPLICIT NONE
-C
-C     USE THE MPI FUNCTION  MPI_WTIME  TO RETURN WALL TIME.
-C
-      DOUBLE PRECISION MPI_WTIME
-C
-      WTIME = MPI_WTIME()
-      RETURN
-C     END OF WTIME.
-      END
+
+  real*8 function wtime()
+    ! use the mpi function  mpi_wtime  to return wall time.
+    real*8 mpi_wtime
+    wtime = mpi_wtime()
+  end function wtime
+
 #else
-      REAL*8 FUNCTION WTIME()
-      IMPLICIT NONE
-C
-C     USE THE F90 INTRINSIC  SYSTEM_CLOCK  TO RETURN WALL TIME.
-C
-C     WILL FAIL IF THE COUNT IS EVER NEGATIVE, BUT THE STANDARD
-C     SAYS THAT IT IS AWAYS NON-NEGATIVE IF A CLOCK EXISTS.
-C     NOT THREAD-SAFE, UNLESS LCOUNT AND IOVER ARE THREADPRIVATE.
-C
-      REAL*8     ZERO,ONE
-      PARAMETER (ZERO=0.0, ONE=1.0)
-C
-      INTEGER COUNT, MCOUNT, RATE
-C
-      REAL*8  OFFSEC, OFFSET, PERSEC
-      INTEGER ICOUNT, IOVER,  LCOUNT, NCOUNT
-      SAVE    OFFSEC, OFFSET, PERSEC
-      SAVE    ICOUNT, IOVER,  LCOUNT, NCOUNT
-C
-      DATA IOVER, LCOUNT / -1, -1 /
-C
-      CALL SYSTEM_CLOCK(COUNT)
-C
-      IF     (COUNT.LT.LCOUNT) THEN
-C
-C        COUNT IS SUPPOSED TO BE NON-DECREASING EXCEPT WHEN IT WRAPS,
-C        BUT SOME IMPLEMENTATIONS DON''T DO THIS.  SO IGNORE ANY
-C        DECREASE OF LESS THAN ONE PERCENT OF THE RANGE.
-C
-         IF     (LCOUNT-COUNT.LT.NCOUNT) THEN
-           COUNT  = LCOUNT
-         ELSE
-           IOVER  = IOVER + 1
-           OFFSET = OFFSET + OFFSEC
-         ENDIF
-      ENDIF
-      LCOUNT = COUNT
-C
-      IF     (IOVER.EQ.0) THEN
-C
-C       FIRST CYCLE, FOR ACCURACY WITH 64-BIT COUNTS.
-C
-         WTIME = (COUNT - ICOUNT) * PERSEC
-      ELSEIF (IOVER.GT.0) THEN
-C
-C        ALL OTHER CYCLES.
-C
-         WTIME = COUNT * PERSEC + OFFSET
-      ELSE
-C
-C        INITIALIZATION.
-C
-         CALL SYSTEM_CLOCK(ICOUNT, RATE, MCOUNT)
-         NCOUNT =  MCOUNT/100
-         PERSEC =  ONE/RATE
-         OFFSEC =  MCOUNT * PERSEC
-         OFFSET = -ICOUNT * PERSEC
-         IOVER  =  0
-         WTIME  =  ZERO
-      ENDIF
-      RETURN
-C     END OF WTIME.
-      END
-#endif  /* MPI:else */
+
+  real*8 function wtime()
+    ! use the f90 intrinsic  system_clock  to return wall time.
+    ! will fail if the count is ever negative, but the standard
+    ! says that it is aways non-negative if a clock exists.
+    ! not thread-safe, unless lcount and iover are threadprivate.
+    real*8, parameter :: zero= 0.0
+    real*8, parameter :: one = 1.0
+    integer :: count, mcount, rate
+    real*8 , save :: offsec, offset, persec
+    integer, save :: icount, iover,  lcount, ncount
+    data iover, lcount / -1, -1 /
+    !
+    call system_clock(count)
+    !
+    if (count.lt.lcount) then
+      ! count is supposed to be non-decreasing except when it wraps,
+      ! but some implementations don''t do this.  so ignore any
+      ! decrease of less than one percent of the range.
+      if (lcount-count.lt.ncount) then
+        count  = lcount
+      else
+        iover  = iover + 1
+        offset = offset + offsec
+      endif
+    endif
+    lcount = count
+
+    if     (iover.eq.0) then
+      ! first cycle, for accuracy with 64-bit counts.
+      wtime = (count - icount) * persec
+    elseif (iover.gt.0) then
+      ! all other cycles.
+      wtime = count * persec + offset
+    else
+      ! initialization.
+      call system_clock(icount, rate, mcount)
+      ncount =  mcount/100
+      persec =  one/rate
+      offsec =  mcount * persec
+      offset = -icount * persec
+      iover  =  0
+      wtime  =  zero
+    endif
+  end function wtime
+
+#endif  ! MPI:else
+
+end module mod_wtime

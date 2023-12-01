@@ -22,15 +22,14 @@ module mod_time
 ! This module contains variables and procedures related to time.
 ! ------------------------------------------------------------------------------
 
-   use mod_types, only: r8
-   use mod_config, only: expcnf
+   use mod_types,     only: r8
+   use mod_config,    only: expcnf
    use mod_constants, only: epsilt
-   use mod_calendar, only: date_type, daynum_diff, date_offset, &
-                           calendar_noerr, calendar_errstr
-   use mod_xc, only: lp, mnproc, xcstop
+   use mod_calendar,  only: date_type, daynum_diff, date_offset, &
+                            calendar_noerr, calendar_errstr
+   use mod_xc,        only: lp, mnproc, xcstop
 
    implicit none
-
    private
 
    type(date_type) :: &
@@ -92,19 +91,19 @@ contains
 
       ! Set calendar type to be used.
       select case (trim(expcnf))
-         case ('cesm')               
+         case ('cesm')
             calendar = 'noleap'
-         case ('ben02clim')          
+         case ('ben02clim')
             calendar = '360_day'
-         case ('ben02syn')           
+         case ('ben02syn')
             calendar = 'standard'
-         case ('fuk95')           
+         case ('fuk95')
             calendar = '360_day'
          case ('channel')
             calendar = '360_day'
-         case ('single_column')           
+         case ('single_column')
             calendar = '360_day'
-         case ('isomip1', 'isomip2') 
+         case ('isomip1', 'isomip2')
             calendar = '360_day'
          case default
             if (mnproc == 1) then
@@ -164,7 +163,7 @@ contains
          call xcstop('(set_day_of_year)')
                 stop '(set_day_of_year)'
       endif
- 
+
       ! Set current number of days since start of year.
       errstat = daynum_diff(calendar, date_type(date%year, 1, 1), date, &
                             nday_of_year)
