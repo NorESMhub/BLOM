@@ -622,7 +622,7 @@ contains
                            /(p_src(kl+1,i) - p_src(kl,i))
             if (sigmar_1d(kt) > sig_pmin(kt)) then
                ktzmin = max(2, kt - dktzu)
-               ktzmax = min(ksmx(i), kdmx(i), kt + dktzl)
+               ktzmax = min(ksmx(i) + 1, kt + dktzl)
                if (ktzmin < kt .and. ktzmax - ktzmin > 1) tzfound = .true.
                exit
             endif
@@ -748,7 +748,7 @@ contains
             if (d > 0._r8) then
                do k = ktzmin, ktzmax-1
                   rk = k - ktzmin + ckt
-                  p_dst(k,i) = a + rk*(b + rk*(c + rk*d))
+                  p_dst(k,i) = max(p_dst(k,i), a + rk*(b + rk*(c + rk*d)))
                enddo
             endif
          endif
