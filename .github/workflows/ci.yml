@@ -42,7 +42,7 @@ jobs:
         run: python -m pip install meson==${{ env.MESON_VERSION }}
 
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
