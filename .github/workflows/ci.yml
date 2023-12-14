@@ -62,7 +62,7 @@ jobs:
 
       - name: Upload test log
         if: ${{ matrix.mpi == false }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: testlog-${{ runner.os }}-gcc
           path: builddir/meson-logs/testlog.txt
