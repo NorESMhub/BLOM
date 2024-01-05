@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2021-2022 Mats Bentsen
+! Copyright (C) 2021-2024 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -4234,7 +4234,7 @@ contains
       integer :: errstat
 
       real(r8) :: xi0, q
-      integer :: js0, js, jd
+      integer :: js0, js, jd, jd_prev
 
       ! Check that reconstruction source data structure has been initialized.
       if (.not. rcss%initialized) then
@@ -4323,7 +4323,7 @@ contains
                js0 = js0 + 1
                if (js0 > rcss%rcgs%n_src) exit
             enddo
-            xi0 = c0
+            jd_prev = -1
             do js = js0, rcss%rcgs%n_src
                jd = rcss%rcgs%src_dst_index(js)
                if (jd == 0) then
@@ -4333,8 +4333,9 @@ contains
                else
                   if (rcss%rcgs%src_dst_weight(js) == c1) then
                      polycoeff(1:3,js) = rcss%polycoeff(1:3,jd)
-                     xi0 = c0
                   else
+                     if (jd /= jd_prev) xi0 = c0
+                     jd_prev = jd
                      polycoeff(1,js) =   rcss%polycoeff(1,jd) &
                                      + ( rcss%polycoeff(2,jd) &
                                        + rcss%polycoeff(3,jd)*xi0)*xi0
@@ -4362,7 +4363,7 @@ contains
                js0 = js0 + 1
                if (js0 > rcss%rcgs%n_src) exit
             enddo
-            xi0 = c0
+            jd_prev = -1
             do js = js0, rcss%rcgs%n_src
                jd = rcss%rcgs%src_dst_index(js)
                if (jd == 0) then
@@ -4374,8 +4375,9 @@ contains
                else
                   if (rcss%rcgs%src_dst_weight(js) == c1) then
                      polycoeff(1:5,js) = rcss%polycoeff(1:5,jd)
-                     xi0 = c0
                   else
+                     if (jd /= jd_prev) xi0 = c0
+                     jd_prev = jd
                      polycoeff(1,js) =       rcss%polycoeff(1,jd) &
                                      + (     rcss%polycoeff(2,jd) &
                                        + (   rcss%polycoeff(3,jd) &
