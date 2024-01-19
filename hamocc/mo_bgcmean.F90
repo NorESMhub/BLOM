@@ -113,7 +113,7 @@ module mo_bgcmean
        & SRF_ATMBROMO  =0    ,SRF_BROMO     =0    ,SRF_BROMOFX   =0    ,  &
        & SRF_ANH4      =0    ,SRF_ANO2      =0    ,SRF_ANH3FX    =0    ,  &
        & SRF_PN2OM     =0    ,SRF_PNH3      =0    ,SRF_ATMNH3    =0    ,  &
-       & SRF_ATMN2O    =0    ,
+       & SRF_ATMN2O    =0    ,                                            &
        & INT_BROMOPRO  =0    ,INT_BROMOUV   =0    ,                       &
        & INT_PHOSY     =0    ,INT_NFIX      =0    ,INT_DNIT      =0    ,  &
        & FLX_NDEPNOY   =0    ,FLX_NDEPNHX   =0    ,FLX_OALK      =0    ,  &
@@ -1433,7 +1433,7 @@ CONTAINS
         if (SDM_remin_sulf(n) > 0) i_bsc_sed=i_bsc_sed+1
         jsdm_remin_sulf(n)=i_bsc_sed*min(1,SDM_remin_sulf(n))
       enddo
-
+#endif
     nbgcm2d    = i_bsc_m2d+i_atm_m2d
     nbgcm3d    = i_bsc_m3d
     nbgcm3dlvl = ilvl_bsc_m3d

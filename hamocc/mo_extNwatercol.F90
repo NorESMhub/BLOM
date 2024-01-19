@@ -54,7 +54,8 @@
       use mo_control_bgc, only: io_stdo_bgc,dtb
       use mo_param1_bgc,  only: ialkali,ianh4,iano2,ian2o,iano3,idet,igasnit,iiron,ioxygen,iphosph,isco212
       use mo_carbch,      only: ocetra
-      use mo_biomod,      only: riron,rnit,rcar,rnoi, nitr_NH4,nitr_NO2,nitr_N2O_prod,nitr_NH4_OM,nitr_NO2_OM,denit_NO3,denit_NO2, &
+      use mo_param_bgc,   only: riron,rnit,rcar,rnoi
+      use mo_biomod,      only: nitr_NH4,nitr_NO2,nitr_N2O_prod,nitr_NH4_OM,nitr_NO2_OM,denit_NO3,denit_NO2, &
                               & denit_N2O,DNRA_NO2,anmx_N2_prod,anmx_OM_prod
 
       implicit none

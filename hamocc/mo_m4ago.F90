@@ -71,10 +71,9 @@
 MODULE mo_m4ago
      USE mo_vgrid,       ONLY: dp_min
      USE mo_control_bgc, ONLY: dtb, dtbgc,io_stdo_bgc
-     USE mo_sedmnt,      ONLY: calcdens, claydens, opaldens, calcwei, opalwei                  
+     USE mo_param_bgc,   ONLY: calcdens, claydens, opaldens, calcwei, opalwei, ropal
      USE mo_carbch,      ONLY: ocetra
      USE mo_param1_bgc,  ONLY: iopal, ifdust, icalc, idet
-     USE mo_biomod,      ONLY: ropal
 
      IMPLICIT NONE
 

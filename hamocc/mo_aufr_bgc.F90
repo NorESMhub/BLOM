@@ -84,7 +84,8 @@ CONTAINS
                                   use_BOXATM,use_BROMO,use_CFC,use_natDIC,use_sedbypass
     use mo_param1_bgc,      only: ialkali,ian2o,iano3,icalc,idet,idicsat,                          &
                                   idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,       &
-                                  iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo,nocetra, &
+                                  iprefalk,iprefdic,iprefo2,iprefpo4,iprefsilica,                  &
+                                  isco212,isilica,izoo,nocetra,                                    &
                                   iadust,inos,iatmco2,iatmn2,iatmo2,ibromo,icfc11,icfc12,isf6,     &
                                   icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,       &
                                   isco213,isco214,izoo13,izoo14,safediv,                           &
@@ -97,7 +98,9 @@ CONTAINS
     use mo_intfcblom,       only: sedlay2,powtra2,burial2,atm2
     use mo_param_bgc,       only: bifr13_ini,bifr14_ini,c14fac,re1312,re14to,prei13,prei14
     use mo_netcdf_bgcrw,    only: read_netcdf_var
-
+#ifdef extNcycle
+      use mo_param1_bgc,  only: ianh4,iano2,ipownh4,ipown2o,ipowno2
+#endif
     ! Arguments
     integer,          intent(in)    :: kpie                                              ! 1st dimension of model grid.
     integer,          intent(in)    :: kpje                                              ! 2nd dimension of model grid.
@@ -120,7 +123,7 @@ CONTAINS
     integer   :: restday                           !  day of restart file
     integer   :: restdtoce                         !  time step number from bgc ocean file
     integer   :: idate(5),i,j,k
-    logical   :: lread_cfc,lread_nat,lread_iso,lread_atm,lread_bro
+    logical   :: lread_cfc,lread_nat,lread_iso,lread_atm,lread_bro,lread_extn,lread_pref
     real      :: rco213,rco214,alpha14,beta13,beta14,d13C_atm,d14cat
     integer   :: ncid,ncstat,ncvarid
 
@@ -320,6 +323,26 @@ CONTAINS
       endif
     endif
 
+! Find out whether to restart extended nitrogen cycle
+#ifdef extNcycle
+      lread_extn=.true.
+      if(IOTYPE==0) then
+        if(mnproc==1) ncstat=nf90_inq_varid(ncid,'anh4',ncvarid)
+        call xcbcst(ncstat)
+        if(ncstat.ne.nf90_noerr) lread_extn=.false.
+      else if(IOTYPE==1) then
+#ifdef PNETCDF
+        ncstat=nfmpi_inq_varid(ncid,'anh4',ncvarid)
+        if(ncstat.ne.nf_noerr) lread_extn=.false.
+#endif
+      endif
+      if(mnproc==1 .and. .not. lread_extn) then
+        write(io_stdo_bgc,*) ' '
+        write(io_stdo_bgc,*) 'AUFR_BGC info: extended nitrogen cycle tracer not in restart file '
+        write(io_stdo_bgc,*) 'Initialising extended nitrogen cycle from scratch'
+      endif
+#endif
+
     ! Find out whether to restart atmosphere
     if (use_BOXATM) then
       lread_atm=.true.
@@ -339,6 +362,24 @@ CONTAINS
         write(io_stdo_bgc,*) ' Initialising atmosphere from scratch '
       endif
     endif
+
+      lread_pref=.true.
+      if(IOTYPE==0) then
+        if(mnproc==1) ncstat=nf90_inq_varid(ncid,'prefsilica',ncvarid)
+        call xcbcst(ncstat)
+        if(ncstat.ne.nf90_noerr) lread_pref=.false.
+      else if(IOTYPE==1) then
+#ifdef PNETCDF
+        ncstat=nfmpi_inq_varid(ncid,'prefsilica',ncvarid)
+        if(ncstat.ne.nf_noerr) lread_pref=.false.
+#endif
+      endif
+      if(mnproc==1 .and. .not. lread_pref) then
+        write(io_stdo_bgc,*) ' '
+        write(io_stdo_bgc,*) 'AUFR_BGC info: preformed silica not in restart file '
+        write(io_stdo_bgc,*) 'Initialising preformed tracer from scratch'
+      endif
+
     !
     ! Read restart data : ocean aquateous tracer
     !
@@ -364,6 +405,9 @@ CONTAINS
     call read_netcdf_var(ncid,'prefalk',locetra(1,1,1,iprefalk),2*kpke,0,iotype)
     call read_netcdf_var(ncid,'prefdic',locetra(1,1,1,iprefdic),2*kpke,0,iotype)
     call read_netcdf_var(ncid,'dicsat',locetra(1,1,1,idicsat),2*kpke,0,iotype)
+    if(lread_pref) then
+      call read_netcdf_var(ncid,'prefsilica',locetra(1,1,1,iprefsilica),2*kpke,0,iotype)
+    endif
 
     if (use_cisonew .and. lread_iso) then
       call read_netcdf_var(ncid,'sco213',locetra(1,1,1,isco213),2*kpke,0,iotype)
@@ -404,6 +448,13 @@ CONTAINS
     if (use_BROMO .and. lread_bro) then
       call read_netcdf_var(ncid,'bromo',locetra(1,1,1,ibromo),2*kpke,0,iotype)
     endif
+#ifdef extNcycle
+      if(lread_extn) then
+      call read_netcdf_var(ncid,'anh4',locetra(1,1,1,ianh4),2*kpke,0,iotype)
+      call read_netcdf_var(ncid,'ano2',locetra(1,1,1,iano2),2*kpke,0,iotype)
+      endif
+#endif
+
     !
     ! Read restart data : diagnostic ocean fields (needed for bit to bit reproducability)
     !
@@ -443,6 +494,13 @@ CONTAINS
         call read_netcdf_var(ncid,'powc13',powtra2(1,1,1,ipowc13),2*ks,0,iotype)
         call read_netcdf_var(ncid,'powc14',powtra2(1,1,1,ipowc14),2*ks,0,iotype)
       endif
+#ifdef extNcycle
+      IF(lread_extn) THEN
+      CALL read_netcdf_var(ncid,'pownh4',powtra2(1,1,1,ipownh4),2*ks,0,iotype)
+      CALL read_netcdf_var(ncid,'pown2o',powtra2(1,1,1,ipown2o),2*ks,0,iotype)
+      CALL read_netcdf_var(ncid,'powno2',powtra2(1,1,1,ipowno2),2*ks,0,iotype)
+      ENDIF
+#endif
     endif
     !
     ! Read restart data: atmosphere

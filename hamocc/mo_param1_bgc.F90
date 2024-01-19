@@ -29,7 +29,7 @@ module mo_param1_bgc
 
   use mo_control_bgc, only: use_BROMO, use_AGG, use_WLIN, use_natDIC, use_CFC,                     &
                             use_cisonew, use_PBGC_OCNP_TIMESTEP, use_PBGC_CK_TIMESTEP,             &
-                            use_FB_BGC_OCE, use_BOXATM, use_sedbypass
+                            use_FB_BGC_OCE, use_BOXATM, use_sedbypass, use_extNcycle
   implicit none
   public
 
@@ -199,7 +199,7 @@ module mo_param1_bgc
   integer, protected :: ipowc14
   integer, protected :: npowtra ! computed in init_indices
 
-  ! Indices for extended nitrogen cycle 
+  ! Indices for extended nitrogen cycle
   integer, protected :: i_pow_extNcycle
   integer, protected :: ipownh4
   integer, protected :: ipown2o
@@ -228,7 +228,7 @@ contains
         map_por2octra(ipownh4) = ianh4
         map_por2octra(ipown2o) = ian2o
         map_por2octra(ipowno2) = iano2
-    end
+    endif
   end subroutine init_por2octra_mapping
 
   ! ===========================================================================
@@ -410,7 +410,7 @@ contains
     else
       i_nh3_atm = 0
       iatmnh3 = -1
-    end      
+    endif
 
     ! total number of atmosphere tracers
     natm=i_base_atm+i_iso_atm+i_cfc_atm+i_ndic_atm+i_bromo_atm+i_nh3_atm
@@ -424,7 +424,7 @@ contains
       nndep   = 1
       idepnoy = 1
       idepnhx = -1
-    end    
+    endif
 
     ! rivers
     nriv   =7
@@ -486,7 +486,7 @@ contains
       ipownh4 = -1
       ipown2o = -1
       ipowno2 = -1
-    end
+    endif
 
     npowtra = i_pow_base + i_pow_cisonew+i_pow_extNcycle
 

@@ -68,8 +68,8 @@ contains
 
     use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co2star,co3,hi,keqb,kwco2sol,               &
                               ocetra,omegaa,omegac,pco2d,satn2o,satoxy,                            &
-                              pco2m,kwco2d,co2sold,co2solm
-    use mo_chemcon,     only: al1,al2,al3,al4,an0,an1,an2,an3,an4,an5,an6,atn2o,                   &
+                              pco2m,kwco2d,co2sold,co2solm,pn2om
+    use mo_chemcon,     only: al1,al2,al3,al4,an0,an1,an2,an3,an4,an5,an6,                         &
                               bl1,bl2,bl3,calcon,ox0,ox1,ox2,ox3,ox4,ox5,ox6,                      &
                               oxyco,tzero
     use mo_control_bgc, only: dtbgc,use_cisonew,use_natDIC,use_CFC,use_BROMO,                      &
@@ -83,13 +83,18 @@ contains
                               iatmnco2,inatalkali,inatcalc,inatsco212,                             &
                               ks,issso14,isssc14,ipowc14,                                          &
                               iatmbromo,ibromo
-    use mo_param_bgc,   only: c14dec,atm_co2_nat
+    use mo_param_bgc,   only: c14dec,atm_co2_nat,atm_n2o
     use mo_vgrid,       only: dp_min,kmle,kbo,ptiestu
     use mo_carbch,      only: atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,                 &
                               atm_sf6_nh,atm_sf6_sh,                                               &
                               co213fxd,co213fxu,co214fxd,co214fxu,                                 &
                               nathi,natco3,natpco2d,natomegaa,natomegac
     use mo_sedmnt,      only: sedlay,powtra,burial
+#ifdef extNcycle
+      use mo_carbch,      only: pnh3
+      use mo_param1_bgc,  only: iatmnh3,ianh4
+      use mo_chemcon,     only: SV0_air,SV1_air,SV2_air,SV3_air,SV4_air,SD0_air,SD1_air,SD2_air,SD3_air,Vb_nh3,M_nh3,kappa
+#endif
 
     ! Arguments
     integer, intent(in) :: kpie                                              ! 1st dimension of model grid.
@@ -117,7 +122,7 @@ contains
     real    :: scco2,sco2,scn2,scdms,scn2o
     real    :: xconvxa
     real    :: oxflux,niflux,dmsflux,n2oflux
-    real    :: ato2,atn2,atco2,pco2
+    real    :: ato2,atn2,atco2,pco2,atn2ov
     real    :: oxy,ani,anisa
     real    :: rrho,t,t2,t3,t4,tk,tk100,prb,s,rs
     real    :: Kh,Khd,K1,K2,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,Kspa
@@ -135,6 +140,11 @@ contains
     real    :: atco213,atco214,pco213,pco214                       ! cisonew
     real    :: frac_k,frac_aqg,frac_dicg                           ! cisonew
     real    :: flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub ! BROMO
+#ifdef extNcycle
+    real    :: flx_nh3,sch_nh3_a,sch_nh3_w,kw_nh3,ka_nh3,atnh3,diff_nh3_a,diff_nh3_w,mu_air,mu_w,p_dbar,rho_air
+    real    :: h_nh3,hstar_nh3,pKa_nh3,eps_safe,Kh_nh3,cD_wind,u_star
+    eps_safe = EPSILON(1.)
+#endif
 
     ! set variables for diagnostic output to zero
     atmflx (:,:,:)=0.
@@ -151,6 +161,7 @@ contains
     satoxy (:,:,:)=0.
     omegaA (:,:,:)=0.
     omegaC (:,:,:)=0.
+    pn2om    (:,:)=0.
     if (use_cisonew) then
       co213fxd (:,:)=0.
       co213fxu (:,:)=0.
@@ -163,12 +174,15 @@ contains
       natomegaA(:,:,:)=0.
       natomegaC(:,:,:)=0.
     endif
+#ifdef extNcycle
+       pnh3       (:,:)=0.
+#endif
 
     !$OMP PARALLEL DO PRIVATE(t,t2,t3,t4,tk,tk100,s,rs,prb,Kh,Khd,K1,K2   &
     !$OMP  ,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,Kspa,tc,ta,sit,pt,ah1,ac    &
     !$OMP  ,cu,cb,cc,pco2,rpp0,scco2,scdms,sco2,oxy,ani,anisa,Xconvxa     &
-    !$OMP  ,kwco2,kwdms,kwo2,atco2,ato2,atn2,fluxd,fluxu,oxflux,tc_sat    &
-    !$OMP  ,niflux,n2oflux,dmsflux,omega,supsat,undsa,dissol              &
+    !$OMP  ,kwco2,kwdms,kwo2,atco2,ato2,atn2,atn2ov,fluxd,fluxu,oxflux    &
+    !$OMP  ,tc_sat,niflux,n2oflux,dmsflux,omega,supsat,undsa,dissol       &
     !$OMP  ,sch_11,sch_12,sch_sf,kw_11,kw_12,kw_sf,a_11,a_12,a_sf,flx11   &
     !$OMP  ,flx12,flxsf,atm_cfc11,atm_cfc12,atm_sf6,fact                  &
     !$OMP  ,natcu,natcb,natcc,natpco2,natfluxd,natfluxu,natomega          &
@@ -176,6 +190,11 @@ contains
     !$OMP  ,atco213,atco214,rco213,rco214,pco213,pco214,frac_aqg          &
     !$OMP  ,frac_dicg,flux13d,flux13u,flux14d,flux14u,dissol13,dissol14   &
     !$OMP  ,flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub           &
+#ifdef extNcycle
+!$OMP ,flx_nh3,sch_nh3_a,sch_nh3_w,kw_nh3,ka_nh3,atnh3                &
+!$OMP ,diff_nh3_a,diff_nh3_w,mu_air,mu_w,p_dbar,rho_air,h_nh3         &
+!$OMP ,hstar_nh3,pKa_nh3,eps_safe,Kh_nh3,cD_wind,u_star               &
+#endif
     !$OMP  ,k,j,i,rrho,scn2,scn2o,kwn2,kwn2o)
     do k=1,kpke
       do j=1,kpje
@@ -266,7 +285,37 @@ contains
                 ! (2003; GBC)
                 sch_bromo = 4662.8 - 319.45*t + 9.9012*t2 - 0.1159*t3
               endif
+#ifdef extNcycle
+                ! Tsilingiris 2008 Eq.(45) for moist air (kg/m s) 
+                mu_air   = SV0_air + SV1_air*t + SV2_air*t2 + SV3_air*t3 + SV4_air*t4
 
+                ! Tsinlingiris(44) moist air density (kg/m3)
+                rho_air  = SD0_air + SD1_air*t + SD2_air*t2 + SD3_air*t3
+
+                ! molecular viscosity of sea water 
+                ! (Matthaeus 1972, Richards 1998,assuming salinity s in per mille = ~PSU)
+                p_dbar =  ppao(i,j)*1e-4  ! sea level pressure (Pa *1e-5 -> bar *10-> dbar
+                mu_w   = 1.79e-2 - 6.1299e-4 * t + 1.4467e-5 * t2 - 1.6826e-7 * t3          &        
+                       & - 1.8266e-7 * p_dbar + 9.8972e-12 * p_dbar*p_dbar + 2.4727e-5 * s  &
+                       & + s * (4.8429e-7 * t - 4.7172e-8 * t2 + 7.5986e-10 * t3)           &
+                       & + s * (1.3817e-8 * t - 2.6363e-10 * t2)                            &
+                       & - p_dbar*p_dbar * (6.3255e-13 * t - 1.2116e-14 * t2)
+                mu_w   = mu_w * 0.1 ! conversion from g/(cm s) to kg/(m s) 
+ 
+                ! diffusion coeff in air (m2/s) Fuller 1966 / Johnson 2010
+                ! division by pressure: ppao [Pa]; in Fuller, p is a factor for denominator [atm] 
+                diff_nh3_a =  1e-7 * (t+273.15)**1.75 * M_nh3 / (ppao(i,j)/101325.0)
+
+                ! Johnson 2010 - (34) cm2/s -> m2/s (1e-8*1e-4=1e-12)
+                ! closer to fit for Li & Gregory of: 9.874e-6*exp(2.644e-2*t)
+                ! mu_w*1000: kg/(m s) -> cPoise as in Eq.(34) of Johnson 2010
+                diff_nh3_w = 1.25e-12*(t+273.15)**1.52 *(mu_w*1000.)**(9.58/Vb_nh3 -1.12)*(Vb_nh3**(-0.19) - 0.292)
+
+                ! Schmidt number air phase
+                sch_nh3_a  = mu_air /(diff_nh3_a * rho_air)
+                ! Schmidt number water phase
+                sch_nh3_w  = mu_w   /(diff_nh3_w * rrho * 1000.)
+#endif
               ! solubility of N2 (Weiss, R.F. 1970, Deep-Sea Res., 17, 721-735) for moist air
               ! at 1 atm; multiplication with oxyco converts to kmol/m^3/atm
               ani=an0+an1/tk100+an2*alog(tk100)+an3*tk100+s*(an4+an5*tk100+an6*tk100**2)
@@ -298,7 +347,14 @@ contains
                 !Henry's law constant [dimensionless] for Bromoform from Quack and Wallace (2003; GBC)
                 a_bromo = exp(13.16 - 4973*(1/tk))
               endif
-
+#ifdef extNcycle
+                !Henry number for NH3 (Paulot et al. 2015, )
+                h_nh3 =  (17.93*(t+273.15)/273.15 * exp(4092./(t+273.15) - 9.7))**(-1)
+                ! Dissociation constant (Paulot et al. 2015, Bell 2007/2008)
+                pKa_nh3 = 10.0423 - 3.15536e-2*t + 3.071e-3*s
+                ! effective gas-over-liquid Henry constant (Paulot et al. 2015)
+                hstar_nh3   = h_nh3/(1. + 10.**(log10(hi(i,j,k))+pKa_nh3))
+#endif
               ! Transfer (piston) velocity kw according to Wanninkhof (2014), in units of ms-1
               Xconvxa = 6.97e-07   ! Wanninkhof's a=0.251 converted from [cm hr-1]/[m s-1]^2 to [ms-1]/[m s-1]^2
               kwco2 = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./scco2)**0.5
@@ -317,6 +373,22 @@ contains
                 kw_bromo=(1.-psicomo(i,j)) * 1.e-2/3600. *                       &
                      &   (0.222*pfu10(i,j)**2+0.33*pfu10(i,j))*(660./sch_bromo)**0.5
               endif
+#ifdef extNcycle
+                ! Paulot et al. 2015 / Johnson 2010
+                ! friction velocity of wind (m/s)
+                u_star  = pfu10(i,j)*sqrt(6.1e-4 + 6.3e-5*pfu10(i,j)) 
+                ! wind drag coeff (-)
+                cD_wind = (u_star / (pfu10(i,j) + eps_safe))**2.
+                ! gas transfer velocity on gas phase side (m/s)
+                ka_nh3  = 1e-3 + u_star/ (13.3*sch_nh3_a + (eps_safe + cD_wind)**(-0.5) - 5. + log(sch_nh3_a)/(2.*kappa))
+                ! gas transfer velocity on liquid phase side (m/s) Nightingale 2000b - 3600*100: cm/h -> m/s
+                kw_nh3  =  (0.24*pfu10(i,j)**2 + 0.061*pfu10(i,j))*sqrt(600./sch_nh3_w)/360000.
+
+                ! total effective gas transfer velocity (m/s)
+                Kh_nh3  = (1./(ka_nh3 + eps_safe) + hstar_nh3/(kw_nh3 + eps_safe))**(-1.)
+                ! account for ice
+                Kh_nh3  = (1.-psicomo(i,j)) * Kh_nh3 
+#endif
 
               atco2 = atm(i,j,iatmco2)
               ato2  = atm(i,j,iatmo2)
@@ -328,6 +400,12 @@ contains
               if (use_BROMO) then
                 atbrf = atm(i,j,iatmbromo)
               endif
+#ifdef extNcycle
+                atnh3  = atm(i,j,iatmnh3)
+                atn2ov = atm(i,j,iatmn2o)
+#else
+                atn2ov = atm_n2o
+#endif
 
               ! Ratio P/P_0, where P is the local SLP and P_0 is standard pressure (1 atm). This is
               ! used in all surface flux calculations where atmospheric concentration is given as a
@@ -385,7 +463,9 @@ contains
               niflux=kwn2*dtbgc*(ocetra(i,j,1,igasnit)-anisa*(atn2/802000)*rpp0)
               ocetra(i,j,1,igasnit)=ocetra(i,j,1,igasnit)-niflux/pddpo(i,j,1)
               ! Surface flux of laughing gas (same piston velocity as for O2 and N2)
-              n2oflux=kwn2o*dtbgc*(ocetra(i,j,1,ian2o)-satn2o(i,j)*atn2o*rpp0)
+              n2oflux=kwn2o*dtbgc*(ocetra(i,j,1,ian2o)-satn2o(i,j)*atn2ov*1e-12*rpp0)
+              ! pN2O under moist air assumption at normal pressure
+              pn2om(i,j) = 1e9 * ocetra(i,j,1,ian2o)/satn2o(i,j)
               ocetra(i,j,1,ian2o)=ocetra(i,j,1,ian2o)-n2oflux/pddpo(i,j,1)
               if (use_CFC) then
                 ! Surface fluxes for CFC: eqn. (1a) in ocmip2 howto doc(hyc)
@@ -441,12 +521,20 @@ contains
                 ocetra(i,j,1,ibromo) = ocetra(i,j,1,ibromo) + flx_bromo/pddpo(i,j,1)
                 atmflx(i,j,iatmbromo) = -flx_bromo
               endif
+#ifdef extNcycle
+                ! surface flux NH3: STILL REQUIRES TO CHECK CONVERSION FACTOR FOR atNH3 (currently assumed atNH3 in pptv)     
+                flx_nh3 =  Kh_nh3*dtbgc*(atnh3*1e-12*ppao(i,j)*1e-5/(tk*0.08314510) - hstar_nh3*ocetra(i,j,1,ianh4)) 
+                ocetra(i,j,1,ianh4) = ocetra(i,j,1,ianh4) + flx_nh3/pddpo(i,j,1)
+    
+                ! pNH3 in natm 
+                pnh3(i,j) =  hstar_nh3*ocetra(i,j,1,ianh4)  * 8.20573660809596e-5 * (t+273.15) * 1e12 
+#endif
 
               ! Save surface fluxes
               atmflx(i,j,iatmco2)=fluxu-fluxd
               atmflx(i,j,iatmo2)=oxflux
               atmflx(i,j,iatmn2)=niflux
-              atmflx(i,j,iatmn2o)=n2oflux
+              atmflx(i,j,iatmn2o)=n2oflux   ! positive to atmosphere [kmol N2O m-2 timestep-1]
               if (use_cisonew) then
                 atmflx(i,j,iatmc13)=flux13u-flux13d
                 atmflx(i,j,iatmc14)=flux14u-flux14d
@@ -459,7 +547,9 @@ contains
               if (use_natDIC) then
                 atmflx(i,j,iatmnco2)=natfluxu-natfluxd
               endif
-
+#ifdef extNcycle
+                atmflx(i,j,iatmnh3)=-flx_nh3 ! positive to atmosphere [kmol NH3 m-2 timestep-1] 
+#endif
               ! Save up- and downward components of carbon fluxes for output
               co2fxd(i,j)  = fluxd
               co2fxu(i,j)  = fluxu

@@ -85,8 +85,11 @@ contains
                               idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,issso13,issso14,  &
                               isssc13,isssc14,ipowc13,ipowc14,iatmnco2,iatmc13,iatmc14,inatalkali, &
                               inatcalc,inatsco212,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,  &
-                              ipowno3,isssc12,issso12,issssil,issster
+                              ipowno3,isssc12,issso12,issssil,issster,iprefsilica
     use mo_netcdf_bgcrw,only: write_netcdf_var,netcdf_def_vardb
+#ifdef extNcycle 
+      use mo_param1_bgc,  only: ianh4,iano2,ipownh4,ipown2o,ipowno2
+#endif
 
     ! Arguments
     integer,          intent(in) :: kpie             ! 1st dimension of model grid.
@@ -436,6 +439,9 @@ contains
     call NETCDF_DEF_VARDB(ncid,7,'prefpo4',3,ncdimst,ncvarid,                                      &
          &    6,'mol/kg',19,'Preformed phosphate',rmissing,28,io_stdo_bgc)
 
+    call NETCDF_DEF_VARDB(ncid,10,'prefsilica',3,ncdimst,ncvarid,                                  &
+         &    6,'mol/kg',16,'Preformed silica',rmissing,28,io_stdo_bgc)
+
     call NETCDF_DEF_VARDB(ncid,7,'prefalk',3,ncdimst,ncvarid,                                      &
          &    6,'mol/kg',20,'Preformed alkalinity',rmissing,29,io_stdo_bgc)
 
@@ -513,6 +519,13 @@ contains
       call NETCDF_DEF_VARDB(ncid,5,'bromo',3,ncdimst,ncvarid,                                      &
            &    6,'mol/kg',9,'Bromoform',rmissing,47,io_stdo_bgc)
     endif
+#ifdef extNcycle
+      call NETCDF_DEF_VARDB(ncid,4,'anh4',3,ncdimst,ncvarid,            &
+     &    6,'mol/kg',18,'Dissolved ammonium',rmissing,54,io_stdo_bgc)
+
+      call NETCDF_DEF_VARDB(ncid,4,'ano2',3,ncdimst,ncvarid,            &
+     &    6,'mol/kg',17,'Dissolved nitrite',rmissing,55,io_stdo_bgc)
+#endif
 
     !
     ! Define variables : diagnostic ocean fields
@@ -608,8 +621,18 @@ contains
 
         call NETCDF_DEF_VARDB(ncid,6,'powc14',3,ncdimst,ncvarid,                                   &
              &    9,'kmol/m**3',25,'Sediment pore water DIC14',rmissing,86,io_stdo_bgc)
-
       endif
+
+#ifdef extNcycle
+        call NETCDF_DEF_VARDB(ncid,6,'pownh4',3,ncdimst,ncvarid,                                   &
+             &    9,'kmol/m**3',34,'Sediment pore water ammonium (NH4)',rmissing,79,io_stdo_bgc)
+
+        call NETCDF_DEF_VARDB(ncid,6,'pown2o',3,ncdimst,ncvarid,                                   &
+             &    9,'kmol/m**3',39,'Sediment pore water nitrous oxide (N2O)',rmissing,79,io_stdo_bgc)
+
+        call NETCDF_DEF_VARDB(ncid,6,'powno2',3,ncdimst,ncvarid,                                   &
+             &    9,'kmol/m**3',33,'Sediment pore water nitrite (NO2)',rmissing,79,io_stdo_bgc)
+#endif
 
       if((mnproc==1 .and. IOTYPE==0) .OR. IOTYPE==1) then
         ncdimst(1) = nclonid
@@ -743,6 +766,7 @@ contains
     call write_netcdf_var(ncid,'iron',locetra(1,1,1,iiron),2*kpke,0)
     call write_netcdf_var(ncid,'prefo2',locetra(1,1,1,iprefo2),2*kpke,0)
     call write_netcdf_var(ncid,'prefpo4',locetra(1,1,1,iprefpo4),2*kpke,0)
+    call write_netcdf_var(ncid,'prefsilica',locetra(1,1,1,iprefsilica),2*kpke,0)
     call write_netcdf_var(ncid,'prefalk',locetra(1,1,1,iprefalk),2*kpke,0)
     call write_netcdf_var(ncid,'prefdic',locetra(1,1,1,iprefdic),2*kpke,0)
     call write_netcdf_var(ncid,'dicsat',locetra(1,1,1,idicsat),2*kpke,0)
@@ -777,6 +801,10 @@ contains
     if (use_BROMO) then
       call write_netcdf_var(ncid,'bromo',locetra(1,1,1,ibromo),2*kpke,0)
     endif
+#ifdef extNcycle
+      call write_netcdf_var(ncid,'anh4',locetra(1,1,1,ianh4),2*kpke,0)
+      call write_netcdf_var(ncid,'ano2',locetra(1,1,1,iano2),2*kpke,0)
+#endif
 
     !
     ! Write restart data : diagtnostic ocean fields
@@ -820,6 +848,11 @@ contains
         call write_netcdf_var(ncid,'powc13',powtra2(1,1,1,ipowc13),2*ks,0)
         call write_netcdf_var(ncid,'powc14',powtra2(1,1,1,ipowc14),2*ks,0)
       endif
+#ifdef extNcycle
+      call write_netcdf_var(ncid,'pownh4',powtra2(1,1,1,ipownh4),2*ks,0)
+      call write_netcdf_var(ncid,'pown2o',powtra2(1,1,1,ipown2o),2*ks,0)
+      call write_netcdf_var(ncid,'powno2',powtra2(1,1,1,ipowno2),2*ks,0)
+#endif
     endif
     !
     ! Write restart data: atmosphere.

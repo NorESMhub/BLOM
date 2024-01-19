@@ -249,7 +249,7 @@ contains
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
     endif
-    allocat (pn2om(kpie,kpje),stat=errstat)
+    allocate (pn2om(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory pn2om'
     pn2om(:,:) = 0.0
 

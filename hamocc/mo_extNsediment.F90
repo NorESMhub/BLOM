@@ -44,7 +44,7 @@ MODULE mo_extNsediment
   !**********************************************************************
   use mo_param1_bgc,  only: issso12,ipowaic,ipowaal,ipowaph,ipowaox,ipown2,ipowno3,ipownh4,ipown2o,ipowno2,ks 
   use mo_vgrid,       only: kbo
-  use mo_biomod,      only: rnit,rcar,rnoi
+  use mo_param_bgc,   only: rnit,rcar,rnoi
   use mo_control_bgc, only: io_stdo_bgc,dtb
   use mo_sedmnt,      only: powtra,sedlay,porsol,porwat
   use mo_extNwatercol,only: rc2n,ro2utammo,ro2nnit,rnoxp,rnoxpi,rno2anmx,rno2anmxi,rnh4anmx,                                       &
@@ -132,7 +132,7 @@ MODULE mo_extNsediment
                          & q10anh4nitr,Trefanh4nitr,bkoxamox,bkanh4nitr,bkamoxn2o,bkyamox,n2omaxy,n2oybeta,                        &
                          & q10ano2nitr,Trefano2nitr,bkoxnitr,bkano2nitr,NOB2AOAy,rno2anmx,rnh4anmx 
   use mo_m4ago,       only: POM_remin_q10,POM_remin_Tref
-  use mo_biomod,      only: bkox_drempoc
+  use mo_param_bgc,   only: bkox_drempoc
 
   implicit none
  

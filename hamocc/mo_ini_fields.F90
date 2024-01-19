@@ -38,9 +38,9 @@ contains
     !  -split the original BELEG_BGC in two parts, BELEG_PARM (NOW MO_PARAM_BGC) and BELEG_VARS
     !***********************************************************************************************
 
-    use mo_control_bgc, only: use_natDIC,use_cisonew,use_BROMO
+    use mo_control_bgc, only: use_natDIC,use_cisonew,use_BROMO,use_extNcycle
     use mo_param1_bgc,  only: iatmco2,iatmo2,iatmn2,iatmnco2,iatmc13,iatmc14,iatmbromo
-    use mo_param_bgc,   only: atm_o2,atm_n2,atm_co2_nat,atm_c13,atm_c14,c14fac,atm_bromo
+    use mo_param_bgc,   only: atm_o2,atm_n2,atm_co2_nat,atm_c13,atm_c14,c14fac,atm_bromo,atm_n2o,atm_nh3
     use mo_carbch,      only: atm,atm_co2
 
     ! Initialise atmosphere fields. We use a 2D representation of atmospheric
@@ -69,6 +69,10 @@ contains
         if (use_BROMO) then
           atm(i,j,iatmbromo)= atm_bromo
         endif
+#ifdef extNcycle
+          atm(i,j,iatmnh3)  = atm_nh3
+          atm(i,j,iatmn2o)  = atm_n2o
+#endif
       enddo
     enddo
   end subroutine ini_fields_atm
@@ -98,12 +102,14 @@ contains
                               isco213,isco214,izoo13,izoo14,safediv,inatcalc,                      &
                               ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,      &
                               issso12,issssil,issster,ks,nsedtra,ipowc13,ipowc13,issso13,issso13,  &
-                              isssc13,ipowc14,isssc14,issso14
+                              isssc13,ipowc14,isssc14,issso14,iprefsilica
     use mo_vgrid,       only: kmle,kbo
     use mo_carbch,      only: nathi,natco3
     use mo_sedmnt,      only: sedhpl,burial,powtra,sedlay
     use mo_profile_gd,  only: profile_gd
-
+#ifdef extNcycle
+      use mo_param1_bgc, only: iano2,ianh4
+#endif
     ! Arguments
     integer, intent(in) :: kpaufr                                   ! 1/0 flag, 1 indicating a restart run
     integer, intent(in) :: kpie                                     ! 1st dimension of model grid.
@@ -188,6 +194,7 @@ contains
             ocetra(i,j,k,iiron)  =fesoly
             ocetra(i,j,k,iprefo2)=0.
             ocetra(i,j,k,iprefpo4)=0.
+            ocetra(i,j,k,iprefsilica)=0.
             ocetra(i,j,k,iprefalk)=0.
             ocetra(i,j,k,iprefdic)=0.
             ocetra(i,j,k,idicsat)=1.e-8
@@ -228,6 +235,11 @@ contains
               ! Initialise to 0,01 pmol L-1 (Stemmler et al., 2015) => mol/kg
               ocetra(i,j,k,ibromo)= 1.e-14/prho(i,j,k)
             endif
+#ifdef extNcycle
+         ocetra(i,j,k,iano2) =1.e-9   ! expecting fast cycling
+         ocetra(i,j,k,ianh4) =0.5e-9  ! expecting fast cycling
+         ocetra(i,j,k,ian2o) =6.e-9   ! 6 to 8 nmol/kg = ca. value in near surface regions Toyoda et al. 2019, prevent from too long outgassing
+#endif
           endif ! omask > 0.5
         enddo
       enddo
@@ -240,6 +252,7 @@ contains
         if (omask(i,j) > 0.5) then
           ocetra(i,j,1:kmle(i,j),iprefo2)  = ocetra(i,j,1:kmle(i,j),ioxygen)
           ocetra(i,j,1:kmle(i,j),iprefpo4) = ocetra(i,j,1:kmle(i,j),iphosph)
+          ocetra(i,j,1:kmle(i,j),iprefsilica)= ocetra(i,j,1:kmle(i,j),isilica)
           ocetra(i,j,1:kmle(i,j),iprefalk) = ocetra(i,j,1:kmle(i,j),ialkali)
           ocetra(i,j,1:kmle(i,j),iprefdic) = ocetra(i,j,1:kmle(i,j),isco212)
         endif

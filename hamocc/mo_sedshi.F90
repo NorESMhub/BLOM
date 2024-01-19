@@ -44,6 +44,7 @@ contains
     use mo_param_bgc,   only: rcar
     use mo_param1_bgc,  only: isssc12,issssil,issso12,issster,ks,nsedtra,isssc13,isssc14,          &
                               issso13,issso14
+    use mo_carbch,     only: sedfluxb
     use mo_control_bgc, only: use_cisonew
 
     ! Arguments
@@ -58,6 +59,7 @@ contains
     real    :: sedlo,uebers,seddef,spresent,buried
     real    :: refill,frac
 
+    sedfluxb(:,:,:) = 0.
     ! DOWNWARD SHIFTING
     ! shift solid sediment sediment downwards, if layer is full, i.e., if
     ! the volume filled by the four constituents poc, opal, caco3, clay
@@ -130,9 +132,10 @@ contains
         do i=1,kpie
           if(omask(i,j).gt.0.5) then
             !ka          if(bolay(i,j).gt.0.) then
-            uebers=wsed(i,j)*sedlay(i,j,k,iv)
+            uebers=wsed(i,j)*sedlay(i,j,ks,iv)
             sedlay(i,j,ks ,iv)=sedlay(i,j,ks ,iv)-uebers
-            burial(i,j,iv)=burial(i,j,iv)+uebers*seddw(k)*porsol(i,j,k)
+            burial(i,j,iv)=burial(i,j,iv)+uebers*seddw(ks)*porsol(i,j,ks)
+            sedfluxb(i,j,iv) = uebers*seddw(ks)*porsol(i,j,ks) 
           endif
         enddo !end i-loop
       enddo !end j-loop
@@ -236,6 +239,12 @@ contains
             burial(i,j,issso14) = burial(i,j,issso14)-refill*burial(i,j,issso14)
             burial(i,j,isssc14) = burial(i,j,isssc14)-refill*burial(i,j,isssc14)
           endif
+          ! account for refluxes to get net-burial fluxes: 
+          ! note that this (and before) assumes no reflux of isotopes! - up to change?
+          sedfluxb(i,j,issso12) = sedfluxb(i,j,issso12) - refill*burial(i,j,issso12) 
+          sedfluxb(i,j,isssc12) = sedfluxb(i,j,isssc12) - refill*burial(i,j,isssc12) 
+          sedfluxb(i,j,issssil) = sedfluxb(i,j,issssil) - refill*burial(i,j,issssil) 
+          sedfluxb(i,j,issster) = sedfluxb(i,j,issster) - refill*burial(i,j,issster) 
         endif
       enddo !end i-loop
     enddo !end j-loop

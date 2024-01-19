@@ -37,17 +37,15 @@ module mo_param_bgc
                             do_ndep,do_oalk,do_rivinpt,do_sedspinup,l_3Dvarsedpor,                 &
                             use_BOXATM,use_CFC,use_PBGC_CK_TIMESTEP,                               &
                             use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type,lm4ago,   &
-                            leuphotic_cya
+                            leuphotic_cya,do_ndep_coupled,do_n2onh3_coupled,use_extNcycle
+
   use mod_xc,         only: mnproc
-  use mo_m4ago,       only: init_m4ago_nml_params, init_m4ago_params
-#ifdef extNcycle
-      use mo_control_bgc, only: do_ndep_coupled,do_n2onh3_coupled
-      use mo_param1_bgc,  only: iatmnh3,iatmn2o
-      use mo_extNwatercol,only: extNwatercol_param_init,extNwatercol_param_update,extNwatercol_param_write,                        &
-                                rano3denit,rano2anmx,rano2denit,ran2odenit,rdnra,ranh4nitr,rano2nitr
-      use mo_extNsediment,only: extNsediment_param_init,extNsediment_param_update,extNsediment_param_write,                        &
-                                rano3denit_sed,rano2anmx_sed,rano2denit_sed,ran2odenit_sed,rdnra_sed,ranh4nitr_sed,rano2nitr_sed
-#endif
+!  use mo_m4ago,       only: init_m4ago_nml_params, init_m4ago_params
+  use mo_param1_bgc,  only: iatmnh3,iatmn2o
+!      use mo_extNwatercol,only: extNwatercol_param_init,extNwatercol_param_update,extNwatercol_param_write,                        &
+!                                rano3denit,rano2anmx,rano2denit,ran2odenit,rdnra,ranh4nitr,rano2nitr
+!      use mo_extNsediment,only: extNsediment_param_init,extNsediment_param_update,extNsediment_param_write,                        &
+!                                rano3denit_sed,rano2anmx_sed,rano2denit_sed,ran2odenit_sed,rdnra_sed,ranh4nitr_sed,rano2nitr_sed
 
   implicit none
   private
@@ -72,7 +70,7 @@ module mo_param_bgc
 
   ! Other module variables
   public :: ro2ut,rcar,rnit,rnoi,riron,rdnit0,rdnit1,rdnit2,rdn2o1,rdn2o2
-  public :: atm_n2,atm_o2,atm_co2_nat,atm_bromo,re1312
+  public :: atm_n2,atm_o2,atm_co2_nat,atm_bromo,re1312,atm_n2o,atm_nh3
   public :: re14to,prei13,prei14,ctochl
   public :: atten_w,atten_c,atten_uv,atten_f
   public :: perc_diron,fesoly,phytomi,pi_alpha
@@ -123,7 +121,7 @@ module mo_param_bgc
 
   real, protected :: atm_n2      = 802000. ! atmosphere dinitrogen concentration
   real, protected :: atm_n2o     = 300e3   ! atmosphere laughing gas mixing ratio around 1980: 300 ppb,provided in ppt,300ppb = 300e3ppt = 3e-7 mol/mol
-  real, proteced  :: atm_nh3     = 0.      ! Six & Mikolajewicz 2022: less than 1nmol m-3
+  real, protected :: atm_nh3     = 0.      ! Six & Mikolajewicz 2022: less than 1nmol m-3
   real, protected :: atm_o2      = 196800. ! atmosphere oxygen concentration
   real, protected :: atm_co2_nat = 284.32  ! atmosphere CO2 concentration CMIP6 pre-industrial reference
   real, protected :: atm_bromo   = 3.4     ! atmosphere bromophorme concentration
@@ -227,7 +225,7 @@ module mo_param_bgc
   real, protected :: remido     = 0.004           ! 1/d - remineralization rate (of DOM)
   ! deep sea remineralisation constants
   real, protected :: drempoc    = 0.025           ! 1/d Aerob remineralization rate detritus
-  real, protected :: drempoc_anaerob = 0.05*drempoc ! remin in sub-/anoxic environm. - not be overwritten by lm4ago
+  real, protected :: drempoc_anaerob = 1.25e-3    ! =0.05*drempoc - remin in sub-/anoxic environm. - not be overwritten by lm4ago
   real, protected :: bkox_drempoc = 1e-7 ! half-saturation constant for oxygen for ammonification (aerobic remin via drempoc)
   real, protected :: dremopal   = 0.003           ! 1/d Dissolution rate for opal
   real, protected :: dremn2o    = 0.01            ! 1/d Remineralization rate of detritus on N2O
@@ -337,7 +335,7 @@ contains
     call calc_param_atm()    ! calculate atmospheric parameters after updating parameters via nml
     call calc_param_biol()   ! potentially readjust namlist parameter-dependent parameters
     call rates_2_timestep()  ! Converting rates from /d... to /dtb
-    call init_m4ago_params()       ! Initialize M4AGO parameters relying on nml parameters
+!    call init_m4ago_params()       ! Initialize M4AGO parameters relying on nml parameters
     call write_parambgc()    ! write out used parameters and calculate back rates from /dtb to /d..
   end subroutine ini_parambgc
 
@@ -445,13 +443,13 @@ contains
         dremopal = 0.023
     endif
     ! M4AGO parameters
-    call init_m4ago_nml_params()
+!    call init_m4ago_nml_params()
 #ifdef extNcycle
     ! initialize the extended nitrogen cycle parameters - first water column, then sediment, 
     ! since sediment relies on water column parameters for the extended nitrogen cycle 
     ! Sediment also relies on M4AGO being initialized (POM_remin_q10 and POM_remin_Tref)
-    call extNwatercol_param_init()
-    call extNsediment_param_init()
+!    call extNwatercol_param_init()
+!    call extNsediment_param_init()
 #endif
   end subroutine calc_param_biol
 
@@ -533,8 +531,8 @@ contains
     disso_caco3 = disso_caco3 * dtbgc ! 1/(kmol CO3--/m3 time step)   Dissolution rate constant of CaCO3
     sed_denit   = sed_denit   * dtbgc ! 1/time step                   Denitrification rate constant of POP
 #ifdef extNcycle
-    call extNwatercol_param_update()
-    call extNsediment_param_update()
+!    call extNwatercol_param_update()
+!    call extNsediment_param_update()
 #endif
   end subroutine rates_2_timestep
 
@@ -773,8 +771,8 @@ contains
       write(io_stdo_bgc,*) '*   claydens     = ',claydens
     endif
 #ifdef extNcycle
-    call extNwatercol_param_write()
-    call extNsediment_param_write()
+!    call extNwatercol_param_write()
+!    call extNsediment_param_write()
 #endif
   end subroutine write_parambgc
 
