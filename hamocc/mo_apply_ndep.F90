@@ -19,11 +19,11 @@
 module mo_apply_ndep
 
   !*************************************************************************************************
-  ! Routine for applying the nitrogen deposition flux. 
+  ! Routine for applying the nitrogen deposition flux.
   !
-  ! N-deposition is activated through a logical switch 'do_ndep' read from HAMOCC's bgcnml 
-  ! namelist. When coupled to NorESM, this is achieved by setting BLOM_N_DEPOSITION to 
-  ! TRUE in env_run.xml. 
+  ! N-deposition is activated through a logical switch 'do_ndep' read from HAMOCC's bgcnml
+  ! namelist. When coupled to NorESM, this is achieved by setting BLOM_N_DEPOSITION to
+  ! TRUE in env_run.xml.
   !
   ! The routine n_deposition applies the nitrogen deposition flux to the top-most model layer.
   !
@@ -54,14 +54,10 @@ contains
     !  Tjiputra (18.09.2017): add 1 mol [H+], per mol [NO3] deposition, to alkalinity (minus 1 mol)
     !***********************************************************************************************
 
-    use mo_control_bgc, only: dtb,do_ndep
-    use mo_carbch,      only: ocetra,ndepnoyflx
-    use mo_param1_bgc,  only: iano3,ialkali,inatalkali,nndep,idepnoy
+    use mo_control_bgc, only: dtb,do_ndep,use_extNcycle
+    use mo_carbch,      only: ocetra,ndepnoyflx,ndepnhxflx
+    use mo_param1_bgc,  only: iano3,ialkali,inatalkali,nndep,idepnoy,ianh4,idepnhx
     use mo_control_bgc, only: use_natDIC
-#ifdef extNcycle
-  use mo_carbch,      only: ndepnhxflx
-  use mo_param1_bgc,  only: ianh4,idepnhx
-#endif
 
     ! Arguments
     integer, intent(in) :: kpie                  ! 1st dimension of model grid.
@@ -76,9 +72,9 @@ contains
 
     ! ndepflx stores the applied n-deposition flux for inventory calculations and output
     ndepnoyflx(:,:)=0.0
-#ifdef extNcycle
-  ndepnhxflx(:,:)=0.0
-#endif
+    if (use_extNcycle) then
+      ndepnhxflx(:,:)=0.0
+    endif
     if (.not. do_ndep) return
 
     ! deposite N in topmost layer
@@ -91,11 +87,11 @@ contains
           if (use_natDIC) then
             ocetra(i,j,1,inatalkali)=ocetra(i,j,1,inatalkali)-ndepnoyflx(i,j)/pddpo(i,j,1)
           endif
-#ifdef extNcycle
-      ndepnhxflx(i,j)       = ndep(i,j,idepnhx)*dtb/365.
-      ocetra(i,j,1,ianh4)   = ocetra(i,j,1,ianh4)   + ndepnhxflx(i,j)/pddpo(i,j,1)
-      ocetra(i,j,1,ialkali) = ocetra(i,j,1,ialkali) + ndepnhxflx(i,j)/pddpo(i,j,1)
-#endif
+          if (use_extNcycle) then
+            ndepnhxflx(i,j)       = ndep(i,j,idepnhx)*dtb/365.
+            ocetra(i,j,1,ianh4)   = ocetra(i,j,1,ianh4)   + ndepnhxflx(i,j)/pddpo(i,j,1)
+            ocetra(i,j,1,ialkali) = ocetra(i,j,1,ialkali) + ndepnhxflx(i,j)/pddpo(i,j,1)
+          endif
         endif
       enddo
     enddo

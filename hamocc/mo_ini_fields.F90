@@ -39,7 +39,7 @@ contains
     !***********************************************************************************************
 
     use mo_control_bgc, only: use_natDIC,use_cisonew,use_BROMO,use_extNcycle
-    use mo_param1_bgc,  only: iatmco2,iatmo2,iatmn2,iatmnco2,iatmc13,iatmc14,iatmbromo
+    use mo_param1_bgc,  only: iatmco2,iatmo2,iatmn2,iatmn2o,iatmnh3,iatmnco2,iatmc13,iatmc14,iatmbromo
     use mo_param_bgc,   only: atm_o2,atm_n2,atm_co2_nat,atm_c13,atm_c14,c14fac,atm_bromo,atm_n2o,atm_nh3
     use mo_carbch,      only: atm,atm_co2
 
@@ -69,10 +69,10 @@ contains
         if (use_BROMO) then
           atm(i,j,iatmbromo)= atm_bromo
         endif
-#ifdef extNcycle
+        if (use_extNcycle) then
           atm(i,j,iatmnh3)  = atm_nh3
           atm(i,j,iatmn2o)  = atm_n2o
-#endif
+        endif
       enddo
     enddo
   end subroutine ini_fields_atm
@@ -94,7 +94,7 @@ contains
     use mo_param_bgc,   only: fesoly,cellmass,fractdim,bifr13_ini,bifr14_ini,c14fac,re1312,re14to
     use mo_biomod,      only: abs_oce
     use mo_control_bgc, only: rmasks,use_FB_BGC_OCE,use_cisonew,use_AGG,use_CFC,use_natDIC,        &
-                              use_BROMO, use_sedbypass
+                              use_BROMO, use_sedbypass,use_extNcycle
     use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,     &
                               iiron,iopal,ioxygen,iphosph,iphy,iprefalk,iprefdic,iprefo2,iprefpo4, &
                               isco212,isilica,izoo,iadust,inos,ibromo,icfc11,icfc12,isf6,          &
@@ -102,14 +102,12 @@ contains
                               isco213,isco214,izoo13,izoo14,safediv,inatcalc,                      &
                               ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,      &
                               issso12,issssil,issster,ks,nsedtra,ipowc13,ipowc13,issso13,issso13,  &
-                              isssc13,ipowc14,isssc14,issso14,iprefsilica
+                              isssc13,ipowc14,isssc14,issso14,iprefsilica,iano2,ianh4
     use mo_vgrid,       only: kmle,kbo
     use mo_carbch,      only: nathi,natco3
     use mo_sedmnt,      only: sedhpl,burial,powtra,sedlay
     use mo_profile_gd,  only: profile_gd
-#ifdef extNcycle
-      use mo_param1_bgc, only: iano2,ianh4
-#endif
+
     ! Arguments
     integer, intent(in) :: kpaufr                                   ! 1/0 flag, 1 indicating a restart run
     integer, intent(in) :: kpie                                     ! 1st dimension of model grid.
@@ -235,11 +233,11 @@ contains
               ! Initialise to 0,01 pmol L-1 (Stemmler et al., 2015) => mol/kg
               ocetra(i,j,k,ibromo)= 1.e-14/prho(i,j,k)
             endif
-#ifdef extNcycle
-         ocetra(i,j,k,iano2) =1.e-9   ! expecting fast cycling
-         ocetra(i,j,k,ianh4) =0.5e-9  ! expecting fast cycling
-         ocetra(i,j,k,ian2o) =6.e-9   ! 6 to 8 nmol/kg = ca. value in near surface regions Toyoda et al. 2019, prevent from too long outgassing
-#endif
+            if (use_extNcycle) then
+              ocetra(i,j,k,iano2) =1.e-9   ! expecting fast cycling
+              ocetra(i,j,k,ianh4) =0.5e-9  ! expecting fast cycling
+              ocetra(i,j,k,ian2o) =6.e-9   ! 6 to 8 nmol/kg = ca. value in near surface regions Toyoda et al. 2019, prevent from too long outgassing
+            endif
           endif ! omask > 0.5
         enddo
       enddo

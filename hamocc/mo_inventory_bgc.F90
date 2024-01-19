@@ -38,30 +38,26 @@ contains
     !***********************************************************************************************
 
     use mod_xc,         only: mnproc,ips,nbdy,xcsum
-    use mo_carbch,      only: atm,atmflx,co3,hi,ndepnoyflx,rivinflx,ocetra,sedfluxo
+    use mo_carbch,      only: atm,atmflx,co3,hi,ndepnoyflx,rivinflx,ocetra,sedfluxo,ndepnhxflx
     use mo_sedmnt,      only: prcaca,prorca,silpro
     use mo_biomod,      only: expoor,expoca,exposi
     use mo_param_bgc,   only: rcar,rnit
     use mo_control_bgc, only: do_ndep,do_rivinpt,io_stdo_bgc
     use mo_bgcmean,     only: bgct2d,jco2flux,jirdin,jn2flux,jn2oflux,jndepnoy,jndepnhx,           &
-                              jo2flux,jprcaca,                                                     &
+                              jo2flux,jprcaca,jnh3flux,                                            &
                               jprorca,jsilpro,nbgcmax,glb_inventory
     use mo_param1_bgc,  only: ialkali,ian2o,iano3,iatmco2,iatmn2,iatmn2o,iatmo2,icalc,idet,idoc,   &
                               igasnit,iopal,ioxygen,iphosph,iphy,ipowaic,ipowaox,ipowaph,ipowasi,  &
                               ipown2,ipowno3,isco212,isilica,isssc12,issso12,issssil,izoo,         &
-                              irdin,irdip,irsi,iralk,irdoc,irdet,nocetra,npowtra,nsedtra,nriv
+                              irdin,irdip,irsi,iralk,irdoc,irdet,nocetra,npowtra,nsedtra,nriv,     &
+                               ianh4,iano2,iatmnh3,ipownh4,ipown2o,ipowno2
     use mo_vgrid,       only: dp_min
 
     ! NOT sedbypass
     use mo_param1_bgc,  only: ks
     use mo_sedmnt,      only: porwat,seddw,sedlay,burial,sedhpl,powtra,porsol
     use mo_control_bgc, only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,   &
-                              use_CFC,use_natDIC,use_BROMO
-#ifdef extNcycle
-      use mo_carbch,      only: ndepnhxflx
-      use mo_param1_bgc,  only: ianh4,iano2,iatmnh3,ipownh4,ipown2o,ipowno2
-      use mo_bgcmean,     only: jnh3flux
-#endif
+                              use_CFC,use_natDIC,use_BROMO,use_extNcycle
 
     ! Arguments
     integer, intent(in) :: kpie,kpje,kpke
@@ -300,16 +296,16 @@ contains
       so2flux = sum2d(atmflx(:,:,iatmo2))
       sn2flux = sum2d(atmflx(:,:,iatmn2))
       sn2oflux = sum2d(atmflx(:,:,iatmn2o))
-#ifdef extNcycle
-      snh3flux = sum2d(atmflx(:,:,iatmnh3))
-#endif
+      if (use_extNcycle) then
+        snh3flux = sum2d(atmflx(:,:,iatmnh3))
+      endif
 
       ! nitrogen deposition
       if(do_ndep) then
         sndepnoyflux = sum2d(ndepnoyflx)
-#ifdef extNcycle
+        if (use_extNcycle) then
           sndepnhxflux = sum2d(ndepnhxflx)
-#endif
+        endif
       endif
 
       ! river fluxes
@@ -322,16 +318,16 @@ contains
       so2flux = sum2d(bgct2d(:,:,jo2flux))
       sn2flux = sum2d(bgct2d(:,:,jn2flux))
       sn2oflux = sum2d(bgct2d(:,:,jn2oflux))
-#ifdef extNcycle
+      if (use_extNcycle) then
         snh3flux = sum2d(bgct2d(:,:,jnh3flux))
-#endif
+      endif
 
       ! nitrogen deposition fluxes
       if(do_ndep) then
         sndepnoyflux = sum2d(bgct2d(:,:,jndepnoy))
-#ifdef extNcycle
+        if (use_extNcycle) then
           sndepnhxflux = sum2d(bgct2d(:,:,jndepnhx))
-#endif
+        endif
       endif
 
       ! River fluxes
@@ -387,11 +383,11 @@ contains
     else
       totalnitr = totalnitr + sn2flux*2+sn2oflux*2
     endif
-#ifdef extNcycle
+    if (use_extNcycle) then
       totalnitr = totalnitr + zocetratot(ianh4)+zocetratot(iano2)+snh3flux&
        &  - sndepnhxflux                                                  &
-       &  +zpowtratot(ipownh4)+zpowtratot(ipown2o)*2+zpowtratot(ipowno2) 
-#endif
+       &  +zpowtratot(ipownh4)+zpowtratot(ipown2o)*2+zpowtratot(ipowno2)
+    endif
 
     totalphos=                                                            &
          zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)               &
@@ -422,9 +418,9 @@ contains
     else
       totaloxy = totaloxy + so2flux+sn2oflux*0.5+co2flux
     endif
-#ifdef extNcycle
+    if (use_extNcycle) then
       totaloxy = totaloxy + zocetratot(iano2)+zpowtratot(ipown2o)*0.5+zpowtratot(ipowno2)
-#endif
+    endif
 
     if (do_rivinpt) then
       totalcarbon = totalcarbon- (srivflux(irdoc)+srivflux(irdet))*rcar                            &
@@ -597,9 +593,9 @@ contains
       ! write(io_stdo_bgc,*) 'O2 Flux  :',so2flux
       ! write(io_stdo_bgc,*) 'N2 Flux  :',sn2flux
       ! write(io_stdo_bgc,*) 'N2O Flux :',sn2oflux
-#ifdef extNcycle
-      ! write(io_stdo_bgc,*) 'NH3 Flux :',snh3flux
-#endif
+      if (use_extNcycle) then
+      !   write(io_stdo_bgc,*) 'NH3 Flux :',snh3flux
+      endif
       ! write(io_stdo_bgc,*) ' '
       if (use_BOXATM) then
         ! write(io_stdo_bgc,*) 'global atm. CO2[ppm] / kmol: ',                 &
@@ -617,9 +613,9 @@ contains
 
       if(do_ndep) then
         write(io_stdo_bgc,*) 'NdepNOyFlux :',sndepnoyflux
-#ifdef extNcycle
+        if (use_extNcycle) then
           write(io_stdo_bgc,*) 'NdepNHxFlux :',sndepnhxflux
-#endif
+        endif
       endif
 
       ! riverine fluxes
@@ -788,10 +784,10 @@ contains
 
       ! BROMO
       integer :: zt_bromo_varid,     zc_bromo_varid       ! Bromoform
-    
+
       ! extNcycle
-      integer :: zt_nh4_varid,       zc_nh4_varid         ! Ammonium (NH4+) 
-      integer :: zt_ano2_varid,      zc_ano2_varid        ! Nitrite (NO2-) 
+      integer :: zt_nh4_varid,       zc_nh4_varid         ! Ammonium (NH4+)
+      integer :: zt_ano2_varid,      zc_ano2_varid        ! Nitrite (NO2-)
 
       !--- sum of inventory
       integer :: totcarb_varid, totphos_varid, totsili_varid, totnitr_varid
@@ -1428,7 +1424,7 @@ contains
                &    'Mean bromoform concentration') )
           call nccheck( NF90_PUT_ATT(ncid, zc_bromo_varid, 'units', 'kmol/m^3') )
         endif
-#ifdef extNcycle
+        if (use_extNcycle) then
           call nccheck( NF90_DEF_VAR(ncid, 'zt_nh4', NF90_DOUBLE,                   &
                &    time_dimid, zt_nh4_varid) )
           call nccheck( NF90_PUT_ATT(ncid, zt_nh4_varid, 'long_name',               &
@@ -1440,7 +1436,7 @@ contains
           call nccheck( NF90_PUT_ATT(ncid, zc_nh4_varid, 'long_name',               &
                &    'Mean ammonium concentration') )
           call nccheck( NF90_PUT_ATT(ncid, zc_nh4_varid, 'units', 'kmol/m^3') )
-     
+
           call nccheck( NF90_DEF_VAR(ncid, 'zt_ano2', NF90_DOUBLE,                  &
                &    time_dimid, zt_ano2_varid) )
           call nccheck( NF90_PUT_ATT(ncid, zt_ano2_varid, 'long_name',              &
@@ -1452,7 +1448,7 @@ contains
           call nccheck( NF90_PUT_ATT(ncid, zc_ano2_varid, 'long_name',              &
                &    'Mean nitrite concentration') )
           call nccheck( NF90_PUT_ATT(ncid, zc_ano2_varid, 'units', 'kmol/m^3') )
-#endif
+        endif
         !--- Define variables : sum of inventory
         call nccheck( NF90_DEF_VAR(ncid, 'totcarb', NF90_DOUBLE, time_dimid,      &
              &    totcarb_varid) )
@@ -1647,12 +1643,12 @@ contains
           call nccheck( NF90_INQ_VARID(ncid, "zt_bromo", zt_bromo_varid) )
           call nccheck( NF90_INQ_VARID(ncid, "zc_bromo", zc_bromo_varid) )
         endif
-#ifdef extNcycle
+        if (use_extNcycle) then
           call nccheck( NF90_INQ_VARID(ncid, "zt_nh4", zt_nh4_varid) )
           call nccheck( NF90_INQ_VARID(ncid, "zc_nh4", zc_nh4_varid) )
           call nccheck( NF90_INQ_VARID(ncid, "zt_ano2", zt_ano2_varid) )
           call nccheck( NF90_INQ_VARID(ncid, "zc_ano2", zc_ano2_varid) )
-#endif
+        endif
         !--- Inquire varid : sum of inventory
         call nccheck( NF90_INQ_VARID(ncid, "totcarb", totcarb_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "totphos", totphos_varid) )
@@ -1882,7 +1878,7 @@ contains
         call nccheck( NF90_PUT_VAR(ncid, zc_bromo_varid,                             &
              &    zocetratoc(ibromo), start = wrstart) )
       endif
-#ifdef extNcycle
+      if (use_extNcycle) then
         call nccheck( NF90_PUT_VAR(ncid, zt_nh4_varid,                               &
              &    zocetratot(ianh4), start = wrstart) )
         call nccheck( NF90_PUT_VAR(ncid, zc_nh4_varid,                               &
@@ -1891,7 +1887,7 @@ contains
              &    zocetratot(iano2), start = wrstart) )
         call nccheck( NF90_PUT_VAR(ncid, zc_ano2_varid,                              &
              &    zocetratoc(iano2), start = wrstart) )
-#endif
+      endif
       !--- Write data : sum of inventory
       call nccheck( NF90_PUT_VAR(ncid, totcarb_varid, totalcarbon,                 &
            &    start = wrstart) )

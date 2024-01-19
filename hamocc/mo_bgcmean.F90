@@ -49,7 +49,7 @@ module mo_bgcmean
   use netcdf,         only: nf90_fill_double
   use mo_param1_bgc,  only: ks
   use mo_control_bgc, only: use_sedbypass,use_cisonew,use_CFC,use_natDIC,use_BROMO,use_BOXATM,     &
-                            use_AGG
+                            use_AGG,lm4ago,use_extNcycle
 
   implicit none
 
@@ -160,8 +160,8 @@ module mo_bgcmean
        & LYR_agg_ws    =0    ,LYR_dynvis    =0    ,LYR_agg_stick =0    ,  &
        & LYR_agg_stickf=0    ,LYR_agg_dmax  =0    ,LYR_agg_avdp  =0    ,  &
        & LYR_agg_avrhop=0    ,LYR_agg_avdC  =0    ,LYR_agg_df    =0    ,  &
-       & LYR_agg_b     =0    ,LYR_agg_Vrhof =0    ,LYR_agg_Vpor  =0    ,  &        
-       !========== LVLs 
+       & LYR_agg_b     =0    ,LYR_agg_Vrhof =0    ,LYR_agg_Vpor  =0    ,  &
+       !========== LVLs
        & LVL_PHYTO     =0    ,LVL_GRAZER    =0    ,LVL_DOC       =0    ,  &
        & LVL_PHOSY     =0    ,LVL_PHOSPH    =0    ,LVL_OXYGEN    =0    ,  &
        & LVL_IRON      =0    ,LVL_ANO3      =0    ,LVL_ALKALI    =0    ,  &
@@ -880,23 +880,23 @@ CONTAINS
         jsediffno3(n)=i_bsc_m2d*min(1,FLX_SEDIFFNO3(n))
         if (FLX_SEDIFFSI(n) > 0) i_bsc_m2d=i_bsc_m2d+1
         jsediffsi(n)=i_bsc_m2d*min(1,FLX_SEDIFFSI(n))
-        if (FLX_BURSSO12(n) > 0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_BURSSO12(n) > 0) i_bsc_m2d=i_bsc_m2d+1
         jburflxsso12(n)=i_bsc_m2d*min(1,FLX_BURSSO12(n))
-        if (FLX_BURSSSC12(n) > 0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_BURSSSC12(n) > 0) i_bsc_m2d=i_bsc_m2d+1
         jburflxsssc12(n)=i_bsc_m2d*min(1,FLX_BURSSSC12(n))
-        if (FLX_BURSSSSIL(n) > 0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_BURSSSSIL(n) > 0) i_bsc_m2d=i_bsc_m2d+1
         jburflxssssil(n)=i_bsc_m2d*min(1,FLX_BURSSSSIL(n))
-        if (FLX_BURSSSTER(n) > 0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_BURSSSTER(n) > 0) i_bsc_m2d=i_bsc_m2d+1
         jburflxssster(n)=i_bsc_m2d*min(1,FLX_BURSSSTER(n))
+        if (use_extNcycle) then
+          if (FLX_SEDIFFNH4(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+          jsediffnh4(n)=i_bsc_m2d*min(1,FLX_SEDIFFNH4(n))
+          if (FLX_SEDIFFN2O(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+          jsediffn2o(n)=i_bsc_m2d*min(1,FLX_SEDIFFN2O(n))
+          if (FLX_SEDIFFNO2(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+          jsediffno2(n)=i_bsc_m2d*min(1,FLX_SEDIFFNO2(n))
+        endif
       endif
-#if defined (extNcycle) && ! defined(sedbypass)
-        if (FLX_SEDIFFNH4(n) > 0) i_bsc_m2d=i_bsc_m2d+1 
-        jsediffnh4(n)=i_bsc_m2d*min(1,FLX_SEDIFFNH4(n))
-        if (FLX_SEDIFFN2O(n) > 0) i_bsc_m2d=i_bsc_m2d+1 
-        jsediffn2o(n)=i_bsc_m2d*min(1,FLX_SEDIFFN2O(n))
-        if (FLX_SEDIFFNO2(n) > 0) i_bsc_m2d=i_bsc_m2d+1 
-        jsediffno2(n)=i_bsc_m2d*min(1,FLX_SEDIFFNO2(n))
-#endif
       if (use_cisonew) then
         if (SRF_CO213FXD(n) > 0) i_bsc_m2d=i_bsc_m2d+1
         jco213fxd(n)=i_bsc_m2d*min(1,SRF_CO213FXD(n))
@@ -937,18 +937,18 @@ CONTAINS
         if (INT_BROMOUV(n) > 0) i_bsc_m2d=i_bsc_m2d+1
         jbromo_uv(n)=i_bsc_m2d*min(1,INT_BROMOUV(n))
       endif
-#ifdef extNcycle
-        if (SRF_ANH3FX(n) > 0) i_bsc_m2d=i_bsc_m2d+1 
+      if (use_extNcycle) then
+        if (SRF_ANH3FX(n) > 0) i_bsc_m2d=i_bsc_m2d+1
         janh3fx(n)=i_bsc_m2d*min(1,SRF_ANH3FX(n))
-        if (SRF_PNH3(n) > 0) i_bsc_m2d=i_bsc_m2d+1 
+        if (SRF_PNH3(n) > 0) i_bsc_m2d=i_bsc_m2d+1
         jsrfpnh3(n)=i_bsc_m2d*min(1,SRF_PNH3(n))
         if (SRF_ANH4(n) > 0) i_bsc_m2d=i_bsc_m2d+1
         jsrfanh4(n)=i_bsc_m2d*min(1,SRF_ANH4(n))
         if (SRF_ANO2(n) > 0) i_bsc_m2d=i_bsc_m2d+1
         jsrfano2(n)=i_bsc_m2d*min(1,SRF_ANO2(n))
-        if (FLX_NDEPNHX(n) > 0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_NDEPNHX(n) > 0) i_bsc_m2d=i_bsc_m2d+1
         jndepnhxfx(n)=i_bsc_m2d*min(1,FLX_NDEPNHX(n))
-#endif
+      endif
     enddo
 
     domassfluxes = any(                       &
@@ -979,12 +979,12 @@ CONTAINS
         if (SRF_ATMBROMO(n) > 0) i_atm_m2d=i_atm_m2d+1
         jatmbromo(n)=i_atm_m2d*min(1,SRF_ATMBROMO(n))
       endif
-#ifdef extNcycle
+      if (use_extNcycle) then
         if (SRF_ATMNH3(n) > 0) i_atm_m2d=i_atm_m2d+1
         jatmnh3(n)=i_atm_m2d*min(1,SRF_ATMNH3(n))
         if (SRF_ATMN2O(n) > 0) i_atm_m2d=i_atm_m2d+1
         jatmn2o(n)=i_atm_m2d*min(1,SRF_ATMN2O(n))
-#endif
+      endif
     enddo
     i_atm_m2d=i_atm_m2d-i_bsc_m2d
 
@@ -1109,7 +1109,7 @@ CONTAINS
         if (LYR_BROMO(n) > 0) i_bsc_m3d=i_bsc_m3d+1
         jbromo(n)=i_bsc_m3d*min(1,LYR_BROMO(n))
       endif
-#ifdef extNcycle
+      if (use_extNcycle) then
         if (LYR_ANH4(n) > 0) i_bsc_m3d=i_bsc_m3d+1
         janh4(n)=i_bsc_m3d*min(1,LYR_ANH4(n))
         if (LYR_ANO2(n) > 0) i_bsc_m3d=i_bsc_m3d+1
@@ -1144,7 +1144,8 @@ CONTAINS
         jremin_aerob(n)=i_bsc_m3d*min(1,LYR_remin_aerob(n))
         if (LYR_remin_sulf(n) > 0) i_bsc_m3d=i_bsc_m3d+1
         jremin_sulf(n)=i_bsc_m3d*min(1,LYR_remin_sulf(n))
-#endif
+      endif
+      if (lm4ago) then
         ! M4AGO
         if (LYR_agg_ws(n) > 0) i_bsc_m3d=i_bsc_m3d+1
         jagg_ws(n)=i_bsc_m3d*min(1,LYR_agg_ws(n))
@@ -1170,7 +1171,7 @@ CONTAINS
         jagg_Vrhof(n)=i_bsc_m3d*min(1,LYR_agg_Vrhof(n))
         if (LYR_agg_Vpor(n) > 0) i_bsc_m3d=i_bsc_m3d+1
         jagg_Vpor(n)=i_bsc_m3d*min(1,LYR_agg_Vpor(n))
-
+      endif
       if (LVL_PHYTO(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
       jlvlphyto(n)=ilvl_bsc_m3d*min(1,LVL_PHYTO(n))
       if (LVL_GRAZER(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
@@ -1285,7 +1286,7 @@ CONTAINS
         if (LVL_BROMO(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlbromo(n)=ilvl_bsc_m3d*min(1,LVL_BROMO(n))
       endif
-#ifdef extNcycle
+      if (use_extNcycle) then
         if (LVL_ANH4(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlanh4(n)=ilvl_bsc_m3d*min(1,LVL_ANH4(n))
         if (LVL_ANO2(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
@@ -1320,7 +1321,8 @@ CONTAINS
         jlvl_remin_aerob(n)=ilvl_bsc_m3d*min(1,LVL_remin_aerob(n))
         if (LVL_remin_sulf(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvl_remin_sulf(n)=ilvl_bsc_m3d*min(1,LVL_remin_sulf(n))
-#endif
+      endif
+      if (lm4ago) then
         ! M4AGO
         if (LVL_agg_ws(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvl_agg_ws(n)=ilvl_bsc_m3d*min(1,LVL_agg_ws(n))
@@ -1346,7 +1348,7 @@ CONTAINS
         jlvl_agg_Vrhof(n)=ilvl_bsc_m3d*min(1,LVL_agg_Vrhof(n))
         if (LVL_agg_Vpor(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvl_agg_Vpor(n)=ilvl_bsc_m3d*min(1,LVL_agg_Vpor(n))
-
+      endif
       if (i_bsc_m3d /= 0) checkdp(n)=1
     enddo
 
@@ -1397,43 +1399,43 @@ CONTAINS
         if (BUR_SSSTER(n) > 0) i_bsc_bur=i_bsc_bur+1
         jburssster(n)=i_bsc_bur*min(1,BUR_SSSTER(n))
       enddo
+      if (use_extNcycle) then
+        do n=1,nbgc
+          if (SDM_POWNH4(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jpownh4(n)=i_bsc_sed*min(1,SDM_POWNH4(n))
+          if (SDM_POWN2O(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jpown2o(n)=i_bsc_sed*min(1,SDM_POWN2O(n))
+          if (SDM_POWNO2(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jpowno2(n)=i_bsc_sed*min(1,SDM_POWNO2(n))
+          if (SDM_nitr_NH4(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_nitr_NH4(n)=i_bsc_sed*min(1,SDM_nitr_NH4(n))
+          if (SDM_nitr_NO2(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_nitr_NO2(n)=i_bsc_sed*min(1,SDM_nitr_NO2(n))
+          if (SDM_nitr_N2O_prod(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_nitr_N2O_prod(n)=i_bsc_sed*min(1,SDM_nitr_N2O_prod(n))
+          if (SDM_nitr_NH4_OM(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_nitr_NH4_OM(n)=i_bsc_sed*min(1,SDM_nitr_NH4_OM(n))
+          if (SDM_nitr_NO2_OM(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_nitr_NO2_OM(n)=i_bsc_sed*min(1,SDM_nitr_NO2_OM(n))
+          if (SDM_denit_NO3(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_denit_NO3(n)=i_bsc_sed*min(1,SDM_denit_NO3(n))
+          if (SDM_denit_NO2(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_denit_NO2(n)=i_bsc_sed*min(1,SDM_denit_NO2(n))
+          if (SDM_denit_N2O(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_denit_N2O(n)=i_bsc_sed*min(1,SDM_denit_N2O(n))
+          if (SDM_DNRA_NO2(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_DNRA_NO2(n)=i_bsc_sed*min(1,SDM_DNRA_NO2(n))
+          if (SDM_anmx_N2_prod(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_anmx_N2_prod(n)=i_bsc_sed*min(1,SDM_anmx_N2_prod(n))
+          if (SDM_anmx_OM_prod(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_anmx_OM_prod(n)=i_bsc_sed*min(1,SDM_anmx_OM_prod(n))
+          if (SDM_remin_aerob(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_remin_aerob(n)=i_bsc_sed*min(1,SDM_remin_aerob(n))
+          if (SDM_remin_sulf(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_remin_sulf(n)=i_bsc_sed*min(1,SDM_remin_sulf(n))
+        enddo
+      endif
     endif
-#if defined(extNcycle) && ! defined(sedbypass)
-      do n=1,nbgc
-        if (SDM_POWNH4(n) > 0) i_bsc_sed=i_bsc_sed+1
-        jpownh4(n)=i_bsc_sed*min(1,SDM_POWNH4(n))
-        if (SDM_POWN2O(n) > 0) i_bsc_sed=i_bsc_sed+1
-        jpown2o(n)=i_bsc_sed*min(1,SDM_POWN2O(n))
-        if (SDM_POWNO2(n) > 0) i_bsc_sed=i_bsc_sed+1
-        jpowno2(n)=i_bsc_sed*min(1,SDM_POWNO2(n))
-        if (SDM_nitr_NH4(n) > 0) i_bsc_sed=i_bsc_sed+1
-        jsdm_nitr_NH4(n)=i_bsc_sed*min(1,SDM_nitr_NH4(n))
-        if (SDM_nitr_NO2(n) > 0) i_bsc_sed=i_bsc_sed+1
-        jsdm_nitr_NO2(n)=i_bsc_sed*min(1,SDM_nitr_NO2(n))
-        if (SDM_nitr_N2O_prod(n) > 0) i_bsc_sed=i_bsc_sed+1
-        jsdm_nitr_N2O_prod(n)=i_bsc_sed*min(1,SDM_nitr_N2O_prod(n))
-        if (SDM_nitr_NH4_OM(n) > 0) i_bsc_sed=i_bsc_sed+1
-        jsdm_nitr_NH4_OM(n)=i_bsc_sed*min(1,SDM_nitr_NH4_OM(n))
-        if (SDM_nitr_NO2_OM(n) > 0) i_bsc_sed=i_bsc_sed+1
-        jsdm_nitr_NO2_OM(n)=i_bsc_sed*min(1,SDM_nitr_NO2_OM(n))
-        if (SDM_denit_NO3(n) > 0) i_bsc_sed=i_bsc_sed+1
-        jsdm_denit_NO3(n)=i_bsc_sed*min(1,SDM_denit_NO3(n))
-        if (SDM_denit_NO2(n) > 0) i_bsc_sed=i_bsc_sed+1
-        jsdm_denit_NO2(n)=i_bsc_sed*min(1,SDM_denit_NO2(n))
-        if (SDM_denit_N2O(n) > 0) i_bsc_sed=i_bsc_sed+1
-        jsdm_denit_N2O(n)=i_bsc_sed*min(1,SDM_denit_N2O(n))
-        if (SDM_DNRA_NO2(n) > 0) i_bsc_sed=i_bsc_sed+1
-        jsdm_DNRA_NO2(n)=i_bsc_sed*min(1,SDM_DNRA_NO2(n))
-        if (SDM_anmx_N2_prod(n) > 0) i_bsc_sed=i_bsc_sed+1
-        jsdm_anmx_N2_prod(n)=i_bsc_sed*min(1,SDM_anmx_N2_prod(n))
-        if (SDM_anmx_OM_prod(n) > 0) i_bsc_sed=i_bsc_sed+1
-        jsdm_anmx_OM_prod(n)=i_bsc_sed*min(1,SDM_anmx_OM_prod(n))
-        if (SDM_remin_aerob(n) > 0) i_bsc_sed=i_bsc_sed+1
-        jsdm_remin_aerob(n)=i_bsc_sed*min(1,SDM_remin_aerob(n))
-        if (SDM_remin_sulf(n) > 0) i_bsc_sed=i_bsc_sed+1
-        jsdm_remin_sulf(n)=i_bsc_sed*min(1,SDM_remin_sulf(n))
-      enddo
-#endif
     nbgcm2d    = i_bsc_m2d+i_atm_m2d
     nbgcm3d    = i_bsc_m3d
     nbgcm3dlvl = ilvl_bsc_m3d

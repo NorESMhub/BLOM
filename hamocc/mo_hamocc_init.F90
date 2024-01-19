@@ -44,7 +44,7 @@ contains
                               dtb,dtbgc,io_stdo_bgc,ldtbgc,                                        &
                               ldtrunbgc,ndtdaybgc,with_dmsph,l_3Dvarsedpor,lm4ago,                 &
                               do_ndep_coupled,leuphotic_cya,do_n2onh3_coupled,                     &
-                              ocn_co2_type, use_sedbypass, use_BOXATM, use_BROMO
+                              ocn_co2_type, use_sedbypass, use_BOXATM, use_BROMO,use_extNcycle
     use mo_param1_bgc,  only: ks,init_por2octra_mapping
     use mo_param_bgc,   only: ini_parambgc
     use mo_carbch,      only: alloc_mem_carbch,ocetra,atm,atm_co2
@@ -65,9 +65,8 @@ contains
     use mo_ini_fields,  only: ini_fields_ocean,ini_fields_atm
     use mo_aufr_bgc,    only: aufr_bgc
     use mo_m4ago,       only: alloc_mem_m4ago
-#ifdef extNcycle
-  use mo_extNsediment,only: alloc_mem_extNsediment_diag
-#endif
+    use mo_extNsediment,only: alloc_mem_extNsediment_diag
+
 
     ! Arguments
     integer,          intent(in) :: read_rest     ! flag indicating whether to read restart files.
@@ -81,8 +80,8 @@ contains
     namelist /bgcnml/ atm_co2,fedepfile,do_rivinpt,rivinfile,do_ndep,ndepfile,do_oalk,             &
          &            do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,                         &
          &            inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c,swaclimfile,       &
-         &            with_dmsph,pi_ph_file,l_3Dvarsedpor,sedporfile,ocn_co2_type,lm4ago,leuphotic_cya, &
-         &   do_ndep_coupled,do_n2onh3_coupled
+         &            with_dmsph,pi_ph_file,l_3Dvarsedpor,sedporfile,ocn_co2_type,lm4ago,          &
+         &            leuphotic_cya, do_ndep_coupled,do_n2onh3_coupled
     !
     ! --- Set io units and some control parameters
     !
@@ -141,9 +140,9 @@ contains
     call alloc_mem_sedmnt(idm,jdm)
     call alloc_mem_carbch(idm,jdm,kdm)
     call alloc_mem_M4AGO(idm,jdm,kdm)
-#if defined(extNcycle) && ! defined(sedbypass)
+    if (use_extNcycle .and. .not. use_sedbypass) then
       call alloc_mem_extNsediment_diag(idm,jdm,ks)
-#endif
+    endif
     !
     ! --- initialise trc array (two time levels)
     !

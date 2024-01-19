@@ -103,7 +103,7 @@ contains
     use mod_xc,         only: mnproc
     use mo_control_bgc, only: io_stdo_bgc
     use mo_param1_bgc,  only: nocetra,npowtra,nsedtra,natm,nriv
-    use mo_control_bgc, only: use_natDIC,use_cisonew
+    use mo_control_bgc, only: use_natDIC,use_cisonew,use_extNcycle
 
     integer, intent(in) :: kpie
     integer, intent(in) :: kpje
@@ -409,7 +409,7 @@ contains
       co214fxu(:,:) = 0.0
     endif
 
-#ifdef extNcycle
+    if (use_extNcycle) then
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable pnh3 ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
@@ -418,7 +418,7 @@ contains
       allocate (pnh3(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory pnh3'
       pnh3(:,:) = 0.0
-      
+
       ! Allocate field to hold N-deposition NHx fluxes per timestep for inventory caluclations
       if (mnproc.eq.1) then
        write(io_stdo_bgc,*)'Memory allocation for variable ndepnhxflx ...'
@@ -428,7 +428,7 @@ contains
       allocate (ndepnhxflx(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory ndepnhxflx'
       ndepnhxflx(:,:) = 0.0
-#endif
+    endif
 
   end subroutine alloc_mem_carbch
   !*************************************************************************************************

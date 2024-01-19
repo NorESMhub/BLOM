@@ -81,28 +81,27 @@ contains
                                 carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,carflx_bot, &
                                 expoor,exposi,expoca,intdnit,intdms_bac,intdmsprod,intdms_uv,      &
                                 intphosy,int_chbr3_prod,int_chbr3_uv,                              &
-                                phosy3d,abs_oce,strahl,asize3d,wmass,wnumb,eps3d
+                                phosy3d,abs_oce,strahl,asize3d,wmass,wnumb,eps3d,phosy_NH4,        &
+                                phosy_NO3, remin_aerob,remin_sulf
     use mo_param1_bgc,    only: ialkali,ian2o,iano3,icalc,idet,idms,idoc,ifdust,                   &
                                 igasnit,iiron,iopal,ioxygen,iphosph,iphy,isco212,                  &
                                 isilica,izoo,iadust,inos,ibromo,                                   &
                                 icalc13,icalc14,idet13,idet14,idoc13,idoc14,                       &
                                 iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv,               &
-                                inatalkali,inatcalc,inatsco212
+                                inatalkali,inatcalc,inatsco212,ianh4
     use mo_control_bgc,   only: dtb,io_stdo_bgc,with_dmsph,                                        &
                                 use_BROMO,use_AGG,use_PBGC_OCNP_TIMESTEP,use_FB_BGC_OCE,           &
-                                use_AGG,use_cisonew,use_natDIC, use_WLIN,use_sedbypass,lm4ago
+                                use_AGG,use_cisonew,use_natDIC, use_WLIN,use_sedbypass,lm4ago,     &
+                                use_extNcycle
     use mo_vgrid,         only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000,kwrbioz,ptiestu
     use mo_vgrid,         only: kmle
     use mo_clim_swa,      only: swa_clim
     use mo_inventory_bgc, only: inventory_bgc
     use mo_m4ago,         only: mean_aggregate_sinking_speed,ws_agg,POM_remin_q10,POM_remin_Tref,  &
                                 opal_remin_q10,opal_remin_Tref
-#ifdef extNcycle
-    use mo_extNwatercol,only: nitrification,denit_NO3_to_NO2,anammox,denit_dnra,extN_inv_check
-    use mo_extNwatercol,only: bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo
-    use mo_param1_bgc,  only: ianh4
-    use mo_biomod,      only: phosy_NH4, phosy_NO3, remin_aerob,remin_sulf
-#endif
+    use mo_extNwatercol,  only: nitrification,denit_NO3_to_NO2,anammox,denit_dnra,extN_inv_check
+    use mo_extNwatercol,  only: bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo
+
 
     ! Arguments
     integer, intent(in) :: kpie                                         ! 1st dimension of model grid.
@@ -178,10 +177,9 @@ contains
     ! BROMO
     real :: bro_beta,bro_uv
     real :: abs_uv(kpie,kpje,kpke)
-#ifdef extNcycle
+    ! extNcycle
     character(len=:), allocatable :: inv_message
-    real :: ano3up_inh,nutlim,anh4lim,nlim,grlim,nh4uptfrac 
-#endif
+    real :: ano3up_inh,nutlim,anh4lim,nlim,grlim,nh4uptfrac
 
     ! set variables for diagnostic output to zero
     expoor    (:,:) = 0.
@@ -217,12 +215,12 @@ contains
       eps3d(:,:,:)    = 0.
       asize3d(:,:,:)  = 0.
     endif
-#ifdef extNcycle
+    if (use_extNcycle) then
       phosy_NH4(:,:,:)   = 0.
       phosy_NO3(:,:,:)   = 0.
       remin_aerob(:,:,:) = 0.
       remin_sulf(:,:,:)  = 0.
-#endif
+    endif
 
     if (use_PBGC_OCNP_TIMESTEP) then
       if (mnproc == 1) then
@@ -285,8 +283,8 @@ contains
     !$OMP END PARALLEL DO
 
     if (lm4ago) then
-      ! even though we loose detritus, etc. we call the calculation for settling velocity by M4AGO here 
-      ! to enable further future development... - assuming that the operator splitting decently functions 
+      ! even though we loose detritus, etc. we call the calculation for settling velocity by M4AGO here
+      ! to enable further future development... - assuming that the operator splitting decently functions
       call mean_aggregate_sinking_speed(kpie, kpje, kpke, kbnd, pddpo, omask, ptho, psao, ppao, prho)
     endif
 
@@ -302,9 +300,7 @@ contains
     !$OMP  ,delcar13,delcar14,dtr13,dtr14,bifr13,bifr14,bifr13_perm       &
     !$OMP  ,growth_co2,phygrowth                                          &
     !$OMP  ,bro_beta,bro_uv                                               &
-#ifdef extNcycle
-    !$OMP  , ano3up_inh,nutlim,anh4lim,nlim,grlim,nh4uptfrac              &
-#endif
+    !$OMP  ,ano3up_inh,nutlim,anh4lim,nlim,grlim,nh4uptfrac               &
     !$OMP  ,i,k)
 
     loop1: do j = 1,kpje
@@ -329,28 +325,29 @@ contains
             avgra = max(grami,ocetra(i,j,k,izoo))                     ! 'available' zooplankton
             avsil = max(0.,ocetra(i,j,k,isilica))
             avdic = max(0.,ocetra(i,j,k,isco212))
-#ifdef extNcycle
-              ano3up_inh = bkphyanh4/(bkphyanh4 + ocetra(i,j,k,ianh4)) ! inhibition of NO3 uptake 
-              nutlim     = min(ocetra(i,j,k,iphosph)/(ocetra(i,j,k,iphosph)+bkphosph),ocetra(i,j,k,iiron)/(ocetra(i,j,k,iiron)+bkiron))
+            if (use_extNcycle)then
+              ano3up_inh = bkphyanh4/(bkphyanh4 + ocetra(i,j,k,ianh4)) ! inhibition of NO3 uptake
+              nutlim     = min(ocetra(i,j,k,iphosph)/(ocetra(i,j,k,iphosph)+bkphosph),                              &
+                               ocetra(i,j,k,iiron)/(ocetra(i,j,k,iiron)+bkiron))
               anh4lim    = ocetra(i,j,k,ianh4)/(ocetra(i,j,k,ianh4) + bkphyanh4)
               nlim       = ano3up_inh*ocetra(i,j,k,iano3)/(ocetra(i,j,k,iano3) +  bkphyano3) + anh4lim
               grlim      = min(nutlim,nlim) ! growth limitation
 
               nh4uptfrac = 1.
-              if(nlim .gt. 1.e-18) nh4uptfrac = anh4lim/nlim  
+              if(nlim .gt. 1.e-18) nh4uptfrac = anh4lim/nlim
               ! re-check avnut - can sum N avail exceed indiv. contrib?
               avanut     = max(0.,min(ocetra(i,j,k,iphosph), ocetra(i,j,k,iiron)/riron,                              &
                          &        rnoi*((1.-nh4uptfrac)*ocetra(i,j,k,iano3) + nh4uptfrac*ocetra(i,j,k,ianh4))))
 
-              xn         = avphy/(1. - pho*grlim)      ! phytoplankton growth 
+              xn         = avphy/(1. - pho*grlim)       ! phytoplankton growth
               phosy      = max(0.,min(xn-avphy,avanut)) ! limit PP growth to available nutr.
-#else
-            avanut = max(0.,min(ocetra(i,j,k,iphosph),rnoi*ocetra(i,j,k,iano3)))
-            avanfe = max(0.,min(avanut,ocetra(i,j,k,iiron)/riron))
-            xa = avanfe
-            xn = xa/(1.+pho*avphy/(xa+bkphy))
-            phosy = max(0.,xa-xn)
-#endif
+            else
+              avanut = max(0.,min(ocetra(i,j,k,iphosph),rnoi*ocetra(i,j,k,iano3)))
+              avanfe = max(0.,min(avanut,ocetra(i,j,k,iiron)/riron))
+              xa = avanfe
+              xn = xa/(1.+pho*avphy/(xa+bkphy))
+              phosy = max(0.,xa-xn)
+            endif
             phosy = MERGE(avdic/rcar, phosy, avdic <= rcar*phosy)     ! limit phosy by available DIC
             ya = avphy+phosy
             yn = (ya+grazra*avgra*phytomi/(avphy+bkzoo))/(1.+grazra*avgra/(avphy+bkzoo))
@@ -450,16 +447,16 @@ contains
             dtr = bacfra-phosy+graton+ecan*zoomor
 
             ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+dtr
-#ifndef extNcycle
+            if (.not. use_extNcycle) then
               ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)+dtr*rnit
               ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)-2.*delcar-(rnit+1)*dtr
               ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen)-dtr*ro2ut
-#else
+            else
               ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3) - (1.-nh4uptfrac)*phosy*rnit
               ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4) - nh4uptfrac*phosy*rnit + (dtr+phosy)*rnit
-              ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - nh4uptfrac*phosy*(rnit-1.)             & ! NH4 + PO4 Uptake  
+              ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - nh4uptfrac*phosy*(rnit-1.)             & ! NH4 + PO4 Uptake
                                     &                       + (1.-nh4uptfrac)*phosy*(rnit+1.)        & ! NO3 + PO4 Uptake
-                                    &                       + (dtr+phosy)*(rnit-1.)  - 2.*delcar       ! Remin to (NH4 + PO4) and CaCO3 formation 
+                                    &                       + (dtr+phosy)*(rnit-1.)  - 2.*delcar       ! Remin to (NH4 + PO4) and CaCO3 formation
               ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) + nh4uptfrac*phosy*ro2utammo             & ! NH4 uptake
                                     &                       + (1.-nh4uptfrac)*phosy*ro2ut            & ! NO3 uptake
                                     &                       - (dtr+phosy)*ro2utammo                    ! Remin to NH4
@@ -467,7 +464,7 @@ contains
               phosy_NH4(i,j,k)   =  nh4uptfrac*phosy*rnit      ! kmol N/m3/dtb - NH4 uptake during PP growth
               phosy_NO3(i,j,k)   = (1.-nh4uptfrac)*phosy*rnit  ! kmol N/m3/dtb - NO3 uptake during PP growth
               remin_aerob(i,j,k) = (dtr+phosy)*rnit            ! kmol N/m3/dtb - Aerob remin to ammonium  (var. sources)
-#endif
+            endif
             ocetra(i,j,k,idet) = ocetra(i,j,k,idet)+export
             ocetra(i,j,k,idms) = ocetra(i,j,k,idms)+dmsprod-dms_bac-dms_uv
             ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)-delcar+rcar*dtr
@@ -635,27 +632,27 @@ contains
 
             if(ocetra(i,j,k,ioxygen) > 5.e-8) then
               if(lm4ago) then
-#ifndef extNcycle
+                if (.not. use_extNcycle) then
                   ! M4AGO comes with O2-lim
                   o2lim  = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkox_drempoc)
                   pocrem = o2lim*drempoc*POM_remin_q10**((ptho(i,j,k)-POM_remin_Tref)/10.)*ocetra(i,j,k,idet)
-#else
-                  ! nitrogen always accounts for O2-lim - see below 
+                else
+                  ! nitrogen always accounts for O2-lim - see below
                   pocrem = drempoc*POM_remin_q10**((ptho(i,j,k)-POM_remin_Tref)/10.)*ocetra(i,j,k,idet)
-#endif
+                endif
               else
                 pocrem = drempoc*ocetra(i,j,k,idet)
-              endif 
-#ifndef extNcycle
-                pocrem = MIN(pocrem,0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-                docrem = MIN( remido*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-                phyrem = MIN(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-#else
+              endif
+              if (.not. use_extNcycle) then
+                pocrem = min(pocrem,0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+                docrem = min( remido*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+                phyrem = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+              else
                 o2lim  = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkox_drempoc)
-                pocrem = MIN(o2lim*pocrem,0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
-                docrem = MIN(remido*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
-                phyrem = MIN(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
-#endif
+                pocrem = min(o2lim*pocrem,0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
+                docrem = min(remido*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
+                phyrem = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
+              endif
 
               if (use_cisonew) then
                 pocrem13 = pocrem*rdet13
@@ -686,17 +683,17 @@ contains
             remin = pocrem + docrem + phyrem
 
             ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+remin
-#ifndef extNcycle
+            if (.not. use_extNcycle) then
               ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)+remin*rnit
               ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)-(rnit+1)*remin
               ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen)-ro2ut*remin
-#else
+            else
               ocetra(i,j,k,ianh4) = ocetra(i,j,k,ianh4) + remin*rnit
               ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + (rnit-1.)*remin
               ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - ro2utammo*remin
               remin_aerob(i,j,k)  = remin*rnit ! kmol/NH4/dtb - remin to NH4 from various sources
-#endif
-        ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+rcar*remin
+            endif
+            ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+rcar*remin
             ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+remin*riron           &
                  &             -relaxfe*max(ocetra(i,j,k,iiron)-fesoly,0.)
             if (use_natDIC) then
@@ -720,25 +717,25 @@ contains
             ! so the expression dremopal*(Si(OH)4sat-Si(OH)4) would change the
             ! rate only from 0 to 100%
             !***********************************************************************
-            if(lm4ago)then
+            if (lm4ago) then
               opalrem = dremopal*opal_remin_q10**((ptho(i,j,k)-opal_remin_Tref)/10.)*ocetra(i,j,k,iopal)
             else
               opalrem = dremopal*0.1*(temp+3.)*ocetra(i,j,k,iopal)
-            endif 
+            endif
             ocetra(i,j,k,iopal) = ocetra(i,j,k,iopal)-opalrem
             ocetra(i,j,k,isilica) = ocetra(i,j,k,isilica)+opalrem
 
-#ifndef extNcycle
-            !***********************************************************************
-            !           There is about 1.e4 O2 on 1 N2O molecule (Broeker&Peng)
-            !           refra : Tim Rixton, private communication
-            !***********************************************************************
-            aou = satoxy(i,j,k)-ocetra(i,j,k,ioxygen)
-            refra = 1.+3.*(0.5+sign(0.5,aou-1.97e-4))
-            ocetra(i,j,k,ian2o) = ocetra(i,j,k,ian2o)+remin*1.e-4*ro2ut*refra
-            ocetra(i,j,k,igasnit) = ocetra(i,j,k,igasnit)-remin*1.e-4*ro2ut*refra
-            ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen)-remin*1.e-4*ro2ut*refra*0.5
-#endif
+            if (.not. use_extNcycle) then
+              !***********************************************************************
+              !           There is about 1.e4 O2 on 1 N2O molecule (Broeker&Peng)
+              !           refra : Tim Rixton, private communication
+              !***********************************************************************
+              aou = satoxy(i,j,k)-ocetra(i,j,k,ioxygen)
+              refra = 1.+3.*(0.5+sign(0.5,aou-1.97e-4))
+              ocetra(i,j,k,ian2o) = ocetra(i,j,k,ian2o)+remin*1.e-4*ro2ut*refra
+              ocetra(i,j,k,igasnit) = ocetra(i,j,k,igasnit)-remin*1.e-4*ro2ut*refra
+              ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen)-remin*1.e-4*ro2ut*refra*0.5
+            endif
 
             dms_bac = dmsp3 * dtb * abs(temp+3.) * ocetra(i,j,k,idms)               &
                     &    * (ocetra(i,j,k,idms) / (dmsp6+ocetra(i,j,k,idms)))
@@ -780,93 +777,92 @@ contains
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
 
-#ifndef extNcycle
-! =====>>>> Regular CMIP6 iHAMOCC version for denitrification wo extended nitrogen cycle =====>>>> 
-    !$OMP PARALLEL DO PRIVATE(remin,remin2o,dz,avmass,avnos,rem13,rem14,i,k)
-    loop3: do j = 1,kpje
-      do i = 1,kpie
-        do k = kwrbioz(i,j)+1,kpke
-          if(omask(i,j) > 0.5) then
-            if(ocetra(i,j,k,ioxygen) < 5.e-7 .and. pddpo(i,j,k) > dp_min) then
-              if (use_AGG) then
-                avmass = ocetra(i,j,k,iphy) + ocetra(i,j,k,idet)
-              endif
-
-              remin   = drempoc_anaerob*min(ocetra(i,j,k,idet),0.5   *ocetra(i,j,k,iano3)/rdnit1)
-              remin2o =      dremn2o*min(ocetra(i,j,k,idet),0.003 *ocetra(i,j,k,ian2o)/rdn2o1)
-
-              if (use_cisonew) then
-                rem13 = (remin+remin2o)*ocetra(i,j,k,idet13)/(ocetra(i,j,k,idet)+safediv)
-                rem14 = (remin+remin2o)*ocetra(i,j,k,idet14)/(ocetra(i,j,k,idet)+safediv)
-              endif
-              ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)+(rdnit1-1)*remin-remin2o
-              ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+rcar*(remin+remin2o)
-              ocetra(i,j,k,idet) = ocetra(i,j,k,idet)-(remin+remin2o)
-              ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+(remin+remin2o)
-              ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)-rdnit1*remin
-              ocetra(i,j,k,igasnit) = ocetra(i,j,k,igasnit)+rdnit2*remin+rdn2o2*remin2o
-              ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+riron*(remin+remin2o)
-              ocetra(i,j,k,ian2o) = ocetra(i,j,k,ian2o)-rdn2o1*remin2o
-              if (use_natDIC) then
-                ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)+(rdnit1-1)*remin-remin2o
-                ocetra(i,j,k,inatsco212) = ocetra(i,j,k,inatsco212)+rcar*(remin+remin2o)
-              endif
-              if (use_cisonew) then
-                ocetra(i,j,k,isco213) = ocetra(i,j,k,isco213)+rcar*rem13
-                ocetra(i,j,k,isco214) = ocetra(i,j,k,isco214)+rcar*rem14
-                ocetra(i,j,k,idet13) = ocetra(i,j,k,idet13)-rem13
-                ocetra(i,j,k,idet14) = ocetra(i,j,k,idet14)-rem14
-              endif
-
-              ! nitrate loss through denitrification in kmol N m-2
-              dz = pddpo(i,j,k)
-              intdnit(i,j) = intdnit(i,j) + rdnit0*remin*dz
-
-              if (use_AGG) then
-                !***********************************************************************
-                ! loss of snow numbers due to remineralization of poc
-                ! NOTE that remin is in kmol/m3. Thus divide by avmass (kmol/m3)
-                !***********************************************************************
-                if(avmass > 0.) then
-                  avnos = ocetra(i,j,k,inos)
-                  ocetra(i,j,k,inos) = ocetra(i,j,k,inos)-(remin+remin2o)*avnos/avmass
+    if (.not. use_extNcycle) then
+      ! =====>>>> Regular CMIP6 iHAMOCC version for denitrification wo extended nitrogen cycle =====>>>> 
+      !$OMP PARALLEL DO PRIVATE(remin,remin2o,dz,avmass,avnos,rem13,rem14,i,k)
+      loop3: do j = 1,kpje
+        do i = 1,kpie
+          do k = kwrbioz(i,j)+1,kpke
+            if(omask(i,j) > 0.5) then
+              if(ocetra(i,j,k,ioxygen) < 5.e-7 .and. pddpo(i,j,k) > dp_min) then
+                if (use_AGG) then
+                  avmass = ocetra(i,j,k,iphy) + ocetra(i,j,k,idet)
                 endif
-              endif/*AGG*/
 
+                remin   = drempoc_anaerob*min(ocetra(i,j,k,idet),0.5   *ocetra(i,j,k,iano3)/rdnit1)
+                remin2o =      dremn2o*min(ocetra(i,j,k,idet),0.003 *ocetra(i,j,k,ian2o)/rdn2o1)
+
+                if (use_cisonew) then
+                  rem13 = (remin+remin2o)*ocetra(i,j,k,idet13)/(ocetra(i,j,k,idet)+safediv)
+                  rem14 = (remin+remin2o)*ocetra(i,j,k,idet14)/(ocetra(i,j,k,idet)+safediv)
+                endif
+                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)+(rdnit1-1)*remin-remin2o
+                ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+rcar*(remin+remin2o)
+                ocetra(i,j,k,idet) = ocetra(i,j,k,idet)-(remin+remin2o)
+                ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+(remin+remin2o)
+                ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)-rdnit1*remin
+                ocetra(i,j,k,igasnit) = ocetra(i,j,k,igasnit)+rdnit2*remin+rdn2o2*remin2o
+                ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+riron*(remin+remin2o)
+                ocetra(i,j,k,ian2o) = ocetra(i,j,k,ian2o)-rdn2o1*remin2o
+                if (use_natDIC) then
+                  ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)+(rdnit1-1)*remin-remin2o
+                  ocetra(i,j,k,inatsco212) = ocetra(i,j,k,inatsco212)+rcar*(remin+remin2o)
+                endif
+                if (use_cisonew) then
+                  ocetra(i,j,k,isco213) = ocetra(i,j,k,isco213)+rcar*rem13
+                  ocetra(i,j,k,isco214) = ocetra(i,j,k,isco214)+rcar*rem14
+                  ocetra(i,j,k,idet13) = ocetra(i,j,k,idet13)-rem13
+                  ocetra(i,j,k,idet14) = ocetra(i,j,k,idet14)-rem14
+                endif
+
+                ! nitrate loss through denitrification in kmol N m-2
+                dz = pddpo(i,j,k)
+                intdnit(i,j) = intdnit(i,j) + rdnit0*remin*dz
+
+                if (use_AGG) then
+                  !***********************************************************************
+                  ! loss of snow numbers due to remineralization of poc
+                  ! NOTE that remin is in kmol/m3. Thus divide by avmass (kmol/m3)
+                  !***********************************************************************
+                  if(avmass > 0.) then
+                    avnos = ocetra(i,j,k,inos)
+                    ocetra(i,j,k,inos) = ocetra(i,j,k,inos)-(remin+remin2o)*avnos/avmass
+                  endif
+                endif/*AGG*/
+
+              endif
             endif
-          endif
+          enddo
         enddo
-      enddo
-    enddo loop3
-    !$OMP END PARALLEL DO
+      enddo loop3
+      !$OMP END PARALLEL DO
 
-
-    if (use_PBGC_OCNP_TIMESTEP) then
-      if (mnproc == 1) then
-        write(io_stdo_bgc,*)' '
-        write(io_stdo_bgc,*)'in OCRPOD after remin n2o'
+      if (use_PBGC_OCNP_TIMESTEP) then
+        if (mnproc == 1) then
+          write(io_stdo_bgc,*)' '
+          write(io_stdo_bgc,*)'in OCRPOD after remin n2o'
+        endif
+        call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
       endif
-      call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-    endif
-! <<<<===== end of CMIP6 version denitrification processes without extended nitrogen cycle <<<<===== 
-#else
-    !======>>>> extended nitrogen cycle processes (aerobic and anaerobic) that follow ammonification
-    inv_message = 'in OCPROD after extNcycle nitrification'
-    CALL nitrification(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
-    CALL extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
+      ! <<<<===== end of CMIP6 version denitrification processes without extended nitrogen cycle <<<<=====
+    else
+      !======>>>> extended nitrogen cycle processes (aerobic and anaerobic) that follow ammonification
+      inv_message = 'in OCPROD after extNcycle nitrification'
+      call nitrification(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
+      call extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
 
-    inv_message = 'in OCPROD after extNcycle denitrification NO3 -> NO2'
-    CALL denit_NO3_to_NO2(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
-    CALL extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
-  
-    inv_message = 'in OCPROD after extNcycle anammox'
-    CALL anammox(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
-    CALL extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
-  
-    inv_message = 'in OCPROD after extNcycle denitrification / DNRA'
-    CALL denit_dnra(kpie,kpje,kpke,kbnd,pddpo,omask,ptho) 
-    CALL extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
-#endif
+      inv_message = 'in OCPROD after extNcycle denitrification NO3 -> NO2'
+      call denit_NO3_to_NO2(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
+      call extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
+
+      inv_message = 'in OCPROD after extNcycle anammox'
+      call anammox(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
+      call extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
+
+      inv_message = 'in OCPROD after extNcycle denitrification / DNRA'
+      call denit_dnra(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
+      call extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
+    endif
 
     !sulphate reduction   ! introduced 11.5.2007 to improve poc-remineralisation in the
     !                       oxygen minimum zone in the subsurface equatorial Pacific
@@ -907,10 +903,10 @@ contains
                 ocetra(i,j,k,isco213) = ocetra(i,j,k,isco213)+rcar*rem13
                 ocetra(i,j,k,isco214) = ocetra(i,j,k,isco214)+rcar*rem14
               endif
-#ifdef extNcycle
-             ! Output
-             remin_sulf(i,j,k) = remin ! kmol P/m3/dtb
-#endif
+              if (use_extNcycle) then
+                ! Output
+                remin_sulf(i,j,k) = remin ! kmol P/m3/dtb
+              endif
               if (use_AGG) then
                 !***********************************************************************
                 ! loss of snow numbers due to remineralization of poc

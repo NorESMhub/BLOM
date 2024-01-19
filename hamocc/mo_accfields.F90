@@ -45,14 +45,17 @@ contains
                                 ndepnoyflx,rivinflx,oalkflx,ocetra,omegaa,omegac,pco2d,            &
                                 satoxy,sedfluxo,sedfluxb,pco2m,kwco2d,co2sold,co2solm,pn2om,       &
                                 co213fxd,co213fxu,co214fxd,co214fxu,                               &
-                                natco3,nathi,natomegaa,natomegac,natpco2d
+                                natco3,nathi,natomegaa,natomegac,natpco2d,pnh3,ndepnhxflx
     use mo_biomod,        only: bsiflx_bot,bsiflx0100,bsiflx0500,bsiflx1000,                       &
                                 bsiflx2000,bsiflx4000,calflx_bot,calflx0100,calflx0500,            &
                                 calflx1000,calflx2000,calflx4000,carflx_bot,carflx0100,            &
                                 carflx0500,carflx1000,carflx2000,carflx4000,                       &
                                 expoca,expoor,exposi,intdms_bac,intdms_uv,intdmsprod,              &
                                 intdnit,intnfix,intphosy,phosy3d,                                  &
-                                int_chbr3_prod,int_chbr3_uv,asize3d,eps3d,wnumb,wmass
+                                int_chbr3_prod,int_chbr3_uv,asize3d,eps3d,wnumb,wmass,             &
+                                nitr_NH4,nitr_NO2,nitr_N2O_prod,nitr_NH4_OM,nitr_NO2_OM,denit_NO3, &
+                                denit_NO2,denit_N2O,DNRA_NO2,anmx_N2_prod,anmx_OM_prod,phosy_NH4,  &
+                                phosy_NO3,remin_aerob,remin_sulf
     use mo_param_bgc,     only: c14fac,re1312,re14to
     use mo_bgcmean,       only: domassfluxes,jalkali,jano3,jasize,jatmco2,                         &
                                 jbsiflx0100,jbsiflx0500,jbsiflx1000,jbsiflx2000,                   &
@@ -113,7 +116,17 @@ contains
                                 jlvl_agg_ws,jlvl_dynvis,jlvl_agg_stick,jlvl_agg_stickf,            &
                                 jlvl_agg_dmax,jlvl_agg_avdp,jlvl_agg_avrhop,jlvl_agg_avdC,         &
                                 jlvl_agg_df,jlvl_agg_b,jlvl_agg_Vrhof,jlvl_agg_Vpor,               &
-                                jprefsilica,jlvlprefsilica
+                                jprefsilica,jlvlprefsilica,                                        &
+                                jnh3flux,janh3fx,janh4,jano2,jsrfanh4,jsrfano2,jsrfpnh3,           &
+                                jnitr_NH4,jnitr_NO2,jnitr_N2O_prod,jnitr_NH4_OM,jnitr_NO2_OM,      &
+                                jdenit_NO3,jdenit_NO2,jdenit_N2O,jDNRA_NO2,janmx_N2_prod,          &
+                                janmx_OM_prod,jphosy_NH4,jphosy_NO3,jremin_aerob,jremin_sulf,      &
+                                jpownh4,jpown2o,jpowno2,jsdm_nitr_NH4,jsdm_nitr_NO2,               &
+                                jsdm_nitr_N2O_prod,jsdm_nitr_NH4_OM,jsdm_nitr_NO2_OM,              &
+                                jsdm_denit_NO3,jsdm_denit_NO2,jsdm_denit_N2O,jsdm_DNRA_NO2,        &
+                                jsdm_anmx_N2_prod,jsdm_anmx_OM_prod,jsdm_remin_aerob,              &
+                                jsdm_remin_sulf,jsediffnh4,jsediffn2o,jsediffno2,jatmn2o,jatmnh3,  &
+                                jndepnhxfx
     use mo_control_bgc,   only: io_stdo_bgc,dtb,use_BROMO,use_AGG,use_WLIN,use_natDIC,             &
                                 use_CFC,use_sedbypass,use_cisonew,use_BOXATM,lm4ago,use_extNcycle
     use mo_param1_bgc,    only: ialkali,ian2o,iano3,iatmco2,iatmdms,iatmn2,iatmn2o,iatmo2,         &
@@ -127,7 +140,8 @@ contains
                                 iatmnco2,inatalkali,inatcalc,inatsco212,                           &
                                 ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,                           &
                                 ipown2,ipowno3,isssc12,issso12,issssil,issster,                    &
-                                issso12,isssc12,issssil,issster,iprefsilica
+                                issso12,isssc12,issssil,issster,iprefsilica,iatmnh3,ianh4,iano2,   &
+                                ipownh4,ipown2o,ipowno2
     use mo_sedmnt,        only: powtra,sedlay,burial
     use mo_vgrid,         only: dp_min
     use mo_inventory_bgc, only: inventory_bgc
@@ -135,22 +149,10 @@ contains
     use mo_m4ago,         only: aggregate_diagnostics,kav_dp,kav_rho_p,kav_d_C,kws_agg,kdf_agg,    &
                                 kstickiness_agg,kb_agg,kstickiness_frustule,kLmax_agg,kdynvis,     &
                                 kav_rhof_V,kav_por_V
-#ifdef extNcycle
-      use mo_carbch,     only: pnh3,ndepnhxflx
-      use mo_param1_bgc, only: iatmnh3,ianh4,iano2,ipownh4,ipown2o,ipowno2
-      use mo_bgcmean,    only: jnh3flux,janh3fx,janh4,jano2,jsrfanh4,jsrfano2,jsrfpnh3,                                           &
-                             & jnitr_NH4,jnitr_NO2,jnitr_N2O_prod,jnitr_NH4_OM,jnitr_NO2_OM,jdenit_NO3,jdenit_NO2,jdenit_N2O,      &
-                             & jDNRA_NO2,janmx_N2_prod,janmx_OM_prod,jphosy_NH4,jphosy_NO3,jremin_aerob,jremin_sulf,               &
-                             & jpownh4,jpown2o,jpowno2,jsdm_nitr_NH4,jsdm_nitr_NO2,jsdm_nitr_N2O_prod,jsdm_nitr_NH4_OM,            &
-                             & jsdm_nitr_NO2_OM,jsdm_denit_NO3,jsdm_denit_NO2,jsdm_denit_N2O,jsdm_DNRA_NO2,jsdm_anmx_N2_prod,      &
-                             & jsdm_anmx_OM_prod,jsdm_remin_aerob,jsdm_remin_sulf,jsediffnh4,jsediffn2o,jsediffno2,jatmn2o,jatmnh3,&
-                             & jndepnhxfx
-      use mo_biomod,     only: nitr_NH4,nitr_NO2,nitr_N2O_prod,nitr_NH4_OM,nitr_NO2_OM,denit_NO3,denit_NO2,denit_N2O,DNRA_NO2,     &
-                             & anmx_N2_prod,anmx_OM_prod,phosy_NH4,phosy_NO3,remin_aerob,remin_sulf
-      use mo_extNsediment,only: extNsed_diagnostics,ised_nitr_NH4,ised_nitr_NO2,ised_nitr_N2O_prod,ised_nitr_NH4_OM,               &
-                             & ised_nitr_NO2_OM,ised_denit_NO3,ised_denit_NO2,ised_denit_N2O,ised_DNRA_NO2,ised_anmx_N2_prod,      &
-                             & ised_anmx_OM_prod,ised_remin_aerob,ised_remin_sulf
-#endif
+    use mo_extNsediment,  only: extNsed_diagnostics,ised_nitr_NH4,ised_nitr_NO2,ised_nitr_N2O_prod,&
+                                ised_nitr_NH4_OM,ised_nitr_NO2_OM,ised_denit_NO3,ised_denit_NO2,   &
+                                ised_denit_N2O,ised_DNRA_NO2,ised_anmx_N2_prod,ised_anmx_OM_prod,  &
+                                ised_remin_aerob,ised_remin_sulf
 
     ! Arguments
     integer , intent(in) :: kpie                  ! 1st dimension of model grid.
@@ -204,10 +206,10 @@ contains
           bgct2d(i,j,jo2flux)  = bgct2d(i,j,jo2flux)  + atmflx(i,j,iatmo2)/2.0
           bgct2d(i,j,jn2flux)  = bgct2d(i,j,jn2flux)  + atmflx(i,j,iatmn2)/2.0
           bgct2d(i,j,jn2oflux) = bgct2d(i,j,jn2oflux) + atmflx(i,j,iatmn2o)/2.0
-#ifdef extNcycle
-          bgct2d(i,j,jnh3flux) = bgct2d(i,j,jnh3flux) + atmflx(i,j,iatmnh3)/2.0
-          bgct2d(i,j,jndepnhx) = bgct2d(i,j,jndepnhx) + ndepnhxflx(i,j)/2.0
-#endif
+          if (use_extNcycle) then
+            bgct2d(i,j,jnh3flux) = bgct2d(i,j,jnh3flux) + atmflx(i,j,iatmnh3)/2.0
+            bgct2d(i,j,jndepnhx) = bgct2d(i,j,jndepnhx) + ndepnhxflx(i,j)/2.0
+          endif
           ! Particle fluxes between water-column and sediment
           bgct2d(i,j,jprorca)  = bgct2d(i,j,jprorca)  + carflx_bot(i,j)/2.0
           bgct2d(i,j,jprcaca)  = bgct2d(i,j,jprcaca)  + calflx_bot(i,j)/2.0
@@ -263,11 +265,11 @@ contains
       call accsrf(jatmc13,atm(1,1,iatmc13),omask,0)
       call accsrf(jatmc14,atm(1,1,iatmc14),omask,0)
     endif
-#ifdef extNcycle
+    if (use_extNcycle) then
       call accsrf(janh3fx,atmflx(1,1,iatmnh3),omask,0)
       call accsrf(jatmnh3,atm(1,1,iatmnh3),omask,0)
       call accsrf(jatmn2o,atm(1,1,iatmn2o),omask,0)
-#endif
+    endif
     ! Save up and downward fluxes for CO2 seperately
     call accsrf(jco2fxd,co2fxd,omask,0)
     call accsrf(jco2fxu,co2fxu,omask,0)
@@ -321,12 +323,12 @@ contains
     call accsrf(jndepnoyfx,ndepnoyflx,omask,0)
     call accsrf(joalkfx,oalkflx,omask,0)
 
-#ifdef extNcycle
+    if (use_extNcycle) then
       call accsrf(jsrfanh4,ocetra(1,1,1,ianh4),omask,0)
       call accsrf(jsrfpnh3,pnh3,omask,0)
       call accsrf(jsrfano2,ocetra(1,1,1,iano2),omask,0)
-      call accsrf(jndepnhxfx,ndepnhxflx,omask,0)    
-#endif
+      call accsrf(jndepnhxfx,ndepnhxflx,omask,0)
+    endif
 
     ! Accumulate the diagnostic mass sinking field
     if( domassfluxes ) then
@@ -359,16 +361,16 @@ contains
       call accsrf(jsediffn2,sedfluxo(1,1,ipown2),omask,0)
       call accsrf(jsediffno3,sedfluxo(1,1,ipowno3),omask,0)
       call accsrf(jsediffsi,sedfluxo(1,1,ipowasi),omask,0)
-      call accsrf(jburflxsso12,sedfluxb(1,1,issso12),omask,0)   
-      call accsrf(jburflxsssc12,sedfluxb(1,1,isssc12),omask,0)   
-      call accsrf(jburflxssssil,sedfluxb(1,1,issssil),omask,0)   
+      call accsrf(jburflxsso12,sedfluxb(1,1,issso12),omask,0)
+      call accsrf(jburflxsssc12,sedfluxb(1,1,isssc12),omask,0)
+      call accsrf(jburflxssssil,sedfluxb(1,1,issssil),omask,0)
       call accsrf(jburflxssster,sedfluxb(1,1,issster),omask,0)
+      if (use_extNcycle) then
+        call accsrf(jsediffnh4,sedfluxo(1,1,ipownh4),omask,0)
+        call accsrf(jsediffn2o,sedfluxo(1,1,ipown2o),omask,0)
+        call accsrf(jsediffno2,sedfluxo(1,1,ipowno2),omask,0)
+      endif
     endif
-#if defined(extNcycle) && ! defined(sedbypass)
-      call accsrf(jsediffnh4,sedfluxo(1,1,ipownh4),omask,0)    
-      call accsrf(jsediffn2o,sedfluxo(1,1,ipown2o),omask,0)    
-      call accsrf(jsediffno2,sedfluxo(1,1,ipowno2),omask,0)    
-#endif
     ! Accumulate layer diagnostics
     call acclyr(jdp,pddpo,pddpo,0)
     call acclyr(jphyto,ocetra(1,1,1,iphy),pddpo,1)
@@ -433,8 +435,8 @@ contains
     if (use_BROMO) then
       call acclyr(jbromo,ocetra(1,1,1,ibromo),pddpo,1)
     endif
-#ifdef extNcycle
-      call acclyr(janh4,ocetra(1,1,1,ianh4),pddpo,1)    
+    if (use_extNcycle) then
+      call acclyr(janh4,ocetra(1,1,1,ianh4),pddpo,1)
       call acclyr(jano2,ocetra(1,1,1,iano2),pddpo,1)
       call acclyr(jnitr_NH4,nitr_NH4,pddpo,1)
       call acclyr(jnitr_NO2,nitr_NO2,pddpo,1)
@@ -451,22 +453,22 @@ contains
       call acclyr(jphosy_NO3,phosy_NO3,pddpo,1)
       call acclyr(jremin_aerob,remin_aerob,pddpo,1)
       call acclyr(jremin_sulf,remin_sulf,pddpo,1)
-#endif
-      if (lm4ago) then
-        ! M4AGO
-        call acclyr(jagg_ws,aggregate_diagnostics(1,1,1,kws_agg),pddpo,1)
-        call acclyr(jdynvis,aggregate_diagnostics(1,1,1,kdynvis),pddpo,1)
-        call acclyr(jagg_stick,aggregate_diagnostics(1,1,1,kstickiness_agg),pddpo,1)
-        call acclyr(jagg_stickf,aggregate_diagnostics(1,1,1,kstickiness_frustule),pddpo,1)
-        call acclyr(jagg_dmax,aggregate_diagnostics(1,1,1,kLmax_agg),pddpo,1)
-        call acclyr(jagg_avdp,aggregate_diagnostics(1,1,1,kav_dp),pddpo,1)
-        call acclyr(jagg_avrhop,aggregate_diagnostics(1,1,1,kav_rho_p),pddpo,1)
-        call acclyr(jagg_avdC,aggregate_diagnostics(1,1,1,kav_d_C),pddpo,1)
-        call acclyr(jagg_df,aggregate_diagnostics(1,1,1,kdf_agg),pddpo,1)
-        call acclyr(jagg_b,aggregate_diagnostics(1,1,1,kb_agg),pddpo,1)
-        call acclyr(jagg_Vrhof,aggregate_diagnostics(1,1,1,kav_rhof_V),pddpo,1)
-        call acclyr(jagg_Vpor,aggregate_diagnostics(1,1,1,kav_por_V),pddpo,1)
-      endif
+    endif
+    if (lm4ago) then
+      ! M4AGO
+      call acclyr(jagg_ws,aggregate_diagnostics(1,1,1,kws_agg),pddpo,1)
+      call acclyr(jdynvis,aggregate_diagnostics(1,1,1,kdynvis),pddpo,1)
+      call acclyr(jagg_stick,aggregate_diagnostics(1,1,1,kstickiness_agg),pddpo,1)
+      call acclyr(jagg_stickf,aggregate_diagnostics(1,1,1,kstickiness_frustule),pddpo,1)
+      call acclyr(jagg_dmax,aggregate_diagnostics(1,1,1,kLmax_agg),pddpo,1)
+      call acclyr(jagg_avdp,aggregate_diagnostics(1,1,1,kav_dp),pddpo,1)
+      call acclyr(jagg_avrhop,aggregate_diagnostics(1,1,1,kav_rho_p),pddpo,1)
+      call acclyr(jagg_avdC,aggregate_diagnostics(1,1,1,kav_d_C),pddpo,1)
+      call acclyr(jagg_df,aggregate_diagnostics(1,1,1,kdf_agg),pddpo,1)
+      call acclyr(jagg_b,aggregate_diagnostics(1,1,1,kb_agg),pddpo,1)
+      call acclyr(jagg_Vrhof,aggregate_diagnostics(1,1,1,kav_rhof_V),pddpo,1)
+      call acclyr(jagg_Vpor,aggregate_diagnostics(1,1,1,kav_por_V),pddpo,1)
+    endif
     ! Accumulate level diagnostics
     if (SUM(jlvlphyto+jlvlgrazer+jlvlphosph+jlvloxygen+jlvliron+             &
          &  jlvlano3+jlvlalkali+jlvlsilica+jlvldic+jlvldoc+jlvlpoc+jlvlcalc+ &
@@ -550,10 +552,9 @@ contains
         if (use_BROMO) then
           call acclvl(jlvlbromo,ocetra(1,1,1,ibromo),k,ind1,ind2,wghts)
         endif
-#ifdef extNcycle 
+        if (use_extNcycle) then
           call acclvl(jlvlanh4,ocetra(1,1,1,ianh4),k,ind1,ind2,wghts)
           call acclvl(jlvlano2,ocetra(1,1,1,iano2),k,ind1,ind2,wghts)
-          
           call acclvl(jlvl_nitr_NH4,nitr_NH4,k,ind1,ind2,wghts)
           call acclvl(jlvl_nitr_NO2,nitr_NO2,k,ind1,ind2,wghts)
           call acclvl(jlvl_nitr_N2O_prod,nitr_N2O_prod,k,ind1,ind2,wghts)
@@ -569,25 +570,24 @@ contains
           call acclvl(jlvl_phosy_NO3,phosy_NO3,k,ind1,ind2,wghts)
           call acclvl(jlvl_remin_aerob,remin_aerob,k,ind1,ind2,wghts)
           call acclvl(jlvl_remin_sulf,remin_sulf,k,ind1,ind2,wghts)
-#endif
-          if (lm4ago) then
-            !M4AGO
-            call acclvl(jlvl_agg_ws,aggregate_diagnostics(1,1,1,kws_agg),k,ind1,ind2,wghts)
-            call acclvl(jlvl_dynvis,aggregate_diagnostics(1,1,1,kdynvis),k,ind1,ind2,wghts)
-            call acclvl(jlvl_agg_stick,aggregate_diagnostics(1,1,1,kstickiness_agg),k,ind1,ind2,wghts)
-            call acclvl(jlvl_agg_stickf,aggregate_diagnostics(1,1,1,kstickiness_frustule),k,ind1,ind2,wghts)
-            call acclvl(jlvl_agg_dmax,aggregate_diagnostics(1,1,1,kLmax_agg),k,ind1,ind2,wghts)
-            call acclvl(jlvl_agg_avdp,aggregate_diagnostics(1,1,1,kav_dp),k,ind1,ind2,wghts)
-            call acclvl(jlvl_agg_avrhop,aggregate_diagnostics(1,1,1,kav_rho_p),k,ind1,ind2,wghts)
-            call acclvl(jlvl_agg_avdC,aggregate_diagnostics(1,1,1,kav_d_C),k,ind1,ind2,wghts)
-            call acclvl(jlvl_agg_df,aggregate_diagnostics(1,1,1,kdf_agg),k,ind1,ind2,wghts)
-            call acclvl(jlvl_agg_b,aggregate_diagnostics(1,1,1,kb_agg),k,ind1,ind2,wghts)
-            call acclvl(jlvl_agg_Vrhof,aggregate_diagnostics(1,1,1,kav_rhof_V),k,ind1,ind2,wghts)
-            call acclvl(jlvl_agg_Vpor,aggregate_diagnostics(1,1,1,kav_por_V),k,ind1,ind2,wghts)
-          endif
+        endif
+        if (lm4ago) then
+          !M4AGO
+          call acclvl(jlvl_agg_ws,aggregate_diagnostics(1,1,1,kws_agg),k,ind1,ind2,wghts)
+          call acclvl(jlvl_dynvis,aggregate_diagnostics(1,1,1,kdynvis),k,ind1,ind2,wghts)
+          call acclvl(jlvl_agg_stick,aggregate_diagnostics(1,1,1,kstickiness_agg),k,ind1,ind2,wghts)
+          call acclvl(jlvl_agg_stickf,aggregate_diagnostics(1,1,1,kstickiness_frustule),k,ind1,ind2,wghts)
+          call acclvl(jlvl_agg_dmax,aggregate_diagnostics(1,1,1,kLmax_agg),k,ind1,ind2,wghts)
+          call acclvl(jlvl_agg_avdp,aggregate_diagnostics(1,1,1,kav_dp),k,ind1,ind2,wghts)
+          call acclvl(jlvl_agg_avrhop,aggregate_diagnostics(1,1,1,kav_rho_p),k,ind1,ind2,wghts)
+          call acclvl(jlvl_agg_avdC,aggregate_diagnostics(1,1,1,kav_d_C),k,ind1,ind2,wghts)
+          call acclvl(jlvl_agg_df,aggregate_diagnostics(1,1,1,kdf_agg),k,ind1,ind2,wghts)
+          call acclvl(jlvl_agg_b,aggregate_diagnostics(1,1,1,kb_agg),k,ind1,ind2,wghts)
+          call acclvl(jlvl_agg_Vrhof,aggregate_diagnostics(1,1,1,kav_rhof_V),k,ind1,ind2,wghts)
+          call acclvl(jlvl_agg_Vpor,aggregate_diagnostics(1,1,1,kav_por_V),k,ind1,ind2,wghts)
+        endif
       enddo
     endif
-
 
     if (.not. use_sedbypass) then
       ! Accumulate sediments
@@ -608,27 +608,25 @@ contains
       call accbur(jburssssil,burial(1,1,issssil))
       call accbur(jbursssc12,burial(1,1,isssc12))
       call accbur(jburssster,burial(1,1,issster))
+      if (use_extNcycle) then
+        call accsdm(jpownh4,powtra(1,1,1,ipownh4))
+        call accsdm(jpown2o,powtra(1,1,1,ipown2o))
+        call accsdm(jpowno2,powtra(1,1,1,ipowno2))
+        call accsdm(jsdm_nitr_NH4      ,extNsed_diagnostics(1,1,1,ised_nitr_NH4))
+        call accsdm(jsdm_nitr_NO2      ,extNsed_diagnostics(1,1,1,ised_nitr_NO2))
+        call accsdm(jsdm_nitr_N2O_prod ,extNsed_diagnostics(1,1,1,ised_nitr_N2O_prod))
+        call accsdm(jsdm_nitr_NH4_OM   ,extNsed_diagnostics(1,1,1,ised_nitr_NH4_OM))
+        call accsdm(jsdm_nitr_NO2_OM   ,extNsed_diagnostics(1,1,1,ised_nitr_NO2_OM))
+        call accsdm(jsdm_denit_NO3     ,extNsed_diagnostics(1,1,1,ised_denit_NO3))
+        call accsdm(jsdm_denit_NO2     ,extNsed_diagnostics(1,1,1,ised_denit_NO2))
+        call accsdm(jsdm_denit_N2O     ,extNsed_diagnostics(1,1,1,ised_denit_N2O))
+        call accsdm(jsdm_DNRA_NO2      ,extNsed_diagnostics(1,1,1,ised_DNRA_NO2))
+        call accsdm(jsdm_anmx_N2_prod  ,extNsed_diagnostics(1,1,1,ised_anmx_N2_prod))
+        call accsdm(jsdm_anmx_OM_prod  ,extNsed_diagnostics(1,1,1,ised_anmx_OM_prod))
+        call accsdm(jsdm_remin_aerob   ,extNsed_diagnostics(1,1,1,ised_remin_aerob))
+        call accsdm(jsdm_remin_sulf    ,extNsed_diagnostics(1,1,1,ised_remin_sulf))
+      endif
     endif
-#if defined(extNcycle) && ! defined(sedbypass)
-      call accsdm(jpownh4,powtra(1,1,1,ipownh4))
-      call accsdm(jpown2o,powtra(1,1,1,ipown2o))
-      call accsdm(jpowno2,powtra(1,1,1,ipowno2))
-
-      call accsdm(jsdm_nitr_NH4      ,extNsed_diagnostics(1,1,1,ised_nitr_NH4))
-      call accsdm(jsdm_nitr_NO2      ,extNsed_diagnostics(1,1,1,ised_nitr_NO2))
-      call accsdm(jsdm_nitr_N2O_prod ,extNsed_diagnostics(1,1,1,ised_nitr_N2O_prod))
-      call accsdm(jsdm_nitr_NH4_OM   ,extNsed_diagnostics(1,1,1,ised_nitr_NH4_OM))
-      call accsdm(jsdm_nitr_NO2_OM   ,extNsed_diagnostics(1,1,1,ised_nitr_NO2_OM))
-      call accsdm(jsdm_denit_NO3     ,extNsed_diagnostics(1,1,1,ised_denit_NO3))
-      call accsdm(jsdm_denit_NO2     ,extNsed_diagnostics(1,1,1,ised_denit_NO2))
-      call accsdm(jsdm_denit_N2O     ,extNsed_diagnostics(1,1,1,ised_denit_N2O))
-      call accsdm(jsdm_DNRA_NO2      ,extNsed_diagnostics(1,1,1,ised_DNRA_NO2))
-      call accsdm(jsdm_anmx_N2_prod  ,extNsed_diagnostics(1,1,1,ised_anmx_N2_prod))
-      call accsdm(jsdm_anmx_OM_prod  ,extNsed_diagnostics(1,1,1,ised_anmx_OM_prod))
-      call accsdm(jsdm_remin_aerob   ,extNsed_diagnostics(1,1,1,ised_remin_aerob))
-      call accsdm(jsdm_remin_sulf    ,extNsed_diagnostics(1,1,1,ised_remin_sulf))
-
-#endif
 
     ! Write output if requested
     do l=1,nbgc
@@ -646,9 +644,9 @@ contains
     ndepnoyflx=0.
     oalkflx=0.
     rivinflx=0.
-#ifdef extNcycle
+    if (use_extNcycle) then
       ndepnhxflx=0.
-#endif
+    endif
 
   end subroutine accfields
 

@@ -108,7 +108,7 @@ CONTAINS
     !******************************************************************************
     use mod_xc,         only: mnproc
     use mo_control_bgc, only: io_stdo_bgc
-    use mo_control_bgc, only: use_FB_BGC_OCE,use_AGG,use_BROMO
+    use mo_control_bgc, only: use_FB_BGC_OCE,use_AGG,use_BROMO,use_extNcycle
 
     ! Arguments
     integer, intent(in) :: kpie
@@ -356,29 +356,29 @@ CONTAINS
       int_chbr3_uv(:,:) = 0.0
     endif
 
-#ifdef extNcycle
-      IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable of the extended nitrogen cycle ...'
-      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-      WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
-      ENDIF
+    if (use_extNcycle) then
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable of the extended nitrogen cycle ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+        write(io_stdo_bgc,*)'Third dimension    : ',kpke
+      endif
 
-      ALLOCATE (nitr_NH4(kpie,kpje,kpke),stat=errstat)
-      ALLOCATE (nitr_NO2(kpie,kpje,kpke),stat=errstat)
-      ALLOCATE (nitr_N2O_prod(kpie,kpje,kpke),stat=errstat)
-      ALLOCATE (nitr_NH4_OM(kpie,kpje,kpke),stat=errstat)
-      ALLOCATE (nitr_NO2_OM(kpie,kpje,kpke),stat=errstat)
-      ALLOCATE (denit_NO3(kpie,kpje,kpke),stat=errstat)
-      ALLOCATE (denit_NO2(kpie,kpje,kpke),stat=errstat)
-      ALLOCATE (denit_N2O(kpie,kpje,kpke),stat=errstat)
-      ALLOCATE (DNRA_NO2(kpie,kpje,kpke),stat=errstat)
-      ALLOCATE (anmx_N2_prod(kpie,kpje,kpke),stat=errstat)
-      ALLOCATE (anmx_OM_prod(kpie,kpje,kpke),stat=errstat)
-      ALLOCATE (phosy_NH4(kpie,kpje,kpke),stat=errstat)
-      ALLOCATE (phosy_NO3(kpie,kpje,kpke),stat=errstat)
-      ALLOCATE (remin_aerob(kpie,kpje,kpke),stat=errstat)
-      ALLOCATE (remin_sulf(kpie,kpje,kpke),stat=errstat)
+      allocate (nitr_NH4(kpie,kpje,kpke),stat=errstat)
+      allocate (nitr_NO2(kpie,kpje,kpke),stat=errstat)
+      allocate (nitr_N2O_prod(kpie,kpje,kpke),stat=errstat)
+      allocate (nitr_NH4_OM(kpie,kpje,kpke),stat=errstat)
+      allocate (nitr_NO2_OM(kpie,kpje,kpke),stat=errstat)
+      allocate (denit_NO3(kpie,kpje,kpke),stat=errstat)
+      allocate (denit_NO2(kpie,kpje,kpke),stat=errstat)
+      allocate (denit_N2O(kpie,kpje,kpke),stat=errstat)
+      allocate (DNRA_NO2(kpie,kpje,kpke),stat=errstat)
+      allocate (anmx_N2_prod(kpie,kpje,kpke),stat=errstat)
+      allocate (anmx_OM_prod(kpie,kpje,kpke),stat=errstat)
+      allocate (phosy_NH4(kpie,kpje,kpke),stat=errstat)
+      allocate (phosy_NO3(kpie,kpje,kpke),stat=errstat)
+      allocate (remin_aerob(kpie,kpje,kpke),stat=errstat)
+      allocate (remin_sulf(kpie,kpje,kpke),stat=errstat)
 
       if(errstat.ne.0) stop 'not enough memory extended nitrogen cycle'
       nitr_NH4      = 0.
@@ -396,7 +396,7 @@ CONTAINS
       phosy_NO3     = 0.
       remin_aerob   = 0.
       remin_sulf    = 0.
-#endif
+    endif
 
   end subroutine alloc_mem_biomod
 

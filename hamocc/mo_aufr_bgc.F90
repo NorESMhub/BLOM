@@ -81,7 +81,8 @@ CONTAINS
     use mod_dia,            only: iotype
     use mo_carbch,          only: co2star,co3,hi,satoxy,ocetra,atm,nathi
     use mo_control_bgc,     only: io_stdo_bgc,ldtbgc,use_cisonew,use_AGG,                          &
-                                  use_BOXATM,use_BROMO,use_CFC,use_natDIC,use_sedbypass
+                                  use_BOXATM,use_BROMO,use_CFC,use_natDIC,use_sedbypass,           &
+                                  use_extNcycle
     use mo_param1_bgc,      only: ialkali,ian2o,iano3,icalc,idet,idicsat,                          &
                                   idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,       &
                                   iprefalk,iprefdic,iprefo2,iprefpo4,iprefsilica,                  &
@@ -92,15 +93,14 @@ CONTAINS
                                   issso13,issso14,isssc13,isssc14,ipowc13,ipowc14,                 &
                                   iatmc13,iatmc14,iatmnco2,inatalkali,inatcalc,inatsco212,         &
                                   ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,          &
-                                  isssc12,issso12,issssil,issster,ks
+                                  isssc12,issso12,issssil,issster,ks,ianh4,iano2,ipownh4,ipown2o,  &
+                                  ipowno2
     use mo_vgrid,           only: kbo
     use mo_sedmnt,          only: sedhpl
     use mo_intfcblom,       only: sedlay2,powtra2,burial2,atm2
     use mo_param_bgc,       only: bifr13_ini,bifr14_ini,c14fac,re1312,re14to,prei13,prei14
     use mo_netcdf_bgcrw,    only: read_netcdf_var
-#ifdef extNcycle
-      use mo_param1_bgc,  only: ianh4,iano2,ipownh4,ipown2o,ipowno2
-#endif
+
     ! Arguments
     integer,          intent(in)    :: kpie                                              ! 1st dimension of model grid.
     integer,          intent(in)    :: kpje                                              ! 2nd dimension of model grid.
@@ -324,7 +324,7 @@ CONTAINS
     endif
 
 ! Find out whether to restart extended nitrogen cycle
-#ifdef extNcycle
+    if (use_extNcycle) then
       lread_extn=.true.
       if(IOTYPE==0) then
         if(mnproc==1) ncstat=nf90_inq_varid(ncid,'anh4',ncvarid)
@@ -341,7 +341,7 @@ CONTAINS
         write(io_stdo_bgc,*) 'AUFR_BGC info: extended nitrogen cycle tracer not in restart file '
         write(io_stdo_bgc,*) 'Initialising extended nitrogen cycle from scratch'
       endif
-#endif
+    endif
 
     ! Find out whether to restart atmosphere
     if (use_BOXATM) then
@@ -448,12 +448,12 @@ CONTAINS
     if (use_BROMO .and. lread_bro) then
       call read_netcdf_var(ncid,'bromo',locetra(1,1,1,ibromo),2*kpke,0,iotype)
     endif
-#ifdef extNcycle
+    if (use_extNcycle) then
       if(lread_extn) then
       call read_netcdf_var(ncid,'anh4',locetra(1,1,1,ianh4),2*kpke,0,iotype)
       call read_netcdf_var(ncid,'ano2',locetra(1,1,1,iano2),2*kpke,0,iotype)
       endif
-#endif
+    endif
 
     !
     ! Read restart data : diagnostic ocean fields (needed for bit to bit reproducability)
@@ -494,13 +494,13 @@ CONTAINS
         call read_netcdf_var(ncid,'powc13',powtra2(1,1,1,ipowc13),2*ks,0,iotype)
         call read_netcdf_var(ncid,'powc14',powtra2(1,1,1,ipowc14),2*ks,0,iotype)
       endif
-#ifdef extNcycle
-      IF(lread_extn) THEN
-      CALL read_netcdf_var(ncid,'pownh4',powtra2(1,1,1,ipownh4),2*ks,0,iotype)
-      CALL read_netcdf_var(ncid,'pown2o',powtra2(1,1,1,ipown2o),2*ks,0,iotype)
-      CALL read_netcdf_var(ncid,'powno2',powtra2(1,1,1,ipowno2),2*ks,0,iotype)
-      ENDIF
-#endif
+      if (use_extNcycle) then
+        if(lread_extn) then
+          call read_netcdf_var(ncid,'pownh4',powtra2(1,1,1,ipownh4),2*ks,0,iotype)
+          call read_netcdf_var(ncid,'pown2o',powtra2(1,1,1,ipown2o),2*ks,0,iotype)
+          call read_netcdf_var(ncid,'powno2',powtra2(1,1,1,ipowno2),2*ks,0,iotype)
+        endif
+      endif
     endif
     !
     ! Read restart data: atmosphere

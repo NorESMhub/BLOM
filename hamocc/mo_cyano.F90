@@ -47,12 +47,9 @@ contains
     use mo_vgrid,       only: kmle,kwrbioz
     use mo_carbch,      only: ocetra
     use mo_param_bgc,   only: bluefix,rnit,tf0,tf1,tf2,tff
-    use mo_param1_bgc,  only: ialkali,iano3,igasnit,iphosph,ioxygen,inatalkali
+    use mo_param1_bgc,  only: ialkali,iano3,igasnit,iphosph,ioxygen,inatalkali,ianh4
     use mo_biomod,      only: intnfix
-    use mo_control_bgc, only: use_natDIC,leuphotic_cya
-#ifdef extNcycle
-    use mo_param1_bgc, only: ianh4
-#endif
+    use mo_control_bgc, only: use_natDIC,leuphotic_cya,use_extNcycle
 
     ! Arguments
     integer, intent(in) :: kpie                                          ! 1st dimension of model grid.
@@ -80,12 +77,12 @@ contains
         if (omask(i,j).gt.0.5) then
           do k=1,merge(kwrbioz(i,j),kmle(i,j),leuphotic_cya) ! if leuphotic_cya=.true., do bluefix only in euphotic zone
             if (ocetra(i,j,k,iano3) < (rnit*ocetra(i,j,k,iphosph))) then
-#ifdef extNcycle
-              ! assuming nitrate and ammonium required for cyanobacteria growth (as bulk PP)
-              anavail = ocetra(i,j,k,iano3)+ocetra(i,j,k,ianh4)
-#else
-              anavail = ocetra(i,j,k,iano3)
-#endif
+              if (use_extNcycle) then
+                ! assuming nitrate and ammonium required for cyanobacteria growth (as bulk PP)
+                anavail = ocetra(i,j,k,iano3)+ocetra(i,j,k,ianh4)
+              else
+                anavail = ocetra(i,j,k,iano3)
+              endif
               if(anavail < (rnit*ocetra(i,j,k,iphosph))) then
 
                 ttemp = min(40.,max(-3.,ptho(i,j,k)))
@@ -93,7 +90,7 @@ contains
                 ! Temperature dependence of nitrogen fixation, Kriest and Oschlies 2015.
                 nfixtfac = MAX(0.0,tf2*ttemp*ttemp + tf1*ttemp + tf0)/tff
 
-#ifndef extNcycle
+                if (.not. use_extNcycle) then
                   oldocetra = ocetra(i,j,k,iano3)
                   ocetra(i,j,k,iano3)=ocetra(i,j,k,iano3)*(1.-bluefix*nfixtfac) &
      &                               +bluefix*nfixtfac*rnit*ocetra(i,j,k,iphosph)
@@ -103,23 +100,23 @@ contains
                   dox  = -dansp*1.25
                   ! Nitrogen fixation followed by remineralisation and nitrification decreases
                   ! alkalinity by 1 mole per mole nitrogen fixed (Wolf-Gladrow et al. 2007)
-                  dalk = -dansp 
-#else
+                  dalk = -dansp
+                else
                   oldocetra = ocetra(i,j,k,ianh4)
                   ocetra(i,j,k,ianh4)=ocetra(i,j,k,ianh4)*(1.-bluefix*nfixtfac) &
      &                               +bluefix*nfixtfac*rnit*ocetra(i,j,k,iphosph)
                   dansp=ocetra(i,j,k,ianh4)-oldocetra
                   dox  = dansp*0.75
-                  dalk = dansp 
-#endif
+                  dalk = dansp
+                endif
                 ocetra(i,j,k,igasnit)=ocetra(i,j,k,igasnit)-dansp*(1./2.)
 
                 ocetra(i,j,k,ioxygen)=ocetra(i,j,k,ioxygen)+dox
 
                 ocetra(i,j,k,ialkali)=ocetra(i,j,k,ialkali)+dalk
-#ifdef natDIC
+                if (use_natDIC) then
                   ocetra(i,j,k,inatalkali)=ocetra(i,j,k,inatalkali)+dalk
-#endif
+                endif
 
                 intnfix(i,j) = intnfix(i,j) + dansp*pddpo(i,j,k)
               endif

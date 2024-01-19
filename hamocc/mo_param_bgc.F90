@@ -38,7 +38,6 @@ module mo_param_bgc
                             use_BOXATM,use_CFC,use_PBGC_CK_TIMESTEP,                               &
                             use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type,lm4ago,   &
                             leuphotic_cya,do_ndep_coupled,do_n2onh3_coupled,use_extNcycle
-
   use mod_xc,         only: mnproc
 !  use mo_m4ago,       only: init_m4ago_nml_params, init_m4ago_params
   use mo_param1_bgc,  only: iatmnh3,iatmn2o
@@ -444,13 +443,13 @@ contains
     endif
     ! M4AGO parameters
 !    call init_m4ago_nml_params()
-#ifdef extNcycle
+    if (use_extNcycle) then
     ! initialize the extended nitrogen cycle parameters - first water column, then sediment, 
     ! since sediment relies on water column parameters for the extended nitrogen cycle 
     ! Sediment also relies on M4AGO being initialized (POM_remin_q10 and POM_remin_Tref)
 !    call extNwatercol_param_init()
 !    call extNsediment_param_init()
-#endif
+    endif
   end subroutine calc_param_biol
 
   !********************************************************************
@@ -530,10 +529,10 @@ contains
     disso_poc   = disso_poc   * dtbgc ! 1/(kmol O2/m3 time step)      Degradation rate constant of POP
     disso_caco3 = disso_caco3 * dtbgc ! 1/(kmol CO3--/m3 time step)   Dissolution rate constant of CaCO3
     sed_denit   = sed_denit   * dtbgc ! 1/time step                   Denitrification rate constant of POP
-#ifdef extNcycle
+    if (use_extNcycle) then
 !    call extNwatercol_param_update()
 !    call extNsediment_param_update()
-#endif
+    endif
   end subroutine rates_2_timestep
 
   !********************************************************************
@@ -770,10 +769,10 @@ contains
       write(io_stdo_bgc,*) '*   calcdens     = ',calcdens
       write(io_stdo_bgc,*) '*   claydens     = ',claydens
     endif
-#ifdef extNcycle
+    if (use_extNcycle) then
 !    call extNwatercol_param_write()
 !    call extNsediment_param_write()
-#endif
+    endif
   end subroutine write_parambgc
 
 end module mo_param_bgc

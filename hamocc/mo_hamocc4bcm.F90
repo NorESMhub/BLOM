@@ -55,8 +55,9 @@ contains
                                 do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,               &
                                 use_BROMO, use_CFC, use_PBGC_CK_TIMESTEP,                          &
                                 use_BOXATM, use_sedbypass,ocn_co2_type,                            &
-                                do_ndep_coupled,do_n2onh3_coupled
-    use mo_param1_bgc,    only: iatmco2,iatmdms,nocetra,nriv,iatmbromo,nndep,idepnoy
+                                do_ndep_coupled,do_n2onh3_coupled,use_extNcycle
+    use mo_param1_bgc,    only: iatmco2,iatmdms,nocetra,nriv,iatmbromo,nndep,idepnoy,iatmn2o,      &
+                                iatmnh3,idepnhx
     use mo_vgrid,         only: set_vgrid
     use mo_apply_fedep,   only: apply_fedep
     use mo_apply_rivin,   only: apply_rivin
@@ -71,10 +72,7 @@ contains
     use mo_cyano,         only: cyano
     use mo_ocprod,        only: ocprod
     use mo_carchm,        only: carchm
-#ifdef extNcycle
-      use mo_param1_bgc,  only: iatmn2o,iatmnh3,idepnhx
-      use mo_chemcon,     only: mw_nitrogen,mw_nh3,mw_n2o
-#endif
+    use mo_chemcon,       only: mw_nitrogen,mw_nh3,mw_n2o
 
     ! Arguments
     integer, intent(in)  :: kpie                                            ! 1st dimension of model grid.
@@ -177,9 +175,9 @@ contains
       if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting bromoform from atm'
     endif
 
-#ifdef extNcycle
-!$OMP PARALLEL DO PRIVATE(i)
-      if(do_n2onh3_coupled) then
+    if (use_extNcycle) then
+      if (do_n2onh3_coupled) then
+        !$OMP PARALLEL DO PRIVATE(i)
         do  j=1,kpje
           do  i=1,kpie
             if (patmn2o(i,j) > 0.) then
@@ -190,14 +188,14 @@ contains
             endif
           enddo
         enddo
-!$OMP END PARALLEL DO
+        !$OMP END PARALLEL DO
         if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting N2O and NH3 conc. from atm'
-      ENDIF
+      endif
 
-      if(do_ndep_coupled) then
+      if (do_ndep_coupled) then
         fatmndep = 365.*86400./mw_nitrogen
         ndep(:,:,:) = 0.
-!$OMP PARALLEL DO PRIVATE(i)
+        !$OMP PARALLEL DO PRIVATE(i)
         do  j=1,kpje
           do  i=1,kpie
             ! convert from kgN/m2/s to climatological input file units: kmolN/m2/yr
@@ -209,10 +207,10 @@ contains
             endif
           enddo
         enddo
-!$OMP END PARALLEL DO
-      if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting NOy and NHx deposition from atm'
+        !$OMP END PARALLEL DO
+        if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting NOy and NHx deposition from atm'
       endif
-#endif
+    endif
 
     !--------------------------------------------------------------------
     ! Read atmospheric cfc concentrations
@@ -441,7 +439,7 @@ contains
     !$OMP PARALLEL DO PRIVATE(i)
     do  j=1,kpje
       do  i=1,kpie
-#ifdef extNcycle
+        if (use_extNcycle) then
           if (do_n2onh3_coupled) then
               if(omask(i,j) > 0.5) pflxn2o(i,j)=-mw_n2o*atmflx(i,j,iatmn2o)/dtbgc  ! conversion factor checked against CAM
               if(omask(i,j) > 0.5) pflxnh3(i,j)=-mw_nh3*atmflx(i,j,iatmnh3)/dtbgc  ! conversion factor checked against CAM
@@ -449,10 +447,10 @@ contains
               if(omask(i,j) > 0.5) pflxn2o(i,j)=0.0
               if(omask(i,j) > 0.5) pflxnh3(i,j)=0.0
           endif
-#else
+        else
           if(omask(i,j) > 0.5) pflxn2o(i,j)=0.0
           if(omask(i,j) > 0.5) pflxnh3(i,j)=0.0
-#endif
+        endif
       enddo
     enddo
     !$OMP END PARALLEL DO
