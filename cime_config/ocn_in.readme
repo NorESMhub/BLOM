@@ -75,8 +75,8 @@
 ! SRXBAL   : Balance the SSS relaxation (l)
 ! SCFILE   : Name of file containing SSS climatology used for relaxation (a)
 ! WAVSRC   : Source of wave fields. Valid source: 'none', 'param', 'extern' (a)
-! SMTFRC   : Smooth CESM forcing (l)
-! SPRFAC   : Send precipitation/runoff factor to CESM coupler (l)
+! SMTFRC   : Smooth NorESM forcing (l)
+! SPRFAC   : Send precipitation/runoff factor to NorESM coupler (l)
 ! ATM_PATH : Path to forcing fields in case of EXPCNF 'ben02clim' or
 !            'ben02syn' (a)
 ! ITEST    : Global i-index of point diagnostics (i)

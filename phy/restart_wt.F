@@ -64,9 +64,12 @@ c
       use mod_seaice, only: ficem, hicem, hsnwm, iagem
 #if defined(TRC) && (defined(TKE) || defined(IDLAGE))
       use mod_tracers, only: itrtke, itrgls, itriag, trc
-#  ifdef TKE
+#ifdef TKE
       use mod_tke, only: L_scale
-#  endif
+#endif
+#endif
+#ifdef HAMOCC
+      use mo_control_bgc, only : use_BROMO
 #endif
 c
       implicit none
@@ -374,8 +377,10 @@ c
         call wrtrst('mltpot',trim(c5p)//' time',mltpot,ip)
         call wrtrst('flxco2',trim(c5p)//' time',flxco2,ip)
         call wrtrst('flxdms',trim(c5p)//' time',flxdms,ip)
-#ifdef BROMO
-        call wrtrst('flxbrf',trim(c5p)//' time',flxbrf,ip)
+#ifdef HAMOCC
+        if (use_BROMO) then
+           call wrtrst('flxbrf',trim(c5p)//' time',flxbrf,ip)
+        end if
 #endif
 #ifdef extNcycle
         call wrtrst('flxn2o',trim(c5p)//' time',flxn2o,ip)
@@ -909,6 +914,9 @@ c
 c --- ------------------------------------------------------------------
       use mod_dia
       use mod_forcing, only: sprfac
+#ifdef HAMOCC
+      use mo_control_bgc, only : use_BROMO
+#endif
 c
       implicit none
 c
@@ -1056,8 +1064,10 @@ c
         call defvarrst('mltpot',trim(c5p)//' time')
         call defvarrst('flxco2',trim(c5p)//' time')
         call defvarrst('flxdms',trim(c5p)//' time')
-#ifdef BROMO
-        call defvarrst('flxbrf',trim(c5p)//' time')
+#ifdef HAMOCC
+        if (use_BROMO) then
+           call defvarrst('flxbrf',trim(c5p)//' time')
+        end if
 #endif
 #ifdef extNcycle
         call defvarrst('flxn2o',trim(c5p)//' time')

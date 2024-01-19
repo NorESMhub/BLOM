@@ -90,7 +90,7 @@ contains
    ! ---------------------------------------------------------------------------
 
 #ifdef HAMOCC
-     use mo_param1_bgc, only: nocetra
+     use mo_param1_bgc, only: init_indices, nocetra
 #endif
 
      implicit none
@@ -100,6 +100,7 @@ contains
 
      ! Number of HAMOCC tracers.
 #ifdef HAMOCC
+     call init_indices()
      ntrbgc = nocetra
      itrbgc = ntrocn - natr + ntrtke + ntrgls + ntriag + 1
 #else
