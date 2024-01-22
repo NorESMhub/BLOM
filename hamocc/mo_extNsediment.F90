@@ -131,8 +131,7 @@ MODULE mo_extNsediment
                          & q10dnra,Trefdnra,bkoxdnra,bkdnra,                                                                       &
                          & q10anh4nitr,Trefanh4nitr,bkoxamox,bkanh4nitr,bkamoxn2o,bkyamox,n2omaxy,n2oybeta,                        &
                          & q10ano2nitr,Trefano2nitr,bkoxnitr,bkano2nitr,NOB2AOAy,rno2anmx,rnh4anmx 
-  use mo_m4ago,       only: POM_remin_q10,POM_remin_Tref
-  use mo_param_bgc,   only: bkox_drempoc
+  use mo_param_bgc,   only: bkox_drempoc,POM_remin_q10,POM_remin_Tref
 
   implicit none
  

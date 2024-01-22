@@ -64,7 +64,7 @@ contains
                               sedlay2,powtra2,burial2,blom2hamocc,atm2
     use mo_ini_fields,  only: ini_fields_ocean,ini_fields_atm
     use mo_aufr_bgc,    only: aufr_bgc
-    use mo_m4ago,       only: alloc_mem_m4ago
+    use mo_m4ago,       only: alloc_mem_m4ago,init_m4ago_nml_params, init_m4ago_params
     use mo_extNsediment,only: alloc_mem_extNsediment_diag
 
 
@@ -177,6 +177,10 @@ contains
     ! --- Initialize parameters
     !
     call ini_parambgc(idm,jdm)
+    if (lm4ago) then
+      call init_m4ago_nml_params
+      call init_m4ago_params
+    endif
 
     ! --- Initialize atmospheric fields with (updated) parameter values
     call ini_fields_atm(idm,jdm)

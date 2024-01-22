@@ -75,7 +75,8 @@ contains
                                 fse,fsh,nmldmin,plower,pupper,sinkexp,stick,tmfac,                 &
                                 tsfac,vsmall,zdis,wmin,wmax,wlin,rbro,                             &
                                 dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma,                     &
-                                fbro1,fbro2,atten_f,atten_c,atten_uv,atten_w,bkopal,bkphy,bkzoo
+                                fbro1,fbro2,atten_f,atten_c,atten_uv,atten_w,bkopal,bkphy,bkzoo,   &
+                                POM_remin_q10,POM_remin_Tref,opal_remin_q10,opal_remin_Tref
     use mo_biomod,        only: bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,bsiflx_bot, &
                                 calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot, &
                                 carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,carflx_bot, &
@@ -97,8 +98,7 @@ contains
     use mo_vgrid,         only: kmle
     use mo_clim_swa,      only: swa_clim
     use mo_inventory_bgc, only: inventory_bgc
-    use mo_m4ago,         only: mean_aggregate_sinking_speed,ws_agg,POM_remin_q10,POM_remin_Tref,  &
-                                opal_remin_q10,opal_remin_Tref
+    use mo_m4ago,         only: mean_aggregate_sinking_speed,ws_agg
     use mo_extNwatercol,  only: nitrification,denit_NO3_to_NO2,anammox,denit_dnra,extN_inv_check
     use mo_extNwatercol,  only: bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo
 
@@ -115,7 +115,7 @@ contains
     real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! potential temperature [deg C].
     real,    intent(in) :: pi_ph(kpie,kpje)
     real,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! salinity [psu].
-    real,    intent(in) :: ppao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! sea level pressure [Pascal]. 
+    real,    intent(in) :: ppao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! sea level pressure [Pascal].
     real,    intent(in) :: prho(kpie,kpje,kpke)                         ! density [kg/m^3].
 
     ! Local variables

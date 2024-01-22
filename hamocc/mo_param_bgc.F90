@@ -86,6 +86,8 @@ module mo_param_bgc
   public :: sed_denit,calcwei,opalwei,orgwei
   public :: calcdens,opaldens,orgdens,claydens
   public :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma
+  public :: POM_remin_q10,opal_remin_q10,POM_remin_Tref,opal_remin_Tref
+
 
   !********************************************************************
   ! Stoichiometry and fixed parameters
@@ -229,6 +231,11 @@ module mo_param_bgc
   real, protected :: dremopal   = 0.003           ! 1/d Dissolution rate for opal
   real, protected :: dremn2o    = 0.01            ! 1/d Remineralization rate of detritus on N2O
   real, protected :: dremsul    = 0.005           ! 1/d Remineralization rate for sulphate reduction
+  real, protected :: POM_remin_q10   = 2.1        ! Bidle et al. 2002: Regulation of Oceanic Silicon...
+  real, protected :: opal_remin_q10  = 2.6        ! Bidle et al. 2002: Regulation of Oceanic Silicon...
+  real, protected :: POM_remin_Tref  = 10.        ! [deg C] reference temperatue for Q10-dep. POC remin
+  real, protected :: opal_remin_Tref = 10.        ! [deg C] reference temperature for Q10-dep. opal dissolution
+
 
   !********************************************************************
   ! Parameters for DMS and BrO schemes
@@ -617,7 +624,7 @@ contains
       write(io_stdo_bgc,*) '*   leuphotic_cya          = ',leuphotic_cya
       write(io_stdo_bgc,*) '*   lm4ago                 = ',lm4ago
       if (use_extNcycle) then
-         write(io_stdo_bgc,*) '*   do_ndep_coupled        = ',do_ndep_coupled
+        write(io_stdo_bgc,*) '*   do_ndep_coupled        = ',do_ndep_coupled
         write(io_stdo_bgc,*) '*   do_n2onh3_coupled      = ',do_n2onh3_coupled
       endif
       write(io_stdo_bgc,*) '* '
