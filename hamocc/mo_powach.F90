@@ -39,7 +39,7 @@ contains
     use mo_carbch,      only: co3,keqb,ocetra,sedfluxo
     use mo_chemcon,     only: calcon
     use mo_param_bgc,   only: rnit,rcar,rdnit1,rdnit2,ro2ut,disso_sil,silsat,disso_poc,sed_denit,  &
-                              disso_caco3
+                              disso_caco3,ro2utammo
     use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,seddw,sedhpl,sedlay,       &
                               silpro,pror13,pror14,prca13,prca14
     use mo_vgrid,       only: kbo,bolay
@@ -47,10 +47,9 @@ contains
     use mo_carchm,      only: carchm_solve
     use mo_dipowa,      only: dipowa
 
-    use mo_extNwatercol, only: ro2utammo
-    use mo_extNsediment, only: extNsediment_param_init,sed_nitrification,sed_denit_NO3_to_NO2,sed_anammox,sed_denit_DNRA, &
-                             & extNsed_diagnostics,ised_remin_aerob,ised_remin_sulf,POM_remin_q10_sed,POM_remin_Tref_sed, &
-                             & bkox_drempoc_sed
+    use mo_extNsediment,only: extNsediment_param_init,sed_nitrification,sed_denit_NO3_to_NO2,sed_anammox,sed_denit_DNRA, &
+                            & extNsed_diagnostics,ised_remin_aerob,ised_remin_sulf,POM_remin_q10_sed,POM_remin_Tref_sed, &
+                            & bkox_drempoc_sed
 
 
     ! Arguments

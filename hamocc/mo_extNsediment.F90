@@ -44,11 +44,12 @@ MODULE mo_extNsediment
   !**********************************************************************
   use mo_param1_bgc,  only: issso12,ipowaic,ipowaal,ipowaph,ipowaox,ipown2,ipowno3,ipownh4,ipown2o,ipowno2,ks 
   use mo_vgrid,       only: kbo
-  use mo_param_bgc,   only: rnit,rcar,rnoi
+  use mo_param_bgc,   only: rnit,rcar,rnoi, &
+                         & rc2n,ro2utammo,ro2nnit,rnoxp,rnoxpi,rno2anmx,rno2anmxi,rnh4anmx,                                       &
+                         & rnh4anmxi,rno2dnra,rno2dnrai,rnh4dnra,rnh4dnrai,rnm1  
+
   use mo_control_bgc, only: io_stdo_bgc,dtb
   use mo_sedmnt,      only: powtra,sedlay,porsol,porwat
-  use mo_extNwatercol,only: rc2n,ro2utammo,ro2nnit,rnoxp,rnoxpi,rno2anmx,rno2anmxi,rnh4anmx,                                       &
-                         & rnh4anmxi,rno2dnra,rno2dnrai,rnh4dnra,rnh4dnrai,rnm1  
 
   implicit none
 
@@ -124,13 +125,13 @@ MODULE mo_extNsediment
 
   ! ================================================================================================================================
   subroutine extNsediment_param_init()
-  use mo_extNwatercol,only: q10ano3denit,sc_ano3denit,Trefano3denit,bkano3denit,                                                   &
+  use mo_param_bgc,only: q10ano3denit,sc_ano3denit,Trefano3denit,bkano3denit,                                                   &
                          & q10anmx,Trefanmx,alphaanmx,bkoxanmx,bkano2anmx,                                                         &
                          & q10ano2denit,Trefano2denit,bkoxano2denit,bkano2denit,                                                   &
                          & q10an2odenit,Trefan2odenit,bkoxan2odenit,bkan2odenit,                                                   &
                          & q10dnra,Trefdnra,bkoxdnra,bkdnra,                                                                       &
                          & q10anh4nitr,Trefanh4nitr,bkoxamox,bkanh4nitr,bkamoxn2o,bkyamox,n2omaxy,n2oybeta,                        &
-                         & q10ano2nitr,Trefano2nitr,bkoxnitr,bkano2nitr,NOB2AOAy,rno2anmx,rnh4anmx 
+                         & q10ano2nitr,Trefano2nitr,bkoxnitr,bkano2nitr,NOB2AOAy,rno2anmx,rnh4anmx
   use mo_param_bgc,   only: bkox_drempoc,POM_remin_q10,POM_remin_Tref
 
   implicit none
