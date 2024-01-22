@@ -83,7 +83,7 @@ MODULE mo_m4ago
      PUBLIC :: mean_aggregate_sinking_speed, init_m4ago_nml_params, init_m4ago_params, alloc_mem_m4ago
      
      ! Public fields and parameters
-     PUBLIC :: ws_agg,
+     PUBLIC :: ws_agg,&
              & aggregate_diagnostics,kav_dp,kav_rho_p,kav_d_C,kws_agg,kdf_agg,kstickiness_agg,kb_agg,kstickiness_frustule, &
              & kLmax_agg,kdynvis,kav_rhof_V,kav_por_V   
 
