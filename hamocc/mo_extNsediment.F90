@@ -45,9 +45,16 @@ MODULE mo_extNsediment
   use mo_param1_bgc,  only: issso12,ipowaic,ipowaal,ipowaph,ipowaox,ipown2,ipowno3,ipownh4,ipown2o,ipowno2,ks 
   use mo_vgrid,       only: kbo
   use mo_param_bgc,   only: rnit,rcar,rnoi, &
-                         & rc2n,ro2utammo,ro2nnit,rnoxp,rnoxpi,rno2anmx,rno2anmxi,rnh4anmx,                                       &
-                         & rnh4anmxi,rno2dnra,rno2dnrai,rnh4dnra,rnh4dnrai,rnm1  
-
+                          & rc2n,ro2utammo,ro2nnit,rnoxp,rnoxpi,rno2anmx,rno2anmxi,rnh4anmx,                                       &
+                          & rnh4anmxi,rno2dnra,rno2dnrai,rnh4dnra,rnh4dnrai,rnm1,                                                  &
+                          & q10ano3denit_sed,sc_ano3denit_sed,Trefano3denit_sed,rano3denit_sed,bkano3denit_sed,                    &
+                          & rano2anmx_sed,q10anmx_sed,Trefanmx_sed,alphaanmx_sed,bkoxanmx_sed,bkano2anmx_sed,bkanh4anmx_sed,       &
+                          & rano2denit_sed,q10ano2denit_sed,Trefano2denit_sed,bkoxano2denit_sed,bkano2denit_sed,                   &
+                          & ran2odenit_sed,q10an2odenit_sed,Trefan2odenit_sed,bkoxan2odenit_sed,bkan2odenit_sed,                   &
+                          & rdnra_sed,q10dnra_sed,Trefdnra_sed,bkoxdnra_sed,bkdnra_sed,ranh4nitr_sed,q10anh4nitr_sed,              &
+                          & Trefanh4nitr_sed,bkoxamox_sed,bkanh4nitr_sed,bkamoxn2o_sed,bkyamox_sed,                                &
+                          & rano2nitr_sed,q10ano2nitr_sed,Trefano2nitr_sed,bkoxnitr_sed,bkano2nitr_sed,n2omaxy_sed,                &
+                          & n2oybeta_sed,NOB2AOAy_sed,bn2o_sed,mufn2o_sed,POM_remin_q10_sed, POM_remin_Tref_sed,bkox_drempoc_sed
   use mo_control_bgc, only: io_stdo_bgc,dtb
   use mo_sedmnt,      only: powtra,sedlay,porsol,porwat
 
@@ -56,25 +63,11 @@ MODULE mo_extNsediment
   private
 
   ! public functions
-  public :: extNsediment_param_init,sed_nitrification,sed_denit_NO3_to_NO2,sed_anammox,sed_denit_DNRA,alloc_mem_extNsediment_diag, &
-            extNsediment_param_update,extNsediment_param_write
+  public :: sed_nitrification,sed_denit_NO3_to_NO2,sed_anammox,sed_denit_DNRA,alloc_mem_extNsediment_diag
 
   ! public parameters and fields
   public :: ised_nitr_NH4,ised_nitr_NO2,ised_nitr_N2O_prod,ised_nitr_NH4_OM,ised_nitr_NO2_OM,ised_denit_NO3,ised_denit_NO2,        &
-            ised_denit_N2O,ised_DNRA_NO2,ised_anmx_N2_prod,ised_anmx_OM_prod,ised_remin_aerob,ised_remin_sulf,extNsed_diagnostics, &
-            POM_remin_q10_sed, POM_remin_Tref_sed,bkox_drempoc_sed,                                                                &
-            rano3denit_sed,rano2anmx_sed,rano2denit_sed,ran2odenit_sed,rdnra_sed,ranh4nitr_sed,rano2nitr_sed
-
-
-  ! extended nitrogen cycle sediment parameters 
-  real   ::  q10ano3denit_sed,sc_ano3denit_sed,Trefano3denit_sed,rano3denit_sed,bkano3denit_sed,                                   &
-          & rano2anmx_sed,q10anmx_sed,Trefanmx_sed,alphaanmx_sed,bkoxanmx_sed,bkano2anmx_sed,bkanh4anmx_sed,                       &
-          & rano2denit_sed,q10ano2denit_sed,Trefano2denit_sed,bkoxano2denit_sed,bkano2denit_sed,                                   &
-          & ran2odenit_sed,q10an2odenit_sed,Trefan2odenit_sed,bkoxan2odenit_sed,bkan2odenit_sed,                                   &
-          & rdnra_sed,q10dnra_sed,Trefdnra_sed,bkoxdnra_sed,bkdnra_sed,ranh4nitr_sed,q10anh4nitr_sed,                              &
-          & Trefanh4nitr_sed,bkoxamox_sed,bkanh4nitr_sed,bkamoxn2o_sed,bkyamox_sed,                                                &
-          & rano2nitr_sed,q10ano2nitr_sed,Trefano2nitr_sed,bkoxnitr_sed,bkano2nitr_sed,n2omaxy_sed,                                &
-          & n2oybeta_sed,NOB2AOAy_sed,bn2o_sed,mufn2o_sed,POM_remin_q10_sed, POM_remin_Tref_sed,bkox_drempoc_sed 
+            ised_denit_N2O,ised_DNRA_NO2,ised_anmx_N2_prod,ised_anmx_OM_prod,ised_remin_aerob,ised_remin_sulf,extNsed_diagnostics
 
   ! output
   real, dimension (:,:,:,:), allocatable :: extNsed_diagnostics
@@ -94,7 +87,8 @@ MODULE mo_extNsediment
              ised_remin_sulf    = 13, &
              n_seddiag          = 13
   
-  real :: eps,minlim
+  real :: eps    = 1.e-25
+  real :: minlim = 1.e-9
 
   contains
 
@@ -122,166 +116,6 @@ MODULE mo_extNsediment
     if(errstat.ne.0) stop 'not enough memory extended nitrogen cycle'
 
   end subroutine alloc_mem_extNsediment_diag
-
-  ! ================================================================================================================================
-  subroutine extNsediment_param_init()
-  use mo_param_bgc,only: q10ano3denit,sc_ano3denit,Trefano3denit,bkano3denit,                                                   &
-                         & q10anmx,Trefanmx,alphaanmx,bkoxanmx,bkano2anmx,                                                         &
-                         & q10ano2denit,Trefano2denit,bkoxano2denit,bkano2denit,                                                   &
-                         & q10an2odenit,Trefan2odenit,bkoxan2odenit,bkan2odenit,                                                   &
-                         & q10dnra,Trefdnra,bkoxdnra,bkdnra,                                                                       &
-                         & q10anh4nitr,Trefanh4nitr,bkoxamox,bkanh4nitr,bkamoxn2o,bkyamox,n2omaxy,n2oybeta,                        &
-                         & q10ano2nitr,Trefano2nitr,bkoxnitr,bkano2nitr,NOB2AOAy,rno2anmx,rnh4anmx
-  use mo_param_bgc,   only: bkox_drempoc,POM_remin_q10,POM_remin_Tref
-
-  implicit none
- 
-      ! === Ammonification in the sediment
-      POM_remin_q10_sed  = POM_remin_q10  ! ammonification Q10 in sediment 
-      POM_remin_Tref_sed = POM_remin_Tref ! ammonification Tref in sediment
-      bkox_drempoc_sed   = bkox_drempoc   ! half saturation constant for O2 limitatio of ammonification in sediment
-
-      ! === Denitrification step NO3 -> NO2:
-      !rano3denit_sed    = 0.15*dtb       ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
-      rano3denit_sed    = 0.05           ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
-      q10ano3denit_sed  = q10ano3denit   ! Q10 factor for denitrification on NO3 (-)
-      Trefano3denit_sed = Trefano3denit  ! Reference temperature for denitrification on NO3 (degr C) 
-      !sc_ano3denit_sed  = 0.05e6         ! Shape factor for NO3 denitrification oxygen inhibition function (m3/kmol)
-      sc_ano3denit_sed  = sc_ano3denit   ! Shape factor for NO3 denitrification oxygen inhibition function (m3/kmol)
-      bkano3denit_sed   = bkano3denit    ! Half-saturation constant for NO3 denitrification (kmol/m3)
-
-      ! === Anammox
-      rano2anmx_sed     = 0.05           ! Maximum growth rate for anammox at reference T (1/d -> 1/dt)
-      q10anmx_sed       = q10anmx        ! Q10 factor for anammox (-)
-      Trefanmx_sed      = Trefanmx       ! Reference temperature for anammox (degr C)
-      alphaanmx_sed     = alphaanmx      ! Shape factor for anammox oxygen inhibition function (m3/kmol)
-      bkoxanmx_sed      = bkoxanmx       ! Half-saturation constant for oxygen inhibition function (kmol/m3)
-      bkano2anmx_sed    = bkano2anmx     ! Half-saturation constant for NO2 limitation (kmol/m3)
-      bkanh4anmx_sed    = bkano2anmx_sed * rnh4anmx/rno2anmx !Half-saturation constant for NH4 limitation of anammox (kmol/m3)
-
-      ! === Denitrification step NO2 -> N2O
-      rano2denit_sed    = 0.12           ! Maximum growth rate denitrification on NO2 at reference T (1/d -> 1/dt) 
-      q10ano2denit_sed  = q10ano2denit   ! Q10 factor for denitrification on NO2 (-)
-      Trefano2denit_sed = Trefano2denit  ! Reference temperature for denitrification on NO2 (degr C)
-      bkoxano2denit_sed = bkoxano2denit  ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on NO2 (kmol/m3)
-      bkano2denit_sed   = bkano2denit    ! Half-saturation constant for denitrification on NO2 (kmol/m3)
-
-      ! === Denitrification step N2O -> N2
-      ran2odenit_sed    = 0.16           ! Maximum growth rate denitrification on N2O at reference T (1/d -> 1/dt)
-      q10an2odenit_sed  = q10an2odenit   ! Q1- factor for denitrificationj on N2O (-)
-      Trefan2odenit_sed = Trefan2odenit  ! Reference temperature for denitrification on N2O (degr C)
-      bkoxan2odenit_sed = bkoxan2odenit  ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on N2O (kmol/m3)
-      bkan2odenit_sed   = bkan2odenit    ! Half-saturation constant for denitrification on N2O (kmol/m3)
-
-      ! === DNRA NO2 -> NH4
-      rdnra_sed         = 0.1            ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
-      q10dnra_sed       = q10dnra        ! Q10 factor for DNRA on NO2 (-)
-      Trefdnra_sed      = Trefdnra       ! Reference temperature for DNRA (degr C)
-      bkoxdnra_sed      = bkoxdnra       ! Half saturation constant for (quadratic) oxygen inhibition function of DNRA on NO2 (kmol/m3)
-      bkdnra_sed        = bkdnra         ! Half-saturation constant for DNRA on NO2 (kmol/m3)
-
-      ! === Nitrification on NH4
-      ranh4nitr_sed     = 1.             ! Maximum growth rate nitrification on NH4 at reference T (1/d -> 1/dt) 
-      q10anh4nitr_sed   = q10anh4nitr    ! Q10 factor for nitrification on NH4 (-)
-      Trefanh4nitr_sed  = Trefanh4nitr   ! Reference temperature for nitrification on NH4 (degr C)
-      bkoxamox_sed      = bkoxamox       ! Half-saturation constant for oxygen limitation of nitrification on NH4 (kmol/m3)
-      bkanh4nitr_sed    = bkanh4nitr     ! Half-saturation constant for nitrification on NH4 (kmol/m3)
-!======
-! OLD VERSION OF pathway splitting function
-      !bkamoxn2o_sed     = 0.453e-6 ! Half saturation constant for O2 in pathway splitting function N2O for nitrification on NH4 (kmol/m3)
-! NEW version similar to Santoros 2021, Ji 2018:      
-      bkamoxn2o_sed     = bkamoxn2o      ! Half saturation constant for NH4 in pathway splitting function N2O for nitrification on NH4 (kmol/m3)
-      mufn2o_sed        = 0.11/(50.*1e6*bkoxamox_sed)  !=6.61e-3  0.11/(50*1e6)=2.2e-9 - ~Santoro et al. 2011 with simple MM,  
-      bn2o_sed          = 0.077/(50.*mufn2o_sed)       !=0.2331 - before set to 0.3 - base fraction entering N2O 
-!======
-      !bkamoxno2_sed    = 0.479e-6       ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
-    !  bkamoxno2_sed     = bkamoxno2      ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
-      n2omaxy_sed       = n2omaxy        ! Maximum yield of OM on NH4 nitrification (-)
-      n2oybeta_sed      = n2oybeta       ! Decay factor for inhibition function for yield during nitrification on NH4 (kmol/m3)
-      bkyamox_sed       = bkyamox        ! Half saturation constant for pathway splitting function OM-yield for nitrification on NH4 (kmol/m3)
-  
-      ! === Nitrification on NO2
-      rano2nitr_sed     = 1.54           ! Maximum growth rate nitrification on NO2 at reference T (1/d -> 1/dt) 
-      q10ano2nitr_sed   = q10ano2nitr    ! Q10 factor for nitrification on NO2 (-)
-      Trefano2nitr_sed  = Trefano2nitr   ! Reference temperature for nitrification on NO2 (degr C)
-      bkoxnitr_sed      = bkoxnitr       ! Half-saturation constant for oxygen limitation of nitrification on NO2 (kmol/m3)
-      bkano2nitr_sed    = bkano2nitr     ! Half-saturation constant for NO2 for nitrification on NO2 (kmol/m3)
-      NOB2AOAy_sed      = NOB2AOAy       ! Ratio of NOB versus AOA yield per energy source ~0.043/0.098 according to Zakem et al. 2022
-
-      eps    = 1.e-25 ! safe division etc. 
-      minlim = 1.e-9  ! minimum for limitation functions (e.g. nutlim or oxlim/inh can only decrease to minlim) 
-  end subroutine extNsediment_param_init
-
-  ! ================================================================================================================================  
-  subroutine extNsediment_param_update()
-
-        rano3denit_sed = rano3denit_sed *dtb ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
-        rano2anmx_sed  = rano2anmx_sed  *dtb ! Maximum growth rate for anammox at reference T (1/d -> 1/dt)
-        rano2denit_sed = rano2denit_sed *dtb ! Maximum growth rate denitrification on NO2 at reference T (1/d -> 1/dt) 
-        ran2odenit_sed = ran2odenit_sed *dtb ! Maximum growth rate denitrification on N2O at reference T (1/d -> 1/dt)
-        rdnra_sed      = rdnra_sed      *dtb ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
-        ranh4nitr_sed  = ranh4nitr_sed  *dtb ! Maximum growth rate nitrification on NH4 at reference T (1/d -> 1/dt) 
-        rano2nitr_sed  = rano2nitr_sed  *dtb ! Maximum growth rate nitrification on NO2 at reference T (1/d -> 1/dt) 
-
-  end subroutine extNsediment_param_update     
-  
-  ! ================================================================================================================================  
-  subroutine extNsediment_param_write()
-
-          REAL :: dtbinv
-          dtbinv = 1./dtb
-
-          WRITE(io_stdo_bgc,*) '****************************************************************'
-          WRITE(io_stdo_bgc,*) '* HAMOCC extended nitrogen cycle parameters sediment:' 
-          WRITE(io_stdo_bgc,*) '*          POM_remin_q10_sed = ', POM_remin_q10_sed
-          WRITE(io_stdo_bgc,*) '*          POM_remin_Tref_sed= ', POM_remin_Tref_sed   
-          WRITE(io_stdo_bgc,*) '*          bkox_drempoc_sed  = ', bkox_drempoc_sed   
-          WRITE(io_stdo_bgc,*) '*          rano3denit_sed    = ',rano3denit_sed    *dtbinv
-          WRITE(io_stdo_bgc,*) '*          q10ano3denit_sed  = ',q10ano3denit_sed
-          WRITE(io_stdo_bgc,*) '*          Trefano3denit_sed = ',Trefano3denit_sed
-          WRITE(io_stdo_bgc,*) '*          sc_ano3denit_sed  = ',sc_ano3denit_sed
-          WRITE(io_stdo_bgc,*) '*          bkano3denit_sed   = ',bkano3denit_sed
-          WRITE(io_stdo_bgc,*) '*          rano2anmx_sed     = ',rano2anmx_sed     *dtbinv
-          WRITE(io_stdo_bgc,*) '*          q10anmx_sed       = ',q10anmx_sed
-          WRITE(io_stdo_bgc,*) '*          Trefanmx_sed      = ',Trefanmx_sed
-          WRITE(io_stdo_bgc,*) '*          alphaanmx_sed     = ',alphaanmx_sed
-          WRITE(io_stdo_bgc,*) '*          bkoxanmx_sed      = ',bkoxanmx_sed
-          WRITE(io_stdo_bgc,*) '*          bkano2anmx_sed    = ',bkano2anmx_sed
-          WRITE(io_stdo_bgc,*) '*          bkanh4anmx_sed    = ',bkanh4anmx_sed
-          WRITE(io_stdo_bgc,*) '*          rano2denit_sed    = ',rano2denit_sed    *dtbinv
-          WRITE(io_stdo_bgc,*) '*          q10ano2denit_sed  = ',q10ano2denit_sed
-          WRITE(io_stdo_bgc,*) '*          Trefano2denit_sed = ',Trefano2denit_sed
-          WRITE(io_stdo_bgc,*) '*          bkoxano2denit_sed = ',bkoxano2denit_sed
-          WRITE(io_stdo_bgc,*) '*          bkano2denit_sed   = ',bkano2denit_sed
-          WRITE(io_stdo_bgc,*) '*          ran2odenit_sed    = ',ran2odenit_sed    *dtbinv
-          WRITE(io_stdo_bgc,*) '*          q10an2odenit_sed  = ',q10an2odenit_sed
-          WRITE(io_stdo_bgc,*) '*          Trefan2odenit_sed = ',Trefan2odenit_sed
-          WRITE(io_stdo_bgc,*) '*          bkoxan2odenit_sed = ',bkoxan2odenit_sed
-          WRITE(io_stdo_bgc,*) '*          bkan2odenit_sed   = ',bkan2odenit_sed
-          WRITE(io_stdo_bgc,*) '*          rdnra_sed         = ',rdnra_sed         *dtbinv
-          WRITE(io_stdo_bgc,*) '*          q10dnra_sed       = ',q10dnra_sed
-          WRITE(io_stdo_bgc,*) '*          Trefdnra_sed      = ',Trefdnra_sed
-          WRITE(io_stdo_bgc,*) '*          bkoxdnra_sed      = ',bkoxdnra_sed
-          WRITE(io_stdo_bgc,*) '*          bkdnra_sed        = ',bkdnra_sed
-          WRITE(io_stdo_bgc,*) '*          ranh4nitr_sed     = ',ranh4nitr_sed     *dtbinv
-          WRITE(io_stdo_bgc,*) '*          q10anh4nitr_sed   = ',q10anh4nitr_sed
-          WRITE(io_stdo_bgc,*) '*          Trefanh4nitr_sed  = ',Trefanh4nitr_sed
-          WRITE(io_stdo_bgc,*) '*          bkoxamox_sed      = ',bkoxamox_sed
-          WRITE(io_stdo_bgc,*) '*          bkanh4nitr_sed    = ',bkanh4nitr_sed
-          WRITE(io_stdo_bgc,*) '*          bkamoxn2o_sed     = ',bkamoxn2o_sed
-          WRITE(io_stdo_bgc,*) '*          mufn2o_sed        = ',mufn2o_sed
-          WRITE(io_stdo_bgc,*) '*          bn2o_sed          = ',bn2o_sed
-          WRITE(io_stdo_bgc,*) '*          n2omaxy_sed       = ',n2omaxy_sed
-          WRITE(io_stdo_bgc,*) '*          n2oybeta_sed      = ',n2oybeta_sed
-          WRITE(io_stdo_bgc,*) '*          bkyamox_sed       = ',bkyamox_sed
-          WRITE(io_stdo_bgc,*) '*          rano2nitr_sed     = ',rano2nitr_sed     *dtbinv
-          WRITE(io_stdo_bgc,*) '*          q10ano2nitr_sed   = ',q10ano2nitr_sed
-          WRITE(io_stdo_bgc,*) '*          Trefano2nitr_sed  = ',Trefano2nitr_sed
-          WRITE(io_stdo_bgc,*) '*          bkoxnitr_sed      = ',bkoxnitr_sed
-          WRITE(io_stdo_bgc,*) '*          bkano2nitr_sed    = ',bkano2nitr_sed
-          WRITE(io_stdo_bgc,*) '*          NOB2AOAy_sed      = ',NOB2AOAy_sed
-
-  end subroutine extNsediment_param_write
 
   ! ================================================================================================================================  
   subroutine sed_nitrification(j,kpie,kpje,kpke,kbnd,ptho,omask,ex_ddic,ex_dalk)
