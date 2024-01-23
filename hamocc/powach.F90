@@ -284,7 +284,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
 #else
         ! extended nitrogen cycle - 140mol O2/mol POP O2-consumption 
         ! O2 and T-dep
-        ex_disso_poc = dissot * powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox) + bkox_drempoc_sed) & ! oxygen limitation
+        ex_disso_poc = dissot * powtra(i,j,1,ipowaox)/(powtra(i,j,1,ipowaox) + bkox_drempoc_sed) & ! oxygen limitation
                      &        * POM_remin_q10_sed**((ptho(i,j,kbo(i,j))-POM_remin_Tref_sed)/10.)   ! T-dep
         solrat(i,1) = ( sedlay(i,j,1,issso12) + prorca(i,j)                                  &
              &   / (porsol(i,j,1) * seddw(1)) )                                              &
