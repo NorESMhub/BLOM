@@ -77,7 +77,7 @@ contains
     endif
     if (.not. do_ndep) return
 
-    ! deposite N in topmost layer
+    ! deposit N in topmost layer
     do j=1,kpje
       do i=1,kpie
         if (omask(i,j).gt.0.5) then

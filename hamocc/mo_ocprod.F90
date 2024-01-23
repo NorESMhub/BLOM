@@ -116,7 +116,7 @@ contains
     real,    intent(in) :: pi_ph(kpie,kpje)
     real,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! salinity [psu].
     real,    intent(in) :: ppao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! sea level pressure [Pascal].
-    real,    intent(in) :: prho(kpie,kpje,kpke)                         ! density [kg/m^3].
+    real,    intent(in) :: prho(kpie,kpje,kpke)                         ! density [g/cm^3].
 
     ! Local variables
     integer, parameter :: nsinkmax = 12
@@ -649,8 +649,8 @@ contains
                 phyrem = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2ut)
               else
                 o2lim  = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkox_drempoc)
-                pocrem = min(o2lim*pocrem,0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
-                docrem = min(remido*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
+                pocrem = min(o2lim*pocrem,              0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
+                docrem = min(remido*ocetra(i,j,k,idoc), 0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
                 phyrem = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
               endif
 

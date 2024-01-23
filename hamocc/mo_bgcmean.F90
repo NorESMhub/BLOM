@@ -665,7 +665,7 @@ module mo_bgcmean
        &          jssster = 0 ,                                           &
        &          jpownh4 = 0 ,                                           &
        &          jpown2o = 0 ,                                           &
-       &          jpowno2 = 0 ,                                           &             
+       &          jpowno2 = 0 ,                                           &
        &          jsdm_nitr_NH4      = 0 ,                                &
        &          jsdm_nitr_NO2      = 0 ,                                &
        &          jsdm_nitr_N2O_prod = 0 ,                                &
@@ -678,7 +678,7 @@ module mo_bgcmean
        &          jsdm_anmx_N2_prod  = 0 ,                                &
        &          jsdm_anmx_OM_prod  = 0 ,                                &
        &          jsdm_remin_aerob   = 0 ,                                &
-       &          jsdm_remin_sulf    = 0 
+       &          jsdm_remin_sulf    = 0
 
 
   integer :: nbgct_sed

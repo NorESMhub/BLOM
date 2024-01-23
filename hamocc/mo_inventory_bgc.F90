@@ -50,7 +50,7 @@ contains
                               igasnit,iopal,ioxygen,iphosph,iphy,ipowaic,ipowaox,ipowaph,ipowasi,  &
                               ipown2,ipowno3,isco212,isilica,isssc12,issso12,issssil,izoo,         &
                               irdin,irdip,irsi,iralk,irdoc,irdet,nocetra,npowtra,nsedtra,nriv,     &
-                               ianh4,iano2,iatmnh3,ipownh4,ipown2o,ipowno2
+                              ianh4,iano2,iatmnh3,ipownh4,ipown2o,ipowno2
     use mo_vgrid,       only: dp_min
 
     ! NOT sedbypass
@@ -680,10 +680,9 @@ contains
       use mo_param1_bgc, only: idicsat,idms,ifdust,iiron,iprefalk,iprefdic,iprefo2,iprefpo4,       &
                                iadust,inos,ibromo,icfc11,icfc12,isf6,icalc13,icalc14,idet13,       &
                                idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,   &
-                               inatalkali,inatcalc,inatsco212
+                               inatalkali,inatcalc,inatsco212,ianh4,iano2
       use mo_control_bgc,only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,  &
                                use_CFC,use_natDIC,use_BROMO
-      use mo_param1_bgc, only: ianh4,iano2
 
       implicit none
 

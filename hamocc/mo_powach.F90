@@ -218,18 +218,18 @@ contains
           undsa = powtra(i,j,1,ipowaox)
           sedb1(i,0) = bolay(i,j) * ocetra(i,j,kbo(i,j),ioxygen)
           if ( .not.  use_extNcycle) then
-            solrat(i,1) = ( sedlay(i,j,1,issso12) + prorca(i,j)                                      &
-                 &   / (porsol(i,j,1) * seddw(1)) )                                                  &
-                 &   * ro2ut * dissot / (1. + dissot * undsa)                                        &
-                 &   * porsol(i,j,1) / porwat(i,j,1)
+            solrat(i,1) = ( sedlay(i,j,1,issso12) + prorca(i,j)                                    &
+                        &  / (porsol(i,j,1) * seddw(1)) )                                          &
+                        &   * ro2ut * dissot / (1. + dissot * undsa)                               &
+                        &   * porsol(i,j,1) / porwat(i,j,1)
           else
             ! extended nitrogen cycle - 140mol O2/mol POP O2-consumption
             ! O2 and T-dep
-            ex_disso_poc = dissot * powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox) + bkox_drempoc_sed) & ! oxygen limitation
-                         &        * POM_remin_q10_sed**((ptho(i,j,kbo(i,j))-POM_remin_Tref_sed)/10.)   ! T-dep
-            solrat(i,1) = ( sedlay(i,j,1,issso12) + prorca(i,j)                                  &
-                        & / (porsol(i,j,1) * seddw(1)) )                                         &
-                        & * ro2utammo * ex_disso_poc / (1. + ex_disso_poc * undsa)               &
+            ex_disso_poc = dissot*powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox) + bkox_drempoc_sed) & ! oxygen limitation
+                         &       *POM_remin_q10_sed**((ptho(i,j,kbo(i,j))-POM_remin_Tref_sed)/10.)   ! T-dep
+            solrat(i,1) = ( sedlay(i,j,1,issso12) + prorca(i,j)                                    &
+                        & / (porsol(i,j,1) * seddw(1)) )                                           &
+                        & * ro2utammo * ex_disso_poc / (1. + ex_disso_poc * undsa)                 &
                         & * porsol(i,j,1) / porwat(i,j,1)
           endif
         endif
@@ -245,14 +245,14 @@ contains
             undsa = powtra(i,j,k,ipowaox)
             sedb1(i,k) = seddw(k) * porwat(i,j,k) * powtra(i,j,k,ipowaox)
             if ( .not. use_extNcycle) then
-              if (k > 1) solrat(i,k) = sedlay(i,j,k,issso12) * ro2ut * dissot                        &
-                   &   / (1. + dissot*undsa) * porsol(i,j,k) / porwat(i,j,k)
+              if (k > 1) solrat(i,k) = sedlay(i,j,k,issso12) * ro2ut * dissot                      &
+                                     & / (1. + dissot*undsa) * porsol(i,j,k) / porwat(i,j,k)
             else
               ! extended nitrogen cycle - 140mol O2/mol POP O2-consumption
-              ex_disso_poc = dissot * powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox) + bkox_drempoc_sed) & ! oxygen limitation
-                           &        * POM_remin_q10_sed**((ptho(i,j,kbo(i,j))-POM_remin_Tref_sed)/10.)   ! T-dep
-              if (k > 1) solrat(i,k) = sedlay(i,j,k,issso12) * ro2utammo * ex_disso_poc     &
-                           &   / (1. + ex_disso_poc*undsa) * porsol(i,j,k) / porwat(i,j,k)
+              ex_disso_poc = dissot*powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox)+bkox_drempoc_sed) & ! oxygen limitation
+                           &       *POM_remin_q10_sed**((ptho(i,j,kbo(i,j))-POM_remin_Tref_sed)/10.)   ! T-dep
+              if (k > 1) solrat(i,k) = sedlay(i,j,k,issso12) * ro2utammo * ex_disso_poc            &
+                                     & /(1. + ex_disso_poc*undsa) * porsol(i,j,k) / porwat(i,j,k)
             endif
           endif
         enddo
@@ -523,14 +523,14 @@ contains
             endif
             sedlay(i,j,k,isssc12) = sedlay(i,j,k,isssc12) - posol
             if (use_extNcycle) then
-              powtra(i,j,k,ipowaic) = powtra(i,j,k,ipowaic)                       &
+              powtra(i,j,k,ipowaic) = powtra(i,j,k,ipowaic)                                        &
                   &   + posol * umfa + (aerob(i,k) + sulf(i,k)) * rcar + ex_ddic(i,k)
-              powtra(i,j,k,ipowaal) = powtra(i,j,k,ipowaal)                       &
+              powtra(i,j,k,ipowaal) = powtra(i,j,k,ipowaal)                                        &
                   &   + 2. * posol * umfa - (rnit+1.)*(aerob(i,k) + sulf(i,k))  + ex_dalk(i,k)
             else
-              powtra(i,j,k,ipowaic) = powtra(i,j,k,ipowaic)                       &
+              powtra(i,j,k,ipowaic) = powtra(i,j,k,ipowaic)                                        &
                   &   + posol * umfa + (aerob(i,k) + anaerob(i,k) + sulf(i,k)) * rcar
-              powtra(i,j,k,ipowaal) = powtra(i,j,k,ipowaal)                                          &
+              powtra(i,j,k,ipowaal) = powtra(i,j,k,ipowaal)                                        &
                   &   + 2. * posol * umfa - (rnit+1.)*(aerob(i,k) + sulf(i,k)) + (rdnit1-1.)*anaerob(i,k)
             endif
             if (use_cisonew) then

@@ -123,7 +123,7 @@ CONTAINS
     integer   :: restday                           !  day of restart file
     integer   :: restdtoce                         !  time step number from bgc ocean file
     integer   :: idate(5),i,j,k
-    logical   :: lread_cfc,lread_nat,lread_iso,lread_atm,lread_bro,lread_extn,lread_pref
+    logical   :: lread_cfc,lread_nat,lread_iso,lread_atm,lread_bro,lread_extn,lread_prefsi
     real      :: rco213,rco214,alpha14,beta13,beta14,d13C_atm,d14cat
     integer   :: ncid,ncstat,ncvarid
 
@@ -363,18 +363,18 @@ CONTAINS
       endif
     endif
 
-      lread_pref=.true.
+      lread_prefsi=.true.
       if(IOTYPE==0) then
         if(mnproc==1) ncstat=nf90_inq_varid(ncid,'prefsilica',ncvarid)
         call xcbcst(ncstat)
-        if(ncstat.ne.nf90_noerr) lread_pref=.false.
+        if(ncstat.ne.nf90_noerr) lread_prefsi=.false.
       else if(IOTYPE==1) then
 #ifdef PNETCDF
         ncstat=nfmpi_inq_varid(ncid,'prefsilica',ncvarid)
-        if(ncstat.ne.nf_noerr) lread_pref=.false.
+        if(ncstat.ne.nf_noerr) lread_prefsi=.false.
 #endif
       endif
-      if(mnproc==1 .and. .not. lread_pref) then
+      if(mnproc==1 .and. .not. lread_prefsi) then
         write(io_stdo_bgc,*) ' '
         write(io_stdo_bgc,*) 'AUFR_BGC info: preformed silica not in restart file '
         write(io_stdo_bgc,*) 'Initialising preformed tracer from scratch'
@@ -405,7 +405,7 @@ CONTAINS
     call read_netcdf_var(ncid,'prefalk',locetra(1,1,1,iprefalk),2*kpke,0,iotype)
     call read_netcdf_var(ncid,'prefdic',locetra(1,1,1,iprefdic),2*kpke,0,iotype)
     call read_netcdf_var(ncid,'dicsat',locetra(1,1,1,idicsat),2*kpke,0,iotype)
-    if(lread_pref) then
+    if(lread_prefsi) then
       call read_netcdf_var(ncid,'prefsilica',locetra(1,1,1,iprefsilica),2*kpke,0,iotype)
     endif
 
@@ -450,8 +450,8 @@ CONTAINS
     endif
     if (use_extNcycle) then
       if(lread_extn) then
-      call read_netcdf_var(ncid,'anh4',locetra(1,1,1,ianh4),2*kpke,0,iotype)
-      call read_netcdf_var(ncid,'ano2',locetra(1,1,1,iano2),2*kpke,0,iotype)
+        call read_netcdf_var(ncid,'anh4',locetra(1,1,1,ianh4),2*kpke,0,iotype)
+        call read_netcdf_var(ncid,'ano2',locetra(1,1,1,iano2),2*kpke,0,iotype)
       endif
     endif
 

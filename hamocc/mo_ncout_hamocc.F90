@@ -1224,10 +1224,10 @@ contains
 
     use mod_nctools,    only: ncdefvar,ncattr,ncfopn,ncdimc,ncdims,                                &
                               nctime,ncfcls,ncedef,ncdefvar3d,ndouble
-    use mo_control_bgc,only:lm4ago
+    use mo_control_bgc, only: lm4ago
     use mo_bgcmean,     only: srf_kwco2,srf_pco2,srf_dmsflux,srf_co2fxd,                           &
                               srf_kwco2khm,srf_co2kh,srf_co2khm,srf_pco2m,                         &
-                              srf_co2fxu,srf_oxflux,srf_niflux,srf_pn2om,srf_dms,srf_dmsprod,    &
+                              srf_co2fxu,srf_oxflux,srf_niflux,srf_pn2om,srf_dms,srf_dmsprod,      &
                               srf_dms_bac,srf_dms_uv,srf_export,srf_exposi,srf_expoca,             &
                               srf_dic,srf_alkali,srf_phosph,srf_oxygen,srf_ano3,srf_silica,        &
                               srf_iron,srf_phyto,srf_ph,int_phosy,int_nfix,int_dnit,               &
@@ -1979,22 +1979,26 @@ contains
         call ncdefvar3d(SDM_POWNO2(iogrp),cmpflg,'p',                           &
              &   'powno2','PoWa nitrite',' ','mol N m-3',3)
         call ncdefvar3d(sdm_nitr_NH4(iogrp),cmpflg,'p',                         &
-             &  'nh4nitrsdm','NH4 nitrification rate sediment',' ','mol N m-3 s-1',3)
+             &  'nh4nitrsdm','NH4 nitrification rate sediment',' ',             &
+             &  'mol N m-3 s-1',3)
         call ncdefvar3d(sdm_nitr_NO2(iogrp),cmpflg,'p',                         &
-             &  'no2nitrsdm','NO2 nitrification rate sediment',' ','mol N m-3 s-1',3)
+             &  'no2nitrsdm','NO2 nitrification rate sediment',' ',             &
+             &  'mol N m-3 s-1',3)
         call ncdefvar3d(sdm_nitr_N2O_prod(iogrp),cmpflg,'p',                    &
              &  'nitr_n2osdm','N2O prod during NH4 nitrification sediment',' ', &
              &  'mol N2O m-3 s-1',3)
         call ncdefvar3d(sdm_nitr_NH4_OM(iogrp),cmpflg,'p',                      &
-             &  'nh4nitr_omsdm','OM production during NH4 nitrification sediment',' ', &
-             &  'mol P m-3 s-1',3)
+             &  'nh4nitr_omsdm','OM production during NH4 nitrification sediment',&
+             &  ' ','mol P m-3 s-1',3)
         call ncdefvar3d(sdm_nitr_NO2_OM(iogrp),cmpflg,'p',                      &
-             &  'no2nitr_omsdm','OM production during NO2 nitrification sediment',' ', &
-             &  'mol P m-3 s-1',3)
+             &  'no2nitr_omsdm','OM production during NO2 nitrification sediment',&
+             &  ' ','mol P m-3 s-1',3)
         call ncdefvar3d(sdm_denit_NO3(iogrp),cmpflg,'p',                        &
-             &  'no3denitsdm','NO3 denitrification rate sediment',' ','mol N m-3 s-1',3)
+             &  'no3denitsdm','NO3 denitrification rate sediment',' ',          &
+             &  'mol N m-3 s-1',3)
         call ncdefvar3d(sdm_denit_NO2(iogrp),cmpflg,'p',                        &
-             &  'no2denitsdm','NO2 denitrification rate sediment',' ','mol N m-3 s-1',3)
+             &  'no2denitsdm','NO2 denitrification rate sediment',' ',          &
+             &  'mol N m-3 s-1',3)
         call ncdefvar3d(sdm_denit_N2O(iogrp),cmpflg,'p',                        &
              &  'n2odenitsdm','N2O denitrification rate sediment',' ',          &
              &  'mol N2O m-3 s-1',3)
@@ -2014,6 +2018,7 @@ contains
              &  'mol P m-3 s-1',3)
       endif
     endif
+
     ! --- enddef netcdf file
     call ncedef
 

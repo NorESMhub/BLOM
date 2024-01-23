@@ -88,12 +88,12 @@ contains
                 ttemp = min(40.,max(-3.,ptho(i,j,k)))
 
                 ! Temperature dependence of nitrogen fixation, Kriest and Oschlies 2015.
-                nfixtfac = MAX(0.0,tf2*ttemp*ttemp + tf1*ttemp + tf0)/tff
+                nfixtfac = max(0.0,tf2*ttemp*ttemp + tf1*ttemp + tf0)/tff
 
                 if (.not. use_extNcycle) then
                   oldocetra = ocetra(i,j,k,iano3)
-                  ocetra(i,j,k,iano3)=ocetra(i,j,k,iano3)*(1.-bluefix*nfixtfac) &
-     &                               +bluefix*nfixtfac*rnit*ocetra(i,j,k,iphosph)
+                  ocetra(i,j,k,iano3)=ocetra(i,j,k,iano3)*(1.-bluefix*nfixtfac)                   &
+                                     +bluefix*nfixtfac*rnit*ocetra(i,j,k,iphosph)
                   dansp=ocetra(i,j,k,iano3)-oldocetra
                   ! Note: to fix one mole N2 requires: N2+H2O+y*O2 = 2* HNO3 <-> y=2.5 mole O2.
                   ! I.e., to release one mole HNO3 = H+ + NO3- requires 1.25 mole O2
@@ -103,8 +103,8 @@ contains
                   dalk = -dansp
                 else
                   oldocetra = ocetra(i,j,k,ianh4)
-                  ocetra(i,j,k,ianh4)=ocetra(i,j,k,ianh4)*(1.-bluefix*nfixtfac) &
-     &                               +bluefix*nfixtfac*rnit*ocetra(i,j,k,iphosph)
+                  ocetra(i,j,k,ianh4)=ocetra(i,j,k,ianh4)*(1.-bluefix*nfixtfac)                    &
+                                     +bluefix*nfixtfac*rnit*ocetra(i,j,k,iphosph)
                   dansp=ocetra(i,j,k,ianh4)-oldocetra
                   dox  = dansp*0.75
                   dalk = dansp

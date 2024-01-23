@@ -805,7 +805,7 @@ contains
     endif
 
     !
-    ! Write restart data : diagtnostic ocean fields
+    ! Write restart data : diagnostic ocean fields
     !
     call write_netcdf_var(ncid,'hi',hi(1,1,1),kpke,0)
     call write_netcdf_var(ncid,'co3',co3(1,1,1),kpke,0)

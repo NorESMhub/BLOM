@@ -39,7 +39,6 @@ module mo_param_bgc
                             use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type,lm4ago,   &
                             leuphotic_cya,do_ndep_coupled,do_n2onh3_coupled,use_extNcycle
   use mod_xc,         only: mnproc
-  use mo_param1_bgc,  only: iatmnh3,iatmn2o
 
   implicit none
   private
@@ -665,7 +664,6 @@ contains
     dremn2o  = dremn2o*dtb    ! 1/d to 1/time step  Remineralization rate of detritus on N2O
     dremsul  = dremsul*dtb    ! 1/d to 1/time step  Remineralization rate for sulphate reduction
 
-
     !********************************************************************
     !     Parameters for DMS and BrO schemes
     !********************************************************************
@@ -792,6 +790,7 @@ contains
       write(io_stdo_bgc,*) '*   use_natDIC             = ',use_natDIC
       write(io_stdo_bgc,*) '*   use_CFC                = ',use_CFC
       write(io_stdo_bgc,*) '*   use_cisonew            = ',use_cisonew
+      write(io_stdo_bgc,*) '*   use_extNcycle          = ',use_extNcycle
       write(io_stdo_bgc,*) '*   use_PBGC_OCNP_TIMESTEP = ',use_PBGC_OCNP_TIMESTEP
       write(io_stdo_bgc,*) '*   use_PBGC_CK_TIMESTEP   = ',use_PBGC_CK_TIMESTEP
       write(io_stdo_bgc,*) '*   use_FB_BGC_OCE BROMO   = ',use_FB_BGC_OCE

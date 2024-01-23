@@ -139,7 +139,9 @@ contains
     call alloc_mem_biomod(idm,jdm,kdm)
     call alloc_mem_sedmnt(idm,jdm)
     call alloc_mem_carbch(idm,jdm,kdm)
-    call alloc_mem_M4AGO(idm,jdm,kdm)
+    if (lm4ago) then
+      call alloc_mem_M4AGO(idm,jdm,kdm)
+    endif
     if (use_extNcycle .and. .not. use_sedbypass) then
       call alloc_mem_extNsediment_diag(idm,jdm,ks)
     endif

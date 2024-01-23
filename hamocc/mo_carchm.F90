@@ -140,7 +140,7 @@ contains
     ! extNcycle
     real    :: flx_nh3,sch_nh3_a,sch_nh3_w,kw_nh3,ka_nh3,atnh3,diff_nh3_a,diff_nh3_w,mu_air,mu_w,p_dbar,rho_air
     real    :: h_nh3,hstar_nh3,pKa_nh3,eps_safe,Kh_nh3,cD_wind,u_star
-    eps_safe = EPSILON(1.)
+    eps_safe = epsilon(1.)
 
     ! set variables for diagnostic output to zero
     atmflx (:,:,:)=0.
@@ -516,7 +516,7 @@ contains
                 atmflx(i,j,iatmbromo) = -flx_bromo
               endif
               if (use_extNcycle) then
-                ! surface flux NH3: STILL REQUIRES TO CHECK CONVERSION FACTOR FOR atNH3 (currently assumed atNH3 in pptv)
+                ! surface flux NH3 - currently assumed atNH3 in pptv
                 flx_nh3 =  Kh_nh3*dtbgc*(atnh3*1e-12*ppao(i,j)*1e-5/(tk*0.08314510) - hstar_nh3*ocetra(i,j,1,ianh4))
                 ocetra(i,j,1,ianh4) = ocetra(i,j,1,ianh4) + flx_nh3/pddpo(i,j,1)
 

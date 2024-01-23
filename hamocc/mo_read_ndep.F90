@@ -220,7 +220,7 @@ contains
       oldmonth=kplmon
     endif
 
-!$OMP PARALLEL DO PRIVATE(i)
+    !$OMP PARALLEL DO PRIVATE(i)
     ! 1 = NO3; 2 = NH4
     do  j=1,kpje
       do  i=1,kpie
@@ -232,7 +232,7 @@ contains
         endif
       enddo
     enddo
-!$OMP END PARALLEL DO
+    !$OMP END PARALLEL DO
 
   end subroutine get_ndep
 
