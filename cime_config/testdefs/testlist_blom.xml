@@ -5,22 +5,32 @@
       <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
     </machines>
   </test>
-  <test name="ERS_Ld5" grid="T62_tn14" compset="NOINYOC">
+  <test name="ERS_Ld3" grid="T62_tn14" compset="NOINYOC">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
     </machines>
   </test>
-  <test name="ERS_Ld5" grid="T62_tn14" compset="NOINY">
+  <test name="ERS_Ld3" grid="T62_tn14" compset="NOINYOC" testmods="blom/hamocc1">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
     </machines>
   </test>
-  <test name="ERS_Ld5" grid="T62_tn14_wtn14nw" compset="NOINY_WW3">
+  <test name="ERS_Ld3" grid="T62_tn14" compset="NOINYOC" testmods="blom/hamocc2">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
     </machines>
   </test>
-  <test name="ERS_Ld5" grid="T62_tn14_wtn14nw" compset="NOINY_WW3" testmods="blom/wavice">
+  <test name="ERP_Ld3" grid="T62_tn14" compset="NOINY">
+    <machines>
+      <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
+    </machines>
+  </test>
+  <test name="ERS_Ld3" grid="T62_tn14_wtn14nw" compset="NOINY_WW3">
+    <machines>
+      <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
+    </machines>
+  </test>
+  <test name="ERS_Ld3" grid="T62_tn14_wtn14nw" compset="NOINY_WW3" testmods="blom/wavice">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
     </machines>

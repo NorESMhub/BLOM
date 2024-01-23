@@ -113,49 +113,7 @@ if get_option('iage')
 endif
 
 if get_option('ecosys')
-  add_project_arguments('-DHAMOCC', '-DWLIN', language: 'fortran')
-  if get_option('hamocc_agg')
-    add_project_arguments('-DAGG', language: 'fortran')
-  endif
-  if get_option('hamocc_boxatm')
-    add_project_arguments('-DBOXATM', language: 'fortran')
-  endif
-  if get_option('hamocc_bromo')
-    add_project_arguments('-DBROMO', language: 'fortran')
-  endif
-  if get_option('hamocc_cfc')
-    add_project_arguments('-DCFC', language: 'fortran')
-  endif
-  if get_option('hamocc_dmsph')
-    add_project_arguments('-DDMSPH', language: 'fortran')
-  endif
-  if get_option('hamocc_nattrc')
-    add_project_arguments('-DnatDIC', language: 'fortran')
-  endif
-  if get_option('hamocc_fb_bgc_oce')
-    add_project_arguments('-DFB_BGC_OCE', language: 'fortran')
-  endif
-  if get_option('hamocc_sedbypass')
-    add_project_arguments('-Dsedbypass', language: 'fortran')
-  endif
-  if get_option('hamocc_ciso')
-    if not get_option('hamocc_sedbypass')
-      error('hamocc_ciso == true requires hamocc_sedbypass == true!')
-    endif
-    add_project_arguments('-Dcisonew', language: 'fortran')
-  endif
-  if get_option('hamocc_extNcycle')
-    add_project_arguments('-DextNcycle', language: 'fortran')
-  endif
-  if get_option('hamocc_debug_timestep')
-    add_project_arguments('-DPBGC_OCNP_TIMESTEP','-DPBGC_CK_TIMESTEP', language: 'fortran')
-  endif
-  if get_option('hamocc_pbgc_ocnp_timestep')
-    add_project_arguments('-DPBGC_OCNP_TIMESTEP', language: 'fortran')
-  endif
-  if get_option('hamocc_pbgc_ck_timestep')
-    add_project_arguments('-DPBGC_CK_TIMESTEP', language: 'fortran')
-  endif
+  add_project_arguments('-DHAMOCC', language: 'fortran')
   subdir('hamocc')
 endif
 

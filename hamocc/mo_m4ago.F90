@@ -71,10 +71,9 @@
 MODULE mo_m4ago
      USE mo_vgrid,       ONLY: dp_min
      USE mo_control_bgc, ONLY: dtb, dtbgc,io_stdo_bgc
-     USE mo_sedmnt,      ONLY: calcdens, claydens, opaldens, calcwei, opalwei                  
+     USE mo_param_bgc,   ONLY: calcdens, claydens, opaldens, calcwei, opalwei, ropal
      USE mo_carbch,      ONLY: ocetra
      USE mo_param1_bgc,  ONLY: iopal, ifdust, icalc, idet
-     USE mo_biomod,      ONLY: ropal
 
      IMPLICIT NONE
 
@@ -84,7 +83,7 @@ MODULE mo_m4ago
      PUBLIC :: mean_aggregate_sinking_speed, init_m4ago_nml_params, init_m4ago_params, alloc_mem_m4ago
      
      ! Public fields and parameters
-     PUBLIC :: ws_agg, POM_remin_q10, POM_remin_Tref, opal_remin_q10, opal_remin_Tref, &
+     PUBLIC :: ws_agg,&
              & aggregate_diagnostics,kav_dp,kav_rho_p,kav_d_C,kws_agg,kdf_agg,kstickiness_agg,kb_agg,kstickiness_frustule, &
              & kLmax_agg,kdynvis,kav_rhof_V,kav_por_V   
 
@@ -210,10 +209,6 @@ MODULE mo_m4ago
 
      agg_Re_crit       = 20.  ! critical particle Reynolds number for limiting nr-distribution
 
-     POM_remin_q10     = 2.1 ! Bidle et al. 2002: Regulation of Oceanic Silicon...
-     opal_remin_q10    = 2.6 ! Bidle et al. 2002: Regulation of Oceanic Silicon...
-     POM_remin_Tref    = 10.
-     opal_remin_Tref   = 10.
   END SUBROUTINE init_m4ago_nml_params
 
   SUBROUTINE init_m4ago_params

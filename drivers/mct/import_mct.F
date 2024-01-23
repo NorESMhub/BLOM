@@ -36,6 +36,9 @@
       use mod_utility, only: util1, util2
       use mod_checksum, only: csdiag, chksummsk
       use blom_cpl_indices
+#ifdef HAMOCC
+      use mo_control_bgc, only: ocn_co2_type
+#endif
 
       implicit none
 
@@ -56,6 +59,10 @@
 
       integer i, j, l, n
       real(r8) :: utmp, vtmp
+
+#ifndef HAMOCC
+      character(len=16) :: ocn_co2_type = 'unset'
+#endif
 
       !-----------------------------------------------------------------
       ! unpermute in-place before unpacking
@@ -229,27 +236,66 @@
       call fill_global(mval, fval, halo_ps,
      .                 abswnd_da(1-nbdy,1-nbdy,l2ci))
 
-#ifdef PROGCO2
-      if (index_x2o_Sa_co2prog > 0) then
-         n = 0
-         do j = 1, jjcpl
-            do i = 1, ii
-               n = n + 1
-               if     (ip(i,j) == 0) then
-                  atmco2_da(i,j,l2ci) = mval
-               elseif (cplmsk(i,j) == 0) then
-                  atmco2_da(i,j,l2ci) = fval
-               else
-                  ! Atmospheric co2 concentration [ppmv?]
-                  atmco2_da(i,j,l2ci) =
-     .               x2o_o%rAttr(index_x2o_Sa_co2prog,n)
-               endif
+      if (ocn_co2_type == 'prognostic') then
+         if (index_x2o_Sa_co2prog > 0) then
+            n = 0
+            do j = 1, jjcpl
+               do i = 1, ii
+                  n = n + 1
+                  if     (ip(i,j) == 0) then
+                     atmco2_da(i,j,l2ci) = mval
+                  elseif (cplmsk(i,j) == 0) then
+                     atmco2_da(i,j,l2ci) = fval
+                  else
+                     ! Atmospheric co2 concentration [ppmv?]
+                     atmco2_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Sa_co2prog,n)
+                  endif
+               enddo
             enddo
-         enddo
-         call fill_global(mval, fval, halo_ps,
-     .                    atmco2_da(1-nbdy,1-nbdy,l2ci))
-         if (mnproc.eq.1)
-     .      write (lp,*) 'import_mct: prog. atmospheric co2 read'
+            call fill_global(mval, fval, halo_ps, atmco2_da(1-nbdy,1-nbdy,l2ci))
+            if (mnproc.eq.1) write (lp,*) 'import_mct: prog. atmospheric co2 read'
+         else
+            do j = 1, jj
+               do i = 1, ii
+                  if (ip(i,j) == 0) then
+                     atmco2_da(i,j,l2ci) = mval
+                  else
+                     atmco2_da(i,j,l2ci) = -1
+                  endif
+               enddo
+            enddo
+            if (mnproc.eq.1) write (lp,*) 'import_mct: prog. atmospheric co2 not read'
+         endif
+      else if (ocn_co2_type == 'diagnostic') then
+         if (index_x2o_Sa_co2diag > 0) then
+            n = 0
+            do j = 1, jjcpl
+               do i = 1, ii
+                  n = n + 1
+                  if     (ip(i,j) == 0) then
+                     atmco2_da(i,j,l2ci) = mval
+                  elseif (cplmsk(i,j) == 0) then
+                     atmco2_da(i,j,l2ci) = fval
+                  else
+                     ! Atmospheric co2 concentration [ppmv?]
+                     atmco2_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Sa_co2diag,n)
+                  endif
+               enddo
+            enddo
+            call fill_global(mval, fval, halo_ps, atmco2_da(1-nbdy,1-nbdy,l2ci))
+            if (mnproc.eq.1) write (lp,*) 'import_mct: diag. atmospheric co2 read'
+         else
+            do j = 1, jj
+               do i = 1, ii
+                  if (ip(i,j) == 0) then
+                     atmco2_da(i,j,l2ci) = mval
+                  else
+                     atmco2_da(i,j,l2ci) = -1
+                  endif
+               enddo
+            enddo
+            if (mnproc.eq.1) write (lp,*) 'import_mct: diag. atmospheric co2 not read'
+         endif
       else
          do j = 1, jj
             do i = 1, ii
@@ -260,57 +306,8 @@
                endif
             enddo
          enddo
-         if (mnproc.eq.1)
-     .      write (lp,*) 'import_mct: prog. atmospheric co2 not read'
-      endif
-
-#elif defined(DIAGCO2)
-      if (index_x2o_Sa_co2diag > 0) then
-         n = 0
-         do j = 1, jjcpl
-            do i = 1, ii
-               n = n + 1
-               if     (ip(i,j) == 0) then
-                  atmco2_da(i,j,l2ci) = mval
-               elseif (cplmsk(i,j) == 0) then
-                  atmco2_da(i,j,l2ci) = fval
-               else
-                  ! Atmospheric co2 concentration [ppmv?]
-                  atmco2_da(i,j,l2ci) =
-     .               x2o_o%rAttr(index_x2o_Sa_co2diag,n)
-               endif
-            enddo
-         enddo
-         call fill_global(mval, fval, halo_ps,
-     .                    atmco2_da(1-nbdy,1-nbdy,l2ci))
-         if (mnproc.eq.1)
-     .      write (lp,*) 'import_mct: diag. atmospheric co2 read'
-      else
-         do j = 1, jj
-            do i = 1, ii
-               if (ip(i,j) == 0) then
-                  atmco2_da(i,j,l2ci) = mval
-               else
-                  atmco2_da(i,j,l2ci) = -1
-               endif
-            enddo
-         enddo
-         if (mnproc.eq.1)
-     .      write (lp,*) 'import_mct: diag. atmospheric co2 not read'
-      endif
-#else
-      do j = 1, jj
-         do i = 1, ii
-            if (ip(i,j) == 0) then
-               atmco2_da(i,j,l2ci) = mval
-            else
-               atmco2_da(i,j,l2ci) = -1
-            endif
-         enddo
-      enddo
-      if (mnproc.eq.1)
-     .   write (lp,*) 'import_mct: atmospheric co2 not read'
-#endif      
+         if (mnproc.eq.1) write (lp,*) 'import_mct: atmospheric co2 not read'
+      end if
 
       if (index_x2o_Sa_brfprog > 0) then
          n = 0

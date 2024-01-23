@@ -75,8 +75,8 @@
 ! SRXBAL   : Balance the SSS relaxation (l)
 ! SCFILE   : Name of file containing SSS climatology used for relaxation (a)
 ! WAVSRC   : Source of wave fields. Valid source: 'none', 'param', 'extern' (a)
-! SMTFRC   : Smooth CESM forcing (l)
-! SPRFAC   : Send precipitation/runoff factor to CESM coupler (l)
+! SMTFRC   : Smooth NorESM forcing (l)
+! SPRFAC   : Send precipitation/runoff factor to NorESM coupler (l)
 ! ATM_PATH : Path to forcing fields in case of EXPCNF 'ben02clim' or
 !            'ben02syn' (a)
 ! ITEST    : Global i-index of point diagnostics (i)
@@ -403,7 +403,7 @@
 ! Namelist acronyms:
 !   GLB_     - global parameters i.e. valid for entire output group
 !   SRF_     - surface variables (includes some non-surface 2d fields)
-!   FLX_     - interior ocean particle fuxes at different depth (2d)
+!   FLX_     - (interior) ocean (particle) fluxes at different depth (2d)
 !   INT_     - vertically integrated fields (2d)
 !   LYR_     - 3d fields with sigma layers as vertical coordinate
 !   LVL_     - 3d fields with levitus levels as vertical coordinate
@@ -436,6 +436,8 @@
 !   ALKALI         - Alkalinity (talk) [eq m-3]
 !   OXYGEN         - Oxygen (o2) [mol O2 m-3]
 !   ANO3           - Nitrate (no3) [mol N m-3]
+!   ANO2           - Nitrite (no2) [mol N m-3] - extended N cycle only
+!   ANH4           - Ammonium (nh4) [mol N m-3] - extended N cycle only
 !   PHOSPH         - Phosphorus (po4) [mol P m-3]
 !   IRON           - Dissolved iron (dfe) [mol Fe m-3]
 !   SILICA         - Silicate (si) [mol Si m-3]
@@ -450,6 +452,7 @@
 !   PREFO2         - preformed oxygen (p_o2) [mol O2 m-3]
 !   O2SAT          - Saturated oxygen (satoxy) [mol O2 m-3]
 !   PREFPO4        - preformed phosphate (p_po4) [mol PO4 m-3]
+!   PREFSILICA     - preformed silica (p_si) [mol Si m-3]
 !   PREFALK        - preformed alkalinity (p_talk) [eq m-3]
 !   PREFDIC        - preformed DIC (p_dic) [mol C m-3]
 !   DICSAT         - saturated DIC (dic_sat) [mol C m-3]
@@ -559,9 +562,11 @@
 !   NFIX           - Vertically integrated nitrogen fixation
 !   DNIT           - Vertically integrated denitrification
 !
+!
 ! Particle fluxes (FLX, e.g CARFLX****, where ****=0100,0500,1000,2000,4000, or _BOT),
 ! diffusive fluxes at the sediment - water-column interface (SEDIFF*), and other fluxes
-!   NDEP           - Nitrogen deposition flux [mol N m-2 s-1]
+!   NDEPNOY        - Nitrogen deposition flux in form of nitrate [mol N m-2 s-1]
+!   NDEPNHX        - Nitrogen deposition flux in form of ammonium [mol N m-2 s-1]
 !   OALK           - Flux of alkalinity due to ocean alkalinization [mol N m-2 s-1]
 !   CARFLX****     - POC flux at **** metres depth [mol C m-2 s-1]
 !   BSIFLX****     - Biogenic silica flux at **** metres depth [mol Si m-2 s-1]
@@ -572,6 +577,9 @@
 !   SEDIFFOX       - sediment - water-column diffusive flux of oxygen [mol O2 m-2 s-1]
 !   SEDIFFN2       - sediment - water-column diffusive flux of N2 [mol N2 m-2 s-1]
 !   SEDIFFNO3      - sediment - water-column diffusive flux of nitrate [mol NO3 m-2 s-1]
+!   SEDIFFNO2      - sediment - water-column diffusive flux of nitrite [mol NO2 m-2 s-1] - extended N cycle only
+!   SEDIFFN2O      - sediment - water-column diffusive flux of N2O [mol N2O m-2 s-1] - extended N cycle only
+!   SEDIFFNH4      - sediment - water-column diffusive flux of ammonium [mol NH4 m-2 s-1] - extended N cycle only
 !   SEDIFFSI       - sediment - water-column diffusive flux of silica [mol Si m-2 s-1]
 !   FLX_BURSSO12   - burial fluxes organic carbon [mol P m-2 s-1]
 !   FLX_BURSSSC12  - burial fluxes of calcium carbonate [mol Ca m-2 s-1]

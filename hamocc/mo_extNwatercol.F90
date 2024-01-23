@@ -54,244 +54,32 @@
       use mo_control_bgc, only: io_stdo_bgc,dtb
       use mo_param1_bgc,  only: ialkali,ianh4,iano2,ian2o,iano3,idet,igasnit,iiron,ioxygen,iphosph,isco212
       use mo_carbch,      only: ocetra
-      use mo_biomod,      only: riron,rnit,rcar,rnoi, nitr_NH4,nitr_NO2,nitr_N2O_prod,nitr_NH4_OM,nitr_NO2_OM,denit_NO3,denit_NO2, &
-                              & denit_N2O,DNRA_NO2,anmx_N2_prod,anmx_OM_prod
-
+      use mo_param_bgc,   only: riron,rnit,rcar,rnoi,                                                &
+                              & q10ano3denit,sc_ano3denit,Trefano3denit,rano3denit,bkano3denit,      &
+                              & rano2anmx,q10anmx,Trefanmx,alphaanmx,bkoxanmx,bkano2anmx,bkanh4anmx, &
+                              & rano2denit,q10ano2denit,Trefano2denit,bkoxano2denit,bkano2denit,     &
+                              & ran2odenit,q10an2odenit,Trefan2odenit,bkoxan2odenit,bkan2odenit,     &
+                              & rdnra,q10dnra,Trefdnra,bkoxdnra,bkdnra,ranh4nitr,q10anh4nitr,        &
+                              & Trefanh4nitr,bkoxamox,bkanh4nitr,bkamoxn2o,bkyamox,                  &
+                              & rano2nitr,q10ano2nitr,Trefano2nitr,bkoxnitr,bkano2nitr,n2omaxy,      &
+                              & n2oybeta,NOB2AOAy,bn2o,mufn2o,                                       &
+                              & rc2n,ro2nnit,rnoxp,rnoxpi,rno2anmx,rno2anmxi,rnh4anmx,               &
+                              & rnh4anmxi,rno2dnra,rno2dnrai,rnh4dnra,rnh4dnrai,rnm1,                &
+                              &  bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo
+      use mo_biomod,      only: nitr_NH4,nitr_NO2,nitr_N2O_prod,nitr_NH4_OM,nitr_NO2_OM,denit_NO3,   &
+                              & denit_NO2,denit_N2O,DNRA_NO2,anmx_N2_prod,anmx_OM_prod
       implicit none
 
       private
 
       ! public functions
-      public :: extNwatercol_param_init,nitrification,denit_NO3_to_NO2,&
-              & anammox,denit_dnra,extN_inv_check,extNwatercol_param_update,extNwatercol_param_write
+      public :: nitrification,denit_NO3_to_NO2,anammox,denit_dnra,extN_inv_check
 
-      ! public parameters for primary production
-      public :: bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo
-
-      ! Public parameters for extended nitrogen cycle in the sediment.
-      ! The basic idea is that we have the same temperature dependence
-      ! and same nutrient sensitivities, 
-      ! while only the rates vary between sediment and water column
-      ! (Thus far, we keep the rates public in order to enable to write them to the log in beleg_parm)
-      public ::  q10ano3denit,sc_ano3denit,Trefano3denit,rano3denit,bkano3denit,     &
-              & rano2anmx,q10anmx,Trefanmx,alphaanmx,bkoxanmx,bkano2anmx,bkanh4anmx, &
-              & rano2denit,q10ano2denit,Trefano2denit,bkoxano2denit,bkano2denit,     &
-              & ran2odenit,q10an2odenit,Trefan2odenit,bkoxan2odenit,bkan2odenit,     &
-              & rdnra,q10dnra,Trefdnra,bkoxdnra,bkdnra,ranh4nitr,q10anh4nitr,        &
-              & Trefanh4nitr,bkoxamox,bkanh4nitr,bkamoxn2o,bkyamox,                  &
-              & rano2nitr,q10ano2nitr,Trefano2nitr,bkoxnitr,bkano2nitr,n2omaxy,      &
-              & n2oybeta,NOB2AOAy,bn2o,mufn2o,   &
-              & rc2n,ro2nnit,rnoxp,rnoxpi,rno2anmx,rno2anmxi,rnh4anmx,     &
-              & rnh4anmxi,rno2dnra,rno2dnrai,rnh4dnra,rnh4dnrai,rnm1  
-
-
-      real   :: q10ano3denit,sc_ano3denit,Trefano3denit,rano3denit,bkano3denit,      &
-              & rano2anmx,q10anmx,Trefanmx,alphaanmx,bkoxanmx,bkano2anmx,bkanh4anmx, &
-              & rano2denit,q10ano2denit,Trefano2denit,bkoxano2denit,bkano2denit,     &
-              & ran2odenit,q10an2odenit,Trefan2odenit,bkoxan2odenit,bkan2odenit,     &
-              & rdnra,q10dnra,Trefdnra,bkoxdnra,bkdnra,ranh4nitr,q10anh4nitr,        &
-              & Trefanh4nitr,bkoxamox,bkanh4nitr,bkamoxn2o,bkyamox,                  &
-              & rano2nitr,q10ano2nitr,Trefano2nitr,bkoxnitr,bkano2nitr,n2omaxy,      &
-              & n2oybeta,bkphyanh4,bkphyano3,bkphosph,bkiron,NOB2AOAy,bn2o,mufn2o!,bkamoxno2, 
-
-      real   :: rc2n,ro2utammo,ro2nnit,rnoxp,rnoxpi,rno2anmx,rno2anmxi,rnh4anmx,     &
-              & rnh4anmxi,rno2dnra,rno2dnrai,rnh4dnra,rnh4dnrai,rnm1  
-
-      real :: eps,minlim
+      real :: eps = 1.e-25
+      real :: minlim = 1.e-9
 
       CONTAINS
 
-!==================================================================================================================================      
-      subroutine extNwatercol_param_init()
-      !===========================================================================
-      ! Initialization of model parameters for the extended nitrogen cycle
-      rc2n          = rcar/rnit       ! iHAMOCC C:N ratio
-      ro2utammo     = 140.            ! Oxygen utilization per mol detritus during ammonification
-      ro2nnit       = ro2utammo/rnit  !  
-      rnoxp         = 280.            ! consumption of NOx per mol detritus during denitrification
-      rnoxpi        = 1./rnoxp        ! inverse
-      rno2anmx      = 1144.           ! consumption of NO2 per mol organic production by anammox
-      rno2anmxi     = 1./rno2anmx     ! inverse
-      rnh4anmx      = 880.            ! consumption of NH4 per mol organic production by anammox
-      rnh4anmxi     = 1./rnh4anmx     ! inverse
-      rno2dnra      = 93. + 1./3.     ! consumption of NO2 per mol OM degradation during DNRA
-      rno2dnrai     = 1./rno2dnra     ! inverse
-      rnh4dnra      = rno2dnra + rnit ! production of NH4 per mol OM during DNRA
-      rnh4dnrai     = 1./rnh4dnra     ! inverse
-      rnm1          = rnit - 1.       
-
-      ! Phytoplankton growth     
-      bkphyanh4     = 0.12e-6    ! Half-saturation constant for NH4 uptake by bulk phytoplankton (kmol/m3)
-      bkphyano3     = 0.16e-6   ! Half-saturation constant for NO3 uptake by bulk phytoplankton (kmol/m3)
-      bkphosph      = 0.01e-6   ! Half-saturation constant for PO4 uptake by bulk phytoplankton (kmol/m3)
-      bkiron        = bkphosph*riron ! Half-saturation constant for Fe uptake by bulk phytoplankton (kmol/m3)
-
-      ! === Denitrification step NO3 -> NO2:
-      !rano3denit    = 0.15*dtb ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
-      rano3denit    = 0.05     ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
-      q10ano3denit  = 2.       ! Q10 factor for denitrification on NO3 (-)
-      Trefano3denit = 10.      ! Reference temperature for denitrification on NO3 (degr C) 
-      !sc_ano3denit  = 0.05e6   ! Shape factor for NO3 denitrification oxygen inhibition function (m3/kmol)
-      sc_ano3denit  = 0.12e6   ! Shape factor for NO3 denitrification oxygen inhibition function (m3/kmol)
-      bkano3denit   = 5.e-6    ! Half-saturation constant for NO3 denitrification (kmol/m3)
-
-      ! === Anammox
-      rano2anmx     = 0.05     ! Maximum growth rate for anammox at reference T (1/d -> 1/dt)
-      q10anmx       = 1.6      ! Q10 factor for anammox (-)
-      Trefanmx      = 10.      ! Reference temperature for anammox (degr C)
-      alphaanmx     = 0.45e6   ! Shape factor for anammox oxygen inhibition function (m3/kmol)
-      bkoxanmx      = 11.3e-6  ! Half-saturation constant for oxygen inhibition function (kmol/m3)
-      bkano2anmx    = 5.e-6    ! Half-saturation constant for NO2 limitation (kmol/m3)
-      bkanh4anmx    = bkano2anmx * rnh4anmx/rno2anmx !Half-saturation constant for NH4 limitation of anammox (kmol/m3)
-
-      ! === Denitrification step NO2 -> N2O
-      rano2denit    = 0.12     ! Maximum growth rate denitrification on NO2 at reference T (1/d -> 1/dt) 
-      q10ano2denit  = 2.0      ! Q10 factor for denitrification on NO2 (-)
-      Trefano2denit = 10.      ! Reference temperature for denitrification on NO2 (degr C)
-      bkoxano2denit = 2.e-6    ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on NO2 (kmol/m3)
-      bkano2denit   = 5.6e-6   ! Half-saturation constant for denitrification on NO2 (kmol/m3)
-
-      ! === Denitrification step N2O -> N2
-      ran2odenit    = 0.16     ! Maximum growth rate denitrification on N2O at reference T (1/d -> 1/dt)
-      q10an2odenit  = 3.       ! Q1- factor for denitrificationj on N2O (-)
-      Trefan2odenit = 10.      ! Reference temperature for denitrification on N2O (degr C)
-      bkoxan2odenit = 5.e-6    ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on N2O (kmol/m3)
-      bkan2odenit   = 1.e-6    ! Half-saturation constant for denitrification on N2O (kmol/m3)
-
-      ! === DNRA NO2 -> NH4
-      rdnra         = 0.1      ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
-      q10dnra       = 2.       ! Q10 factor for DNRA on NO2 (-)
-      Trefdnra      = 10.      ! Reference temperature for DNRA (degr C)
-      bkoxdnra      = 2.5e-6   ! Half saturation constant for (quadratic) oxygen inhibition function of DNRA on NO2 (kmol/m3)
-      bkdnra        = 0.05e-6  ! Half-saturation constant for DNRA on NO2 (kmol/m3)
-
-      ! === Nitrification on NH4
-      ranh4nitr     = 1.       ! Maximum growth rate nitrification on NH4 at reference T (1/d -> 1/dt) 
-      q10anh4nitr   = 3.3      ! Q10 factor for nitrification on NH4 (-)
-      Trefanh4nitr  = 20.      ! Reference temperature for nitrification on NH4 (degr C)
-      bkoxamox      = 0.333e-6 ! Half-saturation constant for oxygen limitation of nitrification on NH4 (kmol/m3)
-      bkanh4nitr    = 0.133e-6 ! Half-saturation constant for nitrification on NH4 (kmol/m3)
-!======
-! OLD VERSION OF pathway splitting function
-      !bkamoxn2o     = 0.453e-6 ! Half saturation constant for O2 in pathway splitting function N2O for nitrification on NH4 (kmol/m3)
-! NEW version similar to Santoros 2021, Ji 2018:      
-      bkamoxn2o     = 0.5e-6 ! Half saturation constant for NH4 in pathway splitting function N2O for nitrification on NH4 (kmol/m3)
-      mufn2o        = 0.11/(50.*1e6*bkoxamox) !=6.61e-3  0.11/(50*1e6)=2.2e-9 - ~Santoro et al. 2011 with simple MM,  
-      bn2o          = 0.077/(50.*mufn2o)  !=0.2331 - before set to 0.3 - base fraction entering N2O 
-!======
-      !bkamoxno2     = 0.479e-6 ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
-!      bkamoxno2     = 0.1e-6 ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
-      n2omaxy       = 0.003    ! Maximum yield of OM on NH4 nitrification (-)
-      n2oybeta      = 18.      ! Decay factor for inhibition function for yield during nitrification on NH4 (kmol/m3)
-      bkyamox       = 0.333e-6 ! Half saturation constant for pathway splitting function OM-yield for nitrification on NH4 (kmol/m3)
-  
-      ! === Nitrification on NO2
-      rano2nitr     = 1.54     ! Maximum growth rate nitrification on NO2 at reference T (1/d -> 1/dt) 
-      q10ano2nitr   = 2.7      ! Q10 factor for nitrification on NO2 (-)
-      Trefano2nitr  = 20.      ! Reference temperature for nitrification on NO2 (degr C)
-      bkoxnitr      = 0.788e-6 ! Half-saturation constant for oxygen limitation of nitrification on NO2 (kmol/m3)
-      bkano2nitr    = 0.287e-6 ! Half-saturation constant for NO2 for nitrification on NO2 (kmol/m3)
-      NOB2AOAy      = 0.44     ! Ratio of NOB versus AOA yield per energy source ~0.043/0.098 according to Zakem et al. 2022
-
-      eps    = 1.e-25 ! safe division etc. 
-      minlim = 1.e-9  ! minimum for limitation functions (e.g. nutlim or oxlim/inh can only decrease to minlim) 
-      !===========================================================================
-
-      ! Tweaked parameters:
-      rano3denit    = 0.0005 ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
-      rano2anmx     = 0.001  ! Maximum growth rate for anammox at reference T (1/d -> 1/dt)
-      rano2denit    = 0.001  ! Maximum growth rate denitrification on NO2 at reference T (1/d -> 1/dt) 
-      ran2odenit    = 0.0012 ! Maximum growth rate denitrification on N2O at reference T (1/d -> 1/dt)
-      rdnra         = 0.001  ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
-
-      end subroutine extNwatercol_param_init
- 
-!==================================================================================================================================      
-      subroutine extNwatercol_param_update()
-
-        rano3denit = rano3denit *dtb ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
-        rano2anmx  = rano2anmx  *dtb ! Maximum growth rate for anammox at reference T (1/d -> 1/dt)
-        rano2denit = rano2denit *dtb ! Maximum growth rate denitrification on NO2 at reference T (1/d -> 1/dt) 
-        ran2odenit = ran2odenit *dtb ! Maximum growth rate denitrification on N2O at reference T (1/d -> 1/dt)
-        rdnra      = rdnra      *dtb ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
-        ranh4nitr  = ranh4nitr  *dtb ! Maximum growth rate nitrification on NH4 at reference T (1/d -> 1/dt) 
-        rano2nitr  = rano2nitr  *dtb ! Maximum growth rate nitrification on NO2 at reference T (1/d -> 1/dt) 
-      
-      end subroutine extNwatercol_param_update        
-
-!==================================================================================================================================      
-      subroutine extNwatercol_param_write()
-
-          REAL :: dtbinv
-          dtbinv = 1./dtb
-          WRITE(io_stdo_bgc,*) '****************************************************************'
-          WRITE(io_stdo_bgc,*) '* HAMOCC extended nitrogen cycle parameters water column:' 
-          WRITE(io_stdo_bgc,*) '*          rc2n          = ',rc2n
-          WRITE(io_stdo_bgc,*) '*          ro2utammo     = ',ro2utammo          
-          WRITE(io_stdo_bgc,*) '*          ro2nnit       = ',ro2nnit
-          WRITE(io_stdo_bgc,*) '*          rnoxp         = ',rnoxp
-          WRITE(io_stdo_bgc,*) '*          rnoxpi        = ',rnoxpi
-          WRITE(io_stdo_bgc,*) '*          rno2anmx      = ',rno2anmx
-          WRITE(io_stdo_bgc,*) '*          rno2anmxi     = ',rno2anmxi
-          WRITE(io_stdo_bgc,*) '*          rnh4anmx      = ',rnh4anmx
-          WRITE(io_stdo_bgc,*) '*          rnh4anmxi     = ',rnh4anmxi
-          WRITE(io_stdo_bgc,*) '*          rno2dnra      = ',rno2dnra
-          WRITE(io_stdo_bgc,*) '*          rno2dnrai     = ',rno2dnrai
-          WRITE(io_stdo_bgc,*) '*          rnh4dnra      = ',rnh4dnra
-          WRITE(io_stdo_bgc,*) '*          rnh4dnrai     = ',rnh4dnrai
-          WRITE(io_stdo_bgc,*) '*          rnm1          = ',rnm1
-          WRITE(io_stdo_bgc,*) '*          bkphyanh4     = ',bkphyanh4
-          WRITE(io_stdo_bgc,*) '*          bkphyano3     = ',bkphyano3
-          WRITE(io_stdo_bgc,*) '*          bkphosph      = ',bkphosph
-          WRITE(io_stdo_bgc,*) '*          bkiron        = ',bkiron
-          WRITE(io_stdo_bgc,*) '*          rano3denit    = ',rano3denit    *dtbinv
-          WRITE(io_stdo_bgc,*) '*          q10ano3denit  = ',q10ano3denit
-          WRITE(io_stdo_bgc,*) '*          Trefano3denit = ',Trefano3denit
-          WRITE(io_stdo_bgc,*) '*          sc_ano3denit  = ',sc_ano3denit
-          WRITE(io_stdo_bgc,*) '*          bkano3denit   = ',bkano3denit
-          WRITE(io_stdo_bgc,*) '*          rano2anmx     = ',rano2anmx     *dtbinv
-          WRITE(io_stdo_bgc,*) '*          q10anmx       = ',q10anmx
-          WRITE(io_stdo_bgc,*) '*          Trefanmx      = ',Trefanmx
-          WRITE(io_stdo_bgc,*) '*          alphaanmx     = ',alphaanmx
-          WRITE(io_stdo_bgc,*) '*          bkoxanmx      = ',bkoxanmx
-          WRITE(io_stdo_bgc,*) '*          bkano2anmx    = ',bkano2anmx
-          WRITE(io_stdo_bgc,*) '*          bkanh4anmx    = ',bkanh4anmx
-          WRITE(io_stdo_bgc,*) '*          rano2denit    = ',rano2denit    *dtbinv
-          WRITE(io_stdo_bgc,*) '*          q10ano2denit  = ',q10ano2denit
-          WRITE(io_stdo_bgc,*) '*          Trefano2denit = ',Trefano2denit
-          WRITE(io_stdo_bgc,*) '*          bkoxano2denit = ',bkoxano2denit
-          WRITE(io_stdo_bgc,*) '*          bkano2denit   = ',bkano2denit
-          WRITE(io_stdo_bgc,*) '*          ran2odenit    = ',ran2odenit    *dtbinv
-          WRITE(io_stdo_bgc,*) '*          q10an2odenit  = ',q10an2odenit
-          WRITE(io_stdo_bgc,*) '*          Trefan2odenit = ',Trefan2odenit
-          WRITE(io_stdo_bgc,*) '*          bkoxan2odenit = ',bkoxan2odenit
-          WRITE(io_stdo_bgc,*) '*          bkan2odenit   = ',bkan2odenit
-          WRITE(io_stdo_bgc,*) '*          rdnra         = ',rdnra         *dtbinv
-          WRITE(io_stdo_bgc,*) '*          q10dnra       = ',q10dnra
-          WRITE(io_stdo_bgc,*) '*          Trefdnra      = ',Trefdnra
-          WRITE(io_stdo_bgc,*) '*          bkoxdnra      = ',bkoxdnra
-          WRITE(io_stdo_bgc,*) '*          bkdnra        = ',bkdnra
-          WRITE(io_stdo_bgc,*) '*          ranh4nitr     = ',ranh4nitr     *dtbinv
-          WRITE(io_stdo_bgc,*) '*          q10anh4nitr   = ',q10anh4nitr
-          WRITE(io_stdo_bgc,*) '*          Trefanh4nitr  = ',Trefanh4nitr
-          WRITE(io_stdo_bgc,*) '*          bkoxamox      = ',bkoxamox
-          WRITE(io_stdo_bgc,*) '*          bkanh4nitr    = ',bkanh4nitr
-          WRITE(io_stdo_bgc,*) '*          bkamoxn2o     = ',bkamoxn2o
-          WRITE(io_stdo_bgc,*) '*          mufn2o        = ',mufn2o
-          WRITE(io_stdo_bgc,*) '*          bn2o          = ',bn2o
-          WRITE(io_stdo_bgc,*) '*          n2omaxy       = ',n2omaxy
-          WRITE(io_stdo_bgc,*) '*          n2oybeta      = ',n2oybeta
-          WRITE(io_stdo_bgc,*) '*          bkyamox       = ',bkyamox
-          WRITE(io_stdo_bgc,*) '*          rano2nitr     = ',rano2nitr     *dtbinv
-          WRITE(io_stdo_bgc,*) '*          q10ano2nitr   = ',q10ano2nitr
-          WRITE(io_stdo_bgc,*) '*          Trefano2nitr  = ',Trefano2nitr
-          WRITE(io_stdo_bgc,*) '*          bkoxnitr      = ',bkoxnitr
-          WRITE(io_stdo_bgc,*) '*          bkano2nitr    = ',bkano2nitr
-          WRITE(io_stdo_bgc,*) '*          NOB2AOAy      = ',NOB2AOAy
-
-      end subroutine extNwatercol_param_write
-
-!==================================================================================================================================      
       subroutine nitrification(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
       ! Nitrification processes (NH4 -> NO2, NO2 -> NO3) accompanied
       ! by dark carbon fixation and O2-dependent N2O production 
@@ -696,5 +484,3 @@
 
 !==================================================================================================================================      
       END MODULE
-
-      
