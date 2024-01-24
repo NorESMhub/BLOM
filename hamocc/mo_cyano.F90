@@ -74,12 +74,12 @@ contains
     !
     do j=1,kpje
       do i=1,kpie
-        if (omask(i,j).gt.0.5) then
+        if (omask(i,j) > 0.5) then
           do k=1,merge(kwrbioz(i,j),kmle(i,j),leuphotic_cya) ! if leuphotic_cya=.true., do bluefix only in euphotic zone
             if (ocetra(i,j,k,iano3) < (rnit*ocetra(i,j,k,iphosph))) then
               if (use_extNcycle) then
                 ! assuming nitrate and ammonium required for cyanobacteria growth (as bulk PP)
-                anavail = ocetra(i,j,k,iano3)+ocetra(i,j,k,ianh4)
+                anavail = ocetra(i,j,k,iano3) + ocetra(i,j,k,ianh4)
               else
                 anavail = ocetra(i,j,k,iano3)
               endif
@@ -92,9 +92,9 @@ contains
 
                 if (.not. use_extNcycle) then
                   oldocetra = ocetra(i,j,k,iano3)
-                  ocetra(i,j,k,iano3)=ocetra(i,j,k,iano3)*(1.-bluefix*nfixtfac)                   &
-                                     +bluefix*nfixtfac*rnit*ocetra(i,j,k,iphosph)
-                  dansp=ocetra(i,j,k,iano3)-oldocetra
+                  ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)*(1. - bluefix*nfixtfac)                &
+                                      + bluefix*nfixtfac*rnit*ocetra(i,j,k,iphosph)
+                  dansp = ocetra(i,j,k,iano3) - oldocetra
                   ! Note: to fix one mole N2 requires: N2+H2O+y*O2 = 2* HNO3 <-> y=2.5 mole O2.
                   ! I.e., to release one mole HNO3 = H+ + NO3- requires 1.25 mole O2
                   dox  = -dansp*1.25
@@ -103,19 +103,19 @@ contains
                   dalk = -dansp
                 else
                   oldocetra = ocetra(i,j,k,ianh4)
-                  ocetra(i,j,k,ianh4)=ocetra(i,j,k,ianh4)*(1.-bluefix*nfixtfac)                    &
-                                     +bluefix*nfixtfac*rnit*ocetra(i,j,k,iphosph)
-                  dansp=ocetra(i,j,k,ianh4)-oldocetra
-                  dox  = dansp*0.75
-                  dalk = dansp
+                  ocetra(i,j,k,ianh4) = ocetra(i,j,k,ianh4)*(1. - bluefix*nfixtfac)                &
+                                      + bluefix*nfixtfac*rnit*ocetra(i,j,k,iphosph)
+                  dansp = ocetra(i,j,k,ianh4) - oldocetra
+                  dox   = dansp*0.75
+                  dalk  = dansp
                 endif
-                ocetra(i,j,k,igasnit)=ocetra(i,j,k,igasnit)-dansp*(1./2.)
+                ocetra(i,j,k,igasnit) = ocetra(i,j,k,igasnit) - dansp*0.5
 
-                ocetra(i,j,k,ioxygen)=ocetra(i,j,k,ioxygen)+dox
+                ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) + dox
 
-                ocetra(i,j,k,ialkali)=ocetra(i,j,k,ialkali)+dalk
+                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + dalk
                 if (use_natDIC) then
-                  ocetra(i,j,k,inatalkali)=ocetra(i,j,k,inatalkali)+dalk
+                  ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali) + dalk
                 endif
 
                 intnfix(i,j) = intnfix(i,j) + dansp*pddpo(i,j,k)
