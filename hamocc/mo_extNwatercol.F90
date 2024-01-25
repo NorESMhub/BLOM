@@ -48,7 +48,7 @@ module mo_extNwatercol
   !****************************************************************
   use mo_vgrid,       only: dp_min
   use mod_xc,         only: mnproc
-  use mo_control_bgc, only: io_stdo_bgc,dtb
+  use mo_control_bgc, only: dtb
   use mo_param1_bgc,  only: ialkali,ianh4,iano2,ian2o,iano3,idet,igasnit,iiron,ioxygen,iphosph,    &
                           & isco212
   use mo_carbch,      only: ocetra
@@ -425,6 +425,10 @@ contains
 
 !==================================================================================================================================
   subroutine extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
+    use mo_inventory_bgc, only: inventory_bgc
+    use mo_control_bgc,   only: io_stdo_bgc,dtb,use_PBGC_OCNP_TIMESTEP
+
+    implicit none
     ! provide inventory calculation for extended nitrogen cycle
 
     integer, intent(in) :: kpie,kpje,kpke
@@ -432,13 +436,13 @@ contains
     real,    intent(in) :: pdlxp(kpie,kpje),pdlyp(kpie,kpje),pddpo(kpie,kpje,kpke)
     character (len=*),intent(in) :: inv_message
 
-#ifdef PBGC_OCNP_TIMESTEP
-    if (mnproc == 1) then
-      write(io_stdo_bgc,*)' '
-      write(io_stdo_bgc,*)inv_message
+    if (use_PBGC_OCNP_TIMESTEP) then
+      if (mnproc == 1) then
+        write(io_stdo_bgc,*)' '
+        write(io_stdo_bgc,*)inv_message
+      endif
+      call INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
-    call INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-#endif
   end subroutine extN_inv_check
 
 !==================================================================================================================================

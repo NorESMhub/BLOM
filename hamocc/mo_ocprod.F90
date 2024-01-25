@@ -778,7 +778,7 @@ contains
     endif
 
     if (.not. use_extNcycle) then
-      ! =====>>>> Regular CMIP6 iHAMOCC version for denitrification wo extended nitrogen cycle =====>>>> 
+      ! =====>>>> Regular CMIP6 iHAMOCC version for denitrification wo extended nitrogen cycle =====>>>>
       !$OMP PARALLEL DO PRIVATE(remin,remin2o,dz,avmass,avnos,rem13,rem14,i,k)
       loop3: do j = 1,kpje
         do i = 1,kpie
