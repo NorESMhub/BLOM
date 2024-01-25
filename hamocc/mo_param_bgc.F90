@@ -885,8 +885,8 @@ contains
       write(io_stdo_bgc,*) '*   fesoly       = ',fesoly
       write(io_stdo_bgc,*) '*   relaxfe      = ',relaxfe*dtbinv
       write(io_stdo_bgc,*) '*   dmsp1        = ',dmsp1
-      write(io_stdo_bgc,*) '*   dmsp2        = ',dmsp2
-      write(io_stdo_bgc,*) '*   dmsp3        = ',dmsp3
+      write(io_stdo_bgc,*) '*   dmsp2        = ',dmsp2*dtbinv
+      write(io_stdo_bgc,*) '*   dmsp3        = ',dmsp3*dtbinv
       write(io_stdo_bgc,*) '*   dmsp4        = ',dmsp4
       write(io_stdo_bgc,*) '*   dmsp5        = ',dmsp5
       write(io_stdo_bgc,*) '*   dmsp6        = ',dmsp6

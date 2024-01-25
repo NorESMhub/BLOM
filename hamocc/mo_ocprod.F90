@@ -737,7 +737,7 @@ contains
               ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen)-remin*1.e-4*ro2ut*refra*0.5
             endif
 
-            dms_bac = dmsp3 * dtb * abs(temp+3.) * ocetra(i,j,k,idms)               &
+            dms_bac = dmsp3 * abs(temp+3.) * ocetra(i,j,k,idms)                     &
                     &    * (ocetra(i,j,k,idms) / (dmsp6+ocetra(i,j,k,idms)))
             ocetra(i,j,k,idms) = ocetra(i,j,k,idms)-dms_bac
 
