@@ -5422,18 +5422,6 @@
     <desc>Nitrite concentration [mol NO2 m-3] - extended N cycle only</desc>
   </entry>
 
-  <entry id="lyr_n2o">
-    <type>integer(3)</type>
-    <category>diabgc</category>
-    <group>diabgc</group>
-    <values>
-      <value>0,0,2</value>
-      <value is_test="yes">4,2,2</value>
-      <value is_test="yes" empty_hist="yes">0,0,0</value>
-    </values>
-    <desc>denitrification rate on N20 [mol N20 m-3 s-1] - ext. N cycle only</desc>
-  </entry>
-  
   <entry id="lyr_anh4">
     <type>integer(3)</type>
     <category>diabgc</category>
