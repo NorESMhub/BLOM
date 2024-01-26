@@ -3597,7 +3597,7 @@
     <group>bgcnml</group>
     <values>
       <value>.false.</value>
-      <value hamocc_n2oc="yes" hamocc_extNcycle="yes">.true.</value>
+      <value hamocc_n2oc="yes" hamocc_extncycle="yes">.true.</value>
     </values>
     <desc>Switch to couple N2O and NH3 fluxes</desc>
   </entry>    
