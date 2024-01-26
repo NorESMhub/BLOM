@@ -3586,7 +3586,7 @@
     <group>bgcnml</group>
     <values>
       <value>.false.</value>
-      <value blom_n_deposition="yes" hamocc_atmndepc="yes">.true.</value>
+      <value blom_n_deposition="yes" hamocc_atmndepc="yes" hamocc_extncycle="yes">.true.</value>
     </values>
     <desc>Switch to couple nitrogen deposition. Requires do_ndep.</desc>
   </entry>  
@@ -3597,7 +3597,7 @@
     <group>bgcnml</group>
     <values>
       <value>.false.</value>
-      <value hamocc_n2oc="yes">.true.</value>
+      <value hamocc_n2oc="yes" hamocc_extNcycle="yes">.true.</value>
     </values>
     <desc>Switch to couple N2O and NH3 fluxes</desc>
   </entry>    
@@ -3874,6 +3874,17 @@
     </values>
     <desc>NOTE: HAMOCC bromoform scheme currently only supported on the tnx1v4 grid
     (no swa-climatology has been created for other grid configurations)</desc>
+  </entry>
+
+  <entry id="use_extncycle" modify_via_xml="HAMOCC_EXTNCYCLE">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+      <value hamocc_extncycle="yes">.true.</value>
+    </values>
+    <desc>activate the HAMOCC extended nitrogen cycle code</desc>
   </entry>
 
   <entry id="use_sedbypass" modify_via_xml="HAMOCC_SEDBYPASS">
