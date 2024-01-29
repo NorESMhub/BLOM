@@ -5080,7 +5080,7 @@
     <values>
       <value>0,0,0</value>
       <value blom_n_deposition="yes">0,2,2</value>
-      <value blom_n_depostition="yes" is_test="yes">4,2,2</value>
+      <value blom_n_deposition="yes" is_test="yes">4,2,2</value>
     </values>
     <desc>NOy nitrogen deposition flux [mol N m-2 s-1]</desc>
   </entry>
@@ -5090,9 +5090,9 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,2,2</value>
-      <value is_test="yes">4,2,2</value>
-      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value>0,0,0</value>
+      <value blom_n_deposition="yes">0,2,2</value>
+      <value blom_n_deposition="yes" is_test="yes">4,2,2</value>
     </values>
     <desc>NHx nitrogen deposition flux [mol N m-2 s-1] - extended N cycle only</desc>
   </entry> 

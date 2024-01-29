@@ -365,6 +365,7 @@
 ! DO_NDEP     : Logical switch to activate N-deposition
 ! DO_NDEP_COUPLED: Logical to apply N-deposition fluxes received from the atmosphere (true=atm, false=clim)
 ! NDEPFILE    : File name (incl. full path) for atmopheric N-deposition data
+! DO_N2ONH3_COUPLED: Logical switch for interactive coupling of N2O and NH3 fluxes (true=atm, false=fix atmospheric value)
 ! DO_SEDSPINUP: Logical switch to activate sediment spin-up
 ! SEDSPIN_YR_S: Start year for sediment spinup
 ! SEDSPIN_YR_E: End   year for sediment spinup
