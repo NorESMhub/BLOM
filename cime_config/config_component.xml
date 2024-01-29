@@ -135,6 +135,11 @@
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
     <default_value>FALSE</default_value>
+    <values>
+       <value compset="_BGC.*%N2OC">TRUE</value>
+       <value compset="_BGC.*%NH3C">TRUE</value>
+       <value compset="_BGC.*%ATMNDEPC">TRUE</value>
+    </values>	    
     <group>run_component_blom</group>
     <file>env_run.xml</file>
     <desc>Set preprocessor option to activate the extended nitrogen cycle code. Requires module ecosys</desc>
@@ -145,11 +150,11 @@
     <valid_values>TRUE,FALSE</valid_values>
     <default_value>FALSE</default_value>
     <values>
-	    <value compset="1850_CAM60%NORESM%TROPSTRATCHEM%PREP_CLM50%BGC-CROP_CICE%NORESM-CMIP6_BLOM%ECO_MOSART_SGLC_SWAV_BGC%BDRDDMS%VSLSC%N2OC%NH3C%ATMNDEPC">TRUE</value>
+       <value compset="_BGC.*%ATMNDEPC">TRUE</value>
     </values>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>Nitrogen deposition coupled from atmopshere. Requires module ecosys and extncycle</desc>
+    <desc>Nitrogen deposition coupled from atmosphere. Requires module ecosys and extncycle</desc>
   </entry>
   
   <entry id="HAMOCC_N2OC">
@@ -157,11 +162,11 @@
     <valid_values>TRUE,FALSE</valid_values>
     <default_value>FALSE</default_value>
     <values>
-	    <value compset="1850_CAM60%NORESM%TROPSTRATCHEM%PREP_CLM50%BGC-CROP_CICE%NORESM-CMIP6_BLOM%ECO_MOSART_SGLC_SWAV_BGC%BDRDDMS%VSLSC%N2OC%NH3C">TRUE</value>
+       <value compset="_BGC.*%N2OC%NH3C">TRUE</value>
     </values>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>N2O and NH3 fluxes coupled from atmopshere. Requires module ecosys and extncycle</desc>
+    <desc>N2O and NH3 fluxes coupled from atmosphere. Requires module ecosys and extncycle</desc>
   </entry>
 
   <entry id="HAMOCC_M4AGO">
