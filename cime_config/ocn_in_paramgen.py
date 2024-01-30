@@ -815,6 +815,7 @@ class OcnInParamGen(ParamGen):
         #of all namelist groups and variables:
         self.__nml_def_groups = {}
         self.__nml_def_vars   = {}
+        self.__usernml_def_vars = {}
 
         #Set variables needed for ParamGen "reduction":
         self.__case = None
@@ -1471,6 +1472,7 @@ class OcnInParamGen(ParamGen):
 
             #Append new user_nl_blom object to main ocn_in namelist object:
             self.append(pg_user)
+            self.__usernml_def_vars.update(_data)
         #End if
     ####
 
@@ -1698,6 +1700,19 @@ class OcnInParamGen(ParamGen):
 
         #Return value if found:
         return val
+
+    def keep_usernml_only(self,groupname):
+        """
+        For groupname, keep only attributes changed via the nml
+        """
+        # go through entries found in namelist_definition_blom.xml for groupname
+        for entry in sorted (self._data[groupname]):
+            # if the user_nl_blom didn't hold any values corresponding to groupname
+            # delete entries
+            if groupname not in list(self._OcnInParamGen__usernml_def_vars.keys()):
+              del self._data[groupname][entry]
+            elif entry not in list(self._OcnInParamGen__usernml_def_vars[groupname].keys()):
+              del self._data[groupname][entry]
 
 ############
 #End of file
