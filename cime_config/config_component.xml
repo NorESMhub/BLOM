@@ -65,8 +65,8 @@
     <type>char</type>
     <valid_values>isopyc_bulkml,cntiso_hybrid</valid_values>
     <default_value>isopyc_bulkml</default_value>
-    <group>run_component_blom</group>
-    <file>env_run.xml</file>
+    <group>build_component_blom</group>
+    <file>env_build.xml</file>
     <desc>Vertical coordinate type of BLOM</desc>
   </entry>
 

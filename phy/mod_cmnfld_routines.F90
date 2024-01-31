@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2022 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2015-2023 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -825,33 +825,55 @@ module mod_cmnfld_routines
       integer, intent(in) :: m, n, mm, nn, k1m, k1n
 
       real(r8) :: bfsqm
-      integer :: i, j, k, l
+      integer :: i, j, knnsl, k, l
 
       call xctilr(nslpx, 1, kk, 2, 2, halo_uv)
       call xctilr(nslpy, 1, kk, 2, 2, halo_vv)
 
-   !$omp parallel do private(k, l, i, bfsqm)
+   !$omp parallel do private(l, i, knnsl, k, bfsqm)
       do j = - 1, jj + 2
-         do k = 1, kk
-            do l = 1, isu(j)
-            do i = max(0, ifu(j, l)), min(ii + 2, ilu(j, l))
-               bfsqm = .5_r8*(bfsqf(i - 1, j, k) + bfsqf(i, j, k))
-               nnslpx(i, j, k) = sqrt(bfsqm)*nslpx(i, j, k)
+         do l = 1, isu(j)
+         do i = max(0, ifu(j, l)), min(ii + 2, ilu(j, l))
+            knnsl = 1
+            nnslpx(i, j, 1) = 0._r8
+            do k = 2, kk
+               if (p(i    , j, k) < p(i - 1, j, kk + 1) .and. &
+                   p(i - 1, j, k) < p(i    , j, kk + 1)) then
+                  bfsqm = .5_r8*(bfsqf(i - 1, j, k) + bfsqf(i, j, k))
+                  nnslpx(i, j, k) = sqrt(bfsqm)*nslpx(i, j, k)
+                  knnsl = k
+               else
+                  exit
+               endif
             enddo
+            do k = knnsl + 1, kk
+               nnslpx(i, j, k) = nnslpx(i, j, knnsl)
             enddo
+         enddo
          enddo
       enddo
    !$omp end parallel do
 
-   !$omp parallel do private(k, l, i, bfsqm)
+   !$omp parallel do private(l, i, knnsl, k, bfsqm)
       do j = 0, jj + 2
-         do k = 1, kk
-            do l = 1, isv(j)
-            do i = max(- 1, ifv(j, l)), min(ii + 2, ilv(j, l))
-               bfsqm = .5_r8*(bfsqf(i, j - 1, k) + bfsqf(i, j, k))
-               nnslpy(i, j, k) = sqrt(bfsqm)*nslpy(i, j, k)
+         do l = 1, isv(j)
+         do i = max(- 1, ifv(j, l)), min(ii + 2, ilv(j, l))
+            knnsl = 1
+            nnslpy(i, j, 1) = 0._r8
+            do k = 2, kk
+               if (p(i, j    , k) < p(i, j - 1, kk + 1) .and. &
+                   p(i, j - 1, k) < p(i, j    , kk + 1)) then
+                  bfsqm = .5_r8*(bfsqf(i, j - 1, k) + bfsqf(i, j, k))
+                  nnslpy(i, j, k) = sqrt(bfsqm)*nslpy(i, j, k)
+                  knnsl = k
+               else
+                  exit
+               endif
             enddo
+            do k = knnsl + 1, kk
+               nnslpy(i, j, k) = nnslpy(i, j, knnsl)
             enddo
+         enddo
          enddo
       enddo
    !$omp end parallel do
