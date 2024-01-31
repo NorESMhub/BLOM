@@ -3981,7 +3981,7 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>4.e-8</value>
+      <value>None</value>
     </values>
     <desc>phytoplankton parameter: kmol/m3 - i.e. 0.04 mmol P/m3 half saturation constant</desc>
   </entry>
@@ -3991,7 +3991,7 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>0.004</value>
+      <value>None</value>
     </values>
     <desc>phytoplankton parameter: 1/d -mortality rate of phytoplankton </desc>
   </entry>
@@ -4001,7 +4001,7 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>0.005</value>
+      <value>None</value>
     </values>
     <desc>phytoplankton parameter: 1/d - nitrogen fixation rate by blue green algae (cyanobacteria)</desc>
   </entry>
@@ -4011,7 +4011,7 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>8.e-8</value>
+      <value>None</value>
     </values>
     <desc>zooplankton parameter: kmol/m3 - i.e. 0.08 mmol P/m3 half saturation constant</desc>
   </entry>
@@ -4021,7 +4021,7 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>1.2</value>
+      <value>None</value>
     </values>
     <desc>zooplankton parameter: 1/d -grazing rate</desc>
   </entry>
@@ -4031,7 +4031,7 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>3.e6</value>
+      <value>None</value>
     </values>
     <desc>zooplankton parameter: 1/d -mortality rate</desc>
   </entry>
@@ -4041,7 +4041,7 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>0.04</value>
+      <value>None</value>
     </values>
     <desc>zooplankton parameter: 1/d -exudation rate</desc>
   </entry>
@@ -4051,7 +4051,7 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>0.06</value>
+      <value>None</value>
     </values>
     <desc>zooplankton parameter: 1/d -excretion rate</desc>
   </entry>
@@ -4061,7 +4061,7 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>0.95</value>
+      <value>None</value>
     </values>
     <desc>zooplankton parameter: fraction of mortality as PO_4</desc>
   </entry>
@@ -4071,7 +4071,7 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>0.6</value>
+      <value>None</value>
       <value use_wlin="yes">0.7</value>
       <value use_agg="yes">0.5</value>
     </values>
@@ -4083,9 +4083,9 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>0.8</value>
-      <value use_wlin="yes">0.85</value>
-      <value use_agg="yes">0.9</value>
+      <value>None</value>
+      <value use_wlin="yes">None</value>
+      <value use_agg="yes">None</value>
     </values>
     <desc>zooplankton parameter: dimensionless fraction -fraction of grazing egested</desc>
   </entry>
@@ -4095,7 +4095,7 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>5.e-6</value>
+      <value>None</value>
     </values>
     <desc>shell production parameter: kmol/m3 - i.e. 4.0 mmol Si/m3 half saturation constant</desc>
   </entry>
@@ -4105,9 +4105,9 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>40.</value>
-      <value use_wlin="yes">33.</value>
-      <value use_agg="yes">14.</value>
+      <value>None</value>
+      <value use_wlin="yes">None</value>
+      <value use_agg="yes">None</value>
     </values>
     <desc>shell production parameter: calcium carbonate to organic phosphorous production ratio</desc>
   </entry>
@@ -4117,9 +4117,9 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>30.</value>
-      <value use_wlin="yes">45.</value>
-      <value use_agg="yes">10.5</value>
+      <value>None</value>
+      <value use_wlin="yes">None</value>
+      <value use_agg="yes">None</value>
     </values>
     <desc>shell production parameter:</desc>
   </entry>
@@ -4129,7 +4129,7 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>0.004</value>
+      <value>None</value>
     </values>
     <desc>remineralization and dissolution parameter: 1/d -remineralization rate (of DOM)</desc>
   </entry>
@@ -4139,7 +4139,7 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>0.025</value>
+      <value>None</value>
     </values>
     <desc>remineralization and dissolution parameter: 1/d Aerob remineralization rate detritus</desc>
   </entry>
@@ -4149,7 +4149,7 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>0.003</value>
+      <value>None</value>
     </values>
     <desc>remineralization and dissolution parameter: 1/d Dissolution rate for opal</desc>
   </entry>
@@ -4159,7 +4159,7 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>0.01</value>
+      <value>None</value>
     </values>
     <desc>remineralization and dissolution parameter: 1/d Remineralization rate of detritus on N2O</desc>
   </entry>
@@ -4169,7 +4169,7 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>0.005</value>
+      <value>None</value>
     </values>
     <desc>remineralization and dissolution parameter: 1/d Remineralization rate for sulphate reduction </desc>
   </entry>
@@ -4179,7 +4179,7 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>0.6</value>
+      <value>None</value>
     </values>
     <desc>Dust deposition and iron solubility parameter: factor introduced to tune deposition/solubility</desc>
   </entry>
@@ -4200,7 +4200,7 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>5.</value>
+      <value>None</value>
     </values>
     <desc>Sinking parameter: m/d   Sinking speed of detritus iris : 5.</desc>
   </entry>
@@ -4210,7 +4210,7 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>30.</value>
+      <value>None</value>
     </values>
     <desc>Sinking parameter: m/d   Sinking speed of CaCO3 shell material</desc>
   </entry>
@@ -4220,7 +4220,7 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>30.</value>
+      <value>None</value>
     </values>
     <desc>Sinking parameter: m/d Sinking speed of opal iris : 60</desc>
   </entry>
@@ -4230,7 +4230,7 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>1.</value>
+      <value>None</value>
     </values>
     <desc>Sinking parameter: m/d minimum sinking speed</desc>
   </entry>
@@ -4240,7 +4240,7 @@
     <category>bgcparams</category>
     <group>bgcparams</group>
     <values>
-      <value>60.</value>
+      <value>None</value>
     </values>
     <desc>Sinking parameter: m/d maximum sinking speed</desc>
   </entry>
