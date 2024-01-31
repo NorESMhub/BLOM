@@ -1472,6 +1472,7 @@ class OcnInParamGen(ParamGen):
 
             #Append new user_nl_blom object to main ocn_in namelist object:
             self.append(pg_user)
+            # Keep track, which parameters were provided through the user_nl_blom
             self.__usernml_def_vars.update(_data)
         #End if
     ####
