@@ -4299,6 +4299,187 @@
     <desc>Sinking parameter: m/d maximum sinking speed</desc>
   </entry>
 
+  <entry id="bkphyanh4">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for NH4 uptake by bulk phytoplankton (kmol/m3)</desc>
+  </entry>
+
+  <entry id="bkphyano3">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for NO3 uptake by bulk phytoplankton (kmol/m3)</desc>
+  </entry>
+
+  <entry id="rano3denit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Maximum growth rate denitrification on NO3 at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="rano2anmx">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Maximum growth rate for anammox at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="rano2denit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Maximum growth rate denitrification on NO2 at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="ran2odenit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Maximum growth rate denitrification on N2O at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="rdnra">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Maximum growth rate DNRA on NO2 at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="ranh4nitr">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Maximum growth rate nitrification on NH4 at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="rano2nitr">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Maximum growth rate nitrification on NO2 at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="rano3denit_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>SEDIMENT: Maximum growth rate denitrification on NO3 at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="rano2anmx_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>SEDIMENT: Maximum growth rate for anammox at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="rano2denit_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>SEDIMENT: Maximum growth rate denitrification on NO2 at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="ran2odenit_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>SEDIMENT: Maximum growth rate denitrification on N2O at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="rdnra_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>SEDIMENT: Maximum growth rate DNRA on NO2 at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="ranh4nitr_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>SEDIMENT: Maximum growth rate nitrification on NH4 at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="rano2nitr_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>SEDIMENT: Maximum growth rate nitrification on NO2 at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="atm_nh3">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>atmosphere ammonia mixing ratio (ppt)</desc>
+  </entry>
+
+  <entry id="atm_n2o">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>atmosphere laughing gas mixing ratio (ppt)</desc>
+  </entry>
+
+
   <!-- TODO: how to handle mathematical expressions like below -->
   <!-- <entry id="wlin"> -->
   <!--   <type>real</type> -->

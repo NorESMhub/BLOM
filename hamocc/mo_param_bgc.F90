@@ -273,6 +273,7 @@ module mo_param_bgc
   !********************************************************************
   ! Extended nitrogen cycle
   !********************************************************************
+  ! WATER COLUMN
   ! Phytoplankton growth
   real, protected :: bkphyanh4     = 0.12e-6  ! Half-saturation constant for NH4 uptake by bulk phytoplankton (kmol/m3)
   real, protected :: bkphyano3     = 0.16e-6  ! Half-saturation constant for NO3 uptake by bulk phytoplankton (kmol/m3)
@@ -337,6 +338,7 @@ module mo_param_bgc
   real, protected :: bkano2nitr    = 0.287e-6 ! Half-saturation constant for NO2 for nitrification on NO2 (kmol/m3)
   real, protected :: NOB2AOAy      = 0.44     ! Ratio of NOB versus AOA yield per energy source ~0.043/0.098 according to Zakem et al. 2022
 
+  !SEDIMENT
       ! === Ammonification in the sediment
   real, protected :: POM_remin_q10_sed  = 2.1     ! ammonification Q10 in sediment
   real, protected :: POM_remin_Tref_sed = 10.     ! ammonification Tref in sediment
@@ -585,7 +587,7 @@ contains
                          rano3denit,rano2anmx,rano2denit,ran2odenit,rdnra,       &
                          ranh4nitr,rano2nitr,rano3denit_sed,rano2anmx_sed,       &
                          rano2denit_sed,ran2odenit_sed,rdnra_sed,ranh4nitr_sed,  &
-                         rano2nitr_sed,atm_nh3,atm_n2o
+                         rano2nitr_sed,atm_nh3,atm_n2o,bkphyanh4,bkphyano3
 
     open (newunit=iounit, file=bgc_namelist, status='old',action='read')
     read (unit=iounit, nml=BGCPARAMS)
