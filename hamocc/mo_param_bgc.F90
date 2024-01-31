@@ -305,7 +305,7 @@ module mo_param_bgc
 
   ! === Denitrification step N2O -> N2
   real, protected :: ran2odenit    = 0.16     ! Maximum growth rate denitrification on N2O at reference T (1/d -> 1/dt)
-  real, protected :: q10an2odenit  = 3.       ! Q1- factor for denitrificationj on N2O (-)
+  real, protected :: q10an2odenit  = 3.       ! Q10 factor for denitrificationj on N2O (-)
   real, protected :: Trefan2odenit = 10.      ! Reference temperature for denitrification on N2O (degr C)
   real, protected :: bkoxan2odenit = 5.e-6    ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on N2O (kmol/m3)
   real, protected :: bkan2odenit   = 1.e-6    ! Half-saturation constant for denitrification on N2O (kmol/m3)

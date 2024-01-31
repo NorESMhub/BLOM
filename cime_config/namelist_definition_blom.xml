@@ -4479,6 +4479,236 @@
     <desc>atmosphere laughing gas mixing ratio (ppt)</desc>
   </entry>
 
+  <entry id="bkphosph">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for PO4 uptake by bulk phytoplankton (kmol/m3)</desc>
+  </entry>
+
+  <entry id="q10ano3denit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Q10 factor for denitrification on NO3 (-)</desc>
+  </entry>
+
+  <entry id="sc_ano3denit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Shape factor for NO3 denitrification oxygen inhibition function (m3/kmol)</desc>
+  </entry>
+
+  <entry id="bkano3denit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for NO3 denitrification (kmol/m3)</desc>
+  </entry>
+
+  <entry id="q10anmx">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc> Q10 factor for anammox (-)</desc>
+  </entry>
+
+  <entry id="alphaanmx">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Shape factor for anammox oxygen inhibition function (m3/kmol)</desc>
+  </entry>
+
+  <entry id="bkoxanmx">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for oxygen inhibition function (kmol/m3)</desc>
+  </entry>
+
+  <entry id="bkano2anmx">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for NO2 limitation (kmol/m3)</desc>
+  </entry>
+
+  <entry id="q10ano2denit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Q10 factor for denitrification on NO2 (-)</desc>
+  </entry>
+
+  <entry id="bkoxano2denit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on NO2 (kmol/m3)</desc>
+  </entry>
+
+  <entry id="bkano2denit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for denitrification on NO2 (kmol/m3)</desc>
+  </entry>
+
+  <entry id="q10an2odenit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Q10 factor for denitrificationj on N2O (-)</desc>
+  </entry>
+
+  <entry id="bkoxan2odenit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on N2O (kmol/m3)</desc>
+  </entry>
+
+  <entry id="bkan2odenit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for denitrification on N2O (kmol/m3)</desc>
+  </entry>
+
+  <entry id="q10dnra">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Q10 factor for DNRA on NO2 (-)</desc>
+  </entry>
+
+  <entry id="bkoxdnra">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half saturation constant for (quadratic) oxygen inhibition function of DNRA on NO2 (kmol/m3)</desc>
+  </entry>
+
+  <entry id="bkdnra">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for DNRA on NO2 (kmol/m3)</desc>
+  </entry>
+
+  <entry id="q10anh4nitr">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Q10 factor for nitrification on NH4 (-)</desc>
+  </entry>
+
+  <entry id="bkoxamox">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for oxygen limitation of nitrification on NH4 (kmol/m3)</desc>
+  </entry>
+
+  <entry id="bkanh4nitr">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for nitrification on NH4 (kmol/m3)</desc>
+  </entry>
+
+  <entry id="q10ano2nitr">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc> Q10 factor for nitrification on NO2 (-)</desc>
+  </entry>
+
+  <entry id="bkoxnitr">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for oxygen limitation of nitrification on NO2 (kmol/m3)</desc>
+  </entry>
+
+  <entry id="bkano2nitr">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for NO2 for nitrification on NO2 (kmol/m3)</desc>
+  </entry>
+
 
   <!-- TODO: how to handle mathematical expressions like below -->
   <!-- <entry id="wlin"> -->
