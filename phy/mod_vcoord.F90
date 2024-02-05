@@ -536,7 +536,8 @@ contains
       integer, dimension(1-nbdy:idm+nbdy) :: ksmx, kdmx
 
       real(r8), dimension(kdm+1) :: sigmar_1d, pmin, sig_pmin
-      real(r8) :: dpmin_inflation_factor_i, sig_max, dpmin_sfc, dsig, dsigdx, &
+      real(r8) :: dpmin_inflation_factor_i, sig_max, dpmin_sfc, &
+                  dsig, dsigdx, dsigdx_up, dsigdx_lo, dp_up, dp_lo, sig_intrp, &
                   ckt, a, p1, dp0, b, c, q, d, rk
       integer :: l, i, nt, k, kt, kl, ktzmin, ktzmax, klastok, errstat
       logical :: tzfound, ok
@@ -664,7 +665,33 @@ contains
                if (ok) p_dst(k,i) = p_src(k,i) &
                                   + dsig*(p_src(k+1,i) - p_src(k,i))/dsigdx
             else
-               p_dst(k,i) = p_src(k,i)
+               dsigdx_up = dsigdt(t_srcdi(2,k-1,it,i), t_srcdi(2,k-1,is,i)) &
+                           *dpeval1(tpc_src(:,k-1,it,i)) &
+                         + dsigds(t_srcdi(2,k-1,it,i), t_srcdi(2,k-1,is,i)) &
+                           *dpeval1(tpc_src(:,k-1,is,i))
+               dsigdx_lo = dsigdt(t_srcdi(1,k,it,i), t_srcdi(1,k,is,i)) &
+                           *dpeval0(tpc_src(:,k,it,i)) &
+                         + dsigds(t_srcdi(1,k,it,i), t_srcdi(1,k,is,i)) &
+                           *dpeval0(tpc_src(:,k,is,i))
+               dp_up = max(p_src(k  ,i) - p_src(k-1,i), epsilp)
+               dp_lo = max(p_src(k+1,i) - p_src(k  ,i), epsilp)
+               sig_intrp = ( (sig_srcdi(1,k  ) + .5_r8*dsigdx_lo)*dp_up &
+                           + (sig_srcdi(2,k-1) - .5_r8*dsigdx_up)*dp_lo) &
+                           /(dp_up + dp_lo)
+               sig_intrp = max(min(sig_srcdi(2,k-1),sig_srcdi(1,k)), &
+                           min(max(sig_srcdi(2,k-1),sig_srcdi(1,k)), sig_intrp))
+               dsig = (sigmar_1d(k) - sig_intrp)*regrid_nudge_factor
+               if (dsig < 0._r8) then
+                  dsigdx = dsigdx_up + 2._r8*(sig_intrp - sig_srcdi(2,k-1))
+                  if (- dsig > .5_r8*dsigdx) ok = .false.
+                  if (ok) p_dst(k,i) = p_src(k,i) &
+                                     + dsig*(p_src(k,i) - p_src(k-1,i))/dsigdx
+               else
+                  dsigdx = dsigdx_lo + 2._r8*(sig_srcdi(1,k  ) - sig_intrp)
+                  if (dsig > .5_r8*dsigdx) ok = .false.
+                  if (ok) p_dst(k,i) = p_src(k,i) &
+                                     + dsig*(p_src(k+1,i) - p_src(k,i))/dsigdx
+               endif
             endif
             if (ok) then
                p_dst(k,i) = &
