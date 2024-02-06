@@ -794,6 +794,26 @@
     <desc>add desc</desc>
   </entry>
 
+  <entry id="upper_bndr_ord">
+    <type>integer</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>6</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="lower_bndr_ord">
+    <type>integer</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>4</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
   <entry id="density_limiting">
     <type>char</type>
     <category>vcoord</category>

@@ -70,6 +70,8 @@ module mod_vcoord
       dpmin_interior         = .1_r8, &
       regrid_nudge_factor    = .1_r8
    integer :: &
+      upper_bndr_ord = 6, &
+      lower_bndr_ord = 4, &
       dktzu = 4, &
       dktzl = 1
 
@@ -825,7 +827,7 @@ contains
       logical :: fexist
 
       namelist /vcoord/ &
-         vcoord_type, reconstruction_method, &
+         vcoord_type, reconstruction_method, upper_bndr_ord, lower_bndr_ord, &
          density_limiting, tracer_limiting, velocity_limiting, &
          density_pc_upper_bndr, density_pc_lower_bndr, &
          tracer_pc_upper_bndr, tracer_pc_lower_bndr, &
@@ -862,6 +864,8 @@ contains
       else
         call xcbcst(vcoord_type)
         call xcbcst(reconstruction_method)
+        call xcbcst(upper_bndr_ord)
+        call xcbcst(lower_bndr_ord)
         call xcbcst(density_limiting)
         call xcbcst(tracer_limiting)
         call xcbcst(velocity_limiting)
@@ -884,6 +888,8 @@ contains
                       trim(vcoord_type)
          write (lp,*) '  reconstruction_method =  ', &
                       trim(reconstruction_method)
+         write (lp,*) '  upper_bndr_ord =         ', upper_bndr_ord
+         write (lp,*) '  lower_bndr_ord =         ', lower_bndr_ord
          write (lp,*) '  density_limiting =       ', &
                       trim(density_limiting)
          write (lp,*) '  tracer_limiting =        ', &
@@ -1022,6 +1028,8 @@ contains
       endif
       rcgs%j_ubound = 2
       rcgs%method = reconstruction_method_tag
+      rcgs%left_bndr_ord = upper_bndr_ord
+      rcgs%right_bndr_ord = lower_bndr_ord
 
       ! Configuration of reconstruction data structures that is specific to
       ! various source data.
