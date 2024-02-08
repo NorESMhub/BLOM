@@ -38,7 +38,7 @@ contains
                               use_sedbypass,use_BOXATM
     use mo_vgrid,       only: k0100,k0500,k1000,k2000,k4000
     use mo_param1_bgc,  only: ks
-    use mod_nctools,    only: ncwrt1,ncdims,nctime,ncfcls,ncfopn,ncdimc
+    use mod_nctools,    only: ncwrt1,ncdims,nctime,ncfcls,ncfopn,ncdimc,ncputr
     use mo_bgcmean,     only: domassfluxes,flx_ndep,flx_oalk,                                      &
                               flx_cal0100,flx_cal0500,flx_cal1000,                                 &
                               flx_cal2000,flx_cal4000,flx_cal_bot,                                 &
@@ -150,7 +150,7 @@ contains
                               bur_sssc12,bur_ssssil,bur_ssster,bur_ssso12,                         &
                               inisdm,inibur,wrtsdm,accbur,accsdm,wrtbur,                           &
                               jatmco2,jatmn2,jatmo2,srf_atmo2,srf_atmn2
-    use mo_param_bgc,   only: c14fac
+    use mo_param_bgc,   only: c14fac,param4nc,nentries
 
     ! Arguments
     integer                  :: i,j,k,l,nt
@@ -221,6 +221,9 @@ contains
     call ncdims('ks',ks)
     call ncdims('bounds',2)
     call ncdims('time',0)
+    do i=1,nentries
+        call ncputr(param4nc(i)%pname,param4nc(i)%pvalue)
+    enddo
     call hamoccvardef(iogrp,timeunits,calendar,cmpflg)
     call nctime(datenum,calendar,timeunits,startdate)
 

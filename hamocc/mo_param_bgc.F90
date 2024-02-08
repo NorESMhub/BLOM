@@ -42,6 +42,17 @@ module mo_param_bgc
   implicit none
   private
 
+  ! For writing parameters to netcdf file
+  integer, parameter,public                   :: nlength = 20
+  type,public :: pinfo
+    character(len=nlength) :: pname
+    real                   :: pvalue
+    character(len=nlength) :: punit
+  end type
+  integer, protected, public                  :: nentries = 0
+  type(pinfo), allocatable, protected, public :: param4nc(:)
+
+
   ! Routines
   public  :: ini_parambgc
   private :: ini_aggregation
@@ -728,8 +739,43 @@ contains
       write(io_stdo_bgc,*) '*   opaldens     = ',opaldens
       write(io_stdo_bgc,*) '*   calcdens     = ',calcdens
       write(io_stdo_bgc,*) '*   claydens     = ',claydens
+      call add_entry('orgdens',orgdens,'','')
+      call add_entry('calcdens',calcdens,'','')
+      call add_entry('claydens',claydens,'','')
     endif
 
   end subroutine write_parambgc
+
+
+  subroutine add_entry(parname,parvalue,parunit,pardes)
+    character(len=*), intent(in)  :: parname
+    character(len=*), intent(in)  :: pardes
+    real,             intent(in)  :: parvalue
+    character(len=*), intent(in)  :: parunit
+
+    ! local:
+    type(pinfo),      allocatable :: temp(:)
+
+    ! write to logfile:
+    write(io_stdo_bgc,*) '*   ',parname,'     = ',parvalue
+
+
+    if (nentries==0)then
+       allocate(param4nc(1))
+       param4nc(1)%pname  = parname
+       param4nc(1)%pvalue = parvalue
+       param4nc(1)%punit  = parunit
+       nentries = nentries+ 1
+    else
+      allocate(temp(nentries+1))
+      temp(1:nentries) = param4nc
+      call move_alloc(temp,param4nc)
+
+      nentries =nentries+ 1
+      param4nc(nentries)%pname  = parname
+      param4nc(nentries)%pvalue = parvalue
+      param4nc(nentries)%punit  = parunit
+    endif
+  end subroutine
 
 end module mo_param_bgc
