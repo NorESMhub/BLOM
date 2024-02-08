@@ -207,12 +207,13 @@ module mod_hor3map
          pc_left_bndr  = .true., &
          pc_right_bndr = .true., &
          initialized   = .false.
-      real(r8) :: u_range, u_eps, uu_eps
 
       real(r8), allocatable, dimension(:,:,:) :: &
          polycoeff_data
       real(r8), allocatable, dimension(:,:) :: &
          u_src_data, uel_data, uer_data, usl_data, usr_data
+      real(r8), allocatable, dimension(:) :: &
+         u_range_data, u_eps_data, uu_eps_data
       logical, allocatable, dimension(:) :: &
          reconstructed_data
 
@@ -220,6 +221,8 @@ module mod_hor3map
          polycoeff
       real(r8), dimension(:), pointer :: &
          u_src, uel, uer, usl, usr
+      real(r8), pointer :: &
+         u_range, u_eps, uu_eps
       logical, pointer :: &
          reconstructed
 
@@ -357,6 +360,9 @@ contains
                 *(rcss%rcgs%i_ubound - rcss%rcgs%i_lbound + 1)
 
       rcss%u_src => rcss%u_src_data(:,ij_index)
+      rcss%u_range => rcss%u_range_data(ij_index)
+      rcss%u_eps => rcss%u_eps_data(ij_index)
+      rcss%uu_eps => rcss%uu_eps_data(ij_index)
       rcss%uel => rcss%uel_data(:,ij_index)
       rcss%uer => rcss%uer_data(:,ij_index)
       rcss%polycoeff => rcss%polycoeff_data(:,:,ij_index)
@@ -3729,6 +3735,9 @@ contains
                *(rcgs%j_ubound - rcgs%j_lbound + 1)
 
       allocate(rcss%u_src_data(rcgs%n_src,ij_size), &
+               rcss%u_range_data(ij_size), &
+               rcss%u_eps_data(ij_size), &
+               rcss%uu_eps_data(ij_size), &
                rcss%uel_data(rcgs%n_src,ij_size), &
                rcss%uer_data(rcgs%n_src,ij_size), &
                rcss%polycoeff_data(rcgs%p_ord+1,rcgs%n_src,ij_size), &
@@ -3740,6 +3749,9 @@ contains
       endif
 #ifdef DEBUG
       rcss%u_src_data(:,:) = ieee_value(1._r8, ieee_signaling_nan)
+      rcss%u_range_data(:) = ieee_value(1._r8, ieee_signaling_nan)
+      rcss%u_eps_data(:) = ieee_value(1._r8, ieee_signaling_nan)
+      rcss%uu_eps_data(:) = ieee_value(1._r8, ieee_signaling_nan)
       rcss%uel_data(:,:) = ieee_value(1._r8, ieee_signaling_nan)
       rcss%uer_data(:,:) = ieee_value(1._r8, ieee_signaling_nan)
       rcss%polycoeff_data(:,:,:) = ieee_value(1._r8, ieee_signaling_nan)
@@ -4191,11 +4203,11 @@ contains
          enddo
       endif
 
-      ! Set small value with same dimensions as source data.
+      ! Set source data range and associated small values.
       rcss%u_range = abs( minval(rcss%u_src(1:rcgs%n_src_actual)) &
                         - maxval(rcss%u_src(1:rcgs%n_src_actual)))
-      rcss%u_eps = max(eps*eps, rcss%u_range)*eps
-      rcss%uu_eps = max(eps*eps, rcss%u_range)*rcss%u_eps
+      rcss%u_eps = max(rcss%u_range, eps*eps)*eps
+      rcss%uu_eps = max(rcss%u_range, eps*eps)*rcss%u_eps
 
       select case (rcgs%method_actual)
          case (hor3map_plm)
@@ -4912,9 +4924,11 @@ contains
 
       type(recon_src_struct), intent(inout) :: rcss
 
-      nullify(rcss%u_src, rcss%uel, rcss%uer, rcss%polycoeff, &
+      nullify(rcss%u_src, rcss%u_range, rcss%u_eps, rcss%uu_eps, &
+              rcss%uel, rcss%uer, rcss%polycoeff, &
               rcss%reconstructed, rcss%rcss_dep_next)
-      deallocate(rcss%u_src_data, rcss%uel_data, rcss%uer_data, &
+      deallocate(rcss%u_src_data, rcss%u_range_data, rcss%u_eps_data, &
+                 rcss%uu_eps_data, rcss%uel_data, rcss%uer_data, &
                  rcss%polycoeff_data, rcss%reconstructed_data)
 
       if (rcss%rcgs%method == hor3map_pqm) then
