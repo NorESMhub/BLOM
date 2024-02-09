@@ -593,7 +593,7 @@ contains
       call cinfo_add_entry('use_FB_BGC_OCE BROMO',   use_FB_BGC_OCE)
       call cinfo_add_entry('use_BOXATM',             use_BOXATM)
       call cinfo_add_entry('use_sedbypass',          use_sedbypass)
-      write(io_stdo_bgc,*) '*   ocn_co2_type',       ocn_co2_type
+      write(io_stdo_bgc,*) '*   ocn_co2_type     = ',ocn_co2_type
       call cinfo_add_entry('do_ndep',                do_ndep)
       call cinfo_add_entry('do_rivinpt',             do_rivinpt)
       call cinfo_add_entry('do_oalk',                do_oalk)
