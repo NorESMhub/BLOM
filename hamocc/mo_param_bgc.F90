@@ -52,6 +52,12 @@ module mo_param_bgc
   integer, protected, public                  :: nentries = 0
   type(pinfo), allocatable, protected, public :: param4nc(:)
 
+  type, public :: ctrinfo
+    character(len=nlength) :: cname
+    integer                :: cvalue
+  end type
+  integer, protected, public                    :: centries = 0
+  type(ctrinfo), allocatable, protected, public :: controls4nc(:)
 
   ! Routines
   public  :: ini_parambgc
@@ -577,24 +583,24 @@ contains
       write(io_stdo_bgc,*)
       write(io_stdo_bgc,*) '********************************************'
       write(io_stdo_bgc,*) '* iHAMOCC configuration: '
-      write(io_stdo_bgc,*) '*   use_BROMO              = ',use_BROMO
-      write(io_stdo_bgc,*) '*   use_AGG                = ',use_AGG
-      write(io_stdo_bgc,*) '*   use_WLIN               = ',use_WLIN
-      write(io_stdo_bgc,*) '*   use_natDIC             = ',use_natDIC
-      write(io_stdo_bgc,*) '*   use_CFC                = ',use_CFC
-      write(io_stdo_bgc,*) '*   use_cisonew            = ',use_cisonew
-      write(io_stdo_bgc,*) '*   use_PBGC_OCNP_TIMESTEP = ',use_PBGC_OCNP_TIMESTEP
-      write(io_stdo_bgc,*) '*   use_PBGC_CK_TIMESTEP   = ',use_PBGC_CK_TIMESTEP
-      write(io_stdo_bgc,*) '*   use_FB_BGC_OCE BROMO   = ',use_FB_BGC_OCE
-      write(io_stdo_bgc,*) '*   use_BOXATM             = ',use_BOXATM
-      write(io_stdo_bgc,*) '*   use_sedbypass          = ',use_sedbypass
-      write(io_stdo_bgc,*) '*   ocn_co2_type           = ',ocn_co2_type
-      write(io_stdo_bgc,*) '*   do_ndep                = ',do_ndep
-      write(io_stdo_bgc,*) '*   do_rivinpt             = ',do_rivinpt
-      write(io_stdo_bgc,*) '*   do_oalk                = ',do_oalk
-      write(io_stdo_bgc,*) '*   with_dmsph             = ',with_dmsph
-      write(io_stdo_bgc,*) '*   do_sedspinup           = ',do_sedspinup
-      write(io_stdo_bgc,*) '*   l_3Dvarsedpor          = ',l_3Dvarsedpor
+      call cinfo_add_entry('use_BROMO',              use_BROMO)
+      call cinfo_add_entry('use_AGG',                use_AGG)
+      call cinfo_add_entry('use_WLIN',               use_WLIN)
+      call cinfo_add_entry('use_natDIC',             use_natDIC)
+      call cinfo_add_entry('use_CFC',                use_CFC)
+      call cinfo_add_entry('use_cisonew',            use_cisonew)
+      call cinfo_add_entry('use_PBGC_OCNP_TIMESTEP', use_PBGC_OCNP_TIMESTEP)
+      call cinfo_add_entry('use_PBGC_CK_TIMESTEP',   use_PBGC_CK_TIMESTEP)
+      call cinfo_add_entry('use_FB_BGC_OCE BROMO',   use_FB_BGC_OCE)
+      call cinfo_add_entry('use_BOXATM',             use_BOXATM)
+      call cinfo_add_entry('use_sedbypass',          use_sedbypass)
+      write(io_stdo_bgc,*) '*   ocn_co2_type',       ocn_co2_type
+      call cinfo_add_entry('do_ndep',                do_ndep)
+      call cinfo_add_entry('do_rivinpt',             do_rivinpt)
+      call cinfo_add_entry('do_oalk',                do_oalk)
+      call cinfo_add_entry('with_dmsph',             with_dmsph)
+      call cinfo_add_entry('do_sedspinup',           do_sedspinup)
+      call cinfo_add_entry('l_3Dvarsedpor',          l_3Dvarsedpor)
       write(io_stdo_bgc,*) '* '
       write(io_stdo_bgc,*) '* Values of MO_PARAM_BGC variables : '
       call pinfo_add_entry('atm_co2',     atm_co2,'','')
@@ -743,6 +749,38 @@ contains
 
   end subroutine write_parambgc
 
+  subroutine cinfo_add_entry(controlname,controlval)
+    character(len=*), intent(in)  :: controlname
+    logical,          intent(in)  :: controlval
+
+    ! local:
+    type(ctrinfo),    allocatable :: temp(:)
+    integer :: sw
+
+    if (controlval) then
+      sw = 1
+    else
+      sw = 0
+    endif
+
+    !Write to log-file
+    write(io_stdo_bgc,*) '*   ',controlname,'     = ',controlval
+
+    if (centries==0) then
+      allocate(controls4nc(1))
+      controls4nc(1)%cname  = controlname
+      controls4nc(1)%cvalue = sw
+      centries = centries + 1
+    else
+      allocate(temp(centries+1))
+      temp(1:centries) = controls4nc
+      call move_alloc(temp,controls4nc)
+
+      centries = centries + 1
+      controls4nc(centries)%cname  = controlname
+      controls4nc(centries)%cvalue = sw
+    endif
+  end subroutine
 
   subroutine pinfo_add_entry(parname,parvalue,parunit,pardes)
     character(len=*), intent(in)  :: parname
@@ -756,19 +794,18 @@ contains
     ! write to logfile:
     write(io_stdo_bgc,*) '*   ',parname,'     = ',parvalue
 
-
-    if (nentries==0)then
+    if (nentries==0) then
       allocate(param4nc(1))
       param4nc(1)%pname  = parname
       param4nc(1)%pvalue = parvalue
       param4nc(1)%punit  = parunit
-      nentries = nentries+ 1
+      nentries = nentries + 1
     else
       allocate(temp(nentries+1))
       temp(1:nentries) = param4nc
       call move_alloc(temp,param4nc)
 
-      nentries =nentries+ 1
+      nentries =nentries + 1
       param4nc(nentries)%pname  = parname
       param4nc(nentries)%pvalue = parvalue
       param4nc(nentries)%punit  = parunit
