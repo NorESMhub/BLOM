@@ -604,16 +604,25 @@ contains
                          rano3denit,rano2anmx,rano2denit,ran2odenit,rdnra,       &
                          ranh4nitr,rano2nitr,rano3denit_sed,rano2anmx_sed,       &
                          rano2denit_sed,ran2odenit_sed,rdnra_sed,ranh4nitr_sed,  &
-                         rano2nitr_sed,atm_nh3,atm_n2o,bkphyanh4,bkphyano3
+                         rano2nitr_sed,atm_nh3,atm_n2o,bkphyanh4,bkphyano3,      &
+                         bkphosph,                                               &
+                         q10ano3denit,sc_ano3denit,bkano3denit,q10anmx,alphaanmx,&
+                         bkoxanmx,bkano2anmx,q10ano2denit,                       &
+                         bkoxano2denit,bkano2denit,q10an2odenit,bkoxan2odenit,   &
+                         bkan2odenit,q10dnra,bkoxdnra,bkdnra,q10anh4nitr,        &
+                         bkoxamox,bkanh4nitr,q10ano2nitr,bkoxnitr,bkano2nitr
+
+    if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)
+      write(io_stdo_bgc,*)'********************************************'
+      write(io_stdo_bgc,*) 'iHAMOCC: read namelist bgcparams'
+    endif
 
     open (newunit=iounit, file=bgc_namelist, status='old',action='read')
     read (unit=iounit, nml=BGCPARAMS)
     close(unit=iounit)
 
     if (mnproc.eq.1) then
-      write(io_stdo_bgc,*) 
-      write(io_stdo_bgc,*)'********************************************'
-      write(io_stdo_bgc,*) 'iHAMOCC: read namelist bgcparams'
       write(io_stdo_bgc,nml=BGCPARAMS)
     endif
 
