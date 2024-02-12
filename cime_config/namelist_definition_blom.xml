@@ -1067,7 +1067,7 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value >1500.</value>
+      <value>1500.</value>
       <value blom_unit="cgs">1500.e4</value>
       <value blom_vcoord="cntiso_hybrid" ocn_grid="tnx1v4">2500.</value>
       <value blom_vcoord="cntiso_hybrid" ocn_grid="tnx1v4" blom_unit="cgs">2500.e4</value>
