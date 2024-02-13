@@ -1235,8 +1235,8 @@
     <values>
       <value>neutral</value>
       <value blom_vcoord="isopyc_bulkml">layer</value>
-      <value blom_vcoord="isopyc_bulkml" ocn_grid="0.125v4">layer</value>
-      <value blom_vcoord="cntiso_hybrid" ocn_grid="0.125v4">layer</value>
+      <value blom_vcoord="isopyc_bulkml" ocn_grid="tnx0.125v4">layer</value>
+      <value blom_vcoord="cntiso_hybrid" ocn_grid="tnx0.125v4">layer</value>
     </values>
     <desc>Type of lateral tracer eddy diffusion: Valid methods:</desc>
   </entry>
