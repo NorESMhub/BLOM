@@ -70,6 +70,8 @@ module mod_vcoord
       dpmin_interior         = .1_r8, &
       regrid_nudge_factor    = .1_r8
    integer :: &
+      upper_bndr_ord = 6, &
+      lower_bndr_ord = 4, &
       dktzu = 4, &
       dktzl = 1
 
@@ -536,7 +538,8 @@ contains
       integer, dimension(1-nbdy:idm+nbdy) :: ksmx, kdmx
 
       real(r8), dimension(kdm+1) :: sigmar_1d, pmin, sig_pmin
-      real(r8) :: dpmin_inflation_factor_i, sig_max, dpmin_sfc, dsig, dsigdx, &
+      real(r8) :: dpmin_inflation_factor_i, sig_max, dpmin_sfc, &
+                  dsig, dsigdx, dsigdx_up, dsigdx_lo, dp_up, dp_lo, sig_intrp, &
                   ckt, a, p1, dp0, b, c, q, d, rk
       integer :: l, i, nt, k, kt, kl, ktzmin, ktzmax, klastok, errstat
       logical :: tzfound, ok
@@ -664,7 +667,33 @@ contains
                if (ok) p_dst(k,i) = p_src(k,i) &
                                   + dsig*(p_src(k+1,i) - p_src(k,i))/dsigdx
             else
-               p_dst(k,i) = p_src(k,i)
+               dsigdx_up = dsigdt(t_srcdi(2,k-1,it,i), t_srcdi(2,k-1,is,i)) &
+                           *dpeval1(tpc_src(:,k-1,it,i)) &
+                         + dsigds(t_srcdi(2,k-1,it,i), t_srcdi(2,k-1,is,i)) &
+                           *dpeval1(tpc_src(:,k-1,is,i))
+               dsigdx_lo = dsigdt(t_srcdi(1,k,it,i), t_srcdi(1,k,is,i)) &
+                           *dpeval0(tpc_src(:,k,it,i)) &
+                         + dsigds(t_srcdi(1,k,it,i), t_srcdi(1,k,is,i)) &
+                           *dpeval0(tpc_src(:,k,is,i))
+               dp_up = max(p_src(k  ,i) - p_src(k-1,i), epsilp)
+               dp_lo = max(p_src(k+1,i) - p_src(k  ,i), epsilp)
+               sig_intrp = ( (sig_srcdi(1,k  ) + .5_r8*dsigdx_lo)*dp_up &
+                           + (sig_srcdi(2,k-1) - .5_r8*dsigdx_up)*dp_lo) &
+                           /(dp_up + dp_lo)
+               sig_intrp = max(min(sig_srcdi(2,k-1),sig_srcdi(1,k)), &
+                           min(max(sig_srcdi(2,k-1),sig_srcdi(1,k)), sig_intrp))
+               dsig = (sigmar_1d(k) - sig_intrp)*regrid_nudge_factor
+               if (dsig < 0._r8) then
+                  dsigdx = dsigdx_up + 2._r8*(sig_intrp - sig_srcdi(2,k-1))
+                  if (- dsig > .5_r8*dsigdx) ok = .false.
+                  if (ok) p_dst(k,i) = p_src(k,i) &
+                                     + dsig*(p_src(k,i) - p_src(k-1,i))/dsigdx
+               else
+                  dsigdx = dsigdx_lo + 2._r8*(sig_srcdi(1,k  ) - sig_intrp)
+                  if (dsig > .5_r8*dsigdx) ok = .false.
+                  if (ok) p_dst(k,i) = p_src(k,i) &
+                                     + dsig*(p_src(k+1,i) - p_src(k,i))/dsigdx
+               endif
             endif
             if (ok) then
                p_dst(k,i) = &
@@ -798,7 +827,7 @@ contains
       logical :: fexist
 
       namelist /vcoord/ &
-         vcoord_type, reconstruction_method, &
+         vcoord_type, reconstruction_method, upper_bndr_ord, lower_bndr_ord, &
          density_limiting, tracer_limiting, velocity_limiting, &
          density_pc_upper_bndr, density_pc_lower_bndr, &
          tracer_pc_upper_bndr, tracer_pc_lower_bndr, &
@@ -835,6 +864,8 @@ contains
       else
         call xcbcst(vcoord_type)
         call xcbcst(reconstruction_method)
+        call xcbcst(upper_bndr_ord)
+        call xcbcst(lower_bndr_ord)
         call xcbcst(density_limiting)
         call xcbcst(tracer_limiting)
         call xcbcst(velocity_limiting)
@@ -857,6 +888,8 @@ contains
                       trim(vcoord_type)
          write (lp,*) '  reconstruction_method =  ', &
                       trim(reconstruction_method)
+         write (lp,*) '  upper_bndr_ord =         ', upper_bndr_ord
+         write (lp,*) '  lower_bndr_ord =         ', lower_bndr_ord
          write (lp,*) '  density_limiting =       ', &
                       trim(density_limiting)
          write (lp,*) '  tracer_limiting =        ', &
@@ -995,6 +1028,8 @@ contains
       endif
       rcgs%j_ubound = 2
       rcgs%method = reconstruction_method_tag
+      rcgs%left_bndr_ord = upper_bndr_ord
+      rcgs%right_bndr_ord = lower_bndr_ord
 
       ! Configuration of reconstruction data structures that is specific to
       ! various source data.
