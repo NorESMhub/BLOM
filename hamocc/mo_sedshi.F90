@@ -79,7 +79,7 @@ contains
                  & +      oplfa*sedlay(i,j,k,issssil) &
                  & +      clafa*sedlay(i,j,k,issster)
             ! "full sediment has sedlo=1
-            wsed(i,j)=max(0.,(sedlo-1.)/(sedlo+1.e-10))
+            wsed(i,j)=max(0.,(sedlo-1.)/(abs(sedlo)+1.e-10))
           endif
         enddo !end i-loop
       enddo !end j-loop
@@ -120,7 +120,7 @@ contains
                & +      calfa*sedlay(i,j,ks,isssc12)  &
                & +      oplfa*sedlay(i,j,ks,issssil)  &
                & +      clafa*sedlay(i,j,ks,issster)
-          wsed(i,j)=max(0.,(sedlo-1.)/(sedlo+1.e-10))
+          wsed(i,j)=max(0.,(sedlo-1.)/(abs(sedlo)+1.e-10))
         endif
       enddo !end i-loop
     enddo !end j-loop
@@ -260,7 +260,7 @@ contains
                  & +      calfa*sedlay(i,j,k,isssc12)  &
                  & +      oplfa*sedlay(i,j,k,issssil)  &
                  & +      clafa*sedlay(i,j,k,issster)
-            wsed(i,j)=max(0.,(sedlo-1.)/(sedlo+1.e-10))
+            wsed(i,j)=max(0.,(sedlo-1.)/(abs(sedlo)+1.e-10))
           endif
         enddo !end i-loop
       enddo !end j-loop
