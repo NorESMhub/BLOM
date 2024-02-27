@@ -358,7 +358,7 @@ module mo_param_bgc
       ! === Ammonification in the sediment
   real, protected :: POM_remin_q10_sed  = 2.1     ! ammonification Q10 in sediment
   real, protected :: POM_remin_Tref_sed = 10.     ! ammonification Tref in sediment
-  real, protected :: bkox_drempoc_sed   = 1e-7    ! half saturation constant for O2 limitatio of ammonification in sediment
+  real, protected :: bkox_drempoc_sed   = 1e-7    ! half saturation constant for O2 limitatio of ammonification in sediment (kmol/m3)
 
       ! === Denitrification step NO3 -> NO2:
   real, protected :: rano3denit_sed     = 0.05     ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
@@ -601,6 +601,7 @@ contains
                          ecan,zinges,epsher,bkopal,rcalc,ropal,                  &
                          remido,drempoc,dremopal,dremn2o,dremsul,fetune,relaxfe, &
                          wmin,wmax,wlin,wpoc_const,wcal_const,wopal_const,       &
+                         disso_poc,disso_sil,disso_caco3,                        &
                          rano3denit,rano2anmx,rano2denit,ran2odenit,rdnra,       &
                          ranh4nitr,rano2nitr,rano3denit_sed,rano2anmx_sed,       &
                          rano2denit_sed,ran2odenit_sed,rdnra_sed,ranh4nitr_sed,  &
@@ -610,7 +611,15 @@ contains
                          bkoxanmx,bkano2anmx,q10ano2denit,                       &
                          bkoxano2denit,bkano2denit,q10an2odenit,bkoxan2odenit,   &
                          bkan2odenit,q10dnra,bkoxdnra,bkdnra,q10anh4nitr,        &
-                         bkoxamox,bkanh4nitr,q10ano2nitr,bkoxnitr,bkano2nitr
+                         bkoxamox,bkanh4nitr,q10ano2nitr,bkoxnitr,bkano2nitr,    &
+                         q10ano3denit_sed,sc_ano3denit_sed,bkano3denit_sed,      &
+                         q10anmx_sed,alphaanmx_sed,bkox_drempoc_sed,             &
+                         bkoxanmx_sed,bkano2anmx_sed,q10ano2denit_sed,           &
+                         bkoxano2denit_sed,bkano2denit_sed,q10an2odenit_sed,     &
+                         bkoxan2odenit_sed,bkan2odenit_sed,q10dnra_sed,          &
+                         bkoxdnra_sed,bkdnra_sed,q10anh4nitr_sed,                &
+                         bkoxamox_sed,bkanh4nitr_sed,q10ano2nitr_sed,            &
+                         bkoxnitr_sed,bkano2nitr_sed
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)
