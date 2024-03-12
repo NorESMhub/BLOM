@@ -44,7 +44,7 @@ contains
     use mo_param_bgc,   only: rcar
     use mo_param1_bgc,  only: isssc12,issssil,issso12,issster,ks,nsedtra,isssc13,isssc14,          &
                               issso13,issso14
-    use mo_carbch,     only: sedfluxb
+    use mo_carbch,      only: sedfluxb
     use mo_control_bgc, only: use_cisonew
 
     ! Arguments

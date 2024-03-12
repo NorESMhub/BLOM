@@ -17,12 +17,12 @@
 
 module mo_extNsediment
   !**********************************************************************
-  ! 
+  !
   ! MODULE mo_extNsediment - extended nitrogen cycle processes
   !                          in the sediment
   !
   ! j.maerz 13.09.2022
-  ! 
+  !
   ! Pupose:
   ! -------
   !   - representation of microbial processes

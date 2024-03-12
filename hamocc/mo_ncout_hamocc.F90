@@ -885,7 +885,7 @@ contains
     call inisrf(joxflux(iogrp),0.)
     call inisrf(jniflux(iogrp),0.)
     call inisrf(jn2ofx(iogrp),0.)
-     call inisrf(jsrfpn2om(iogrp),0.)
+    call inisrf(jsrfpn2om(iogrp),0.)
     call inisrf(jdms(iogrp),0.)
     call inisrf(jdmsprod(iogrp),0.)
     call inisrf(jdms_bac(iogrp),0.)
