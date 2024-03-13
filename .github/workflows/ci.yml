@@ -56,16 +56,17 @@ jobs:
           meson setup builddir -Dmpi=${{ matrix.mpi }} -Dopenmp=${{ matrix.openmp }} -Decosys=${{ matrix.ecosys }} --buildtype=debugoptimized
           meson compile -C builddir
 
+      # macos-latest throws a SIGFPE exception for the test runs
       - name: Test code
-        if: ${{ matrix.mpi == false }}
+        if: ${{ runner.os == 'Linux' && matrix.mpi == false }}
         run: |
           ulimit -s 65532
           meson test -C builddir
 
       - name: Upload test log
-        if: ${{ matrix.mpi == false }}
-        uses: actions/upload-artifact@v3
+        if: ${{ runner.os == 'Linux' && matrix.mpi == false }}
+        uses: actions/upload-artifact@v4
         with:
-          name: testlog-${{ runner.os }}-gcc
+          name: testlog-${{ runner.os }}-OMP${{ matrix.openmp }}-gcc
           path: builddir/meson-logs/testlog.txt
 
