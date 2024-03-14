@@ -1,81 +1,129 @@
 <?xml version="1.0"?>
 
+<!-- OMIP-type compsets:
+     On betzy: single node (XS) = 128 CPU cores   ("devel" job size)
+               4 nodes = 512 CPU cores            (minimum "normal" size)
+-->
+
 <config_pes>
+
+  <!-- Configurations for the one degree tripolar (tnx1) grid  !-->
 
   <grid name="a%T62.+oi%tnx1v1">
     <mach name="any">
       <pes pesize="M" compset="any">
-	<comment>none</comment>
-	<ntasks>
-	  <ntasks_atm>96</ntasks_atm> 
-	  <ntasks_rof>96</ntasks_rof> 
-	  <ntasks_ice>96</ntasks_ice> 
-	  <ntasks_ocn>216</ntasks_ocn> 
-	  <ntasks_cpl>96</ntasks_cpl> 
-	  <ntasks_lnd>96</ntasks_lnd>
-	  <ntasks_glc>96</ntasks_glc> 
-	  <ntasks_wav>96</ntasks_wav> 
-	</ntasks>
-	<nthrds>
-	  <nthrds_atm>1</nthrds_atm>                   
-	  <nthrds_lnd>1</nthrds_lnd> 
-	  <nthrds_rof>1</nthrds_rof> 
-	  <nthrds_ice>1</nthrds_ice> 
-	  <nthrds_ocn>1</nthrds_ocn> 
-	  <nthrds_glc>1</nthrds_glc> 
-	  <nthrds_wav>1</nthrds_wav> 
-	  <nthrds_cpl>1</nthrds_cpl> 
-	</nthrds>
-	<rootpe>
-	  <rootpe_atm>0</rootpe_atm> 
-	  <rootpe_lnd>0</rootpe_lnd> 
-	  <rootpe_rof>0</rootpe_rof> 
-	  <rootpe_ice>0</rootpe_ice>    
-	  <rootpe_ocn>96</rootpe_ocn>   
-	  <rootpe_glc>0</rootpe_glc> 
-	  <rootpe_wav>0</rootpe_wav> 
-	  <rootpe_cpl>0</rootpe_cpl>                         
-	</rootpe>
+        <comment>none</comment>
+        <ntasks>
+          <ntasks_atm>96</ntasks_atm>
+          <ntasks_rof>96</ntasks_rof>
+          <ntasks_ice>96</ntasks_ice>
+          <ntasks_ocn>216</ntasks_ocn>
+          <ntasks_cpl>96</ntasks_cpl>
+          <ntasks_lnd>96</ntasks_lnd>
+          <ntasks_glc>96</ntasks_glc>
+          <ntasks_wav>96</ntasks_wav>
+        </ntasks>
+        <nthrds>
+          <nthrds_atm>1</nthrds_atm>
+          <nthrds_lnd>1</nthrds_lnd>
+          <nthrds_rof>1</nthrds_rof>
+          <nthrds_ice>1</nthrds_ice>
+          <nthrds_ocn>1</nthrds_ocn>
+          <nthrds_glc>1</nthrds_glc>
+          <nthrds_wav>1</nthrds_wav>
+          <nthrds_cpl>1</nthrds_cpl>
+        </nthrds>
+        <rootpe>
+          <rootpe_atm>0</rootpe_atm>
+          <rootpe_lnd>0</rootpe_lnd>
+          <rootpe_rof>0</rootpe_rof>
+          <rootpe_ice>0</rootpe_ice>
+          <rootpe_ocn>96</rootpe_ocn>
+          <rootpe_glc>0</rootpe_glc>
+          <rootpe_wav>0</rootpe_wav>
+          <rootpe_cpl>0</rootpe_cpl>
+        </rootpe>
       </pes>
     </mach>
   </grid>
+
   <grid name="a%T62.+oi%tnx1v3">
     <mach name="any">
       <pes pesize="M" compset="any">
-	<comment>none</comment>
-	<ntasks>
-	  <ntasks_atm>96</ntasks_atm> 
-	  <ntasks_rof>96</ntasks_rof> 
-	  <ntasks_ice>96</ntasks_ice> 
-	  <ntasks_ocn>257</ntasks_ocn> 
-	  <ntasks_cpl>96</ntasks_cpl> 
-	  <ntasks_lnd>96</ntasks_lnd>
-	  <ntasks_glc>96</ntasks_glc> 
-	  <ntasks_wav>96</ntasks_wav> 
-	</ntasks>
-	<nthrds>
-	  <nthrds_atm>1</nthrds_atm>                   
-	  <nthrds_lnd>1</nthrds_lnd> 
-	  <nthrds_rof>1</nthrds_rof> 
-	  <nthrds_ice>1</nthrds_ice> 
-	  <nthrds_ocn>1</nthrds_ocn> 
-	  <nthrds_glc>1</nthrds_glc> 
-	  <nthrds_wav>1</nthrds_wav> 
-	  <nthrds_cpl>1</nthrds_cpl> 
-	</nthrds>
-	<rootpe>
-	  <rootpe_atm>0</rootpe_atm> 
-	  <rootpe_lnd>0</rootpe_lnd> 
-	  <rootpe_rof>0</rootpe_rof> 
-	  <rootpe_ice>0</rootpe_ice>    
-	  <rootpe_ocn>96</rootpe_ocn>   
-	  <rootpe_glc>0</rootpe_glc> 
-	  <rootpe_wav>0</rootpe_wav> 
-	  <rootpe_cpl>0</rootpe_cpl>                         
-	</rootpe>
+        <comment>none</comment>
+        <ntasks>
+          <ntasks_atm>96</ntasks_atm>
+          <ntasks_rof>96</ntasks_rof>
+          <ntasks_ice>96</ntasks_ice>
+          <ntasks_ocn>257</ntasks_ocn>
+          <ntasks_cpl>96</ntasks_cpl>
+          <ntasks_lnd>96</ntasks_lnd>
+          <ntasks_glc>96</ntasks_glc>
+          <ntasks_wav>96</ntasks_wav>
+        </ntasks>
+        <nthrds>
+          <nthrds_atm>1</nthrds_atm>
+          <nthrds_lnd>1</nthrds_lnd>
+          <nthrds_rof>1</nthrds_rof>
+          <nthrds_ice>1</nthrds_ice>
+          <nthrds_ocn>1</nthrds_ocn>
+          <nthrds_glc>1</nthrds_glc>
+          <nthrds_wav>1</nthrds_wav>
+          <nthrds_cpl>1</nthrds_cpl>
+        </nthrds>
+        <rootpe>
+          <rootpe_atm>0</rootpe_atm>
+          <rootpe_lnd>0</rootpe_lnd>
+          <rootpe_rof>0</rootpe_rof>
+          <rootpe_ice>0</rootpe_ice>
+          <rootpe_ocn>96</rootpe_ocn>
+          <rootpe_glc>0</rootpe_glc>
+          <rootpe_wav>0</rootpe_wav>
+          <rootpe_cpl>0</rootpe_cpl>
+        </rootpe>
       </pes>
     </mach>
   </grid>
+
+  <!-- GRID: T62_tn14 : start !-->
+  <grid name="a%T62.+oi%tnx1v4">
+    <mach name="any">
+      <pes pesize="XS" compset="_DATM.*_BLOM%ECO">
+        <comment>Very small pe-layout on 128 pes in total</comment>
+        <ntasks>
+          <ntasks_atm>4</ntasks_atm>
+          <ntasks_rof>3</ntasks_rof>
+          <ntasks_ice>30</ntasks_ice>
+          <ntasks_ocn>91</ntasks_ocn>
+          <ntasks_cpl>30</ntasks_cpl>
+          <ntasks_lnd>1</ntasks_lnd>
+          <ntasks_glc>1</ntasks_glc>
+          <ntasks_wav>1</ntasks_wav>
+        </ntasks>
+        <nthrds>
+          <nthrds_atm>1</nthrds_atm>
+          <nthrds_lnd>1</nthrds_lnd>
+          <nthrds_rof>1</nthrds_rof>
+          <nthrds_ice>1</nthrds_ice>
+          <nthrds_ocn>1</nthrds_ocn>
+          <nthrds_glc>1</nthrds_glc>
+          <nthrds_wav>1</nthrds_wav>
+          <nthrds_cpl>1</nthrds_cpl>
+        </nthrds>
+        <rootpe>
+          <rootpe_atm>30</rootpe_atm>
+          <rootpe_lnd>0</rootpe_lnd>
+          <rootpe_rof>34</rootpe_rof>
+          <rootpe_ice>0</rootpe_ice>
+          <rootpe_ocn>37</rootpe_ocn>
+          <rootpe_glc>0</rootpe_glc>
+          <rootpe_wav>0</rootpe_wav>
+          <rootpe_cpl>0</rootpe_cpl>
+        </rootpe>
+      </pes>
+    </mach>
+  </grid>
+
   <grid name="a%T62.+oi%tnx1v4">
     <mach name="any">
       <pes pesize="M" compset="any">
@@ -113,6 +161,7 @@
       </pes>
     </mach>
   </grid>
+
   <grid name="a%T62.+oi%tnx1v4">
     <mach name="any">
       <pes pesize="M" compset="_DATM.*_BLOM%ECO">
@@ -150,6 +199,85 @@
       </pes>
     </mach>
   </grid>
+  <!-- GRID: T62_tn14 : end !-->
+
+  <!-- GRID: TL319_tn14 : start !-->
+  <grid name="a%TL319.+oi%tnx1v4">
+    <mach name="any">
+      <pes pesize="XS" compset="_DATM.*_BLOM%ECO">
+        <comment>Very small pe-layout on 128 pes in total</comment>
+        <ntasks>
+          <ntasks_atm>4</ntasks_atm>
+          <ntasks_rof>3</ntasks_rof>
+          <ntasks_ice>30</ntasks_ice>
+          <ntasks_ocn>91</ntasks_ocn>
+          <ntasks_cpl>30</ntasks_cpl>
+          <ntasks_lnd>1</ntasks_lnd>
+          <ntasks_glc>1</ntasks_glc>
+          <ntasks_wav>1</ntasks_wav>
+        </ntasks>
+        <nthrds>
+          <nthrds_atm>1</nthrds_atm>
+          <nthrds_lnd>1</nthrds_lnd>
+          <nthrds_rof>1</nthrds_rof>
+          <nthrds_ice>1</nthrds_ice>
+          <nthrds_ocn>1</nthrds_ocn>
+          <nthrds_glc>1</nthrds_glc>
+          <nthrds_wav>1</nthrds_wav>
+          <nthrds_cpl>1</nthrds_cpl>
+        </nthrds>
+        <rootpe>
+          <rootpe_atm>30</rootpe_atm>
+          <rootpe_lnd>0</rootpe_lnd>
+          <rootpe_rof>34</rootpe_rof>
+          <rootpe_ice>0</rootpe_ice>
+          <rootpe_ocn>37</rootpe_ocn>
+          <rootpe_glc>0</rootpe_glc>
+          <rootpe_wav>0</rootpe_wav>
+          <rootpe_cpl>0</rootpe_cpl>
+        </rootpe>
+      </pes>
+    </mach>
+  </grid>
+
+  <grid name="a%TL319.+oi%tnx1v4">
+    <mach name="any">
+      <pes pesize="M" compset="any">
+        <comment>none</comment>
+        <ntasks>
+          <ntasks_atm>128</ntasks_atm>
+          <ntasks_rof>16</ntasks_rof>
+          <ntasks_ice>96</ntasks_ice>
+          <ntasks_ocn>156</ntasks_ocn>
+          <ntasks_cpl>128</ntasks_cpl>
+          <ntasks_lnd>128</ntasks_lnd>
+          <ntasks_glc>128</ntasks_glc>
+          <ntasks_wav>128</ntasks_wav>
+        </ntasks>
+        <nthrds>
+          <nthrds_atm>1</nthrds_atm>
+          <nthrds_lnd>1</nthrds_lnd>
+          <nthrds_rof>1</nthrds_rof>
+          <nthrds_ice>1</nthrds_ice>
+          <nthrds_ocn>1</nthrds_ocn>
+          <nthrds_glc>1</nthrds_glc>
+          <nthrds_wav>1</nthrds_wav>
+          <nthrds_cpl>1</nthrds_cpl>
+        </nthrds>
+        <rootpe>
+          <rootpe_atm>0</rootpe_atm>
+          <rootpe_lnd>0</rootpe_lnd>
+          <rootpe_rof>16</rootpe_rof>
+          <rootpe_ice>32</rootpe_ice>
+          <rootpe_ocn>128</rootpe_ocn>
+          <rootpe_glc>0</rootpe_glc>
+          <rootpe_wav>0</rootpe_wav>
+          <rootpe_cpl>0</rootpe_cpl>
+        </rootpe>
+      </pes>
+    </mach>
+  </grid>
+
   <grid name="a%TL319.+oi%tnx1v4">
     <mach name="any">
       <pes pesize="M" compset="_DATM.*_BLOM%ECO">
@@ -192,40 +320,41 @@
   <grid name="a%TL319.+oi%tnx1v4">
     <mach name="betzy">
       <pes pesize="L" compset="_DATM.*_BLOM">
-	      <comment>Large pe-layout with 512 pes in total</comment>
-	      <ntasks>
-	        <ntasks_atm>1</ntasks_atm>
-	        <ntasks_rof>1</ntasks_rof>
-	        <ntasks_ice>154</ntasks_ice>
-	        <ntasks_ocn>354</ntasks_ocn>
-	        <ntasks_cpl>158</ntasks_cpl>
-	        <ntasks_lnd>1</ntasks_lnd>
-	        <ntasks_glc>1</ntasks_glc>
-	        <ntasks_wav>1</ntasks_wav>
-	      </ntasks>
-	      <nthrds>
-	        <nthrds_atm>1</nthrds_atm>
-	        <nthrds_lnd>1</nthrds_lnd>
-	        <nthrds_rof>1</nthrds_rof>
-	        <nthrds_ice>1</nthrds_ice>
-	        <nthrds_ocn>1</nthrds_ocn>
-	        <nthrds_glc>1</nthrds_glc>
-	        <nthrds_wav>1</nthrds_wav>
-	        <nthrds_cpl>1</nthrds_cpl>
-	      </nthrds>
-	      <rootpe>
-	        <rootpe_atm>155</rootpe_atm>
-	        <rootpe_lnd>156</rootpe_lnd>
-	        <rootpe_rof>157</rootpe_rof>
-	        <rootpe_ice>0</rootpe_ice>
-	        <rootpe_ocn>158</rootpe_ocn>
-	        <rootpe_glc>0</rootpe_glc>
-	        <rootpe_wav>0</rootpe_wav>
-	        <rootpe_cpl>0</rootpe_cpl>
-	      </rootpe>
+        <comment>Large pe-layout with 512 pes in total</comment>
+        <ntasks>
+          <ntasks_atm>1</ntasks_atm>
+          <ntasks_rof>1</ntasks_rof>
+          <ntasks_ice>154</ntasks_ice>
+          <ntasks_ocn>354</ntasks_ocn>
+          <ntasks_cpl>158</ntasks_cpl>
+          <ntasks_lnd>1</ntasks_lnd>
+          <ntasks_glc>1</ntasks_glc>
+          <ntasks_wav>1</ntasks_wav>
+        </ntasks>
+        <nthrds>
+          <nthrds_atm>1</nthrds_atm>
+          <nthrds_lnd>1</nthrds_lnd>
+          <nthrds_rof>1</nthrds_rof>
+          <nthrds_ice>1</nthrds_ice>
+          <nthrds_ocn>1</nthrds_ocn>
+          <nthrds_glc>1</nthrds_glc>
+          <nthrds_wav>1</nthrds_wav>
+          <nthrds_cpl>1</nthrds_cpl>
+        </nthrds>
+        <rootpe>
+          <rootpe_atm>155</rootpe_atm>
+          <rootpe_lnd>156</rootpe_lnd>
+          <rootpe_rof>157</rootpe_rof>
+          <rootpe_ice>0</rootpe_ice>
+          <rootpe_ocn>158</rootpe_ocn>
+          <rootpe_glc>0</rootpe_glc>
+          <rootpe_wav>0</rootpe_wav>
+          <rootpe_cpl>0</rootpe_cpl>
+        </rootpe>
       </pes>
     </mach>
   </grid>
+  <!-- GRID: TL319_tn14 : end !-->
 
   <grid name="a%0.9x1.25.+oi%tnx1v4|a%1.9x2.5.+oi%tnx1v4">
     <mach name="any">
@@ -264,43 +393,48 @@
       </pes>
     </mach>
   </grid>
+
+
+  <!-- Configurations for the 1/4 degree tripolar (tnx0.25) grid  !-->
+
   <grid name="a%T62.+oi%tnx0.25v1">
     <mach name="any">
       <pes pesize="any" compset="any">
-	<comment>none</comment>
-	<ntasks>
-	  <ntasks_atm>392</ntasks_atm> 
-	  <ntasks_rof>16</ntasks_rof> 
-	  <ntasks_ice>360</ntasks_ice> 
-	  <ntasks_ocn>2475</ntasks_ocn> 
-	  <ntasks_cpl>392</ntasks_cpl> 
-	  <ntasks_lnd>16</ntasks_lnd> 
-	  <ntasks_glc>392</ntasks_glc> 
-	  <ntasks_wav>392</ntasks_wav> 
-	</ntasks>
-	<nthrds>
-	  <nthrds_atm>1</nthrds_atm>                   
-	  <nthrds_lnd>1</nthrds_lnd> 
-	  <nthrds_rof>1</nthrds_rof> 
-	  <nthrds_ice>1</nthrds_ice> 
-	  <nthrds_ocn>1</nthrds_ocn> 
-	  <nthrds_glc>1</nthrds_glc> 
-	  <nthrds_wav>1</nthrds_wav> 
-	  <nthrds_cpl>1</nthrds_cpl> 
-	</nthrds>
-	<rootpe>
-	  <rootpe_atm>0</rootpe_atm>
-	  <rootpe_rof>16</rootpe_rof>
-	  <rootpe_ice>32</rootpe_ice>
-	  <rootpe_ocn>392</rootpe_ocn>
-	  <rootpe_cpl>0</rootpe_cpl>
-	  <rootpe_lnd>0</rootpe_lnd>
-	  <rootpe_wav>0</rootpe_wav> 
-	  <rootpe_glc>0</rootpe_glc> 
-	</rootpe>
+        <comment>none</comment>
+        <ntasks>
+          <ntasks_atm>392</ntasks_atm>
+          <ntasks_rof>16</ntasks_rof>
+          <ntasks_ice>360</ntasks_ice>
+          <ntasks_ocn>2475</ntasks_ocn>
+          <ntasks_cpl>392</ntasks_cpl>
+          <ntasks_lnd>16</ntasks_lnd>
+          <ntasks_glc>392</ntasks_glc>
+          <ntasks_wav>392</ntasks_wav>
+        </ntasks>
+        <nthrds>
+          <nthrds_atm>1</nthrds_atm>
+          <nthrds_lnd>1</nthrds_lnd>
+          <nthrds_rof>1</nthrds_rof>
+          <nthrds_ice>1</nthrds_ice>
+          <nthrds_ocn>1</nthrds_ocn>
+          <nthrds_glc>1</nthrds_glc>
+          <nthrds_wav>1</nthrds_wav>
+          <nthrds_cpl>1</nthrds_cpl>
+        </nthrds>
+        <rootpe>
+          <rootpe_atm>0</rootpe_atm>
+          <rootpe_rof>16</rootpe_rof>
+          <rootpe_ice>32</rootpe_ice>
+          <rootpe_ocn>392</rootpe_ocn>
+          <rootpe_cpl>0</rootpe_cpl>
+          <rootpe_lnd>0</rootpe_lnd>
+          <rootpe_wav>0</rootpe_wav>
+          <rootpe_glc>0</rootpe_glc>
+        </rootpe>
       </pes>
     </mach>
   </grid>    
+
   <grid name="a%T62.+oi%tnx0.25v3">
     <mach name="any">
       <pes pesize="any" compset="any">
@@ -338,6 +472,7 @@
       </pes>
     </mach>
   </grid>
+
   <grid name="a%T62.+oi%tnx0.25v4">
     <mach name="any">
       <pes pesize="any" compset="any">
@@ -414,6 +549,9 @@
     </mach>
   </grid>
 
+
+  <!-- Configurations for the 1/8 degree tripolar (tnx0.125) grid  !-->
+
   <grid name="a%T62.+oi%tnx0.125v4">
     <mach name="any">
       <pes pesize="any" compset="_DATM.*_BLOM">
@@ -452,19 +590,23 @@
     </mach>
   </grid>
 
-  <grid name="a%TL319.+oi%tnx1v4">
+
+  <!-- Configurations for the two degree tripolar (tnx2) grid for compsets including iHAMOCC  !-->
+
+  <!-- GRID: T62_tn21 !-->
+  <grid name="a%T62.+oi%tnx2v1">
     <mach name="any">
-      <pes pesize="M" compset="any">
-        <comment>none</comment>
+      <pes pesize="XS" compset="_DATM.*_BLOM%ECO">
+        <comment>Very small and efficent pe-layout on 128 pes in total</comment>
         <ntasks>
-          <ntasks_atm>128</ntasks_atm>
-          <ntasks_rof>16</ntasks_rof>
-          <ntasks_ice>96</ntasks_ice>
-          <ntasks_ocn>156</ntasks_ocn>
-          <ntasks_cpl>128</ntasks_cpl>
-          <ntasks_lnd>128</ntasks_lnd>
-          <ntasks_glc>128</ntasks_glc>
-          <ntasks_wav>128</ntasks_wav>
+          <ntasks_atm>1</ntasks_atm>
+          <ntasks_rof>1</ntasks_rof>
+          <ntasks_ice>30</ntasks_ice>
+          <ntasks_ocn>96</ntasks_ocn>
+          <ntasks_cpl>32</ntasks_cpl>
+          <ntasks_lnd>1</ntasks_lnd>
+          <ntasks_glc>1</ntasks_glc>
+          <ntasks_wav>1</ntasks_wav>
         </ntasks>
         <nthrds>
           <nthrds_atm>1</nthrds_atm>
@@ -478,10 +620,86 @@
         </nthrds>
         <rootpe>
           <rootpe_atm>0</rootpe_atm>
+          <rootpe_lnd>1</rootpe_lnd>
+          <rootpe_rof>1</rootpe_rof>
+          <rootpe_ice>2</rootpe_ice>
+          <rootpe_ocn>32</rootpe_ocn>
+          <rootpe_glc>1</rootpe_glc>
+          <rootpe_wav>1</rootpe_wav>
+          <rootpe_cpl>0</rootpe_cpl>
+        </rootpe>
+      </pes>
+    </mach>
+  </grid>
+
+  <grid name="a%T62.+oi%tnx2v1">
+    <mach name="any">
+      <pes pesize="S" compset="_DATM.*_BLOM%ECO">
+        <comment>Small pe-layout with 219 pes in total</comment>
+        <ntasks>
+          <ntasks_atm>1</ntasks_atm>
+          <ntasks_rof>1</ntasks_rof>
+          <ntasks_ice>48</ntasks_ice>
+          <ntasks_ocn>155</ntasks_ocn>
+          <ntasks_cpl>16</ntasks_cpl>
+          <ntasks_lnd>1</ntasks_lnd>
+          <ntasks_glc>1</ntasks_glc>
+          <ntasks_wav>1</ntasks_wav>
+        </ntasks>
+        <nthrds>
+          <nthrds_atm>1</nthrds_atm>
+          <nthrds_lnd>1</nthrds_lnd>
+          <nthrds_rof>1</nthrds_rof>
+          <nthrds_ice>1</nthrds_ice>
+          <nthrds_ocn>1</nthrds_ocn>
+          <nthrds_glc>1</nthrds_glc>
+          <nthrds_wav>1</nthrds_wav>
+          <nthrds_cpl>1</nthrds_cpl>
+        </nthrds>
+        <rootpe>
+          <rootpe_atm>0</rootpe_atm>
+          <rootpe_lnd>1</rootpe_lnd>
+          <rootpe_rof>2</rootpe_rof>
+          <rootpe_ice>16</rootpe_ice>
+          <rootpe_ocn>64</rootpe_ocn>
+          <rootpe_glc>3</rootpe_glc>
+          <rootpe_wav>3</rootpe_wav>
+          <rootpe_cpl>0</rootpe_cpl>
+        </rootpe>
+      </pes>
+    </mach>
+  </grid>
+
+  <grid name="a%T62.+oi%tnx2v1">
+    <mach name="any">
+      <pes pesize="M" compset="_DATM.*_BLOM">
+        <comment>Medium sized pe-layout with 256 pes in total</comment>
+        <ntasks>
+          <ntasks_atm>15</ntasks_atm>
+          <ntasks_rof>10</ntasks_rof>
+          <ntasks_ice>76</ntasks_ice>
+          <ntasks_ocn>155</ntasks_ocn>
+          <ntasks_cpl>76</ntasks_cpl>
+          <ntasks_lnd>1</ntasks_lnd>
+          <ntasks_glc>1</ntasks_glc>
+          <ntasks_wav>1</ntasks_wav>
+        </ntasks>
+        <nthrds>
+          <nthrds_atm>1</nthrds_atm>
+          <nthrds_lnd>1</nthrds_lnd>
+          <nthrds_rof>1</nthrds_rof>
+          <nthrds_ice>1</nthrds_ice>
+          <nthrds_ocn>1</nthrds_ocn>
+          <nthrds_glc>1</nthrds_glc>
+          <nthrds_wav>1</nthrds_wav>
+          <nthrds_cpl>1</nthrds_cpl>
+        </nthrds>
+        <rootpe>
+          <rootpe_atm>76</rootpe_atm>
           <rootpe_lnd>0</rootpe_lnd>
-          <rootpe_rof>16</rootpe_rof>
-          <rootpe_ice>32</rootpe_ice>
-          <rootpe_ocn>128</rootpe_ocn>
+          <rootpe_rof>91</rootpe_rof>
+          <rootpe_ice>0</rootpe_ice>
+          <rootpe_ocn>101</rootpe_ocn>
           <rootpe_glc>0</rootpe_glc>
           <rootpe_wav>0</rootpe_wav>
           <rootpe_cpl>0</rootpe_cpl>
@@ -490,191 +708,78 @@
     </mach>
   </grid>
 
-
-  <!-- Configurations for the two degree tripolar (tnx2) grid for compsets including iHAMOCC  !-->
-  
-  <grid name="a%T62.+oi%tnx2v1">
-    <mach name="any">
-      <pes pesize="M" compset="_DATM.*_BLOM">
-	<comment>Medium sized pe-layout with  pes in total</comment>
-	<ntasks>
-	  <ntasks_atm>15</ntasks_atm> 
-	  <ntasks_rof>10</ntasks_rof> 
-	  <ntasks_ice>76</ntasks_ice> 
-	  <ntasks_ocn>155</ntasks_ocn> 
-	  <ntasks_cpl>76</ntasks_cpl> 
-	  <ntasks_lnd>1</ntasks_lnd>
-	  <ntasks_glc>1</ntasks_glc> 
-	  <ntasks_wav>1</ntasks_wav> 
-	</ntasks>
-	<nthrds>
-	  <nthrds_atm>1</nthrds_atm>                   
-	  <nthrds_lnd>1</nthrds_lnd> 
-	  <nthrds_rof>1</nthrds_rof> 
-	  <nthrds_ice>1</nthrds_ice> 
-	  <nthrds_ocn>1</nthrds_ocn> 
-	  <nthrds_glc>1</nthrds_glc> 
-	  <nthrds_wav>1</nthrds_wav> 
-	  <nthrds_cpl>1</nthrds_cpl> 
-	</nthrds>
-	<rootpe>
-	  <rootpe_atm>76</rootpe_atm> 
-	  <rootpe_lnd>0</rootpe_lnd> 
-	  <rootpe_rof>91</rootpe_rof> 
-	  <rootpe_ice>0</rootpe_ice>    
-	  <rootpe_ocn>101</rootpe_ocn>   
-	  <rootpe_glc>0</rootpe_glc> 
-	  <rootpe_wav>0</rootpe_wav> 
-	  <rootpe_cpl>0</rootpe_cpl>                         
-	</rootpe>
-      </pes>
-    </mach>
-  </grid>
-  <grid name="a%T62.+oi%tnx2v1">
-    <mach name="any">
-      <pes pesize="XS" compset="_DATM.*_BLOM%ECO">
-	<comment>Very small and efficent pe-layout on 128 pes in total</comment>
-	<ntasks>
-	  <ntasks_atm>1</ntasks_atm> 
-	  <ntasks_rof>1</ntasks_rof> 
-	  <ntasks_ice>30</ntasks_ice> 
-	  <ntasks_ocn>96</ntasks_ocn> 
-	  <ntasks_cpl>32</ntasks_cpl> 
-	  <ntasks_lnd>1</ntasks_lnd>
-	  <ntasks_glc>1</ntasks_glc> 
-	  <ntasks_wav>1</ntasks_wav> 
-	</ntasks>
-	<nthrds>
-	  <nthrds_atm>1</nthrds_atm>                   
-	  <nthrds_lnd>1</nthrds_lnd> 
-	  <nthrds_rof>1</nthrds_rof> 
-	  <nthrds_ice>1</nthrds_ice> 
-	  <nthrds_ocn>1</nthrds_ocn> 
-	  <nthrds_glc>1</nthrds_glc> 
-	  <nthrds_wav>1</nthrds_wav> 
-	  <nthrds_cpl>1</nthrds_cpl> 
-	</nthrds>
-	<rootpe>
-	  <rootpe_atm>0</rootpe_atm> 
-	  <rootpe_lnd>1</rootpe_lnd> 
-	  <rootpe_rof>1</rootpe_rof> 
-	  <rootpe_ice>2</rootpe_ice>    
-	  <rootpe_ocn>32</rootpe_ocn>   
-	  <rootpe_glc>1</rootpe_glc> 
-	  <rootpe_wav>1</rootpe_wav> 
-	  <rootpe_cpl>0</rootpe_cpl>                         
-	</rootpe>
-      </pes>
-    </mach>
-  </grid>
-  <grid name="a%T62.+oi%tnx2v1">
-    <mach name="any">
-      <pes pesize="S" compset="_DATM.*_BLOM%ECO">
-	<comment>Small pe-layout with 219 pe in total</comment>
-	<ntasks>
-	  <ntasks_atm>1</ntasks_atm> 
-	  <ntasks_rof>1</ntasks_rof> 
-	  <ntasks_ice>48</ntasks_ice> 
-	  <ntasks_ocn>155</ntasks_ocn> 
-	  <ntasks_cpl>16</ntasks_cpl> 
-	  <ntasks_lnd>1</ntasks_lnd>
-	  <ntasks_glc>1</ntasks_glc> 
-	  <ntasks_wav>1</ntasks_wav> 
-	</ntasks>
-	<nthrds>
-	  <nthrds_atm>1</nthrds_atm>                   
-	  <nthrds_lnd>1</nthrds_lnd> 
-	  <nthrds_rof>1</nthrds_rof> 
-	  <nthrds_ice>1</nthrds_ice> 
-	  <nthrds_ocn>1</nthrds_ocn> 
-	  <nthrds_glc>1</nthrds_glc> 
-	  <nthrds_wav>1</nthrds_wav> 
-	  <nthrds_cpl>1</nthrds_cpl> 
-	</nthrds>
-	<rootpe>
-	  <rootpe_atm>0</rootpe_atm> 
-	  <rootpe_lnd>1</rootpe_lnd> 
-	  <rootpe_rof>2</rootpe_rof> 
-	  <rootpe_ice>16</rootpe_ice>    
-	  <rootpe_ocn>64</rootpe_ocn>   
-	  <rootpe_glc>3</rootpe_glc> 
-	  <rootpe_wav>3</rootpe_wav> 
-	  <rootpe_cpl>0</rootpe_cpl>                         
-	</rootpe>
-      </pes>
-    </mach>
-  </grid>
   <grid name="a%T62.+oi%tnx2v1">
     <mach name="any">
       <pes pesize="M" compset="_DATM.*_BLOM%ECO">
-	<comment>Medium sized pe-layout with 384 pes in total</comment>
-	<ntasks>
-	  <ntasks_atm>18</ntasks_atm> 
-	  <ntasks_rof>18</ntasks_rof> 
-	  <ntasks_ice>76</ntasks_ice> 
-	  <ntasks_ocn>272</ntasks_ocn> 
-	  <ntasks_cpl>76</ntasks_cpl> 
-	  <ntasks_lnd>1</ntasks_lnd>
-	  <ntasks_glc>1</ntasks_glc> 
-	  <ntasks_wav>1</ntasks_wav> 
-	</ntasks>
-	<nthrds>
-	  <nthrds_atm>1</nthrds_atm>                   
-	  <nthrds_lnd>1</nthrds_lnd> 
-	  <nthrds_rof>1</nthrds_rof> 
-	  <nthrds_ice>1</nthrds_ice> 
-	  <nthrds_ocn>1</nthrds_ocn> 
-	  <nthrds_glc>1</nthrds_glc> 
-	  <nthrds_wav>1</nthrds_wav> 
-	  <nthrds_cpl>1</nthrds_cpl> 
-	</nthrds>
-	<rootpe>
-	  <rootpe_atm>76</rootpe_atm> 
-	  <rootpe_lnd>0</rootpe_lnd> 
-	  <rootpe_rof>94</rootpe_rof> 
-	  <rootpe_ice>0</rootpe_ice>    
-	  <rootpe_ocn>112</rootpe_ocn>   
-	  <rootpe_glc>0</rootpe_glc> 
-	  <rootpe_wav>0</rootpe_wav> 
-	  <rootpe_cpl>0</rootpe_cpl>                         
-	</rootpe>
+        <comment>Medium sized pe-layout with 384 pes in total</comment>
+        <ntasks>
+          <ntasks_atm>18</ntasks_atm>
+          <ntasks_rof>18</ntasks_rof>
+          <ntasks_ice>76</ntasks_ice>
+          <ntasks_ocn>272</ntasks_ocn>
+          <ntasks_cpl>76</ntasks_cpl>
+          <ntasks_lnd>1</ntasks_lnd>
+          <ntasks_glc>1</ntasks_glc>
+          <ntasks_wav>1</ntasks_wav>
+        </ntasks>
+        <nthrds>
+          <nthrds_atm>1</nthrds_atm>
+          <nthrds_lnd>1</nthrds_lnd>
+          <nthrds_rof>1</nthrds_rof>
+          <nthrds_ice>1</nthrds_ice>
+          <nthrds_ocn>1</nthrds_ocn>
+          <nthrds_glc>1</nthrds_glc>
+          <nthrds_wav>1</nthrds_wav>
+          <nthrds_cpl>1</nthrds_cpl>
+        </nthrds>
+        <rootpe>
+          <rootpe_atm>76</rootpe_atm>
+          <rootpe_lnd>0</rootpe_lnd>
+          <rootpe_rof>94</rootpe_rof>
+          <rootpe_ice>0</rootpe_ice>
+          <rootpe_ocn>112</rootpe_ocn>
+          <rootpe_glc>0</rootpe_glc>
+          <rootpe_wav>0</rootpe_wav>
+          <rootpe_cpl>0</rootpe_cpl>
+        </rootpe>
       </pes>
     </mach>
   </grid>
+
   <grid name="a%T62.+oi%tnx2v1">
     <mach name="any">
       <pes pesize="L" compset="_DATM.*_BLOM%ECO">
-	<comment>Large pe-layout with 512 pes in total</comment>
-	<ntasks>
-	  <ntasks_atm>1</ntasks_atm> 
-	  <ntasks_rof>1</ntasks_rof> 
-	  <ntasks_ice>102</ntasks_ice> 
-	  <ntasks_ocn>406</ntasks_ocn> 
-	  <ntasks_cpl>106</ntasks_cpl> 
-	  <ntasks_lnd>1</ntasks_lnd>
-	  <ntasks_glc>1</ntasks_glc> 
-	  <ntasks_wav>1</ntasks_wav> 
-	</ntasks>
-	<nthrds>
-	  <nthrds_atm>1</nthrds_atm>                   
-	  <nthrds_lnd>1</nthrds_lnd> 
-	  <nthrds_rof>1</nthrds_rof> 
-	  <nthrds_ice>1</nthrds_ice> 
-	  <nthrds_ocn>1</nthrds_ocn> 
-	  <nthrds_glc>1</nthrds_glc> 
-	  <nthrds_wav>1</nthrds_wav> 
-	  <nthrds_cpl>1</nthrds_cpl> 
-	</nthrds>
-	<rootpe>
-	  <rootpe_atm>0</rootpe_atm> 
-	  <rootpe_lnd>1</rootpe_lnd> 
-	  <rootpe_rof>2</rootpe_rof> 
-	  <rootpe_ice>4</rootpe_ice>    
-	  <rootpe_ocn>106</rootpe_ocn>   
-	  <rootpe_glc>3</rootpe_glc> 
-	  <rootpe_wav>3</rootpe_wav> 
-	  <rootpe_cpl>0</rootpe_cpl>                         
-	</rootpe>
+        <comment>Large pe-layout with 512 pes in total</comment>
+        <ntasks>
+          <ntasks_atm>1</ntasks_atm>
+          <ntasks_rof>1</ntasks_rof>
+          <ntasks_ice>102</ntasks_ice>
+          <ntasks_ocn>406</ntasks_ocn>
+          <ntasks_cpl>106</ntasks_cpl>
+          <ntasks_lnd>1</ntasks_lnd>
+          <ntasks_glc>1</ntasks_glc>
+          <ntasks_wav>1</ntasks_wav>
+        </ntasks>
+        <nthrds>
+          <nthrds_atm>1</nthrds_atm>
+          <nthrds_lnd>1</nthrds_lnd>
+          <nthrds_rof>1</nthrds_rof>
+          <nthrds_ice>1</nthrds_ice>
+          <nthrds_ocn>1</nthrds_ocn>
+          <nthrds_glc>1</nthrds_glc>
+          <nthrds_wav>1</nthrds_wav>
+          <nthrds_cpl>1</nthrds_cpl>
+        </nthrds>
+        <rootpe>
+          <rootpe_atm>0</rootpe_atm>
+          <rootpe_lnd>1</rootpe_lnd>
+          <rootpe_rof>2</rootpe_rof>
+          <rootpe_ice>4</rootpe_ice>
+          <rootpe_ocn>106</rootpe_ocn>
+          <rootpe_glc>3</rootpe_glc>
+          <rootpe_wav>3</rootpe_wav>
+          <rootpe_cpl>0</rootpe_cpl>
+        </rootpe>
       </pes>
     </mach>
   </grid>
