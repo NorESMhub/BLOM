@@ -49,7 +49,8 @@ module mo_carbch
   real, dimension (:,:,:,:), allocatable, public :: ocetra
   real, dimension (:,:,:),   allocatable, public :: atm
   real, dimension (:,:,:),   allocatable, public :: atmflx
-  real, dimension (:,:),     allocatable, public :: ndepflx
+  real, dimension (:,:),     allocatable, public :: ndepnoyflx
+  real, dimension (:,:),     allocatable, public :: ndepnhxflx
   real, dimension (:,:),     allocatable, public :: oalkflx
   real, dimension (:,:,:),   allocatable, public :: rivinflx
   real, dimension (:,:,:),   allocatable, public :: co3
@@ -61,9 +62,12 @@ module mo_carbch
 
   real, dimension (:,:,:),   allocatable, public :: satoxy
   real, dimension (:,:),     allocatable, public :: satn2o
+  real, dimension (:,:),     allocatable, public :: pn2om
+  real, dimension (:,:),     allocatable, public :: pnh3
   real, dimension (:,:),     allocatable, public :: atdifv
   real, dimension (:,:),     allocatable, public :: suppco2
   real, dimension (:,:,:),   allocatable, public :: sedfluxo
+  real, dimension (:,:,:),   allocatable, public :: sedfluxb
 
   real, dimension (:,:),     allocatable, public :: pco2d
   real, dimension (:,:),     allocatable, public :: pco2m
@@ -98,8 +102,8 @@ contains
 
     use mod_xc,         only: mnproc
     use mo_control_bgc, only: io_stdo_bgc
-    use mo_param1_bgc,  only: nocetra,npowtra,natm,nriv
-    use mo_control_bgc, only: use_natDIC,use_cisonew
+    use mo_param1_bgc,  only: nocetra,npowtra,nsedtra,natm,nriv
+    use mo_control_bgc, only: use_natDIC,use_cisonew,use_extNcycle
 
     integer, intent(in) :: kpie
     integer, intent(in) :: kpje
@@ -222,6 +226,16 @@ contains
     sedfluxo(:,:,:) = 0.0
 
     if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)'Memory allocation for variable sedfluxb ..'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      write(io_stdo_bgc,*)'Third dimension    : ',nsedtra
+    endif
+    allocate (sedfluxb(kpie,kpje,nsedtra),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory sedfluxb'
+    sedfluxo(:,:,:) = 0.0
+
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable satn2o ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -229,6 +243,15 @@ contains
     allocate (satn2o(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory satn2o'
     satn2o(:,:) = 0.0
+
+    if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)'Memory allocation for variable pn2om ...'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+    endif
+    allocate (pn2om(kpie,kpje),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory pn2om'
+    pn2om(:,:) = 0.0
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable keqb ...'
@@ -274,13 +297,13 @@ contains
     ! Allocate field to hold N-deposition fluxes per timestep for
     ! inventory calculations and output
     if (mnproc.eq.1) then
-      write(io_stdo_bgc,*)'Memory allocation for variable ndepflx ...'
+      write(io_stdo_bgc,*)'Memory allocation for variable ndepnoyflx ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
     endif
-    allocate (ndepflx(kpie,kpje),stat=errstat)
-    if(errstat.ne.0) stop 'not enough memory ndepflx'
-    ndepflx(:,:) = 0.0
+    allocate (ndepnoyflx(kpie,kpje),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory ndepfnoylx'
+    ndepnoyflx(:,:) = 0.0
 
     ! Allocate field to hold OA alkalinity fluxes per timestep for
     ! inventory calculations and output
@@ -384,6 +407,27 @@ contains
       co213fxu(:,:) = 0.0
       co214fxd(:,:) = 0.0
       co214fxu(:,:) = 0.0
+    endif
+
+    if (use_extNcycle) then
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable pnh3 ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      endif
+      allocate (pnh3(kpie,kpje),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory pnh3'
+      pnh3(:,:) = 0.0
+
+      ! Allocate field to hold N-deposition NHx fluxes per timestep for inventory caluclations
+      if (mnproc.eq.1) then
+       write(io_stdo_bgc,*)'Memory allocation for variable ndepnhxflx ...'
+       write(io_stdo_bgc,*)'First dimension    : ',kpie
+       write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      endif
+      allocate (ndepnhxflx(kpie,kpje),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory ndepnhxflx'
+      ndepnhxflx(:,:) = 0.0
     endif
 
   end subroutine alloc_mem_carbch

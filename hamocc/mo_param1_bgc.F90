@@ -29,7 +29,7 @@ module mo_param1_bgc
 
   use mo_control_bgc, only: use_BROMO, use_AGG, use_WLIN, use_natDIC, use_CFC,                     &
                             use_cisonew, use_PBGC_OCNP_TIMESTEP, use_PBGC_CK_TIMESTEP,             &
-                            use_FB_BGC_OCE, use_BOXATM, use_sedbypass
+                            use_FB_BGC_OCE, use_BOXATM, use_sedbypass, use_extNcycle
   implicit none
   public
 
@@ -63,6 +63,7 @@ module mo_param1_bgc
   integer, protected :: iprefalk
   integer, protected :: iprefdic
   integer, protected :: idicsat
+  integer, protected :: iprefsilica
 
   ! Indices for C-isotope tracers
   integer, protected :: i_iso
@@ -100,6 +101,11 @@ module mo_param1_bgc
   integer, protected :: i_bromo
   integer, protected :: ibromo
 
+  ! Indices for extended nitrogen cycle
+  integer, protected :: i_extn
+  integer, protected :: ianh4
+  integer, protected :: iano2
+
   ! total number of advected tracers (set by allocate_tracers in mod_tracers.F90)
   integer :: nocetra
 
@@ -133,7 +139,18 @@ module mo_param1_bgc
   integer, protected :: i_bromo_atm
   integer, protected :: iatmbromo
 
+  ! Indices for extended nitrogen tracer in atm
+  integer, protected :: i_nh3_atm
+  integer, protected :: iatmnh3
+
   integer, protected :: natm ! total number of atmosphere tracers
+
+  ! --------------------
+  ! Nitrogen deposition
+  ! --------------------
+  integer, protected :: nndep   ! size of N-deposition input field
+  integer, protected :: idepnoy ! index for NOy deposition
+  integer, protected :: idepnhx ! index for NHx deposition
 
   ! ------------------
   ! rivers
@@ -182,6 +199,12 @@ module mo_param1_bgc
   integer, protected :: ipowc14
   integer, protected :: npowtra ! computed in init_indices
 
+  ! Indices for extended nitrogen cycle
+  integer, protected :: i_pow_extNcycle
+  integer, protected :: ipownh4
+  integer, protected :: ipown2o
+  integer, protected :: ipowno2
+
   ! Mapping between pore water and ocean tracers needed for pore
   ! water diffusion
   integer, protected, allocatable :: map_por2octra(:)
@@ -201,6 +224,11 @@ contains
       map_por2octra(ipowc13) = isco213
       map_por2octra(ipowc14) = isco214
     endif
+    if (use_extNcycle) then
+        map_por2octra(ipownh4) = ianh4
+        map_por2octra(ipown2o) = ian2o
+        map_por2octra(ipowno2) = iano2
+    endif
   end subroutine init_por2octra_mapping
 
   ! ===========================================================================
@@ -210,12 +238,12 @@ contains
     use mo_control_bgc, only: bgc_namelist,get_bgc_namelist, io_stdo_bgc
     use mo_control_bgc, only: use_BROMO,use_AGG,use_WLIN,use_natDIC,use_CFC,use_cisonew,           &
                               use_sedbypass,use_PBGC_OCNP_TIMESTEP,use_PBGC_CK_TIMESTEP,           &
-                              use_FB_BGC_OCE, use_BOXATM
+                              use_FB_BGC_OCE, use_BOXATM,use_extNcycle
     integer :: iounit
 
     namelist / config_bgc / use_BROMO,use_AGG,use_WLIN,use_natDIC,use_CFC,use_cisonew,             &
                             use_sedbypass,use_PBGC_OCNP_TIMESTEP,use_PBGC_CK_TIMESTEP,             &
-                            use_FB_BGC_OCE,use_BOXATM
+                            use_FB_BGC_OCE,use_BOXATM,use_extNcycle
 
     io_stdo_bgc = lp              !  standard out.
 
@@ -231,7 +259,7 @@ contains
     endif
 
     ! Tracer indices
-    i_base   = 22
+    i_base   = 23
     isco212  = 1
     ialkali  = 2
     iphosph  = 3
@@ -254,6 +282,7 @@ contains
     iprefalk = 20
     iprefdic = 21
     idicsat  = 22
+    iprefsilica = 23
     if (use_cisonew) then
       i_iso    = 12
       isco213  = i_base+1
@@ -321,9 +350,18 @@ contains
       i_bromo=0
       ibromo=-1
     endif
+    if (use_extNcycle) then
+      i_extn = 2
+      iano2  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+1
+      ianh4  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+2
+    else
+      i_extn = 0
+      iano2  = -1
+      ianh4  = -1
+    endif
 
     ! total number of advected tracers
-    nocetra=i_base+i_iso+i_cfc+i_agg+i_nat_dic +i_bromo
+    nocetra=i_base+i_iso+i_cfc+i_agg+i_nat_dic +i_bromo+i_extn
 
     ! ATMOSPHERE
     i_base_atm=5
@@ -366,9 +404,27 @@ contains
       i_bromo_atm=0
       iatmbromo=-1
     endif
+    if (use_extNcycle) then
+      i_nh3_atm = 1
+      iatmnh3 = i_base_atm+i_iso_atm+i_cfc_atm+ i_ndic_atm+i_bromo_atm+1
+    else
+      i_nh3_atm = 0
+      iatmnh3 = -1
+    endif
 
     ! total number of atmosphere tracers
-    natm=i_base_atm+i_iso_atm+i_cfc_atm+i_ndic_atm+i_bromo_atm
+    natm=i_base_atm+i_iso_atm+i_cfc_atm+i_ndic_atm+i_bromo_atm+i_nh3_atm
+
+    ! N-deposition
+    if (use_extNcycle) then
+      nndep   = 2
+      idepnoy = 1
+      idepnhx = 2
+    else
+      nndep   = 1
+      idepnoy = 1
+      idepnhx = -1
+    endif
 
     ! rivers
     nriv   =7
@@ -420,7 +476,19 @@ contains
       ipowc13 = -1
       ipowc14 = -1
     endif
-    npowtra = i_pow_base + i_pow_cisonew
+    if (use_extNcycle) then
+      i_pow_extNcycle = 3
+      ipownh4 = i_pow_base + i_pow_cisonew+1
+      ipown2o = i_pow_base + i_pow_cisonew+2
+      ipowno2 = i_pow_base + i_pow_cisonew+3
+    else
+      i_pow_extNcycle = 0
+      ipownh4 = -1
+      ipown2o = -1
+      ipowno2 = -1
+    endif
+
+    npowtra = i_pow_base + i_pow_cisonew+i_pow_extNcycle
 
     allocate(map_por2octra(-1:npowtra))
 

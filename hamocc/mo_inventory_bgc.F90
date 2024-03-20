@@ -38,24 +38,26 @@ contains
     !***********************************************************************************************
 
     use mod_xc,         only: mnproc,ips,nbdy,xcsum
-    use mo_carbch,      only: atm,atmflx,co3,hi,ndepflx,rivinflx,ocetra,sedfluxo
+    use mo_carbch,      only: atm,atmflx,co3,hi,ndepnoyflx,rivinflx,ocetra,sedfluxo,ndepnhxflx
     use mo_sedmnt,      only: prcaca,prorca,silpro
     use mo_biomod,      only: expoor,expoca,exposi
     use mo_param_bgc,   only: rcar,rnit
     use mo_control_bgc, only: do_ndep,do_rivinpt,io_stdo_bgc
-    use mo_bgcmean,     only: bgct2d,jco2flux,jirdin,jn2flux,jn2oflux,jndep,jo2flux,jprcaca,       &
+    use mo_bgcmean,     only: bgct2d,jco2flux,jirdin,jn2flux,jn2oflux,jndepnoy,jndepnhx,           &
+                              jo2flux,jprcaca,jnh3flux,                                            &
                               jprorca,jsilpro,nbgcmax,glb_inventory
     use mo_param1_bgc,  only: ialkali,ian2o,iano3,iatmco2,iatmn2,iatmn2o,iatmo2,icalc,idet,idoc,   &
                               igasnit,iopal,ioxygen,iphosph,iphy,ipowaic,ipowaox,ipowaph,ipowasi,  &
                               ipown2,ipowno3,isco212,isilica,isssc12,issso12,issssil,izoo,         &
-                              irdin,irdip,irsi,iralk,irdoc,irdet,nocetra,npowtra,nsedtra,nriv
+                              irdin,irdip,irsi,iralk,irdoc,irdet,nocetra,npowtra,nsedtra,nriv,     &
+                              ianh4,iano2,iatmnh3,ipownh4,ipown2o,ipowno2
     use mo_vgrid,       only: dp_min
 
     ! NOT sedbypass
     use mo_param1_bgc,  only: ks
     use mo_sedmnt,      only: porwat,seddw,sedlay,burial,sedhpl,powtra,porsol
     use mo_control_bgc, only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,   &
-                              use_CFC,use_natDIC,use_BROMO
+                              use_CFC,use_natDIC,use_BROMO,use_extNcycle
 
     ! Arguments
     integer, intent(in) :: kpie,kpje,kpke
@@ -96,9 +98,10 @@ contains
     !--- river fluxes
     real :: srivflux(nriv)           ! sum of riverfluxes
     !--- atmosphere flux and atmospheric CO2
-    real :: sndepflux                ! sum of N dep fluxes
+    real :: sndepnoyflux             ! sum of N dep fluxes
+    real :: sndepnhxflux             ! sum of N dep fluxes
     real :: zatmco2,zatmo2,zatmn2
-    real :: co2flux,so2flux,sn2flux,sn2oflux
+    real :: co2flux,so2flux,sn2flux,sn2oflux,snh3flux
     real :: zprorca,zprcaca,zsilpro
     !--- total tracer budgets
     real :: totalcarbon,totalphos,totalsil,totalnitr,totaloxy
@@ -271,7 +274,9 @@ contains
     so2flux  =0.
     sn2flux  =0.
     sn2oflux =0.
-    sndepflux=0.
+    snh3flux =0.
+    sndepnoyflux=0.
+    sndepnhxflux=0.
     srivflux =0.
     zatmco2  =0.
     zatmo2   =0.
@@ -291,10 +296,16 @@ contains
       so2flux = sum2d(atmflx(:,:,iatmo2))
       sn2flux = sum2d(atmflx(:,:,iatmn2))
       sn2oflux = sum2d(atmflx(:,:,iatmn2o))
+      if (use_extNcycle) then
+        snh3flux = sum2d(atmflx(:,:,iatmnh3))
+      endif
 
       ! nitrogen deposition
       if(do_ndep) then
-        sndepflux = sum2d(ndepflx)
+        sndepnoyflux = sum2d(ndepnoyflx)
+        if (use_extNcycle) then
+          sndepnhxflux = sum2d(ndepnhxflx)
+        endif
       endif
 
       ! river fluxes
@@ -307,10 +318,16 @@ contains
       so2flux = sum2d(bgct2d(:,:,jo2flux))
       sn2flux = sum2d(bgct2d(:,:,jn2flux))
       sn2oflux = sum2d(bgct2d(:,:,jn2oflux))
+      if (use_extNcycle) then
+        snh3flux = sum2d(bgct2d(:,:,jnh3flux))
+      endif
 
       ! nitrogen deposition fluxes
       if(do_ndep) then
-        sndepflux = sum2d(bgct2d(:,:,jndep))
+        sndepnoyflux = sum2d(bgct2d(:,:,jndepnoy))
+        if (use_extNcycle) then
+          sndepnhxflux = sum2d(bgct2d(:,:,jndepnhx))
+        endif
       endif
 
       ! River fluxes
@@ -358,13 +375,18 @@ contains
          + zpowtratot(ipowno3)+zpowtratot(ipown2)*2                       &
          + zsedlayto(issso12)*rnit+zburial(issso12)*rnit                  &
          + zocetratot(ian2o)*2                                            &
-         - sndepflux                                                      &
+         - sndepnoyflux                                                   &
          + zprorca*rnit
 
     if (use_BOXATM) then
       totalnitr = totalnitr + zatmn2*ppm2con*2
     else
       totalnitr = totalnitr + sn2flux*2+sn2oflux*2
+    endif
+    if (use_extNcycle) then
+      totalnitr = totalnitr + zocetratot(ianh4)+zocetratot(iano2)+snh3flux&
+       &  - sndepnhxflux                                                  &
+       &  +zpowtratot(ipownh4)+zpowtratot(ipown2o)*2+zpowtratot(ipowno2)
     endif
 
     totalphos=                                                            &
@@ -388,13 +410,16 @@ contains
         !+ zburial(issso12)*(-24.)   +   zburial(isssc12)                  &
          + zpowtratot(ipowno3)*1.5+zpowtratot(ipowaic)                    &
          + zpowtratot(ipowaox)+zpowtratot(ipowaph)*2                      &
-         - sndepflux*1.5                                                  &
+         - sndepnoyflux*1.5                                               &
          + zprorca*(-24.)+zprcaca
 
     if (use_BOXATM) then
       totaloxy = totaloxy + zatmo2*ppm2con+zatmco2*ppm2con
     else
       totaloxy = totaloxy + so2flux+sn2oflux*0.5+co2flux
+    endif
+    if (use_extNcycle) then
+      totaloxy = totaloxy + zocetratot(iano2)+zpowtratot(ipown2o)*0.5+zpowtratot(ipowno2)
     endif
 
     if (do_rivinpt) then
@@ -568,6 +593,9 @@ contains
       ! write(io_stdo_bgc,*) 'O2 Flux  :',so2flux
       ! write(io_stdo_bgc,*) 'N2 Flux  :',sn2flux
       ! write(io_stdo_bgc,*) 'N2O Flux :',sn2oflux
+      if (use_extNcycle) then
+      !   write(io_stdo_bgc,*) 'NH3 Flux :',snh3flux
+      endif
       ! write(io_stdo_bgc,*) ' '
       if (use_BOXATM) then
         ! write(io_stdo_bgc,*) 'global atm. CO2[ppm] / kmol: ',                 &
@@ -583,7 +611,12 @@ contains
       !      &               zprorca, zprcaca, zsilpro
       ! write(io_stdo_bgc,*) ' '
 
-      if (do_ndep) write(io_stdo_bgc,*) 'NdepFlux :',sndepflux
+      if(do_ndep) then
+        write(io_stdo_bgc,*) 'NdepNOyFlux :',sndepnoyflux
+        if (use_extNcycle) then
+          write(io_stdo_bgc,*) 'NdepNHxFlux :',sndepnhxflux
+        endif
+      endif
 
       ! riverine fluxes
       !------------------------------------------------------------------
@@ -647,7 +680,7 @@ contains
       use mo_param1_bgc, only: idicsat,idms,ifdust,iiron,iprefalk,iprefdic,iprefo2,iprefpo4,       &
                                iadust,inos,ibromo,icfc11,icfc12,isf6,icalc13,icalc14,idet13,       &
                                idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,   &
-                               inatalkali,inatcalc,inatsco212
+                               inatalkali,inatcalc,inatsco212,ianh4,iano2,iprefsilica
       use mo_control_bgc,only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,  &
                                use_CFC,use_natDIC,use_BROMO
 
@@ -716,6 +749,7 @@ contains
       integer :: zt_iron_varid,      zc_iron_varid        ! Dissolved iron
       integer :: zt_prefo2_varid,    zc_prefo2_varid      ! Preformed oxygen
       integer :: zt_prefpo4_varid,   zc_prefpo4_varid     ! Preformed phosphate
+      integer :: zt_prefsilica_varid,zc_prefsilica_varid  ! Preformed silicate
       integer :: zt_prefalk_varid,   zc_prefalk_varid     ! Preformed alkalinity
       integer :: zt_prefdic_varid,   zc_prefdic_varid     ! Preformed DIC
       integer :: zt_dicsat_varid,    zc_dicsat_varid      ! Saturated DIC
@@ -750,6 +784,10 @@ contains
 
       ! BROMO
       integer :: zt_bromo_varid,     zc_bromo_varid       ! Bromoform
+
+      ! extNcycle
+      integer :: zt_nh4_varid,       zc_nh4_varid         ! Ammonium (NH4+)
+      integer :: zt_ano2_varid,      zc_ano2_varid        ! Nitrite (NO2-)
 
       !--- sum of inventory
       integer :: totcarb_varid, totphos_varid, totsili_varid, totnitr_varid
@@ -1084,6 +1122,18 @@ contains
              &    'Mean preformed phosphate concentration') )
         call nccheck( NF90_PUT_ATT(ncid, zc_prefpo4_varid, 'units', 'kmol/m^3') )
 
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_prefsilica', NF90_DOUBLE,            &
+             &    time_dimid, zt_prefsilica_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_prefsilica_varid, 'long_name',        &
+             &    'Total preformed silica tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_prefsilica_varid, 'units', 'kmol') )
+
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_prefsilica', NF90_DOUBLE,            &
+             &    time_dimid, zc_prefsilica_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_prefsilica_varid, 'long_name',        &
+             &    'Mean preformed silica concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_prefsilica_varid, 'units', 'kmol/m^3') )
+
         call nccheck( NF90_DEF_VAR(ncid, 'zt_prefalk', NF90_DOUBLE,               &
              &    time_dimid, zt_prefalk_varid) )
         call nccheck( NF90_PUT_ATT(ncid, zt_prefalk_varid, 'long_name',           &
@@ -1386,7 +1436,31 @@ contains
                &    'Mean bromoform concentration') )
           call nccheck( NF90_PUT_ATT(ncid, zc_bromo_varid, 'units', 'kmol/m^3') )
         endif
+        if (use_extNcycle) then
+          call nccheck( NF90_DEF_VAR(ncid, 'zt_nh4', NF90_DOUBLE,                   &
+               &    time_dimid, zt_nh4_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zt_nh4_varid, 'long_name',               &
+               &    'Total ammonium tracer') )
+          call nccheck( NF90_PUT_ATT(ncid, zt_nh4_varid, 'units', 'kmol') )
 
+          call nccheck( NF90_DEF_VAR(ncid, 'zc_nh4', NF90_DOUBLE,                   &
+               &    time_dimid, zc_nh4_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zc_nh4_varid, 'long_name',               &
+               &    'Mean ammonium concentration') )
+          call nccheck( NF90_PUT_ATT(ncid, zc_nh4_varid, 'units', 'kmol/m^3') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zt_ano2', NF90_DOUBLE,                  &
+               &    time_dimid, zt_ano2_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zt_ano2_varid, 'long_name',              &
+               &    'Total nitrite tracer') )
+          call nccheck( NF90_PUT_ATT(ncid, zt_ano2_varid, 'units', 'kmol') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zc_ano2', NF90_DOUBLE,                  &
+               &    time_dimid, zc_ano2_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zc_ano2_varid, 'long_name',              &
+               &    'Mean nitrite concentration') )
+          call nccheck( NF90_PUT_ATT(ncid, zc_ano2_varid, 'units', 'kmol/m^3') )
+        endif
         !--- Define variables : sum of inventory
         call nccheck( NF90_DEF_VAR(ncid, 'totcarb', NF90_DOUBLE, time_dimid,      &
              &    totcarb_varid) )
@@ -1523,6 +1597,8 @@ contains
         call nccheck( NF90_INQ_VARID(ncid, "zc_prefo2", zc_prefo2_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zt_prefpo4", zt_prefpo4_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zc_prefpo4", zc_prefpo4_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zt_prefsilica", zt_prefsilica_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_prefsilica", zc_prefsilica_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zt_prefalk", zt_prefalk_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zc_prefalk", zc_prefalk_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zt_prefdic", zt_prefdic_varid) )
@@ -1580,6 +1656,12 @@ contains
         if (use_BROMO) then
           call nccheck( NF90_INQ_VARID(ncid, "zt_bromo", zt_bromo_varid) )
           call nccheck( NF90_INQ_VARID(ncid, "zc_bromo", zc_bromo_varid) )
+        endif
+        if (use_extNcycle) then
+          call nccheck( NF90_INQ_VARID(ncid, "zt_nh4", zt_nh4_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zc_nh4", zc_nh4_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zt_ano2", zt_ano2_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zc_ano2", zc_ano2_varid) )
         endif
         !--- Inquire varid : sum of inventory
         call nccheck( NF90_INQ_VARID(ncid, "totcarb", totcarb_varid) )
@@ -1704,6 +1786,10 @@ contains
            &    zocetratot(iprefpo4), start = wrstart) )
       call nccheck( NF90_PUT_VAR(ncid, zc_prefpo4_varid,                           &
            &    zocetratoc(iprefpo4), start = wrstart) )
+      call nccheck( NF90_PUT_VAR(ncid, zt_prefsilica_varid,                        &
+           &    zocetratot(iprefsilica), start = wrstart) )
+      call nccheck( NF90_PUT_VAR(ncid, zc_prefsilica_varid,                        &
+           &    zocetratoc(iprefsilica), start = wrstart) )
       call nccheck( NF90_PUT_VAR(ncid, zt_prefalk_varid,                           &
            &    zocetratot(iprefalk), start = wrstart) )
       call nccheck( NF90_PUT_VAR(ncid, zc_prefalk_varid,                           &
@@ -1809,6 +1895,16 @@ contains
              &    zocetratot(ibromo), start = wrstart) )
         call nccheck( NF90_PUT_VAR(ncid, zc_bromo_varid,                             &
              &    zocetratoc(ibromo), start = wrstart) )
+      endif
+      if (use_extNcycle) then
+        call nccheck( NF90_PUT_VAR(ncid, zt_nh4_varid,                               &
+             &    zocetratot(ianh4), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zc_nh4_varid,                               &
+             &    zocetratoc(ianh4), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zt_ano2_varid,                              &
+             &    zocetratot(iano2), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zc_ano2_varid,                              &
+             &    zocetratoc(iano2), start = wrstart) )
       endif
       !--- Write data : sum of inventory
       call nccheck( NF90_PUT_VAR(ncid, totcarb_varid, totalcarbon,                 &
