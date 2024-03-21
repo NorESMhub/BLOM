@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2021-2022 Mats Bentsen
+! Copyright (C) 2021-2024 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -109,15 +109,27 @@ module mod_hor3map
    ! Small non-dimensional value.
    real(r8), parameter :: eps = 1.e-14_r8
 
+   ! Minimum number of source cells for reconstructions.
+   integer, parameter :: &
+      n_src_min_plm = 2, &
+      n_src_min_ppm = 3, &
+      n_src_min_pqm = 4
+
+   ! Maximum order of explicit schemes for boundary edge and slope estimates.
+   integer, parameter :: &
+      eb_ord_max_ppm = 4, &
+      eb_ord_max_pqm = 6
+
    ! Lower bounds of prod(h(i))/max(h(i))^n, where h(i) are cell widths
    ! belonging to a stencil of n grid cells. Respecting these bounds will ensure
-   ! condition numbers below 10^8 of matrices involved in various linear
+   ! acceptable condition numbers of matrices involved in various linear
    ! equation systems.
    real(r8), parameter :: &
       hplim_ih4 = 5.e-7_r8, &
-      hplim_ih6 = 5.e-5_r8, &
-      hplim_eh4 = 3.e-10_r8, &
-      hplim_eh6 = 3.e-7_r8
+      hplim_ih6 = 1.e-7_r8
+   real(r8), parameter, dimension(6) :: &
+      hplim_eb = [1.e-10_r8, 1.e-10_r8, 1.e-10_r8, &
+                  1.e-10_r8,  1.e-8_r8,  1.e-7_r8]
 
    ! Numeric constants.
    real(r8), parameter :: &
@@ -135,15 +147,17 @@ module mod_hor3map
    type :: recon_grd_struct
 
       integer :: &
-         i_lbound     = 1, &
-         i_ubound     = 1, &
-         j_lbound     = 1, &
-         j_ubound     = 1, &
-         i_index      = 1, &
-         j_index      = 1, &
-         i_index_curr = 0, &
-         j_index_curr = 0, &
-         method       = hor3map_ppm
+         i_lbound       = 1, &
+         i_ubound       = 1, &
+         j_lbound       = 1, &
+         j_ubound       = 1, &
+         i_index        = 1, &
+         j_index        = 1, &
+         i_index_curr   = 0, &
+         j_index_curr   = 0, &
+         method         = hor3map_ppm, &
+         left_bndr_ord  = 0, &
+         right_bndr_ord = 0
       logical :: &
          initialized  = .false.
       integer :: n_src, p_ord
@@ -158,7 +172,8 @@ module mod_hor3map
       integer, allocatable, dimension(:,:) :: &
          src_dst_index_data
       integer, allocatable, dimension(:) :: &
-         n_src_actual_data, method_actual_data
+         n_src_actual_data, method_actual_data, &
+         left_bndr_ord_actual_data, right_bndr_ord_actual_data
       logical, allocatable, dimension(:) :: &
          prepared_data
 
@@ -172,7 +187,8 @@ module mod_hor3map
       integer, dimension(:), pointer :: &
          src_dst_index
       integer, pointer :: &
-         n_src_actual, method_actual
+         n_src_actual, method_actual, left_bndr_ord_actual, &
+         right_bndr_ord_actual
       logical, pointer :: &
          prepared
 
@@ -191,12 +207,13 @@ module mod_hor3map
          pc_left_bndr  = .true., &
          pc_right_bndr = .true., &
          initialized   = .false.
-      real(r8) :: u_range, u_eps, uu_eps
 
       real(r8), allocatable, dimension(:,:,:) :: &
          polycoeff_data
       real(r8), allocatable, dimension(:,:) :: &
          u_src_data, uel_data, uer_data, usl_data, usr_data
+      real(r8), allocatable, dimension(:) :: &
+         u_range_data, u_eps_data, uu_eps_data
       logical, allocatable, dimension(:) :: &
          reconstructed_data
 
@@ -204,6 +221,8 @@ module mod_hor3map
          polycoeff
       real(r8), dimension(:), pointer :: &
          u_src, uel, uer, usl, usr
+      real(r8), pointer :: &
+         u_range, u_eps, uu_eps
       logical, pointer :: &
          reconstructed
 
@@ -300,6 +319,8 @@ contains
          rcgs%tdscoeff => rcgs%tdscoeff_data(:,:,ij_index)
          rcgs%lblu => rcgs%lblu_data(:,:,ij_index)
          rcgs%rblu => rcgs%rblu_data(:,:,ij_index)
+         rcgs%left_bndr_ord_actual => rcgs%left_bndr_ord_actual_data(ij_index)
+         rcgs%right_bndr_ord_actual => rcgs%right_bndr_ord_actual_data(ij_index)
       endif
 
       rcgs%i_index_curr = rcgs%i_index
@@ -339,6 +360,9 @@ contains
                 *(rcss%rcgs%i_ubound - rcss%rcgs%i_lbound + 1)
 
       rcss%u_src => rcss%u_src_data(:,ij_index)
+      rcss%u_range => rcss%u_range_data(ij_index)
+      rcss%u_eps => rcss%u_eps_data(ij_index)
+      rcss%uu_eps => rcss%uu_eps_data(ij_index)
       rcss%uel => rcss%uel_data(:,ij_index)
       rcss%uer => rcss%uer_data(:,ij_index)
       rcss%polycoeff => rcss%polycoeff_data(:,:,ij_index)
@@ -395,6 +419,152 @@ contains
 
    end function assign_ptr_rms
 
+   pure subroutine left_bndr_cond(rcgs, prev_index, next_index, first_index, &
+                                  last_index, lb_ord, ns, ns_min)
+   ! ---------------------------------------------------------------------------
+   ! Exclude grid cells that may lead to a large condition number for the linear
+   ! system to be solved for edge and slope values at the left boundary.
+   ! Excluded grid cells are merged with the non-excluded neighbour grid cell
+   ! having the smallest grid cell width. Depending on the actual number of grid
+   ! cells left, the order of reconstruction will be automatically adjusted.
+   ! ---------------------------------------------------------------------------
+
+      type(recon_grd_struct), intent(inout) :: rcgs
+      integer, dimension(:), intent(inout) :: prev_index, next_index
+      integer, intent(inout) :: first_index, last_index, lb_ord, ns
+      integer, intent(in) :: ns_min
+
+      real(r8) :: hp, h_max, h_min
+      integer :: jf, j, n, j_min, jp, jn
+
+      jf = first_index
+
+      do
+         j = jf
+         hp = rcgs%h_src(j)
+         h_max = rcgs%h_src(j)
+         do n = 1, lb_ord-1
+            j = next_index(j)
+            hp = hp*rcgs%h_src(j)
+            h_max = max(h_max, rcgs%h_src(j))
+         enddo
+         if (hp > hplim_eb(lb_ord)*h_max**lb_ord) then
+            return
+         else
+            ns = ns - 1
+            if (ns < ns_min) return
+            j = jf
+            h_min = rcgs%h_src(j)
+            j_min = j
+            do n = 1, lb_ord-1
+               j = next_index(j)
+               if (rcgs%h_src(j) < h_min) then
+                  h_min = rcgs%h_src(j)
+                  j_min = j
+               endif
+            enddo
+            jp = prev_index(j_min)
+            jn = next_index(j_min)
+            if     (jp == 0) then
+               rcgs%src_dst_index(j_min) = - jn
+               rcgs%h_src(jn) = rcgs%h_src(jn) + rcgs%h_src(j_min)
+               first_index = jn
+               prev_index(jn) = 0
+               jf = jn
+            elseif (jn == 0) then
+               rcgs%src_dst_index(j_min) = - jp
+               rcgs%h_src(jp) = rcgs%h_src(jp) + rcgs%h_src(j_min)
+               next_index(jp) = 0
+               last_index = jp
+            else
+               if (rcgs%h_src(jn) < rcgs%h_src(jp)) then
+                  rcgs%src_dst_index(j_min) = - jn
+                  rcgs%h_src(jn) = rcgs%h_src(jn) + rcgs%h_src(j_min)
+               else
+                  rcgs%src_dst_index(j_min) = - jp
+                  rcgs%h_src(jp) = rcgs%h_src(jp) + rcgs%h_src(j_min)
+               endif
+               next_index(jp) = jn
+               prev_index(jn) = jp
+            endif
+            lb_ord = min(ns, lb_ord)
+         endif
+      enddo
+
+   end subroutine left_bndr_cond
+
+   pure subroutine right_bndr_cond(rcgs, prev_index, next_index, last_index, &
+                                   rb_ord, ns, ns_min)
+   ! ---------------------------------------------------------------------------
+   ! Exclude grid cells that may lead to a large condition number for the linear
+   ! system to be solved for edge and slope values at the right boundary.
+   ! Excluded grid cells are merged with the non-excluded neighbour grid cell
+   ! having the smallest grid cell width. Depending on the actual number of grid
+   ! cells left, the order of reconstruction will be automatically adjusted.
+   ! ---------------------------------------------------------------------------
+
+      type(recon_grd_struct), intent(inout) :: rcgs
+      integer, dimension(:), intent(inout) :: prev_index, next_index
+      integer, intent(inout) :: rb_ord, ns
+      integer, intent(in) :: last_index, ns_min
+
+      real(r8) :: hp, h_max, h_min
+      integer :: jl, j, n, j_min, jp, jn
+
+      jl = last_index
+
+      do
+         j = jl
+         hp = rcgs%h_src(j)
+         h_max = rcgs%h_src(j)
+         do n = 1, rb_ord-1
+            j = prev_index(j)
+            hp = hp*rcgs%h_src(j)
+            h_max = max(h_max, rcgs%h_src(j))
+         enddo
+         if (hp > hplim_eb(rb_ord)*h_max**rb_ord) then
+            return
+         else
+            ns = ns - 1
+            if (ns < ns_min) return
+            j = jl
+            h_min = rcgs%h_src(j)
+            j_min = j
+            do n = 1, rb_ord-1
+               j = prev_index(j)
+               if (rcgs%h_src(j) < h_min) then
+                  h_min = rcgs%h_src(j)
+                  j_min = j
+               endif
+            enddo
+            jp = prev_index(j_min)
+            jn = next_index(j_min)
+            if     (jp == 0) then
+               rcgs%src_dst_index(j_min) = - jn
+               rcgs%h_src(jn) = rcgs%h_src(jn) + rcgs%h_src(j_min)
+               prev_index(jn) = 0
+            elseif (jn == 0) then
+               rcgs%src_dst_index(j_min) = - jp
+               rcgs%h_src(jp) = rcgs%h_src(jp) + rcgs%h_src(j_min)
+               next_index(jp) = 0
+               jl = jp
+            else
+               if (rcgs%h_src(jn) < rcgs%h_src(jp)) then
+                  rcgs%src_dst_index(j_min) = - jn
+                  rcgs%h_src(jn) = rcgs%h_src(jn) + rcgs%h_src(j_min)
+               else
+                  rcgs%src_dst_index(j_min) = - jp
+                  rcgs%h_src(jp) = rcgs%h_src(jp) + rcgs%h_src(j_min)
+               endif
+               next_index(jp) = jn
+               prev_index(jn) = jp
+            endif
+            rb_ord = min(ns, rb_ord)
+         endif
+      enddo
+
+   end subroutine right_bndr_cond
+
    pure subroutine lu_decompose(n, a)
    ! ---------------------------------------------------------------------------
    ! Replace the n x n input matrix A with its LU decomposition.
@@ -403,11 +573,13 @@ contains
       integer, intent(in) :: n
       real(r8), dimension(:,:), intent(inout) :: a
 
+      real(r8) :: q
       integer :: i, j, k
 
       do k = 1, n-1
+         q = c1/a(k,k)
          do i = k+1, n
-            a(i,k) = a(i,k)/a(k,k)
+            a(i,k) = a(i,k)*q
             do j = k+1, n
                a(i,j) = a(i,j) - a(i,k)*a(k,j)
             enddo
@@ -465,6 +637,28 @@ contains
       tdecoeff(4) = c2*tdecoeff(2)*(h(1) + c2*h(2))*q
 
    end subroutine edge_ih4_coeff
+
+   pure subroutine slope_ih3_coeff(h, tdscoeff)
+   ! ---------------------------------------------------------------------------
+   ! Compute row coefficients for the tridiagonal system of equations to be
+   ! solved for 3th order accurate slope estimates.
+   ! ---------------------------------------------------------------------------
+
+      real(r8), dimension(:), intent(in) :: h
+      real(r8), dimension(:), intent(inout) :: tdscoeff
+
+      real(r8) :: h11, h22, h12, q
+
+      h11 = h(1)*h(1)
+      h22 = h(2)*h(2)
+      h12 = h(1)*h(2)
+      q = c1/((h(1) + h(2))*(h11 + c3*h12 + h22))
+      tdscoeff(1) = h(2)*(h11 + h(2)*(h(1) - h(2)))*q
+      tdscoeff(2) = h(1)*(h22 + h(1)*(h(2) - h(1)))*q
+      tdscoeff(3) = - c12*h12*q
+      tdscoeff(4) = - tdscoeff(3)
+
+   end subroutine slope_ih3_coeff
 
    pure subroutine edge_ih6_slope_ih5_coeff_common(a, tdecoeff, tdscoeff)
    ! ---------------------------------------------------------------------------
@@ -707,223 +901,133 @@ contains
 
    end subroutine edge_ih6_slope_ih5_coeff_asymright
 
-   pure subroutine edge_eh4_lblu(h, a)
+   pure subroutine edge_slope_lblu(lb_ord, h, a)
    ! ---------------------------------------------------------------------------
-   ! Compute LU matrix for explicitly estimating 4th order accurate left
-   ! boundary edge value.
+   ! Compute LU matrix for explicitly estimating lb_ord and lb_ord - 1 order
+   ! accurate left edge and slope values, respectively.
    ! ---------------------------------------------------------------------------
 
+      integer, intent(in) :: lb_ord
       real(r8), dimension(:), intent(in) :: h
       real(r8), dimension(:,:), intent(inout) :: a
 
-      real(r8) :: a22sq, a32sq, a42sq, h2sq, h3sq, h4sq
-
-      ! Define matrix for linear system to be solved for edge value.
-
-      a(1:4,1) = c1
-
-      a(1,2) = c1_2*h(1)
-      a(2,2) = a(1,2) + c1_2*(h(1) + h(2))
-      a(3,2) = a(2,2) + c1_2*(h(2) + h(3))
-      a(4,2) = a(3,2) + c1_2*(h(3) + h(4))
-
-      a22sq = a(2,2)*a(2,2)
-      a32sq = a(3,2)*a(3,2)
-      a42sq = a(4,2)*a(4,2)
-      h2sq = h(2)*h(2)
-      h3sq = h(3)*h(3)
-      h4sq = h(4)*h(4)
-
-      a(1,3) = c1_3*a(1,2)*h(1)
-      a(2,3) = c1_2*(a22sq + c1_12*h2sq)
-      a(3,3) = c1_2*(a32sq + c1_12*h3sq)
-      a(4,3) = c1_2*(a42sq + c1_12*h4sq)
-
-      a(1,4) = c1_4*a(1,3)*h(1)
-      a(2,4) = c1_6*a(2,2)*(a22sq + c1_4*h2sq)
-      a(3,4) = c1_6*a(3,2)*(a32sq + c1_4*h3sq)
-      a(4,4) = c1_6*a(4,2)*(a42sq + c1_4*h4sq)
-
-      ! LU decomposition.
-      call lu_decompose(4, a)
-
-   end subroutine edge_eh4_lblu
-
-   pure subroutine edge_eh4_rblu(h, a)
-   ! ---------------------------------------------------------------------------
-   ! Compute LU matrix for explicitly estimating 4th order accurate right
-   ! boundary edge value.
-   ! ---------------------------------------------------------------------------
-
-      real(r8), dimension(:), intent(in) :: h
-      real(r8), dimension(:,:), intent(inout) :: a
-
-      real(r8) :: a12sq, a22sq, a32sq, h1sq, h2sq, h3sq
-
-      ! Define matrix for linear system to be solved for edge value.
-
-      a(1:4,1) = c1
-
-      a(4,2) = - c1_2*h(4)
-      a(3,2) = a(4,2) - c1_2*(h(4) + h(3))
-      a(2,2) = a(3,2) - c1_2*(h(3) + h(2))
-      a(1,2) = a(2,2) - c1_2*(h(2) + h(1))
-
-      a12sq = a(1,2)*a(1,2)
-      a22sq = a(2,2)*a(2,2)
-      a32sq = a(3,2)*a(3,2)
-      h1sq = h(1)*h(1)
-      h2sq = h(2)*h(2)
-      h3sq = h(3)*h(3)
-
-      a(1,3) = c1_2*(a12sq + c1_12*h1sq)
-      a(2,3) = c1_2*(a22sq + c1_12*h2sq)
-      a(3,3) = c1_2*(a32sq + c1_12*h3sq)
-      a(4,3) = - c1_3*a(4,2)*h(4)
-
-      a(1,4) = c1_6*a(1,2)*(a12sq + c1_4*h1sq)
-      a(2,4) = c1_6*a(2,2)*(a22sq + c1_4*h2sq)
-      a(3,4) = c1_6*a(3,2)*(a32sq + c1_4*h3sq)
-      a(4,4) = - c1_4*a(4,3)*h(4)
-
-      ! LU decomposition.
-      call lu_decompose(4, a)
-
-   end subroutine edge_eh4_rblu
-
-   pure subroutine edge_eh6_slope_eh5_lblu(h, a)
-   ! ---------------------------------------------------------------------------
-   ! Compute LU matrix for explicitly estimating 6th and 5th order accurate left
-   ! edge and slope values, respectively.
-   ! ---------------------------------------------------------------------------
-
-      real(r8), dimension(:), intent(in) :: h
-      real(r8), dimension(:,:), intent(inout) :: a
-
-      real(r8) :: a22sq, a32sq, a42sq, a52sq, a62sq, &
-                  h2sq, h3sq, h4sq, h5sq, h6sq
+      real(r8), dimension(lb_ord) :: a2sq, hsq
+      integer :: i
 
       ! Define matrix for linear system to be solved for edge and slope values.
 
-      a(1:6,1) = c1
+      a(1:lb_ord,1) = c1
 
       a(1,2) = c1_2*h(1)
-      a(2,2) = a(1,2) + c1_2*(h(1) + h(2))
-      a(3,2) = a(2,2) + c1_2*(h(2) + h(3))
-      a(4,2) = a(3,2) + c1_2*(h(3) + h(4))
-      a(5,2) = a(4,2) + c1_2*(h(4) + h(5))
-      a(6,2) = a(5,2) + c1_2*(h(5) + h(6))
+      do i = 2, lb_ord
+         a(i,2) = a(i-1,2) + c1_2*(h(i-1) + h(i))
+      enddo
 
-      a22sq = a(2,2)*a(2,2)
-      a32sq = a(3,2)*a(3,2)
-      a42sq = a(4,2)*a(4,2)
-      a52sq = a(5,2)*a(5,2)
-      a62sq = a(6,2)*a(6,2)
-      h2sq = h(2)*h(2)
-      h3sq = h(3)*h(3)
-      h4sq = h(4)*h(4)
-      h5sq = h(5)*h(5)
-      h6sq = h(6)*h(6)
+      if (lb_ord > 2) then
 
-      a(1,3) = c1_3*a(1,2)*h(1)
-      a(2,3) = c1_2*(a22sq + c1_12*h2sq)
-      a(3,3) = c1_2*(a32sq + c1_12*h3sq)
-      a(4,3) = c1_2*(a42sq + c1_12*h4sq)
-      a(5,3) = c1_2*(a52sq + c1_12*h5sq)
-      a(6,3) = c1_2*(a62sq + c1_12*h6sq)
+         a(1,3) = c1_3*a(1,2)*h(1)
+         do i = 2, lb_ord
+            a2sq(i) = a(i,2)*a(i,2)
+            hsq(i) = h(i)*h(i)
+            a(i,3) = c1_2*(a2sq(i) + c1_12*hsq(i))
+         enddo
 
-      a(1,4) = c1_4*a(1,3)*h(1)
-      a(2,4) = c1_6*a(2,2)*(a22sq + c1_4*h2sq)
-      a(3,4) = c1_6*a(3,2)*(a32sq + c1_4*h3sq)
-      a(4,4) = c1_6*a(4,2)*(a42sq + c1_4*h4sq)
-      a(5,4) = c1_6*a(5,2)*(a52sq + c1_4*h5sq)
-      a(6,4) = c1_6*a(6,2)*(a62sq + c1_4*h6sq)
+         if (lb_ord > 3) then
 
-      a(1,5) = c1_5*a(1,4)*h(1)
-      a(2,5) = c1_24*(a22sq*(a22sq + c1_2*h2sq) + c1_80*h2sq*h2sq)
-      a(3,5) = c1_24*(a32sq*(a32sq + c1_2*h3sq) + c1_80*h3sq*h3sq)
-      a(4,5) = c1_24*(a42sq*(a42sq + c1_2*h4sq) + c1_80*h4sq*h4sq)
-      a(5,5) = c1_24*(a52sq*(a52sq + c1_2*h5sq) + c1_80*h5sq*h5sq)
-      a(6,5) = c1_24*(a62sq*(a62sq + c1_2*h6sq) + c1_80*h6sq*h6sq)
+            a(1,4) = c1_4*a(1,3)*h(1)
+            do i = 2, lb_ord
+               a(i,4) = c1_6*a(i,2)*(a2sq(i) + c1_4*hsq(i))
+            enddo
 
-      a(1,6) = c1_6*a(1,5)*h(1)
-      a(2,6) = c1_120*a(2,2)*(a22sq + c3_4*h2sq)*(a22sq + c1_12*h2sq)
-      a(3,6) = c1_120*a(3,2)*(a32sq + c3_4*h3sq)*(a32sq + c1_12*h3sq)
-      a(4,6) = c1_120*a(4,2)*(a42sq + c3_4*h4sq)*(a42sq + c1_12*h4sq)
-      a(5,6) = c1_120*a(5,2)*(a52sq + c3_4*h5sq)*(a52sq + c1_12*h5sq)
-      a(6,6) = c1_120*a(6,2)*(a62sq + c3_4*h6sq)*(a62sq + c1_12*h6sq)
+            if (lb_ord > 4) then
+
+               a(1,5) = c1_5*a(1,4)*h(1)
+               do i = 2, lb_ord
+                  a(i,5) = c1_24*( a2sq(i)*(a2sq(i) + c1_2*hsq(i)) &
+                                 + c1_80*hsq(i)*hsq(i))
+               enddo
+
+               if (lb_ord > 5) then
+
+                  a(1,6) = c1_6*a(1,5)*h(1)
+                  do i = 2, lb_ord
+                     a(i,6) = c1_120*a(i,2)*(a2sq(i) + c3_4 *hsq(i)) &
+                                           *(a2sq(i) + c1_12*hsq(i))
+                  enddo
+
+               endif
+            endif
+         endif
+      endif
 
       ! LU decomposition.
-      call lu_decompose(6, a)
+      call lu_decompose(lb_ord, a)
 
-   end subroutine edge_eh6_slope_eh5_lblu
+   end subroutine edge_slope_lblu
 
-   pure subroutine edge_eh6_slope_eh5_rblu(h, a)
+   pure subroutine edge_slope_rblu(rb_ord, h, a)
    ! ---------------------------------------------------------------------------
-   ! Compute LU matrix for explicitly estimating 6th and 5th order accurate
-   ! right edge and slope values, respectively.
+   ! Compute LU matrix for explicitly estimating rb_ord and rb_ord - 1 order
+   ! accurate right edge and slope values, respectively.
    ! ---------------------------------------------------------------------------
 
+      integer, intent(in) :: rb_ord
       real(r8), dimension(:), intent(in) :: h
       real(r8), dimension(:,:), intent(inout) :: a
 
-      real(r8) :: a12sq, a22sq, a32sq, a42sq, a52sq, &
-                  h1sq, h2sq, h3sq, h4sq, h5sq
+      real(r8), dimension(rb_ord) :: a2sq, hsq
+      integer :: i
 
       ! Define matrix for linear system to be solved for edge and slope values.
 
-      a(1:6,1) = c1
+      a(1:rb_ord,1) = c1
 
-      a(6,2) = - c1_2*h(6)
-      a(5,2) = a(6,2) - c1_2*(h(6) + h(5))
-      a(4,2) = a(5,2) - c1_2*(h(5) + h(4))
-      a(3,2) = a(4,2) - c1_2*(h(4) + h(3))
-      a(2,2) = a(3,2) - c1_2*(h(3) + h(2))
-      a(1,2) = a(2,2) - c1_2*(h(2) + h(1))
+      a(rb_ord,2) = - c1_2*h(rb_ord)
+      do i = rb_ord-1, 1, -1
+         a(i,2) = a(i+1,2) - c1_2*(h(i+1) + h(i))
+      enddo
 
-      a12sq = a(1,2)*a(1,2)
-      a22sq = a(2,2)*a(2,2)
-      a32sq = a(3,2)*a(3,2)
-      a42sq = a(4,2)*a(4,2)
-      a52sq = a(5,2)*a(5,2)
-      h1sq = h(1)*h(1)
-      h2sq = h(2)*h(2)
-      h3sq = h(3)*h(3)
-      h4sq = h(4)*h(4)
-      h5sq = h(5)*h(5)
+      if (rb_ord > 2) then
 
-      a(1,3) = c1_2*(a12sq + c1_12*h1sq)
-      a(2,3) = c1_2*(a22sq + c1_12*h2sq)
-      a(3,3) = c1_2*(a32sq + c1_12*h3sq)
-      a(4,3) = c1_2*(a42sq + c1_12*h4sq)
-      a(5,3) = c1_2*(a52sq + c1_12*h5sq)
-      a(6,3) = - c1_3*a(6,2)*h(6)
+         do i = 1, rb_ord-1
+            a2sq(i) = a(i,2)*a(i,2)
+            hsq(i) = h(i)*h(i)
+            a(i,3) = c1_2*(a2sq(i) + c1_12*hsq(i))
+         enddo
+         a(rb_ord,3) = - c1_3*a(rb_ord,2)*h(rb_ord)
 
-      a(1,4) = c1_6*a(1,2)*(a12sq + c1_4*h1sq)
-      a(2,4) = c1_6*a(2,2)*(a22sq + c1_4*h2sq)
-      a(3,4) = c1_6*a(3,2)*(a32sq + c1_4*h3sq)
-      a(4,4) = c1_6*a(4,2)*(a42sq + c1_4*h4sq)
-      a(5,4) = c1_6*a(5,2)*(a52sq + c1_4*h5sq)
-      a(6,4) = - c1_4*a(6,3)*h(6)
+         if (rb_ord > 3) then
 
-      a(1,5) = c1_24*(a12sq*(a12sq + c1_2*h1sq) + c1_80*h1sq*h1sq)
-      a(2,5) = c1_24*(a22sq*(a22sq + c1_2*h2sq) + c1_80*h2sq*h2sq)
-      a(3,5) = c1_24*(a32sq*(a32sq + c1_2*h3sq) + c1_80*h3sq*h3sq)
-      a(4,5) = c1_24*(a42sq*(a42sq + c1_2*h4sq) + c1_80*h4sq*h4sq)
-      a(5,5) = c1_24*(a52sq*(a52sq + c1_2*h5sq) + c1_80*h5sq*h5sq)
-      a(6,5) = - c1_5*a(6,4)*h(6)
+            do i = 1, rb_ord-1
+               a(i,4) = c1_6*a(i,2)*(a2sq(i) + c1_4*hsq(i))
+            enddo
+            a(rb_ord,4) = - c1_4*a(rb_ord,3)*h(rb_ord)
 
-      a(1,6) = c1_120*a(1,2)*(a12sq + c3_4*h1sq)*(a12sq + c1_12*h1sq)
-      a(2,6) = c1_120*a(2,2)*(a22sq + c3_4*h2sq)*(a22sq + c1_12*h2sq)
-      a(3,6) = c1_120*a(3,2)*(a32sq + c3_4*h3sq)*(a32sq + c1_12*h3sq)
-      a(4,6) = c1_120*a(4,2)*(a42sq + c3_4*h4sq)*(a42sq + c1_12*h4sq)
-      a(5,6) = c1_120*a(5,2)*(a52sq + c3_4*h5sq)*(a52sq + c1_12*h5sq)
-      a(6,6) = - c1_6*a(6,5)*h(6)
+            if (rb_ord > 4) then
+
+               do i = 1, rb_ord-1
+                  a(i,5) = c1_24*( a2sq(i)*(a2sq(i) + c1_2*hsq(i)) &
+                                 + c1_80*hsq(i)*hsq(i))
+               enddo
+               a(rb_ord,5) = - c1_5*a(rb_ord,4)*h(rb_ord)
+
+               if (rb_ord > 5) then
+
+                  do i = 1, rb_ord-1
+                     a(i,6) = c1_120*a(i,2)*(a2sq(i) + c3_4 *hsq(i)) &
+                                           *(a2sq(i) + c1_12*hsq(i))
+                  enddo
+                  a(rb_ord,6) = - c1_6*a(rb_ord,5)*h(rb_ord)
+
+               endif
+            endif
+         endif
+      endif
 
       ! LU decomposition.
-      call lu_decompose(6, a)
+      call lu_decompose(rb_ord, a)
 
-   end subroutine edge_eh6_slope_eh5_rblu
+   end subroutine edge_slope_rblu
 
    pure subroutine prepare_pqm(rcgs, x_edge_src)
    ! ---------------------------------------------------------------------------
@@ -936,7 +1040,7 @@ contains
 
       integer, dimension(rcgs%n_src) :: prev_index, next_index
       real(r8) :: hp, h_max, h_min, h
-      integer :: ns, jp, j, last_index, jf, jl, n, j_min, jn, jd, js
+      integer :: ns, jp, j, last_index, jf, n, j_min, jn, lb_ord, rb_ord, jd, js
       integer :: first_index
 !     integer :: first_index = 0 ! Initialized to avoid compiler warning.
 
@@ -962,7 +1066,7 @@ contains
       enddo
       last_index = jp
       next_index(jp) = 0
-      if (ns < 6) then
+      if (ns < n_src_min_pqm) then
          rcgs%n_src_actual = ns
          return
       endif
@@ -987,7 +1091,7 @@ contains
             jf = next_index(jf)
          else
             ns = ns - 1
-            if (ns < 6) then
+            if (ns < n_src_min_pqm) then
                rcgs%n_src_actual = ns
                return
             endif
@@ -1035,111 +1139,23 @@ contains
       enddo outer
 
       ! Exclude grid cells that may lead to a large condition number for the
-      ! linear system to be solved in edge_eh6_slope_eh5_lblu. Excluded grid
+      ! linear systems to be solved for edge and slope values. Excluded grid
       ! cells are merged with the non-excluded neighbour grid cell having the
       ! smallest grid cell width.
-      jf = first_index
-      do
-         j = jf
-         hp = rcgs%h_src(j)
-         h_max = rcgs%h_src(j)
-         do n = 1, 5
-            j = next_index(j)
-            hp = hp*rcgs%h_src(j)
-            h_max = max(h_max, rcgs%h_src(j))
-         enddo
-         if (hp > hplim_eh6*h_max**6) then
-            exit
-         else
-            ns = ns - 1
-            if (ns < 6) then
-               rcgs%n_src_actual = ns
-               return
-            endif
-            j = jf
-            h_min = rcgs%h_src(j)
-            j_min = j
-            do n = 1, 5
-               j = next_index(j)
-               if (rcgs%h_src(j) < h_min) then
-                  h_min = rcgs%h_src(j)
-                  j_min = j
-               endif
-            enddo
-            jp = prev_index(j_min)
-            jn = next_index(j_min)
-            if (jp == 0) then
-               rcgs%src_dst_index(j_min) = - jn
-               rcgs%h_src(jn) = rcgs%h_src(jn) + rcgs%h_src(j_min)
-               first_index = jn
-               prev_index(jn) = 0
-               jf = jn
-            else
-               if (rcgs%h_src(jn) < rcgs%h_src(jp)) then
-                  rcgs%src_dst_index(j_min) = - jn
-                  rcgs%h_src(jn) = rcgs%h_src(jn) + rcgs%h_src(j_min)
-               else
-                  rcgs%src_dst_index(j_min) = - jp
-                  rcgs%h_src(jp) = rcgs%h_src(jp) + rcgs%h_src(j_min)
-               endif
-               next_index(jp) = jn
-               prev_index(jn) = jp
-            endif
-         endif
-      enddo
-
-      ! Exclude grid cells that may lead to a large condition number for the
-      ! linear system to be solved in edge_eh6_slope_eh5_rblu. Excluded grid
-      ! cells are merged with the non-excluded neighbour grid cell having the
-      ! smallest grid cell width.
-      jl = last_index
-      do
-         j = jl
-         hp = rcgs%h_src(j)
-         h_max = rcgs%h_src(j)
-         do n = 1, 5
-            j = prev_index(j)
-            hp = hp*rcgs%h_src(j)
-            h_max = max(h_max, rcgs%h_src(j))
-         enddo
-         if (hp > hplim_eh6*h_max**6) then
-            exit
-         else
-            ns = ns - 1
-            if (ns < 6) then
-               rcgs%n_src_actual = ns
-               return
-            endif
-            j = jl
-            h_min = rcgs%h_src(j)
-            j_min = j
-            do n = 1, 5
-               j = prev_index(j)
-               if (rcgs%h_src(j) < h_min) then
-                  h_min = rcgs%h_src(j)
-                  j_min = j
-               endif
-            enddo
-            jp = prev_index(j_min)
-            jn = next_index(j_min)
-            if (jn == 0) then
-               rcgs%src_dst_index(j_min) = - jp
-               rcgs%h_src(jp) = rcgs%h_src(jp) + rcgs%h_src(j_min)
-               next_index(jp) = 0
-               jl = jp
-            else
-               if (rcgs%h_src(jn) < rcgs%h_src(jp)) then
-                  rcgs%src_dst_index(j_min) = - jn
-                  rcgs%h_src(jn) = rcgs%h_src(jn) + rcgs%h_src(j_min)
-               else
-                  rcgs%src_dst_index(j_min) = - jp
-                  rcgs%h_src(jp) = rcgs%h_src(jp) + rcgs%h_src(j_min)
-               endif
-               next_index(jp) = jn
-               prev_index(jn) = jp
-            endif
-         endif
-      enddo
+      lb_ord = min(ns, rcgs%left_bndr_ord)
+      call left_bndr_cond(rcgs, prev_index, next_index, first_index, &
+                          last_index, lb_ord, ns, n_src_min_pqm)
+      if (ns < n_src_min_pqm) then
+         rcgs%n_src_actual = ns
+         return
+      endif
+      rb_ord = min(ns, rcgs%right_bndr_ord)
+      call right_bndr_cond(rcgs, prev_index, next_index, last_index, &
+                           rb_ord, ns, n_src_min_pqm)
+      if (ns < n_src_min_pqm) then
+         rcgs%n_src_actual = ns
+         return
+      endif
 
       ! For the non-excluded grid cells, assign the destination index in the
       ! continuous array of grid cells to be used in the reconstruction. Also
@@ -1193,25 +1209,90 @@ contains
       enddo
 
       ! Compute coefficients for the tridiagonal system of equations for the
-      ! estimation of interior edge and slope values.
-      call edge_ih6_slope_ih5_coeff_asymleft(rcgs%h_src(1:4), &
-                                             rcgs%tdecoeff(:,2), &
-                                             rcgs%tdscoeff(:,2))
+      ! estimation of interior edge and slope values. If the row coefficients
+      ! for 6th order accurate edge estimates or 5th order accurate slope
+      ! estimates leads to a tridiagonal matrix that is not diagonally dominant,
+      ! use instead row coefficients for 4th and 3rd order accurate edge and
+      ! slope estimates, respectively.
+      if (lb_ord < 5) then
+         call edge_ih4_coeff(rcgs%h_src(1:2), rcgs%tdecoeff(:,2))
+         rcgs%tdecoeff(5,2) = c0
+         rcgs%tdecoeff(6,2) = c0
+         call slope_ih3_coeff(rcgs%h_src(1:2), rcgs%tdscoeff(:,2))
+         rcgs%tdscoeff(5,2) = c0
+         rcgs%tdscoeff(6,2) = c0
+      else
+         call edge_ih6_slope_ih5_coeff_asymleft(rcgs%h_src(1:4), &
+                                                rcgs%tdecoeff(:,2), &
+                                                rcgs%tdscoeff(:,2))
+         if (abs(rcgs%tdecoeff(1,2)) + abs(rcgs%tdecoeff(2,2)) > c1 .or. &
+             abs(rcgs%tdscoeff(1,2)) + abs(rcgs%tdscoeff(2,2)) > c1) then
+            call edge_ih4_coeff(rcgs%h_src(1:2), rcgs%tdecoeff(:,2))
+            rcgs%tdecoeff(5,2) = c0
+            rcgs%tdecoeff(6,2) = c0
+            call slope_ih3_coeff(rcgs%h_src(1:2), rcgs%tdscoeff(:,2))
+            rcgs%tdscoeff(5,2) = c0
+            rcgs%tdscoeff(6,2) = c0
+         endif
+      endif
       do j = 3, ns-1
          call edge_ih6_slope_ih5_coeff_sym(rcgs%h_src((j-2):(j+1)), &
                                            rcgs%tdecoeff(:,j), &
                                            rcgs%tdscoeff(:,j))
+         if (abs(rcgs%tdecoeff(1,j)) + abs(rcgs%tdecoeff(2,j)) > c1 .or. &
+             abs(rcgs%tdscoeff(1,j)) + abs(rcgs%tdscoeff(2,j)) > c1) then
+            call edge_ih4_coeff(rcgs%h_src((j-1):j), rcgs%tdecoeff(:,j))
+            rcgs%tdecoeff(5,j) = rcgs%tdecoeff(4,j)
+            rcgs%tdecoeff(4,j) = rcgs%tdecoeff(3,j)
+            rcgs%tdecoeff(3,j) = c0
+            rcgs%tdecoeff(6,j) = c0
+            call slope_ih3_coeff(rcgs%h_src((j-1):j), rcgs%tdscoeff(:,j))
+            rcgs%tdscoeff(5,j) = rcgs%tdscoeff(4,j)
+            rcgs%tdscoeff(4,j) = rcgs%tdscoeff(3,j)
+            rcgs%tdscoeff(3,j) = c0
+            rcgs%tdscoeff(6,j) = c0
+         endif
       enddo
-      call edge_ih6_slope_ih5_coeff_asymright(rcgs%h_src((ns-3):ns), &
-                                              rcgs%tdecoeff(:,ns), &
-                                              rcgs%tdscoeff(:,ns))
+      if (rb_ord < 5) then
+         call edge_ih4_coeff(rcgs%h_src((ns-1):ns), rcgs%tdecoeff(:,ns))
+         rcgs%tdecoeff(5,ns) = rcgs%tdecoeff(3,ns)
+         rcgs%tdecoeff(6,ns) = rcgs%tdecoeff(4,ns)
+         rcgs%tdecoeff(3,ns) = c0
+         rcgs%tdecoeff(4,ns) = c0
+         call slope_ih3_coeff(rcgs%h_src((ns-1):ns), rcgs%tdscoeff(:,ns))
+         rcgs%tdscoeff(5,ns) = rcgs%tdscoeff(3,ns)
+         rcgs%tdscoeff(6,ns) = rcgs%tdscoeff(4,ns)
+         rcgs%tdscoeff(3,ns) = c0
+         rcgs%tdscoeff(4,ns) = c0
+      else
+         call edge_ih6_slope_ih5_coeff_asymright(rcgs%h_src((ns-3):ns), &
+                                                 rcgs%tdecoeff(:,ns), &
+                                                 rcgs%tdscoeff(:,ns))
+         if (abs(rcgs%tdecoeff(1,ns)) + abs(rcgs%tdecoeff(2,ns)) > c1 .or. &
+             abs(rcgs%tdscoeff(1,ns)) + abs(rcgs%tdscoeff(2,ns)) > c1) then
+            call edge_ih4_coeff(rcgs%h_src((ns-1):ns), rcgs%tdecoeff(:,ns))
+            rcgs%tdecoeff(5,ns) = rcgs%tdecoeff(3,ns)
+            rcgs%tdecoeff(6,ns) = rcgs%tdecoeff(4,ns)
+            rcgs%tdecoeff(3,ns) = c0
+            rcgs%tdecoeff(4,ns) = c0
+            call slope_ih3_coeff(rcgs%h_src((ns-1):ns), rcgs%tdscoeff(:,ns))
+            rcgs%tdscoeff(5,ns) = rcgs%tdscoeff(3,ns)
+            rcgs%tdscoeff(6,ns) = rcgs%tdscoeff(4,ns)
+            rcgs%tdscoeff(3,ns) = c0
+            rcgs%tdscoeff(4,ns) = c0
+         endif
+      endif
 
       ! Compute LU matrices for the explicit estimation of boundary edge and
       ! slope values.
-      call edge_eh6_slope_eh5_lblu(rcgs%h_src(1:6), rcgs%lblu)
-      call edge_eh6_slope_eh5_rblu(rcgs%h_src((ns-5):ns), rcgs%rblu)
+      if (lb_ord > 1) &
+         call edge_slope_lblu(lb_ord, rcgs%h_src(1:lb_ord), rcgs%lblu)
+      if (rb_ord > 1) &
+         call edge_slope_rblu(rb_ord, rcgs%h_src((ns-rb_ord+1):ns), rcgs%rblu)
 
       rcgs%n_src_actual = ns
+      rcgs%left_bndr_ord_actual = lb_ord
+      rcgs%right_bndr_ord_actual = rb_ord
 
    end subroutine prepare_pqm
 
@@ -1225,8 +1306,8 @@ contains
       real(r8), dimension(:), intent(in) :: x_edge_src
 
       integer, dimension(rcgs%n_src) :: prev_index, next_index
-      real(r8) :: hp, h_max, h_min, h
-      integer :: ns, jp, j, last_index, jf, jl, n, j_min, jn, jd, js
+      real(r8) :: h
+      integer :: ns, jp, j, last_index, jf, jl, lb_ord, rb_ord, jd, js
       integer :: first_index
 !     integer :: first_index = 0 ! Initialized to avoid compiler warning.
 
@@ -1252,7 +1333,7 @@ contains
       enddo
       last_index = jp
       next_index(jp) = 0
-      if (ns < 4) then
+      if (ns < n_src_min_ppm) then
          rcgs%n_src_actual = ns
          return
       endif
@@ -1271,7 +1352,7 @@ contains
             if (jl == 0) exit
          else
             ns = ns - 1
-            if (ns < 4) then
+            if (ns < n_src_min_ppm) then
                rcgs%n_src_actual = ns
                return
             endif
@@ -1319,111 +1400,23 @@ contains
       enddo
 
       ! Exclude grid cells that may lead to a large condition number for the
-      ! linear system to be solved in edge_eh4_lblu. Excluded grid cells are
-      ! merged with the non-excluded neighbour grid cell having the smallest
-      ! grid cell width.
-      jf = first_index
-      do
-         j = jf
-         hp = rcgs%h_src(j)
-         h_max = rcgs%h_src(j)
-         do n = 1, 3
-            j = next_index(j)
-            hp = hp*rcgs%h_src(j)
-            h_max = max(h_max, rcgs%h_src(j))
-         enddo
-         if (hp > hplim_eh4*h_max**4) then
-            exit
-         else
-            ns = ns - 1
-            if (ns < 4) then
-               rcgs%n_src_actual = ns
-               return
-            endif
-            j = jf
-            h_min = rcgs%h_src(j)
-            j_min = j
-            do n = 1, 3
-               j = next_index(j)
-               if (rcgs%h_src(j) < h_min) then
-                  h_min = rcgs%h_src(j)
-                  j_min = j
-               endif
-            enddo
-            jp = prev_index(j_min)
-            jn = next_index(j_min)
-            if (jp == 0) then
-               rcgs%src_dst_index(j_min) = - jn
-               rcgs%h_src(jn) = rcgs%h_src(jn) + rcgs%h_src(j_min)
-               first_index = jn
-               prev_index(jn) = 0
-               jf = jn
-            else
-               if (rcgs%h_src(jn) < rcgs%h_src(jp)) then
-                  rcgs%src_dst_index(j_min) = - jn
-                  rcgs%h_src(jn) = rcgs%h_src(jn) + rcgs%h_src(j_min)
-               else
-                  rcgs%src_dst_index(j_min) = - jp
-                  rcgs%h_src(jp) = rcgs%h_src(jp) + rcgs%h_src(j_min)
-               endif
-               next_index(jp) = jn
-               prev_index(jn) = jp
-            endif
-         endif
-      enddo
-
-      ! Exclude grid cells that may lead to a large condition number for the
-      ! linear system to be solved in edge_eh4_rblu. Excluded grid cells are
-      ! merged with the non-excluded neighbour grid cell having the smallest
-      ! grid cell width.
-      jl = last_index
-      do
-         j = jl
-         hp = rcgs%h_src(j)
-         h_max = rcgs%h_src(j)
-         do n = 1, 3
-            j = prev_index(j)
-            hp = hp*rcgs%h_src(j)
-            h_max = max(h_max, rcgs%h_src(j))
-         enddo
-         if (hp > hplim_eh4*h_max**4) then
-            exit
-         else
-            ns = ns - 1
-            if (ns < 4) then
-               rcgs%n_src_actual = ns
-               return
-            endif
-            j = jl
-            h_min = rcgs%h_src(j)
-            j_min = j
-            do n = 1, 3
-               j = prev_index(j)
-               if (rcgs%h_src(j) < h_min) then
-                  h_min = rcgs%h_src(j)
-                  j_min = j
-               endif
-            enddo
-            jp = prev_index(j_min)
-            jn = next_index(j_min)
-            if (jn == 0) then
-               rcgs%src_dst_index(j_min) = - jp
-               rcgs%h_src(jp) = rcgs%h_src(jp) + rcgs%h_src(j_min)
-               next_index(jp) = 0
-               jl = jp
-            else
-               if (rcgs%h_src(jn) < rcgs%h_src(jp)) then
-                  rcgs%src_dst_index(j_min) = - jn
-                  rcgs%h_src(jn) = rcgs%h_src(jn) + rcgs%h_src(j_min)
-               else
-                  rcgs%src_dst_index(j_min) = - jp
-                  rcgs%h_src(jp) = rcgs%h_src(jp) + rcgs%h_src(j_min)
-               endif
-               next_index(jp) = jn
-               prev_index(jn) = jp
-            endif
-         endif
-      enddo
+      ! linear systems to be solved for edge and slope values. Excluded grid
+      ! cells are merged with the non-excluded neighbour grid cell having the
+      ! smallest grid cell width.
+      lb_ord = min(ns, rcgs%left_bndr_ord, eb_ord_max_ppm)
+      call left_bndr_cond(rcgs, prev_index, next_index, first_index, &
+                          last_index, lb_ord, ns, n_src_min_ppm)
+      if (ns < n_src_min_ppm) then
+         rcgs%n_src_actual = ns
+         return
+      endif
+      rb_ord = min(ns, rcgs%right_bndr_ord, eb_ord_max_ppm)
+      call right_bndr_cond(rcgs, prev_index, next_index, last_index, &
+                           rb_ord, ns, n_src_min_ppm)
+      if (ns < n_src_min_ppm) then
+         rcgs%n_src_actual = ns
+         return
+      endif
 
       ! For the non-excluded grid cells, assign the destination index in the
       ! continuous array of grid cells to be used in the reconstruction. Also
@@ -1483,10 +1476,14 @@ contains
       enddo
 
       ! Compute LU matrices for the explicit estimation of boundary edge values.
-      call edge_eh4_lblu(rcgs%h_src(1:4), rcgs%lblu)
-      call edge_eh4_rblu(rcgs%h_src((ns-3):ns), rcgs%rblu)
-      
+      if (lb_ord > 1) &
+         call edge_slope_lblu(lb_ord, rcgs%h_src(1:lb_ord), rcgs%lblu)
+      if (rb_ord > 1) &
+         call edge_slope_rblu(rb_ord, rcgs%h_src((ns-rb_ord+1):ns), rcgs%rblu)
+
       rcgs%n_src_actual = ns
+      rcgs%left_bndr_ord_actual = lb_ord
+      rcgs%right_bndr_ord_actual = rb_ord
 
    end subroutine prepare_ppm
 
@@ -1511,7 +1508,7 @@ contains
             rcgs%src_dst_index(j) = 0
          endif
       enddo
-      if (ns < 2) then
+      if (ns < n_src_min_plm) then
          rcgs%n_src_actual = ns
          return
       endif
@@ -1705,23 +1702,33 @@ contains
 
       type(recon_src_struct), intent(inout) :: rcss
 
-      real(r8), dimension(4) :: x
+      real(r8), dimension(eb_ord_max_ppm) :: x
       real(r8), dimension(rcss%rcgs%n_src_actual+1) :: uedge
       real(r8), dimension(rcss%rcgs%n_src_actual) :: rhs, gam
       real(r8) :: bei
-      integer :: ns, j
+      integer :: ns, lb_ord, rb_ord, j
 
       ns = rcss%rcgs%n_src_actual
+      lb_ord = rcss%rcgs%left_bndr_ord_actual
+      rb_ord = rcss%rcgs%right_bndr_ord_actual
 
       ! Obtain the left boundary edge value.
-      x(:) = rcss%u_src(1:4)
-      call lu_solve(4, rcss%rcgs%lblu, x)
-      uedge(1) = x(1)
+      if (lb_ord == 1) then
+         uedge(1) = rcss%u_src(1)
+      else
+         x(1:lb_ord) = rcss%u_src(1:lb_ord)
+         call lu_solve(lb_ord, rcss%rcgs%lblu, x)
+         uedge(1) = x(1)
+      endif
 
       ! Obtain the right boundary edge value.
-      x(:) = rcss%u_src((ns-3):ns)
-      call lu_solve(4, rcss%rcgs%rblu, x)
-      uedge(ns+1) = x(1)
+      if (lb_ord == 1) then
+         uedge(ns+1) = rcss%u_src(ns)
+      else
+         x(1:rb_ord) = rcss%u_src((ns-rb_ord+1):ns)
+         call lu_solve(rb_ord, rcss%rcgs%rblu, x)
+         uedge(ns+1) = x(1)
+      endif
 
       ! Obtain right hand side of tridiagonal system of equations.
       do j = 2, ns
@@ -1754,25 +1761,37 @@ contains
 
       type(recon_src_struct), intent(inout) :: rcss
 
-      real(r8), dimension(6) :: x
+      real(r8), dimension(eb_ord_max_pqm) :: x
       real(r8), dimension(rcss%rcgs%n_src_actual+1) :: uedge, uslope
       real(r8), dimension(rcss%rcgs%n_src_actual) :: rhs, gam
       real(r8) :: bei
-      integer :: ns, j
+      integer :: ns, lb_ord, rb_ord, j
 
       ns = rcss%rcgs%n_src_actual
+      lb_ord = rcss%rcgs%left_bndr_ord_actual
+      rb_ord = rcss%rcgs%right_bndr_ord_actual
 
       ! Obtain the left boundary edge and slope values.
-      x(:) = rcss%u_src(1:6)
-      call lu_solve(6, rcss%rcgs%lblu, x)
-      uedge(1) = x(1)
-      uslope(1) = x(2)
+      if (lb_ord == 1) then
+         uedge(1) = rcss%u_src(1)
+         uslope(1) = c0
+      else
+         x(1:lb_ord) = rcss%u_src(1:lb_ord)
+         call lu_solve(lb_ord, rcss%rcgs%lblu, x)
+         uedge(1) = x(1)
+         uslope(1) = x(2)
+      endif
 
       ! Obtain the right boundary edge and slope values.
-      x(:) = rcss%u_src((ns - 5):ns)
-      call lu_solve(6, rcss%rcgs%rblu, x)
-      uedge(ns+1) = x(1)
-      uslope(ns+1) = x(2)
+      if (rb_ord == 1) then
+         uedge(ns+1) = rcss%u_src(ns)
+         uslope(ns+1) = c0
+      else
+         x(1:rb_ord) = rcss%u_src((ns-rb_ord+1):ns)
+         call lu_solve(rb_ord, rcss%rcgs%rblu, x)
+         uedge(ns+1) = x(1)
+         uslope(ns+1) = x(2)
+      endif
 
       ! Obtain right hand side of tridiagonal system of equations for edge
       ! values.
@@ -1913,13 +1932,13 @@ contains
       ns = rcss%rcgs%n_src_actual
 
       ! Obtain values proportional to the second derivative of the unlimited
-      ! parabolas. 
+      ! parabolas.
       do j = 1, ns
          d2(j) = rcss%uel(j) - c2*rcss%u_src(j) + rcss%uer(j)
       enddo
 
       do j = 2, ns-1
-         ! Only apply limiting if the sign of the second 
+         ! Only apply limiting if the sign of the second
          ! derivative differs from the sign of second derivatives
          ! of any of the neighbouring parabolas.
          if (d2(j-1)*d2(j) < c0 .or. d2(j)*d2(j+1) < c0) then
@@ -2236,7 +2255,6 @@ contains
 
       enddo
 
-
       if (rcss%pc_left_bndr) then
          ! Piecewise constant reconstruction of the left boundary cell.
          rcss%uel(1) = rcss%u_src(1)
@@ -2326,7 +2344,7 @@ contains
       ns = rcss%rcgs%n_src_actual
 
       ! Obtain values proportional to the second derivative of the unlimited
-      ! parabolas. 
+      ! parabolas.
       do j = 1, ns
          d2(j) = rcss%uel(j) - c2*rcss%u_src(j) + rcss%uer(j)
       enddo
@@ -2524,7 +2542,6 @@ contains
 
       enddo
 
-
       if (rcss%pc_left_bndr) then
          ! Piecewise constant reconstruction of the left boundary cell.
          rcss%uel(1) = rcss%u_src(1)
@@ -2614,7 +2631,7 @@ contains
       ns = rcss%rcgs%n_src_actual
 
       ! Obtain values proportional to the second derivative of the unlimited
-      ! parabolas. 
+      ! parabolas.
       do j = 1, ns
          d2(j) = rcss%uel(j) - c2*rcss%u_src(j) + rcss%uer(j)
       enddo
@@ -2639,7 +2656,7 @@ contains
             if (sl(j) < c0 .and. sr(j) > c0) then
 
                ! If the slopes of a parabolic reconstruction has different
-               ! signs, the parabolic reconstruction is chosen. If needed, 
+               ! signs, the parabolic reconstruction is chosen. If needed,
                ! modify the parabola it is positive definite.
                a2 = c1_2*(sr(j) - sl(j))
                if (a2*rcss%uel(j) - c1_4*sl(j)*sl(j) < a2*min_u_0) then
@@ -2829,7 +2846,6 @@ contains
 
       enddo
 
-
       if (rcss%pc_left_bndr) then
          ! Piecewise constant reconstruction of the left boundary cell.
          rcss%uel(1) = rcss%u_src(1)
@@ -2923,7 +2939,7 @@ contains
          rcss%polycoeff(2,j) = rcss%usl(j)
          rcss%polycoeff(3,j) = &
               c30*rcss%u_src(j) - c18*rcss%uel(j) - c12*rcss%uer(j) &
-            - c9_2*rcss%usl(j) + c3_2*rcss%usr(j) 
+            - c9_2*rcss%usl(j) + c3_2*rcss%usr(j)
          rcss%polycoeff(4,j) = &
             - c60*rcss%u_src(j) + c32*rcss%uel(j) + c28*rcss%uer(j) &
             + c6*rcss%usl(j) - c4*rcss%usr(j)
@@ -3019,7 +3035,7 @@ contains
       ng = size(u_edge_grd)
 
       ! Find possible intersections in the first half of the first source grid
-      ! cell. 
+      ! cell.
       jg = 1
       do
          if ((u_edge_grd(jg) - rcss%uel(1))*u_sgn >= c0) exit
@@ -3040,7 +3056,7 @@ contains
          if (jg > ng) return
       enddo
 
-      outer: do 
+      outer: do
 
          ! For the current grid edge index, find the index of the first source
          ! grid cell with mid point reconstructed value larger than the grid
@@ -3114,7 +3130,7 @@ contains
       enddo outer
 
       ! Find possible intersections in the last half of the last source grid
-      ! cell. 
+      ! cell.
       js = ns
       do
          if ((u_edge_grd(jg) - rcss%uer(js))*u_sgn > c0) return
@@ -3147,7 +3163,7 @@ contains
       ng = size(u_edge_grd)
 
       ! Find possible intersections in the first half of the first source grid
-      ! cell. 
+      ! cell.
       jg = 1
       do
          if ((u_edge_grd(jg) - rcss%uel(1))*u_sgn >= c0) exit
@@ -3169,7 +3185,7 @@ contains
          if (jg > ng) return
       enddo
 
-      outer: do 
+      outer: do
 
          ! For the current grid edge index, find the index of the first source
          ! grid cell with mid point reconstructed value larger than the grid
@@ -3244,7 +3260,7 @@ contains
       enddo outer
 
       ! Find possible intersections in the last half of the last source grid
-      ! cell. 
+      ! cell.
       js = ns
       do
          if ((u_edge_grd(jg) - rcss%uer(js))*u_sgn > c0) return
@@ -3277,7 +3293,7 @@ contains
       ng = size(u_edge_grd)
 
       ! Find possible intersections in the first half of the first source grid
-      ! cell. 
+      ! cell.
       jg = 1
       do
          if ((u_edge_grd(jg) - rcss%uel(1))*u_sgn >= c0) exit
@@ -3301,7 +3317,7 @@ contains
          if (jg > ng) return
       enddo
 
-      outer: do 
+      outer: do
 
          ! For the current grid edge index, find the index of the first source
          ! grid cell with mid point reconstructed value larger than the grid
@@ -3380,7 +3396,7 @@ contains
       enddo outer
 
       ! Find possible intersections in the last half of the last source grid
-      ! cell. 
+      ! cell.
       js = ns
       do
          if ((u_edge_grd(jg) - rcss%uer(js))*u_sgn > c0) return
@@ -3417,7 +3433,7 @@ contains
          jg = jg + 1
          if (jg > ng) return
       enddo
-      
+
       js = 1
       do
          if (js + 1 > ns) exit
@@ -3477,7 +3493,7 @@ contains
          jg = jg + 1
          if (jg > ng) return
       enddo
-      
+
       js = 1
       do
          if (js + 1 > ns) exit
@@ -3537,7 +3553,7 @@ contains
          jg = jg + 1
          if (jg > ng) return
       enddo
-      
+
       js = 1
       do
          if (js + 1 > ns) exit
@@ -3599,8 +3615,32 @@ contains
             rcgs%p_ord = 1
          case (hor3map_ppm)
             rcgs%p_ord = 2
+            if (rcgs%left_bndr_ord == 0) then
+               rcgs%left_bndr_ord = eb_ord_max_ppm
+            else
+               rcgs%left_bndr_ord = &
+                  max(1, min(eb_ord_max_ppm, rcgs%left_bndr_ord))
+            endif
+            if (rcgs%right_bndr_ord == 0) then
+               rcgs%right_bndr_ord = eb_ord_max_ppm
+            else
+               rcgs%right_bndr_ord = &
+                  max(1, min(eb_ord_max_ppm, rcgs%right_bndr_ord))
+            endif
          case (hor3map_pqm)
             rcgs%p_ord = 4
+            if (rcgs%left_bndr_ord == 0) then
+               rcgs%left_bndr_ord = eb_ord_max_pqm
+            else
+               rcgs%left_bndr_ord = &
+                  max(1, min(eb_ord_max_pqm, rcgs%left_bndr_ord))
+            endif
+            if (rcgs%right_bndr_ord == 0) then
+               rcgs%right_bndr_ord = eb_ord_max_pqm
+            else
+               rcgs%right_bndr_ord = &
+                  max(1, min(eb_ord_max_pqm, rcgs%right_bndr_ord))
+            endif
          case default
             errstat = hor3map_invalid_method
             return
@@ -3650,8 +3690,12 @@ contains
          allocate(rcgs%src_dst_weight_data(rcgs%n_src,ij_size), &
                   rcgs%tdecoeff_data(rcgs%p_ord+2,rcgs%n_src,ij_size), &
                   rcgs%tdscoeff_data(rcgs%p_ord+2,rcgs%n_src,ij_size), &
-                  rcgs%lblu_data(rcgs%p_ord+2,rcgs%p_ord+2,ij_size), &
-                  rcgs%rblu_data(rcgs%p_ord+2,rcgs%p_ord+2,ij_size), &
+                  rcgs%lblu_data(rcgs%left_bndr_ord,rcgs%left_bndr_ord,&
+                                 ij_size), &
+                  rcgs%rblu_data(rcgs%right_bndr_ord,rcgs%right_bndr_ord, &
+                                 ij_size), &
+                  rcgs%left_bndr_ord_actual_data(ij_size), &
+                  rcgs%right_bndr_ord_actual_data(ij_size), &
                   stat = allocstat)
          if (allocstat /= 0) then
             errstat = hor3map_failed_to_allocate_rcgs
@@ -3663,6 +3707,8 @@ contains
          rcgs%tdscoeff_data(:,:,:) = ieee_value(1._r8, ieee_signaling_nan)
          rcgs%lblu_data(:,:,:) = ieee_value(1._r8, ieee_signaling_nan)
          rcgs%rblu_data(:,:,:) = ieee_value(1._r8, ieee_signaling_nan)
+         rcgs%left_bndr_ord_actual_data(:) = - 9999
+         rcgs%right_bndr_ord_actual_data(:) = - 9999
 #endif
       endif
 
@@ -3689,6 +3735,9 @@ contains
                *(rcgs%j_ubound - rcgs%j_lbound + 1)
 
       allocate(rcss%u_src_data(rcgs%n_src,ij_size), &
+               rcss%u_range_data(ij_size), &
+               rcss%u_eps_data(ij_size), &
+               rcss%uu_eps_data(ij_size), &
                rcss%uel_data(rcgs%n_src,ij_size), &
                rcss%uer_data(rcgs%n_src,ij_size), &
                rcss%polycoeff_data(rcgs%p_ord+1,rcgs%n_src,ij_size), &
@@ -3700,6 +3749,9 @@ contains
       endif
 #ifdef DEBUG
       rcss%u_src_data(:,:) = ieee_value(1._r8, ieee_signaling_nan)
+      rcss%u_range_data(:) = ieee_value(1._r8, ieee_signaling_nan)
+      rcss%u_eps_data(:) = ieee_value(1._r8, ieee_signaling_nan)
+      rcss%uu_eps_data(:) = ieee_value(1._r8, ieee_signaling_nan)
       rcss%uel_data(:,:) = ieee_value(1._r8, ieee_signaling_nan)
       rcss%uer_data(:,:) = ieee_value(1._r8, ieee_signaling_nan)
       rcss%polycoeff_data(:,:,:) = ieee_value(1._r8, ieee_signaling_nan)
@@ -3853,28 +3905,22 @@ contains
 
       if (rcgs%method_actual == hor3map_pqm) then
          call prepare_pqm(rcgs, x_edge_src)
-         if (rcgs%n_src_actual < 6) then
+         if (rcgs%n_src_actual < n_src_min_pqm) then
             rcgs%method_actual = hor3map_ppm
-         else
-            rcgs%method_actual = hor3map_pqm
          endif
       endif
 
       if (rcgs%method_actual == hor3map_ppm) then
          call prepare_ppm(rcgs, x_edge_src)
-         if (rcgs%n_src_actual < 4) then
+         if (rcgs%n_src_actual < n_src_min_ppm) then
             rcgs%method_actual = hor3map_plm
-         else
-            rcgs%method_actual = hor3map_ppm
          endif
       endif
 
       if (rcgs%method_actual == hor3map_plm) then
          call prepare_plm(rcgs, x_edge_src)
-         if (rcgs%n_src_actual < 2) then
+         if (rcgs%n_src_actual < n_src_min_plm) then
             rcgs%method_actual = hor3map_pcm
-         else
-            rcgs%method_actual = hor3map_plm
          endif
       endif
 
@@ -3883,8 +3929,6 @@ contains
          if (rcgs%n_src_actual == 0) then
             errstat = hor3map_src_extent_too_small
             return
-         else
-            rcgs%method_actual = hor3map_pcm
          endif
       endif
 
@@ -4159,12 +4203,11 @@ contains
          enddo
       endif
 
-      ! Set small value with same dimensions as source data.
+      ! Set source data range and associated small values.
       rcss%u_range = abs( minval(rcss%u_src(1:rcgs%n_src_actual)) &
                         - maxval(rcss%u_src(1:rcgs%n_src_actual)))
-      rcss%u_eps = rcss%u_range*eps
-      rcss%uu_eps = rcss%u_range*rcss%u_eps
-
+      rcss%u_eps = max(rcss%u_range, eps*eps)*eps
+      rcss%uu_eps = max(rcss%u_range, eps*eps)*rcss%u_eps
 
       select case (rcgs%method_actual)
          case (hor3map_plm)
@@ -4234,7 +4277,7 @@ contains
       integer :: errstat
 
       real(r8) :: xi0, q
-      integer :: js0, js, jd
+      integer :: js0, js, jd, jd_prev
 
       ! Check that reconstruction source data structure has been initialized.
       if (.not. rcss%initialized) then
@@ -4323,7 +4366,7 @@ contains
                js0 = js0 + 1
                if (js0 > rcss%rcgs%n_src) exit
             enddo
-            xi0 = c0
+            jd_prev = -1
             do js = js0, rcss%rcgs%n_src
                jd = rcss%rcgs%src_dst_index(js)
                if (jd == 0) then
@@ -4333,8 +4376,9 @@ contains
                else
                   if (rcss%rcgs%src_dst_weight(js) == c1) then
                      polycoeff(1:3,js) = rcss%polycoeff(1:3,jd)
-                     xi0 = c0
                   else
+                     if (jd /= jd_prev) xi0 = c0
+                     jd_prev = jd
                      polycoeff(1,js) =   rcss%polycoeff(1,jd) &
                                      + ( rcss%polycoeff(2,jd) &
                                        + rcss%polycoeff(3,jd)*xi0)*xi0
@@ -4362,7 +4406,7 @@ contains
                js0 = js0 + 1
                if (js0 > rcss%rcgs%n_src) exit
             enddo
-            xi0 = c0
+            jd_prev = -1
             do js = js0, rcss%rcgs%n_src
                jd = rcss%rcgs%src_dst_index(js)
                if (jd == 0) then
@@ -4374,8 +4418,9 @@ contains
                else
                   if (rcss%rcgs%src_dst_weight(js) == c1) then
                      polycoeff(1:5,js) = rcss%polycoeff(1:5,jd)
-                     xi0 = c0
                   else
+                     if (jd /= jd_prev) xi0 = c0
+                     jd_prev = jd
                      polycoeff(1,js) =       rcss%polycoeff(1,jd) &
                                      + (     rcss%polycoeff(2,jd) &
                                        + (   rcss%polycoeff(3,jd) &
@@ -4857,10 +4902,13 @@ contains
       endif
 
       if (rcgs%method == hor3map_ppm .or. rcgs%method == hor3map_pqm) then
-         nullify(rcgs%src_dst_weight, rcgs%tdecoeff, rcgs%tdscoeff, rcgs%lblu, &
-                 rcgs%rblu) 
+         nullify(rcgs%src_dst_weight, rcgs%tdecoeff, rcgs%tdscoeff, &
+                 rcgs%lblu, rcgs%rblu, rcgs%left_bndr_ord_actual, &
+                 rcgs%right_bndr_ord_actual)
          deallocate(rcgs%src_dst_weight_data, rcgs%tdecoeff_data, &
-                    rcgs%tdscoeff_data, rcgs%lblu_data, rcgs%rblu_data)
+                    rcgs%tdscoeff_data, rcgs%lblu_data, rcgs%rblu_data, &
+                    rcgs%left_bndr_ord_actual_data, &
+                    rcgs%right_bndr_ord_actual_data)
       endif
 
       rcgs%i_index_curr = 0
@@ -4876,9 +4924,11 @@ contains
 
       type(recon_src_struct), intent(inout) :: rcss
 
-      nullify(rcss%u_src, rcss%uel, rcss%uer, rcss%polycoeff, &
+      nullify(rcss%u_src, rcss%u_range, rcss%u_eps, rcss%uu_eps, &
+              rcss%uel, rcss%uer, rcss%polycoeff, &
               rcss%reconstructed, rcss%rcss_dep_next)
-      deallocate(rcss%u_src_data, rcss%uel_data, rcss%uer_data, &
+      deallocate(rcss%u_src_data, rcss%u_range_data, rcss%u_eps_data, &
+                 rcss%uu_eps_data, rcss%uel_data, rcss%uer_data, &
                  rcss%polycoeff_data, rcss%reconstructed_data)
 
       if (rcss%rcgs%method == hor3map_pqm) then

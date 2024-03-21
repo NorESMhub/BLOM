@@ -65,8 +65,8 @@
     <type>char</type>
     <valid_values>isopyc_bulkml,cntiso_hybrid</valid_values>
     <default_value>isopyc_bulkml</default_value>
-    <group>run_component_blom</group>
-    <file>env_run.xml</file>
+    <group>build_component_blom</group>
+    <file>env_build.xml</file>
     <desc>Vertical coordinate type of BLOM</desc>
   </entry>
 
@@ -152,7 +152,7 @@
   <entry id="HAMOCC_SEDSPINUP">
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
-    <default_value>FALSE</default_value>
+    <default_value>TRUE</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
     <desc>Activate sediment spinup. HAMOCC_SEDSPINUP_YR_START and HAMOCC_SEDSPINUP_YR_END 
@@ -162,7 +162,7 @@
   <entry id="HAMOCC_SEDSPINUP_YR_START">
     <type>integer</type>
     <valid_values/>
-    <default_value>-1</default_value>
+    <default_value>1</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
     <desc>Set start year for HAMOCC sediment spin-up if HAMOCC_SEDSPINUP == TRUE. 
@@ -172,7 +172,7 @@
   <entry id="HAMOCC_SEDSPINUP_YR_END">
     <type>integer</type>
     <valid_values/>
-    <default_value>-1</default_value>
+    <default_value>800</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
     <desc>Set end year for HAMOCC sediment spin-up if HAMOCC_SEDSPINUP == TRUE. 
@@ -182,7 +182,7 @@
   <entry id="HAMOCC_SEDSPINUP_NCYCLE">
     <type>integer</type>
     <valid_values/>
-    <default_value>-1</default_value>
+    <default_value>20</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
     <desc>Set the number of sub-cycles for HAMOCC sediment spin-up if HAMOCC_SEDSPINUP == TRUE. 

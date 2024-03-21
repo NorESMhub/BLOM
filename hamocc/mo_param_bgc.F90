@@ -42,6 +42,22 @@ module mo_param_bgc
   implicit none
   private
 
+  ! For writing parameters to netcdf file
+  integer, parameter,public                   :: nlength = 30
+  type,public :: pinfo
+    character(len=nlength) :: pname
+    real                   :: pvalue
+  end type
+  integer, protected, public                  :: nentries = 0
+  type(pinfo), allocatable, protected, public :: param4nc(:)
+
+  type, public :: ctrinfo
+    character(len=nlength) :: cname
+    integer                :: cvalue
+  end type
+  integer, protected, public                    :: centries = 0
+  type(ctrinfo), allocatable, protected, public :: controls4nc(:)
+
   ! Routines
   public  :: ini_parambgc
   private :: ini_aggregation
@@ -269,11 +285,7 @@ module mo_param_bgc
   real, protected :: sedict      = 1.e-9          ! m2/s Molecular diffusion coefficient
   real, protected :: silsat      = 0.001          ! kmol/m3 Silicate saturation concentration is 1 mol/m3
   real, protected :: disso_poc   = 0.01 / 86400.  ! 1/(kmol O2/m3 s) disso=3.e-5 was quite high - Degradation rate constant of POP
-  real, protected :: disso_sil   = 1.e-6          ! 1/(kmol Si(OH)4/m3 s) Dissolution rate constant of opal
-  ! THIS NEEDS TO BE CHANGED TO disso=3.e-8! THIS IS ONLY KEPT FOR THE MOMENT
-  ! FOR BACKWARDS COMPATIBILITY
-  ! disso_sil = 3.e-8*dtbgc  ! (2011-01-04) EMR
-  ! disso_sil = 1.e-6*dtbgc  ! test vom 03.03.04 half live sil ca. 20.000 yr
+  real, protected :: disso_sil   = 3.e-8          ! 1/(kmol Si(OH)4/m3 s) Dissolution rate constant of opal
   real, protected :: disso_caco3 = 1.e-7          ! 1/(kmol CO3--/m3 s) Dissolution rate constant of CaCO3
   real, protected :: sed_denit   = 0.01/86400.    ! 1/s Denitrification rate constant of POP
 
@@ -401,7 +413,7 @@ contains
     close(unit=iounit)
 
     if (mnproc.eq.1) then
-      write(io_stdo_bgc,*) 
+      write(io_stdo_bgc,*)
       write(io_stdo_bgc,*)'********************************************'
       write(io_stdo_bgc,*) 'iHAMOCC: read namelist bgcparams'
       write(io_stdo_bgc,nml=BGCPARAMS)
@@ -566,170 +578,229 @@ contains
       write(io_stdo_bgc,*)
       write(io_stdo_bgc,*) '********************************************'
       write(io_stdo_bgc,*) '* iHAMOCC configuration: '
-      write(io_stdo_bgc,*) '*   use_BROMO              = ',use_BROMO
-      write(io_stdo_bgc,*) '*   use_AGG                = ',use_AGG
-      write(io_stdo_bgc,*) '*   use_WLIN               = ',use_WLIN
-      write(io_stdo_bgc,*) '*   use_natDIC             = ',use_natDIC
-      write(io_stdo_bgc,*) '*   use_CFC                = ',use_CFC
-      write(io_stdo_bgc,*) '*   use_cisonew            = ',use_cisonew
-      write(io_stdo_bgc,*) '*   use_PBGC_OCNP_TIMESTEP = ',use_PBGC_OCNP_TIMESTEP
-      write(io_stdo_bgc,*) '*   use_PBGC_CK_TIMESTEP   = ',use_PBGC_CK_TIMESTEP
-      write(io_stdo_bgc,*) '*   use_FB_BGC_OCE BROMO   = ',use_FB_BGC_OCE
-      write(io_stdo_bgc,*) '*   use_BOXATM             = ',use_BOXATM
-      write(io_stdo_bgc,*) '*   use_sedbypass          = ',use_sedbypass
-      write(io_stdo_bgc,*) '*   ocn_co2_type           = ',ocn_co2_type
-      write(io_stdo_bgc,*) '*   do_ndep                = ',do_ndep
-      write(io_stdo_bgc,*) '*   do_rivinpt             = ',do_rivinpt
-      write(io_stdo_bgc,*) '*   do_oalk                = ',do_oalk
-      write(io_stdo_bgc,*) '*   with_dmsph             = ',with_dmsph
-      write(io_stdo_bgc,*) '*   do_sedspinup           = ',do_sedspinup
-      write(io_stdo_bgc,*) '*   l_3Dvarsedpor          = ',l_3Dvarsedpor
+      call cinfo_add_entry('use_BROMO',              use_BROMO)
+      call cinfo_add_entry('use_AGG',                use_AGG)
+      call cinfo_add_entry('use_WLIN',               use_WLIN)
+      call cinfo_add_entry('use_natDIC',             use_natDIC)
+      call cinfo_add_entry('use_CFC',                use_CFC)
+      call cinfo_add_entry('use_cisonew',            use_cisonew)
+      call cinfo_add_entry('use_PBGC_OCNP_TIMESTEP', use_PBGC_OCNP_TIMESTEP)
+      call cinfo_add_entry('use_PBGC_CK_TIMESTEP',   use_PBGC_CK_TIMESTEP)
+      call cinfo_add_entry('use_FB_BGC_OCE BROMO',   use_FB_BGC_OCE)
+      call cinfo_add_entry('use_BOXATM',             use_BOXATM)
+      call cinfo_add_entry('use_sedbypass',          use_sedbypass)
+      write(io_stdo_bgc,*) '*   ocn_co2_type     = ',ocn_co2_type
+      call cinfo_add_entry('do_ndep',                do_ndep)
+      call cinfo_add_entry('do_rivinpt',             do_rivinpt)
+      call cinfo_add_entry('do_oalk',                do_oalk)
+      call cinfo_add_entry('with_dmsph',             with_dmsph)
+      call cinfo_add_entry('do_sedspinup',           do_sedspinup)
+      call cinfo_add_entry('l_3Dvarsedpor',          l_3Dvarsedpor)
       write(io_stdo_bgc,*) '* '
       write(io_stdo_bgc,*) '* Values of MO_PARAM_BGC variables : '
-      write(io_stdo_bgc,*) '*   atm_co2      = ',atm_co2
+      call pinfo_add_entry('atm_co2',     atm_co2)
       if (use_cisonew) then
-        write(io_stdo_bgc,*) '*   atm_c13      = ',atm_c13
-        write(io_stdo_bgc,*) '*   d13C_atm     = ',d13C_atm
-        write(io_stdo_bgc,*) '*   atm_c14      = ',atm_c14
-        write(io_stdo_bgc,*) '*   bifr13_ini   = ',bifr13_ini
-        write(io_stdo_bgc,*) '*   bifr14_ini   = ',bifr14_ini
-        write(io_stdo_bgc,*) '*   c14fac       = ',c14fac
-        write(io_stdo_bgc,*) '*   prei13       = ',prei13
-        write(io_stdo_bgc,*) '*   prei14       = ',prei14
-        write(io_stdo_bgc,*) '*   re1312       = ',re1312
-        write(io_stdo_bgc,*) '*   re14to       = ',re14to
-        write(io_stdo_bgc,*) '*   c14_t_half   = ',c14_t_half
-        write(io_stdo_bgc,*) '*   c14dec       = ',c14dec
-        write(io_stdo_bgc,*) '*   beta13       = ',beta13
-        write(io_stdo_bgc,*) '*   alpha14      = ',alpha14
-        write(io_stdo_bgc,*) '*   d14cat       = ',d14cat
-        write(io_stdo_bgc,*) '*   c14fac       = ',c14fac
+        call pinfo_add_entry('atm_c13',     atm_c13)
+        call pinfo_add_entry('d13C_atm',    d13C_atm)
+        call pinfo_add_entry('atm_c14',     atm_c14)
+        call pinfo_add_entry('bifr13_ini',  bifr13_ini)
+        call pinfo_add_entry('bifr14_ini',  bifr14_ini)
+        call pinfo_add_entry('c14fac',      c14fac)
+        call pinfo_add_entry('prei13',      prei13)
+        call pinfo_add_entry('prei14',      prei14)
+        call pinfo_add_entry('re1312',      re1312)
+        call pinfo_add_entry('re14to',      re14to)
+        call pinfo_add_entry('c14_t_half',  c14_t_half)
+        call pinfo_add_entry('c14dec',      c14dec)
+        call pinfo_add_entry('beta13',      beta13)
+        call pinfo_add_entry('alpha14',     alpha14)
+        call pinfo_add_entry('d14cat',      d14cat)
+        call pinfo_add_entry('c14fac',      c14fac)
       endif
-      write(io_stdo_bgc,*) '*   atm_o2       = ',atm_o2
-      write(io_stdo_bgc,*) '*   atm_n2       = ',atm_n2
-      write(io_stdo_bgc,*) '*   phytomi      = ',phytomi
-      write(io_stdo_bgc,*) '*   grami        = ',grami
-      write(io_stdo_bgc,*) '*   remido       = ',remido*dtbinv
-      write(io_stdo_bgc,*) '*   dyphy        = ',dyphy*dtbinv
-      write(io_stdo_bgc,*) '*   zinges       = ',zinges
-      write(io_stdo_bgc,*) '*   epsher       = ',epsher
-      write(io_stdo_bgc,*) '*   grazra       = ',grazra*dtbinv
-      write(io_stdo_bgc,*) '*   spemor       = ',spemor*dtbinv
-      write(io_stdo_bgc,*) '*   gammap       = ',gammap*dtbinv
-      write(io_stdo_bgc,*) '*   gammaz       = ',gammaz*dtbinv
-      write(io_stdo_bgc,*) '*   ecan         = ',ecan
-      write(io_stdo_bgc,*) '*   pi_alpha     = ',pi_alpha
-      write(io_stdo_bgc,*) '*   bkphy        = ',bkphy
-      write(io_stdo_bgc,*) '*   bkzoo        = ',bkzoo
-      write(io_stdo_bgc,*) '*   bkopal       = ',bkopal
-      write(io_stdo_bgc,*) '*   wpoc_const   = ',wpoc_const*dtbinv
-      write(io_stdo_bgc,*) '*   wcal_const   = ',wcal_const*dtbinv
-      write(io_stdo_bgc,*) '*   wopal_const  = ',wopal_const*dtbinv
-      write(io_stdo_bgc,*) '*   drempoc      = ',drempoc*dtbinv
-      write(io_stdo_bgc,*) '*   dremopal     = ',dremopal*dtbinv
-      write(io_stdo_bgc,*) '*   dremn2o      = ',dremn2o*dtbinv
-      write(io_stdo_bgc,*) '*   dremsul      = ',dremsul*dtbinv
-      write(io_stdo_bgc,*) '*   bluefix      = ',bluefix*dtbinv
-      write(io_stdo_bgc,*) '*   tf0          = ',tf0
-      write(io_stdo_bgc,*) '*   tf1          = ',tf1
-      write(io_stdo_bgc,*) '*   tf2          = ',tf2
-      write(io_stdo_bgc,*) '*   tff          = ',tff
-      write(io_stdo_bgc,*) '*   ro2ut        = ',ro2ut
-      write(io_stdo_bgc,*) '*   rcar         = ',rcar
-      write(io_stdo_bgc,*) '*   rnit         = ',rnit
-      write(io_stdo_bgc,*) '*   rnoi         = ',rnoi
-      write(io_stdo_bgc,*) '*   rdnit0       = ',rdnit0
-      write(io_stdo_bgc,*) '*   rdnit1       = ',rdnit1
-      write(io_stdo_bgc,*) '*   rdnit2       = ',rdnit2
-      write(io_stdo_bgc,*) '*   rdn2o1       = ',rdn2o1
-      write(io_stdo_bgc,*) '*   rdn2o2       = ',rdn2o2
-      write(io_stdo_bgc,*) '*   rcalc        = ',rcalc
-      write(io_stdo_bgc,*) '*   ropal        = ',ropal
-      write(io_stdo_bgc,*) '*   ctochl       = ',ctochl
-      write(io_stdo_bgc,*) '*   atten_w      = ',atten_w
-      write(io_stdo_bgc,*) '*   atten_c      = ',atten_c
-      write(io_stdo_bgc,*) '*   atten_f      = ',atten_f
-      write(io_stdo_bgc,*) '*   atten_uv     = ',atten_uv
-      write(io_stdo_bgc,*) '*   fetune       = ',fetune
-      write(io_stdo_bgc,*) '*   perc_diron   = ',perc_diron
-      write(io_stdo_bgc,*) '*   riron        = ',riron
-      write(io_stdo_bgc,*) '*   fesoly       = ',fesoly
-      write(io_stdo_bgc,*) '*   relaxfe      = ',relaxfe*dtbinv
-      write(io_stdo_bgc,*) '*   dmsp1        = ',dmsp1
-      write(io_stdo_bgc,*) '*   dmsp2        = ',dmsp2
-      write(io_stdo_bgc,*) '*   dmsp3        = ',dmsp3
-      write(io_stdo_bgc,*) '*   dmsp4        = ',dmsp4
-      write(io_stdo_bgc,*) '*   dmsp5        = ',dmsp5
-      write(io_stdo_bgc,*) '*   dmsp6        = ',dmsp6
+      call pinfo_add_entry('atm_o2',      atm_o2)
+      call pinfo_add_entry('atm_n2',      atm_n2)
+      call pinfo_add_entry('phytomi',     phytomi)
+      call pinfo_add_entry('grami',       grami)
+      call pinfo_add_entry('remido',      remido*dtbinv)
+      call pinfo_add_entry('dyphy',       dyphy*dtbinv)
+      call pinfo_add_entry('zinges',      zinges)
+      call pinfo_add_entry('epsher',      epsher)
+      call pinfo_add_entry('grazra',      grazra*dtbinv)
+      call pinfo_add_entry('spemor',      spemor*dtbinv)
+      call pinfo_add_entry('gammap',      gammap*dtbinv)
+      call pinfo_add_entry('gammaz',      gammaz*dtbinv)
+      call pinfo_add_entry('ecan',        ecan)
+      call pinfo_add_entry('pi_alpha',    pi_alpha)
+      call pinfo_add_entry('bkphy',       bkphy)
+      call pinfo_add_entry('bkzoo',       bkzoo)
+      call pinfo_add_entry('bkopal',      bkopal)
+      call pinfo_add_entry('wpoc_const',  wpoc_const*dtbinv)
+      call pinfo_add_entry('wcal_const',  wcal_const*dtbinv)
+      call pinfo_add_entry('wopal_const', wopal_const*dtbinv)
+      call pinfo_add_entry('drempoc',     drempoc*dtbinv)
+      call pinfo_add_entry('dremopal',    dremopal*dtbinv)
+      call pinfo_add_entry('dremn2o',     dremn2o*dtbinv)
+      call pinfo_add_entry('dremsul',     dremsul*dtbinv)
+      call pinfo_add_entry('bluefix',     bluefix*dtbinv)
+      call pinfo_add_entry('tf0',         tf0)
+      call pinfo_add_entry('tf1',         tf1)
+      call pinfo_add_entry('tf2',         tf2)
+      call pinfo_add_entry('tff',         tff)
+      call pinfo_add_entry('ro2ut',       ro2ut)
+      call pinfo_add_entry('rcar',        rcar)
+      call pinfo_add_entry('rnit',        rnit)
+      call pinfo_add_entry('rnoi',        rnoi)
+      call pinfo_add_entry('rdnit0',      rdnit0)
+      call pinfo_add_entry('rdnit1',      rdnit1)
+      call pinfo_add_entry('rdnit2',      rdnit2)
+      call pinfo_add_entry('rdn2o1',      rdn2o1)
+      call pinfo_add_entry('rdn2o2',      rdn2o2)
+      call pinfo_add_entry('rcalc',       rcalc)
+      call pinfo_add_entry('ropal',       ropal)
+      call pinfo_add_entry('ctochl',      ctochl)
+      call pinfo_add_entry('atten_w',     atten_w)
+      call pinfo_add_entry('atten_c',     atten_c)
+      call pinfo_add_entry('atten_f',     atten_f)
+      call pinfo_add_entry('atten_uv',    atten_uv)
+      call pinfo_add_entry('fetune',      fetune)
+      call pinfo_add_entry('perc_diron',  perc_diron)
+      call pinfo_add_entry('riron',       riron)
+      call pinfo_add_entry('fesoly',      fesoly)
+      call pinfo_add_entry('relaxfe',     relaxfe*dtbinv)
+      call pinfo_add_entry('dmsp1',       dmsp1)
+      call pinfo_add_entry('dmsp2',       dmsp2*dtbinv)
+      call pinfo_add_entry('dmsp3',       dmsp3*dtbinv)
+      call pinfo_add_entry('dmsp4',       dmsp4)
+      call pinfo_add_entry('dmsp5',       dmsp5)
+      call pinfo_add_entry('dmsp6',       dmsp6)
       if (use_BROMO) then
-        write(io_stdo_bgc,*) '*   rbro         = ',rbro
-        write(io_stdo_bgc,*) '*   atm_bromo    = ',atm_bromo
-        write(io_stdo_bgc,*) '*   fbro1        = ',fbro1
-        write(io_stdo_bgc,*) '*   fbro2        = ',fbro2
+        call pinfo_add_entry('rbro',        rbro)
+        call pinfo_add_entry('atm_bromo',   atm_bromo)
+        call pinfo_add_entry('fbro1',       fbro1)
+        call pinfo_add_entry('fbro2',       fbro2)
       endif
       if (use_WLIN .and. .not. use_AGG) then
-        write(io_stdo_bgc,*) '*   wmin         = ',wmin*dtbinv
-        write(io_stdo_bgc,*) '*   wmax         = ',wmax*dtbinv
-        write(io_stdo_bgc,*) '*   wlin         = ',wlin*dtbinv
+        call pinfo_add_entry('wmin',        wmin*dtbinv)
+        call pinfo_add_entry('wmax',        wmax*dtbinv)
+        call pinfo_add_entry('wlin',        wlin*dtbinv)
       endif
       if (.not. use_AGG) then
-        write(io_stdo_bgc,*) '*   dustd1       = ',dustd1
-        write(io_stdo_bgc,*) '*   dustd2       = ',dustd2
-        write(io_stdo_bgc,*) '*   dustsink     = ',dustsink*dtbinv
-        write(io_stdo_bgc,*) '*   wdust_const  = ',wdust_const*dtbinv
+        call pinfo_add_entry('dustd1',      dustd1)
+        call pinfo_add_entry('dustd2',      dustd2)
+        call pinfo_add_entry('dustsink',    dustsink*dtbinv)
+        call pinfo_add_entry('wdust_const', wdust_const*dtbinv)
       else
         write(io_stdo_bgc,*)
         write(io_stdo_bgc,*) '********************************************'
         write(io_stdo_bgc,*) '* iHAMOCC aggregate sinking scheme:'
-        write(io_stdo_bgc,*) '*   alar1      = ',alar1
-        write(io_stdo_bgc,*) '*   alar2      = ',alar2
-        write(io_stdo_bgc,*) '*   alar3      = ',alar3
-        write(io_stdo_bgc,*) '*   alow1      = ',alow1
-        write(io_stdo_bgc,*) '*   alow2      = ',alow2
-        write(io_stdo_bgc,*) '*   alow3      = ',alow3
-        write(io_stdo_bgc,*) '*   calmax     = ',calmax
-        write(io_stdo_bgc,*) '*   cellmass   = ',cellmass
-        write(io_stdo_bgc,*) '*   cellsink   = ',cellsink
-        write(io_stdo_bgc,*) '*   dustd1     = ',dustd1
-        write(io_stdo_bgc,*) '*   dustd2     = ',dustd2
-        write(io_stdo_bgc,*) '*   dustd3     = ',dustd3
-        write(io_stdo_bgc,*) '*   fractdim   = ',fractdim
-        write(io_stdo_bgc,*) '*   fse        = ',fse
-        write(io_stdo_bgc,*) '*   fsh        = ',fsh
-        write(io_stdo_bgc,*) '*   nmldmin    = ',nmldmin
-        write(io_stdo_bgc,*) '*   plower     = ',plower
-        write(io_stdo_bgc,*) '*   pupper     = ',pupper
-        write(io_stdo_bgc,*) '*   safe       = ',safe
-        write(io_stdo_bgc,*) '*   sinkexp    = ',sinkexp
-        write(io_stdo_bgc,*) '*   stick      = ',stick
-        write(io_stdo_bgc,*) '*   tmfac      = ',tmfac
-        write(io_stdo_bgc,*) '*   tsfac      = ',tsfac
-        write(io_stdo_bgc,*) '*   vsmall     = ',vsmall
-        write(io_stdo_bgc,*) '*   zdis       = ',zdis
+        call pinfo_add_entry('alar1',       alar1)
+        call pinfo_add_entry('alar2',       alar2)
+        call pinfo_add_entry('alar3',       alar3)
+        call pinfo_add_entry('alow1',       alow1)
+        call pinfo_add_entry('alow2',       alow2)
+        call pinfo_add_entry('alow3',       alow3)
+        call pinfo_add_entry('calmax',      calmax)
+        call pinfo_add_entry('cellmass',    cellmass)
+        call pinfo_add_entry('cellsink',    cellsink)
+        call pinfo_add_entry('dustd1',      dustd1)
+        call pinfo_add_entry('dustd2',      dustd2)
+        call pinfo_add_entry('dustd3',      dustd3)
+        call pinfo_add_entry('fractdim',    fractdim)
+        call pinfo_add_entry('fse',         fse)
+        call pinfo_add_entry('fsh',         fsh)
+        call pinfo_add_entry('nmldmin',     nmldmin)
+        call pinfo_add_entry('plower',      plower)
+        call pinfo_add_entry('pupper',      pupper)
+        call pinfo_add_entry('safe',        safe)
+        call pinfo_add_entry('sinkexp',     sinkexp)
+        call pinfo_add_entry('stick',       stick)
+        call pinfo_add_entry('tmfac',       tmfac)
+        call pinfo_add_entry('tsfac',       tsfac)
+        call pinfo_add_entry('vsmall',      vsmall)
+        call pinfo_add_entry('zdis',        zdis)
         write(io_stdo_bgc,*) '* Maximum sinking speed for aggregates of '
         write(io_stdo_bgc,*) '* maximum size ', alar1, ' cm is '
         write(io_stdo_bgc,*)   cellsink/dtb*(alar1/alow1)**SinkExp, ' m/day'
-        write(io_stdo_bgc,*) '* dust diameter (cm)', dustd1
-        write(io_stdo_bgc,*) '* dust sinking speed (m/d)', dustsink / dtb
+        call pinfo_add_entry('dust diameter (cm)',       dustd1)
+        call pinfo_add_entry('dust sinking speed (m/d)', dustsink / dtb)
       endif
       write(io_stdo_bgc,*)
       write(io_stdo_bgc,*) '********************************************'
       write(io_stdo_bgc,*) '* Values of MO_PARAM_BGC sediment variables : '
-      write(io_stdo_bgc,*) '*   sedict       = ',sedict      * dtbgcinv
-      write(io_stdo_bgc,*) '*   disso_poc    = ',disso_poc   * dtbgcinv
-      write(io_stdo_bgc,*) '*   disso_sil    = ',disso_sil   * dtbgcinv
-      write(io_stdo_bgc,*) '*   disso_caco3  = ',disso_caco3 * dtbgcinv
-      write(io_stdo_bgc,*) '*   sed_denit    = ',sed_denit   * dtbgcinv
-      write(io_stdo_bgc,*) '*   silsat       = ',silsat
-      write(io_stdo_bgc,*) '*   orgwei       = ',orgwei
-      write(io_stdo_bgc,*) '*   opalwei      = ',opalwei
-      write(io_stdo_bgc,*) '*   calcwei      = ',calcwei
-      write(io_stdo_bgc,*) '*   orgdens      = ',orgdens
-      write(io_stdo_bgc,*) '*   opaldens     = ',opaldens
-      write(io_stdo_bgc,*) '*   calcdens     = ',calcdens
-      write(io_stdo_bgc,*) '*   claydens     = ',claydens
+      call pinfo_add_entry('sedict',      sedict      * dtbgcinv)
+      call pinfo_add_entry('disso_poc',   disso_poc   * dtbgcinv)
+      call pinfo_add_entry('disso_sil',   disso_sil   * dtbgcinv)
+      call pinfo_add_entry('disso_caco3', disso_caco3 * dtbgcinv)
+      call pinfo_add_entry('sed_denit',   sed_denit   * dtbgcinv)
+      call pinfo_add_entry('silsat',      silsat)
+      call pinfo_add_entry('orgwei',      orgwei)
+      call pinfo_add_entry('opalwei',     opalwei)
+      call pinfo_add_entry('calcwei',     calcwei)
+      call pinfo_add_entry('orgdens',     orgdens)
+      call pinfo_add_entry('opaldens',    opaldens)
+      call pinfo_add_entry('calcdens',    calcdens)
+      call pinfo_add_entry('claydens',    claydens)
     endif
 
   end subroutine write_parambgc
+
+  subroutine cinfo_add_entry(controlname,controlval)
+    character(len=*), intent(in)  :: controlname
+    logical,          intent(in)  :: controlval
+
+    ! local:
+    type(ctrinfo),    allocatable :: temp(:)
+    integer :: sw
+
+    if (controlval) then
+      sw = 1
+    else
+      sw = 0
+    endif
+
+    !Write to log-file
+    write(io_stdo_bgc,*) '*   ',controlname,'     = ',controlval
+
+    if (centries==0) then
+      allocate(controls4nc(1))
+      controls4nc(1)%cname  = controlname
+      controls4nc(1)%cvalue = sw
+      centries = centries + 1
+    else
+      allocate(temp(centries+1))
+      temp(1:centries) = controls4nc
+      call move_alloc(temp,controls4nc)
+
+      centries = centries + 1
+      controls4nc(centries)%cname  = controlname
+      controls4nc(centries)%cvalue = sw
+    endif
+  end subroutine
+
+  subroutine pinfo_add_entry(parname,parvalue)
+    character(len=*), intent(in)  :: parname
+    real,             intent(in)  :: parvalue
+
+    ! local:
+    type(pinfo),      allocatable :: temp(:)
+
+    ! write to logfile:
+    write(io_stdo_bgc,*) '*   ',parname,'     = ',parvalue
+
+    if (nentries==0) then
+      allocate(param4nc(1))
+      param4nc(1)%pname  = parname
+      param4nc(1)%pvalue = parvalue
+      nentries = nentries + 1
+    else
+      allocate(temp(nentries+1))
+      temp(1:nentries) = param4nc
+      call move_alloc(temp,param4nc)
+
+      nentries =nentries + 1
+      param4nc(nentries)%pname  = parname
+      param4nc(nentries)%pvalue = parvalue
+    endif
+  end subroutine
 
 end module mo_param_bgc
