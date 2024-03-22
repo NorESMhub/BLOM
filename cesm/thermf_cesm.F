@@ -422,7 +422,8 @@ c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            trflx(nt,i,j)=-(trflx(nt,i,j)+trflxc)*L_mks2cgs
+            trflx(nt,i,j)=-(trflx(nt,i,j)+trflxc)
+     .                     *(kg2g*(M_mks2cgs/L_mks2cgs**2))
           enddo
           enddo
         enddo
