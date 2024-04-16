@@ -1097,7 +1097,10 @@
     <group>diffusion</group>
     <values>
       <value>unset</value>
-      <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/topo_beta_tnx1v4_20170622_python_coarse_nc64bitoffset.nc</value>
+      <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/topo_beta_tnx2v1_20130206_depth_python_SYNBATH_V1.1_3minute_filt_max100km_nc64bitoffset.nc</value>
+      <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/topo_beta_tnx1v4_20170622_depth_python_SYNBATH_V1.1_3minute_filt_max100km_nc64bitoffset.nc</value>
+      <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/topo_beta_tnx0.125v4_20221013_depth_python_SYNBATH_V1.1_3minute_filt_max100km_nc64bitoffset.nc</value>
+      <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/topo_beta_tnx0.125v4_20221013_depth_python_SYNBATH_V1.1_3minute_filt_max100km_nc64bitoffset.nc</value>
     </values>
     <desc>Name of file containing topographic beta parameter (a)Name of file containing topographic beta parameter</desc>
   </entry>
