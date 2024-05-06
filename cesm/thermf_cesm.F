@@ -38,7 +38,8 @@ c
      .                       swa, nsf, hmltfz, lip, sop, eva, rnf, rfi,
      .                       fmltfz, sfl, ustarw, surflx, surrlx,
      .                       sswflx, salflx, brnflx, salrlx, ustar,
-     .                       t_rs_nonloc, s_rs_nonloc
+     .                       t_rs_nonloc, s_rs_nonloc,
+     .                       sss_stream, srxday_stream, trxday_stream
       use mod_cesm, only: hmlt, frzpot, mltpot
       use mod_utility, only: util1, util2, util3, util4
       use mod_checksum, only: csdiag, chksummsk
@@ -65,6 +66,7 @@ c
       real y,dpotl,hotl,totl,sotl,tice_f,fwflx,sstc,rice,dpmxl,hmxl,
      .     tmxl,trxflx,pbot,dprsi,sssc,smxl,srxflx,totsfl,totwfl,sflxc,
      .     totsrp,totsrn,qp,qn,A_cgs2mks
+      real srxday_day, trxday_day
 #ifdef TRC
       integer nt
       real, dimension(ntr,1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
@@ -269,16 +271,24 @@ c
           salrlx(i,j)=0.
 c
 c --- --- if  srxday>0 , apply relaxation towards observed sss
-          if (srxday.gt.epsilt) then
-            sssc=intp1d(sssclm(i,j,l1mi),sssclm(i,j,l2mi),
-     .                  sssclm(i,j,l3mi),sssclm(i,j,l4mi),
-     .                  sssclm(i,j,l5mi),xmi)
+          if (srxday > epsilt .or. srxday_stream > epsilt ) then
+
+            ! calculate sssc(i,j)
+            if (srxday > epsilt) then
+              sssc=intp1d(sssclm(i,j,l1mi),sssclm(i,j,l2mi),
+     .                    sssclm(i,j,l3mi),sssclm(i,j,l4mi),
+     .                    sssclm(i,j,l5mi),xmi)
+              srxday_day = srxday * 86400.
+            else
+              sssc= sss_stream(i,j)
+              srxday_day = srxday_stream * 86400.
+            end if
             if (vcoord_type_tag == isopyc_bulkml) then
               dpmxl=dp(i,j,1+nn)+dp(i,j,2+nn)
               hmxl=dpmxl/onem
               smxl=(saln(i,j,1+nn)*dp(i,j,1+nn)
      .             +saln(i,j,2+nn)*dp(i,j,2+nn))/dpmxl
-              srxflx=L_mks2cgs*min(hmxl,srxdpt)/(srxday*86400.)
+              srxflx=L_mks2cgs*min(hmxl,srxdpt)/(srxday_day)
      .               *min(srxlim,max(-srxlim,sssc-smxl))/alpha0
             else
               pbot=p(i,j,1)
@@ -303,7 +313,7 @@ c --- --- if  srxday>0 , apply relaxation towards observed sss
               do kl=k,kk
                 s_rs_nonloc(i,j,kl+1)=0.
               enddo
-              srxflx=L_mks2cgs*srxdpt/(srxday*86400.)
+              srxflx=L_mks2cgs*srxdpt/(srxday_day)
      .               *min(srxlim,max(-srxlim,sssc-smxl))/alpha0
             endif
             salrlx(i,j)=-srxflx
@@ -428,7 +438,7 @@ c$OMP PARALLEL DO PRIVATE(l,i)
           enddo
         enddo
 c$OMP END PARALLEL DO
-c 
+c
       enddo
 #endif
 c
