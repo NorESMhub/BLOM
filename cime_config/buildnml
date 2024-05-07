@@ -244,7 +244,7 @@ def buildnml(case, caseroot, compname):
         namelist_file += inst_string
 
         # Create BLOM namelist
-        groups=['limits','diffusion','merdia','secdia','diaphy']
+        groups=['limits','diffusion','merdia','secdia','diaphy','stream_sss']
 
         groups.append('cwmod')
 
@@ -261,14 +261,14 @@ def buildnml(case, caseroot, compname):
         if "ecosys" in case.get_value("BLOM_TRACER_MODULES"):
              groups.append("bgcparams")
              """
-             !!! The following line deletes all entries for group 'bgcparams' 
-             !!! that are ONLY present in namelist_definition_blom.xml 
+             !!! The following line deletes all entries for group 'bgcparams'
+             !!! that are ONLY present in namelist_definition_blom.xml
              !!! and keeps entries provided through user_nl_blom
              !!! This makes sure that i) only Fortran-hard coded values from mo_param_bgc.F90
              !!! are used and that ii) user_nl_blom enables tuning these default parameters.
-             !!! Note that an entry in namelist_definition_blom.xml for the tuning parameter 
-             !!! is still required, while its value can be set to None. 
-             !!! This is an interim solution and the line below can be simply deleted, once 
+             !!! Note that an entry in namelist_definition_blom.xml for the tuning parameter
+             !!! is still required, while its value can be set to None.
+             !!! This is an interim solution and the line below can be simply deleted, once
              !!! xml is used as default for the bgcparams namelist as well.
              """
              pg_blom.keep_usernml_only('bgcparams')

@@ -20,13 +20,11 @@ module ocn_stream_sss
    implicit none
    private
 
-   include 'mpif.h'
-
    public :: ocn_stream_sss_init      ! position datasets for dynamic sss
    public :: ocn_stream_sss_interp    ! interpolates between two years of sss file data
 
    type(shr_strdata_type) :: sdat_sss                      ! input data stream
-   character(len=CS)      :: stream_varlist_sss(1)
+   character(len=CS)      :: stream_sss_varname
 
    character(len=*), parameter :: sourcefile = &
         __FILE__
@@ -51,9 +49,9 @@ contains
       ! local variables
       integer                 :: nu_nml                ! unit for namelist file
       integer                 :: nml_error             ! namelist i/o error flag
+      character(len=CL)       :: filein                ! ocn namelist file
       character(len=CL)       :: stream_sss_data_filename
       character(len=CL)       :: stream_sss_mesh_filename
-      character(len=CL)       :: filein                ! ocn namelist file
       integer                 :: stream_sss_year_first ! first year in stream to use
       integer                 :: stream_sss_year_last  ! last year in stream to use
       integer                 :: stream_sss_year_align ! align stream_year_firstsss with
@@ -61,9 +59,10 @@ contains
       character(*), parameter :: subName = "('stream_sss_init')"
       !-----------------------------------------------------------------------
 
-      namelist /sss_stream_nl/      &
+      namelist /stream_sss/          &
            stream_sss_data_filename, &
            stream_sss_mesh_filename, &
+           stream_sss_varname,       &
            stream_sss_year_first,    &
            stream_sss_year_last,     &
            stream_sss_year_align
@@ -77,52 +76,38 @@ contains
       stream_sss_year_last     = 1 ! last  year in stream to use
       stream_sss_year_align    = 1 ! align stream_sss_year_first with this model year
 
-      ! For now variable list in stream data file is hard-wired
-      stream_varlist_sss = (/'sss'/)
-      stream_sss_mesh_filename = &
-           "/cluster/shared/noresm/inputdata/share/meshes/tnx1v4_20170601_cdf5_ESMFmesh.nc"
-      !stream_sss_data_filename = &
-      !    "/nird/datalake/NS9560K/adagj/blom_sss_daily/sss.NCO2x4_f19_tn14_20190624.blom.hd.0001.nc"
-      ! stream_sss_data_filename = &
-      !      "/cluster/work/users/mvertens/noresm/blom_sss_stream/run/sss_climatology_N1850_f19_tn14_20190621_1600-1699_cdf5.nc"
-      stream_sss_data_filename = &
-           "/cluster/work/users/mvertens/noresm/blom_sss_stream/run/sss.NCO2x4_f19_tn14_20190624.blom.hd.0001_cdf5.nc"
+      ! Read stream_sss namelist
+      if (mnproc == 1) then
+         filein = "ocn_in"
+         open( newunit=nu_nml, file=trim(filein), status='old', iostat=nml_error )
+         if (nml_error /= 0) then
+            call shr_sys_abort(subName//': ERROR opening '//trim(filein)//errMsg(sourcefile, __LINE__))
+         end if
+         call shr_nl_find_group_name(nu_nml, 'stream_sss', status=nml_error)
+         if (nml_error == 0) then
+            read(nu_nml, nml=stream_sss, iostat=nml_error)
+            if (nml_error /= 0) then
+               call shr_sys_abort(' ERROR reading stream_sss namelist'//errMsg(sourcefile, __LINE__))
+            end if
+         else
+            call shr_sys_abort(' ERROR finding stream_sss namelist'//errMsg(sourcefile, __LINE__))
+         end if
+         close(nu_nml)
+      endif
 
-      ! Read sss_stream namelist
-      ! if (mnproc == 1) then
-      !    filein = "ocn_in"
-      !    open( newunit=nu_nml, file=trim(filein), status='old', iostat=nml_error )
-      !    if (nml_error /= 0) then
-      !       call shr_sys_abort(subName//': ERROR opening '//trim(filein)//errMsg(sourcefile, __LINE__))
-      !    end if
-      !    call shr_nl_find_group_name(nu_nml, 'sss_stream_nl', status=nml_error)
-      !    if (nml_error == 0) then
-      !       read(nu_nml, nml=sss_stream_nl, iostat=nml_error)
-      !       if (nml_error /= 0) then
-      !          call shr_sys_abort(' ERROR reading sss_stream_nl namelist'//errMsg(sourcefile, __LINE__))
-      !       end if
-      !    else
-      !       call shr_sys_abort(' ERROR finding sss_stream_nl namelist'//errMsg(sourcefile, __LINE__))
-      !    end if
-      !    close(nu_nml)
-      ! endif
-      ! call mpi_bcast(stream_sss_mesh_filename, len(stream_sss_mesh_filename), mpi_character, 0, mpicom, ierr)
-      ! if (ierr /= 0) call endrun(trim(subname)//": FATAL: mpi_bcast: stream_sss_mesh_filename")
-      ! call mpi_bcast(stream_sss_data_filename, len(stream_sss_data_filename), mpi_character, 0, mpicom, ierr)
-      ! if (ierr /= 0) call endrun(trim(subname)//": FATAL: mpi_bcast: stream_sss_data_filename")
-      ! call mpi_bcast(stream_sss_year_first, 1, mpi_integer, 0, mpicom, ierr)
-      ! if (ierr /= 0) call endrun(trim(subname)//": FATAL: mpi_bcast: stream_sss_year_first")
-      ! call mpi_bcast(stream_sss_year_last, 1, mpi_integer, 0, mpicom, ierr)
-      ! if (ierr /= 0) call endrun(trim(subname)//": FATAL: mpi_bcast: stream_sss_year_last")
-      ! call mpi_bcast(stream_sss_year_align, 1, mpi_integer, 0, mpicom, ierr)
-      ! if (ierr /= 0) call endrun(trim(subname)//": FATAL: mpi_bcast: stream_sss_year_align")
+      call xcbcst(stream_sss_mesh_filename)
+      call xcbcst(stream_sss_data_filename)
+      call xcbcst(stream_sss_varname)
+      call xcbcst(stream_sss_year_first)
+      call xcbcst(stream_sss_year_last)
+      call xcbcst(stream_sss_year_align)
 
       if (mnproc == 1) then
          write(lp,'(a)'   ) ' '
          write(lp,'(a,i8)')  'stream sss settings:'
          write(lp,'(a,a)' )  '  stream_sss_data_filename = ',trim(stream_sss_data_filename)
          write(lp,'(a,a)' )  '  stream_sss_mesh_filename = ',trim(stream_sss_mesh_filename)
-         write(lp,'(a,a,a)') '  stream_varlist_sss       = ',trim(stream_varlist_sss(1))
+         write(lp,'(a,a,a)') '  stream_sss_varname       = ',trim(stream_sss_varname)
          write(lp,'(a,i8)')  '  stream_sss_year_first    = ',stream_sss_year_first
          write(lp,'(a,i8)')  '  stream_sss_year_last     = ',stream_sss_year_last
          write(lp,'(a,i8)')  '  stream_sss_year_align    = ',stream_sss_year_align
@@ -141,8 +126,8 @@ contains
            stream_yearFirst    = stream_sss_year_first,              &
            stream_yearLast     = stream_sss_year_last,               &
            stream_yearAlign    = stream_sss_year_align,              &
-           stream_fldlistFile  = stream_varlist_sss,                 &
-           stream_fldListModel = stream_varlist_sss,                 &
+           stream_fldlistFile  = (/trim(stream_sss_varname)/),       &
+           stream_fldlistModel = (/trim(stream_sss_varname)/),       &
            stream_lev_dimname  = 'null',                             &
            stream_mapalgo      = 'bilinear',                         &
            stream_offset       = 0,                                  &
@@ -218,7 +203,7 @@ contains
       end if
 
       ! Get pointer for stream data that is time and spatially interpolated to model time and grid
-      call dshr_fldbun_getFldPtr(sdat_sss%pstrm(1)%fldbun_model, stream_varlist_sss(1), fldptr1=dataptr, rc=rc)
+      call dshr_fldbun_getFldPtr(sdat_sss%pstrm(1)%fldbun_model, stream_sss_varname, fldptr1=dataptr, rc=rc)
       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) then
          call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end if
