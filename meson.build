@@ -68,6 +68,10 @@ if get_option('iage') or get_option('turbclo').length() > 0 or get_option('ecosy
   subdir('trc')
 endif
 
+if get_option('atrc')
+  add_project_arguments('-DATRC', language: 'fortran')
+endif
+
 if get_option('turbclo').length() > 0
   if not (get_option('turbclo').contains('oneeq') or get_option('turbclo').contains('twoeq'))
     error('For turbulent closure, either twoeq or oneeq must be provided as options!')

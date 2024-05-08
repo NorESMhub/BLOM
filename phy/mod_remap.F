@@ -27,7 +27,7 @@ c
       use mod_types, only: r8
       use mod_xc
 #ifdef TRC
-      use mod_tracers, only: ntr, itrtke, itrgls
+      use mod_tracers, only: ntr, natr, itrtke, itrgls
 #endif
 c
       implicit none

@@ -16,6 +16,7 @@ set OCN_NCPL = `./xmlquery OCN_NCPL --value`
 set BLOM_COUPLING = `./xmlquery BLOM_COUPLING --value`
 set RUNDIR = `./xmlquery  RUNDIR --value`
 set BLOM_TRACER_MODULES = `./xmlquery BLOM_TRACER_MODULES --value`
+set BLOM_ATRC = `./xmlquery BLOM_ATRC --value`
 set BLOM_TURBULENT_CLOSURE = `./xmlquery BLOM_TURBULENT_CLOSURE --value`
 set HAMOCC_CFC = `./xmlquery HAMOCC_CFC --value`
 set HAMOCC_NATTRC = `./xmlquery HAMOCC_NATTRC --value`
@@ -46,6 +47,7 @@ EOF1
 
 set turbclo = (`echo $BLOM_TURBULENT_CLOSURE`)
 set tracers = (`echo $BLOM_TRACER_MODULES`)
+set atrc = (`echo $BLOM_ATRC`)
 set co2type = (`echo $OCN_CO2_TYPE`)
 
 set cpp_ocn = "-DMPI"
@@ -124,6 +126,9 @@ if ($#tracers != 0) then
       exit -1
     endif
   end
+  if ($atrc == TRUE ) then
+    set cpp_ocn = "$cpp_ocn -DATRC"
+  endif
 endif
 
 #------------------------------------------------------------------------------
