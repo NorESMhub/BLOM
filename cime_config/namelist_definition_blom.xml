@@ -6706,7 +6706,7 @@
     </values>
   </entry>
   <entry id="stream_sss_data_filename">
-    <type>char</type>
+    <type>char(10)</type>
     <category>stream_sss</category>
     <group>stream_sss</group>
     <desc>
@@ -6762,6 +6762,73 @@
     </values>
   </entry>
 
+  <!-- =========================  -->
+  <!-- namelist group: stream_sst -->
+  <!-- =========================  -->
 
+  <entry id="stream_sst_mesh_filename">
+    <type>char</type>
+    <category>stream_sst</category>
+    <group>stream_sst</group>
+    <desc>stream mesh file</desc>
+    <values>
+      <value>$DIN_LOC_ROOT/atm/cam/sst/sst_HadOIBl_bc_1x1_clim_c101029_ESMFmesh_120520.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_sst_data_filename">
+    <type>char(10)</type>
+    <category>stream_sst</category>
+    <group>stream_sst</group>
+    <desc>
+      file name(s) containing sst relaxation data
+    </desc>
+    <values>
+      <value>$DIN_LOC_ROOT/atm/cam/sst/sst_HadOIBl_bc_1x1_1850_2017_c180507_cdf5.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_sst_varname">
+    <type>char(2)</type>
+    <category>stream_sst</category>
+    <group>stream_sst</group>
+    <desc>
+      variable name on stream file
+    </desc>
+    <values>
+      <value>SST_cpl, ice_cov</value>
+    </values>
+  </entry>
+  <entry id="stream_sst_year_first">
+    <type>integer</type>
+    <category>stream_sst</category>
+    <group>stream_sst</group>
+    <desc>
+      First year in stream to use
+    </desc>
+    <values>
+      <value>1850</value>
+    </values>
+  </entry>
+  <entry id="stream_sst_year_last">
+    <type>integer</type>
+    <category>stream_sst</category>
+    <group>stream_sst</group>
+    <desc>
+      Last year in stream to use
+    </desc>
+    <values>
+      <value>1850</value>
+    </values>
+  </entry>
+  <entry id="stream_sst_year_align">
+    <type>integer</type>
+    <category>stream_sst</category>
+    <group>stream_sst</group>
+    <desc>
+      Align stream_year_first with this model year
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
 
 </entry_id_pg>

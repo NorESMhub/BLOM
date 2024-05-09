@@ -97,6 +97,7 @@ module mod_forcing
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
       sst_stream, &    ! Sea-surface temperature [deg C] from stream data.
+      ice_stream, &    ! Sea-ice concentration [] from stream data.
       sss_stream       ! Sea-surface salinity [g kg-1] from stream data.
 
    ! Variables related to balancing the freshwater forcing budget.
@@ -174,7 +175,7 @@ module mod_forcing
              surflx, surrlx, sswflx, salflx, brnflx, salrlx, taux, tauy, &
              ustar, ustarb, ustar3, buoyfl, t_sw_nonloc, t_rs_nonloc, &
              s_br_nonloc, s_rs_nonloc, inivar_forcing, fwbbal, &
-             trxday_stream, srxday_stream, sss_stream, sst_stream
+             trxday_stream, srxday_stream, sss_stream, sst_stream, ice_stream
 
 contains
 

@@ -6,10 +6,9 @@ module ocn_stream_sss
    ! interpolation.
    !-----------------------------------------------------------------------
    !
-   use ESMF
-   ! use ESMF              , only : ESMF_Clock, ESMF_Mesh, ESMF_Time, ESMF_ClockGet, ESMF_TimeGet
-   ! use ESMF              , only : ESMF_SUCCESS, ESMF_LOGERR_PASSTHRU, ESMF_END_ABORT
-   ! use ESMF              , only : ESMF_Finalize, ESMF_LogFoundError
+   use ESMF              , only : ESMF_Clock, ESMF_Mesh, ESMF_Time, ESMF_ClockGet, ESMF_TimeGet
+   use ESMF              , only : ESMF_SUCCESS, ESMF_LOGERR_PASSTHRU, ESMF_END_ABORT
+   use ESMF              , only : ESMF_Finalize, ESMF_LogFoundError
    use nuopc_shr_methods , only : chkerr
    use dshr_strdata_mod  , only : shr_strdata_type
    use shr_kind_mod      , only : r8 => shr_kind_r8, CL => shr_kind_cl, CS => shr_kind_cs
@@ -23,9 +22,10 @@ module ocn_stream_sss
    public :: ocn_stream_sss_init      ! position datasets for dynamic sss
    public :: ocn_stream_sss_interp    ! interpolates between two years of sss file data
 
-   type(shr_strdata_type) :: sdat_sss                      ! input data stream
+   type(shr_strdata_type) :: sdat_sss ! input data stream
    character(len=CS)      :: stream_sss_varname
 
+   integer, parameter :: nfiles_max = 100  ! maximum number of stream files
    character(len=*), parameter :: sourcefile = &
         __FILE__
 
@@ -47,30 +47,43 @@ contains
       integer         , intent(out) :: rc
 
       ! local variables
-      integer                 :: nu_nml                ! unit for namelist file
-      integer                 :: nml_error             ! namelist i/o error flag
-      character(len=CL)       :: filein                ! ocn namelist file
-      character(len=CL)       :: stream_sss_data_filename
-      character(len=CL)       :: stream_sss_mesh_filename
-      integer                 :: stream_sss_year_first ! first year in stream to use
-      integer                 :: stream_sss_year_last  ! last year in stream to use
-      integer                 :: stream_sss_year_align ! align stream_year_firstsss with
-      integer                 :: ierr
-      character(*), parameter :: subName = "('stream_sss_init')"
+      integer                        :: nu_nml                ! unit for namelist file
+      integer                        :: nml_error             ! namelist i/o error flag
+      integer                        :: ierr                  ! error status
+      character(len=CL)              :: filein                ! ocn namelist file
+      integer                        :: stream_sss_year_first ! first year in stream to use
+      integer                        :: stream_sss_year_last  ! last year in stream to use
+      integer                        :: stream_sss_year_align ! align stream_year_firstsss with
+      character(len=CL)              :: stream_sss_mesh_filename
+      character(len=CL), allocatable :: stream_sss_data_filenames(:)
+      character(len=CL), allocatable :: stream_filenames(:)
+      character(len=4)               :: tmpchar
+      integer                        :: nfiles
+      integer                        :: nf
+      integer                        :: errstat
+      character(*), parameter :: subName = "('ocn_stream_sss_init')"
       !-----------------------------------------------------------------------
 
-      namelist /stream_sss/          &
-           stream_sss_data_filename, &
-           stream_sss_mesh_filename, &
-           stream_sss_varname,       &
-           stream_sss_year_first,    &
-           stream_sss_year_last,     &
+      namelist /stream_sss/           &
+           stream_sss_data_filenames, &
+           stream_sss_mesh_filename,  &
+           stream_sss_varname,        &
+           stream_sss_year_first,     &
+           stream_sss_year_last,      &
            stream_sss_year_align
 
       rc = ESMF_SUCCESS
 
       ! Default values for namelist
-      stream_sss_data_filename = ' '
+      allocate(stream_sss_data_filenames(nfiles_max), stat=errstat)
+      if (errstat /= 0) then
+         write(lp,*) 'Failed to allocate stream_sss_data_filenames'
+         if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) then
+            call ESMF_Finalize(endflag=ESMF_END_ABORT)
+         end if
+      end if
+
+      stream_sss_data_filenames(:) = ' '
       stream_sss_mesh_filename = ' '
       stream_sss_year_first    = 1 ! first year in stream to use
       stream_sss_year_last     = 1 ! last  year in stream to use
@@ -95,8 +108,26 @@ contains
          close(nu_nml)
       endif
 
-      call xcbcst(stream_sss_mesh_filename)
-      call xcbcst(stream_sss_data_filename)
+      ! Determine the actual number of stream files that will be used
+      nfiles=1
+      do nf = 1,nfiles_max
+         if (stream_sss_data_filenames(nf) == '') then
+            exit
+         else
+            nfiles = nfiles + 1
+         end if
+      end do
+      allocate(stream_filenames(nfiles), stat=errstat)
+      if (errstat /= 0) then
+         write(lp,*) 'Failed to allocate stream_filenames'
+         if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) then
+            call ESMF_Finalize(endflag=ESMF_END_ABORT)
+         end if
+      end if
+
+      do nf = 1,nfiles
+         call xcbcst(stream_filenames(nf))
+      end do
       call xcbcst(stream_sss_varname)
       call xcbcst(stream_sss_year_first)
       call xcbcst(stream_sss_year_last)
@@ -105,7 +136,10 @@ contains
       if (mnproc == 1) then
          write(lp,'(a)'   ) ' '
          write(lp,'(a,i8)')  'stream sss settings:'
-         write(lp,'(a,a)' )  '  stream_sss_data_filename = ',trim(stream_sss_data_filename)
+         do nf = 1,nfiles
+            write(tmpchar,'(a)') nf
+            write(lp,'(a,a)' )  '  stream_sss_data_filename('//trim(tmpchar)//') = ',trim(stream_filenames(nf))
+         end do
          write(lp,'(a,a)' )  '  stream_sss_mesh_filename = ',trim(stream_sss_mesh_filename)
          write(lp,'(a,a,a)') '  stream_sss_varname       = ',trim(stream_sss_varname)
          write(lp,'(a,i8)')  '  stream_sss_year_first    = ',stream_sss_year_first
@@ -122,7 +156,7 @@ contains
            model_clock         = model_clock,                        &
            model_mesh          = model_mesh,                         &
            stream_meshfile     = trim(stream_sss_mesh_filename),     &
-           stream_filenames    = (/trim(stream_sss_data_filename)/), &
+           stream_filenames    = stream_filenames,                   &
            stream_yearFirst    = stream_sss_year_first,              &
            stream_yearLast     = stream_sss_year_last,               &
            stream_yearAlign    = stream_sss_year_align,              &
@@ -166,11 +200,6 @@ contains
       real(r8), pointer   :: dataptr(:)
       real(r8), parameter :: mval = -1.e12_r8
       real(r8), parameter :: fval = -1.e13_r8
-      !
-      ! integer                         :: fieldCount
-      ! character(ESMF_MAXSTR) ,pointer :: lfieldnamelist(:)
-      ! integer                         :: fieldnum
-      ! character(ESMF_MAXSTR)          :: fieldname
       !-----------------------------------------------------------------------
 
       ! Advance sdat stream
@@ -183,19 +212,6 @@ contains
          call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end if
       mcdate = year*10000 + mon*100 + day
-
-      ! call ESMF_FieldBundleGet(sdat_sss%pstrm(1)%fldbun_model, fieldCount=fieldCount, rc=rc)
-      ! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) then
-      !    call ESMF_Finalize(endflag=ESMF_END_ABORT)
-      ! end if
-      ! allocate(lfieldnamelist(fieldCount))
-      ! call ESMF_FieldBundleGet(sdat_sss%pstrm(1)%fldbun_model, fieldNameList=lfieldnamelist, rc=rc)
-      ! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) then
-      !    call ESMF_Finalize(endflag=ESMF_END_ABORT)
-      ! end if
-      ! write(6,*)'DEBUG: fieldcount= ',fieldcount
-      ! write(6,*)'DEBUG: lfieldnamelist = ',trim(lfieldnamelist(1))
-      ! deallocate(lfieldnamelist)
 
       call shr_strdata_advance(sdat_sss, ymd=mcdate, tod=sec, logunit=lp, istr='sssdyn', rc=rc)
       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) then

@@ -244,7 +244,7 @@ def buildnml(case, caseroot, compname):
         namelist_file += inst_string
 
         # Create BLOM namelist
-        groups=['limits','diffusion','merdia','secdia','diaphy','stream_sss']
+        groups=['limits','diffusion','merdia','secdia','diaphy','stream_sss','stream_sst' ]
 
         groups.append('cwmod')
 
