@@ -51,9 +51,10 @@ module ocn_comp_nuopc
    use mod_cesm, only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
    use mod_config, only: inst_index, inst_name, inst_suffix
    use mod_time, only: blom_time
-   use mod_forcing, only : trxday_stream, srxday_stream, trxday, srxday
+   use mod_forcing, only : srxday, trxday
    use mod_constants, only : epsilt
    use ocn_stream_sss, only : ocn_stream_sss_init, ocn_stream_sss_interp
+   use ocn_stream_sst, only : ocn_stream_sst_init, ocn_stream_sst_interp
 
    implicit none
 
@@ -675,15 +676,14 @@ contains
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
 
       ! Initialize sdat for relaxation to sss if appropriate
-
-      if (srxday_stream > epsilt) then
-         if (srxday > epsilt) then
-            write(lp,'(a)') subname// ': BLOM ERROR: both srxday_stream and srxday cannot both be > 0'
-            if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) then
-               call ESMF_Finalize(endflag=ESMF_END_ABORT)
-            end if
-         end if
+      if (srxday > epsilt) then
          call ocn_stream_sss_init(Emesh, clock, rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      end if
+
+      ! Initialize sdat for relaxation to sst/ice if appropriate
+      if (trxday > epsilt) then
+         call ocn_stream_sst_init(Emesh, clock, rc)
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
       end if
 
@@ -840,8 +840,12 @@ contains
          endif
 
          ! Advance sss stream relaxation if needed
-         if (srxday_stream > epsilt) then
+         if (srxday > epsilt) then
             call ocn_stream_sss_interp(clock, rc)
+            if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         end if
+         if (trxday > epsilt) then
+            call ocn_stream_sst_interp(clock, rc)
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
          end if
 

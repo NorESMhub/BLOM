@@ -538,28 +538,6 @@
     <desc>e-folding time scale (days) for SSS relax., if 0 no relax. (f)</desc>
   </entry>
 
-  <entry id="trxday_stream">
-    <type>real</type>
-    <category>limits</category>
-    <group>limits</group>
-    <values>
-      <value>0.</value>
-    </values>
-    <desc>e-folding time scale (days) for SST relax. from stream data, if 0 no relax. (f)</desc>
-  </entry>
-
-  <entry id="srxday_stream">
-    <type>real</type>
-    <category>limits</category>
-    <group>limits</group>
-    <values>
-      <value>0.</value>
-      <value blom_coupling="partial">60.</value>
-      <value blom_coupling="partial" blom_vcoord="isopyc_bulkml">6.</value>
-    </values>
-    <desc>e-folding time scale (days) for SSS relax. from stream data, if 0 no relax. (f)</desc>
-  </entry>
-
   <entry id="trxdpt">
     <type>real</type>
     <category>limits</category>

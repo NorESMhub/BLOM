@@ -1,8 +1,8 @@
-module ocn_stream_sss
+module ocn_stream_sst
 
    !-----------------------------------------------------------------------
    ! Contains methods for reading in nitrogen deposition data file
-   ! Also includes functions for dynamic sss file handling and
+   ! Also includes functions for dynamic sst file handling and
    ! interpolation.
    !-----------------------------------------------------------------------
    !
@@ -19,11 +19,11 @@ module ocn_stream_sss
    implicit none
    private
 
-   public :: ocn_stream_sss_init      ! position datasets for dynamic sss
-   public :: ocn_stream_sss_interp    ! interpolates between two years of sss file data
+   public :: ocn_stream_sst_init      ! position datasets for dynamic sst
+   public :: ocn_stream_sst_interp    ! interpolates between two years of sst file data
 
-   type(shr_strdata_type) :: sdat_sss ! input data stream
-   character(len=CS)      :: stream_sss_varname
+   type(shr_strdata_type) :: sdat_sst ! input data stream
+   character(len=CS)      :: stream_sst_varname(2)
 
    integer, parameter :: nfiles_max = 100  ! maximum number of stream files
    character(len=*), parameter :: sourcefile = &
@@ -33,7 +33,7 @@ module ocn_stream_sss
 contains
 !==============================================================================
 
-   subroutine ocn_stream_sss_init(model_mesh, model_clock, rc)
+   subroutine ocn_stream_sst_init(model_mesh, model_clock, rc)
       !
       ! Initialize data stream information.
 
@@ -51,76 +51,72 @@ contains
       integer                        :: nml_error             ! namelist i/o error flag
       integer                        :: ierr                  ! error status
       character(len=CL)              :: filein                ! ocn namelist file
-      integer                        :: stream_sss_year_first ! first year in stream to use
-      integer                        :: stream_sss_year_last  ! last year in stream to use
-      integer                        :: stream_sss_year_align ! align stream_year_firstsss with
-      character(len=CL)              :: stream_sss_mesh_filename
-      character(len=CL), allocatable :: stream_sss_data_filename(:)
+      integer                        :: stream_sst_year_first ! first year in stream to use
+      integer                        :: stream_sst_year_last  ! last year in stream to use
+      integer                        :: stream_sst_year_align ! align stream_year_firstsst with
+      character(len=CL)              :: stream_sst_mesh_filename
+      character(len=CL), allocatable :: stream_sst_data_filename(:)
       character(len=CL), allocatable :: stream_filenames(:)
       character(len=4)               :: tmpchar
       integer                        :: nfiles
       integer                        :: nf
       integer                        :: errstat
-      character(*), parameter :: subName = "('ocn_stream_sss_init')"
+      character(*), parameter :: subName = "('ocn_stream_sst_init')"
       !-----------------------------------------------------------------------
 
-      namelist /stream_sss/           &
-           stream_sss_data_filename,  &
-           stream_sss_mesh_filename,  &
-           stream_sss_varname,        &
-           stream_sss_year_first,     &
-           stream_sss_year_last,      &
-           stream_sss_year_align
+      namelist /stream_sst/           &
+           stream_sst_data_filename,  &
+           stream_sst_mesh_filename,  &
+           stream_sst_varname,        &
+           stream_sst_year_first,     &
+           stream_sst_year_last,      &
+           stream_sst_year_align
 
       rc = ESMF_SUCCESS
 
       ! Default values for namelist
-      allocate(stream_sss_data_filename(nfiles_max), stat=errstat)
+      allocate(stream_sst_data_filename(nfiles_max), stat=errstat)
       if (errstat /= 0) then
-         write(lp,*) 'Failed to allocate stream_sss_data_filename'
+         write(lp,*) 'Failed to allocate stream_sst_data_filename'
          if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) then
             call ESMF_Finalize(endflag=ESMF_END_ABORT)
          end if
       end if
 
-      stream_sss_data_filename(:) = ' '
-      stream_sss_mesh_filename = ' '
-      stream_sss_year_first    = 1 ! first year in stream to use
-      stream_sss_year_last     = 1 ! last  year in stream to use
-      stream_sss_year_align    = 1 ! align stream_sss_year_first with this model year
+      stream_sst_data_filename(:) = ' '
+      stream_sst_mesh_filename = ' '
+      stream_sst_year_first    = 1 ! first year in stream to use
+      stream_sst_year_last     = 1 ! last  year in stream to use
+      stream_sst_year_align    = 1 ! align stream_sst_year_first with this model year
 
-      ! Read stream_sss namelist
+      ! Read stream_sst namelist
       if (mnproc == 1) then
          filein = "ocn_in"
          open( newunit=nu_nml, file=trim(filein), status='old', iostat=nml_error )
          if (nml_error /= 0) then
             call shr_sys_abort(subName//': ERROR opening '//trim(filein)//errMsg(sourcefile, __LINE__))
          end if
-         call shr_nl_find_group_name(nu_nml, 'stream_sss', status=nml_error)
+         call shr_nl_find_group_name(nu_nml, 'stream_sst', status=nml_error)
          if (nml_error == 0) then
-            read(nu_nml, nml=stream_sss, iostat=nml_error)
+            read(nu_nml, nml=stream_sst, iostat=nml_error)
             if (nml_error /= 0) then
-               call shr_sys_abort(' ERROR reading stream_sss namelist: '//errMsg(sourcefile, __LINE__))
+               call shr_sys_abort(' ERROR reading stream_sst namelist'//errMsg(sourcefile, __LINE__))
             end if
          else
-            call shr_sys_abort(' ERROR finding stream_sss namelist: '//errMsg(sourcefile, __LINE__))
+            call shr_sys_abort(' ERROR finding stream_sst namelist'//errMsg(sourcefile, __LINE__))
          end if
          close(nu_nml)
       endif
 
-
       ! Determine the actual number of stream files that will be used
-      if (mnproc == 1) then
-         nfiles = 0
-         do nf = 1,nfiles_max
-            if (stream_sss_data_filename(nf) == '') then
-               exit
-            else
-               nfiles = nfiles + 1
-            end if
-         end do
-      end if
-      call xcbcst(nfiles)
+      nfiles=1
+      do nf = 1,nfiles_max
+         if (stream_sst_data_filename(nf) == '') then
+            exit
+         else
+            nfiles = nfiles + 1
+         end if
+      end do
       allocate(stream_filenames(nfiles), stat=errstat)
       if (errstat /= 0) then
          write(lp,*) 'Failed to allocate stream_filenames'
@@ -128,69 +124,66 @@ contains
             call ESMF_Finalize(endflag=ESMF_END_ABORT)
          end if
       end if
-      if (mnproc == 1) then
-         do nf = 1,nfiles
-            stream_filenames(nf) = trim(stream_sss_data_filename(nf))
-         end do
-      end if
+
       do nf = 1,nfiles
          call xcbcst(stream_filenames(nf))
       end do
-
-      call xcbcst(stream_sss_varname)
-      call xcbcst(stream_sss_year_first)
-      call xcbcst(stream_sss_year_last)
-      call xcbcst(stream_sss_year_align)
+      do nf = 1,2
+         call xcbcst(stream_sst_varname(nf))
+      end do
+      call xcbcst(stream_sst_year_first)
+      call xcbcst(stream_sst_year_last)
+      call xcbcst(stream_sst_year_align)
 
       if (mnproc == 1) then
          write(lp,'(a)'   ) ' '
-         write(lp,'(a,i8)')  'stream sss settings:'
+         write(lp,'(a,i8)')  'stream sst settings:'
          do nf = 1,nfiles
-            write(tmpchar,'(i0)') nf
-            write(lp,'(a,a)' )  '  stream_sss_data_filename('//trim(tmpchar)//') = ',trim(stream_filenames(nf))
+            write(tmpchar,'(a)') nf
+            write(lp,'(a,a)' )  '  stream_sst_data_filename('//trim(tmpchar)//') = ',trim(stream_filenames(nf))
          end do
-         write(lp,'(a,a)' )  '  stream_sss_mesh_filename = ',trim(stream_sss_mesh_filename)
-         write(lp,'(a,a,a)') '  stream_sss_varname       = ',trim(stream_sss_varname)
-         write(lp,'(a,i8)')  '  stream_sss_year_first    = ',stream_sss_year_first
-         write(lp,'(a,i8)')  '  stream_sss_year_last     = ',stream_sss_year_last
-         write(lp,'(a,i8)')  '  stream_sss_year_align    = ',stream_sss_year_align
+         write(lp,'(a,a)' )  '  stream_sst_mesh_filename = ',trim(stream_sst_mesh_filename)
+         write(lp,'(a,a,a)') '  stream_sst_varname       = ',trim(stream_sst_varname(1)),trim(stream_sst_varname(2))
+         write(lp,'(a,i8)')  '  stream_sst_year_first    = ',stream_sst_year_first
+         write(lp,'(a,i8)')  '  stream_sst_year_last     = ',stream_sst_year_last
+         write(lp,'(a,i8)')  '  stream_sst_year_align    = ',stream_sst_year_align
          write(lp,'(a)'   )  ' '
       endif
 
-      ! Initialize the cdeps data type sdat_sss
-      call shr_strdata_init_from_inline(sdat_sss,                    &
-           my_task             = mnproc,                             &
-           logunit             = lp,                                 &
-           compname            = 'OCN',                              &
-           model_clock         = model_clock,                        &
-           model_mesh          = model_mesh,                         &
-           stream_meshfile     = trim(stream_sss_mesh_filename),     &
-           stream_filenames    = stream_filenames,                   &
-           stream_yearFirst    = stream_sss_year_first,              &
-           stream_yearLast     = stream_sss_year_last,               &
-           stream_yearAlign    = stream_sss_year_align,              &
-           stream_fldlistFile  = (/trim(stream_sss_varname)/),       &
-           stream_fldlistModel = (/trim(stream_sss_varname)/),       &
-           stream_lev_dimname  = 'null',                             &
-           stream_mapalgo      = 'bilinear',                         &
-           stream_offset       = 0,                                  &
-           stream_taxmode      = 'cycle',                            &
-           stream_dtlimit      = 1.0e30_r8,                          &
-           stream_tintalgo     = 'linear',                           &
-           stream_name         = 'Sea surface salinity ',            &
+      ! Initialize the cdeps data type sdat_sst
+      call shr_strdata_init_from_inline(sdat_sst,                &
+           my_task             = mnproc,                         &
+           logunit             = lp,                             &
+           compname            = 'OCN',                          &
+           model_clock         = model_clock,                    &
+           model_mesh          = model_mesh,                     &
+           stream_meshfile     = trim(stream_sst_mesh_filename), &
+           stream_filenames    = stream_filenames,               &
+           stream_yearFirst    = stream_sst_year_first,          &
+           stream_yearLast     = stream_sst_year_last,           &
+           stream_yearAlign    = stream_sst_year_align,          &
+           stream_fldlistFile  = stream_sst_varname,             &
+           stream_fldlistModel = stream_sst_varname,             &
+           stream_lev_dimname  = 'null',                         &
+           stream_mapalgo      = 'bilinear',                     &
+           stream_offset       = 0,                              &
+           stream_taxmode      = 'cycle',                        &
+           stream_dtlimit      = 1.0e30_r8,                      &
+           stream_tintalgo     = 'linear',                       &
+           stream_name         = 'Sea surface salinity ',        &
            rc                  = rc)
       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) then
          call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end if
 
-   end subroutine ocn_stream_sss_init
+   end subroutine ocn_stream_sst_init
 
    !================================================================
-   subroutine ocn_stream_sss_interp(model_clock, rc)
+   subroutine ocn_stream_sst_interp(model_clock, rc)
 
       use dshr_strdata_mod , only : shr_strdata_advance
       use dshr_methods_mod , only : dshr_fldbun_getfldptr
-      use mod_forcing      , only : sss_stream
+      use mod_forcing      , only : sst_stream, ice_stream
       use mod_checksum     , only : chksummsk
 
       ! input/output variables
@@ -206,7 +199,8 @@ contains
       integer             :: day     ! day of month (1, ..., 31) for nstep+1
       integer             :: sec     ! seconds into current date for nstep+1
       integer             :: mcdate  ! Current model date (yyyymmdd)
-      real(r8), pointer   :: dataptr(:)
+      real(r8), pointer   :: dataptr1(:)
+      real(r8), pointer   :: dataptr2(:)
       real(r8), parameter :: mval = -1.e12_r8
       real(r8), parameter :: fval = -1.e13_r8
       !-----------------------------------------------------------------------
@@ -222,13 +216,17 @@ contains
       end if
       mcdate = year*10000 + mon*100 + day
 
-      call shr_strdata_advance(sdat_sss, ymd=mcdate, tod=sec, logunit=lp, istr='sssdyn', rc=rc)
+      call shr_strdata_advance(sdat_sst, ymd=mcdate, tod=sec, logunit=lp, istr='sstdyn', rc=rc)
       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) then
          call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end if
 
       ! Get pointer for stream data that is time and spatially interpolated to model time and grid
-      call dshr_fldbun_getFldPtr(sdat_sss%pstrm(1)%fldbun_model, stream_sss_varname, fldptr1=dataptr, rc=rc)
+      call dshr_fldbun_getFldPtr(sdat_sst%pstrm(1)%fldbun_model, stream_sst_varname(1), fldptr1=dataptr1, rc=rc)
+      if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) then
+         call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      end if
+      call dshr_fldbun_getFldPtr(sdat_sst%pstrm(1)%fldbun_model, stream_sst_varname(2), fldptr1=dataptr2, rc=rc)
       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) then
          call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end if
@@ -251,20 +249,25 @@ contains
       do j = 1, jjcpl
          do i = 1, ii
             if (ip(i,j) == 0) then
-               sss_stream(i,j) = mval
+               sst_stream(i,j) = mval
+               ice_stream(i,j) = mval
             elseif (cplmsk(i,j) == 0) then
-               sss_stream(i,j) = fval
+               sst_stream(i,j) = fval
+               ice_stream(i,j) = fval
             else
                n = (j - 1)*ii + i
-               sss_stream(i,j) = dataptr(n)
+               sst_stream(i,j) = dataptr1(n)
+               ice_stream(i,j) = dataptr2(n)
             end if
          end do
       end do
 
-      call fill_global(mval, fval, halo_ps, sss_stream(1-nbdy,1-nbdy))
+      call fill_global(mval, fval, halo_ps, sst_stream(1-nbdy,1-nbdy))
+      call fill_global(mval, fval, halo_ps, ice_stream(1-nbdy,1-nbdy))
 
-      call chksummsk(sss_stream(1-nbdy,1-nbdy),ip,1,'sst_stream')
+      call chksummsk(sst_stream(1-nbdy,1-nbdy),ip,1,'sst_stream')
+      call chksummsk(ice_stream(1-nbdy,1-nbdy),ip,1,'ice_stream')
 
-   end subroutine ocn_stream_sss_interp
+   end subroutine ocn_stream_sst_interp
 
-end module ocn_stream_sss
+end module ocn_stream_sst

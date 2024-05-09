@@ -27,11 +27,10 @@ module mod_cesm
    use mod_constants, only: pi
    use mod_time, only: nstep
    use mod_xc
-   use mod_forcing, only: trxday, srxday, swa, nsf, lip, sop, eva, rnf, rfi, &
+   use mod_forcing, only: swa, nsf, lip, sop, eva, rnf, rfi, &
                           fmltfz, sfl, ztx, mty, ustarw, slp, abswnd, &
                           lamult, lasl, ustokes, vstokes, atmco2, atmbrf, &
                           flxdms, flxbrf
-   use mod_ben02, only: initai, rdcsic, rdctsf, fnlzai
    use mod_seaice, only: ficem
    use mod_checksum, only: csdiag, chksummsk
 #ifdef HAMOCC
@@ -39,7 +38,6 @@ module mod_cesm
 #endif
 
    implicit none
-
    private
 
    character(len = 256) :: &
@@ -117,29 +115,9 @@ contains
    end subroutine inicon_cesm
 
    subroutine inifrc_cesm
-   ! ---------------------------------------------------------------------------
-   ! Initialize climatological fields for surface restoring and interpolation of
-   ! CESM forcing fields.
-   ! ---------------------------------------------------------------------------
-
-      ! If SST restoring is requested, prepare interpolation of surface fields
-      ! and read climatological sea-ice concentration and surface temperature.
-      if (trxday > 0._r8) then
-        call initai
-        call rdcsic
-        call rdctsf
-      endif
-
-      ! If SSS restoring is requested, read climatological sea surface salinity.
-      if (srxday > 0._r8) call rdcsss
 
       ! Initialize diagnosing/application of relaxation fluxes.
       call idarlx
-
-      ! Deallocate memory used for interpolation of surface fields.
-      if (trxday > 0._r8) then
-        call fnlzai
-      endif
 
       ! Initialize time level indexes
       l1ci = 1

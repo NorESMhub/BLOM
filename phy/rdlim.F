@@ -47,8 +47,7 @@ c
      .                       wavsrc, wavsrc_opt, wavsrc_none,
      .                       wavsrc_param, wavsrc_extern,
      .                       trxday, srxday, trxdpt, srxdpt, trxlim,
-     .                       srxlim, srxbal, sprfac,
-     .                       srxday_stream, trxday_stream
+     .                       srxlim, srxbal, sprfac
       use mod_swabs, only: swamth, jwtype, chlopt, ccfile
       use mod_diffusion, only: readnml_diffusion
       use mod_mxlayr, only: rm0, rm5, ce, mlrttp
@@ -85,8 +84,7 @@ c
      .  itest,jtest,
      .  cnsvdi,
      .  csdiag,
-     .  rstfrq,rstfmt,rstcmp,iotype,
-     .  srxday_stream, trxday_stream
+     .  rstfrq,rstfmt,rstcmp,iotype
 c
 c --- read limits namelist
 c
@@ -156,8 +154,6 @@ c --- - print limits namelist to stdout
         write (lp,*) 'CCFILE ',trim(CCFILE)
         write (lp,*) 'TRXDAY',TRXDAY
         write (lp,*) 'SRXDAY',SRXDAY
-        write (lp,*) 'SRXDAY_STREAM',SRXDAY_STREAM
-        write (lp,*) 'TRXDAY_STREAM',TRXDAY_STREAM
         write (lp,*) 'TRXDPT',TRXDPT
         write (lp,*) 'SRXDPT',SRXDPT
         write (lp,*) 'TRXLIM',TRXLIM
@@ -230,8 +226,6 @@ c
       call xcbcst(trxday)
       call xcbcst(srxday)
       call xcbcst(trxdpt)
-      call xcbcst(srxday_stream)
-      call xcbcst(trxday_stream)
       call xcbcst(srxdpt)
       call xcbcst(trxlim)
       call xcbcst(srxlim)
