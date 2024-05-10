@@ -43,7 +43,7 @@ c
      .                      cbar, cb, mommth
       use mod_barotp, only: cwbdts, cwbdls
       use mod_forcing, only: aptflx, apsflx, ditflx, disflx,
-     .                       scfile,
+     .                       scfile, 
      .                       wavsrc, wavsrc_opt, wavsrc_none,
      .                       wavsrc_param, wavsrc_extern,
      .                       trxday, srxday, trxdpt, srxdpt, trxlim,
@@ -109,9 +109,9 @@ c
         read (unit=nfu,nml=LIMITS)
         close (unit=nfu)
 c
-c --- - print limits namelist to stdout
+c --- - print limits namelist to stdout 
         write (lp,*)
-        write (lp,*) 'rdlim: BLOM LIMITS NAMELIST GROUP:'
+        write (lp,*) 'rdlim: BLOM LIMITS NAMELIST GROUP:' 
         write (lp,*) 'NDAY1',NDAY1
         write (lp,*) 'NDAY2',NDAY2
         write (lp,*) 'IDATE',IDATE
@@ -289,9 +289,9 @@ c
         close (unit=nfu)
 c
 c --- - determine number of io groups
-        nphy=0
-        do n=1,nphymax
-          if (GLB_AVEPERIO(n).ne.-999) nphy=nphy+1
+        nphy=0  
+        do n=1,nphymax 
+          if (GLB_AVEPERIO(n).ne.-999) nphy=nphy+1 
         enddo
 c
 c --- - modify diaphy namelist variables based on dependency with other
@@ -358,7 +358,7 @@ c --- - variables set in namelists
 c
 c --- - print diaphy namelist
         write (lp,*)
-        write (lp,*) 'rdlim: BLOM DIAPHY NAMELIST GROUP:'
+        write (lp,*) 'rdlim: BLOM DIAPHY NAMELIST GROUP:' 
         write (lp,*) 'GLB_FNAMETAG',GLB_FNAMETAG(1:nphy)
         write (lp,*) 'GLB_AVEPERIO',GLB_AVEPERIO(1:nphy)
         write (lp,*) 'GLB_FILEFREQ',GLB_FILEFREQ(1:nphy)
@@ -717,7 +717,7 @@ c
       call xcbcst(GLB_FILEFREQ)
       call xcbcst(GLB_COMPFLAG)
       call xcbcst(GLB_NCFORMAT)
-      do n=1,nphymax
+      do n=1,nphymax 
         call xcbcst(GLB_FNAMETAG(n))
       enddo
 c
@@ -804,7 +804,7 @@ c
 c
       endif
 c
-c --- convert integer dates
+c --- convert integer dates 
       date%year=sign(abs(idate)/10000,idate)
       date%month=abs(idate)/100-abs(date%year)*100
       date%day=abs(idate)-abs(date%year)*10000-date%month*100
@@ -908,7 +908,7 @@ c
           nday1=nint(time-time0)
 c
           if (runtyp.eq.'hybrid') then
-c
+c 
 c --- ----- When runtyp equal 'hybrid' the ocean integration starts
 c --- ----- after first coupling interval.
             n=1
@@ -1036,7 +1036,7 @@ c --- represent time between restarts in time steps
       rstfrq=nstep_in_day*max(1.,rstfrq)
 c
 c --- represent time between diagnostics in time steps
-      do n=1,nphy
+      do n=1,nphy 
         GLB_FILEFREQ(n)=max(GLB_AVEPERIO(n),GLB_FILEFREQ(n))
 c
         if (GLB_AVEPERIO(n).lt.0) then
