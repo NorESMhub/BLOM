@@ -37,7 +37,7 @@ contains
       !
       ! Initialize data stream information.
 
-      ! Uses:
+      ! Uses
       use shr_nl_mod       , only: shr_nl_find_group_name
       use dshr_strdata_mod , only: shr_strdata_init_from_inline
 
@@ -55,7 +55,7 @@ contains
       integer                        :: stream_sst_year_last  ! last year in stream to use
       integer                        :: stream_sst_year_align ! align stream_year_firstsst with
       character(len=CL)              :: stream_sst_mesh_filename
-      character(len=CL), allocatable :: stream_sst_data_filename(:)
+      character(len=CL)              :: stream_sst_data_filename(nfiles_max)
       character(len=CL), allocatable :: stream_filenames(:)
       character(len=4)               :: tmpchar
       integer                        :: nfiles
@@ -75,16 +75,9 @@ contains
       rc = ESMF_SUCCESS
 
       ! Default values for namelist
-      allocate(stream_sst_data_filename(nfiles_max), stat=errstat)
-      if (errstat /= 0) then
-         write(lp,*) 'Failed to allocate stream_sst_data_filename'
-         if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) then
-            call ESMF_Finalize(endflag=ESMF_END_ABORT)
-         end if
-      end if
-
       stream_sst_data_filename(:) = ' '
       stream_sst_mesh_filename = ' '
+      stream_sst_varname = ' '
       stream_sst_year_first    = 1 ! first year in stream to use
       stream_sst_year_last     = 1 ! last  year in stream to use
       stream_sst_year_align    = 1 ! align stream_sst_year_first with this model year
@@ -100,16 +93,27 @@ contains
          if (nml_error == 0) then
             read(nu_nml, nml=stream_sst, iostat=nml_error)
             if (nml_error /= 0) then
-               call shr_sys_abort(' ERROR reading stream_sst namelist'//errMsg(sourcefile, __LINE__))
+               call shr_sys_abort(' ERROR reading stream_sst namelist: '//errMsg(sourcefile, __LINE__))
             end if
          else
-            call shr_sys_abort(' ERROR finding stream_sst namelist'//errMsg(sourcefile, __LINE__))
+            call shr_sys_abort(' ERROR finding stream_sst namelist: '//errMsg(sourcefile, __LINE__))
          end if
          close(nu_nml)
       endif
 
-      ! Determine the actual number of stream files that will be used
-      nfiles=1
+      do nf = 1,nfiles_max
+         call xcbcst(stream_sst_data_filename(nf))
+      end do
+      call xcbcst(stream_sst_mesh_filename)
+      do nf = 1,2
+         call xcbcst(stream_sst_varname(nf))
+      end do
+      call xcbcst(stream_sst_year_first)
+      call xcbcst(stream_sst_year_last)
+      call xcbcst(stream_sst_year_align)
+
+      ! Determine the actual number and filenames of stream files that will be used
+      nfiles = 0
       do nf = 1,nfiles_max
          if (stream_sst_data_filename(nf) == '') then
             exit
@@ -124,26 +128,20 @@ contains
             call ESMF_Finalize(endflag=ESMF_END_ABORT)
          end if
       end if
-
       do nf = 1,nfiles
-         call xcbcst(stream_filenames(nf))
+         stream_filenames(nf) = trim(stream_sst_data_filename(nf))
       end do
-      do nf = 1,2
-         call xcbcst(stream_sst_varname(nf))
-      end do
-      call xcbcst(stream_sst_year_first)
-      call xcbcst(stream_sst_year_last)
-      call xcbcst(stream_sst_year_align)
 
+      ! Write out info
       if (mnproc == 1) then
          write(lp,'(a)'   ) ' '
          write(lp,'(a,i8)')  'stream sst settings:'
          do nf = 1,nfiles
-            write(tmpchar,'(a)') nf
+            write(tmpchar,'(i0)') nf
             write(lp,'(a,a)' )  '  stream_sst_data_filename('//trim(tmpchar)//') = ',trim(stream_filenames(nf))
          end do
          write(lp,'(a,a)' )  '  stream_sst_mesh_filename = ',trim(stream_sst_mesh_filename)
-         write(lp,'(a,a,a)') '  stream_sst_varname       = ',trim(stream_sst_varname(1)),trim(stream_sst_varname(2))
+         write(lp,'(a,a,a)') '  stream_sst_varnames      = ',trim(stream_sst_varname(1)),trim(stream_sst_varname(2))
          write(lp,'(a,i8)')  '  stream_sst_year_first    = ',stream_sst_year_first
          write(lp,'(a,i8)')  '  stream_sst_year_last     = ',stream_sst_year_last
          write(lp,'(a,i8)')  '  stream_sst_year_align    = ',stream_sst_year_align
@@ -170,7 +168,7 @@ contains
            stream_taxmode      = 'cycle',                        &
            stream_dtlimit      = 1.0e30_r8,                      &
            stream_tintalgo     = 'linear',                       &
-           stream_name         = 'Sea surface salinity ',        &
+           stream_name         = 'Sea surface temperature ',     &
            rc                  = rc)
       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) then
          call ESMF_Finalize(endflag=ESMF_END_ABORT)

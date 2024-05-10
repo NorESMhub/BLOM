@@ -37,7 +37,7 @@ contains
       !
       ! Initialize data stream information.
 
-      ! Uses:
+      ! Uses
       use shr_nl_mod       , only: shr_nl_find_group_name
       use dshr_strdata_mod , only: shr_strdata_init_from_inline
 
@@ -55,7 +55,7 @@ contains
       integer                        :: stream_sss_year_last  ! last year in stream to use
       integer                        :: stream_sss_year_align ! align stream_year_firstsss with
       character(len=CL)              :: stream_sss_mesh_filename
-      character(len=CL), allocatable :: stream_sss_data_filename(:)
+      character(len=CL)              :: stream_sss_data_filename(nfiles_max)
       character(len=CL), allocatable :: stream_filenames(:)
       character(len=4)               :: tmpchar
       integer                        :: nfiles
@@ -75,16 +75,9 @@ contains
       rc = ESMF_SUCCESS
 
       ! Default values for namelist
-      allocate(stream_sss_data_filename(nfiles_max), stat=errstat)
-      if (errstat /= 0) then
-         write(lp,*) 'Failed to allocate stream_sss_data_filename'
-         if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) then
-            call ESMF_Finalize(endflag=ESMF_END_ABORT)
-         end if
-      end if
-
       stream_sss_data_filename(:) = ' '
       stream_sss_mesh_filename = ' '
+      stream_sss_varname = ' '
       stream_sss_year_first    = 1 ! first year in stream to use
       stream_sss_year_last     = 1 ! last  year in stream to use
       stream_sss_year_align    = 1 ! align stream_sss_year_first with this model year
@@ -108,19 +101,24 @@ contains
          close(nu_nml)
       endif
 
+      do nf = 1,nfiles_max
+         call xcbcst(stream_sss_data_filename(nf))
+      end do
+      call xcbcst(stream_sss_mesh_filename)
+      call xcbcst(stream_sss_varname)
+      call xcbcst(stream_sss_year_first)
+      call xcbcst(stream_sss_year_last)
+      call xcbcst(stream_sss_year_align)
 
-      ! Determine the actual number of stream files that will be used
-      if (mnproc == 1) then
-         nfiles = 0
-         do nf = 1,nfiles_max
-            if (stream_sss_data_filename(nf) == '') then
-               exit
-            else
-               nfiles = nfiles + 1
-            end if
-         end do
-      end if
-      call xcbcst(nfiles)
+      ! Determine the actual number and filenames of stream files that will be used
+      nfiles = 0
+      do nf = 1,nfiles_max
+         if (stream_sss_data_filename(nf) == '') then
+            exit
+         else
+            nfiles = nfiles + 1
+         end if
+      end do
       allocate(stream_filenames(nfiles), stat=errstat)
       if (errstat /= 0) then
          write(lp,*) 'Failed to allocate stream_filenames'
@@ -128,20 +126,11 @@ contains
             call ESMF_Finalize(endflag=ESMF_END_ABORT)
          end if
       end if
-      if (mnproc == 1) then
-         do nf = 1,nfiles
-            stream_filenames(nf) = trim(stream_sss_data_filename(nf))
-         end do
-      end if
       do nf = 1,nfiles
-         call xcbcst(stream_filenames(nf))
+         stream_filenames(nf) = trim(stream_sss_data_filename(nf))
       end do
 
-      call xcbcst(stream_sss_varname)
-      call xcbcst(stream_sss_year_first)
-      call xcbcst(stream_sss_year_last)
-      call xcbcst(stream_sss_year_align)
-
+      ! Write out info
       if (mnproc == 1) then
          write(lp,'(a)'   ) ' '
          write(lp,'(a,i8)')  'stream sss settings:'
