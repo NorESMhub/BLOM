@@ -6691,8 +6691,7 @@
       file name(s) containing salinity relaxation data
     </desc>
     <values>
-      <!-- <value>/cluster/work/users/mvertens/noresm/blom_sss_stream/run/sss.NCO2x4_f19_tn14_20190624.blom.hd.0001_cdf5.nc</value> -->
-      <value>/cluster/projects/nn10013k/adagj/sss_clim/sss_climatology_N1850_f19_tn14_20190621_1600-1699_cdf5.nc</value>
+      <value>$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx1v4_20240510_cdf5.nc</value>
     </values>
   </entry>
   <entry id="stream_sss_varname">
