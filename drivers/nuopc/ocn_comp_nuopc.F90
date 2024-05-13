@@ -584,7 +584,7 @@ contains
       integer(ESMF_KIND_I4), dimension(:), pointer :: maskMesh(:)
       integer, allocatable, dimension(:) :: gindex
       integer :: n, spatialDim, numOwnedElements, nx_global, ny_global
-      character(len=cslen)  :: cvalue
+      character(len=cllen)  :: cvalue
 
       if (dbug > 5) call ESMF_LogWrite(subname//': called', ESMF_LOGMSG_INFO)
 
