@@ -85,6 +85,7 @@ def buildnml(case, caseroot, compname):
     hamocc_sedspinup_yr_end   = case.get_value("HAMOCC_SEDSPINUP_YR_END")
     hamocc_sedspinup_ncycle   = case.get_value("HAMOCC_SEDSPINUP_NCYCLE")
     is_test                   = case.get_value("TEST")
+    comp_interface            = case.get_value("COMP_INTERFACE")
 
     blom_vcoord = case.get_value("BLOM_VCOORD")
     turbclo = case.get_value("BLOM_TURBULENT_CLOSURE")
@@ -188,6 +189,7 @@ def buildnml(case, caseroot, compname):
         config["hamocc_sedspinup_yr_end"] = hamocc_sedspinup_yr_end
         config["hamocc_sedspinup_ncycle"] = hamocc_sedspinup_ncycle
         config["is_test"] = "yes" if is_test else "no"
+        config["comp_interface"] = comp_interface
 
         # TODO: the following needs to have new ways to turn this to "yes"
         config["use_agg"] = "no"

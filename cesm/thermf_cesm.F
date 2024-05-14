@@ -39,7 +39,8 @@ c
      .                       fmltfz, sfl, ustarw, surflx, surrlx,
      .                       sswflx, salflx, brnflx, salrlx, ustar,
      .                       t_rs_nonloc, s_rs_nonloc,
-     .                       sss_stream, sst_stream, ice_stream
+     .                       sss_stream, sst_stream, ice_stream,
+     .                       use_stream_relaxation
       use mod_cesm, only: hmlt, frzpot, mltpot
       use mod_utility, only: util1, util2, util3, util4
       use mod_checksum, only: csdiag, chksummsk
@@ -210,9 +211,19 @@ c
 c --- --- If  trxday>0 , apply relaxation towards observed sst
           if (trxday > epsilt ) then
 
-            sstc = sst_stream(i,j)
-            rice = ice_stream(i,j)
-            sstc = (1.-rice)*max(sstc,tice_f) + rice*tice_f
+            if (use_stream_relaxation) then
+              sstc = sst_stream(i,j)
+              rice = ice_stream(i,j)
+              sstc = (1.-rice)*max(sstc,tice_f) + rice*tice_f
+            else
+              sstc=intp1d(sstclm(i,j,l1mi),sstclm(i,j,l2mi),
+     .                    sstclm(i,j,l3mi),sstclm(i,j,l4mi),
+     .                    sstclm(i,j,l5mi),xmi)
+              rice=intp1d(ricclm(i,j,l1mi),ricclm(i,j,l2mi),
+     .                    ricclm(i,j,l3mi),ricclm(i,j,l4mi),
+     .                    ricclm(i,j,l5mi),xmi)
+              sstc=(1.-rice)*max(sstc,tice_f)+rice*tice_f
+            end if
 
             if (vcoord_type_tag == isopyc_bulkml) then
               dpmxl=dp(i,j,1+nn)+dp(i,j,2+nn)
@@ -269,7 +280,13 @@ c
 c
 c --- --- if  srxday>0 , apply relaxation towards observed sss
           if (srxday > epsilt ) then
-            sssc = sss_stream(i,j)
+            if (use_stream_relaxation) then
+              sssc = sss_stream(i,j)
+            else
+              sssc=intp1d(sssclm(i,j,l1mi),sssclm(i,j,l2mi),
+     .                    sssclm(i,j,l3mi),sssclm(i,j,l4mi),
+     .                    sssclm(i,j,l5mi),xmi)
+            end if
             if (vcoord_type_tag == isopyc_bulkml) then
               dpmxl=dp(i,j,1+nn)+dp(i,j,2+nn)
               hmxl=dpmxl/onem

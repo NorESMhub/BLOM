@@ -27,10 +27,11 @@ module mod_cesm
    use mod_constants, only: pi
    use mod_time, only: nstep
    use mod_xc
-   use mod_forcing, only: swa, nsf, lip, sop, eva, rnf, rfi, &
+   use mod_forcing, only: trxday, srxday, swa, nsf, lip, sop, eva, rnf, rfi, &
                           fmltfz, sfl, ztx, mty, ustarw, slp, abswnd, &
                           lamult, lasl, ustokes, vstokes, atmco2, atmbrf, &
-                          flxdms, flxbrf
+                          flxdms, flxbrf, use_stream_relaxation
+   use mod_ben02, only: initai, rdcsic, rdctsf, fnlzai
    use mod_seaice, only: ficem
    use mod_checksum, only: csdiag, chksummsk
 #ifdef HAMOCC
@@ -115,6 +116,22 @@ contains
    end subroutine inicon_cesm
 
    subroutine inifrc_cesm
+
+      ! If not using NUOPC stream capability
+      if (.not. use_stream_relaxation) then
+         ! If SST restoring is requested prepare interpolation and
+         ! read climatological sea-ice concentration and surface temperature.
+         if (trxday > 0._r8) then
+            call initai
+            call rdcsic
+            call rdctsf
+         endif
+
+         ! If SSS restoring is requested, read climatological sea surface salinity.
+         if (srxday > 0._r8) then
+            call rdcsss
+         end if
+      end if
 
       ! Initialize diagnosing/application of relaxation fluxes.
       call idarlx
