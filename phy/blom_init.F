@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2022 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2008-2024 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -28,6 +28,7 @@ c
      .                    delt1
       use mod_timing, only: init_timing, get_time
       use mod_xc
+      use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml
       use mod_pointtest, only: init_ptest
       use mod_inicon, only: icfile
       use mod_state, only: dp, dpu, dpv, uflx, vflx, p, pu, pv, phi
@@ -40,6 +41,7 @@ c
       use mod_tmsmt, only: initms
       use mod_dia
       use mod_inicon, only: inicon
+      use mod_restart, only: restart_read
       use mod_budget, only: budget_init
       use mod_cmnfld_routines, only: cmnfld1
       use netcdf
@@ -203,7 +205,7 @@ c --- ------------------------------------------------------------------
 c
         delt1=baclin+baclin
 c
-        call restart_rd
+        call restart_read
 c
       endif
 c
@@ -327,11 +329,13 @@ c
       call xctilr(pgfym, 1,2, 1,2, halo_vv)
       call xctilr(xiyp, 1,2, 1,2, halo_vs)
       call xctilr(xiym, 1,2, 1,2, halo_vs)
-      call xctilr(uml, 1,4, 1,0, halo_uv)
-      call xctilr(vml, 1,4, 0,1, halo_vv)
-      call xctilr(umlres, 1,2, 1,0, halo_uv)
-      call xctilr(vmlres, 1,2, 0,1, halo_vv)
       call xctilr(sigmar, 1,kk, 1,1, halo_ps)
+      if (vcoord_type_tag == isopyc_bulkml) then
+        call xctilr(uml, 1,4, 1,0, halo_uv)
+        call xctilr(vml, 1,4, 0,1, halo_vv)
+        call xctilr(umlres, 1,2, 1,0, halo_uv)
+        call xctilr(vmlres, 1,2, 0,1, halo_vv)
+      endif
 c
 c --- with arctic patch, switch xixp and xixm and xiyp and xiym in the
 c --- halo region adjacent to the arctic grid intersection
