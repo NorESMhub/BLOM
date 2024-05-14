@@ -1225,8 +1225,8 @@ contains
             time0 = time
          else
             if (mnproc == 1) then
-               write(lp,*) &
-   'restart_read: could not find restart file for initial conditions!'
+               write(lp,*) 'restart_read: could not find restart file for '// &
+                           'initial conditions!'
             endif
             call xcstop('(restart_read)')
                    stop '(restart_read)'
@@ -1248,8 +1248,8 @@ contains
             call xcbcst(rstfnm)
          else
             if (mnproc == 1) then
-               write(lp,*) &
-   'restart_read: could not find file rpointer.ocn'//trim(inst_suffix)//'!'
+               write(lp,*) 'restart_read: could not find file rpointer.ocn'// &
+                           trim(inst_suffix)//'!'
             endif
             call xcstop('(restart_read)')
                    stop '(restart_read)'
@@ -1287,7 +1287,8 @@ contains
            call ncgetr('time', time)
            if (date_rest /= date0) then
              if (mnproc == 1) then
-               write(lp,*) ' restart_read: expected identical initial experiment date in namelist and restart but found:'
+               write(lp,*) 'restart_read: expected identical initial '// &
+                           'experiment date in namelist and restart but found:'
                write(lp, '(a,i4.4,2(i2.2))') &
                   ' restart_read: initial date namelist: ', date0
                write(lp, '(a,i4.4,2(i2.2))') &
@@ -1374,7 +1375,8 @@ contains
       if (rho_restart > 1.e2_r8) then
 #ifndef MKS
          if (mnproc == 1) &
-            write(lp,*) 'restart_read: restart variables will be converted from MKS to CGS units.'
+            write(lp,*) 'restart_read: restart variables will be converted '// &
+                        'from MKS to CGS units.'
          l_unitconv    = 1.e2_r8
          m_unitconv    = 1.e3_r8
          p_unitconv    = 1.e1_r8
@@ -1391,7 +1393,8 @@ contains
       else
 #ifdef MKS
          if (mnproc == 1) &
-            write(lp,*) 'restart_read: restart variables will be converted from CGS to MKS units.'
+            write(lp,*) 'restart_read: restart variables will be converted '// &
+                        'from CGS to MKS units.'
          l_unitconv    = 1.e-2_r8
          m_unitconv    = 1.e-3_r8
          p_unitconv    = 1.e-1_r8
@@ -1499,7 +1502,9 @@ contains
             call ncgetr('prfac', prfac)
             call xcbcst(prfac)
          elseif (mnproc == 1) then
-            write(lp,*) 'restart_read: warning: fields needed for balancing fresh water budget are not read from restart file and will be initialized.'
+            write(lp,*) 'restart_read: warning: fields needed for '// &
+                        'balancing fresh water budget are not read from '// &
+                        'restart file and will be initialized.'
          endif
       endif
 
@@ -1565,7 +1570,9 @@ contains
             l1ci = 3 - l2ci
          else
             if (mnproc == 1) then
-               write(lp,*) 'restart_read: warning: time levels for interpolation of forcing fields is not read from restart file.'
+               write(lp,*) 'restart_read: warning: time levels for '// &
+                           'interpolation of forcing fields is not read '// &
+                           'from restart file.'
             endif
             l1ci = 1
             l2ci = 1
@@ -1575,15 +1582,19 @@ contains
          call readfld('flxco2', no_unitconv, flxco2, ip, &
                       required = .false., fld_read = fld_read)
          if (.not.fld_read .and. mnproc == 1) &
-            write(lp,*) 'restart_read: warning: air-sea CO2 flux is not read from restart file and will be initialized to zero.'
+            write(lp,*) 'restart_read: warning: air-sea CO2 flux is not '// &
+                        'read from restart file and will be initialized '// &
+                        'to zero.'
          call readfld('flxdms', no_unitconv, flxdms, ip, &
                       required = .false., fld_read = fld_read)
          if (.not.fld_read .and. mnproc == 1) &
-            write(lp,*) 'restart_read: warning: DMS flux is not read from restart file and will be initialized to zero.'
+            write(lp,*) 'restart_read: warning: DMS flux is not read from '// &
+                        'restart file and will be initialized to zero.'
          call readfld('flxbrf', no_unitconv, flxbrf, ip, &
                       required = .false., fld_read = fld_read)
          if (.not.fld_read .and. mnproc == 1) &
-            write(lp,*) 'restart_read: warning: bromoform flux is not read from restart file and will be initialized to zero.'
+            write(lp,*) 'restart_read: warning: bromoform flux is not read '// &
+                        'from restart file and will be initialized to zero.'
       endif
 
 #ifdef TRC
@@ -1601,7 +1612,9 @@ contains
                    required = .false., fld_read = fld_read)
       if (.not.fld_read) then
          if (mnproc == 1) &
-            write(lp,*) 'restart_read: warning: ideal age tracer is not read from restart file and will be initialized to zero.'
+            write(lp,*) 'restart_read: warning: ideal age tracer is not '// &
+                        'read from restart file and will be initialized '// &
+                        'to zero.'
         call idlage_init
       endif
 #  endif
@@ -2115,7 +2128,9 @@ contains
          if (file_exist) then
             call ncfopn(fnm, 'r', ' ', 1, iotype)
             if (mnproc == 1) &
-               write(lp,*) 'restart_read: reading diag. heat flux restart file '//trim(fnm)
+               write(lp,*) &
+                  'restart_read: reading diag. heat flux restart file '// &
+                  trim(fnm)
             call ncgetr('time', time)
             if (nint(time) /= nday1 .and. mnproc == 1) then
                write(lp, '(a,i6.6,a)') &
@@ -2130,7 +2145,8 @@ contains
             call ncgeti('nflxdi', nflxdi)
          else
             if (mnproc == 1) &
-               write(lp,*) 'restart_read: warning: No diag. heat flux restart file found'
+               write(lp,*) &
+                  'restart_read: warning: No diag. heat flux restart file found'
          endif
 
       endif
@@ -2148,7 +2164,9 @@ contains
          if (file_exist) then
             call ncfopn(fnm, 'r', ' ', 1, iotype)
             if (mnproc == 1) &
-               write(lp,*) 'restart_read: reading diag. salt flux restart file '//trim(fnm)
+               write(lp,*) &
+                  'restart_read: reading diag. salt flux restart file '// &
+                  trim(fnm)
             call ncgetr('time', time)
             if (nint(time) /= nday1 .and. mnproc == 1) then
                write(lp, '(a,i6.6,a)') &
@@ -2164,7 +2182,8 @@ contains
             call ncfcls
          else
             if (mnproc == 1) &
-              write(lp,*) 'restart_read: warning: No diag. salt flux restart file found'
+              write(lp,*) &
+                 'restart_read: warning: No diag. salt flux restart file found'
          endif
 
       endif
