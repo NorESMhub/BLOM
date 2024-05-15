@@ -40,6 +40,7 @@ module mod_nuopc_methods
                              flxdms_da, flxbrf_da, l1ci, l2ci
    use mod_utility,    only: util1, util2
    use mod_checksum,   only: csdiag, chksummsk
+   use mod_fill_global,only: fill_global
    use shr_const_mod,  only: SHR_CONST_RHOSW, SHR_CONST_LATICE, SHR_CONST_TKFRZ
 #ifdef HAMOCC
    use mo_carbch,      only: ocetra

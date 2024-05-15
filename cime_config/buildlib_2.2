@@ -73,7 +73,7 @@ def _main_func():
             if tracers != 0:
                 for module in tracers.split():
                     if module == "iage":
-                        # do nothing
+                        continue
                     elif module == "ecosys":
                         paths.append(os.path.join(comp_root_dir_ocn, "hamocc"))
                     else:

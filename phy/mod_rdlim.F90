@@ -44,7 +44,8 @@ module mod_rdlim
                              wavsrc, wavsrc_opt, wavsrc_none, &
                              wavsrc_param, wavsrc_extern, &
                              trxday, srxday, trxdpt, srxdpt, trxlim, &
-                             srxlim, srxbal, sprfac
+                             srxlim, srxbal, sprfac, &
+                             srxlim, srxbal, sprfac, use_stream_relaxation
   use mod_swabs,       only: swamth, jwtype, chlopt, ccfile
   use mod_diffusion,   only: readnml_diffusion
   use mod_mxlayr,      only: rm0, rm5, ce, mlrttp
@@ -137,7 +138,7 @@ contains
          itest,jtest, &
          cnsvdi, &
          csdiag, &
-         rstfrq,rstfmt,rstcmp,iotype
+         rstfrq,rstfmt,rstcmp,iotype,use_stream_relaxation
 
     ! --- read limits namelist
 
@@ -229,6 +230,7 @@ contains
       write (lp,*) 'RSTFMT',RSTFMT
       write (lp,*) 'RSTCMP',RSTCMP
       write (lp,*) 'IOTYPE',IOTYPE
+      write (lp,*) 'USE_STREAM_RELAXATION',use_stream_relaxation
       write (lp,*)
 
     end if

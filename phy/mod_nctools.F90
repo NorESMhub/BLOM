@@ -84,7 +84,8 @@ module mod_nctools
 
   use dimensions,   only: itdm, jtdm, idm, jdm, iqr, jqr, ijqr
   use mod_xc,       only: xcstop, xchalt, xcaget, xcaput, xcmin, xcmax, &
-                          xcbcst, ii, jj, kk, nbdy, mnproc, lp
+                          xcbcst, ii, jj, kk, nbdy, lp, i0, j0, &
+                          mpe_1, mnproc, nproc, mproc
 #ifdef PNETCDF
   use mod_xc,       only: xcgetrow, xcgetrowint2, xcgetrow4
 #endif

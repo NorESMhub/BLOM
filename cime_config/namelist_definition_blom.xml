@@ -516,6 +516,17 @@
     </desc>
   </entry>
 
+  <entry id="use_stream_relaxation">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.true.</value>
+    </values>
+    <desc>if .true., use NUOPC stream relaxation capability</desc>
+  </entry>
+
   <entry id="trxday">
     <type>real</type>
     <category>limits</category>
@@ -6652,6 +6663,146 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>(ssster) [mol m-3]</desc>
+  </entry>
+
+  <!-- =========================  -->
+  <!-- namelist group: stream_sss -->
+  <!-- =========================  -->
+
+  <entry id="stream_sss_mesh_filename">
+    <type>char</type>
+    <category>stream_sss</category>
+    <group>stream_sss</group>
+    <desc>stream mesh file</desc>
+    <values>
+      <!-- <value>$DIN_LOC_ROOT/share/meshes/tnx1v4_20170601_cdf5_ESMFmesh.nc</value> -->
+      <value>$DIN_LOC_ROOT/share/meshes/tnx0.25v4_ESMFmesh_cdf5_c20231006.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_sss_data_filename">
+    <type>char(10)</type>
+    <category>stream_sss</category>
+    <group>stream_sss</group>
+    <desc>
+      file name(s) containing salinity relaxation data
+    </desc>
+    <values>
+      <!-- <value>$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx1v4_20240510_cdf5.nc</value> -->
+      <value>/cluster/work/users/mvertens/noresm/sss_clim_core_tnx0.25v4_20240512_cdf5.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_sss_varname">
+    <type>char</type>
+    <category>stream_sss</category>
+    <group>stream_sss</group>
+    <desc>
+      variable name on stream file
+    </desc>
+    <values>
+      <value>sss</value>
+    </values>
+  </entry>
+  <entry id="stream_sss_year_first">
+    <type>integer</type>
+    <category>stream_sss</category>
+    <group>stream_sss</group>
+    <desc>
+      First year in stream to use
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
+  <entry id="stream_sss_year_last">
+    <type>integer</type>
+    <category>stream_sss</category>
+    <group>stream_sss</group>
+    <desc>
+      Last year in stream to use
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
+  <entry id="stream_sss_year_align">
+    <type>integer</type>
+    <category>stream_sss</category>
+    <group>stream_sss</group>
+    <desc>
+      Align stream_year_first with this model year
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
+
+  <!-- =========================  -->
+  <!-- namelist group: stream_sst -->
+  <!-- =========================  -->
+
+  <entry id="stream_sst_mesh_filename">
+    <type>char</type>
+    <category>stream_sst</category>
+    <group>stream_sst</group>
+    <desc>stream mesh file</desc>
+    <values>
+      <value>$DIN_LOC_ROOT/atm/cam/sst/sst_HadOIBl_bc_1x1_clim_c101029_ESMFmesh_120520.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_sst_data_filename">
+    <type>char(10)</type>
+    <category>stream_sst</category>
+    <group>stream_sst</group>
+    <desc>
+      file name(s) containing sst relaxation data
+    </desc>
+    <values>
+      <value>$DIN_LOC_ROOT/atm/cam/sst/sst_HadOIBl_bc_1x1_1850_2017_c180507_cdf5.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_sst_varname">
+    <type>char(2)</type>
+    <category>stream_sst</category>
+    <group>stream_sst</group>
+    <desc>
+      variable name on stream file
+    </desc>
+    <values>
+      <value>SST_cpl, ice_cov</value>
+    </values>
+  </entry>
+  <entry id="stream_sst_year_first">
+    <type>integer</type>
+    <category>stream_sst</category>
+    <group>stream_sst</group>
+    <desc>
+      First year in stream to use
+    </desc>
+    <values>
+      <value>1850</value>
+    </values>
+  </entry>
+  <entry id="stream_sst_year_last">
+    <type>integer</type>
+    <category>stream_sst</category>
+    <group>stream_sst</group>
+    <desc>
+      Last year in stream to use
+    </desc>
+    <values>
+      <value>1850</value>
+    </values>
+  </entry>
+  <entry id="stream_sst_year_align">
+    <type>integer</type>
+    <category>stream_sst</category>
+    <group>stream_sst</group>
+    <desc>
+      Align stream_year_first with this model year
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
   </entry>
 
 </entry_id_pg>

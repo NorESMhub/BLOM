@@ -94,8 +94,8 @@ module mod_dia
   logical, public :: rstmon,rstann
 
   ! --- Copies of BLOM variables that are used for HAMOCC diagnostics
-  real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: pbath,ubath,vbath
-  integer :: nstepinday
+  real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), public :: pbath,ubath,vbath
+  integer, public :: nstepinday
 
   ! --- 2d and 3d diagnostic variables
   integer :: nphyh2d,nphylyr,nphylvl
@@ -113,7 +113,7 @@ module mod_dia
        0200.0,0250.0,0300.0,0400.0,0500.0,0600.0,0700.0,0800.0,0900.0, &
        1000.0,1100.0,1200.0,1300.0,1400.0,1500.0,1750.0,2000.0,2500.0, &
        3000.0,3500.0,4000.0,4500.0,5000.0,5500.0,6000.0,6500.0/)
-  real,  parameter, dimension(2,ddm) :: &
+  real,  parameter, dimension(2,ddm), public :: &
        depthslev_bnds = reshape((/ &
        0000.0,0005.0,0005.0,0015.0,0015.0,0025.0,0025.0,0040.0,0040.0, &
        0062.5,0062.5,0087.5,0087.5,0112.5,0112.5,0137.5,0137.5,0175.0, &
@@ -136,7 +136,7 @@ module mod_dia
        1450.0,1500.0,1625.0,1750.0,1875.0,2000.0,2250.0,2500.0,2750.0, &
        3000.0,3250.0,3500.0,3750.0,4000.0,4250.0,4500.0,4750.0,5000.0, &
        5250.0,5500.0,5750.0,6000.0,6250.0,6500.0,6750.0/)
-  real,  parameter, dimension(2,ddm) :: &
+  real,  parameter, dimension(2,ddm), public :: &
        depthslev_bnds = reshape((/ &
        0000.0,0002.5,0002.5,0007.5,0007.5,0012.5,0012.5,0017.5,0017.5, &
        0022.5,0022.5,0027.5,0027.5,0035.0,0035.0,0045.0,0045.0,0056.2, &
@@ -172,7 +172,7 @@ module mod_dia
   integer, public :: mer_nreg
   integer :: lmax
   real, dimension(ldm) :: mtlat
-  real, dimension(kdm) :: sigmar1
+  real, dimension(kdm), public :: sigmar1
 
   real, allocatable, dimension(:,:,:) :: &
        mmflxl,mmftdl,mmfsml,mmflxd,mmftdd,mmfsmd

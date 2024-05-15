@@ -36,7 +36,9 @@ module mod_thermf_cesm
                            swa, nsf, hmltfz, lip, sop, eva, rnf, rfi, &
                            fmltfz, sfl, ustarw, surflx, surrlx, &
                            sswflx, salflx, brnflx, salrlx, ustar, &
-                           t_rs_nonloc, s_rs_nonloc
+                           t_rs_nonloc, s_rs_nonloc, &
+                           sss_stream, sst_stream, ice_stream, &
+                           use_stream_relaxation
   use mod_cesm,      only: hmlt, frzpot, mltpot
   use mod_utility,   only: util1, util2, util3, util4
   use mod_checksum,  only: csdiag, chksummsk
@@ -75,8 +77,7 @@ contains
 
     ! --- Set parameters for time interpolation when applying diagnosed heat
     ! --- and salt relaxation fluxes
-    y = (nday_of_year-1+mod(nstep,nstep_in_day)/real(nstep_in_day))*48. &
-         /real(nday_in_year)
+    y = (nday_of_year-1+mod(nstep,nstep_in_day)/real(nstep_in_day))*48./real(nday_in_year)
     m3 = int(y)+1
     y = y-real(m3-1)
     m1 = mod(m3+45,48)+1
@@ -139,10 +140,8 @@ contains
           ! --- --- be heated. Note the freezing potential is multiplied by 1/2
           ! --- --- due to the leap-frog time stepping. The melting potential uses
           ! --- --- time averaged quantities since it is not accumulated.
-          frzpot(i,j) = max(0.,tice_f-totl)*spcifh*dpotl &
-               /(2.*g)*(L_mks2cgs**2)
-          mltpot(i,j)= &
-               min(0.,tfrzm(i,j)-.5*(temp(i,j,k1m)+temp(i,j,k1n))) &
+          frzpot(i,j) = max(0.,tice_f-totl)*spcifh*dpotl/(2.*g)*(L_mks2cgs**2)
+          mltpot(i,j)=  min(0.,tfrzm(i,j)-.5*(temp(i,j,k1m)+temp(i,j,k1n))) &
                *spcifh*.5*(dp(i,j,k1m)+dp(i,j,k1n))/g*(L_mks2cgs**2)
 
           ! --- --- Heat flux due to melting/freezing [W m-2] (positive downwards)
@@ -199,21 +198,24 @@ contains
           surrlx(i,j) = 0.
 
           ! --- --- If  trxday>0 , apply relaxation towards observed sst
-          if (trxday > epsilt) then
-            sstc = intp1d(sstclm(i,j,l1mi),sstclm(i,j,l2mi), &
-                 sstclm(i,j,l3mi),sstclm(i,j,l4mi), &
-                 sstclm(i,j,l5mi),xmi)
-            rice = intp1d(ricclm(i,j,l1mi),ricclm(i,j,l2mi), &
-                 ricclm(i,j,l3mi),ricclm(i,j,l4mi), &
-                 ricclm(i,j,l5mi),xmi)
-            sstc = (1.-rice)*max(sstc,tice_f)+rice*tice_f
+          if (trxday > epsilt ) then
+
+            if (use_stream_relaxation) then
+               sstc = sst_stream(i,j)
+               rice = ice_stream(i,j)
+               sstc = (1.-rice)*max(sstc,tice_f) + rice*tice_f
+            else
+               sstc = intp1d(sstclm(i,j,l1mi),sstclm(i,j,l2mi), &
+                      sstclm(i,j,l3mi),sstclm(i,j,l4mi), sstclm(i,j,l5mi),xmi)
+               rice = intp1d(ricclm(i,j,l1mi),ricclm(i,j,l2mi), &
+                      ricclm(i,j,l3mi),ricclm(i,j,l4mi), ricclm(i,j,l5mi),xmi)
+               sstc = (1.-rice)*max(sstc,tice_f)+rice*tice_f
+            end if
             if (vcoord_type_tag == isopyc_bulkml) then
               dpmxl = dp(i,j,1+nn)+dp(i,j,2+nn)
               hmxl = dpmxl/onem
-              tmxl = (temp(i,j,1+nn)*dp(i,j,1+nn) &
-                   +temp(i,j,2+nn)*dp(i,j,2+nn))/dpmxl+t0deg
-              trxflx = spcifh*L_mks2cgs*min(hmxl,trxdpt)/(trxday*86400.) &
-                   *min(trxlim,max(-trxlim,sstc-tmxl))/alpha0
+              tmxl = (temp(i,j,1+nn)*dp(i,j,1+nn) + temp(i,j,2+nn)*dp(i,j,2+nn))/dpmxl+t0deg
+              trxflx = spcifh*L_mks2cgs*min(hmxl,trxdpt)/(trxday*86400.)*min(trxlim,max(-trxlim,sstc-tmxl))/alpha0
             else
               pbot = p(i,j,1)
               do k = 1,kk
@@ -230,15 +232,13 @@ contains
                   tmxl = tmxl+temp(i,j,kn)*t_rs_nonloc(i,j,k)+t0deg
                   exit
                 else
-                  tmxl = tmxl+temp(i,j,kn)*(t_rs_nonloc(i,j,k  ) &
-                       -t_rs_nonloc(i,j,k+1))
+                  tmxl = tmxl+temp(i,j,kn)*(t_rs_nonloc(i,j,k)-t_rs_nonloc(i,j,k+1))
                 end if
               end do
               do kl = k,kk
                 t_rs_nonloc(i,j,kl+1) = 0.
               end do
-              trxflx = spcifh*L_mks2cgs*trxdpt/(trxday*86400.) &
-                   *min(trxlim,max(-trxlim,sstc-tmxl))/alpha0
+              trxflx = spcifh*L_mks2cgs*trxdpt/(trxday*86400.)*min(trxlim,max(-trxlim,sstc-tmxl))/alpha0
             end if
             surrlx(i,j) = -trxflx
           else
@@ -248,8 +248,7 @@ contains
           ! --- --- If aptflx=.true., apply diagnosed relaxation flux
           if (aptflx) then
             surrlx(i,j) = surrlx(i,j) &
-                 -intp1d(tflxap(i,j,m1),tflxap(i,j,m2),tflxap(i,j,m3), &
-                 tflxap(i,j,m4),tflxap(i,j,m5),y)
+                 - intp1d(tflxap(i,j,m1),tflxap(i,j,m2),tflxap(i,j,m3),tflxap(i,j,m4),tflxap(i,j,m5),y)
           end if
 
           ! --- --- If ditflx=.true., diagnose relaxation flux by accumulating the
@@ -261,17 +260,18 @@ contains
           salrlx(i,j) = 0.
 
           ! --- --- if  srxday>0 , apply relaxation towards observed sss
-          if (srxday > epsilt) then
-            sssc = intp1d(sssclm(i,j,l1mi),sssclm(i,j,l2mi), &
-                 sssclm(i,j,l3mi),sssclm(i,j,l4mi), &
-                 sssclm(i,j,l5mi),xmi)
+          if (srxday > epsilt ) then
+            if (use_stream_relaxation) then
+               sssc = sss_stream(i,j)
+            else
+               sssc = intp1d(sssclm(i,j,l1mi),sssclm(i,j,l2mi), &
+                      sssclm(i,j,l3mi),sssclm(i,j,l4mi),sssclm(i,j,l5mi),xmi)
+            end if
             if (vcoord_type_tag == isopyc_bulkml) then
               dpmxl = dp(i,j,1+nn)+dp(i,j,2+nn)
               hmxl = dpmxl/onem
-              smxl = (saln(i,j,1+nn)*dp(i,j,1+nn) &
-                   +saln(i,j,2+nn)*dp(i,j,2+nn))/dpmxl
-              srxflx = L_mks2cgs*min(hmxl,srxdpt)/(srxday*86400.) &
-                   *min(srxlim,max(-srxlim,sssc-smxl))/alpha0
+              smxl = (saln(i,j,1+nn)*dp(i,j,1+nn) + saln(i,j,2+nn)*dp(i,j,2+nn))/dpmxl
+              srxflx = L_mks2cgs*min(hmxl,srxdpt)/(srxday*86400.)*min(srxlim,max(-srxlim,sssc-smxl))/alpha0
             else
               pbot = p(i,j,1)
               do k = 1,kk
@@ -288,8 +288,7 @@ contains
                   smxl = smxl+saln(i,j,kn)*s_rs_nonloc(i,j,k)
                   exit
                 else
-                  smxl = smxl+saln(i,j,kn)*(s_rs_nonloc(i,j,k  ) &
-                       -s_rs_nonloc(i,j,k+1))
+                  smxl = smxl+saln(i,j,kn)*(s_rs_nonloc(i,j,k) - s_rs_nonloc(i,j,k+1))
                 end if
               end do
               do kl = k,kk
@@ -308,8 +307,7 @@ contains
           ! --- --- If apsflx=.true., apply diagnosed relaxation flux
           if (apsflx) then
             salrlx(i,j) = salrlx(i,j) &
-                 -intp1d(sflxap(i,j,m1),sflxap(i,j,m2),sflxap(i,j,m3), &
-                 sflxap(i,j,m4),sflxap(i,j,m5),y)
+                 -intp1d(sflxap(i,j,m1),sflxap(i,j,m2),sflxap(i,j,m3),sflxap(i,j,m4),sflxap(i,j,m5),y)
           end if
 
           ! --- --- If disflx=.true., diagnose relaxation flux by accumulating the
@@ -351,10 +349,8 @@ contains
     do j = 1,jj
       do l = 1,isp(j)
         do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-          salflx(i,j) = -(vrtsfl(i,j)+sflxc+sfl(i,j)) &
-               *(kg2g*(M_mks2cgs/L_mks2cgs**2))
-          brnflx(i,j) = -brnflx(i,j) &
-               *(kg2g*(M_mks2cgs/L_mks2cgs**2))
+          salflx(i,j) = -(vrtsfl(i,j)+sflxc+sfl(i,j))*(kg2g*(M_mks2cgs/L_mks2cgs**2))
+          brnflx(i,j) = -brnflx(i,j)*(kg2g*(M_mks2cgs/L_mks2cgs**2))
         end do
       end do
     end do
@@ -374,8 +370,7 @@ contains
           do l = 1,isp(j)
             do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
               if (ipwocn(i,j) == 1) then
-                salrlx(i,j) = qp*max(0.,salrlx(i,j)) &
-                     +qn*min(0.,salrlx(i,j))
+                salrlx(i,j) = qp*max(0.,salrlx(i,j)) + qn*min(0.,salrlx(i,j))
               end if
             end do
           end do
