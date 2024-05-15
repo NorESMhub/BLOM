@@ -54,6 +54,7 @@ module mod_forcing
                       ! [deg C].
       srxlim          ! Maximum absolute value of SSS difference in relaxation
                       ! [g kg-1].
+
    character(len = 256) :: &
       scfile, &       ! Name of file containing monthly SSS climatology.
       wavsrc          ! Source of wave fields. Valid source: 'none', 'param',
@@ -89,6 +90,13 @@ module mod_forcing
       sstclm, &       ! Sea-surface temperature [deg C].
       ricclm, &       ! Sea-ice concentration [].
       sssclm          ! Sea-surface salinity [g kg-1].
+
+   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
+      sst_stream, &    ! Sea-surface temperature [deg C] from stream data.
+      ice_stream, &    ! Sea-ice concentration [] from stream data.
+      sss_stream       ! Sea-surface salinity [g kg-1] from stream data.
+
+   logical :: use_stream_relaxation ! If true, use nuopc stream relaxation capability
 
    ! Variables related to balancing the freshwater forcing budget.
    real(r8) :: &
@@ -164,7 +172,8 @@ module mod_forcing
              atmco2, flxco2, flxdms, flxbrf, atmbrf, &
              surflx, surrlx, sswflx, salflx, brnflx, salrlx, taux, tauy, &
              ustar, ustarb, ustar3, buoyfl, t_sw_nonloc, t_rs_nonloc, &
-             s_br_nonloc, s_rs_nonloc, inivar_forcing, fwbbal
+             s_br_nonloc, s_rs_nonloc, inivar_forcing, fwbbal, &
+             sss_stream, sst_stream, ice_stream, use_stream_relaxation
 
 contains
 
