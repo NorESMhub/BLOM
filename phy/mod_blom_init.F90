@@ -72,6 +72,7 @@ contains
     integer :: istat,ncid,varid,i,j,k,l,m,n,mm,nn,k1m,k1n,mt,mmt,kn,km
     real    :: q
     logical :: icrest,fexist
+    integer :: icrest_int
 
     ! --- ------------------------------------------------------------------
     ! --- Initialize SPMD processing
@@ -180,6 +181,7 @@ contains
     ! --- check whether initial condition file given in namelist is a
     ! --- restart file
     icrest = .false.
+    icrest_int = 0
     if (mnproc == 1) then
       inquire(file=icfile,exist = fexist)
       if (fexist) then
@@ -191,8 +193,10 @@ contains
           end if
         end if
       end if
+      if (icrest) icrest_int = 1
     end if
-    call xcbcst(icrest)
+    call xcbcst(icrest_int)
+    icrest = (icrest_int == 1)
 
     if (nday1+nint(time0) == 0.and..not.icrest) then
 
@@ -390,7 +394,7 @@ contains
     ! --- Initialize time smoothing variables and some common fields.
     ! --- ------------------------------------------------------------------
 
-    call initms(m,n,mm,nn,k1m,k1n)
+    call initms(mm)
     call cmnfld1(m,n,mm,nn,k1m,k1n)
 
     ! --- ------------------------------------------------------------------

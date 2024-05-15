@@ -46,7 +46,7 @@ module mod_diapfl
 
 contains
 
-  subroutine diapfl(m,n,mm,nn,k1m,k1n)
+  subroutine diapfl(n,nn,k1n)
 
     ! --- ------------------------------------------------------------------
     ! --- Diapycnal mixing
@@ -54,7 +54,7 @@ contains
 
 
     ! Arguments
-    integer, intent(in) :: m,n,mm,nn,k1m,k1n
+    integer, intent(in) :: n,nn,k1n
 
     ! Local variables
     real :: dsgmnr,fcmxr,dsgcr0,dfeps,gbbl,kappa,ustmin

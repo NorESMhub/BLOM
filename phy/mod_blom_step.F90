@@ -159,7 +159,7 @@ contains
     call cmnfld2(m,n,mm,nn,k1m,k1n)
 
     !diag write (lp,*) 'tmsmt1...'
-    call tmsmt1(m,n,mm,nn,k1m,k1n)
+    call tmsmt1(nn)
     tmsmt1_time = get_time()
 
     !diag write (lp,*) 'advdif...'
@@ -203,7 +203,7 @@ contains
       auxil_time = auxil_time+get_time()
 
       !diag   write (lp,*) 'diapfl...'
-      call diapfl(m,n,mm,nn,k1m,k1n)
+      call diapfl(n,nn,k1n)
       diapfl_time = get_time()
 
       call budget_sums(4,n,nn)
@@ -250,7 +250,7 @@ contains
     auxil_time = auxil_time+get_time()
 
     !diag write (lp,*) 'tmsmt2...'
-    call tmsmt2(m,n,mm,nn,k1m,k1n)
+    call tmsmt2(m,mm,nn,k1m)
     tmsmt2_time = get_time()
 
     call budget_sums(7,m,mm)

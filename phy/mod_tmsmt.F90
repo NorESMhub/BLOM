@@ -167,13 +167,13 @@ contains
 
   ! --- ------------------------------------------------------------------
 
-  subroutine initms(m,n,mm,nn,k1m,k1n)
+  subroutine initms(mm)
 
     ! --- save old layer thickness, temperature and salinity for time
     ! --- smoothing
 
     ! Arguments
-    integer, intent(in)  :: m,n,mm,nn,k1m,k1n
+    integer, intent(in)  :: mm
 
     ! Local variables
     integer :: nt
@@ -217,13 +217,13 @@ contains
 
   ! --- ------------------------------------------------------------------
 
-  subroutine tmsmt1(m,n,mm,nn,k1m,k1n)
+  subroutine tmsmt1(nn)
 
     ! --- save old layer thickness at velocity points for time smoothing in
     ! --- momentum equation.
 
     ! Arguments
-    integer, intent(in) :: m,n,mm,nn,k1m,k1n
+    integer, intent(in) :: nn
 
     ! Local variables
     integer :: i,j,k,l,kn
@@ -258,12 +258,12 @@ contains
 
   ! --- ------------------------------------------------------------------
 
-  subroutine tmsmt2(m,n,mm,nn,k1m,k1n)
+  subroutine tmsmt2(m,mm,nn,k1m)
 
     ! --- time smoothing of layer thickness, temperature and salinity
 
     ! Arguments
-    integer, intent(in) :: m,n,mm,nn,k1m,k1n
+    integer, intent(in) :: m,mm,nn,k1m
 
     ! Local variables
     real, dimension(1-nbdy:idm+nbdy) :: pbfaco,pbfacn
