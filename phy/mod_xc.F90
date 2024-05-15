@@ -144,13 +144,14 @@ module mod_xc
   real(8),     private, dimension(97) :: tc,t0
   real(8),     private, dimension(2)  :: tcxc,tcxl
 
-#if defined(MPI) || defined(SHMEM)
+  ! The following is only used for MPI or SHMEM
   integer, public   :: idproc( 0: iqr+1,0:jqr+1)
   integer, public   :: idproc1(0:ijqr+1),idhalo(2)
   integer, public   :: mpe_1(jqr)
   integer, public   :: mpe_e(jqr)
   integer, public   :: mpe_i(itdm,jqr),npe_j(jtdm)
 
+#if defined(MPI) || defined(SHMEM)
   ! --- private message passing data structures, see xcspmd
   integer, private  :: i1sum(iqr,jqr),iisum(iqr,jqr)
   integer, private  :: m0_top,i0_st(iqr+1),ii_st(iqr+1)
