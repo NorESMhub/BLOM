@@ -66,4 +66,4 @@ sources += files(
 'mod_vdiff.F90',
 'mod_wdiflx.F90',
 'mod_wtime.F90',
-'mod_xc.F90')
+'mod_xc.F')

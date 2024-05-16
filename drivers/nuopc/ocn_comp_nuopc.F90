@@ -18,47 +18,48 @@
 ! ------------------------------------------------------------------------------
 
 module ocn_comp_nuopc
-! ------------------------------------------------------------------------------
-! This module contains the NUOPC cap for BLOM.
-! ------------------------------------------------------------------------------
+   ! ------------------------------------------------------------------------------
+   ! This module contains the NUOPC cap for BLOM.
+   ! ------------------------------------------------------------------------------
 
-   use ESMF ! TODO MOM6 uses "only" statements, while POP and CICE omits this.
-   use NUOPC, only: NUOPC_CompDerive, NUOPC_CompSetEntryPoint, &
-                    NUOPC_CompSpecialize, NUOPC_CompFilterPhaseMap, &
-                    NUOPC_IsUpdated, NUOPC_IsAtTime, NUOPC_CompAttributeGet, &
-                    NUOPC_Advertise, NUOPC_SetAttribute, &
-                    NUOPC_CompAttributeGet, NUOPC_CompAttributeSet, &
-                    NUOPC_IsConnected, NUOPC_Realize
-   use NUOPC_Model, only: NUOPC_ModelGet, SetVM, &
-                          model_routine_SS           => SetServices, &
-                          model_label_Advance        => label_Advance, &
-                          model_label_DataInitialize => label_DataInitialize, &
-                          model_label_SetRunClock    => label_SetRunClock, &
-                          model_label_Finalize       => label_Finalize
-   use nuopc_shr_methods, only : ChkErr, set_component_logging, &
-                                 get_component_instance, state_setscalar, &
-                                 alarmInit
-   use shr_file_mod, only: shr_file_getUnit, shr_file_getLogUnit, &
-                           shr_file_setLogUnit
-   use shr_cal_mod, only : shr_cal_ymd2date
+   use ESMF ! TODO MOM6 uses " only" statements, while POP and CICE omits this.
+   use NUOPC,             only: NUOPC_CompDerive, NUOPC_CompSetEntryPoint, &
+                                NUOPC_CompSpecialize, NUOPC_CompFilterPhaseMap, &
+                                NUOPC_IsUpdated, NUOPC_IsAtTime, NUOPC_CompAttributeGet, &
+                                NUOPC_Advertise, NUOPC_SetAttribute, &
+                                NUOPC_CompAttributeGet, NUOPC_CompAttributeSet, &
+                                NUOPC_IsConnected, NUOPC_Realize
+   use NUOPC_Model,       only: NUOPC_ModelGet, SetVM, &
+                                model_routine_SS           => SetServices, &
+                                model_label_Advance        => label_Advance, &
+                                model_label_DataInitialize => label_DataInitialize, &
+                                model_label_SetRunClock    => label_SetRunClock, &
+                                model_label_Finalize       => label_Finalize
+   use nuopc_shr_methods, only: ChkErr, set_component_logging, &
+                                get_component_instance, state_setscalar, &
+                                alarmInit
+   use shr_file_mod,      only: shr_file_getUnit, shr_file_getLogUnit, &
+                                shr_file_setLogUnit
+   use shr_cal_mod,       only: shr_cal_ymd2date
    use mod_nuopc_methods, only: fldlist_type, fldsMax, tlast_coupled, &
                                 blom_logwrite, blom_getgindex, blom_checkmesh, &
                                 blom_setareacor, blom_getglobdim, &
                                 blom_getprecipfact, blom_accflds, &
                                 blom_importflds, blom_exportflds, &
                                 blom_advertise_imports, blom_advertise_exports
-   use mod_xc, only: mpicom_external, lp, nfu
-   use mod_cesm, only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
-   use mod_config, only: inst_index, inst_name, inst_suffix
-   use mod_time, only: blom_time
-   use mod_forcing, only : srxday, trxday
-   use mod_constants, only : epsilt
-   use mod_blom_init, only : blom_init
-   use mod_blom_step, only : blom_step
-   use mod_fill_global, only : fill_global
-   use mod_restart_wt, only : restart_wt
-   use ocn_stream_sss, only : ocn_stream_sss_init, ocn_stream_sss_interp
-   use ocn_stream_sst, only : ocn_stream_sst_init, ocn_stream_sst_interp
+   use mod_xc,            only: mpicom_external, lp, nfu
+   use mod_cesm,          only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
+   use mod_config,        only: inst_index, inst_name, inst_suffix
+   use mod_time,          only: blom_time
+   use mod_forcing,       only: srxday, trxday
+   use mod_constants,     only: epsilt
+   use ocn_stream_sss,    only: ocn_stream_sss_init, ocn_stream_sss_interp
+   use ocn_stream_sst,    only: ocn_stream_sst_init, ocn_stream_sst_interp
+   use mod_blom_init,     only: blom_init
+   use mod_blom_step,     only: blom_step
+   use mod_restart_wt,    only: restart_wt
+   use mod_fill_global,   only: fill_global
+
 
    implicit none
 
@@ -443,7 +444,7 @@ contains
       ! Initialize BLOM.
       ! ------------------------------------------------------------------------
 
-      call blom_init()
+      call blom_init
 
       ! ------------------------------------------------------------------------
       ! Get ScalarField attributes.

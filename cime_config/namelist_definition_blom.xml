@@ -6688,7 +6688,7 @@
     </desc>
     <values>
       <!-- <value>$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx1v4_20240510_cdf5.nc</value> -->
-      <value>$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx0.25v4_20240512_cdf5.nc</value>
+      <value>/cluster/work/users/mvertens/noresm/sss_clim_core_tnx0.25v4_20240512_cdf5.nc</value>
     </values>
   </entry>
   <entry id="stream_sss_varname">
