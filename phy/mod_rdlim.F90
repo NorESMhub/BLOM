@@ -302,6 +302,7 @@ contains
     call xcbcst(rstfmt)
     call xcbcst(rstcmp)
     call xcbcst(iotype)
+    call xcbcst(use_stream_relaxation)
 
     ! --- resolve options
     select case (trim(wavsrc))
