@@ -41,9 +41,9 @@ contains
 
     select case (trim(expcnf))
     case ('cesm')
-      call sfcstr_cesm(m, n, mm, nn, k1m, k1n)
+      call sfcstr_cesm()
     case ('ben02clim', 'ben02syn', 'single_column')
-      call sfcstr_ben02(m, n, mm, nn, k1m, k1n)
+      call sfcstr_ben02()
     case ('fuk95')
     case ('channel')
     case ('isomip1')

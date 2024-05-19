@@ -360,7 +360,7 @@ contains
     !-----------
 
     integer :: mpireqa(jpr),mpireqb(ipr)
-    integer :: i,j,mp,np,mnp
+    integer :: i,j,np,mp,mnp
 
     if (use_TIMER) then
       if (nxc == 0) then
@@ -1095,7 +1095,7 @@ contains
 
     integer, parameter :: nmax=1024
     integer :: ib(nmax),ic(nmax)
-    integer :: i,is0,isl,mn,n,nn
+    integer :: i,is0,isl,n,nn
 
     if (use_TIMER) then
       if (nxc == 0) then
@@ -1160,7 +1160,7 @@ contains
 
     integer, parameter :: nmax=1024
     real :: rb(nmax),rc(nmax)
-    integer :: i,is0,isl,mn,n,nn
+    integer :: i,is0,isl,n,nn
 
     if (use_TIMER) then
       if (nxc == 0) then
@@ -1225,7 +1225,7 @@ contains
 
     integer, parameter :: nmax=1024
     integer :: ib(nmax),ic(nmax)
-    integer :: i,is0,isl,mn,n,nn
+    integer :: i,is0,isl,n,nn
 
     if (use_TIMER) then
       if (nxc == 0) then
@@ -1278,6 +1278,7 @@ contains
   subroutine xcmin_r1(ra)
     real, intent(inout) :: ra(:)
 
+
     !-----------
     !  1) replace real array a with its element-wise minimum over all tiles.
     !  2) parameters:
@@ -1287,7 +1288,7 @@ contains
     !-----------
 
     integer, parameter :: nmax=1024
-    real :: rb(nmax),rc(nmax)
+    real    :: rb(nmax),rc(nmax)
     integer :: i,is0,isl,mn,n,nn
 
     if (use_TIMER) then
@@ -2836,9 +2837,9 @@ contains
     integer, parameter :: ilen  = idm*lsize*nbdy+64
     integer, parameter :: jlen  = (jdm+2*nbdy)*lsize*nbdy+64
 
-    !  halo buffer (in common for enhanced MPI safety).
+    !  halo buffer
     real   , save :: ai(ilen,4),aj(jlen,4)
-    integer       :: i,j,k,l,lg0,ls0,lst0,lsb0,lm,ltm,lbm,m,mhl,nhl
+    integer       :: i,j,k,l,ls0,lm,m,mhl,nhl
     integer, save :: mpireqa(4*iqr),mpireqb(4),ilold,jlold,nreqa ! persistent communication handles.
     data ilold,jlold / 0,0 /
 
@@ -3139,7 +3140,7 @@ contains
     !  print all active timers.
     !  on exit all timers are reset to zero.
     !-----------
-    integer :: i,mn,mnloc
+    integer :: i,mnloc
     real(8), parameter :: zero8 = 0.0
 
     ! get total time.
@@ -3236,9 +3237,9 @@ contains
     !  convert an entire 2-D array from tiled to non-tiled layout.
     !-----------
 
-    integer :: mpireqa(jpr),mpireqb(ipr)
-    real :: at(idm*jdm*kt),ata(idm*jdm*kt,iqr)
-    integer :: i,j,k,l,mp,np,mnp
+    integer :: mpireqb(ipr)
+    real    :: at(idm*jdm*kt),ata(idm*jdm*kt,iqr)
+    integer :: i,j,k,l,mp
 
     ! gather each row of tiles onto the first tile in the row.
     if (mproc == mpe_1(nproc)) then
@@ -3296,9 +3297,9 @@ contains
     !  convert an entire 2-D array from tiled to non-tiled layout.
     !-----------
 
-    integer :: mpireqa(jpr),mpireqb(ipr)
-    real*4  at(idm*jdm*2*kk),ata(idm*jdm*2*kk,iqr)
-    integer :: i,j,k,l,mp,np,mnp
+    integer :: mpireqb(ipr)
+    real*4  :: at(idm*jdm*2*kk),ata(idm*jdm*2*kk,iqr)
+    integer :: i,j,k,l,mp
 
     !  gather each row of tiles onto the first tile in the row.
     if (mproc == mpe_1(nproc)) then
@@ -3356,9 +3357,9 @@ contains
     ! convert an entire 2-D array from tiled to non-tiled layout.
     !-----------
 
-    integer   :: mpireqa(jpr),mpireqb(ipr)
+    integer   :: mpireqb(ipr)
     integer*2 :: at(idm*jdm*kt),ata(idm*jdm*kt,iqr)
-    integer   :: i,j,k,l,mp,np,mnp
+    integer   :: i,j,k,l,mp,np
 
     !     gather each row of tiles onto the first tile in the row.
 

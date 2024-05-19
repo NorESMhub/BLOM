@@ -167,7 +167,7 @@ contains
     !
     ! --- Initialize parameters
     !
-    call ini_parambgc(idm,jdm)
+    call ini_parambgc()
 
     ! --- Initialize atmospheric fields with (updated) parameter values
     call ini_fields_atm(idm,jdm)

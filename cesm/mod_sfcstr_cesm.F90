@@ -31,14 +31,11 @@ module mod_sfcstr_cesm
 
 contains
 
-  subroutine sfcstr_cesm(m,n,mm,nn,k1m,k1n)
+  subroutine sfcstr_cesm()
 
     ! --- ------------------------------------------------------------------
     ! --- Compute the surface stress. To be used when coupled to CESM
     ! --- ------------------------------------------------------------------
-
-    ! Arguments
-    integer, intent(in) :: m,n,mm,nn,k1m,k1n
 
     ! Local variables
     integer :: i,j,l
