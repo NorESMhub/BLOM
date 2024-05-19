@@ -25,7 +25,7 @@ module mod_xc
                         ii_pe,jj_pe,i0_pe,j0_pe,nreg
   use mod_wtime,  only: wtime
   use mod_ifdefs, only: use_TIMER, use_DEBUG_TIMER, use_DEBUG_TIMER_ALL, &
-                        use_ARCTIC
+                        use_DEBUG_ALL, use_ARCTIC
 
   implicit none
   public
@@ -144,94 +144,64 @@ module mod_xc
   real(8),     private, dimension(97) :: tc,t0
   real(8),     private, dimension(2)  :: tcxc,tcxl
 
-  ! The following is only used for MPI or SHMEM
+  ! The following is only used for MPI
   integer, public   :: idproc( 0: iqr+1,0:jqr+1)
   integer, public   :: idproc1(0:ijqr+1),idhalo(2)
   integer, public   :: mpe_1(jqr)
   integer, public   :: mpe_e(jqr)
   integer, public   :: mpe_i(itdm,jqr),npe_j(jtdm)
 
-#if defined(MPI) || defined(SHMEM)
-  ! --- private message passing data structures, see xcspmd
+#if defined(MPI)
+  include 'mpif.h'
+
+  ! set in xcspmd
+  integer, protected :: mpicomm
+  integer, protected :: mpierr
+  integer, protected :: mpireq(4)
+  integer, protected :: mpistat(mpi_status_size,4*max(iqr,jqr))
+
+  ! private message passing data structures, see xcspmd
   integer, private  :: i1sum(iqr,jqr),iisum(iqr,jqr)
   integer, private  :: m0_top,i0_st(iqr+1),ii_st(iqr+1)
   integer, private  :: mm_top,i0_gt(iqr+1),ii_gt(iqr+1)
   integer, private  :: m0_bot,i0_sb(iqr+1),ii_sb(iqr+1)
   integer, private  :: mm_bot,i0_gb(iqr+1),ii_gb(iqr+1)
   integer, private  :: null_tile
+
+  real, private :: al(itdm,jdm),ala(itdm,jdm,jqr),at(idm*jdm),ata(idm*jdm,iqr)
 #endif
 
 contains
 
 !**************************************************************************************
-#if defined(MPI) || defined(SHMEM)
+#if defined(MPI)
 !**************************************************************************************
 
-  ! The following was previously contained in mod_xc_mp.inc
-
-  ! BARRIER       set a barrier; for SPMD versions
-#if defined(MPI)
-# define BARRIER call mpi_barrier(mpicomm,mpierr)
-#elif defined(SHMEM)
-# define BARRIER call shmem_barrier_all()
-#endif
-
-  ! BARRIER_MP    halo synchronization; SHMEM only
-  ! BARRIER_NP    halo synchronization; SHMEM only
-#if defined(RINGB)
-#define BARRIER_MP call xctbar(idproc(mproc-1,nproc),idproc(mproc+1,nproc))
-#define BARRIER_NP call xctbar(idproc(mproc,nproc-1),idproc(mproc,nproc+1))
-#else
-#define BARRIER_MP BARRIER
-#define BARRIER_NP BARRIER
-#endif
-
-#if defined(MPI)
-  ! MTYPE4        mpi type for real*4
   ! MTYPER        mpi type for real
   ! MTYPED        mpi type for real*8
-  ! MTYPEI        mpi type for integer
-  ! MTYPEL        mpi type for logical
-  ! MTYPEC        mpi type for character
   ! MPI_SEND      either mpi_send  or mpi_ssend
   ! MPI_ISEND     either mpi_isend or mpi_issend
+
 #if defined(NOMPIR8)
 #if defined(REAL4)
-# define MTYPE4 mpi_real
 # define MTYPER mpi_real
 # define MTYPED mpi_double_precision
-# define MTYPEI mpi_integer
-# define MTYPEL mpi_logical
-# define MTYPEC mpi_character
-# define MTYPEI2 mpi_integer2
 #else ! REAL8
-# define MTYPE4 mpi_real
 # define MTYPER mpi_double_precision
 # define MTYPED mpi_double_precision
-# define MTYPEI mpi_integer
-# define MTYPEL mpi_logical
-# define MTYPEC mpi_character
-# define MTYPEI2 mpi_integer2
 #endif
+
 #else ! most MPI's allow mpi_real[48]
+
 #if defined(REAL4)
-# define MTYPE4 mpi_real4
 # define MTYPER mpi_real4
 # define MTYPED mpi_real8
-# define MTYPEI mpi_integer
-# define MTYPEL mpi_logical
-# define MTYPEC mpi_character
-# define MTYPEI2 mpi_integer2
 #else ! REAL8
-# define MTYPE4 mpi_real4
 # define MTYPER mpi_real8
 # define MTYPED mpi_real8
-# define MTYPEI mpi_integer
-# define MTYPEL mpi_logical
-# define MTYPEC mpi_character
-# define MTYPEI2 mpi_integer2
 #endif
 #endif
+
 #if defined(SSEND)
 # define MPI_SEND mpi_ssend
 # define MPI_ISEND mpi_issend
@@ -239,35 +209,6 @@ contains
 # define MPI_SEND mpi_send
 # define MPI_ISEND mpi_isend
 #endif ! SSEND:else
-#endif ! MPI
-
-#if defined(SHMEM)
-  ! SHMEM_GET4    get real*4  variables
-  ! SHMEM_GETR    get real    variables
-  ! SHMEM_GETD    get real*8  variables
-  ! SHMEM_GETI    get integer variables
-  ! SHMEM_GETL    get logical variables
-  ! SHMEM_GETC    get character variables
-  ! SHMEM_MYPE    return number of this PE (0...npes-1)
-  ! SHMEM_NPES    return number of PEs
-#if defined(REAL4)
-# define SHMEM_GET4 shmem_get32
-# define SHMEM_GETR shmem_get32
-# define SHMEM_GETD shmem_get64
-# define SHMEM_GETI shmem_integer_get
-# define SHMEM_GETL shmem_logical_get
-# define SHMEM_GETC shmem_character_get
-#else ! REAL8
-# define SHMEM_GET4 shmem_get32
-# define SHMEM_GETR shmem_get64
-# define SHMEM_GETD shmem_get64
-# define SHMEM_GETI shmem_integer_get
-# define SHMEM_GETL shmem_logical_get
-# define SHMEM_GETC shmem_character_get
-#endif
-# define SHMEM_MYPE shmem_my_pe
-# define SHMEM_NPES shmem_n_pes
-#endif ! SHMEM
 
   !-----------------------------------------------------------------------
   ! auxillary routines that involve off-processor communication.
@@ -287,18 +228,7 @@ contains
     ! = n; node number n (mnproc=n)
     !-----------
 
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
     integer :: mpireqa(jpr),mpireqb(ipr)
-#endif
-    real :: al,ala,at,ata
-    common/xcagetr/ al(itdm,jdm),ala(itdm,jdm,jqr), &
-         at(idm*jdm),ata(idm*jdm,iqr)
-    save  /xcagetr/
 
     integer :: i,j,l,mp,np,mnp
     if (use_TIMER) then
@@ -310,7 +240,6 @@ contains
 
     ! gather each row of tiles onto the first tile in the row.
 
-#if defined(MPI)
     if (mproc == mpe_1(nproc)) then
       do j= 1,jj
         do i= 1,i0
@@ -330,7 +259,7 @@ contains
              idproc(mp,nproc), 9941, &
              mpicomm, mpireqb(l), mpierr)
       end do
-      BARRIER
+      call mpi_barrier(mpicomm, mpierr)
       l = 0
       do mp= mpe_1(nproc)+1,mpe_e(nproc)
         l = l + 1
@@ -347,46 +276,14 @@ contains
           at(i+(j-1)*ii) = a(i,j)
         end do
       end do
-      BARRIER
+      call mpi_barrier(mpicomm, mpierr)
       call MPI_SEND(at,ii*jj,MTYPER, &
            idproc(mpe_1(nproc),nproc), 9941, &
            mpicomm, mpierr)
     end if
-#elif defined(SHMEM)
-    do j= 1,jj
-      do i= 1,ii
-        at(i+(j-1)*ii) = a(i,j)
-      end do
-    end do
-    BARRIER
-    if (mproc == mpe_1(nproc)) then
-      do j= 1,jj
-        do i= 1,i0
-          al(i,j) = vland
-        end do
-        do i= 1,ii
-          al(i0+i,j) = a(i,j)
-        end do
-        do i= i0+ii+1,itdm
-          al(i,j) = vland
-        end do
-      end do
-      do mp= mpe_1(nproc)+1,mpe_e(nproc)
-        call SHMEM_GETR(at, &
-             at,ii_pe(mp,nproc)*jj, idproc(mp,nproc))
-        do j= 1,jj
-          do i= 1,ii_pe(mp,nproc)
-            al(i0_pe(mp,nproc)+i,j) = at(i+(j-1)*ii_pe(mp,nproc))
-          end do
-        end do
-      end do
-    end if
-    BARRIER
-#endif ! MPI:SHMEM
 
     ! gather each row of tiles onto the output array.
 
-#if defined(MPI)
     mnp = max(mnflg,1)
 
     if (mnproc == mnp) then
@@ -403,11 +300,10 @@ contains
         if (idproc(mp,np) /= idproc(mproc,nproc)) then
           l = l + 1
           call MPI_IRECV(ala(1,1,l),itdm*jj_pe(mp,np),MTYPER, &
-               idproc(mp,np), 9942, &
-               mpicomm, mpireqa(l), mpierr)
+               idproc(mp,np), 9942,mpicomm, mpireqa(l), mpierr)
         end if
       end do
-      BARRIER
+      call mpi_barrier(mpicomm, mpierr)
       l = 0
       do np= 1,jpr
         mp = mpe_1(np)
@@ -422,42 +318,16 @@ contains
         end if
       end do
     else if (mproc == mpe_1(nproc)) then
-      BARRIER
-      call MPI_SEND(al,itdm*jj,MTYPER, &
-           idproc1(mnp), 9942, &
-           mpicomm, mpierr)
+      call mpi_barrier(mpicomm, mpierr)
+      call MPI_SEND(al,itdm*jj,MTYPER,idproc1(mnp), 9942,mpicomm, mpierr)
     else
-      BARRIER
+      call mpi_barrier(mpicomm, mpierr)
     end if
 
     if (mnflg == 0) then
-      call mpi_bcast(aa,itdm*jtdm,MTYPER, &
-           idproc1(1),mpicomm,mpierr)
+      call mpi_bcast(aa,itdm*jtdm,MTYPER,idproc1(1),mpicomm,mpierr)
     end if
-#elif defined(SHMEM)
-    if (mnflg == 0 .or. mnproc == mnflg) then
-      if (mproc == mpe_1(nproc)) then
-        do j= 1,jj
-          do i= 1,itdm
-            aa(i,j+j0) = al(i,j)
-          end do
-        end do
-      end if
-      do np= 1,jpr
-        mp = mpe_1(np)
-        if (idproc(mp,np) /= idproc(mproc,nproc)) then
-          call SHMEM_GETR(al, &
-               al,itdm*jj_pe(mp,np), idproc(mp,np))
-          do j= 1,jj_pe(mp,np)
-            do i= 1,itdm
-              aa(i,j+j0_pe(mp,np)) = al(i,j)
-            end do
-          end do
-        end if
-      end do
-    end if
-    ! no barrier needed here because of double buffering (at and then al)
-#endif ! MPI:SHMEM
+
     if (use_TIMER) then
       if (nxc ==  1) then
         call xctmr1( 1)
@@ -465,175 +335,6 @@ contains
       end if
     end if
   end subroutine xcaget
-
-  !-----------------------------------------------------------------------
-  subroutine xcaget4(aa, a, mnflg)
-
-    real*4,  intent(out)   :: aa(itdm,jtdm) ! non-tiled target array
-    real*4,  intent(in)    :: a(ii,jj)      ! tiled source array
-    integer, intent(in)    :: mnflg         ! node return flag
-
-    !-----------
-    ! convert an entire 2-D array from tiled to non-tiled layout.
-    ! Special version for zaiord and zaiowr only.
-    ! arrays are real*4 and tiled array has no halo.
-    ! mnflg selects which nodes must return the array
-    !    = 0; all nodes
-    !    = n; node number n (mnproc=n)
-    !-----------
-
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-#endif
-    real :: al8,ala8,at8,ata8
-    common/xcagetr/ al8(itdm,jdm),ala8(itdm,jdm,jqr), &
-         at8(idm*jdm),ata8(idm*jdm,iqr)
-    save  /xcagetr/
-
-    real*4          al4(itdm,jdm),       at4(idm*jdm)
-    equivalence    (al4(1,1),al8(1,1)), (at4(1),at8(1))
-
-    integer :: i,j,mp,np,mnp
-    if (use_TIMER) then
-      if (nxc == 0) then
-        call xctmr0( 1)
-        nxc = 1
-      end if
-    end if
-
-    ! gather each row of tiles onto the first tile in the row.
-
-#if defined(MPI)
-    if (mproc == mpe_1(nproc)) then
-      do j= 1,jj
-        do i= 1,i0
-          al4(i,j) = vland
-        end do
-        do i= 1,ii
-          al4(i0+i,j) = a(i,j)
-        end do
-        do i= i0+ii+1,itdm
-          al4(i,j) = vland
-        end do
-      end do
-      do mp= mpe_1(nproc)+1,mpe_e(nproc)
-        call MPI_RECV(at4,ii_pe(mp,nproc)*jj,MTYPE4, &
-                      idproc(mp,nproc), 9941, &
-                      mpicomm, mpistat, mpierr)
-        do j= 1,jj
-          do i= 1,ii_pe(mp,nproc)
-            al4(i0_pe(mp,nproc)+i,j) = at4(i+(j-1)*ii_pe(mp,nproc))
-          end do
-        end do
-      end do
-    else  !mproc>1
-      call MPI_SEND(a,ii*jj,MTYPE4, &
-           idproc(mpe_1(nproc),nproc), 9941, &
-           mpicomm, mpierr)
-    end if
-#elif defined(SHMEM)
-    do j= 1,jj
-      do i= 1,ii
-        at4(i+(j-1)*ii) = a(i,j)
-      end do
-    end do
-    BARRIER
-    if (mproc == mpe_1(nproc)) then
-      do j= 1,jj
-        do i= 1,i0
-          al4(i,j) = vland
-        end do
-        do i= 1,ii
-          al4(i0+i,j) = a(i,j)
-        end do
-        do i= i0+ii+1,itdm
-          al4(i,j) = vland
-        end do
-      end do
-      do mp= mpe_1(nproc)+1,mpe_e(nproc)
-        call SHMEM_GET4(at4, &
-             at4,ii_pe(mp,nproc)*jj, idproc(mp,nproc))
-        do j= 1,jj
-          do i= 1,ii_pe(mp,nproc)
-            al4(i0_pe(mp,nproc)+i,j) = at4(i+(j-1)*ii_pe(mp,nproc))
-          end do
-        end do
-      end do
-    end if
-    BARRIER
-#endif ! MPI:SHMEM
-
-    ! gather each row of tiles onto the output array.
-
-#if defined(MPI)
-    mnp = max(mnflg,1)
-
-    if (mnproc == mnp) then
-      if (mproc == mpe_1(nproc)) then
-        do j= 1,jj
-          do i= 1,itdm
-            aa(i,j+j0) = al4(i,j)
-          end do
-        end do
-      end if
-      do np= 1,jpr
-        mp = mpe_1(np)
-        if (idproc(mp,np) /= idproc(mproc,nproc)) then
-          call MPI_RECV(al4,itdm*jj_pe(mp,np),MTYPE4, &
-               idproc(mp,np), 9942, &
-               mpicomm, mpistat, mpierr)
-          do j= 1,jj_pe(mp,np)
-            do i= 1,itdm
-              aa(i,j+j0_pe(mp,np)) = al4(i,j)
-            end do
-          end do
-        end if
-      end do
-    else if (mproc == mpe_1(nproc)) then
-      call MPI_SEND(al4,itdm*jj,MTYPE4, &
-           idproc1(mnp), 9942, &
-           mpicomm, mpierr)
-    end if
-
-    if (mnflg == 0) then
-      call mpi_bcast(aa,itdm*jtdm,MTYPE4, &
-           idproc1(1),mpicomm,mpierr)
-    end if
-#elif defined(SHMEM)
-    if (mnflg == 0 .or. mnproc == mnflg) then
-      if (mproc == mpe_1(nproc)) then
-        do j= 1,jj
-          do i= 1,itdm
-            aa(i,j+j0) = al4(i,j)
-          end do
-        end do
-      end if
-      do np= 1,jpr
-        mp = mpe_1(np)
-        if (idproc(mp,np) /= idproc(mproc,nproc)) then
-          call SHMEM_GET4(al4, &
-               al4,itdm*jj_pe(mp,np), idproc(mp,np))
-          do j= 1,jj_pe(mp,np)
-            do i= 1,itdm
-              aa(i,j+j0_pe(mp,np)) = al4(i,j)
-            end do
-          end do
-        end if
-      end do
-    end if
-    ! no barrier needed here because of double buffering (at and then al)
-#endif ! MPI:SHMEM
-    if (use_TIMER) then
-      if (nxc ==  1) then
-        call xctmr1( 1)
-        nxc = 0
-      end if
-    end if
-  end subroutine xcaget4
 
   !-----------------------------------------------------------------------
   subroutine xcaput(aa, a, mnflg)
@@ -658,32 +359,16 @@ contains
     !    mnflg           integer        input     node source flag
     !-----------
 
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-
     integer :: mpireqa(jpr),mpireqb(ipr)
-#endif
-    real :: al,ala,at,ata
-    common/xcagetr/ al(itdm,jdm),ala(itdm,jdm,jqr), &
-         at(idm*jdm),ata(idm*jdm,iqr)
-    save  /xcagetr/
-
     integer :: i,j,mp,np,mnp
+
     if (use_TIMER) then
       if (nxc == 0) then
-        BARRIER
+        call mpi_barrier(mpicomm, mpierr)
         call xctmr0( 4)
         nxc = 4
       end if
     end if
-
-    ! if (mnproc.eq.1) then
-    ! write(lp,'(a,g20.10)') 'xcaput - vland =',vland
-    ! endif
 
     ! use xclput for now,
     ! this is slow for mnflg.ne.0, but easy to implement.
@@ -693,7 +378,7 @@ contains
       if (mnproc /= mnflg) then
         aa(:,:) = vland
       end if
-#if defined(MPI)
+
       if (mnproc == mnflg) then
         j = 0
         do np= 1,jpr
@@ -702,50 +387,33 @@ contains
             al(:,1:jj) = aa(:,j0+1:j0+jj)
           else
             j = j + 1
-            call MPI_ISEND(aa(1,j0_pe(mp,np)+1), &
-                 itdm*jj_pe(mp,np),MTYPER, &
-                 idproc(mp,np), 9951, &
+            call MPI_ISEND(aa(1,j0_pe(mp,np)+1),itdm*jj_pe(mp,np),MTYPER,idproc(mp,np), 9951, &
                  mpicomm, mpireqa(j), mpierr)
           end if
         end do
         call mpi_waitall( j, mpireqa, mpistat, mpierr)
       else if (mproc == mpe_1(nproc)) then
-        call MPI_RECV(al,itdm*jj,MTYPER, &
-             idproc1(mnflg), 9951, &
-             mpicomm, mpistat, mpierr)
+        call MPI_RECV(al,itdm*jj,MTYPER,idproc1(mnflg), 9951,mpicomm, mpistat, mpierr)
       end if
 
       if (mproc == mpe_1(nproc)) then
         i = 0
         do mp= mpe_1(nproc)+1,mpe_e(nproc)
           i = i + 1
-          call MPI_ISEND(al,itdm*jj,MTYPER, &
-               idproc(mp,nproc), 9952, &
-               mpicomm, mpireqb(i), mpierr)
+          call MPI_ISEND(al,itdm*jj,MTYPER,idproc(mp,nproc), 9952,mpicomm, mpireqb(i), mpierr)
         end do
         call mpi_waitall( i, mpireqb, mpistat, mpierr)
       else
-        call MPI_RECV(al,itdm*jj,MTYPER, &
-             idproc(mpe_1(nproc),nproc), 9952, &
-             mpicomm, mpistat, mpierr)
+        call MPI_RECV(al,itdm*jj,MTYPER,idproc(mpe_1(nproc),nproc), 9952,mpicomm, mpistat, mpierr)
       end if
 
       aa(:,j0+1:j0+jj) = al(:,1:jj)
-#elif defined(SHMEM)
-      ! assume aa is in common.
-      BARRIER
-      if (mnproc /= mnflg) then
-        do j= 1,jj
-          call SHMEM_GETR(aa(1,j0+j), &
-               aa(1,j0+j),itdm,idproc1(mnflg))
-        end do
-      end if
-      BARRIER
-#endif
     end if
+
     do j= 1,jtdm
       call xclput(aa(1,j),itdm, a, 1,j,1,0)
     end do
+
     if (use_TIMER) then
       if (nxc ==  4) then
         call xctmr1( 4)
@@ -753,125 +421,6 @@ contains
       end if
     end if
   end subroutine xcaput
-
-  !-----------------------------------------------------------------------
-  subroutine xcaput4(aa, a, mnflg)
-    real*4,  intent(inout) :: aa(itdm,jtdm)
-    real*4,  intent(out)   :: a(ii,jj)
-    integer, intent(in)    :: mnflg
-
-    !-----------
-    !  1) convert an entire 2-D array from non-tiled to tiled layout.
-    !  2) Special version for zaiord and zaiowr only.
-    !     arrays are real*4 and tiled array has no halo.
-    !  3) mnflg selects which nodes must contain the non-tiled array
-    !        = 0; all nodes
-    !        = n; node number n (mnproc=n)
-    !     if mnflg.ne.0 the array aa may be broadcast to all nodes,
-    !      so aa must exist and be overwritable on all nodes.
-    !  4) parameters:
-    !       name            type         usage            description
-    !    ----------      ----------     -------  ----------------------------
-    !    aa              real           input     non-tiled source array
-    !    a               real           output    tiled target array
-    !    mnflg           integer        input     node source flag
-    !-----------
-
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-    integer :: mpireqa(jpr),mpireqb(ipr)
-#endif
-    real :: al8,ala8,at8,ata8
-    common/xcagetr/ al8(itdm,jdm),ala8(itdm,jdm,jqr), &
-         at8(idm*jdm),ata8(idm*jdm,iqr)
-    save  /xcagetr/
-    real*4          al4(itdm,jdm),       at4(idm*jdm)
-    equivalence    (al4(1,1),al8(1,1)), (at4(1),at8(1))
-    integer :: i,j,mp,np,mnp
-    if (use_TIMER) then
-      if (nxc == 0) then
-        BARRIER
-        call xctmr0( 4)
-        nxc = 4
-      end if
-    end if
-
-    !     if (mnproc.eq.1) then
-    ! write(lp,'(a,g20.10)') 'xcaput - vland =',vland
-    ! endif
-
-    ! use xclput for now,
-    ! this is slow for mnflg.ne.0, but easy to implement.
-
-    if (mnflg /= 0) then
-      ! "broadcast" row sections of aa to all processors in the row.
-      if (mnproc /= mnflg) then
-        aa(:,:) = vland
-      end if
-#if defined(MPI)
-      if (mnproc == mnflg) then
-        j = 0
-        do np= 1,jpr
-          mp = mpe_1(np)
-          if (np == nproc .and. mp == mproc) then
-            al4(:,1:jj) = aa(:,j0+1:j0+jj)
-          else
-            j = j + 1
-            call MPI_ISEND(aa(1,j0_pe(mp,np)+1), &
-                 itdm*jj_pe(mp,np),MTYPE4, &
-                 idproc(mp,np), 9951, &
-                 mpicomm, mpireqa(j), mpierr)
-          end if
-        end do
-        call mpi_waitall( j, mpireqa, mpistat, mpierr)
-      else if (mproc == mpe_1(nproc)) then
-        call MPI_RECV(al4,itdm*jj,MTYPE4, &
-             idproc1(mnflg), 9951, &
-             mpicomm, mpistat, mpierr)
-      end if
-
-      if (mproc == mpe_1(nproc)) then
-        i = 0
-        do mp= mpe_1(nproc)+1,mpe_e(nproc)
-          i = i + 1
-          call MPI_ISEND(al4,itdm*jj,MTYPE4, &
-               idproc(mp,nproc), 9952, &
-               mpicomm, mpireqb(i), mpierr)
-        end do
-        call mpi_waitall( i, mpireqb, mpistat, mpierr)
-      else
-        call MPI_RECV(al4,itdm*jj,MTYPE4, &
-             idproc(mpe_1(nproc),nproc), 9952, &
-             mpicomm, mpistat, mpierr)
-      end if
-
-      aa(:,j0+1:j0+jj) = al4(:,1:jj)
-#elif defined(SHMEM)
-      ! assume aa is in common.
-      BARRIER
-      if (mnproc /= mnflg) then
-        do j= 1,jj
-          call SHMEM_GET4(aa(1,j0+j), &
-               aa(1,j0+j),itdm,idproc1(mnflg))
-        end do
-      end if
-      BARRIER
-#endif
-    end if
-    do j= 1,jtdm
-      call xclput4(aa(1,j),itdm, a, 1,j,1,0)
-    end do
-    if (use_TIMER) then
-      if (nxc ==  4) then
-        call xctmr1( 4)
-        nxc = 0
-      end if
-    end if
-  end subroutine xcaput4
 
   !-----------------------------------------------------------------------
   subroutine xceget(aelem, a, ia,ja)
@@ -891,77 +440,31 @@ contains
     !  3) the global variable vland is returned when outside active tiles.
     !-----------
 
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-#endif
-
     ! double buffer to reduce the number of required barriers.
-
     real :: elem(0:1)
-    common/xcegetr/ elem
-    save  /xcegetr/
-
     integer, save :: kdb = 0
-
     integer :: i,j,mp,np
-    if (use_TIMER) then
-      ! if (nxc.eq.0) then
-      ! call xctmr0( 2)
-      ! nxc = 2
-      ! endif
-    end if
 
     kdb = mod(kdb+1,2)  ! the least recently used of the two buffers
 
     ! find the host tile.
-
     np = npe_j(ja)
     mp = mpe_i(ia,np)
 
     if (mp <= 0) then
-
       ! no tile.
-
       elem(kdb) = vland
     else if (mp == mproc .and. np == nproc) then
-
       ! this tile.
-
       i = ia - i0
       j = ja - j0
-
       elem(kdb) = a(i,j)
-#if defined(MPI)
-      call mpi_bcast(elem(kdb),1,MTYPER, &
-           idproc(mp,np),mpicomm,mpierr)
-#elif defined(SHMEM)
-      BARRIER
-#endif
+      call mpi_bcast(elem(kdb),1,MTYPER,idproc(mp,np),mpicomm,mpierr)
     else
-
       ! another tile.
-
-#if defined(MPI)
-      call mpi_bcast(elem(kdb),1,MTYPER, &
-           idproc(mp,np),mpicomm,mpierr)
-#elif defined(SHMEM)
-      BARRIER
-      call SHMEM_GETR(elem(kdb), &
-           elem(kdb),1,idproc(mp,np))
-      ! no barrier needed here because of double buffering
-#endif
+      call mpi_bcast(elem(kdb),1,MTYPER, idproc(mp,np),mpicomm,mpierr)
     end if
     aelem = elem(kdb)
-    if (use_TIMER) then
-      ! if (nxc.eq. 2) then
-      ! call xctmr1( 2)
-      ! nxc = 0
-      ! endif
-    end if
   end subroutine xceget
 
   !-----------------------------------------------------------------------
@@ -981,31 +484,11 @@ contains
     !    ja              integer        input     2nd index into a
     !-----------
 
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-#endif
-
     integer :: mp,np
-    if (use_TIMER) then
-      ! if (nxc.eq.0) then
-      ! call xctmr0( 5)
-      ! nxc = 5
-      ! endif
-    end if
-    if (i0 < ia .and. ia <= i0+ii .and. &
-            j0 < ja .and. ja <= j0+jj      ) then
+
+    if (i0 < ia .and. ia <= i0+ii .and. j0 < ja .and. ja <= j0+jj) then
       ! this tile.
       a(ia-i0,ja-j0) = aelem
-    end if
-    if (use_TIMER) then
-      ! if (nxc.eq. 5) then
-      ! call xctmr1( 5)
-      ! nxc = 0
-      ! endif
     end if
   end subroutine xceput
 
@@ -1018,27 +501,8 @@ contains
     !  2) only use in zagetc (hence the name).
     !-----------
 
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-#endif
-
     ! broadcast to all processors
-
-#if defined(MPI)
-    call mpi_bcast(iline,81,MTYPEI, &
-         idproc1(1),mpicomm,mpierr)
-#elif defined(SHMEM)
-    BARRIER
-    if (mnproc /= 1) then
-      call SHMEM_GETI(iline, &
-           iline,81, idproc1(1))
-    end if
-    ! no barrier needed here because zagetc is using two buffers
-#endif
+    call mpi_bcast(iline,81,mpi_integer,idproc1(1),mpicomm,mpierr)
   end subroutine xcgetc
 
   !-----------------------------------------------------------------------
@@ -1051,16 +515,7 @@ contains
     !  by all processes.
     !-----------
 
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-#endif
-
     ! message passing version.
-
     if (cerror /= ' ') then
       write(lp,*) '**************************************************'
       write(lp,*) cerror
@@ -1068,18 +523,14 @@ contains
     write(lp,*) '**************************************************'
     write(lp,*) 'XCHALT CALLED ON PROC = ',mnproc,mproc,nproc
     write(lp,*) '**************************************************'
-    call flush(lp)
 
-#if defined(MPI)
     if (mpicomm == mpicom_external) then
       call external_abort(cerror)
     else
       call mpi_abort(mpicomm,9,mpierr)
     end if
-#else
-    call abort()
-#endif
     error stop '(xchalt)'
+
   end subroutine xchalt
 
   !-----------------------------------------------------------------------
@@ -1113,25 +564,13 @@ contains
     !  5) the global variable vland is returned when outside active tiles.
     !-----------
 
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-#endif
-
     ! pad al to guard against false sharing.
     ! double buffer to reduce the number of required barriers.
-
-    real :: al
-    common/xclgetr/ al(-47:itdm+jtdm+48,0:1)
-    save  /xclgetr/
-
+    real :: al(-47:itdm+jtdm+48,0:1)
     integer, save :: kdb = 0
-
     real :: dummy
     integer :: i1n,iif,iil,j1n,jjf,jjl,l,lx0,nxl,mp,np
+
     if (use_TIMER) then
       if (nxc == 0) then
         call xctmr0( 3)
@@ -1142,11 +581,8 @@ contains
     kdb = mod(kdb+1,2)  ! the least recently used of the two buffers
 
     if ((jinc == 0 .and. iinc == 1) .or. nl == 1) then
-
       ! ---   horizontal forward line.
-
       al(1:nl,kdb) = vland
-
       np  = npe_j(j1)
       do mp= mpe_1(np),mpe_e(np)
         iif = max(i1,     i0_pe(mp,np)+1)
@@ -1158,65 +594,21 @@ contains
         end if
 
         if (mp == mproc .and. np == nproc) then
-
           ! this tile.
-
           do l= lx0+1,lx0+nxl
             al(l,kdb) = a(i1+l-1-i0,j1-j0)
           end do
-#if defined(MPI)
           if (mnflg == 0) then
-            call mpi_bcast(al(lx0+1,kdb),nxl,MTYPER, &
-                 idproc(mp,np),mpicomm,mpierr)
+            call mpi_bcast(al(lx0+1,kdb),nxl,MTYPER,idproc(mp,np),mpicomm,mpierr)
           else if (mnflg /= mnproc) then
-            call MPI_SEND(al(lx0+1,kdb),nxl,MTYPER, &
-                 idproc1(mnflg), 9931, &
-                 mpicomm, mpierr)
+            call MPI_SEND(al(lx0+1,kdb),nxl,MTYPER,idproc1(mnflg), 9931,mpicomm, mpierr)
           end if
         else
-
           ! another tile.
-
           if (mnflg == 0) then
-            call mpi_bcast(al(lx0+1,kdb),nxl,MTYPER, &
-                 idproc(mp,np),mpicomm,mpierr)
+            call mpi_bcast(al(lx0+1,kdb),nxl,MTYPER,idproc(mp,np),mpicomm,mpierr)
           else if (mnflg == mnproc) then
-            call MPI_RECV(al(lx0+1,kdb),nxl,MTYPER, &
-                 idproc(mp,np), 9931, &
-                 mpicomm, mpistat, mpierr)
-          end if
-#endif ! MPI
-        end if
-
-        if (lx0+nxl == nl) then
-          exit
-        end if
-      end do  ! np = 1,jpr
-#if defined(SHMEM)
-
-      ! spliting process into two phases saves on barriers.
-
-      BARRIER
-      do mp= mpe_1(np),mpe_e(np)
-        iif = max(i1,     i0_pe(mp,np)+1)
-        iil = min(i1+nl-1,i0_pe(mp,np)+ii_pe(mp,np))
-        lx0 = iif - i1
-        nxl = iil - iif + 1
-        if (nxl <= 0) then
-          cycle  ! no elements from tile (mp,np)
-        end if
-
-        if (mp == mproc .and. np == nproc) then
-
-          ! nothing to do here (see 1st phase, above).
-
-        else
-
-          ! another tile.
-
-          if (mnflg == 0 .or. mnflg == mnproc) then
-            call SHMEM_GETR(al(lx0+1,kdb), &
-                 al(lx0+1,kdb),nxl,idproc(mp,np))
+            call MPI_RECV(al(lx0+1,kdb),nxl,MTYPER,idproc(mp,np), 9931,mpicomm, mpistat, mpierr)
           end if
         end if
 
@@ -1224,16 +616,14 @@ contains
           exit
         end if
       end do  ! np = 1,jpr
-      ! no barrier needed here because of double buffering
-#endif ! SHMEM
 
       if (mnflg == 0 .or. mnflg == mnproc) then
         aline(1:nl) = al(1:nl,kdb)
       end if
+
     else if (iinc == 0 .and. jinc == 1) then
 
       ! ---   vertical forward line.
-
       al(1:nl,kdb) = vland
 
       do np= 1,jpr
@@ -1250,87 +640,35 @@ contains
         end if
 
         if (mp == mproc .and. np == nproc) then
-
           ! this tile.
-
           do l= lx0+1,lx0+nxl
             al(l,kdb) = a(i1-i0,j1+l-1-j0)
           end do
-#if defined(MPI)
           if (mnflg == 0) then
-            call mpi_bcast(al(lx0+1,kdb),nxl,MTYPER, &
-                 idproc(mp,np),mpicomm,mpierr)
+            call mpi_bcast(al(lx0+1,kdb),nxl,MTYPER,idproc(mp,np),mpicomm,mpierr)
           else if (mnflg /= mnproc) then
-            call MPI_SEND(al(lx0+1,kdb),nxl,MTYPER, &
-                 idproc1(mnflg), 9931, &
-                 mpicomm, mpierr)
+            call MPI_SEND(al(lx0+1,kdb),nxl,MTYPER,idproc1(mnflg), 9931,mpicomm, mpierr)
           end if
         else
-
           ! another tile.
-
           if (mnflg == 0) then
-            call mpi_bcast(al(lx0+1,kdb),nxl,MTYPER, &
-                 idproc(mp,np),mpicomm,mpierr)
+            call mpi_bcast(al(lx0+1,kdb),nxl,MTYPER,idproc(mp,np),mpicomm,mpierr)
           else if (mnflg == mnproc) then
-            call MPI_RECV(al(lx0+1,kdb),nxl,MTYPER, &
-                 idproc(mp,np), 9931, &
-                 mpicomm, mpistat, mpierr)
+            call MPI_RECV(al(lx0+1,kdb),nxl,MTYPER,idproc(mp,np), 9931,mpicomm, mpistat, mpierr)
           end if
-#endif ! MPI
         end if
-
         if (lx0+nxl == nl) then
           exit
         end if
       end do  ! np = 1,jpr
-#if defined(SHMEM)
-
-      ! spliting process into two phases saves on barriers.
-
-      BARRIER
-      do np= 1,jpr
-        mp = mpe_i(i1,np)
-        if (mp <= 0) then
-          cycle  ! an all-land column
-        end if
-        jjf = max(j1,     j0_pe(mp,np)+1)
-        jjl = min(j1+nl-1,j0_pe(mp,np)+jj_pe(mp,np))
-        lx0 = jjf - j1
-        nxl = jjl - jjf + 1
-        if (nxl <= 0) then
-          cycle  ! no elements from tile (mp,np)
-        end if
-
-        if (mp == mproc .and. np == nproc) then
-
-          ! nothing to do here (see 1st phase, above).
-
-        else
-
-          ! another tile.
-
-          if (mnflg == 0 .or. mnflg == mnproc) then
-            call SHMEM_GETR(al(lx0+1,kdb), &
-                 al(lx0+1,kdb),nxl,idproc(mp,np))
-          end if
-        end if
-
-        if (lx0+nxl == nl) then
-          exit
-        end if
-      end do  ! np = 1,jpr
-      ! no barrier needed here because of double buffering
-#endif ! SHMEM
-
       if (mnflg == 0 .or. mnflg == mnproc) then
         aline(1:nl) = al(1:nl,kdb)
       end if
+
     else
 
       ! diagonal and reversing lines - repeatedly call xceget.
       ! this always works, but is very slow.
-
       do l= 1,nl
         if (mnflg == 0 .or. mnflg == mnproc) then
           call xceget(aline(l), a, i1+iinc*(l-1),j1+jinc*(l-1))
@@ -1339,6 +677,7 @@ contains
         end if
       end do
     end if
+
     if (use_TIMER) then
       if (nxc ==  3) then
         call xctmr1( 3)
@@ -1417,6 +756,7 @@ contains
         end do
       end if
     end if
+
     if (use_TIMER) then
       if (nxc ==  5) then
         call xctmr1( 5)
@@ -1453,6 +793,7 @@ contains
     !-----------
 
     integer :: i,j
+
     if (use_TIMER) then
       if (nxc == 0) then
         call xctmr0( 5)
@@ -1485,6 +826,7 @@ contains
         end do
       end if
     end if
+
     if (use_TIMER) then
       if (nxc ==  5) then
         call xctmr1( 5)
@@ -1515,22 +857,10 @@ contains
     !  1) broadcast integer array from tile mnproc = 1 to all tiles
     !-----------
 
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-#endif
-
-    integer :: nmax
-    parameter (nmax = 1024)
-
-    integer :: ib
-    common/xcbcsi/ ib(nmax)
-    save  /xcbcsi/
-
+    integer, parameter :: nmax=1024
+    integer :: ib(nmax)
     integer :: i,is0,isl,n,nn
+
     if (use_TIMER) then
       if (nxc == 0) then
         call xctmr0( 8)
@@ -1539,30 +869,19 @@ contains
     end if
 
     ! stripmine ia.
-
     n = size(ia)
-
     do is0= 0,n-1,nmax
       isl = min(is0+nmax,n)
       nn = isl - is0
       do i= 1,nn
         ib(i) = ia(is0+i)
       end do
-
-#if defined(MPI)
-      call mpi_bcast(ib,nn,MTYPEI, &
-           idproc1(1),mpicomm,mpierr)
-#elif defined(SHMEM)
-      BARRIER
-      if (mnproc /= 1) then
-        call SHMEM_GETI(ib,ib,nn,idproc1(1))
-      end if
-      BARRIER
-#endif
+      call mpi_bcast(ib,nn,mpi_integer,idproc1(1),mpicomm,mpierr)
       do i= 1,nn
         ia(is0+i) = ib(i)
       end do
     end do  ! stripmine loop
+
     if (use_TIMER) then
       if (nxc == 8) then
         call xctmr1( 8)
@@ -1604,22 +923,10 @@ contains
     !    ra              real           in/out    target array
     !-----------
 
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-#endif
-
-    integer :: nmax
-    parameter (nmax = 1024)
-
-    real :: rb
-    common/xcbcsr/ rb(nmax)
-    save  /xcbcsr/
-
+    integer, parameter :: nmax=1024
+    real :: rb(nmax)
     integer :: i,is0,isl,n,nn
+
     if (use_TIMER) then
       if (nxc == 0) then
         call xctmr0( 8)
@@ -1628,30 +935,19 @@ contains
     end if
 
     ! stripmine ra.
-
     n = size(ra)
-
     do is0= 0,n-1,nmax
       isl = min(is0+nmax,n)
       nn = isl - is0
       do i= 1,nn
         rb(i) = ra(is0+i)
       end do
-
-#if defined(MPI)
-      call mpi_bcast(rb,nn,MTYPED, &
-           idproc1(1),mpicomm,mpierr)
-#elif defined(SHMEM)
-      BARRIER
-      if (mnproc /= 1) then
-        call SHMEM_GETD(rb,rb,nn,idproc1(1))
-      end if
-      BARRIER
-#endif
+      call mpi_bcast(rb,nn,MTYPED,idproc1(1),mpicomm,mpierr)
       do i= 1,nn
         ra(is0+i) = rb(i)
       end do
     end do  ! stripmine loop
+
     if (use_TIMER) then
       if (nxc == 8) then
         call xctmr1( 8)
@@ -1691,22 +987,10 @@ contains
     !    la              logical        in/out    target array
     !-----------
 
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-#endif
-
-    integer :: nmax
-    parameter (nmax = 1024)
-
-    logical :: lb
-    common/xcbcsl/ lb(nmax)
-    save  /xcbcsl/
-
+    integer, parameter :: nmax=1024
+    logical :: lb(nmax)
     integer :: i,is0,isl,n,nn
+
     if (use_TIMER) then
       if (nxc == 0) then
         call xctmr0( 8)
@@ -1715,30 +999,19 @@ contains
     end if
 
     ! stripmine la.
-
     n = size(la)
-
     do is0= 0,n-1,nmax
       isl = min(is0+nmax,n)
       nn = isl - is0
       do i= 1,nn
         lb(i) = la(is0+i)
       end do
-
-#if defined(MPI)
-      call mpi_bcast(lb,nn,MTYPEL, &
-           idproc1(1),mpicomm,mpierr)
-#elif defined(SHMEM)
-      BARRIER
-      if (mnproc /= 1) then
-        call SHMEM_GETL(lb,lb,nn,idproc1(1))
-      end if
-      BARRIER
-#endif
+      call mpi_bcast(lb,nn,mpi_logical,idproc1(1),mpicomm,mpierr)
       do i= 1,nn
         la(is0+i) = lb(i)
       end do
     end do  ! stripmine loop
+
     if (use_TIMER) then
       if (nxc == 8) then
         call xctmr1( 8)
@@ -1758,22 +1031,10 @@ contains
     !    ca              character      in/out    target array
     !-----------
 
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-#endif
-
-    integer :: nmax
-    parameter (nmax = 1024)
-
+    integer, parameter :: nmax=1024
     character :: cb*(nmax)
-    common/xcbcsc/ cb
-    save  /xcbcsc/
-
     integer :: i,is0,isl,n,nn
+
     if (use_TIMER) then
       if (nxc == 0) then
         call xctmr0( 8)
@@ -1783,24 +1044,14 @@ contains
 
     ! stripmine ca.
     n = len(ca)
-
     do is0= 0,n-1,nmax
       isl = min(is0+nmax,n)
       nn = isl - is0
       cb(1:nn) = ca(is0+1:is0+nn)
-
-#if defined(MPI)
-      call mpi_bcast(cb,nn,MTYPEC, &
-           idproc1(1),mpicomm,mpierr)
-#elif defined(SHMEM)
-      BARRIER
-      if (mnproc /= 1) then
-        call SHMEM_GETC(cb,cb,nn,idproc1(1))
-      end if
-      BARRIER
-#endif
+      call mpi_bcast(cb,nn,mpi_character,idproc1(1),mpicomm,mpierr)
       ca(is0+1:is0+nn) = cb(1:nn)
     end do  ! stripmine loop
+
     if (use_TIMER) then
       if (nxc == 8) then
         call xctmr1( 8)
@@ -1842,22 +1093,10 @@ contains
     !    ia              integer        in/out    target array
     !-----------
 
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-#endif
-
-    integer :: nmax
-    parameter (nmax = 1024)
-
-    integer :: ib,ic
-    common/xcmaxi/ ib(nmax),ic(nmax)
-    save  /xcmaxi/
-
+    integer, parameter :: nmax=1024
+    integer :: ib(nmax),ic(nmax)
     integer :: i,is0,isl,mn,n,nn
+
     if (use_TIMER) then
       if (nxc == 0) then
         call xctmr0( 9)
@@ -1866,44 +1105,19 @@ contains
     end if
 
     !     stripmine ia.
-
     n = size(ia)
-
     do is0= 0,n-1,nmax
       isl = min(is0+nmax,n)
       nn = isl - is0
       do i= 1,nn
         ib(i) = ia(is0+i)
       end do
-
-#if defined(MPI)
-      call mpi_allreduce(ib,ic,nn,MTYPEI,mpi_max, &
-           mpicomm,mpierr)
-#elif defined(SHMEM)
-      BARRIER
-      if (mnproc == 1) then
-        !         form global maximum on 1st processor
-        do i= 1,nn
-          ic(i) = ib(i)
-        end do
-        do mn= 2,ijpr
-          call SHMEM_GETI(ib,ib,nn, idproc1(mn))
-          do i= 1,nn
-            ic(i) = max(ic(i),ib(i))
-          end do
-        end do
-        BARRIER
-      else
-        !         get global maximum from 1st processor
-        BARRIER
-        call SHMEM_GETI(ic,ic,nn, idproc1(1))
-      end if
-      ! no barrier needed here because using two buffers (ib and ic)
-#endif
+      call mpi_allreduce(ib,ic,nn,mpi_integer,mpi_max,mpicomm,mpierr)
       do i= 1,nn
         ia(is0+i) = ic(i)
       end do
     end do  ! stripmine loop
+
     if (use_TIMER) then
       if (nxc == 9) then
         call xctmr1( 9)
@@ -1944,22 +1158,10 @@ contains
     !    ra              real           in/out    target array
     !-----------
 
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-#endif
-
-    integer :: nmax
-    parameter (nmax = 1024)
-
-    real :: rb,rc
-    common/xcmaxr/ rb(nmax),rc(nmax)
-    save  /xcmaxr/
-
+    integer, parameter :: nmax=1024
+    real :: rb(nmax),rc(nmax)
     integer :: i,is0,isl,mn,n,nn
+
     if (use_TIMER) then
       if (nxc == 0) then
         call xctmr0( 9)
@@ -1968,7 +1170,6 @@ contains
     end if
 
     !     stripmine ra.
-
     n = size(ra)
 
     do is0= 0,n-1,nmax
@@ -1977,35 +1178,12 @@ contains
       do i= 1,nn
         rb(i) = ra(is0+i)
       end do
-
-#if defined(MPI)
-      call mpi_allreduce(rb,rc,nn,MTYPER,mpi_max, &
-           mpicomm,mpierr)
-#elif defined(SHMEM)
-      BARRIER
-      if (mnproc == 1) then
-        !         form global maximum on 1st processor
-        do i= 1,nn
-          rc(i) = rb(i)
-        end do
-        do mn= 2,ijpr
-          call SHMEM_GETR(rb,rb,nn, idproc1(mn))
-          do i= 1,nn
-            rc(i) = max(rc(i),rb(i))
-          end do
-        end do
-        BARRIER
-      else
-        !         get global maximum from 1st processor
-        BARRIER
-        call SHMEM_GETR(rc,rc,nn, idproc1(1))
-      end if
-      ! no barrier needed here because using two buffers (b and c)
-#endif
+      call mpi_allreduce(rb,rc,nn,MTYPER,mpi_max,mpicomm,mpierr)
       do i= 1,nn
         ra(is0+i) = rc(i)
       end do
     end do  ! stripmine loop
+
     if (use_TIMER) then
       if (nxc == 9) then
         call xctmr1( 9)
@@ -2045,22 +1223,10 @@ contains
     !    ia              integer        in/out    target array
     !-----------
 
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-#endif
-
-    integer :: nmax
-    parameter (nmax = 1024)
-
-    integer :: ib,ic
-    common/xcmaxi/ ib(nmax),ic(nmax)
-    save  /xcmaxi/
-
+    integer, parameter :: nmax=1024
+    integer :: ib(nmax),ic(nmax)
     integer :: i,is0,isl,mn,n,nn
+
     if (use_TIMER) then
       if (nxc == 0) then
         call xctmr0(10)
@@ -2069,44 +1235,19 @@ contains
     end if
 
     !     stripmine ia.
-
     n = size(ia)
-
     do is0= 0,n-1,nmax
       isl = min(is0+nmax,n)
       nn = isl - is0
       do i= 1,nn
         ib(i) = ia(is0+i)
       end do
-
-#if defined(MPI)
-      call mpi_allreduce(ib,ic,nn,MTYPEI,mpi_min, &
-           mpicomm,mpierr)
-#elif defined(SHMEM)
-      BARRIER
-      if (mnproc == 1) then
-        !         form global minimum on 1st processor
-        do i= 1,nn
-          ic(i) = ib(i)
-        end do
-        do mn= 2,ijpr
-          call SHMEM_GETI(ib,ib,nn, idproc1(mn))
-          do i= 1,nn
-            ic(i) = min(ic(i),ib(i))
-          end do
-        end do
-        BARRIER
-      else
-        !         get global minimum from 1st processor
-        BARRIER
-        call SHMEM_GETI(ic,ic,nn, idproc1(1))
-      end if
-      ! no barrier needed here because using two buffers (b and c)
-#endif
+      call mpi_allreduce(ib,ic,nn,mpi_integer,mpi_min,mpicomm,mpierr)
       do i= 1,nn
         ia(is0+i) = ic(i)
       end do
     end do
+
     if (use_TIMER) then
       if (nxc == 10) then
         call xctmr1(10)
@@ -2145,22 +1286,10 @@ contains
     !    ra              real           in/out    target array
     !-----------
 
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-#endif
-
-    integer :: nmax
-    parameter (nmax = 1024)
-
-    real :: rb,rc
-    common/xcmaxr/ rb(nmax),rc(nmax)
-    save  /xcmaxr/
-
+    integer, parameter :: nmax=1024
+    real :: rb(nmax),rc(nmax)
     integer :: i,is0,isl,mn,n,nn
+
     if (use_TIMER) then
       if (nxc == 0) then
         call xctmr0(10)
@@ -2169,7 +1298,6 @@ contains
     end if
 
     !     stripmine ra.
-
     n = size(ra)
 
     do is0= 0,n-1,nmax
@@ -2178,35 +1306,12 @@ contains
       do i= 1,nn
         rb(i) = ra(is0+i)
       end do
-
-#if defined(MPI)
-      call mpi_allreduce(rb,rc,nn,MTYPER,mpi_min, &
-           mpicomm,mpierr)
-#elif defined(SHMEM)
-      BARRIER
-      if (mnproc == 1) then
-        !         form global minimum on 1st processor
-        do i= 1,nn
-          rc(i) = rb(i)
-        end do
-        do mn= 2,ijpr
-          call SHMEM_GETR(rb,rb,nn, idproc1(mn))
-          do i= 1,nn
-            rc(i) = min(rc(i),rb(i))
-          end do
-        end do
-        BARRIER
-      else
-        !         get global minimum from 1st processor
-        BARRIER
-        call SHMEM_GETR(rc,rc,nn, idproc1(1))
-      end if
-      ! no barrier needed here because using two buffers (b and c)
-#endif
+      call mpi_allreduce(rb,rc,nn,MTYPER,mpi_min,mpicomm,mpierr)
       do i= 1,nn
         ra(is0+i) = rc(i)
       end do
     end do
+
     if (use_TIMER) then
       if (nxc == 10) then
         call xctmr1(10)
@@ -2219,62 +1324,55 @@ contains
   subroutine xcspmd
 
     !-----------
-    !  1) initialize data structures that identify the tiles.
-    !  2) data structures:
-    !      ipr     - 1st 2-D node dimension (<=iqr)
-    !      jpr     - 2nd 2-D node dimension (<=jqr)
-    !      ijpr    -     1-D node dimension (ipr*jpr)
-    !      mproc   - 1st 2-D node index
-    !      nproc   - 2nd 2-D node index
-    !      mnproc  -     1-D node index
-    !      i0      -     i0_pe(mproc,nproc)
-    !      ii      -     ii_pe(mproc,nproc)
-    !      j0      -     j0_pe(mproc,nproc)
-    !      jj      -     jj_pe(mproc,nproc)
-    !      margin  -     how much of the halo is currently valid
-    !      nreg    -     region type
-    !      vland   -     fill value for land (standard value 0.0)
-    !      idproc  -     2-D node addresses, with periodic wrap
-    !      idproc1 -     1-D node addresses, with periodic wrap
-    !      idhalo  -     left and right halo target nodes
-    !      i0_pe   - 1st dimension tile offsets
-    !      ii_pe   - 1st dimension tile extents (<=idm)
-    !      j0_pe   - 2nd dimension tile offsets
-    !      jj_pe   - 2nd dimension tile extents (<=jdm)
-    !      mpe_1   - 1st node in each row of 2-D nodes
-    !      mpe_e   - end node in each row of 2-D nodes
-    !      mpe_i   - mapping from 1st global dimension to 2-D nodes
-    !      npe_j   - mapping from 2nd global dimension to 2-D nodes
-    !      i1sum   - local index of 1st partial sum on each tile
-    !      iisum   - number of partial sums on each tile
-    !      m0_top  - tile offset:       top neighbors (0:jpr-1)
-    !      mm_top  - tile extent:       top neighbors (<=jpr)
-    !      i0_st   - halo offsets: send top neighbors
-    !      ii_st   - halo lengths: send top neighbors
-    !      i0_gt   - halo offsets:  get top neighbors
-    !      ii_gt   - halo lengths:  get top neighbors
-    !      m0_bot  - tile offset:       bot neighbors (0:jpr-1)
-    !      mm_bot  - tile extent:       bot neighbors (<=jpr)
-    !      i0_sb   - halo offsets: send bot neighbors
-    !      ii_sb   - halo lengths: send bot neighbors
-    !      i0_gb   - halo offsets:  get bot neighbors
-    !      ii_gb   - halo lengths:  get bot neighbors
+    ! 1) initialize data structures that identify the tiles.
+    ! 2) data structures:
+    ! ipr     - 1st 2-D node dimension (<=iqr)
+    ! jpr     - 2nd 2-D node dimension (<=jqr)
+    ! ijpr    -     1-D node dimension (ipr*jpr)
+    ! mproc   - 1st 2-D node index
+    ! nproc   - 2nd 2-D node index
+    ! mnproc  -     1-D node index
+    ! i0      -     i0_pe(mproc,nproc)
+    ! ii      -     ii_pe(mproc,nproc)
+    ! j0      -     j0_pe(mproc,nproc)
+    ! jj      -     jj_pe(mproc,nproc)
+    ! margin  -     how much of the halo is currently valid
+    ! nreg    -     region type
+    ! vland   -     fill value for land (standard value 0.0)
+    ! idproc  -     2-D node addresses, with periodic wrap
+    ! idproc1 -     1-D node addresses, with periodic wrap
+    ! idhalo  -     left and right halo target nodes
+    ! i0_pe   - 1st dimension tile offsets
+    ! ii_pe   - 1st dimension tile extents (<=idm)
+    ! j0_pe   - 2nd dimension tile offsets
+    ! jj_pe   - 2nd dimension tile extents (<=jdm)
+    ! mpe_1   - 1st node in each row of 2-D nodes
+    ! mpe_e   - end node in each row of 2-D nodes
+    ! mpe_i   - mapping from 1st global dimension to 2-D nodes
+    ! npe_j   - mapping from 2nd global dimension to 2-D nodes
+    ! i1sum   - local index of 1st partial sum on each tile
+    ! iisum   - number of partial sums on each tile
+    ! m0_top  - tile offset:       top neighbors (0:jpr-1)
+    ! mm_top  - tile extent:       top neighbors (<=jpr)
+    ! i0_st   - halo offsets: send top neighbors
+    ! ii_st   - halo lengths: send top neighbors
+    ! i0_gt   - halo offsets:  get top neighbors
+    ! ii_gt   - halo lengths:  get top neighbors
+    ! m0_bot  - tile offset:       bot neighbors (0:jpr-1)
+    ! mm_bot  - tile extent:       bot neighbors (<=jpr)
+    ! i0_sb   - halo offsets: send bot neighbors
+    ! ii_sb   - halo lengths: send bot neighbors
+    ! i0_gb   - halo offsets:  get bot neighbors
+    ! ii_gb   - halo lengths:  get bot neighbors
 
-    !  3) all data structures are based on the processor number and
-    !     the patch distribution file, 'patch.input'.
+    ! 3) all data structures are based on the processor number and
+    ! the patch distribution file, 'patch.input'.
     !-----------
 
     integer :: i,j,l,m,mm,mn,mypei,n,npesi
-
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
     logical :: linit
 
-    !     standard mpi (message passing) version.
+    ! standard mpi (message passing) version.
 
     call mpi_initialized(linit,mpierr)
     if (linit) then
@@ -2289,42 +1387,19 @@ contains
 
     mnproc = mypei + 1  ! mnproc counts from 1
 
-#  if defined(DEBUG_ALL)
-    write(lp,'(a,i5)') 'mnproc =',mnproc
-    call xcsync(flush_lp)
-#  endif
-#elif defined(SHMEM)
-    integer :: shmem_mype,shmem_npes
-
-    !     shmem version.
-
-    call start_pes(0)
-
-    mypei = SHMEM_MYPE()
-    npesi = SHMEM_NPES()
-
-    mnproc = mypei + 1  ! mnproc counts from 1
-#else
-
-    write(lp,*)
-    write(lp,*) '***** ERROR - UNDEFINED SPMD MACHINE TYPE *****'
-    write(lp,*)
-    call flush(lp)
-    stop '(xcspmd)'
-#endif
+    if (use_DEBUG_ALL) then
+       write(lp,'(a,i5)') 'mnproc =',mnproc
+       call xcsync(flush_lp)
+    end if
 
     vland = 0.0
 
-#if defined(T3E)
-    open(unit=lp,delim = 'none')  ! forces open on stdout
-#endif
+    ! read in the tile locations and sizes.
+    ! patch distibution file on unit 21 (fort.21).
 
-    !     read in the tile locations and sizes.
-    !     patch distibution file on unit 21 (fort.21).
+    ! here is an example of a patch file, with a leading "!" added:
 
-    !     here is an example of a patch file, with a leading "!" added:
-
-    !  npes   npe   mpe   idm   jdm  ibig  jbig  nreg
+    ! npes   npe   mpe   idm   jdm  ibig  jbig  nreg
     !    16     4     4    57    52    19    15     0
 
     !ispt(  1) =     22    35    42    49
@@ -2339,93 +1414,88 @@ contains
     !jspt(  1) =      1    15    26    38
     !jjpe(  1) =     14    11    12    15
 
-    !     ispt(j) is the 1st i-point on each tile in the j-th row
-    !     iipe(j) is the i-extent    of each tile in the j-th row
-    !     jspt(1) is the 1st j-point on each tile in all columns
-    !     jjpe(1) is the j-extent    of each tile in all columns
+    ! ispt(j) is the 1st i-point on each tile in the j-th row
+    ! iipe(j) is the i-extent    of each tile in the j-th row
+    ! jspt(1) is the 1st j-point on each tile in all columns
+    ! jjpe(1) is the j-extent    of each tile in all columns
 
-    !     note that each tile row can have a different tile layout,
-    !     but each tile column is identical.  So a tile can have at
-    !     most one nieghbor in the E and W directions, but several
-    !     nieghbors in the N and S directions.
+    ! note that each tile row can have a different tile layout,
+    ! but each tile column is identical.  So a tile can have at
+    ! most one nieghbor in the E and W directions, but several
+    ! nieghbors in the N and S directions.
 
-    !     iipe can be zero, indicating an empty tile (not included in the
-    !     active tile count, npes) and therefore at least a halo widths
-    !     land separation between active tiles to its east and west.  In
-    !     periodic cases, the last non-empty tile can periodic wrap to the
-    !     first tile in the row (i.e. trailing "empty" tiles can be null
-    !     tiles, rather than all-land tiles).
+    ! iipe can be zero, indicating an empty tile (not included in the
+    ! active tile count, npes) and therefore at least a halo widths
+    ! land separation between active tiles to its east and west.  In
+    ! periodic cases, the last non-empty tile can periodic wrap to the
+    ! first tile in the row (i.e. trailing "empty" tiles can be null
+    ! tiles, rather than all-land tiles).
 
     ijpr = ijqr
     ipr = iqr
     jpr = jqr
-#if defined(ARCTIC)
-    if (nreg /= 2) then  ! not arctic
-      if (mnproc == 1) then
-        write(lp,'(a,i5)') 'input: nreg =',nreg
-        call flush(lp)
-      end if
-      call xcstop('xcspmd: patch.input must be for arctic')
-      stop '(xcspmd)'
-    end if
-#else
-    if (nreg == 2) then  ! arctic
-      if (mnproc == 1) then
-        write(lp,'(a,i5)') 'input: nreg =',nreg
-        call flush(lp)
-      end if
-      call xcstop('xcspmd: patch.input for arctic but ARCTIC undef.')
-      stop '(xcspmd)'
-    else if (nreg < 0) then  ! nreg = -1 reserved for type = one/omp
-      if (mnproc == 1) then
-        write(lp,'(a,i5)') 'input: nreg =',nreg
-        call flush(lp)
-      end if
-      call xcstop('xcspmd: patch.input for wrong nreg')
-      stop '(xcspmd)'
-    end if
-#endif ! ARCTIC:else
 
-    !     individual tile rows.
+    if (use_ARCTIC) then
+       if (nreg /= 2) then  ! not arctic
+          if (mnproc == 1) then
+             write(lp,'(a,i5)') 'input: nreg =',nreg
+          end if
+          call xcstop('xcspmd: patch.input must be for arctic')
+          stop '(xcspmd)'
+       end if
+    else
+       if (nreg == 2) then  ! arctic
+          if (mnproc == 1) then
+             write(lp,'(a,i5)') 'input: nreg =',nreg
+          end if
+          call xcstop('xcspmd: patch.input for arctic but ARCTIC undef.')
+          stop '(xcspmd)'
+       else if (nreg < 0) then  ! nreg = -1 reserved for type = one/omp
+          if (mnproc == 1) then
+             write(lp,'(a,i5)') 'input: nreg =',nreg
+          end if
+          call xcstop('xcspmd: patch.input for wrong nreg')
+          stop '(xcspmd)'
+       end if
+    end if
 
+    ! individual tile rows.
     do n= 1,jpr
       if (maxval(ii_pe(1:ipr,n)) <= 0) then
         call xcstop('xcspmd: decomposition has an empty row')
         stop '(xcspmd)'
       end if
     end do
-#if defined(ARCTIC)
 
-    ! --- all arctic patch tiles must be the same size or empty,
-    ! --- and empty tiles must be "twinned" across the top boundary.
+    if (use_ARCTIC) then
+       ! --- all arctic patch tiles must be the same size or empty,
+       ! --- and empty tiles must be "twinned" across the top boundary.
 
-    if (ipr > 1) then
-      do m= 1,ipr
-        if (ii_pe(m,jpr) == 0) then
-          if (ii_pe(ipr+1-m,jpr) /= 0) then
-            if (mnproc == 1) then
-              write(lp,'(a,i3,a,i3,a)') &
-                   'error - tile',m,',jpr is empty but tile', &
-                   ipr+1-m,',jpr is not'
-              call flush(lp)
-            end if
-            call xcstop('xcspmd: arctic empty tiles are not twins')
-            stop '(xcspmd)'
-          end if
-        else if (ii_pe(m,jpr) /= itdm/ipr) then
-          if (mnproc == 1) then
-            write(lp,'(a,i5)') &
-                 'error - arctic patch tiles should have ii =',itdm/ipr
-            call flush(lp)
-          end if
-          call xcstop('xcspmd: arctic tiles are not the right size')
-          stop '(xcspmd)'
-        end if
-      end do !m
+       if (ipr > 1) then
+          do m= 1,ipr
+             if (ii_pe(m,jpr) == 0) then
+                if (ii_pe(ipr+1-m,jpr) /= 0) then
+                   if (mnproc == 1) then
+                      write(lp,'(a,i3,a,i3,a)') &
+                           'error - tile',m,',jpr is empty but tile', &
+                           ipr+1-m,',jpr is not'
+                   end if
+                   call xcstop('xcspmd: arctic empty tiles are not twins')
+                   stop '(xcspmd)'
+                end if
+             else if (ii_pe(m,jpr) /= itdm/ipr) then
+                if (mnproc == 1) then
+                   write(lp,'(a,i5)') &
+                        'error - arctic patch tiles should have ii =',itdm/ipr
+                end if
+                call xcstop('xcspmd: arctic tiles are not the right size')
+                stop '(xcspmd)'
+             end if
+          end do !m
+       end if
     end if
-#endif ! ARCTIC
 
-    !     the generic tile column (must cover entire column).
+    ! the generic tile column (must cover entire column).
 
     if (j0_pe(1,1) /= 0) then
       call xcstop('xcspmd: decomposition has wrong j0_pe')
@@ -2442,9 +1512,7 @@ contains
       stop '(xcspmd)'
     end if
 
-#if defined(MPI)
-
-    !     do we have the right number of pes?
+    ! do we have the right number of pes?
 
     if (npesi /= ijpr) then
       if (mnproc == 1) then
@@ -2455,13 +1523,12 @@ contains
         write(lp,*) '   IJPR = ',    ijpr
         write(lp,*) 'IPR,JPR = ',ipr,jpr
         write(lp,*)
-        call flush(lp)
       end if
       call xcstop('Error in xcspmd')
       stop
     end if
 
-    !     mpi messages are sent and received by pe number (0:ijpr-1).
+    ! mpi messages are sent and received by pe number (0:ijpr-1).
 
     null_tile = mpi_proc_null
 
@@ -2486,57 +1553,10 @@ contains
         end if
       end do
     end do
-#elif defined(SHMEM)
-
-    !     do we have the right number of pes?
-
-    if (npesi /= ijpr) then
-      if (mnproc == 1) then
-        write(lp,*)
-        write(lp,*) '***** ERROR - WRONG SHMEM SIZE *****'
-        write(lp,*)
-        write(lp,*) 'NPES    = ',npesi
-        write(lp,*) '   IJPR = ',    ijpr
-        write(lp,*) 'IPR,JPR = ',ipr,jpr
-        write(lp,*)
-        call flush(lp)
-      end if
-      call xcstop('Error in xcspmd')
-      stop
-    end if
-
-    !     shmem messages are sent and received by pe number (0:ijpr-1).
-
-    null_tile = -1
-
-    mn = 0
-    do n= 1,jpr
-      mpe_1(n) = 0
-      do m= 1,ipr
-        if (ii_pe(m,n) == 0) then
-          idproc(m,n)   = null_tile
-        else
-          idproc1(mn+1) = mn
-          idproc(m,n)   = mn
-          mn = mn + 1
-          if (mnproc == mn) then
-            mproc = m
-            nproc = n
-          end if
-          mpe_e(n) = m
-          if (mpe_1(n) == 0) then
-            mpe_1(n) = m
-          end if
-        end if
-      end do
-    end do
-#endif
-
     if (mn /= ijpr) then
       if (mnproc == 1) then
         write(lp,'(a,i5)') 'input: ijpr =',ijpr
         write(lp,'(a,i5)') 'calc:  ijpr =',mn
-        call flush(lp)
       end if
       call xcstop('xcspmd: wrong number of sea tiles')
       stop '(xcspmd)'
@@ -2544,7 +1564,7 @@ contains
 
     if (nreg == 0.or.nreg == 4) then
 
-      !       longitudinal tile dimension is closed (not periodic)
+      ! longitudinal tile dimension is closed (not periodic)
 
       do n= 1,jpr
         idproc(    0,n) = null_tile
@@ -2552,7 +1572,7 @@ contains
       end do
     else
 
-      !       longitudinal tile dimension is potentially periodic.
+      ! longitudinal tile dimension is potentially periodic.
 
       do n= 1,jpr
         idproc(    0,n) = null_tile
@@ -2565,51 +1585,48 @@ contains
         end if
       end do
     end if
-#if defined(ARCTIC)
 
-    !     must have ipr even or 1 for arctic boundary case.
+    if (use_ARCTIC) then
+       ! must have ipr even or 1 for arctic boundary case.
+       if (ipr > 1 .and. mod(ipr,2) /= 0) then
+          call xcstop('Error in xcspmd (arctic) - ipr must be even')
+          stop '(xcspmd)'
+       end if
 
-    if (ipr > 1 .and. mod(ipr,2) /= 0) then
-      call xcstop('Error in xcspmd (arctic) - ipr must be even')
-      stop '(xcspmd)'
-    end if
+       ! latitudinal tile dimension is closed/arctic.
 
-    !     latitudinal tile dimension is closed/arctic.
-
-    do m= 1,ipr
-      idproc(m,    0) = null_tile
-      idproc(m,jpr+1) = idproc(ipr+1-m,jpr)  !arctic tile mapping
-    end do
-    idproc(    0,    0) = null_tile
-    idproc(ipr+1,    0) = null_tile
-    idproc(    0,jpr+1) = idproc(ipr,jpr+1)
-    idproc(ipr+1,jpr+1) = idproc(1,  jpr+1)
-#else
-
-
-    if (nreg >= 3) then
-      !       latitudinal tile dimension is periodic
-      do m= 0,ipr+1
-        idproc(m,    0) = idproc(m,jpr)
-        idproc(m,jpr+1) = idproc(m,  1)
-      end do
+       do m= 1,ipr
+          idproc(m,    0) = null_tile
+          idproc(m,jpr+1) = idproc(ipr+1-m,jpr)  !arctic tile mapping
+       end do
+       idproc(    0,    0) = null_tile
+       idproc(ipr+1,    0) = null_tile
+       idproc(    0,jpr+1) = idproc(ipr,jpr+1)
+       idproc(ipr+1,jpr+1) = idproc(1,  jpr+1)
     else
-      !       latitudinal tile dimension is closed
-      do m= 0,ipr+1
-        idproc(m,    0) = null_tile
-        idproc(m,jpr+1) = null_tile
-      end do
-    end if
-#endif ! ARCTIC:else
+       if (nreg >= 3) then
+          ! latitudinal tile dimension is periodic
+          do m= 0,ipr+1
+             idproc(m,    0) = idproc(m,jpr)
+             idproc(m,jpr+1) = idproc(m,  1)
+          end do
+       else
+          ! latitudinal tile dimension is closed
+          do m= 0,ipr+1
+             idproc(m,    0) = null_tile
+             idproc(m,jpr+1) = null_tile
+          end do
+       end if
+    end if  ! end if use_ARCTIC
 
-    !     1-d tiling logic is easier if assumed periodic.
+    ! 1-d tiling logic is easier if assumed periodic.
 
     idproc1(     0) = idproc1(ijpr)
     idproc1(ijpr+1) = idproc1(   1)
 
-    !     mapping from global i,j to mp,np.
-    !     ia,ja is on tile mpe_i(ia,npe_j(ja)),npe_j(ja),
-    !     or on no tile if mpe_i(ia,npe_j(ja)) is 0 or -1.
+    ! mapping from global i,j to mp,np.
+    ! ia,ja is on tile mpe_i(ia,npe_j(ja)),npe_j(ja),
+    ! or on no tile if mpe_i(ia,npe_j(ja)) is 0 or -1.
 
     do n= 1,jpr
       mpe_i(1:itdm,n) = 0  ! default is an empty tile
@@ -2633,10 +1650,10 @@ contains
       end do
     end do
 
-    !     do each partial sum on the tile that owns its center point.
-    !       i1sum - local index of 1st partial sum on each tile
-    !       iisum - number of partial sums on each tile
-    !     see xcsum for how i1sum and iisum are used.
+    ! do each partial sum on the tile that owns its center point.
+    ! i1sum - local index of 1st partial sum on each tile
+    ! iisum - number of partial sums on each tile
+    ! see xcsum for how i1sum and iisum are used.
 
     do n= 1,jpr
       do m= 1,ipr
@@ -2685,7 +1702,7 @@ contains
       end do
     end do
 
-    !     local tile extents.
+    ! local tile extents.
 
     i0 = i0_pe(mproc,nproc)
     ii = ii_pe(mproc,nproc)
@@ -2694,14 +1711,14 @@ contains
 
     margin = 0
 
-    !     left and right halo targets
+    ! left and right halo targets
 
     idhalo(1) = idproc(mproc-1,nproc)
     idhalo(2) = idproc(mproc+1,nproc)
 
     if (idhalo(1) /= null_tile .and. mproc /= 1) then
 
-      !       is the left tile touching this one?
+      ! is the left tile touching this one?
 
       if (i0 /= i0_pe(mproc-1,nproc)+ii_pe(mproc-1,nproc)) then
         idhalo(1) = null_tile
@@ -2710,80 +1727,80 @@ contains
 
     if (idhalo(2) /= null_tile .and. mproc /= mpe_e(nproc)) then
 
-      !       is the right tile touching this one?
+      ! is the right tile touching this one?
 
       if (i0+ii /= i0_pe(mproc+1,nproc)) then
         idhalo(2) = null_tile
       end if
     end if
 
-    !     local halo exchange data structures
+    ! local halo exchange data structures
 
-    !     m0_top - tile offset:       top neighbors
-    !     mm_top - tile extent:       top neighbors (<=jpr)
-    !     i0_st  - halo offsets: send top neighbors
-    !     ii_st  - halo lengths: send top neighbors
-    !     i0_gt  - halo offsets:  get top neighbors
-    !     ii_gt  - halo lengths:  get top neighbors
-    !     m0_bot - tile offset:       bot neighbors
-    !     mm_bot - tile extent:       bot neighbors (<=jpr)
-    !     i0_sb  - halo offsets: send bot neighbors
-    !     ii_sb  - halo lengths: send bot neighbors
-    !     i0_gb  - halo offsets:  get bot neighbors
-    !     ii_gb  - halo lengths:  get bot neighbors
+    ! m0_top - tile offset:       top neighbors
+    ! mm_top - tile extent:       top neighbors (<=jpr)
+    ! i0_st  - halo offsets: send top neighbors
+    ! ii_st  - halo lengths: send top neighbors
+    ! i0_gt  - halo offsets:  get top neighbors
+    ! ii_gt  - halo lengths:  get top neighbors
+    ! m0_bot - tile offset:       bot neighbors
+    ! mm_bot - tile extent:       bot neighbors (<=jpr)
+    ! i0_sb  - halo offsets: send bot neighbors
+    ! ii_sb  - halo lengths: send bot neighbors
+    ! i0_gb  - halo offsets:  get bot neighbors
+    ! ii_gb  - halo lengths:  get bot neighbors
 
-    !     note that send is also receive, and is w.r.t. the local  tile.
-    !     similarly get  is also put,     and is w.r.t. the remote tile.
+    ! note that send is also receive, and is w.r.t. the local  tile.
+    ! similarly get  is also put,     and is w.r.t. the remote tile.
 
     if (nproc == jpr) then
-#if defined(ARCTIC)
-      !       single, same size, top arctic nieghbor
-      m0_top   = mproc - 1
-      mm_top   =  1
-      i0_st(1) =  0
-      i0_gt(1) =  0
-      ii_st(1) = ii
-      ii_gt(1) = ii
-#else
-      m0_top = 0
-      mm_top = 0
-      if (nreg >= 3) then
-        !         latitudinal tile dimension is open
-        n = 1
-        m = 0
-        do i= 1,ii
-          if (mpe_i(i0+i,n) /= m) then
-            if (mm_top == 0) then
-              m0_top = mpe_i(i0+i,n) - 1
-            else if (m /= -1) then
-              ii_st(mm_top) = i-1 - i0_st(mm_top)
-              ii_gt(mm_top) = ii_st(mm_top)
-            end if
-            m = mpe_i(i0+i,n)
-            if (m > 0) then
-              mm_top        = mm_top + 1
-              i0_st(mm_top) = i-1
-              i0_gt(mm_top) = i-1 + i0-i0_pe(m,n)
-            else if (m == 0) then
-              mm_top        = mm_top + 1
-              i0_st(mm_top) = i-1
-              i0_gt(mm_top) = i0_gt(mm_top-1) + ii_gt(mm_top-1)
-              !             elseif (m.eq.-1) then  !do nothing
-            end if
+       if (use_ARCTIC) then
+          ! single, same size, top arctic nieghbor
+          m0_top   = mproc - 1
+          mm_top   =  1
+          i0_st(1) =  0
+          i0_gt(1) =  0
+          ii_st(1) = ii
+          ii_gt(1) = ii
+       else
+          m0_top = 0
+          mm_top = 0
+          if (nreg >= 3) then
+             ! latitudinal tile dimension is open
+             n = 1
+             m = 0
+             do i= 1,ii
+                if (mpe_i(i0+i,n) /= m) then
+                   if (mm_top == 0) then
+                      m0_top = mpe_i(i0+i,n) - 1
+                   else if (m /= -1) then
+                      ii_st(mm_top) = i-1 - i0_st(mm_top)
+                      ii_gt(mm_top) = ii_st(mm_top)
+                   end if
+                   m = mpe_i(i0+i,n)
+                   if (m > 0) then
+                      mm_top        = mm_top + 1
+                      i0_st(mm_top) = i-1
+                      i0_gt(mm_top) = i-1 + i0-i0_pe(m,n)
+                   else if (m == 0) then
+                      mm_top        = mm_top + 1
+                      i0_st(mm_top) = i-1
+                      i0_gt(mm_top) = i0_gt(mm_top-1) + ii_gt(mm_top-1)
+                      ! elseif (m.eq.-1) then  !do nothing
+                   end if
+                end if
+             end do
+             if (mm_top > 0) then
+                if (m > 0) then
+                   ii_st(mm_top) = ii - i0_st(mm_top)
+                   ii_gt(mm_top) = ii_st(mm_top)
+                else if (m == 0) then
+                   mm_top = mm_top-1
+                   ! elseif (m.eq.-1) then  !do nothing
+                end if
+             end if
           end if
-        end do
-        if (mm_top > 0) then
-          if (m > 0) then
-            ii_st(mm_top) = ii - i0_st(mm_top)
-            ii_gt(mm_top) = ii_st(mm_top)
-          else if (m == 0) then
-            mm_top = mm_top-1
-            !           elseif (m.eq.-1) then  !do nothing
-          end if
-        end if
-      end if
-#endif ! ARCTIC:else
-    else
+       end if ! end if use_ARCTIC
+   else
       n = nproc + 1
       m0_top = 0
       mm_top = 0
@@ -2805,7 +1822,7 @@ contains
             mm_top        = mm_top + 1
             i0_st(mm_top) = i-1
             i0_gt(mm_top) = i0_gt(mm_top-1) + ii_gt(mm_top-1)
-            !           elseif (m.eq.-1) then  !do nothing
+            ! elseif (m.eq.-1) then  !do nothing
           end if
         end if
       end do
@@ -2815,17 +1832,17 @@ contains
           ii_gt(mm_top) = ii_st(mm_top)
         else if (m == 0) then
           mm_top = mm_top-1
-          !         elseif (m.eq.-1) then  !do nothing
+          ! elseif (m.eq.-1) then  !do nothing
         end if
       end if
     end if !nproc == 1:else
 
     if (nproc == 1) then
-      !       no bottom nieghbor (closed boundary)
+      ! no bottom nieghbor (closed boundary)
       m0_bot = 0
       mm_bot = 0
       if (nreg >= 3) then
-        !         latitudinal tile dimension is open
+        ! latitudinal tile dimension is open
         n = jpr
         m = 0
         do i= 1,ii
@@ -2845,7 +1862,7 @@ contains
               mm_bot        = mm_bot + 1
               i0_sb(mm_bot) = i-1
               i0_gb(mm_bot) = i0_gb(mm_bot-1) + ii_gb(mm_bot-1)
-              !             elseif (m.eq.-1) then  !do nothing
+              ! elseif (m.eq.-1) then  !do nothing
             end if
           end if
         end do
@@ -2855,7 +1872,7 @@ contains
             ii_gb(mm_bot) = ii_sb(mm_bot)
           else if (m == 0) then
             mm_bot = mm_bot-1
-            !           elseif (m.eq.-1) then  !do nothing
+            ! elseif (m.eq.-1) then  !do nothing
           end if
         end if
       end if
@@ -2881,7 +1898,7 @@ contains
             mm_bot        = mm_bot + 1
             i0_sb(mm_bot) = i-1
             i0_gb(mm_bot) = i0_gb(mm_bot-1) + ii_gb(mm_bot-1)
-            !           elseif (m.eq.-1) then  !do nothing
+            ! elseif (m.eq.-1) then  !do nothing
           end if
         end if
       end do
@@ -2891,121 +1908,97 @@ contains
           ii_gb(mm_bot) = ii_sb(mm_bot)
         else if (m == 0) then
           mm_bot = mm_bot-1
-          !         elseif (m.eq.-1) then  !do nothing
+          ! elseif (m.eq.-1) then  !do nothing
         end if
       end if
     end if !nproc == 1:else
 
-    !     printout the tile data structures.
+    ! printout the tile data structures.
 
     if (mnproc == 1) then
-      write(lp,'(/a)') &
-           'mnproc mproc nproc     i0   ii     j0   jj  i1sum iisum'
-      mn = 0
-      do n= 1,jpr
-        do m= 1,ipr
-          if (ii_pe(m,n) /= 0) then
-            mn= mn + 1
-            write(lp,'(i6,2i6,i7,i5,i7,i5,i7,i6)') &
-                 mn,m,n, &
-                 i0_pe(m,n),ii_pe(m,n), &
-                 j0_pe(m,n),jj_pe(m,n), &
-                 i1sum(m,n),iisum(m,n)
-          end if
-        end do !m
-      end do !n
-      write(lp,*)
-#if defined(ARCTIC)
-      write(lp,'(a)') &
-           'mnproc mproc nproc mnarct'
-      mn = 0
-      do n= 1,jpr
-        do m= 1,ipr
-          if (ii_pe(m,n) /= 0) then
-            mn= mn + 1
-            if (n == jpr) then
-              write(lp,'(i6,2i6,i7)') &
-                   mn,m,n,idproc(m,n+1)
-            end if
-          end if
-        end do !m
-      end do !n
-      write(lp,*)
-#endif ! ARCTIC
-#if defined(DEBUG_ALL)
-      do n= 1,jpr
-        write(lp,*) 'mpe_1,mpe_e = ',mpe_1(n),mpe_e(n)
-      end do
-      do n= 1,jpr
-        write(lp,*) 'mpe_i = ',mpe_i(:,n)
-      end do
-      write(lp,*)
-      write(lp,*) 'npe_j = ',npe_j(:)
-      write(lp,*)
-#endif
-    end if
+       write(lp,'(/a)')'mnproc mproc nproc     i0   ii     j0   jj  i1sum iisum'
+       mn = 0
+       do n= 1,jpr
+          do m= 1,ipr
+             if (ii_pe(m,n) /= 0) then
+                mn= mn + 1
+                write(lp,'(i6,2i6,i7,i5,i7,i5,i7,i6)') &
+                     mn,m,n, &
+                     i0_pe(m,n),ii_pe(m,n), &
+                     j0_pe(m,n),jj_pe(m,n), &
+                     i1sum(m,n),iisum(m,n)
+             end if
+          end do !m
+       end do !n
+       write(lp,*)
+       if (use_ARCTIC) then
+          write(lp,'(a)')'mnproc mproc nproc mnarct'
+          mn = 0
+          do n= 1,jpr
+             do m= 1,ipr
+                if (ii_pe(m,n) /= 0) then
+                   mn= mn + 1
+                   if (n == jpr) then
+                      write(lp,'(i6,2i6,i7)') mn,m,n,idproc(m,n+1)
+                   end if
+                end if
+             end do !m
+          end do !n
+          write(lp,*)
+       end if
+       if (use_DEBUG_ALL) then
+          do n= 1,jpr
+             write(lp,*) 'mpe_1,mpe_e = ',mpe_1(n),mpe_e(n)
+          end do
+          do n= 1,jpr
+             write(lp,*) 'mpe_i = ',mpe_i(:,n)
+          end do
+          write(lp,*)
+          write(lp,*) 'npe_j = ',npe_j(:)
+          write(lp,*)
+       end if
+    end if ! if (mnproc == 1)
     call xcsync(flush_lp)
 
-#if defined(DEBUG_ALL)
-    do n= 1,jpr
-      do m= 1,ipr
-        if (mproc == m .and. nproc == n) then
-          write(lp,'(a,2i3,i4,i3,16(i5,i4))') &
-               'm,n,_top,_st = ', &
-               m,n,m0_top,mm_top,(i0_st(l),ii_st(l), l= 1,mm_top)
-#if defined(SHMEM)
-          write(lp,'(a,2i3,i4,i3,16(i5,i4))') &
-               'm,n,_top,_gt = ', &
-               m,n,m0_top,mm_top,(i0_gt(l),ii_gt(l), l= 1,mm_top)
-#endif
-          if (m == ipr) then
-            write(lp,*) !blank line
-          end if
-        end if
-        call xcsync(flush_lp)
-      end do !m
-      do m= 1,ipr
-        if (mproc == m .and. nproc == n) then
-          write(lp,'(a,2i3,i4,i3,16(i5,i4))') &
-               'm,n,_bot,_sb = ', &
-               m,n,m0_bot,mm_bot,(i0_sb(l),ii_sb(l), l= 1,mm_bot)
-#if defined(SHMEM)
-          write(lp,'(a,2i3,i4,i3,16(i5,i4))') &
-               'm,n,_bot,_gb = ', &
-               m,n,m0_bot,mm_bot,(i0_gb(l),ii_gb(l), l= 1,mm_bot)
-#endif
-          if (m == ipr) then
-            write(lp,*) !blank line
-          end if
-        end if
-        call xcsync(flush_lp)
-      end do !m
-      do m= 1,ipr
-        if (mproc == m .and. nproc == n) then
-          write(lp,'(a,2i3,3i5)') &
-               'm,n,id,idhalo   = ', &
-               m,n,idproc(m,n),idhalo
-          if (m == ipr) then
-            write(lp,*) !blank line
-          end if
-        end if
-        call xcsync(flush_lp)
-      end do !m
-    end do !n
-#endif ! DEBUG_ALL
-
-#if defined(MPI) && defined(MPISRJ)
-    call xcmax(mm_top)
-    call xcmax(mm_bot)
-    if (max(mm_top,mm_bot) > 1) then
-      call xcstop( &
-           'xcspmd: if MPISRJ is defined, tiles must be uniform')
-      stop '(xcspmd)'
+    if (use_DEBUG_ALL) then
+       do n= 1,jpr
+          do m= 1,ipr
+             if (mproc == m .and. nproc == n) then
+                write(lp,'(a,2i3,i4,i3,16(i5,i4))') &
+                     'm,n,_top,_st = ', &
+                     m,n,m0_top,mm_top,(i0_st(l),ii_st(l), l= 1,mm_top)
+                if (m == ipr) then
+                   write(lp,*) !blank line
+                end if
+             end if
+             call xcsync(flush_lp)
+          end do !m
+          do m= 1,ipr
+             if (mproc == m .and. nproc == n) then
+                write(lp,'(a,2i3,i4,i3,16(i5,i4))') &
+                     'm,n,_bot,_sb = ', &
+                     m,n,m0_bot,mm_bot,(i0_sb(l),ii_sb(l), l= 1,mm_bot)
+                if (m == ipr) then
+                   write(lp,*) !blank line
+                end if
+             end if
+             call xcsync(flush_lp)
+          end do !m
+          do m= 1,ipr
+             if (mproc == m .and. nproc == n) then
+                write(lp,'(a,2i3,3i5)') &
+                     'm,n,id,idhalo   = ', &
+                     m,n,idproc(m,n),idhalo
+                if (m == ipr) then
+                   write(lp,*) !blank line
+                end if
+             end if
+             call xcsync(flush_lp)
+          end do !m
+       end do !n
     end if
-#endif
 
-    !     initialize timers.
-
+    ! initialize timers.
     call xctmri
     if (use_TIMER) then
       call xctmrn( 1,'xcaget')
@@ -3036,16 +2029,7 @@ contains
     !    cerror          char*(*)       input     error message
     !-----------
 
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-#endif
-
     !     print active timers.
-
     call xctmrp
 
     !     message passing version, set barrier and then stop everything.
@@ -3061,7 +2045,6 @@ contains
     end if
     call xcsync(flush_lp)
 
-#if defined(MPI)
     if (mpicomm == mpicom_external) then
       call external_abort(cerror)
     else
@@ -3069,7 +2052,6 @@ contains
       call xcsync(flush_lp)
       call mpi_finalize(mpierr)
     end if
-#endif
 
     stop '(xcstop)'
   end subroutine xcstop
@@ -3092,27 +2074,13 @@ contains
     !  3) sum is bit for bit reproducable for the same halo size, nbdy.
     !-----------
 
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-#endif
-
-    integer :: mxsum
-    parameter (mxsum = (idm+3*nbdy)/(2*nbdy+1))
-
-    real(8) :: sum8t,sum8j,sum8s
-    common/xcsum8/ sum8t(mxsum*jdm),sum8j(jdm),sum8s
-    save  /xcsum8/
-
-    real(8) :: zero8
-    parameter (zero8 = 0.0)
-
+    real(8), parameter :: zero8 = 0.0
+    integer, parameter :: mxsum = (idm+3*nbdy)/(2*nbdy+1)
+    real(8) :: sum8t(mxsum*jdm),sum8j(jdm),sum8s
     real(8) :: sum8
-    real :: vsave
+    real    :: vsave
     integer :: i,i1,j,l,mp,np
+
     if (use_TIMER) then
       if (nxc == 0) then
         call xctmr0( 6)
@@ -3120,17 +2088,17 @@ contains
       end if
     end if
 
-    !     halo update so that 2*nbdy+1 wide strips are on chip.
+    ! halo update so that 2*nbdy+1 wide strips are on chip.
 
     vsave = vland
     vland = 0.0
     call xctilr(a,1,1, nbdy,0, halo_ps)
     vland = vsave
 
-    !     row sums in 2*nbdy+1 wide strips.
+    ! row sums in 2*nbdy+1 wide strips.
 
-    !$OMP PARALLEL DO PRIVATE(j,i1,i,l,sum8) &
-    !$OMP SCHEDULE(STATIC,jblk)
+    !$omp parallel do private(j,i1,i,l,sum8) &
+    !$omp schedule(static,jblk)
     do j = 1,jj
       do l= 1,iisum(mproc,nproc)
         i1   = i1sum(mproc,nproc) + (l-1)*(2*nbdy+1)
@@ -3143,107 +2111,58 @@ contains
         sum8t(l + (j-1)*iisum(mproc,nproc)) = sum8
       end do
     end do
-    !$OMP END PARALLEL DO
+    !$omp end parallel do
 
-    !     complete row sums on first processor in each row.
-
-#if defined(SHMEM)
-    BARRIER
-#endif
+    ! complete row sums on first processor in each row.
     if (mproc == mpe_1(nproc)) then
       do j = 1,jj
         sum8j(j) = zero8
         do l= 1,iisum(mproc,nproc)
           sum8j(j) = sum8j(j) + sum8t(l + (j-1)*iisum(mproc,nproc))
         end do
-        !         write(lp,'(a,i3,i5,f12.2)') 'xcsum: np,j,sum = ',
-        !    &                                1,j,sum8j(j)
       end do
 
-      !       remote sums.
-
+      ! remote sums.
       do mp= mpe_1(nproc)+1,mpe_e(nproc)
         l = iisum(mp,nproc)*jj
         if (l > 0) then
-#if defined(MPI)
-          call MPI_RECV(sum8t,l,MTYPED, &
-               idproc(mp,nproc), 9900, &
-               mpicomm, mpistat, mpierr)
-#elif defined(SHMEM)
-          call SHMEM_GETD(sum8t, &
-               sum8t,l,idproc(mp,nproc))
-#endif
+          call MPI_RECV(sum8t,l,MTYPED,idproc(mp,nproc), 9900,mpicomm, mpistat, mpierr)
           do j = 1,jj
             do l= 1,iisum(mp,nproc)
               sum8j(j) = sum8j(j) + sum8t(l + (j-1)*iisum(mp,nproc))
             end do
-            !             write(lp,'(a,i3,i5,f12.2)') 'xcsum: np,j,sum = ',
-            !    &                                    mp,j,sum8j(j)
           end do
         end if
       end do
-#if defined(MPI)
     else
       l = iisum(mproc,nproc)*jj
       if (l > 0) then
-        call MPI_SEND(sum8t,l,MTYPED, &
-             idproc(mpe_1(nproc),nproc), 9900, &
-             mpicomm, mpierr)
+        call MPI_SEND(sum8t,l,MTYPED,idproc(mpe_1(nproc),nproc), 9900,mpicomm, mpierr)
       end if
-#endif
     end if
 
-    !     sum of row sums, on first processor.
-
-#if defined(SHMEM)
-    BARRIER
-#endif
+    ! sum of row sums, on first processor.
     if (mnproc == 1) then
       sum8 = zero8
       do j= 1,jj
         sum8 = sum8 + sum8j(j)
       end do
-      !       write(lp,'(a,i5,f12.2)') 'xcsum: jj,sum = ',jj,sum8
-
       do np= 2,jpr
         mp = mpe_1(np)
-#if defined(MPI)
-        call MPI_RECV(sum8j,jj_pe(mp,np),MTYPED, &
-             idproc(mp,np), 9901, &
-             mpicomm, mpistat, mpierr)
-#elif defined(SHMEM)
-        call SHMEM_GETD(sum8j, &
-             sum8j,jj_pe(mp,np),idproc(mp,np))
-#endif
+        call MPI_RECV(sum8j,jj_pe(mp,np),MTYPED,idproc(mp,np), 9901,mpicomm, mpistat, mpierr)
         do j= 1,jj_pe(mp,np)
           sum8 = sum8 + sum8j(j)
         end do
-        !         write(lp,'(a,i5,f12.2)') 'xcsum: jj,sum = ',
-        !    &                             jj_pe(mp,np),sum8
       end do
       sum8s = sum8
-#if defined(MPI)
     else if (mproc == mpe_1(nproc)) then
-      call MPI_SEND(sum8j,jj,MTYPED, &
-           idproc1(1), 9901, &
-           mpicomm, mpierr)
-#endif
+      call MPI_SEND(sum8j,jj,MTYPED,idproc1(1), 9901,mpicomm, mpierr)
     end if
 
-    !     broadcast result to all processors.
-
-#if defined(MPI)
-    call mpi_bcast(sum8s,1,MTYPED, &
-         idproc1(1),mpicomm,mpierr)
-#elif defined(SHMEM)
-    BARRIER
-    if (mnproc /= 1) then
-      call SHMEM_GETD(sum8s, &
-           sum8s,1,idproc1(1))
-    end if
-#endif
-
+    ! broadcast result to all processors.
+    call mpi_bcast(sum8s,1,MTYPED,idproc1(1),mpicomm,mpierr)
     sum = sum8s
+
     if (use_TIMER) then
       if (nxc ==  6) then
         call xctmr1( 6)
@@ -3253,164 +2172,6 @@ contains
   end subroutine xcsum
 
   !-----------------------------------------------------------------------
-  subroutine xcsumj(sumj, a,mask)
-    real(8),  intent(out)   :: sumj(jtdm)
-    real,    intent(inout) :: a(   1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy)
-    integer, intent(in)    :: mask(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy)
-
-    !-----------
-    !  1) rwo-sum of a 2-d array, where mask==1, on first processor only.
-    !  2) parameters:
-    !       name            type         usage            description
-    !    ----------      ----------     -------  ----------------------------
-    !    sumj            real*8         output    row-sum of a
-    !    a               real           input     source array
-    !    mask            integer        input     mask array
-
-    !  3) sum is bit for bit reproducable for the same halo size, nbdy.
-    !-----------
-
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-#endif
-
-    integer :: mxsum
-    parameter (mxsum = (idm+3*nbdy)/(2*nbdy+1))
-
-    real(8) :: sum8t,sum8j,sum8s
-    common/xcsum8/ sum8t(mxsum*jdm),sum8j(jdm),sum8s
-    save  /xcsum8/
-
-    real(8) :: zero8
-    parameter (zero8 = 0.0)
-
-    real(8) :: sum8
-    real :: vsave
-    integer :: i,i1,j,l,mp,np
-    if (use_TIMER) then
-      if (nxc == 0) then
-        call xctmr0( 6)
-        nxc = 6
-      end if
-    end if
-
-    !     halo update so that 2*nbdy+1 wide strips are on chip.
-
-    vsave = vland
-    vland = 0.0
-    call xctilr(a,1,1, nbdy,0, halo_ps)
-    vland = vsave
-
-    !     row sums in 2*nbdy+1 wide strips.
-
-    !$OMP PARALLEL DO PRIVATE(j,i1,i,l,sum8) &
-    !$OMP SCHEDULE(STATIC,jblk)
-    do j = 1,jj
-      do l= 1,iisum(mproc,nproc)
-        i1   = i1sum(mproc,nproc) + (l-1)*(2*nbdy+1)
-        sum8 = zero8
-        do i= i1,min(i1+2*nbdy,ii+nbdy,itdm-i0)
-          if (mask(i,j) == 1) then
-            sum8 = sum8 + a(i,j)
-          end if
-        end do
-        sum8t(l + (j-1)*iisum(mproc,nproc)) = sum8
-      end do
-    end do
-    !$OMP END PARALLEL DO
-
-    !     complete row sums on first processor in each row.
-
-#if defined(SHMEM)
-    BARRIER
-#endif
-    if (mproc == mpe_1(nproc)) then
-      do j = 1,jj
-        sum8j(j) = zero8
-        do l= 1,iisum(mproc,nproc)
-          sum8j(j) = sum8j(j) + sum8t(l + (j-1)*iisum(mproc,nproc))
-        end do
-        !         write(lp,'(a,i3,i5,f12.2)') 'xcsum: np,j,sum = ',
-        !    &                                1,j,sum8j(j)
-      end do
-
-      !       remote sums.
-
-      do mp= mpe_1(nproc)+1,mpe_e(nproc)
-        l = iisum(mp,nproc)*jj
-        if (l > 0) then
-#if defined(MPI)
-          call MPI_RECV(sum8t,l,MTYPED, &
-               idproc(mp,nproc), 9900, &
-               mpicomm, mpistat, mpierr)
-#elif defined(SHMEM)
-          call SHMEM_GETD(sum8t, &
-               sum8t,l,idproc(mp,nproc))
-#endif
-          do j = 1,jj
-            do l= 1,iisum(mp,nproc)
-              sum8j(j) = sum8j(j) + sum8t(l + (j-1)*iisum(mp,nproc))
-            end do
-            !             write(lp,'(a,i3,i5,f12.2)') 'xcsum: np,j,sum = ',
-            !    &                                    mp,j,sum8j(j)
-          end do
-        end if
-      end do
-#if defined(MPI)
-    else
-      l = iisum(mproc,nproc)*jj
-      if (l > 0) then
-        call MPI_SEND(sum8t,l,MTYPED, &
-             idproc(mpe_1(nproc),nproc), 9900, &
-             mpicomm, mpierr)
-      end if
-#endif
-    end if
-
-    !     send row sums to first processor.
-
-#if defined(SHMEM)
-    BARRIER
-#endif
-    if (mnproc == 1) then
-      do j= 1,jj
-        sumj(j) = sum8j(j)
-      end do
-
-      do np= 2,jpr
-        mp = mpe_1(np)
-#if defined(MPI)
-        call MPI_RECV(sum8j,jj_pe(mp,np),MTYPED, &
-             idproc(mp,np), 9901, &
-             mpicomm, mpistat, mpierr)
-#elif defined(SHMEM)
-        call SHMEM_GETD(sum8j, &
-             sum8j,jj_pe(mp,np),idproc(mp,np))
-#endif
-        do j= 1,jj_pe(1,np)
-          sumj(j+j0_pe(1,np)) = sum8j(j)
-        end do
-      end do
-#if defined(MPI)
-    else if (mproc == mpe_1(nproc)) then
-      call MPI_SEND(sum8j,jj,MTYPED, &
-           idproc1(1), 9901, &
-           mpicomm, mpierr)
-#endif
-    end if
-    if (use_TIMER) then
-      if (nxc ==  6) then
-        call xctmr1( 6)
-        nxc = 0
-      end if
-    end if
-  end subroutine xcsumj
-
-  !-----------------------------------------------------------------------
   subroutine xcsync(lflush)
     logical, intent(in) :: lflush
 
@@ -3418,84 +2179,29 @@ contains
     !  1) barrier, no processor exits until all arrive (and flush stdout).
     !  2) some MPI implementations only flush stdout as a collective
     !     operation, and hence the lflush=.true. option to flush stdout.
-
-    !  3) typically this is just a wrapper to the "BARRIER" macro.
     !-----------
 
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-#endif
-
     if (lflush) then
-      call flush(lp)
-      BARRIER
+      call mpi_barrier(mpicomm, mpierr)
     else
-      BARRIER
+      call mpi_barrier(mpicomm, mpierr)
     end if
   end subroutine xcsync
 
-#if defined(SHMEM) && defined(RINGB)
-  subroutine xctbar(ipe1,ipe2)
-    integer, intent(in) :: ipe1,ipe2
+  !-----------------------------------------------------------------------
+  subroutine xctilr(a,l1,ld,mh,nh,itype)
+     integer, intent(in)    :: l1,ld,mh,nh,itype
+     real,    intent(inout) :: a(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ld)
 
-    !-----------
-    !  1) sync with processors ipe1 and ipe2.
-    !  2) this is a global collective operation, and the calls on ipe1
-    !     and ipe2 must list this processor as one of the two targets.
+     if (use_ARCTIC) then
+        call xctilr_arctic(a,l1,ld,mh,nh,itype)
+     else
+        call xctilr_nonarctic(a,l1,ld,mh,nh,itype)
+     end if
+  end subroutine xctilr
 
-    !  3) this is used in place of a global barrier in halo operations,
-    !     but it only provides syncronization of one or two processors
-    !     with the local processor.
-
-    !  4) ipe1 and/or ipe2 can be null_tile, to indicate no processor.
-    !-----------
-
-    integer :: cache_line,ilarge
-    parameter (cache_line=32, ilarge = 2**30)
-
-    integer :: ibp
-    common/halobp/ ibp(cache_line,-1:ijpr-1)
-    save  /halobp/
-
-    integer :: i
-
-    integer :: icount
-    save    icount
-    data    icount / -1 /
-
-    icount = mod(icount+1,ilarge)
-    if (icount == 0) then
-      call shmem_barrier_all()
-      do i= -1,ijpr-1
-        ibp(1,i) = -1
-      end do
-      call shmem_barrier_all()
-    end if
-
-    ibp(1,-1) = icount
-    if (ipe1 /= null_tile) then
-      call shmem_integer_put(ibp(1,mnproc-1),icount,1,ipe1)
-    end if
-    if (ipe2 /= null_tile) then
-      call shmem_integer_put(ibp(1,mnproc-1),icount,1,ipe2)
-    end if
-    call shmem_fence
-
-    i = -1
-    do while (i < icount)
-      !       this assignment statement must not be optimized away.
-      !dir$   suppress
-      i = min(ibp(1,ipe1),ibp(1,ipe2))
-    end do
-  end subroutine xctbar
-#endif ! SHMEM && RINGB
-
-#if defined(ARCTIC)
-  recursive subroutine xctilr(a,l1,ld,mh,nh,itype)
+  !-----------------------------------------------------------------------
+  recursive subroutine xctilr_arctic(a,l1,ld,mh,nh,itype)
     integer, intent(in)    :: l1,ld,mh,nh,itype
     real,    intent(inout) :: a(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ld)
 
@@ -3526,40 +2232,19 @@ contains
     !  4) the global variable vland is returned by halos over land.
     !-----------
 
-    integer :: lsize,ilen,jlen
-    parameter (lsize = kdm, &
-         ilen= idm        *lsize*(nbdy+1)+64, &
-         jlen = (jdm+2*nbdy)*lsize* nbdy   +64)
+    integer, parameter :: lsize = kdm
+    integer, parameter :: ilen= idm*lsize*(nbdy+1)+64
+    integer, parameter :: jlen=(jdm+2*nbdy)*lsize*nbdy+64
 
-    !     halo buffer (in common for enhanced MPI safety).
-
-    real :: ai,aj
-    common/xctilr4/ ai(ilen,4),aj(jlen,4)
-    save  /xctilr4/
-
-    real :: aia
-    common/xctilra/ aia(lsize*(nbdy+1)+64,2)
-    save  /xctilra/
-
-    integer :: i,io,j,k,l,lts,lbs,lbr,ltr,las,lar,lg0,ls0,lm,m,mhl,nhl
-    real :: sarc
-
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-
-    !     communication handles.
-
-    integer, save :: mpireqa(4*iqr),mpireqb(4), &
-         ilold,ltsold,lbsold,lbrold,ltrold,lasold,larold, &
-         nreqa
-
+    ! halo buffer
+    real, save :: ai(ilen,4),aj(jlen,4)
+    real, save :: aia(lsize*(nbdy+1)+64,2)
+    integer    :: i,io,j,k,l,lts,lbs,lbr,ltr,las,lar,lg0,ls0,lm,m,mhl,nhl
+    real       :: sarc
+    integer, save :: mpireqa(4*iqr),mpireqb(4) ! communication handles.
+    integer, save :: ilold,ltsold,lbsold,lbrold,ltrold,lasold,larold,nreqa ! communication handles.
     data ilold,ltsold,lbsold,lbrold,ltrold,lasold,larold &
          / 0,0,0,0,0,0,0 /
-#endif ! MPI
 
     ! --- split large requests into smaller pieces
 
@@ -3865,7 +2550,6 @@ contains
         end if
       end if !itype
 
-#if defined(MPI)
       if (lts /= ltsold .or. lbs /= lbsold .or. lbr /= lbrold .or. &
            ltr /= ltrold .or. las /= lasold .or. lar /= larold) then
         if (ltsold + lbsold + lbrold + &
@@ -3960,47 +2644,6 @@ contains
         call mpi_startall(nreqa, mpireqa,          mpierr)
         call mpi_waitall( nreqa, mpireqa, mpistat, mpierr)
       end if
-#elif defined(SHMEM)
-      BARRIER
-
-      !       loop through all neigboring tiles.
-
-      if (ltr > 0) then
-        do m= 1,mm_top
-          if (idproc(m0_top+m,nproc+1) /= null_tile) then
-            if (nproc /= jpr) then
-              lg0 = i0_gt(m)*nhl*(ld-l1+1)
-              ls0 = i0_st(m)*nhl*(ld-l1+1)
-              lm  = ii_st(m)*nhl*(ld-l1+1)
-              call SHMEM_GETR(ai(ls0+1,4), &
-                   ai(lg0+1,2),lm, &
-                   idproc(m0_top+m,nproc+1))
-            else !arctic
-              call SHMEM_GETR(ai(1,4), &
-                   ai(1,1),ltr,  !buffer 1 &
-              idproc(m0_top+m,nproc+1))
-            end if
-          end if
-        end do
-      end if ! ltr > 0
-      if (lar > 0) then
-        call SHMEM_GETR(aia(1,2), &
-             aia(1,1),lar, &
-             idproc(mod(ipr+1-mproc,ipr)+1,nproc))
-      end if ! lar > 0
-
-      if (lbr > 0) then
-        do m= 1,mm_bot
-          if (idproc(m0_bot+m,nproc-1) /= null_tile) then
-            lg0 = i0_gb(m)*nhl*(ld-l1+1)
-            ls0 = i0_sb(m)*nhl*(ld-l1+1)
-            lm  = ii_sb(m)*nhl*(ld-l1+1)
-            call SHMEM_GETR(ai(ls0+1,3), &
-                 ai(lg0+1,1),lm, idproc(m0_bot+m,nproc-1))
-          end if
-        end do
-      end if ! lbr > 0
-#endif ! MPI:SHMEM
 
       if (nproc /= jpr) then  !arctic
         if (lbr > 0) then
@@ -4110,20 +2753,7 @@ contains
             end do
           end do
         end do
-        !         write(lp,'(a,6i6)') 'xctilr - mhl,l1,ld,jj,l,mnproc = ',
-        !    &                                  mhl,l1,ld,jj,l,mnproc
-        !         call xcsync(flush_lp)
-#if defined(MPI)
-#if defined(MPISRI)
-        call mpi_sendrecv( &
-             aj(1,1),l,MTYPER,idhalo(2), 9907, &
-             aj(1,3),l,MTYPER,idhalo(1), 9907, &
-             mpicomm, mpistat, mpierr)
-        call mpi_sendrecv( &
-             aj(1,2),l,MTYPER,idhalo(1), 9908, &
-             aj(1,4),l,MTYPER,idhalo(2), 9908, &
-             mpicomm, mpistat, mpierr)
-#else ! MPISRI
+
         if (ilold /= l) then
           if (ilold /= 0) then
             call mpi_request_free(mpireqb(1), mpierr)
@@ -4147,19 +2777,7 @@ contains
         end if
         call mpi_startall(4, mpireqb,          mpierr)
         call mpi_waitall( 4, mpireqb, mpistat, mpierr)
-#endif ! MPISRI
-#elif defined(SHMEM)
-        BARRIER_MP
-        if (idhalo(1) /= null_tile) then
-          call SHMEM_GETR(aj(1,3), &
-               aj(1,1),l,idhalo(1))
-        end if
-        if (idhalo(2) /= null_tile) then
-          call SHMEM_GETR(aj(1,4), &
-               aj(1,2),l,idhalo(2))
-        end if
-        BARRIER_MP
-#endif
+
         l = 0
         do k= l1,ld
           do j= 1-nhl,jj+nhl
@@ -4172,15 +2790,18 @@ contains
         end do
       end if ! ipr == 1:else
     end if ! mhl > 0
+
     if (use_TIMER) then
       if (nxc == 12) then
         call xctmr1(12)
         nxc = 0
       end if
     end if
-  end subroutine xctilr
-#else ! !ARCTIC
-  recursive subroutine xctilr(a,l1,ld,mh,nh,itype)
+
+  end subroutine xctilr_arctic
+
+  !-----------------------------------------------------------------------
+  recursive subroutine xctilr_nonarctic(a,l1,ld,mh,nh,itype)
     integer, intent(in)    :: l1,ld,mh,nh,itype
     real,    intent(inout) :: a(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ld)
 
@@ -4211,32 +2832,15 @@ contains
     !  4) the global variable vland is returned by halos over land.
     !-----------
 
-    integer :: lsize,ilen,jlen
-    parameter (lsize = kdm, &
-         ilen= idm        *lsize*nbdy+64, &
-         jlen = (jdm+2*nbdy)*lsize*nbdy+64)
+    integer, parameter :: lsize = kdm
+    integer, parameter :: ilen  = idm*lsize*nbdy+64
+    integer, parameter :: jlen  = (jdm+2*nbdy)*lsize*nbdy+64
 
-    !     halo buffer (in common for enhanced MPI safety).
-
-    real :: ai,aj
-    common/xctilr4/ ai(ilen,4),aj(jlen,4)
-    save  /xctilr4/
-
-    integer :: i,j,k,l,lg0,ls0,lst0,lsb0,lm,ltm,lbm,m,mhl,nhl
-
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-
-    !     persistent communication handles.
-    integer :: mpireqa(4*iqr),mpireqb(4),ilold,jlold,nreqa
-    save    mpireqa,mpireqb,ilold,jlold,nreqa
-
+    !  halo buffer (in common for enhanced MPI safety).
+    real   , save :: ai(ilen,4),aj(jlen,4)
+    integer       :: i,j,k,l,lg0,ls0,lst0,lsb0,lm,ltm,lbm,m,mhl,nhl
+    integer, save :: mpireqa(4*iqr),mpireqb(4),ilold,jlold,nreqa ! persistent communication handles.
     data ilold,jlold / 0,0 /
-#endif ! MPI
 
     ! --- split large requests into smaller pieces
     if (ld-l1+1 > lsize) then
@@ -4291,26 +2895,6 @@ contains
             end do
           end do
         end do
-        !         write(lp,'(a,6i6)') 'xctilr - nhl,l1,ld,ii,l,mnproc = ',
-        !    &                                  nhl,l1,ld,ii,l,mnproc
-        !         call xcsync(flush_lp)
-#if defined(MPI)
-#if defined(MPISRJ)
-
-        lst0 = i0_st(1)*nhl*(ld-l1+1)
-        ltm  = ii_st(1)*nhl*(ld-l1+1)
-        lsb0 = i0_sb(1)*nhl*(ld-l1+1)
-        lbm  = ii_sb(1)*nhl*(ld-l1+1)
-        call mpi_sendrecv( &
-             ai(lst0+1,1),ltm,MTYPER,idproc(m0_top+1,nproc+1), 9905, &
-             ai(lsb0+1,3),lbm,MTYPER,idproc(m0_bot+1,nproc-1), 9905, &
-             mpicomm, mpistat, mpierr)
-        call mpi_sendrecv( &
-             ai(lsb0+1,2),lbm,MTYPER,idproc(m0_bot+1,nproc-1), 9906, &
-             ai(lst0+1,4),ltm,MTYPER,idproc(m0_top+1,nproc+1), 9906, &
-             mpicomm, mpistat, mpierr)
-#else ! MPISRJ
-
         if (jlold /= l) then
           if (jlold /= 0) then
             do i= 1,nreqa
@@ -4318,9 +2902,7 @@ contains
             end do
           end if
           jlold = l
-
           !           loop through all neigboring tiles.
-
           l = 0
           do m= 1,mm_top
             l   = l + 1
@@ -4360,32 +2942,6 @@ contains
           call mpi_startall(nreqa, mpireqa,          mpierr)
           call mpi_waitall( nreqa, mpireqa, mpistat, mpierr)
         end if
-#endif ! MPISRJ
-#elif defined(SHMEM)
-        BARRIER
-
-        !         loop through all neigboring tiles.
-
-        do m= 1,mm_top
-          if (idproc(m0_top+m,nproc+1) /= null_tile) then
-            lg0 = i0_gt(m)*nhl*(ld-l1+1)
-            ls0 = i0_st(m)*nhl*(ld-l1+1)
-            lm  = ii_st(m)*nhl*(ld-l1+1)
-            call SHMEM_GETR(ai(ls0+1,4), &
-                 ai(lg0+1,2),lm, idproc(m0_top+m,nproc+1))
-          end if
-        end do
-
-        do m= 1,mm_bot
-          if (idproc(m0_bot+m,nproc-1) /= null_tile) then
-            lg0 = i0_gb(m)*nhl*(ld-l1+1)
-            ls0 = i0_sb(m)*nhl*(ld-l1+1)
-            lm  = ii_sb(m)*nhl*(ld-l1+1)
-            call SHMEM_GETR(ai(ls0+1,3), &
-                 ai(lg0+1,1),lm, idproc(m0_bot+m,nproc-1))
-          end if
-        end do
-#endif ! MPI:SHMEM
 
         l = 0
         do i= 1,ii  ! outer loop to simplify multiple neighbor case
@@ -4434,20 +2990,7 @@ contains
             end do
           end do
         end do
-        !         write(lp,'(a,6i6)') 'xctilr - mhl,l1,ld,jj,l,mnproc = ',
-        !    &                                  mhl,l1,ld,jj,l,mnproc
-        !         call xcsync(flush_lp)
-#if defined(MPI)
-#if defined(MPISRI)
-        call mpi_sendrecv( &
-             aj(1,1),l,MTYPER,idhalo(2), 9907, &
-             aj(1,3),l,MTYPER,idhalo(1), 9907, &
-             mpicomm, mpistat, mpierr)
-        call mpi_sendrecv( &
-             aj(1,2),l,MTYPER,idhalo(1), 9908, &
-             aj(1,4),l,MTYPER,idhalo(2), 9908, &
-             mpicomm, mpistat, mpierr)
-#else ! MPISRI
+
         if (ilold /= l) then
           if (ilold /= 0) then
             call mpi_request_free(mpireqb(1), mpierr)
@@ -4471,19 +3014,7 @@ contains
         end if
         call mpi_startall(4, mpireqb,          mpierr)
         call mpi_waitall( 4, mpireqb, mpistat, mpierr)
-#endif ! MPISRI
-#elif defined(SHMEM)
-        BARRIER_MP
-        if (idhalo(1) /= null_tile) then
-          call SHMEM_GETR(aj(1,3), &
-               aj(1,1),l,idhalo(1))
-        end if
-        if (idhalo(2) /= null_tile) then
-          call SHMEM_GETR(aj(1,4), &
-               aj(1,2),l,idhalo(2))
-        end if
-        BARRIER_MP
-#endif
+
         l = 0
         do k= l1,ld
           do j= 1-nhl,jj+nhl
@@ -4496,14 +3027,15 @@ contains
         end do
       end if ! ipr == 1:else
     end if ! mhl > 0
+
     if (use_TIMER) then
       if (nxc == 12) then
         call xctmr1(12)
         nxc = 0
       end if
     end if
-  end subroutine xctilr
-#endif ! ARCTIC:else
+
+ end subroutine xctilr_nonarctic
 
   !-----------------------------------------------------------------------
   subroutine xctmri()
@@ -4544,14 +3076,12 @@ contains
     if (use_DEBUG_TIMER_ALL) then
       if (cc(n) /= '      ') then
         write(lp,'(i5,2x,a,a)') mnproc,'call ',cc(n)
-        call flush(lp)
       end if
     end if
     if (use_DEBUG_TIMER) then
       if (n > 32 .and. cc(n) /= '      ') then
         if (mnproc == 1) then
           write(lp,*) 'call ',cc(n)
-          call flush(lp)
         end if
       end if
     end if
@@ -4582,14 +3112,12 @@ contains
     if (use_DEBUG_TIMER_ALL) then
       if (cc(n) /= '      ') then
         write(lp,'(i5,2x,a,a)') mnproc,'exit ',cc(n)
-        call flush(lp)
       end if
     end if
     if (use_DEBUG_TIMER) then
       if (n > 32 .and. cc(n) /= '      ') then
         if (mnproc == 1) then
           write(lp,*) 'exit ',cc(n)
-          call flush(lp)
         end if
       end if
     end if
@@ -4611,13 +3139,6 @@ contains
     !  print all active timers.
     !  on exit all timers are reset to zero.
     !-----------
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-#endif
     integer :: i,mn,mnloc
     real(8), parameter :: zero8 = 0.0
 
@@ -4634,7 +3155,6 @@ contains
     end do !i
 
     if (ijpr /= 1) then
-#if defined(MPI)
       tcxl(1) = tcxc(1)
       tcxl(2) = tcxc(2)
       call mpi_allreduce(tcxl,tcxc,1, &
@@ -4652,24 +3172,6 @@ contains
              idproc1(1), 9949, &
              mpicomm, mpierr)
       end if
-#elif defined(SHMEM)
-      BARRIER
-      if (mnproc == 1) then
-        mnloc = 1
-        do mn= 2,ijpr
-          call SHMEM_GETD(tcxc(2),tcxc(1),1,idproc1(mn))
-          if (tcxc(2) > tcxc(1)) then
-            tcxc(1) = tcxc(2)
-            mnloc   = mn
-          end if
-        end do
-        tcxc(2) = mnloc  !processor with the least comm. overhead
-      end if
-      if (mnloc /= 1) then
-        call SHMEM_GETD(tc,tc,97,idproc1(mnloc))
-      end if
-      BARRIER
-#endif
     end if
 
     call xcsync(flush_lp)
@@ -4734,21 +3236,11 @@ contains
     !  convert an entire 2-D array from tiled to non-tiled layout.
     !-----------
 
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-
     integer :: mpireqa(jpr),mpireqb(ipr)
-#endif
     real :: at(idm*jdm*kt),ata(idm*jdm*kt,iqr)
     integer :: i,j,k,l,mp,np,mnp
 
     ! gather each row of tiles onto the first tile in the row.
-
-#if defined(MPI)
     if (mproc == mpe_1(nproc)) then
       do k= 1,kt
         do j= 1,jj
@@ -4764,7 +3256,7 @@ contains
              idproc(mp,nproc), 9941, &
              mpicomm, mpireqb(l), mpierr)
       end do
-      BARRIER
+      call mpi_barrier(mpicomm, mpierr)
       l = 0
       do mp= mpe_1(nproc)+1,mpe_e(nproc)
         l = l + 1
@@ -4786,12 +3278,12 @@ contains
           end do
         end do
       end do
-      BARRIER
+      call mpi_barrier(mpicomm, mpierr)
       call MPI_SEND(at,ii*jj*kt,MTYPER, &
            idproc(mpe_1(nproc),nproc), 9941, &
            mpicomm, mpierr)
     end if
-#endif
+
   end subroutine xcgetrow
 
   !-----------------------------------------------------------------------
@@ -4804,21 +3296,11 @@ contains
     !  convert an entire 2-D array from tiled to non-tiled layout.
     !-----------
 
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-
     integer :: mpireqa(jpr),mpireqb(ipr)
-#endif
     real*4  at(idm*jdm*2*kk),ata(idm*jdm*2*kk,iqr)
     integer :: i,j,k,l,mp,np,mnp
 
     !  gather each row of tiles onto the first tile in the row.
-
-#if defined(MPI)
     if (mproc == mpe_1(nproc)) then
       do k= 1,kt
         do j= 1,jj
@@ -4830,11 +3312,11 @@ contains
       l = 0
       do mp= mpe_1(nproc)+1,mpe_e(nproc)
         l = l + 1
-        call MPI_IRECV(ata(1,l),ii_pe(mp,nproc)*jj*kt,MTYPE4, &
+        call MPI_IRECV(ata(1,l),ii_pe(mp,nproc)*jj*kt,mpi_real, &
              idproc(mp,nproc), 9941, &
              mpicomm, mpireqb(l), mpierr)
       end do
-      BARRIER
+      call mpi_barrier(mpicomm, mpierr)
       l = 0
       do mp= mpe_1(nproc)+1,mpe_e(nproc)
         l = l + 1
@@ -4856,12 +3338,12 @@ contains
           end do
         end do
       end do
-      BARRIER
-      call MPI_SEND(at,ii*jj*kt,MTYPE4, &
+      call mpi_barrier(mpicomm, mpierr)
+      call MPI_SEND(at,ii*jj*kt,mpi_real, &
            idproc(mpe_1(nproc),nproc), 9941, &
            mpicomm, mpierr)
     end if
-#endif
+
   end subroutine xcgetrow4
 
   !-----------------------------------------------------------------------
@@ -4874,37 +3356,28 @@ contains
     ! convert an entire 2-D array from tiled to non-tiled layout.
     !-----------
 
-#if defined(MPI)
-    include 'mpif.h'
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
-
-    integer :: mpireqa(jpr),mpireqb(ipr)
-#endif
-    integer*2  at(idm*jdm*kt),ata(idm*jdm*kt,iqr)
-    integer :: i,j,k,l,mp,np,mnp
+    integer   :: mpireqa(jpr),mpireqb(ipr)
+    integer*2 :: at(idm*jdm*kt),ata(idm*jdm*kt,iqr)
+    integer   :: i,j,k,l,mp,np,mnp
 
     !     gather each row of tiles onto the first tile in the row.
 
-#if defined(MPI)
     if (mproc == mpe_1(nproc)) then
       do k= 1,kt
         do j= 1,jj
           do i= 1,ii
             outm(i0+i,j,k) = inm(i,j,k)
-          end do
+         end do
         end do
       end do
       l = 0
       do mp= mpe_1(nproc)+1,mpe_e(nproc)
         l = l + 1
-        call MPI_IRECV(ata(1,l),ii_pe(mp,nproc)*jj*kt,MTYPEI2, &
+        call MPI_IRECV(ata(1,l),ii_pe(mp,nproc)*jj*kt,mpi_integer2, &
              idproc(mp,nproc), 9941, &
              mpicomm, mpireqb(l), mpierr)
       end do
-      BARRIER
+      call mpi_barrier(mpicomm, mpierr)
       l = 0
       do mp= mpe_1(nproc)+1,mpe_e(nproc)
         l = l + 1
@@ -4926,19 +3399,17 @@ contains
           end do
         end do
       end do
-      BARRIER
-      call MPI_SEND(at,ii*jj*kt,MTYPEI2, &
+      call mpi_barrier(mpicomm, mpierr)
+      call MPI_SEND(at,ii*jj*kt,mpi_integer2, &
            idproc(mpe_1(nproc),nproc), 9941, &
            mpicomm, mpierr)
     end if
-#endif
 
   end subroutine xcgetrowint2
 
 !**************************************************************************************
 #else
 !**************************************************************************************
-
 
   !-----------------------------------------------------------------------
   !     auxillary routines that involve off-processor communication.
@@ -4960,6 +3431,7 @@ contains
     !-----------
 
     integer :: j
+
     if (use_TIMER) then
       ! call xctmr0( 1)
     end if
@@ -4971,6 +3443,7 @@ contains
     end if
   end subroutine xcaget
 
+  !-----------------------------------------------------------------------
   subroutine xcaput(aa, a, mnflg)
     real,    intent(in)  :: aa(itdm,jtdm)                      ! non-tiled target array
     real,    intent(out) :: a(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ! tiled source array
@@ -4982,6 +3455,7 @@ contains
     !-----------
 
     integer :: j
+
     if (use_TIMER) then
       !  call xctmr0( 4)
     end if
@@ -4993,6 +3467,7 @@ contains
     end if
   end subroutine xcaput
 
+  !-----------------------------------------------------------------------
   subroutine xceget(aelem, a, ia,ja)
     real,    intent(out) :: aelem
     real,    intent(in)  :: a(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy)
@@ -5018,6 +3493,7 @@ contains
     end if
   end subroutine xceget
 
+  !-----------------------------------------------------------------------
   subroutine xceput(aelem, a, ia,ja)
     integer, intent(in)    :: ia    ! 1st index into a
     integer, intent(in)    :: ja    ! 2nd index into a
@@ -5036,6 +3512,7 @@ contains
     end if
   end subroutine xceput
 
+  !-----------------------------------------------------------------------
   subroutine xchalt(cerror)
     character*(*), intent(in) :: cerror
 
@@ -5056,11 +3533,11 @@ contains
       write(lp,*) '**************************************************'
       write(lp,*) cerror
       write(lp,*) '**************************************************'
-      call flush(lp)
     end if
     error stop '(xchalt)'
   end subroutine xchalt
 
+  !-----------------------------------------------------------------------
   subroutine xclget(aline,nl, a, i1,j1,iinc,jinc, mnflg)
     integer, intent(in)    ::  nl,i1,j1,iinc,jinc,mnflg
     real,    intent(out)   ::  aline(nl)
@@ -5126,6 +3603,7 @@ contains
     end if
   end subroutine xclget
 
+  !-----------------------------------------------------------------------
   subroutine xclput(aline,nl, a, i1,j1,iinc,jinc)
     real,    intent(in)  ::  aline(nl)
     integer, intent(in)  ::  nl
@@ -5169,6 +3647,7 @@ contains
     end if
   end subroutine xclput
 
+  !-----------------------------------------------------------------------
   subroutine xcbcst_i0(ia)
     integer, intent(inout) :: ia  ! target variable
     !-----------
@@ -5183,6 +3662,7 @@ contains
     end if
   end subroutine xcbcst_i0
 
+  !-----------------------------------------------------------------------
   subroutine xcbcst_i1(ia)
     integer, intent(inout) :: ia(:) ! target array
     !-----------
@@ -5197,6 +3677,7 @@ contains
     end if
   end subroutine xcbcst_i1
 
+  !-----------------------------------------------------------------------
   subroutine xcbcst_r0(ra)
     real, intent(inout) :: ra ! target variable
     !-----------
@@ -5211,6 +3692,7 @@ contains
     end if
   end subroutine xcbcst_r0
 
+  !-----------------------------------------------------------------------
   subroutine xcbcst_r1(ra)
     real, intent(inout) :: ra(:) ! target array
     !-----------
@@ -5225,6 +3707,7 @@ contains
     end if
   end subroutine xcbcst_r1
 
+  !-----------------------------------------------------------------------
   subroutine xcbcst_l0(la)
     logical, intent(inout) :: la ! target variable
     !-----------
@@ -5240,6 +3723,7 @@ contains
     end if
   end subroutine xcbcst_l0
 
+  !-----------------------------------------------------------------------
   subroutine xcbcst_l1(la)
     logical, intent(inout) :: la(:) ! target array
     !-----------
@@ -5254,6 +3738,7 @@ contains
     end if
   end subroutine xcbcst_l1
 
+  !-----------------------------------------------------------------------
   subroutine xcbcst_c(ca)
     character*(*), intent(inout) :: ca ! target array
     !-----------
@@ -5269,6 +3754,7 @@ contains
     end if
   end subroutine xcbcst_c
 
+  !-----------------------------------------------------------------------
   subroutine xcmax_i0(ia)
     integer, intent(inout) :: ia ! target variable
     !-----------
@@ -5283,6 +3769,7 @@ contains
     end if
   end subroutine xcmax_i0
 
+  !-----------------------------------------------------------------------
   subroutine xcmax_i1(ia)
     integer, intent(inout) :: ia(:) ! target array
     !-----------
@@ -5297,6 +3784,7 @@ contains
     end if
   end subroutine xcmax_i1
 
+  !-----------------------------------------------------------------------
   subroutine xcmax_r0(ra)
     real, intent(inout) :: ra ! target variable
     !-----------
@@ -5311,6 +3799,7 @@ contains
     end if
   end subroutine xcmax_r0
 
+  !-----------------------------------------------------------------------
   subroutine xcmax_r1(ra)
     real, intent(inout) :: ra(:) ! target array
     !-----------
@@ -5325,6 +3814,7 @@ contains
     end if
   end subroutine xcmax_r1
 
+  !-----------------------------------------------------------------------
   subroutine xcmin_i0(ia)
     integer, intent(inout) :: ia ! target variable
     !-----------
@@ -5339,6 +3829,7 @@ contains
     end if
   end subroutine xcmin_i0
 
+  !-----------------------------------------------------------------------
   subroutine xcmin_i1(ia)
     integer, intent(inout) :: ia(:) ! target array
     !-----------
@@ -5353,6 +3844,7 @@ contains
     end if
   end subroutine xcmin_i1
 
+  !-----------------------------------------------------------------------
   subroutine xcmin_r0(ra)
     real, intent(inout) :: ra ! target variable
     !-----------
@@ -5367,6 +3859,7 @@ contains
     end if
   end subroutine xcmin_r0
 
+  !-----------------------------------------------------------------------
   subroutine xcmin_r1(ra)
     real, intent(inout) :: ra(:) ! target array
     !-----------
@@ -5381,6 +3874,7 @@ contains
     end if
   end subroutine xcmin_r1
 
+  !-----------------------------------------------------------------------
   subroutine xcspmd()
     !-----------
     !  1) initialize data structures that identify the tiles.
@@ -5447,6 +3941,7 @@ contains
     end if
   end subroutine xcspmd
 
+  !-----------------------------------------------------------------------
   subroutine xcstop(cerror)
     character*(*), intent(in) :: cerror ! error message
     !-----------
@@ -5462,11 +3957,11 @@ contains
       write(lp,*) '**************************************************'
       write(lp,*) cerror
       write(lp,*) '**************************************************'
-      call flush(lp)
     end if
     stop '(xcstop)'
   end subroutine xcstop
 
+  !-----------------------------------------------------------------------
   subroutine xcsum(sum, a,mask)
     real(8),  intent(out)   :: sum ! sum of a
     real,     intent(inout) :: a(   1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ! source array
@@ -5514,70 +4009,21 @@ contains
     end if
   end subroutine xcsum
 
-  subroutine xcsumj(sumj, a,mask)
-    real(8),  intent(out)   :: sumj(jtdm)
-    real,    intent(inout) :: a(   1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy)
-    integer, intent(in)    :: mask(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy)
-
-    !-----------
-    !  1) rwo-sum of a 2-d array, where mask==1, on first processor only
-    !  2) parameters:
-    !       name            type         usage            description
-    !    ----------      ----------     -------  ----------------------------
-    !    sumj            real*8         output    row-sum of a
-    !    a               real           input     source array
-    !    mask            integer        input     mask array
-
-    !  3) sum is bit for bit reproducable for the same halo size, nbdy.
-    !-----------
-
-    real(8) :: zero8
-    parameter (zero8 = 0.0)
-
-    real(8) :: sum8,sum8p
-    integer :: i,i1,j
-    if (use_TIMER) then
-      call xctmr0( 5)
-    end if
-
-    !     row sums in 2*nbdy+1 wide strips.
-
-    !$OMP PARALLEL DO PRIVATE(j,i1,i,sum8,sum8p) &
-    !$OMP SCHEDULE(STATIC,jblk)
-    do j = 1,jdm
-      sum8 = zero8
-      do i1 = 1,idm,2*nbdy+1
-        sum8p = zero8
-        do i= i1,min(i1+2*nbdy,idm)
-          if (mask(i,j) == 1) then
-            sum8p = sum8p + a(i,j)
-          end if
-        end do
-        sum8 = sum8 + sum8p
-      end do
-      sumj(j) = sum8  ! use of sum8 minimizes false sharing of sumj
-    end do
-    !$OMP END PARALLEL DO
-    if (use_TIMER) then
-      call xctmr1( 5)
-    end if
-  end subroutine xcsumj
-
+  !-----------------------------------------------------------------------
   subroutine xcsync(lflush)
     logical, intent(in) :: lflush
-
     !-----------
     !  1) barrier, no processor exits until all arrive (and flush stdout).
     !  2) some MPI implementations only flush stdout as a collective
     !     operation, and hence the lflush=.true. option to flush stdout.
     !  3) Only one processor, so the barrier is a no-op in this case.
     !-----------
-
     if (lflush) then
       call flush(lp)
     end if
   end subroutine xcsync
 
+  !-----------------------------------------------------------------------
   subroutine xctilr(a,l1,ld,mh,nh,itype)
     integer, intent(in)    :: l1,ld,mh,nh,itype
     real,    intent(inout) :: a(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ld)
@@ -5823,7 +4269,6 @@ contains
     if (use_DEBUG_TIMER) then
       if (n > 24 .and. cc(n) /= '      ') then
         write(lp,*) 'call ',cc(n)
-        call flush(lp)
       end if
     end if
     if (timer_on) then
@@ -5852,7 +4297,6 @@ contains
     if (use_DEBUG_TIMER) then
       if (n > 24 .and. cc(n) /= '      ') then
         write(lp,*) 'exit ',cc(n)
-        call flush(lp)
       end if
     end if
   end subroutine xctmr1
@@ -5890,7 +4334,6 @@ contains
       end if
     end do
     write(lp,6200)
-    call flush(lp)
 
     ! reset timers to zero.
     do i= 1,97

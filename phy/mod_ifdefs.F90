@@ -53,6 +53,11 @@ module mod_ifdefs
 #else
   logical :: use_DEBUG_TIMER_ALL = .false.
 #endif
+#ifdef DEBUG_ALL
+  logical :: use_DEBUG_ALL = .true.
+#else
+  logical :: use_DEBUG_ALL = .false.
+#endif
 #ifdef ARCTIC
   logical :: use_ARCTIC = .true.
 #else

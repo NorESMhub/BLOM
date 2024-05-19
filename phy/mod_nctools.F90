@@ -88,6 +88,7 @@ module mod_nctools
                           mpe_1, mnproc, nproc, mproc
 #ifdef PNETCDF
   use mod_xc,       only: xcgetrow, xcgetrowint2, xcgetrow4
+  use mod_xc,       only: mpicomm,mpierr,mpireq,mpistat
 #endif
   use mod_calendar, only: date_type, daynum_diff, calendar_noerr, &
                           calendar_errstr
@@ -155,10 +156,6 @@ contains
     integer, parameter :: nf90__64bit_offset = 512
     integer, parameter :: nf90__hdf5 = 4096
 #ifdef PNETCDF
-    integer :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4), &
-         mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
     integer*4, save :: info = MPI_INFO_NULL
     character(len = 3) :: stripestr
     character(len = 9) :: stripestr2
