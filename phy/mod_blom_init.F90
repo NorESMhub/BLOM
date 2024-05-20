@@ -63,7 +63,7 @@ contains
     use mod_vcoord,          only: vcoord_type_tag, isopyc_bulkml, sigmar
     use mod_inigeo,          only: inigeo
     use mod_iniphy,          only: iniphy
-    use mod_restart_rd,      only: restart_rd
+    use mod_restart,         only: restart_read
     use mod_ifdefs,          only: use_TRC, use_TKE
     use mod_tracers_update,  only: initrc
     use netcdf
@@ -227,7 +227,7 @@ contains
 
       delt1 = baclin+baclin
 
-      call restart_rd
+      call restart_read()
 
     end if
 
@@ -351,11 +351,13 @@ contains
     call xctilr(pgfym, 1,2, 1,2, halo_vv)
     call xctilr(xiyp, 1,2, 1,2, halo_vs)
     call xctilr(xiym, 1,2, 1,2, halo_vs)
-    call xctilr(uml, 1,4, 1,0, halo_uv)
-    call xctilr(vml, 1,4, 0,1, halo_vv)
-    call xctilr(umlres, 1,2, 1,0, halo_uv)
-    call xctilr(vmlres, 1,2, 0,1, halo_vv)
     call xctilr(sigmar, 1,kk, 1,1, halo_ps)
+    if (vcoord_type_tag == isopyc_bulkml) then
+       call xctilr(uml, 1,4, 1,0, halo_uv)
+       call xctilr(vml, 1,4, 0,1, halo_vv)
+       call xctilr(umlres, 1,2, 1,0, halo_uv)
+       call xctilr(vmlres, 1,2, 0,1, halo_vv)
+    end if
 
     ! --- with arctic patch, switch xixp and xixm and xiyp and xiym in the
     ! --- halo region adjacent to the arctic grid intersection

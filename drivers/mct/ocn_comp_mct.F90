@@ -53,8 +53,7 @@ module ocn_comp_mct
                                ii, jj, kk, i0, j0, nproc, jpr, cplmsk, halo_ps, &
                                ifu, ilu, isv, ifv, ilv, isp, ifp, ilp, isu
    use mod_blom_init,    only: blom_init
-   use mod_restart_rd,   only: restart_rd
-   use mod_restart_wt,   only: restart_wt
+   use mod_restart,      only: restart_write, restart_read
    use mod_blom_step,    only: blom_step
    use mod_fill_global,  only: fill_global
    use mod_forcing,      only: sprfac, prfac, flxco2, flxdms, flxbrf
@@ -291,7 +290,7 @@ module ocn_comp_mct
              call blom_time(ymd, tod)
              write(lp,*)'Resume from restart: ymd=',ymd,' tod= ',tod
           endif
-         call restart_rd  !! resume_flag is applied
+         call restart_read  !! resume_flag is applied
          resume_flag = .false.
       end if
       !-----------------------------------------------------------------
@@ -333,8 +332,9 @@ module ocn_comp_mct
       ! if requested, write restart file
       !-----------------------------------------------------------------
 
-      if (seq_timemgr_RestartAlarmIsOn(EClock).or.seq_timemgr_pauseAlarmIsOn(EClock)) then
-         call restart_wt
+      if (seq_timemgr_RestartAlarmIsOn(EClock) .or. &
+          seq_timemgr_pauseAlarmIsOn(EClock)) then
+         call restart_write
       endif
       if (seq_timemgr_pauseAlarmIsOn(EClock)) resume_flag = .true.
 

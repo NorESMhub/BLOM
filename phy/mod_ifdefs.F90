@@ -63,5 +63,10 @@ module mod_ifdefs
 #else
   logical :: use_ARCTIC = .false.
 #endif
+#ifdef MKS
+  logical :: use_MKS = .true.
+#else
+  logical :: use_MKS = .false.
+#endif
 
 end module mod_ifdefs

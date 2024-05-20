@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2005-2022 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2005-2024 Mats Bentsen, Mehmet Ilicak
 
 ! This file is part of BLOM.
 
@@ -58,40 +58,40 @@ module mod_pgforc
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) :: &
        pgfxm  ! x-component of barotropic pressure gradient
               ! force, not dependent on bottom pressure
-              ! [cm2 s-2]. &
+              ! [cm2 s-2]
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) :: &
        pgfym  ! y-component of barotropic pressure gradient
               ! force, not dependent on bottom pressure
-              ! [cm2 s-2]. &
+              ! [cm2 s-2]
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) :: &
        xixp   ! Dependeny of x-component of barotropic pressure
               ! gradient force on bottom pressure at (i, j)
-              ! [g cm s-4]. &
+              ! [cm3 g-1].
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) :: &
        xixm   ! Dependeny of x-component of barotropic pressure
               ! gradient force on bottom pressure at (i - 1, j)
-              ! [g cm s-4]. &
+              ! [cm3 g-1].
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) :: &
        xiyp   ! Dependeny of y-component of barotropic pressure
               ! gradient force on bottom pressure at (i, j)
-              ! [g cm s-4]. &
+              ! [cm3 g-1].
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) :: &
        xiym   ! Dependeny of y-component of barotropic pressure
               ! gradient force on bottom pressure at (i, j - 1)
-              ! [g cm s-4].
+              ! [cm3 g-1].
 
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
-       pgfxm_o       ! 'pgfxm' at old time level [cm2 s-2]. &
+       pgfxm_o       ! 'pgfxm' at old time level [cm2 s-2]
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
-       pgfym_o       ! 'pgfym' at old time level [cm2 s-2]. &
+       pgfym_o       ! 'pgfym' at old time level [cm2 s-2]
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
-       xixp_o        ! 'xixp' at old time level [g cm s-4]. &
+       xixp_o        ! 'xixp' at old time level [cm3 g-1]
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
-       xixm_o        ! 'xixm' at old time level [g cm s-4]. &
+       xixm_o        ! 'xixm' at old time level [cm3 g-1]
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
-       xiyp_o        ! 'xiyp' at old time level [g cm s-4]. &
+       xiyp_o        ! 'xiyp' at old time level [cm3 g-1]
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
-       xiym_o        ! 'xiym' at old time level [g cm s-4].
+       xiym_o        ! 'xiym' at old time level [cm3 g-1].
 
   ! Public variables
   public :: wpgf, pgfx, pgfy, pgfxo, pgfyo, pgfxm, pgfym
@@ -114,7 +114,7 @@ contains
     ! Local variables
     integer :: i,j,k
 
-    !$OMP PARALLEL DO PRIVATE(i,k)
+    !$omp parallel do private(i,k)
     do j = 1-nbdy,jj+nbdy
       do k = 1,2*kk
         do i = 1-nbdy,ii+nbdy
@@ -147,7 +147,7 @@ contains
         xiym_o(i,j) = spval
       end do
     end do
-    !$OMP END PARALLEL DO
+    !$omp end parallel do
 
   end subroutine inivar_pgforc
 
@@ -171,7 +171,7 @@ contains
 
     ! --- compute new -dpu,dpv- field.
 
-    !$OMP PARALLEL DO PRIVATE(k,kn,l,i)
+    !$omp parallel do private(k,kn,l,i)
     do j = -2,jj+2
       do k = 1,kk
         kn = k+nn
@@ -182,9 +182,9 @@ contains
         end do
       end do
     end do
-    !$OMP END PARALLEL DO
+    !$omp end parallel do
 
-    !$OMP PARALLEL DO PRIVATE(k,kn,l,i,q)
+    !$omp parallel do private(k,kn,l,i,q)
     do j = -1,jj+2
       do k = 1,kk
         kn = k+nn
@@ -208,9 +208,9 @@ contains
         end do
       end do
     end do
-    !$OMP END PARALLEL DO
+    !$omp end parallel do
 
-    !$OMP PARALLEL DO PRIVATE(l,i,k,kn,dphi,alpu,alpl)
+    !$omp parallel do private(l,i,k,kn,dphi,alpu,alpl)
     do j = 0,jj
       do l = 1,isp(j)
         do i = max(0,ifp(j,l)),min(ii,ilp(j,l))
@@ -234,7 +234,7 @@ contains
         end do
       end do
     end do
-    !$OMP END PARALLEL DO
+    !$omp end parallel do
 
     !$omp parallel do private(l,i)
     do j = -1,jj+2
@@ -297,7 +297,7 @@ contains
             end do
 
             call delphi(prs,p(i  ,j,kup(i)+1), &
-                 temp(i  ,j,kup(i)+nn),saln(i  ,j,kup(i)+nn), &
+                 temp(i,j,kup(i)+nn),saln(i,j,kup(i)+nn), &
                  dphip,alpup,alplp)
 
             call delphi(prs,p(i-1,j,kum(i)+1), &

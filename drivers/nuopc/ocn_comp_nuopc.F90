@@ -56,7 +56,7 @@ module ocn_comp_nuopc
    use mod_blom_init, only : blom_init
    use mod_blom_step, only : blom_step
    use mod_fill_global, only : fill_global
-   use mod_restart_wt, only : restart_wt
+   use mod_restart, only : restart_write
    use ocn_stream_sss, only : ocn_stream_sss_init, ocn_stream_sss_interp
    use ocn_stream_sst, only : ocn_stream_sst_init, ocn_stream_sst_interp
 
@@ -885,7 +885,7 @@ contains
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
 
          ! Write BLOM restart files.
-         call restart_wt
+         call restart_write()
 
       endif
 

@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2022 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2008-2024 Mats Bentsen, Mehmet Ilicak
 
 ! This file is part of BLOM.
 
@@ -68,7 +68,7 @@ module mod_blom_step
   use mod_sfcstr,          only: sfcstr
   use mod_convec,          only: convec
   use mod_wdiflx,          only: wdiflx
-  use mod_restart_wt,      only: restart_wt
+  use mod_restart,         only: restart_write
   use mod_tracers_update,  only: updtrc
   use mod_ifdefs,          only: use_TRC
 
@@ -323,7 +323,7 @@ contains
         ! --- --- output restart files
         ! --- ------------------------------------------------------------------
 
-        call restart_wt
+        call restart_write()
 
       end if
 
@@ -335,21 +335,17 @@ contains
 
       io_total_time = io_total_time+io_time
       total_step_time = auxil_time +getfrc_time+tmsmt1_time+advdif_time &
-           +sfcstr_time+momtum_time+pgforc_time+barotp_time &
-           +pbcor2_time+convec_time+diapfl_time+thermf_time &
-           +mxlayr_time+tmsmt2_time+diaacc_time+io_time
+                       +sfcstr_time+momtum_time+pgforc_time+barotp_time &
+                       +pbcor2_time+convec_time+diapfl_time+thermf_time &
+                       +mxlayr_time+tmsmt2_time+diaacc_time+io_time
       total_time = total_time+total_step_time
       total_xio_time = total_xio_time+total_step_time-io_time
 
       if (mnproc == 1) then
-        write (lp,'(f12.4,a,i8)') &
-             total_step_time, '  sec for step ', nstep
-        write (lp,'(f12.4,a,i8)') &
-             total_time/(nstep-nstep1),' Avg Time'
-        write (lp,'(f12.4,a,i8)') &
-             total_xio_time/(nstep-nstep1),' Avg Time excluding IO'
-        write (lp,'(f12.4,a,i8)') &
-             total_time,' Tot Time with contributions:'
+        write (lp,'(f12.4,a,i8)') total_step_time, '  sec for step ', nstep
+        write (lp,'(f12.4,a,i8)') total_time/(nstep-nstep1),' Avg Time'
+        write (lp,'(f12.4,a,i8)') total_xio_time/(nstep-nstep1),' Avg Time excluding IO'
+        write (lp,'(f12.4,a,i8)') total_time,' Tot Time with contributions:'
         q = 100./total_time
         write (lp,'(f12.4,a,i8)') auxil_total_time*q ,'% auxil '
         write (lp,'(f12.4,a,i8)') getfrc_total_time*q,'% getfrc'
@@ -378,15 +374,14 @@ contains
       io_time = get_time()
       io_total_time = io_total_time+io_time
       total_step_time = auxil_time +getfrc_time+tmsmt1_time+advdif_time &
-                      +sfcstr_time+momtum_time+pgforc_time+barotp_time &
-                      +pbcor2_time+convec_time+diapfl_time+thermf_time &
-                      +mxlayr_time+tmsmt2_time+diaacc_time+io_time
+                       +sfcstr_time+momtum_time+pgforc_time+barotp_time &
+                       +pbcor2_time+convec_time+diapfl_time+thermf_time &
+                       +mxlayr_time+tmsmt2_time+diaacc_time+io_time
       total_time = total_time+total_step_time
       total_xio_time = total_xio_time+total_step_time-io_time
 
       if (mnproc == 1) then
-        write (lp,'(f12.4,a,i8)') total_step_time, '  sec for step ', &
-             nstep
+        write (lp,'(f12.4,a,i8)') total_step_time, '  sec for step ', nstep
       end if
 
     end if

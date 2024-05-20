@@ -50,7 +50,6 @@ contains
       ! local variables
       integer                        :: nu_nml                ! unit for namelist file
       integer                        :: nml_error             ! namelist i/o error flag
-      integer                        :: ierr                  ! error status
       character(len=CL)              :: filein                ! ocn namelist file
       integer                        :: stream_sss_year_first ! first year in stream to use
       integer                        :: stream_sss_year_last  ! last year in stream to use
