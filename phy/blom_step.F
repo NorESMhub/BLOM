@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2022 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2008-2024 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -58,6 +58,7 @@ c
       use mod_momtum, only: momtum
       use mod_difest, only: difest_isobml, difest_lateral_hybrid,
      .                      difest_vertical_hybrid
+      use mod_restart, only: restart_write
       use mod_chkvar, only: chkvar
       use mod_dia
 c
@@ -299,7 +300,7 @@ c --- ------------------------------------------------------------------
 c --- --- output restart files
 c --- ------------------------------------------------------------------
 c
-          call restart_wt
+          call restart_write
 c
         endif
 c
