@@ -25,6 +25,15 @@
     <desc>Optional ocean tracers.  Valid values are Any combination of: iage ecosys</desc>
   </entry>
 
+  <entry id="BLOM_ATRC">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <group>build_component_blom</group>
+    <file>env_build.xml</file>
+    <desc>Set preprocessor option to activate age tracer code. Requires module iage or ecosys</desc>
+  </entry>
+
   <entry id="BLOM_TURBULENT_CLOSURE">
     <type>char</type>
     <valid_values></valid_values>

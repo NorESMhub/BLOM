@@ -28,7 +28,7 @@ c
       use mod_xc
       use mod_constants, only: P_mks2cgs
 #ifdef TRC
-      use mod_tracers, only: ntr, itrtke, itrgls
+      use mod_tracers, only: ntr, natr, itrtke, itrgls
 #endif
 c
       implicit none
