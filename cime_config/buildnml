@@ -78,6 +78,7 @@ def buildnml(case, caseroot, compname):
     blom_ndep_scenario        = case.get_value("BLOM_NDEP_SCENARIO")
     blom_coupling             = case.get_value("BLOM_COUPLING")
     blom_tracer_modules       = case.get_value("BLOM_TRACER_MODULES")
+    blom_atrc                 = case.get_value("BLOM_ATRC")
     hamocc_ciso               = case.get_value("HAMOCC_CISO")
     hamocc_sedbypass          = case.get_value("HAMOCC_SEDBYPASS")
     hamocc_sedspinup          = case.get_value("HAMOCC_SEDSPINUP")
@@ -181,6 +182,7 @@ def buildnml(case, caseroot, compname):
         config["blom_n_deposition"] = "yes" if blom_n_deposition else "no"
         config["blom_coupling"] = blom_coupling
         config["blom_tracer_modules"] = blom_tracer_modules
+        config["blom_atrc"] = blom_atrc
         config["hamocc_ciso"] = "yes" if hamocc_ciso else "no"
         config["hamocc_sedbypass"] = "yes" if hamocc_sedbypass else "no"
         config["hamocc_sedspinup"] = "yes" if hamocc_sedspinup else "no"

@@ -80,6 +80,7 @@ def buildcpp(case):
     ocn_grid = case.get_value("OCN_GRID")
     turbclo = case.get_value("BLOM_TURBULENT_CLOSURE")
     tracers = case.get_value("BLOM_TRACER_MODULES")
+    blom_atrc = case.get_value("BLOM_ATRC")
     blom_unit = case.get_value("BLOM_UNIT")
     pio_typename = case.get_value("PIO_TYPENAME", subgroup="OCN")
 
@@ -124,6 +125,9 @@ def buildcpp(case):
                 blom_cppdefs = blom_cppdefs + " -DHAMOCC"
             else:
                 expect(False, "tracer module {} is not recognized".format(module))
+
+    if blom_atrc:
+        blom_cppdefs = blom_cppdefs + " -DATRC"
 
     if blom_unit == "mks":
         blom_cppdefs = blom_cppdefs + " -DMKS"
