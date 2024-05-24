@@ -38,9 +38,8 @@ module ocn_comp_nuopc
    use nuopc_shr_methods, only : ChkErr, set_component_logging, &
                                  get_component_instance, state_setscalar, &
                                  alarmInit
-   use shr_file_mod, only: shr_file_getUnit, shr_file_getLogUnit, &
-                           shr_file_setLogUnit
    use shr_cal_mod, only : shr_cal_ymd2date
+   use shr_file_mod, only: shr_file_getUnit, shr_file_getLogUnit, shr_file_setLogUnit
    use mod_nuopc_methods, only: fldlist_type, fldsMax, tlast_coupled, &
                                 blom_logwrite, blom_getgindex, blom_checkmesh, &
                                 blom_setareacor, blom_getglobdim, &
@@ -53,6 +52,7 @@ module ocn_comp_nuopc
    use mod_time, only: blom_time
    use mod_forcing, only : srxday, trxday
    use mod_constants, only : epsilt
+   use mod_restart, only : restart_write
    use ocn_stream_sss, only : ocn_stream_sss_init, ocn_stream_sss_interp
    use ocn_stream_sst, only : ocn_stream_sst_init, ocn_stream_sst_interp
 
@@ -881,7 +881,7 @@ contains
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
 
          ! Write BLOM restart files.
-         call restart_wt
+         call restart_write()
 
       endif
 
