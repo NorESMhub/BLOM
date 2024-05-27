@@ -22,6 +22,8 @@ option('iage', type: 'boolean',
        description: 'Enable ideal age tracer', value: true)
 option('ecosys', type: 'boolean',
        description: 'Enable HAMOCC as ecosystem module', value: false)
+option('atrc', type: 'boolean',
+       description: 'Enable age tracer in BLOM', value: false)
 option('hamocc_agg', type: 'boolean',
        description: 'Enable Kriest aggregation scheme in HAMOCC', value: false)
 option('hamocc_boxatm', type: 'boolean',
