@@ -1607,6 +1607,16 @@ contains
          if (.not.fld_read .and. mnproc == 1) &
             write(lp,*) 'restart_read: warning: bromoform flux is not read '// &
                         'from restart file and will be initialized to zero.'
+         call readfld('flxn2o', no_unitconv, flxn2o, ip, &
+                      required = .false., fld_read = fld_read)
+         if (.not.fld_read .and. mnproc == 1) &
+            write(lp,*) 'restart_read: warning: N2O flux is not read '// &
+                        'from restart file and will be initialized to zero.'
+         call readfld('flxnh3', no_unitconv, flxnh3, ip, &
+                      required = .false., fld_read = fld_read)
+         if (.not.fld_read .and. mnproc == 1) &
+            write(lp,*) 'restart_read: warning: NH3 flux is not read '// &
+                        'from restart file and will be initialized to zero.'
       endif
 
 #ifdef TRC
