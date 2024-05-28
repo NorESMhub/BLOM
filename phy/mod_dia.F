@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2010-2023 Ingo Bethke, Mats Bentsen, Mehmet Ilicak,
+! Copyright (C) 2010-2024 Ingo Bethke, Mats Bentsen, Mehmet Ilicak,
 !                         Alok Kumar Gupta, Jörg Schwinger, Ping-Gin Chiu
 !
 ! This file is part of BLOM.
@@ -1351,10 +1351,10 @@ c
 c --- fractional ice cover
       call acch2d(ACC_FICE,ficem,dummy,0,'p')
 c
-c --- ice volume in u-points[m]
+c --- ice volume in u-points [m]
       call acch2d(ACC_IVOLU,util1,dummy,0,'u')
 c
-c --- ice volume in v-points[m]
+c --- ice volume in v-points [m]
       call acch2d(ACC_IVOLV,util3,dummy,0,'v')
 c
 c --- surface temperature [K]
@@ -1444,7 +1444,7 @@ c
 c --- bottom salinity [g kg-1]
       call acch2d(ACC_SBOT,sbot,dummy,0,'p')
 c
-c --- bottom temperature [g kg-1]
+c --- bottom temperature [degC]
       call acch2d(ACC_TBOT,tbot,dummy,0,'p')
 c
 c --- mixed layer pressure thickness [g/cm/s^2]
@@ -1456,13 +1456,13 @@ c
 c --- 20C isoterm depth [cm]
       call acch2d(ACC_T20D,t20d,dummy,0,'p')
 c
-c --- heat flux given by the ocean [W/m^2]
+c --- heat flux given by the ocean [W/cm^2]
       call acch2d(ACC_SURFLX,surflx,dummy,0,'p')
 c
 c --- salt flux given by the ocean [10^-3 g/cm^2/s]
       call acch2d(ACC_SALFLX,salflx,dummy,0,'p')
 c
-c --- restoring heat flux received by the ocean [W/m^2]
+c --- restoring heat flux received by the ocean [W/cm^2]
       call acch2d(ACC_SURRLX,surrlx,dummy,0,'p')
 c
 c --- restoring salt flux received by the ocean [10^-3 g/cm^2/s]
@@ -1585,7 +1585,7 @@ c
 c --- v-component of salt flux due to lateral diffusion [g^2*cm/kg/s^2]
       call acclyr(ACC_VSFLLD,vsflld(1-nbdy,1-nbdy,k1n),dummy,0,'v')
 c
-c --- weighted salinity [g^2/kg/cm/s^2]
+c --- weighted salinity [g/kg*g/cm/s^2]
       call acclyr(ACC_SALN,saln(1-nbdy,1-nbdy,k1m),
      .            dp(1-nbdy,1-nbdy,k1m),1,'p')
 c
@@ -1596,28 +1596,32 @@ c
 c --- layer pressure thickness [g/cm/s^2]
       call acclyr(ACC_DP,dp(1-nbdy,1-nbdy,k1m),dummy,0,'p')
 c
-c --- layer geopotential thickness [cm^2/s^2]
+c --- layer thickness [cm]
       call acclyr(ACC_DZ,dz,dummy,0,'p')
 c
-c --- buoyancy frequency squared [1/s]
+c --- buoyancy frequency squared [1/s*g/cm/s^2]
       call acclyr(ACC_BFSQ,bfsql,dp(1-nbdy,1-nbdy,k1m),1,'p')
 c
-c --- layer interface diffusivity [cm^2/s]
+c --- layer interface diffusivity [cm^2/s*g/cm/s^2]
       call acclyr(ACC_DIFINT,difint,dp(1-nbdy,1-nbdy,k1m),1,'p')
 c
-c --- isopycnal diffusivity [cm^2/s]
+c --- isopycnal diffusivity [cm^2/s*g/cm/s^2]
       call acclyr(ACC_DIFISO,difiso,dp(1-nbdy,1-nbdy,k1m),1,'p')
 c
-c --- vertical diffusivity (vcoord_type_tag == isopyc_bulkml) [cm^2/s]
+c --- vertical diffusivity (vcoord_type_tag == isopyc_bulkml)
+c --- [cm^2/s*g/cm/s^2]
       call acclyr(ACC_DIFDIA,difdia,dp(1-nbdy,1-nbdy,k1m),1,'p')
 c
-c --- vertical momentum diffusivity (vcoord_type_tag == cntiso_hybrid) [cm^2/s]
+c --- vertical momentum diffusivity (vcoord_type_tag == cntiso_hybrid)
+c --- [cm^2/s*g/cm/s^2]
       call accily(ACC_DIFVMO,Kvisc_m,dp(1-nbdy,1-nbdy,k1m),1,'p')
 c
-c --- vertical heat diffusivity (vcoord_type_tag == cntiso_hybrid) [cm^2/s]
+c --- vertical heat diffusivity (vcoord_type_tag == cntiso_hybrid)
+c --- [cm^2/s*g/cm/s^2]
       call accily(ACC_DIFVHO,Kdiff_t,dp(1-nbdy,1-nbdy,k1m),1,'p')
 c
-c --- vertical salt diffusivity (vcoord_type_tag == cntiso_hybrid) [cm^2/s]
+c --- vertical salt diffusivity (vcoord_type_tag == cntiso_hybrid)
+c --- [cm^2/s*g/cm/s^2]
       call accily(ACC_DIFVSO,Kdiff_s,dp(1-nbdy,1-nbdy,k1m),1,'p')
 c
 c --- absolute vorticity multiplied with potential density difference
@@ -1673,7 +1677,7 @@ c
         do k=1,kk
           call diazlv('u',k,mm,nn,ind1,ind2,wghts,wghtsflx)
 c
-c --- --- weighted u-component of total velocity [g/s^3]
+c --- --- u-component of total velocity [cm/s]
           call acclvl(ACC_UVELLVL,uvel,'u',k,ind1,ind2,wghts)
 c
 c --- --- u-component of mass flux [g*cm/s^2]
@@ -1731,7 +1735,7 @@ c
         do k=1,kk
           call diazlv('v',k,mm,nn,ind1,ind2,wghts,wghtsflx)
 c
-c --- --- weighted v-component of total velocity [g/s^3]
+c --- --- v-component of total velocity [cm/s]
           call acclvl(ACC_VVELLVL,vvel,'v',k,ind1,ind2,wghts)
 c
 c --- --- v-component of mass flux [g*cm/s^2]
@@ -1790,11 +1794,11 @@ c
         do k=1,kk
           call diazlv('p',k,mm,nn,ind1,ind2,wghts,wghtsflx)
 c
-c --- --- salinity [g^2/kg/cm/s^2]
+c --- --- salinity [g/kg]
           call acclvl(ACC_SALNLVL,saln(1-nbdy,1-nbdy,k1m),
      .                'p',k,ind1,ind2,wghts)
 c
-c --- --- temperature [degC*g/cm/s^2]
+c --- --- temperature [degC]
           call acclvl(ACC_TEMPLVL,temp(1-nbdy,1-nbdy,k1m),
      .                'p',k,ind1,ind2,wghts)
 c
@@ -1824,16 +1828,16 @@ c --- --- potential vorticity [s m-2]
           call acclvl(ACC_PVLVL,pv_p,'p',k,ind1,ind2,wghts)
 c
 #if defined(TRC) && defined(TKE)
-c --- --- tke [cm2/s2*g/cm/s^2]
+c --- --- tke [cm2/s2]
           call acclvl(ACC_TKELVL,trc(1-nbdy,1-nbdy,k1m,itrtke),
      .                'p',k,ind1,ind2,wghts)
 c
-c --- --- gls_psi [cm2/s3*g/cm/s^2]
+c --- --- gls_psi [cm2/s3]
           call acclvl(ACC_GLS_PSILVL,trc(1-nbdy,1-nbdy,k1m,itrgls),
      .                'p',k,ind1,ind2,wghts)
 c
 #endif
-c --- --- layer geopotential thickness [cm^2/s^2]
+c --- --- layer thickness [cm]
           call acclvl(ACC_DZLVL,dz,'p',k,ind1,ind2,wghts)
 c
         enddo
@@ -2482,11 +2486,11 @@ c
       call wrth2d(ACC_MTY(iogrp),H2D_MTY(iogrp),rnacc,0.,
      .  cmpflg,ivv,'v','mty','Wind stress y-component',' ','N m-2')
 c
-      call wrth2d(ACC_TAUX(iogrp),H2D_TAUX(iogrp),rnacc*.1,
+      call wrth2d(ACC_TAUX(iogrp),H2D_TAUX(iogrp),rnacc*P_cgs2mks,
      .  0.,cmpflg,iuu,'u','taux',
      .  'Momentum flux received by ocean x-component',' ','N m-2')
 c
-      call wrth2d(ACC_TAUY(iogrp),H2D_TAUY(iogrp),rnacc*.1,
+      call wrth2d(ACC_TAUY(iogrp),H2D_TAUY(iogrp),rnacc*P_cgs2mks,
      .  0.,cmpflg,ivv,'v','tauy',
      .  'Momentum flux received by ocean y-component',' ','N m-2')
 c

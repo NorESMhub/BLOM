@@ -78,6 +78,7 @@ def buildnml(case, caseroot, compname):
     blom_ndep_scenario        = case.get_value("BLOM_NDEP_SCENARIO")
     blom_coupling             = case.get_value("BLOM_COUPLING")
     blom_tracer_modules       = case.get_value("BLOM_TRACER_MODULES")
+    blom_atrc                 = case.get_value("BLOM_ATRC")
     hamocc_ciso               = case.get_value("HAMOCC_CISO")
     hamocc_extncycle          = case.get_value("HAMOCC_EXTNCYCLE")
     hamocc_n2oc               = case.get_value("HAMOCC_N2OC")
@@ -89,6 +90,7 @@ def buildnml(case, caseroot, compname):
     hamocc_sedspinup_yr_end   = case.get_value("HAMOCC_SEDSPINUP_YR_END")
     hamocc_sedspinup_ncycle   = case.get_value("HAMOCC_SEDSPINUP_NCYCLE")
     is_test                   = case.get_value("TEST")
+    comp_interface            = case.get_value("COMP_INTERFACE")
 
     blom_vcoord = case.get_value("BLOM_VCOORD")
     turbclo = case.get_value("BLOM_TURBULENT_CLOSURE")
@@ -185,6 +187,7 @@ def buildnml(case, caseroot, compname):
         config["blom_n_deposition"] = "yes" if blom_n_deposition else "no"
         config["blom_coupling"] = blom_coupling
         config["blom_tracer_modules"] = blom_tracer_modules
+        config["blom_atrc"] = blom_atrc
         config["hamocc_ciso"] = "yes" if hamocc_ciso else "no"
         config["hamocc_extncycle"] = "yes" if hamocc_extncycle else "no"
         config["hamocc_n2oc"] = "yes" if hamocc_n2oc else "no"
@@ -196,6 +199,7 @@ def buildnml(case, caseroot, compname):
         config["hamocc_sedspinup_yr_end"] = hamocc_sedspinup_yr_end
         config["hamocc_sedspinup_ncycle"] = hamocc_sedspinup_ncycle
         config["is_test"] = "yes" if is_test else "no"
+        config["comp_interface"] = comp_interface
 
         # TODO: the following needs to have new ways to turn this to "yes"
         config["use_agg"] = "no"
@@ -252,7 +256,7 @@ def buildnml(case, caseroot, compname):
         namelist_file += inst_string
 
         # Create BLOM namelist
-        groups=['limits','diffusion','merdia','secdia','diaphy']
+        groups=['limits','diffusion','merdia','secdia','diaphy','stream_sss','stream_sst' ]
 
         groups.append('cwmod')
 
@@ -269,14 +273,14 @@ def buildnml(case, caseroot, compname):
         if "ecosys" in case.get_value("BLOM_TRACER_MODULES"):
              groups.append("bgcparams")
              """
-             !!! The following line deletes all entries for group 'bgcparams' 
-             !!! that are ONLY present in namelist_definition_blom.xml 
+             !!! The following line deletes all entries for group 'bgcparams'
+             !!! that are ONLY present in namelist_definition_blom.xml
              !!! and keeps entries provided through user_nl_blom
              !!! This makes sure that i) only Fortran-hard coded values from mo_param_bgc.F90
              !!! are used and that ii) user_nl_blom enables tuning these default parameters.
-             !!! Note that an entry in namelist_definition_blom.xml for the tuning parameter 
-             !!! is still required, while its value can be set to None. 
-             !!! This is an interim solution and the line below can be simply deleted, once 
+             !!! Note that an entry in namelist_definition_blom.xml for the tuning parameter
+             !!! is still required, while its value can be set to None.
+             !!! This is an interim solution and the line below can be simply deleted, once
              !!! xml is used as default for the bgcparams namelist as well.
              """
              pg_blom.keep_usernml_only('bgcparams')

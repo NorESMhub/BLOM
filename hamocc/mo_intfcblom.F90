@@ -197,7 +197,7 @@ contains
     ! - integrate subroutine into module mo_intfcblom
     !***********************************************************************************************
 
-    use mod_constants, only: onem
+    use mod_constants, only: onem,L_mks2cgs,rho0,P_mks2cgs
     use mod_xc,        only: ii,jdm,jj,kdm,kk,ifp,isp,ilp,idm
     use mod_grid,      only: scpx,scpy
     use mod_state,     only: dp,temp,saln
@@ -244,8 +244,8 @@ contains
       do i=1,ii
         !
         ! --- - dimension of grid box in meters
-        bgc_dx(i,j) = scpx(i,j)/1.e2
-        bgc_dy(i,j) = scpy(i,j)/1.e2
+        bgc_dx(i,j) = scpx(i,j)/L_mks2cgs
+        bgc_dy(i,j) = scpy(i,j)/L_mks2cgs
         !
         ! --- - index of level above OBL depth
         ! ---   isopycninc coords: hOBL(i,j) = hOBL_static = 3.  =>  kmle(i,j) = 2
@@ -273,7 +273,7 @@ contains
             if(dp(i,j,kn) == 0.0) then
               ldp = 1.0
               pa  = ldp/rho(p1,th,s)
-            else if(dp(i,j,kn) <  1.0e-2) then
+            else if(dp(i,j,kn) <  1.0e-3*P_mks2cgs) then
               ldp = dp(i,j,kn)
               pa  = ldp/rho(p1,th,s)
             else
@@ -283,11 +283,11 @@ contains
             endif
             !
             ! --- - density in g/cm^3
-            bgc_rho(i,j,k)=ldp/pa
+            bgc_rho(i,j,k)=ldp/(pa*rho0)
             !
             ! --- - layer thickness in meters
             bgc_dp(i,j,k) = 0.0
-            if(dp(i,j,kn).ne.0.0) bgc_dp(i,j,k) = pa / onem
+            if(dp(i,j,kn).ne.0.0) bgc_dp(i,j,k) = rho0*pa / onem
           enddo
         enddo
       enddo

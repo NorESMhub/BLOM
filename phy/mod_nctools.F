@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2004-2022 Ingo Bethke, Mats Bentsen, Alok Kumar Gupta
+! Copyright (C) 2004-2024 Ingo Bethke, Mats Bentsen, Alok Kumar Gupta
 !
 ! This file is part of BLOM.
 !
@@ -846,7 +846,7 @@ c
  
 
 
-      subroutine ncread(vnm,fld,msk,mskflg,fill) 
+      subroutine ncread(vnm,fld,msk,mskflg,fill,scf_arg) 
 c
 c ----------------------------------------------------------------------
 c --- Description:
@@ -861,15 +861,21 @@ c                                    dimensions assumed to be
 c                                    (idm+2*nbdy)*(jdm+2*nbdy)
 c       integer      mskflg (in)  -  1 if mask exists  
 c       real         fill   (in)  -  fill value to be set on land   
+c       real         scf_arg(in)  -  scale factor (optional)
 c ----------------------------------------------------------------------
 c
       implicit none
 c
-      character*(*) :: vnm 
+      character*(*), intent(in) :: vnm 
+      real, intent(out) :: fld(*)
+      integer, intent(in) :: msk(*),mskflg
+      real, intent(in) :: fill
+      real, intent(in), optional :: scf_arg
+c
       character*100 :: dimname 
       integer :: i,j,ij,k,kd,n,ndm
       integer, parameter :: maxdm=5, ijdm=(idm+2*nbdy)*(jdm+2*nbdy)
-      integer ndims,dimids(maxdm),dimlen,msk(*),mskflg
+      integer ndims,dimids(maxdm),dimlen
 #ifdef PNETCDF
       integer(kind=MPI_OFFSET_KIND) tdimlen 
 #endif
@@ -878,7 +884,7 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: rfld,rmsk
       real, dimension(itdm,jtdm) :: rmskt
       real, dimension(itdm*jtdm) :: rfldtcmp
-      real :: fill,fld(*),ofs,scf
+      real :: ofs,scf
       logical cmpflg
 c
 c --- Initialise fields
@@ -914,6 +920,7 @@ c
 c --- Get attributes
       status=nfmpi_get_att_double(ncid,rhid,'scale_factor',scf)
       if (status.ne.nf_noerr) scf=1.
+      if (present(scf_arg)) scf=scf*scf_arg
       status=nfmpi_get_att_double(ncid,rhid,'add_offset',ofs)
       if (status.ne.nf_noerr) ofs=0.
 c
@@ -941,35 +948,35 @@ c --- Get data
             icount(1)=0
             icount(2)=0
           endif
-            call ncerro(nfmpi_get_vara_double_all(ncid,rhid,istart,
-     .                                            icount,rfldtcmp))
-            if (mnproc.eq.1) then
-              n=0
-              do j=1,jtdm
-                do i=1,itdm
-                  if (rmskt(i,j).gt.0.5) then
-                    n=n+1
-                    rfldt(i,j,1)=rfldtcmp(n)
+          call ncerro(nfmpi_get_vara_double_all(ncid,rhid,istart,
+     .                                          icount,rfldtcmp))
+          if (mnproc.eq.1) then
+            n=0
+            do j=1,jtdm
+              do i=1,itdm
+                if (rmskt(i,j).gt.0.5) then
+                  n=n+1
+                  rfldt(i,j,1)=rfldtcmp(n)
+                endif
+              enddo
+            enddo
+          endif
+          call xcaput(rfldt,rfld,1)
+          if (mskflg.eq.1) then
+            if (scf.eq.1..and.ofs.eq.0) then
+c$OMP PARALLEL DO PRIVATE(i,ij)
+              do j=1,jj
+                do i=1,ii
+                  ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
+                  if (msk(ij).eq.1) then
+                    fld(ij+(k-1)*ijdm)=rfld(i,j)
+                  else
+                    fld(ij+(k-1)*ijdm)=fill
                   endif
                 enddo
               enddo
-            endif
-            call xcaput(rfldt,rfld,1)
-            if (mskflg.eq.1) then
-              if (scf.eq.1..and.ofs.eq.0) then
-c$OMP PARALLEL DO PRIVATE(i,ij)
-                do j=1,jj
-                  do i=1,ii
-                    ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
-                    if (msk(ij).eq.1) then
-                      fld(ij+(k-1)*ijdm)=rfld(i,j)
-                    else
-                      fld(ij+(k-1)*ijdm)=fill
-                    endif
-                  enddo
-                enddo
 c$OMP END PARALLEL DO
-              else
+            else
 c$OMP PARALLEL DO PRIVATE(i,ij)
               do j=1,jj
                 do i=1,ii
@@ -989,7 +996,7 @@ c$OMP PARALLEL DO PRIVATE(i,ij)
               do j=1,jj
                 do i=1,ii
                   ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
-                  fld(ij+(k-1)*ijdm)=rfld(i,j)*scf+ofs
+                  fld(ij+(k-1)*ijdm)=rfld(i,j)
                 enddo
               enddo
 c$OMP END PARALLEL DO
@@ -998,7 +1005,7 @@ c$OMP PARALLEL DO PRIVATE(i,ij)
               do j=1,jj
                 do i=1,ii
                   ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
-                  fld(ij+(k-1)*ijdm)=rfld(i,j)
+                  fld(ij+(k-1)*ijdm)=rfld(i,j)*scf+ofs
                 enddo
               enddo
 c$OMP END PARALLEL DO
@@ -1055,7 +1062,7 @@ c$OMP PARALLEL DO PRIVATE(k,i,ij)
               do k=1,kd
                 do i=1,ii
                   ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
-                  fld(ij+(k-1)*ijdm)=rfldt(i,j,k)*scf+ofs
+                  fld(ij+(k-1)*ijdm)=rfldt(i,j,k)
                 enddo
               enddo
             enddo
@@ -1066,7 +1073,7 @@ c$OMP PARALLEL DO PRIVATE(k,i,ij)
               do k=1,kd
                 do i=1,ii
                   ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
-                  fld(ij+(k-1)*ijdm)=rfldt(i,j,k)
+                  fld(ij+(k-1)*ijdm)=rfldt(i,j,k)*scf+ofs
                 enddo
               enddo
             enddo
@@ -1109,6 +1116,7 @@ c --- Get attributes
       if (mnproc.eq.1) then      
         status=nf90_get_att(ncid,rhid,'scale_factor',scf)
         if (status.ne.nf90_noerr) scf=1.
+        if (present(scf_arg)) scf=scf*scf_arg
         status=nf90_get_att(ncid,rhid,'add_offset',ofs)
         if (status.ne.nf90_noerr) ofs=0.
       endif 
@@ -1189,18 +1197,18 @@ c$OMP PARALLEL DO PRIVATE(i,ij)
             do j=1,jj
               do i=1,ii
                 ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
-                fld(ij+(k-1)*ijdm)=rfld(i,j)*scf+ofs 
+                fld(ij+(k-1)*ijdm)=rfld(i,j)
               enddo
-            enddo     
+            enddo
 c$OMP END PARALLEL DO
           else
 c$OMP PARALLEL DO PRIVATE(i,ij)
             do j=1,jj
               do i=1,ii
                 ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
-                fld(ij+(k-1)*ijdm)=rfld(i,j)
+                fld(ij+(k-1)*ijdm)=rfld(i,j)*scf+ofs 
               enddo
-            enddo
+            enddo     
 c$OMP END PARALLEL DO
           endif
         endif        

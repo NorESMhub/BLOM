@@ -38,7 +38,9 @@ c
      .                       swa, nsf, hmltfz, lip, sop, eva, rnf, rfi,
      .                       fmltfz, sfl, ustarw, surflx, surrlx,
      .                       sswflx, salflx, brnflx, salrlx, ustar,
-     .                       t_rs_nonloc, s_rs_nonloc
+     .                       t_rs_nonloc, s_rs_nonloc,
+     .                       sss_stream, sst_stream, ice_stream,
+     .                       use_stream_relaxation
       use mod_cesm, only: hmlt, frzpot, mltpot
       use mod_utility, only: util1, util2, util3, util4
       use mod_checksum, only: csdiag, chksummsk
@@ -194,7 +196,7 @@ c
             endif
 #    endif
 #  endif
-            trflx(nt,i,j)=-trc(i,j,k1n,nt)*fwflx*g2kg
+            trflx(nt,i,j)=-trc(i,j,k1n,nt)*fwflx
             ttrsf(nt,i,j)=trflx(nt,i,j)*scp2(i,j)
             ttrav(nt,i,j)=trc(i,j,k1n,nt)*scp2(i,j)
           enddo
@@ -207,14 +209,22 @@ c
           surrlx(i,j)=0.
 c
 c --- --- If  trxday>0 , apply relaxation towards observed sst
-          if (trxday.gt.epsilt) then
-            sstc=intp1d(sstclm(i,j,l1mi),sstclm(i,j,l2mi),
-     .                  sstclm(i,j,l3mi),sstclm(i,j,l4mi),
-     .                  sstclm(i,j,l5mi),xmi)
-            rice=intp1d(ricclm(i,j,l1mi),ricclm(i,j,l2mi),
-     .                  ricclm(i,j,l3mi),ricclm(i,j,l4mi),
-     .                  ricclm(i,j,l5mi),xmi)
-            sstc=(1.-rice)*max(sstc,tice_f)+rice*tice_f
+          if (trxday > epsilt ) then
+
+            if (use_stream_relaxation) then
+              sstc = sst_stream(i,j)
+              rice = ice_stream(i,j)
+              sstc = (1.-rice)*max(sstc,tice_f) + rice*tice_f
+            else
+              sstc=intp1d(sstclm(i,j,l1mi),sstclm(i,j,l2mi),
+     .                    sstclm(i,j,l3mi),sstclm(i,j,l4mi),
+     .                    sstclm(i,j,l5mi),xmi)
+              rice=intp1d(ricclm(i,j,l1mi),ricclm(i,j,l2mi),
+     .                    ricclm(i,j,l3mi),ricclm(i,j,l4mi),
+     .                    ricclm(i,j,l5mi),xmi)
+              sstc=(1.-rice)*max(sstc,tice_f)+rice*tice_f
+            end if
+
             if (vcoord_type_tag == isopyc_bulkml) then
               dpmxl=dp(i,j,1+nn)+dp(i,j,2+nn)
               hmxl=dpmxl/onem
@@ -269,10 +279,14 @@ c
           salrlx(i,j)=0.
 c
 c --- --- if  srxday>0 , apply relaxation towards observed sss
-          if (srxday.gt.epsilt) then
-            sssc=intp1d(sssclm(i,j,l1mi),sssclm(i,j,l2mi),
-     .                  sssclm(i,j,l3mi),sssclm(i,j,l4mi),
-     .                  sssclm(i,j,l5mi),xmi)
+          if (srxday > epsilt ) then
+            if (use_stream_relaxation) then
+              sssc = sss_stream(i,j)
+            else
+              sssc=intp1d(sssclm(i,j,l1mi),sssclm(i,j,l2mi),
+     .                    sssclm(i,j,l3mi),sssclm(i,j,l4mi),
+     .                    sssclm(i,j,l5mi),xmi)
+            end if
             if (vcoord_type_tag == isopyc_bulkml) then
               dpmxl=dp(i,j,1+nn)+dp(i,j,2+nn)
               hmxl=dpmxl/onem
@@ -422,12 +436,13 @@ c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            trflx(nt,i,j)=-(trflx(nt,i,j)+trflxc)*L_mks2cgs
+            trflx(nt,i,j)=-(trflx(nt,i,j)+trflxc)
+     .                     *(M_mks2cgs/L_mks2cgs**2)
           enddo
           enddo
         enddo
 c$OMP END PARALLEL DO
-c 
+c
       enddo
 #endif
 c

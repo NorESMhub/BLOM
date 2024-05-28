@@ -50,6 +50,7 @@ module ocn_comp_mct
    use mod_time, only: blom_time
    use mod_cesm, only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
    use mod_xc
+   use mod_restart, only: restart_write, restart_read
    use blom_cpl_indices
 
    implicit none
@@ -280,7 +281,7 @@ module ocn_comp_mct
              call blom_time(ymd, tod)
              write(lp,*)'Resume from restart: ymd=',ymd,' tod= ',tod
           endif
-         call restart_rd  !! resume_flag is applied
+         call restart_read  !! resume_flag is applied
          resume_flag = .false.
       end if
       !-----------------------------------------------------------------
@@ -322,8 +323,9 @@ module ocn_comp_mct
       ! if requested, write restart file
       !-----------------------------------------------------------------
 
-      if (seq_timemgr_RestartAlarmIsOn(EClock).or.seq_timemgr_pauseAlarmIsOn(EClock)) then
-         call restart_wt
+      if (seq_timemgr_RestartAlarmIsOn(EClock) .or. &
+          seq_timemgr_pauseAlarmIsOn(EClock)) then
+         call restart_write
       endif
       if (seq_timemgr_pauseAlarmIsOn(EClock)) resume_flag = .true.
 

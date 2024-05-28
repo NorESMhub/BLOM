@@ -38,9 +38,8 @@ module ocn_comp_nuopc
    use nuopc_shr_methods, only : ChkErr, set_component_logging, &
                                  get_component_instance, state_setscalar, &
                                  alarmInit
-   use shr_file_mod, only: shr_file_getUnit, shr_file_getLogUnit, &
-                           shr_file_setLogUnit
    use shr_cal_mod, only : shr_cal_ymd2date
+   use shr_file_mod, only: shr_file_getUnit, shr_file_getLogUnit, shr_file_setLogUnit
    use mod_nuopc_methods, only: fldlist_type, fldsMax, tlast_coupled, &
                                 blom_logwrite, blom_getgindex, blom_checkmesh, &
                                 blom_setareacor, blom_getglobdim, &
@@ -51,6 +50,11 @@ module ocn_comp_nuopc
    use mod_cesm, only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
    use mod_config, only: inst_index, inst_name, inst_suffix
    use mod_time, only: blom_time
+   use mod_forcing, only : srxday, trxday
+   use mod_constants, only : epsilt
+   use mod_restart, only : restart_write
+   use ocn_stream_sss, only : ocn_stream_sss_init, ocn_stream_sss_interp
+   use ocn_stream_sst, only : ocn_stream_sst_init, ocn_stream_sst_interp
 
    implicit none
 
@@ -80,7 +84,9 @@ module ocn_comp_nuopc
 
    public :: SetServices, SetVM
 
+!================================================================================
 contains
+!================================================================================
 
    ! ---------------------------------------------------------------------------
    ! Private procedures.
@@ -190,6 +196,8 @@ contains
 
    end subroutine fldlist_realize
 
+   !================================================================================
+
    subroutine ocn_import(importState, rc)
    ! ---------------------------------------------------------------------------
    ! Import data from the mediator to ocean.
@@ -231,6 +239,8 @@ contains
       call blom_importflds(fldsToOcn_num, fldsToOcn)
 
    end subroutine ocn_import
+
+   !================================================================================
 
    subroutine ocn_export(exportState, rc)
    ! ---------------------------------------------------------------------------
@@ -290,6 +300,8 @@ contains
 
    end subroutine ocn_export
 
+   !================================================================================
+
    subroutine InitializeP0(gcomp, importState, exportState, clock, rc)
    ! ---------------------------------------------------------------------------
    ! Set which version of the Initialize Phase Definition (IPD) to use.
@@ -324,6 +336,8 @@ contains
                          ESMF_LOGMSG_INFO)
 
    end subroutine InitializeP0
+
+   !================================================================================
 
    subroutine InitializeAdvertise(gcomp, importState, exportState, clock, rc)
    ! ---------------------------------------------------------------------------
@@ -541,6 +555,8 @@ contains
 
    end subroutine InitializeAdvertise
 
+   !================================================================================
+
    subroutine InitializeRealize(gcomp, importState, exportState, clock, rc)
    ! ---------------------------------------------------------------------------
    ! Called by NUOPC to realize import and export fields. "Realizing" a field
@@ -568,7 +584,7 @@ contains
       integer(ESMF_KIND_I4), dimension(:), pointer :: maskMesh(:)
       integer, allocatable, dimension(:) :: gindex
       integer :: n, spatialDim, numOwnedElements, nx_global, ny_global
-      character(len=cslen)  :: cvalue
+      character(len=cllen)  :: cvalue
 
       if (dbug > 5) call ESMF_LogWrite(subname//': called', ESMF_LOGMSG_INFO)
 
@@ -659,9 +675,23 @@ contains
                            flds_scalar_name, flds_scalar_num, rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
 
+      ! Initialize sdat for relaxation to sss if appropriate
+      if (srxday > epsilt) then
+         call ocn_stream_sss_init(Emesh, clock, rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      end if
+
+      ! Initialize sdat for relaxation to sst/ice if appropriate
+      if (trxday > epsilt) then
+         call ocn_stream_sst_init(Emesh, clock, rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      end if
+
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
 
    end subroutine InitializeRealize
+
+   !================================================================================
 
    subroutine DataInitialize(gcomp, rc)
    ! ---------------------------------------------------------------------------
@@ -716,6 +746,8 @@ contains
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
 
    end subroutine DataInitialize
+
+   !================================================================================
 
    subroutine ModelAdvance(gcomp, rc)
    ! ---------------------------------------------------------------------------
@@ -806,7 +838,17 @@ contains
             call ocn_import(importState, rc)
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
          endif
-      
+
+         ! Advance sss stream relaxation if needed
+         if (srxday > epsilt) then
+            call ocn_stream_sss_interp(clock, rc)
+            if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         end if
+         if (trxday > epsilt) then
+            call ocn_stream_sst_interp(clock, rc)
+            if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         end if
+
          ! Advance the model a time step.
          call blom_step
 
@@ -818,10 +860,6 @@ contains
             call ocn_export(exportState, rc)
             exit blom_loop
          endif
-
-!        if (mnproc == 1) then
-!           call shr_sys_flush(lp)
-!        endif
 
       enddo blom_loop
 
@@ -843,7 +881,7 @@ contains
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
 
          ! Write BLOM restart files.
-         call restart_wt
+         call restart_write()
 
       endif
 
@@ -856,6 +894,8 @@ contains
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
 
    end subroutine ModelAdvance
+
+   !================================================================================
 
    subroutine ModelSetRunClock(gcomp, rc)
    ! ---------------------------------------------------------------------------
@@ -984,6 +1024,8 @@ contains
 
    end subroutine ModelSetRunClock
 
+   !================================================================================
+
    subroutine ModelFinalize(gcomp, rc)
    ! ---------------------------------------------------------------------------
    ! Called by NUOPC to finalize the model.
@@ -1008,6 +1050,8 @@ contains
    ! ---------------------------------------------------------------------------
    ! Public procedures.
    ! ---------------------------------------------------------------------------
+
+   !================================================================================
 
    subroutine SetServices(gcomp, rc)
    ! ---------------------------------------------------------------------------

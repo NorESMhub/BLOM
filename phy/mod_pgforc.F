@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2005-2022 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2005-2024 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -60,24 +60,24 @@ c
                       ! [cm2 s-2].
      .  xixp,         ! Dependeny of x-component of barotropic pressure
                       ! gradient force on bottom pressure at (i, j)
-                      ! [g cm s-4].
+                      ! [cm3 g-1].
      .  xixm,         ! Dependeny of x-component of barotropic pressure
                       ! gradient force on bottom pressure at (i - 1, j)
-                      ! [g cm s-4].
+                      ! [cm3 g-1].
      .  xiyp,         ! Dependeny of y-component of barotropic pressure
                       ! gradient force on bottom pressure at (i, j)
-                      ! [g cm s-4].
+                      ! [cm3 g-1].
      .  xiym          ! Dependeny of y-component of barotropic pressure
                       ! gradient force on bottom pressure at (i, j - 1)
-                      ! [g cm s-4].
+                      ! [cm3 g-1].
 c
       real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  pgfxm_o,      ! 'pgfxm' at old time level [cm2 s-2].
      .  pgfym_o,      ! 'pgfym' at old time level [cm2 s-2].
-     .  xixp_o,       ! 'xixp' at old time level [g cm s-4].
-     .  xixm_o,       ! 'xixm' at old time level [g cm s-4].
-     .  xiyp_o,       ! 'xiyp' at old time level [g cm s-4].
-     .  xiym_o        ! 'xiym' at old time level [g cm s-4].
+     .  xixp_o,       ! 'xixp' at old time level [cm3 g-1].
+     .  xixm_o,       ! 'xixm' at old time level [cm3 g-1].
+     .  xiyp_o,       ! 'xiyp' at old time level [cm3 g-1].
+     .  xiym_o        ! 'xiym' at old time level [cm3 g-1].
 
       public :: wpgf, pgfx, pgfy, pgfxo, pgfyo, pgfxm, pgfym,
      .          xixp, xixm, xiyp, xiym, pgfxm_o, pgfym_o,
