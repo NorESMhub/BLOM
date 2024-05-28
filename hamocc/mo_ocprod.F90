@@ -99,7 +99,7 @@ contains
     use mo_vgrid,         only: kmle
     use mo_clim_swa,      only: swa_clim
     use mo_inventory_bgc, only: inventory_bgc
-    use mo_m4ago,         only: mean_aggregate_sinking_speed,ws_agg
+    use mo_ihamocc4m4ago, only: ihamocc_mean_aggregate_sinking_speed,ws_agg
     use mo_extNwatercol,  only: nitrification,denit_NO3_to_NO2,anammox,denit_dnra,extN_inv_check
 
 
@@ -285,7 +285,7 @@ contains
     if (lm4ago) then
       ! even though we loose detritus, etc. we call the calculation for settling velocity by M4AGO here
       ! to enable further future development... - assuming that the operator splitting decently functions
-      call mean_aggregate_sinking_speed(kpie, kpje, kpke, kbnd, pddpo, omask, ptho, psao, ppao, prho)
+      call ihamocc_mean_aggregate_sinking_speed(kpie, kpje, kpke, kbnd, pddpo, omask, ptho, psao, ppao, prho)
     endif
 
     !$OMP PARALLEL DO PRIVATE(avphy,avgra,avsil,avanut,avanfe,pho,xa,xn   &
