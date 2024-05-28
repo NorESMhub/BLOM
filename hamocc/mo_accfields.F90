@@ -146,7 +146,7 @@ contains
     use mo_vgrid,         only: dp_min
     use mo_inventory_bgc, only: inventory_bgc
     use mo_ncwrt_bgc    , only: ncwrt_bgc
-    use mo_m4ago,         only: aggregate_diagnostics,kav_dp,kav_rho_p,kav_d_C,kws_agg,kdf_agg,    &
+    use mo_ihamocc4m4ago, only: aggregate_diagnostics,kav_dp,kav_rho_p,kav_d_C,kws_agg,kdf_agg,    &
                                 kstickiness_agg,kb_agg,kstickiness_frustule,kLmax_agg,kdynvis,     &
                                 kav_rhof_V,kav_por_V
     use mo_extNsediment,  only: extNsed_diagnostics,ised_nitr_NH4,ised_nitr_NO2,ised_nitr_N2O_prod,&

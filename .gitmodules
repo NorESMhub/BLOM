@@ -1,3 +1,6 @@
 [submodule "CVMix-src"]
 	path = pkgs/CVMix-src
 	url = git@github.com:CVMix/CVMix-src.git
+[submodule "pkgs/M4AGO-sinking-scheme"]
+	path = pkgs/M4AGO-sinking-scheme
+	url = git@github.com:jmaerz/M4AGO-sinking-scheme
