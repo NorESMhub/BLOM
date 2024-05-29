@@ -3619,8 +3619,8 @@
       <value blom_n_deposition="yes" hamocc_atmndepc="yes" hamocc_extncycle="yes">.true.</value>
     </values>
     <desc>Switch to couple nitrogen deposition. Requires do_ndep.</desc>
-  </entry>  
-  
+  </entry>
+
   <entry id="do_n2onh3_coupled" modify_via_xml="HAMOCC_N2OC">
     <type>logical</type>
     <category>bgcnml</category>
@@ -3630,8 +3630,8 @@
       <value hamocc_n2oc="yes" hamocc_extncycle="yes">.true.</value>
     </values>
     <desc>Switch to couple N2O and NH3 fluxes</desc>
-  </entry>    
-  
+  </entry>
+
   <entry id="lm4ago" modify_via_xml="HAMOCC_M4AGO">
     <type>logical</type>
     <category>bgcnml</category>
@@ -3642,7 +3642,7 @@
     </values>
     <desc>Switch for M4AGO settling scheme</desc>
   </entry>
-  
+
   <entry id="leuphotic_cya">
     <type>logical</type>
     <category>bgcnml</category>
@@ -3652,7 +3652,7 @@
     </values>
     <desc>Switch for cyano-bluefix in euphotic zone only</desc>
   </entry>
-  
+
   <entry id="do_oalk">
     <type>logical</type>
     <category>bgcnml</category>
@@ -5148,8 +5148,8 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Surface ammonium concentration [mol NH4 m-3] - extended N cycle only</desc>
-  </entry>  
-  
+  </entry>
+
   <entry id="srf_alkali">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -5340,8 +5340,8 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Upward CO2 flux (co2fxu) [kg C m-2 s-1]</desc>
-  </entry> 
-  
+  </entry>
+
   <entry id="srf_oxflux">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -5412,8 +5412,8 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Ammonia flux [mol NH3 m-2 s-1]</desc>
-  </entry>  
-  
+  </entry>
+
   <entry id="srf_dmsflux">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -5532,8 +5532,8 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Atmospheric N2O [ppt]</desc>
-  </entry>  
-  
+  </entry>
+
   <entry id="srf_natdic">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -5688,8 +5688,8 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Atmospheric bromoform [ppt]</desc>
-  </entry>  
-  
+  </entry>
+
   <entry id="srf_bromo">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -5773,8 +5773,8 @@
     </values>
     <desc>Vertically integrated denitrification</desc>
   </entry>
-  
-   <entry id="flx_ndepnoy">
+
+  <entry id="flx_ndepnoy">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5796,7 +5796,7 @@
       <value blom_n_deposition="yes" is_test="yes">4,2,2</value>
     </values>
     <desc>NHx nitrogen deposition flux [mol N m-2 s-1] - extended N cycle only</desc>
-  </entry> 
+  </entry>
 
   <entry id="flx_oalk">
     <type>integer(3)</type>
@@ -6144,8 +6144,8 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Ammonium concentration [mol NH4 m-3] - extended N cycle only</desc>
-  </entry>  
-  
+  </entry>
+
   <entry id="lyr_nitr_nh4">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -6324,7 +6324,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>sulfate-based remin rate on det [mol P m-3 s-1] - ext. N cycle only</desc>
-  </entry>  
+  </entry>
 
   <entry id="lyr_agg_ws">
     <type>integer(3)</type>
@@ -6468,8 +6468,8 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Volume-weighted mean aggregate porosity [-]</desc>
-  </entry>  
-  
+  </entry>
+
   <entry id="lyr_alkali">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -6649,7 +6649,7 @@
     </values>
     <desc>Pre-formed silica [mol m-3]</desc>
   </entry>
-  
+
   <entry id="lyr_prefalk">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -7450,8 +7450,8 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Volume-weighted mean aggregate porosity [-]</desc>
-  </entry>  
-  
+  </entry>
+
   <entry id="lvl_alkali">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -7629,7 +7629,7 @@
     </values>
     <desc>Pre-formed silica [mol m-3]</desc>
   </entry>
-  
+
   <entry id="lvl_prefalk">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -8025,7 +8025,7 @@
     </values>
     <desc>sediment - water-column diffusive flux of nitrate [mol NO3 m-2 s-1]</desc>
   </entry>
-  
+
   <entry id="flx_sediffnh4">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -8060,7 +8060,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Sediment - water-column diffusive flux of nitrite [mol NO2 m-2 s-1]</desc>
-  </entry>  
+  </entry>
 
   <entry id="flx_sediffsi">
     <type>integer(3)</type>
@@ -8121,7 +8121,7 @@
     </values>
     <desc>burial fluxes of clay [g m-2 s-1]</desc>
   </entry>
-  
+
   <entry id="sdm_powaic">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -8384,8 +8384,8 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>sulfate-based remin rate on det [mol P m-3 s-1] - ext. N cycle only</desc>
-  </entry>  
-  
+  </entry>
+
   <entry id="sdm_powasi">
     <type>integer(3)</type>
     <category>diabgc</category>
