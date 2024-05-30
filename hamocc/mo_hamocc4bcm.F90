@@ -208,13 +208,6 @@ contains
     !---------------------------------------------------------------------
     ! Biogeochemistry
     !
-    ! Apply dust (iron) deposition
-    ! This routine should be moved to the other routines that handle
-    ! external inputs below for consistency. For now we keep it here
-    ! to maintain bit-for-bit reproducibility with the CMIP6 version of
-    ! the model
-    call apply_fedep(kpie,kpje,kpke,pddpo,omask,dust)
-
     call ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph,psao,ppao,prho)
 
     if (use_PBGC_CK_TIMESTEP   ) then
@@ -266,6 +259,9 @@ contains
       endif
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
+
+    ! Apply dust (iron) deposition
+    call apply_fedep(kpie,kpje,kpke,pddpo,omask,dust)
 
     ! Apply n-deposition
     call apply_ndep(kpie,kpje,kpke,pddpo,omask,ndep)
