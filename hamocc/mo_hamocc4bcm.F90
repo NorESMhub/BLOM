@@ -28,7 +28,7 @@ contains
   subroutine hamocc4bcm(kpie,kpje,kpke,kbnd,kplyear,kplmon,kplday,kldtday,pdlxp,pdlyp,pddpo,prho,  &
                         pglat,omask, dust,rivin,ndep,oafx,pi_ph,pfswr,psicomo,ppao,pfu10,ptho,psao,&
                         patmco2,pflxco2,pflxdms,patmbromo,pflxbromo,                               &
-                        patmn2o,pflxn2o,patmnh3,pflxnh3,patmnhxdep,patmnoydep)
+                        patmn2o,pflxn2o,patmnh3,pflxnh3)
 
     !***********************************************************************************************
     ! Main routine of iHAMOCC.
@@ -55,9 +55,8 @@ contains
                                 do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,               &
                                 use_BROMO, use_CFC, use_PBGC_CK_TIMESTEP,                          &
                                 use_BOXATM, use_sedbypass,ocn_co2_type,                            &
-                                do_ndep_coupled,do_n2onh3_coupled,use_extNcycle
-    use mo_param1_bgc,    only: iatmco2,iatmdms,nocetra,nriv,iatmbromo,nndep,idepnoy,iatmn2o,      &
-                                iatmnh3,idepnhx
+                                do_n2onh3_coupled,use_extNcycle
+    use mo_param1_bgc,    only: iatmco2,iatmdms,nocetra,nriv,iatmbromo,nndep,iatmn2o,iatmnh3
     use mo_vgrid,         only: set_vgrid
     use mo_apply_fedep,   only: apply_fedep
     use mo_apply_rivin,   only: apply_rivin
@@ -72,7 +71,7 @@ contains
     use mo_cyano,         only: cyano
     use mo_ocprod,        only: ocprod
     use mo_carchm,        only: carchm
-    use mo_chemcon,       only: mw_nitrogen,mw_nh3,mw_n2o
+    use mo_chemcon,       only: mw_nh3,mw_n2o
 
     ! Arguments
     integer, intent(in)  :: kpie                                            ! 1st dimension of model grid.
@@ -91,7 +90,7 @@ contains
     real,    intent(in)  :: omask  (kpie,kpje)                              ! land/ocean mask.
     real,    intent(in)  :: dust   (kpie,kpje)                              ! dust deposition flux [kg/m2/month].
     real,    intent(in)  :: rivin  (kpie,kpje,nriv)                         ! riverine input [kmol m-2 yr-1].
-    real,    intent(inout):: ndep  (kpie,kpje,nndep)                        ! nitrogen deposition [kmol m-2 yr-1].
+    real,    intent(in)  :: ndep   (kpie,kpje,nndep)                        ! nitrogen deposition [kmol m-2 yr-1].
     real,    intent(in)  :: oafx   (kpie,kpje)                              ! alkalinity flux from alkalinization [kmol m-2 yr-1]
     real,    intent(in)  :: pi_ph  (kpie,kpje)                              ! pre-ind. pH climatology used for pH-dependent DMS fluxes [log10([H+])]
     real,    intent(in)  :: pfswr  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! solar radiation [W/m**2].
@@ -109,14 +108,11 @@ contains
     real,    intent(out) :: pflxn2o(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! Nitrous oxide flux [kg N2O m-2 s-1].
     real,    intent(in)  :: patmnh3(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! atmospheric ammonia concentration [ppt] used in fully coupled mode
     real,    intent(out) :: pflxnh3(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! Ammonia flux [kg NH3 m-2 s-1].
-    real,    intent(in)  :: patmnhxdep(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)   ! Atmospheric NHx deposition [kgN m-2 s-1]
-    real,    intent(in)  :: patmnoydep(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)   ! Atmospheric NOy deposition [kgN m-2 s-1]
 
     ! Local variables
     integer :: i,j,k,l
     integer :: nspin,it
     logical :: lspin
-    real    :: fatmndep
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*) 'iHAMOCC',KLDTDAY,LDTRUNBGC,NDTDAYBGC
@@ -190,25 +186,6 @@ contains
         enddo
         !$OMP END PARALLEL DO
         if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting N2O and NH3 conc. from atm'
-      endif
-
-      if (do_ndep .and. do_ndep_coupled) then
-        fatmndep = 365.*86400./mw_nitrogen
-        ndep(:,:,:) = 0.
-        !$OMP PARALLEL DO PRIVATE(i)
-        do  j=1,kpje
-          do  i=1,kpie
-            ! convert from kgN/m2/s to climatological input file units: kmolN/m2/yr
-            if (patmnoydep(i,j).gt.0.) then
-              ndep(i,j,idepnoy) = patmnoydep(i,j)*fatmndep
-            endif
-            if (patmnhxdep(i,j).gt.0.) then
-              ndep(i,j,idepnhx) = patmnhxdep(i,j)*fatmndep
-            endif
-          enddo
-        enddo
-        !$OMP END PARALLEL DO
-        if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting NOy and NHx deposition from atm'
       endif
     endif
 

@@ -97,6 +97,6 @@ contains
     enddo
 
   end subroutine apply_ndep
- 
+
   !*************************************************************************************************
 end module mo_apply_ndep

@@ -172,30 +172,36 @@ contains
   end subroutine ini_read_ndep
 
 
-  subroutine get_ndep(kpie,kpje,kplyear,kplmon,omask,ndep)
+  subroutine get_ndep(kpie,kpje,kbnd,kplyear,kplmon,omask,ndep,patmnhxdep,patmnoydep)
 
     !***********************************************************************************************
-    ! Read and return CMIP6 n-deposition data for a given month.
+    ! Read and return CMIP6 n-deposition data for a given month or use atmosphere input
     !
     ! S. Gao               *Gfi, Bergen*    19.08.2017
     !***********************************************************************************************
 
     use mod_xc,             only: mnproc
     use netcdf,             only: nf90_open,nf90_close,nf90_nowrite
-    use mo_control_bgc,     only: io_stdo_bgc,do_ndep,use_extNcycle
+    use mo_control_bgc,     only: io_stdo_bgc,do_ndep,use_extNcycle, do_ndep_coupled
     use mo_netcdf_bgcrw,    only: read_netcdf_var
     use mo_param1_bgc,      only: nndep,idepnoy,idepnhx
+    use mo_chemcon,         only: mw_nitrogen
 
     ! Arguments
     integer, intent(in)  :: kpie              ! 1st dimension of model grid.
     integer, intent(in)  :: kpje              ! 2nd dimension of model grid.
+    integer, intent(in)  :: kbnd              !
     integer, intent(in)  :: kplyear           ! current year.
     integer, intent(in)  :: kplmon            ! current month.
     real,    intent(in)  :: omask(kpie,kpje)  ! land/ocean mask (1=ocean)
     real,    intent(out) :: ndep(kpie,kpje,nndep) ! N-deposition field for current year and month
+    real,    intent(in)  :: patmnhxdep(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)   ! Atmospheric NHx deposition [kgN m-2 s-1]
+    real,    intent(in)  :: patmnoydep(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)   ! Atmospheric NOy deposition [kgN m-2 s-1]
+
 
     ! local variables
     integer  :: month_in_file, ncstat, ncid, i, j
+    real     :: fatmndep
 
     ! if N-deposition is switched off set ndep to zero and return
     if (.not. do_ndep) then
@@ -203,37 +209,62 @@ contains
       return
     endif
 
-    ! read ndep data from file
-    if (kplmon.ne.oldmonth) then
-      month_in_file=(max(startyear,min(endyear,kplyear))-startyear)*12+kplmon
-      if (mnproc.eq.1) then
-        write(io_stdo_bgc,*) 'Read N deposition month ',month_in_file,' from file ',trim(ndepfile)
-      endif
-      ncstat=nf90_open(trim(ndepfile),nf90_nowrite,ncid)
-      if (use_extNcycle) then
-        call read_netcdf_var(ncid,'nhxdep',nhxdepread,1,month_in_file,0)
-        call read_netcdf_var(ncid,'noydep',noydepread,1,month_in_file,0)
-      else
-        call read_netcdf_var(ncid,'ndep',ndepread,1,month_in_file,0)
-      endif
-      ncstat=nf90_close(ncid)
-      oldmonth=kplmon
-    endif
+    if (use_extNcycle .and. do_ndep_coupled) then
 
-    !$OMP PARALLEL DO PRIVATE(i)
-    ! 1 = NO3; 2 = NH4
-    do  j=1,kpje
-      do  i=1,kpie
-        if (use_extNcycle) then
-          ndep(i,j,idepnoy) = noydepread(i,j)
-          ndep(i,j,idepnhx) = nhxdepread(i,j)
-        else
-          ndep(i,j,idepnoy) = ndepread(i,j)
+        ! get N-deposition from atmosphere
+        fatmndep = 365.*86400./mw_nitrogen
+        ndep(:,:,:) = 0.
+        !$OMP PARALLEL DO PRIVATE(i)
+        do  j=1,kpje
+          do  i=1,kpie
+            ! convert from kgN/m2/s to climatological input file units: kmolN/m2/yr
+            if (patmnoydep(i,j) > 0.) then
+              ndep(i,j,idepnoy) = patmnoydep(i,j)*fatmndep
+            endif
+            if (patmnhxdep(i,j) > 0.) then
+              ndep(i,j,idepnhx) = patmnhxdep(i,j)*fatmndep
+            endif
+          enddo
+        enddo
+        !$OMP END PARALLEL DO
+        if (mnproc .eq. 1) then
+          write (io_stdo_bgc,*) 'iHAMOCC: getting NOy and NHx deposition from atm'
         endif
-      enddo
-    enddo
-    !$OMP END PARALLEL DO
 
+    else
+
+      ! read ndep data from file
+      if (kplmon.ne.oldmonth) then
+        month_in_file=(max(startyear,min(endyear,kplyear))-startyear)*12+kplmon
+        if (mnproc.eq.1) then
+          write(io_stdo_bgc,*) 'Read N deposition month ',month_in_file,' from file ',trim(ndepfile)
+        endif
+        ncstat=nf90_open(trim(ndepfile),nf90_nowrite,ncid)
+        if (use_extNcycle) then
+          call read_netcdf_var(ncid,'nhxdep',nhxdepread,1,month_in_file,0)
+          call read_netcdf_var(ncid,'noydep',noydepread,1,month_in_file,0)
+        else
+          call read_netcdf_var(ncid,'ndep',ndepread,1,month_in_file,0)
+        endif
+        ncstat=nf90_close(ncid)
+        oldmonth=kplmon
+      endif
+
+      !$OMP PARALLEL DO PRIVATE(i)
+      ! 1 = NO3; 2 = NH4
+      do  j=1,kpje
+        do  i=1,kpie
+          if (use_extNcycle) then
+            ndep(i,j,idepnoy) = noydepread(i,j)
+            ndep(i,j,idepnhx) = nhxdepread(i,j)
+          else
+            ndep(i,j,idepnoy) = ndepread(i,j)
+          endif
+        enddo
+      enddo
+      !$OMP END PARALLEL DO
+
+    endif
   end subroutine get_ndep
 
 end module mo_read_ndep
