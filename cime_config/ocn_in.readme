@@ -564,7 +564,7 @@
 !   DNIT           - Vertically integrated denitrification
 !
 !
-! Particle fluxes (FLX, e.g CARFLX****, where ****=0100,0500,1000,2000,4000, or _BOT),
+! Particle fluxes (FLX_, e.g FLX_CAR****, where ****=0100,0500,1000,2000,4000, or _BOT),
 ! diffusive fluxes at the sediment - water-column interface (SEDIFF*), and other fluxes
 !   NDEPNOY        - Nitrogen deposition flux in form of nitrate [mol N m-2 s-1]
 !   NDEPNHX        - Nitrogen deposition flux in form of ammonium [mol N m-2 s-1]
