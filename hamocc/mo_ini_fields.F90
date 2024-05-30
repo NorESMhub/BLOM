@@ -59,6 +59,7 @@ contains
         atm(i,j,iatmco2)  = atm_co2
         atm(i,j,iatmo2)   = atm_o2
         atm(i,j,iatmn2)   = atm_n2
+        atm(i,j,iatmn2o)  = atm_n2o
         if (use_natDIC) then
           atm(i,j,iatmnco2) = atm_co2_nat
         endif
@@ -71,7 +72,6 @@ contains
         endif
         if (use_extNcycle) then
           atm(i,j,iatmnh3)  = atm_nh3
-          atm(i,j,iatmn2o)  = atm_n2o
         endif
       enddo
     enddo

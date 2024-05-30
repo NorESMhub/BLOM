@@ -119,7 +119,7 @@ contains
     real    :: scco2,sco2,scn2,scdms,scn2o
     real    :: xconvxa
     real    :: oxflux,niflux,dmsflux,n2oflux
-    real    :: ato2,atn2,atco2,pco2,atn2ov
+    real    :: ato2,atn2,atco2,pco2,atn2o
     real    :: oxy,ani,anisa
     real    :: rrho,t,t2,t3,t4,tk,tk100,prb,s,rs
     real    :: Kh,Khd,K1,K2,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,Kspa
@@ -177,7 +177,7 @@ contains
     !$OMP PARALLEL DO PRIVATE(t,t2,t3,t4,tk,tk100,s,rs,prb,Kh,Khd,K1,K2   &
     !$OMP  ,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,Kspa,tc,ta,sit,pt,ah1,ac    &
     !$OMP  ,cu,cb,cc,pco2,rpp0,scco2,scdms,sco2,oxy,ani,anisa,Xconvxa     &
-    !$OMP  ,kwco2,kwdms,kwo2,atco2,ato2,atn2,atn2ov,fluxd,fluxu,oxflux    &
+    !$OMP  ,kwco2,kwdms,kwo2,atco2,ato2,atn2,atn2o,fluxd,fluxu,oxflux     &
     !$OMP  ,tc_sat,niflux,n2oflux,dmsflux,omega,supsat,undsa,dissol       &
     !$OMP  ,sch_11,sch_12,sch_sf,kw_11,kw_12,kw_sf,a_11,a_12,a_sf,flx11   &
     !$OMP  ,flx12,flxsf,atm_cfc11,atm_cfc12,atm_sf6,fact                  &
@@ -387,6 +387,7 @@ contains
               atco2 = atm(i,j,iatmco2)
               ato2  = atm(i,j,iatmo2)
               atn2  = atm(i,j,iatmn2)
+              atn2o = atm(i,j,iatmn2o)
               if (use_cisonew) then
                 atco213 = atm(i,j,iatmc13)
                 atco214 = atm(i,j,iatmc14)
@@ -396,9 +397,6 @@ contains
               endif
               if (use_extNcycle) then
                 atnh3  = atm(i,j,iatmnh3)
-                atn2ov = atm(i,j,iatmn2o)
-              else
-                atn2ov = atm_n2o
               endif
 
               ! Ratio P/P_0, where P is the local SLP and P_0 is standard pressure (1 atm). This is
@@ -457,7 +455,7 @@ contains
               niflux=kwn2*dtbgc*(ocetra(i,j,1,igasnit)-anisa*(atn2/802000)*rpp0)
               ocetra(i,j,1,igasnit)=ocetra(i,j,1,igasnit)-niflux/pddpo(i,j,1)
               ! Surface flux of laughing gas (same piston velocity as for O2 and N2)
-              n2oflux=kwn2o*dtbgc*(ocetra(i,j,1,ian2o)-satn2o(i,j)*atn2ov*1e-12*rpp0)
+              n2oflux=kwn2o*dtbgc*(ocetra(i,j,1,ian2o)-satn2o(i,j)*atn2o*1e-12*rpp0)
               ! pN2O under moist air assumption at normal pressure
               pn2om(i,j) = 1e9 * ocetra(i,j,1,ian2o)/satn2o(i,j)
               ocetra(i,j,1,ian2o)=ocetra(i,j,1,ian2o)-n2oflux/pddpo(i,j,1)
