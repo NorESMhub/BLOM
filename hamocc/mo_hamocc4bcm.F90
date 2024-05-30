@@ -192,7 +192,7 @@ contains
         if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting N2O and NH3 conc. from atm'
       endif
 
-      if (do_ndep_coupled) then
+      if (do_ndep .and. do_ndep_coupled) then
         fatmndep = 365.*86400./mw_nitrogen
         ndep(:,:,:) = 0.
         !$OMP PARALLEL DO PRIVATE(i)
