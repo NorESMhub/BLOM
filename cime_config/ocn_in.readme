@@ -582,10 +582,10 @@
 !   SEDIFFN2O      - sediment - water-column diffusive flux of N2O [mol N2O m-2 s-1] - extended N cycle only
 !   SEDIFFNH4      - sediment - water-column diffusive flux of ammonium [mol NH4 m-2 s-1] - extended N cycle only
 !   SEDIFFSI       - sediment - water-column diffusive flux of silica [mol Si m-2 s-1]
-!   FLX_BURSSO12   - burial fluxes organic carbon [mol P m-2 s-1]
-!   FLX_BURSSSC12  - burial fluxes of calcium carbonate [mol Ca m-2 s-1]
-!   FLX_BURSSSSIL  - burial fluxes of silicate [mol Si m-2 s-1]
-!   FLX_BURSSSTER  - burial fluxes of clay [g m-2 s-1]
+!   BURSSO12       - burial fluxes organic carbon [mol P m-2 s-1]
+!   BURSSSC12      - burial fluxes of calcium carbonate [mol Ca m-2 s-1]
+!   BURSSSSIL      - burial fluxes of silicate [mol Si m-2 s-1]
+!   BURSSSTER      - burial fluxes of clay [g m-2 s-1]
 !   
 ! Sediment fields (SDM)
 !   POWAIC         - (powdic) [mol C m-3]
