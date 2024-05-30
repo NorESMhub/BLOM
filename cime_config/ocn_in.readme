@@ -363,7 +363,7 @@
 ! DO_RIVINPT  : Logical switch to activate riverine input
 ! RIVINFILE   : File name (incl. full path) for riverine input data
 ! DO_NDEP     : Logical switch to activate N-deposition
-! DO_NDEP_COUPLED: Logical to apply N-deposition fluxes received from the atmosphere (true=atm, false=clim)
+! DO_NDEP_COUPLED: Logical to apply N-deposition fluxes received from the atmosphere (true=atm, false=clim), requires DO_NDEP=TRUE
 ! NDEPFILE    : File name (incl. full path) for atmopheric N-deposition data
 ! DO_N2ONH3_COUPLED: Logical switch for interactive coupling of N2O and NH3 fluxes (true=atm, false=fix atmospheric value)
 ! DO_SEDSPINUP: Logical switch to activate sediment spin-up
