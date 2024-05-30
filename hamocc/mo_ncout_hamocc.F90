@@ -35,7 +35,7 @@ contains
     use mod_grid,       only: depths
     use mod_dia,        only: diafnm,sigmar1,iotype,ddm,depthslev,depthslev_bnds
     use mo_control_bgc, only: dtbgc,use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO,              &
-                              use_sedbypass,use_BOXATM,lm4ago,use_extNcycle
+                              use_sedbypass,use_BOXATM,use_M4AGO,use_extNcycle
     use mo_vgrid,       only: k0100,k0500,k1000,k2000,k4000
     use mo_param1_bgc,  only: ks
     use mod_nctools,    only: ncwrt1,ncdims,nctime,ncfcls,ncfopn,ncdimc,ncputr,ncputi
@@ -377,7 +377,7 @@ contains
       call finlyr(jremin_aerob(iogrp),jdp(iogrp))
       call finlyr(jremin_sulf(iogrp),jdp(iogrp))
     endif
-    if(lm4ago)then
+    if (use_M4AGO) then
       !  M4AGO
       call finlyr(jagg_ws(iogrp),jdp(iogrp))
       call finlyr(jdynvis(iogrp),jdp(iogrp))
@@ -492,7 +492,7 @@ contains
       call msklvl(jlvl_remin_aerob(iogrp),depths)
       call msklvl(jlvl_remin_sulf(iogrp),depths)
     endif
-    if(lm4ago)then
+    if (use_M4AGO) then
       !   M4AGO
       call msklvl(jlvl_agg_ws(iogrp),depths)
       call msklvl(jlvl_dynvis(iogrp),depths)
@@ -716,7 +716,7 @@ contains
       call wrtlyr(jremin_aerob(iogrp), LYR_remin_aerob(iogrp),1e3/dtbgc,    0.,cmpflg,'remina')
       call wrtlyr(jremin_sulf(iogrp),  LYR_remin_sulf(iogrp),1e3/dtbgc,     0.,cmpflg,'remins')
     endif
-    if(lm4ago)then
+    if (use_M4AGO) then
       !      M4AGO
       call wrtlyr(jagg_ws(iogrp),      LYR_agg_ws(iogrp),   1.,             0.,cmpflg,'agg_ws')
       call wrtlyr(jdynvis(iogrp),      LYR_dynvis(iogrp),   1.,             0.,cmpflg,'dynvis')
@@ -814,7 +814,7 @@ contains
       call wrtlvl(jlvl_remin_aerob(iogrp),  LVL_remin_aerob(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'reminalvl')
       call wrtlvl(jlvl_remin_sulf(iogrp),   LVL_remin_sulf(iogrp),   rnacc*1e3/dtbgc,0.,cmpflg,'reminslvl')
     endif
-    if(lm4ago)then
+    if (use_M4AGO) then
       !      M4AGO
       call wrtlvl(jlvl_agg_ws(iogrp),       LVL_agg_ws(iogrp),       rnacc,          0.,cmpflg,'agg_wslvl')
       call wrtlvl(jlvl_dynvis(iogrp),       LVL_dynvis(iogrp),       rnacc,          0.,cmpflg,'dynvislvl')
@@ -1070,7 +1070,7 @@ contains
       call inilyr(jremin_aerob(iogrp),0.)
       call inilyr(jremin_sulf(iogrp),0.)
     endif
-    if(lm4ago)then
+    if (use_M4AGO) then
       !   M4AGO
       call inilyr(jagg_ws(iogrp),0.)
       call inilyr(jdynvis(iogrp),0.)
@@ -1166,7 +1166,7 @@ contains
       call inilvl(jlvl_remin_aerob(iogrp),0.)
       call inilvl(jlvl_remin_sulf(iogrp),0.)
     endif
-    if(lm4ago)then
+    if (use_M4AGO) then
       !  M4AGO
       call inilvl(jlvl_agg_ws(iogrp),0.)
       call inilvl(jlvl_dynvis(iogrp),0.)
@@ -1230,7 +1230,7 @@ contains
 
     use mod_nctools,    only: ncdefvar,ncattr,ncfopn,ncdimc,ncdims,                                &
                               nctime,ncfcls,ncedef,ncdefvar3d,ndouble
-    use mo_control_bgc, only: lm4ago
+    use mo_control_bgc, only: use_M4AGO
     use mo_bgcmean,     only: srf_kwco2,srf_pco2,srf_dmsflux,srf_co2fxd,                           &
                               srf_kwco2khm,srf_co2kh,srf_co2khm,srf_pco2m,                         &
                               srf_co2fxu,srf_oxflux,srf_niflux,srf_pn2om,srf_dms,srf_dmsprod,      &
@@ -1729,7 +1729,7 @@ contains
       call ncdefvar3d(LYR_remin_sulf(iogrp),cmpflg,'p',                         &
            &  'remins','Sulfate remineralization rate',' ','mol P m-3 s-1',1)
     endif
-    if(lm4ago)then
+    if (use_M4AGO) then
       !      M4AGO
       call ncdefvar3d(LYR_agg_ws(iogrp),cmpflg,'p',                             &
            &  'agg_ws','aggregate mean settling velocity',' ','m d-1',1)
@@ -1916,7 +1916,7 @@ contains
            &  'reminslvl','Sulfate remineralization rate',' ',                  &
            &  'mol P m-3 s-1',2)
     endif
-    if(lm4ago)then
+    if (use_M4AGO) then
       !      M4AGO
       call ncdefvar3d(LVL_agg_ws(iogrp),cmpflg,'p',                             &
            &  'agg_wslvl','aggregate mean settling velocity',' ','m d-1',2)

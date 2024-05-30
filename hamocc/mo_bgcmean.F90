@@ -49,7 +49,7 @@ module mo_bgcmean
   use netcdf,         only: nf90_fill_double
   use mo_param1_bgc,  only: ks
   use mo_control_bgc, only: use_sedbypass,use_cisonew,use_CFC,use_natDIC,use_BROMO,use_BOXATM,     &
-                            use_AGG,lm4ago,use_extNcycle
+                            use_AGG,use_M4AGO,use_extNcycle
 
   implicit none
 
@@ -1145,7 +1145,7 @@ CONTAINS
         if (LYR_remin_sulf(n) > 0) i_bsc_m3d=i_bsc_m3d+1
         jremin_sulf(n)=i_bsc_m3d*min(1,LYR_remin_sulf(n))
       endif
-      if (lm4ago) then
+      if (use_M4AGO) then
         ! M4AGO
         if (LYR_agg_ws(n) > 0) i_bsc_m3d=i_bsc_m3d+1
         jagg_ws(n)=i_bsc_m3d*min(1,LYR_agg_ws(n))
@@ -1322,7 +1322,7 @@ CONTAINS
         if (LVL_remin_sulf(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvl_remin_sulf(n)=ilvl_bsc_m3d*min(1,LVL_remin_sulf(n))
       endif
-      if (lm4ago) then
+      if (use_M4AGO) then
         ! M4AGO
         if (LVL_agg_ws(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvl_agg_ws(n)=ilvl_bsc_m3d*min(1,LVL_agg_ws(n))

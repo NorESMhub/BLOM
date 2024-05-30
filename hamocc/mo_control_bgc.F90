@@ -60,7 +60,7 @@ module mo_control_bgc
   logical           :: do_sedspinup           = .false. ! apply sediment spin-up
   logical           :: do_oalk                = .false. ! apply ocean alkalinization
   logical           :: with_dmsph             = .false. ! apply DMS with pH dependence
-  logical           :: lm4ago                 = .false. ! run with M4AGO settling scheme
+  logical           :: use_M4AGO              = .false. ! run with M4AGO settling scheme
   logical           :: leuphotic_cya          = .false. ! allow cyanobacteria to grow only in euphotic zone
   integer           :: sedspin_yr_s           = -1      ! start year for sediment spin-up
   integer           :: sedspin_yr_e           = -1      ! end   year for sediment spin-up

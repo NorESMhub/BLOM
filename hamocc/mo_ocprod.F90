@@ -93,7 +93,7 @@ contains
                                 inatalkali,inatcalc,inatsco212,ianh4
     use mo_control_bgc,   only: dtb,io_stdo_bgc,with_dmsph,                                        &
                                 use_BROMO,use_AGG,use_PBGC_OCNP_TIMESTEP,use_FB_BGC_OCE,           &
-                                use_AGG,use_cisonew,use_natDIC, use_WLIN,use_sedbypass,lm4ago,     &
+                                use_AGG,use_cisonew,use_natDIC, use_WLIN,use_sedbypass,use_M4AGO,  &
                                 use_extNcycle
     use mo_vgrid,         only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000,kwrbioz,ptiestu
     use mo_vgrid,         only: kmle
@@ -282,7 +282,7 @@ contains
     enddo
     !$OMP END PARALLEL DO
 
-    if (lm4ago) then
+    if (use_M4AGO) then
       ! even though we loose detritus, etc. we call the calculation for settling velocity by M4AGO here
       ! to enable further future development... - assuming that the operator splitting decently functions
       call ihamocc_mean_aggregate_sinking_speed(kpie, kpje, kpke, kbnd, pddpo, omask, ptho, psao, ppao, prho)
@@ -494,7 +494,7 @@ contains
               ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)-2.*delcar-(rnit+1)*dtr
               ocetra(i,j,k,inatcalc) = ocetra(i,j,k,inatcalc)+delcar
             endif
-            if(lm4ago)then
+            if (use_M4AGO) then
               opalrem = dremopal*opal_remin_q10**((ptho(i,j,k)-opal_remin_Tref)/10.)*ocetra(i,j,k,iopal)
             else
               opalrem = dremopal*ocetra(i,j,k,iopal)
@@ -631,7 +631,7 @@ contains
             endif
 
             if(ocetra(i,j,k,ioxygen) > 5.e-8) then
-              if(lm4ago) then
+              if (use_M4AGO) then
                 if (.not. use_extNcycle) then
                   ! M4AGO comes with O2-lim
                   o2lim  = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkox_drempoc)
@@ -717,7 +717,7 @@ contains
             ! so the expression dremopal*(Si(OH)4sat-Si(OH)4) would change the
             ! rate only from 0 to 100%
             !***********************************************************************
-            if (lm4ago) then
+            if (use_M4AGO) then
               opalrem = dremopal*opal_remin_q10**((ptho(i,j,k)-opal_remin_Tref)/10.)*ocetra(i,j,k,iopal)
             else
               opalrem = dremopal*0.1*(temp+3.)*ocetra(i,j,k,iopal)
@@ -1170,7 +1170,7 @@ contains
                 wdustd = wdust_const
                 dagg   = 0.0
               endif
-              if(lm4ago)then ! superseding every other method
+              if (use_M4AGO) then ! superseding every other method
                 wpoc   = ws_agg(i,j,k)
                 wpocd  = ws_agg(i,j,kdonor)
                 wcal   = ws_agg(i,j,k)
@@ -1190,7 +1190,7 @@ contains
                 if (use_AGG) then
                   wnosd  = 0.0
                 else if (use_WLIN) then
-                  if (lm4ago)then
+                  if (use_M4AGO) then
                     wpoc = ws_agg(i,j,k)
                   else
                     wpoc = wmin
@@ -1384,7 +1384,7 @@ contains
             else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
             endif
-            if(lm4ago)then
+            if (use_M4AGO) then
               wpoc   = ws_agg(i,j,k)
               wcal   = ws_agg(i,j,k)
               wopal  = ws_agg(i,j,k)
@@ -1409,7 +1409,7 @@ contains
             else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
             endif
-           if(lm4ago)then
+           if (use_M4AGO) then
                 wpoc   = ws_agg(i,j,k)
                 wcal   = ws_agg(i,j,k)
                 wopal  = ws_agg(i,j,k)
@@ -1434,7 +1434,7 @@ contains
             else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
             endif
-            if(lm4ago)then
+            if (use_M4AGO) then
               wpoc   = ws_agg(i,j,k)
               wcal   = ws_agg(i,j,k)
               wopal  = ws_agg(i,j,k)
@@ -1459,7 +1459,7 @@ contains
             else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
             endif
-            if(lm4ago)then
+            if (use_M4AGO) then
               wpoc   = ws_agg(i,j,k)
               wcal   = ws_agg(i,j,k)
               wopal  = ws_agg(i,j,k)
@@ -1484,7 +1484,7 @@ contains
             else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
             endif
-            if(lm4ago)then
+            if (use_M4AGO) then
               wpoc   = ws_agg(i,j,k)
               wcal   = ws_agg(i,j,k)
               wopal  = ws_agg(i,j,k)

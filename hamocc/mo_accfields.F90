@@ -128,7 +128,7 @@ contains
                                 jsdm_remin_sulf,jsediffnh4,jsediffn2o,jsediffno2,jatmn2o,jatmnh3,  &
                                 jndepnhxfx
     use mo_control_bgc,   only: io_stdo_bgc,dtb,use_BROMO,use_AGG,use_WLIN,use_natDIC,             &
-                                use_CFC,use_sedbypass,use_cisonew,use_BOXATM,lm4ago,use_extNcycle
+                                use_CFC,use_sedbypass,use_cisonew,use_BOXATM,use_M4AGO,use_extNcycle
     use mo_param1_bgc,    only: ialkali,ian2o,iano3,iatmco2,iatmdms,iatmn2,iatmn2o,iatmo2,         &
                                 icalc,idet,idms,idicsat,idoc,iiron,iopal,                          &
                                 ioxygen,iphosph,iphy,iprefalk,iprefdic,                            &
@@ -454,7 +454,7 @@ contains
       call acclyr(jremin_aerob,remin_aerob,pddpo,1)
       call acclyr(jremin_sulf,remin_sulf,pddpo,1)
     endif
-    if (lm4ago) then
+    if (use_M4AGO) then
       ! M4AGO
       call acclyr(jagg_ws,aggregate_diagnostics(1,1,1,kws_agg),pddpo,1)
       call acclyr(jdynvis,aggregate_diagnostics(1,1,1,kdynvis),pddpo,1)
@@ -571,7 +571,7 @@ contains
           call acclvl(jlvl_remin_aerob,remin_aerob,k,ind1,ind2,wghts)
           call acclvl(jlvl_remin_sulf,remin_sulf,k,ind1,ind2,wghts)
         endif
-        if (lm4ago) then
+        if (use_M4AGO) then
           !M4AGO
           call acclvl(jlvl_agg_ws,aggregate_diagnostics(1,1,1,kws_agg),k,ind1,ind2,wghts)
           call acclvl(jlvl_dynvis,aggregate_diagnostics(1,1,1,kdynvis),k,ind1,ind2,wghts)

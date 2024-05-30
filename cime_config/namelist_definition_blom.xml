@@ -3632,7 +3632,7 @@
     <desc>Switch to couple N2O and NH3 fluxes</desc>
   </entry>
 
-  <entry id="lm4ago" modify_via_xml="HAMOCC_M4AGO">
+  <entry id="use_m4ago" modify_via_xml="HAMOCC_M4AGO">
     <type>logical</type>
     <category>bgcnml</category>
     <group>bgcnml</group>

@@ -36,7 +36,7 @@ module mo_param_bgc
                             use_BROMO,use_cisonew,use_WLIN,use_FB_BGC_OCE,                         &
                             do_ndep,do_oalk,do_rivinpt,do_sedspinup,l_3Dvarsedpor,                 &
                             use_BOXATM,use_CFC,use_PBGC_CK_TIMESTEP,                               &
-                            use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type,lm4ago,   &
+                            use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type,use_M4AGO,&
                             leuphotic_cya,do_ndep_coupled,do_n2onh3_coupled,use_extNcycle
   use mod_xc,         only: mnproc
 
@@ -276,7 +276,7 @@ module mo_param_bgc
   real, protected :: remido     = 0.004           ! 1/d - remineralization rate (of DOM)
   ! deep sea remineralisation constants
   real, protected :: drempoc    = 0.025           ! 1/d Aerob remineralization rate detritus
-  real, protected :: drempoc_anaerob = 1.25e-3 ! =0.05*drempoc - remin in sub-/anoxic environm. - not be overwritten by lm4ago
+  real, protected :: drempoc_anaerob = 1.25e-3 ! =0.05*drempoc - remin in sub-/anoxic environm. - not be overwritten by M4AGO
   real, protected :: bkox_drempoc    = 1e-7    ! half-saturation constant for oxygen for ammonification (aerobic remin via drempoc)
   real, protected :: dremopal   = 0.003           ! 1/d Dissolution rate for opal
   real, protected :: dremn2o    = 0.01            ! 1/d Remineralization rate of detritus on N2O
@@ -577,7 +577,7 @@ contains
       ropal  = 30.         ! iris 25 !opal to organic phosphorous production ratio
     endif
 
-    if (lm4ago) then
+    if (use_M4AGO) then
       ! reset drempoc and dremopal for Q10 T-dep remin/dissolution
       drempoc  = 0.12
       dremopal = 0.023
@@ -837,7 +837,7 @@ contains
       call cinfo_add_entry('do_sedspinup',           do_sedspinup)
       call cinfo_add_entry('l_3Dvarsedpor',          l_3Dvarsedpor)
       call cinfo_add_entry('leuphotic_cya',          leuphotic_cya)
-      call cinfo_add_entry('lm4ago',                 lm4ago)
+      call cinfo_add_entry('use_M4AGO',              use_M4AGO)
       if (use_extNcycle) then
         call cinfo_add_entry('do_ndep_coupled',        do_ndep_coupled)
         call cinfo_add_entry('do_n2onh3_coupled',       do_n2onh3_coupled)
