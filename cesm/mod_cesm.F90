@@ -129,13 +129,13 @@ contains
       if (.not. use_stream_relaxation) then
          ! If SST restoring is requested prepare interpolation and
          ! read climatological sea-ice concentration and surface temperature.
-      if (trxday > 0._r8) then
-        call initai
-        call rdcsic
-        call rdctsf
-      endif
+         if (trxday > 0._r8) then
+           call initai
+           call rdcsic
+           call rdctsf
+         endif
 
-      ! If SSS restoring is requested, read climatological sea surface salinity.
+         ! If SSS restoring is requested, read climatological sea surface salinity.
          if (srxday > 0._r8) then
             call rdcsss
          end if
