@@ -42,6 +42,8 @@ option('hamocc_ciso', type: 'boolean',
        description: 'Enable carbon isotopes in HAMOCC', value: false)
 option('hamocc_fb_bgc_oce', type: 'boolean',
        description: 'Enable feedback of HAMOCC on ocean', value: false)
+option('hamocc_extNcycle', type: 'boolean',
+       description: 'Enable extended nitrogen cycle in HAMOCC', value: false)
 #HAMOCC debugging options:
 option('hamocc_debug_timestep', type: 'boolean',
        description: 'Debug HAMOCC on timestep basis', value: false)

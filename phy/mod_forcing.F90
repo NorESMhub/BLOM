@@ -134,7 +134,13 @@ module mod_forcing
       flxco2, &       ! Air-sea CO2 flux [kg m-2 s-1].
       flxdms, &       ! Sea-air DMS flux [kg m-2 s-1].
       flxbrf, &       ! sea-air bromoform flux
-      atmbrf          ! atmospheric bromoform concentration
+      atmbrf, &       ! atmospheric bromoform concentration
+      flxn2o, &       ! sea-air nitrous oxide flux [kg N2O m-2 s-1]
+      atmn2o, &       ! atmospheric nitrous oxide concentration [pptv]
+      flxnh3, &       ! sea-air ammonia flux [kg NH3 m-2 s-1]
+      atmnh3, &       ! atmospheric ammonia concentration [pptv]
+      atmnhxdep,&     ! atmospheric nhx deposition [kgN/m2/s]
+      atmnoydep       ! atmospheric noy deposition [kgN/m2/s]
 
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy) :: &
       surflx, &       ! Surface thermal energy flux [W cm-2].
@@ -170,6 +176,7 @@ module mod_forcing
              swa, nsf, hmltfz, lip, sop, eva, rnf, rfi, fmltfz, sfl, ztx, mty, &
              ustarw, slp, abswnd, lamult, lasl, ustokes, vstokes, &
              atmco2, flxco2, flxdms, flxbrf, atmbrf, &
+             atmn2o,flxn2o,atmnh3,flxnh3, atmnhxdep,atmnoydep, &
              surflx, surrlx, sswflx, salflx, brnflx, salrlx, taux, tauy, &
              ustar, ustarb, ustar3, buoyfl, t_sw_nonloc, t_rs_nonloc, &
              s_br_nonloc, s_rs_nonloc, inivar_forcing, fwbbal, &
@@ -213,6 +220,12 @@ contains
             flxdms(i, j) = spval
             atmbrf(i, j) = spval
             flxbrf(i, j) = spval
+            atmn2o(i, j) = -spval
+            flxn2o(i, j) = spval
+            atmnh3(i, j) = -spval
+            flxnh3(i, j) = spval
+            atmnhxdep(i, j) = spval
+            atmnoydep(i, j) = spval
             surflx(i, j) = spval
             surrlx(i, j) = spval
             sswflx(i, j) = spval
@@ -267,6 +280,10 @@ contains
             flxco2(i, j) = 0._r8
             flxdms(i, j) = 0._r8
             flxbrf(i, j) = 0._r8
+            flxn2o(i, j) = 0._r8
+            flxnh3(i, j) = 0._r8
+            atmnhxdep(i, j) = 0._r8
+            atmnoydep(i, j) = 0._r8
             ustar (i, j) = 0._r8
             ustarb(i, j) = 0._r8
          enddo

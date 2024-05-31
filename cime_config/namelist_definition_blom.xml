@@ -3610,6 +3610,49 @@
    <desc>File name (incl. full path) for atmopheric N-deposition data</desc>
   </entry>
 
+  <entry id="do_ndep_coupled" modify_via_xml="HAMOCC_ATMNDEPC">
+    <type>logical</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>.false.</value>
+      <value blom_n_deposition="yes" hamocc_atmndepc="yes" hamocc_extncycle="yes">.true.</value>
+    </values>
+    <desc>Switch to couple nitrogen deposition. Requires do_ndep.</desc>
+  </entry>
+
+  <entry id="do_n2onh3_coupled" modify_via_xml="HAMOCC_N2OC">
+    <type>logical</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>.false.</value>
+      <value hamocc_n2oc="yes" hamocc_extncycle="yes">.true.</value>
+    </values>
+    <desc>Switch to couple N2O and NH3 fluxes</desc>
+  </entry>
+
+  <entry id="use_m4ago" modify_via_xml="HAMOCC_M4AGO">
+    <type>logical</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>.false.</value>
+      <value hamocc_m4ago="yes">.true.</value>
+    </values>
+    <desc>Switch for M4AGO settling scheme</desc>
+  </entry>
+
+  <entry id="leuphotic_cya">
+    <type>logical</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>Switch for cyano-bluefix in euphotic zone only</desc>
+  </entry>
+
   <entry id="do_oalk">
     <type>logical</type>
     <category>bgcnml</category>
@@ -3861,6 +3904,17 @@
     </values>
     <desc>NOTE: HAMOCC bromoform scheme currently only supported on the tnx1v4 grid
     (no swa-climatology has been created for other grid configurations)</desc>
+  </entry>
+
+  <entry id="use_extncycle" modify_via_xml="HAMOCC_EXTNCYCLE">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+      <value hamocc_extncycle="yes">.true.</value>
+    </values>
+    <desc>activate the HAMOCC extended nitrogen cycle code</desc>
   </entry>
 
   <entry id="use_sedbypass" modify_via_xml="HAMOCC_SEDBYPASS">
@@ -4275,6 +4329,677 @@
     <desc>Sinking parameter: m/d maximum sinking speed</desc>
   </entry>
 
+  <entry id="bkphyanh4">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for NH4 uptake by bulk phytoplankton (kmol/m3)</desc>
+  </entry>
+
+  <entry id="bkphyano3">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for NO3 uptake by bulk phytoplankton (kmol/m3)</desc>
+  </entry>
+
+  <entry id="rano3denit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Maximum growth rate denitrification on NO3 at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="rano2anmx">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Maximum growth rate for anammox at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="rano2denit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Maximum growth rate denitrification on NO2 at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="ran2odenit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Maximum growth rate denitrification on N2O at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="rdnra">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Maximum growth rate DNRA on NO2 at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="ranh4nitr">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Maximum growth rate nitrification on NH4 at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="rano2nitr">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Maximum growth rate nitrification on NO2 at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="disso_poc">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: remineralization rate (at reference temperature) (1/(kmol O2/m3 s))</desc>
+  </entry>
+
+  <entry id="disso_sil">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: opal dissolution rate (1/(kmol Si(OH)4/m3 s))</desc>
+  </entry>
+
+  <entry id="disso_caco3">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: CaCO3 dissolution rate (1/(kmol CO3--/m3 s))</desc>
+  </entry>
+
+  <entry id="rano3denit_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>SEDIMENT: Maximum growth rate denitrification on NO3 at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="rano2anmx_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>SEDIMENT: Maximum growth rate for anammox at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="rano2denit_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>SEDIMENT: Maximum growth rate denitrification on NO2 at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="ran2odenit_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>SEDIMENT: Maximum growth rate denitrification on N2O at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="rdnra_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>SEDIMENT: Maximum growth rate DNRA on NO2 at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="ranh4nitr_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>SEDIMENT: Maximum growth rate nitrification on NH4 at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="rano2nitr_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>SEDIMENT: Maximum growth rate nitrification on NO2 at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="q10ano3denit_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: Q10 factor for denitrification on NO3 (-)</desc>
+  </entry>
+
+  <entry id="sc_ano3denit_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: Shape factor for NO3 denitrification oxygen inhibition function (m3/kmol)</desc>
+  </entry>
+
+  <entry id="bkano3denit_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: Half-saturation constant for NO3 denitrification (kmol/m3)</desc>
+  </entry>
+
+  <entry id="q10anmx_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: Q10 factor for anammox (-)</desc>
+  </entry>
+
+  <entry id="alphaanmx_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: Shape factor for anammox oxygen inhibition function (m3/kmol)</desc>
+  </entry>
+
+  <entry id="bkox_drempoc_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: half saturation constant for O2 limitatio of ammonification in sediment (kmol/m3)</desc>
+  </entry>
+
+  <entry id="bkoxanmx_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: Anammox half-saturation constant for oxygen inhibition function (kmol/m3)</desc>
+  </entry>
+
+  <entry id="bkano2anmx_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: Anammox half-saturation constant for NO2 limitation (kmol/m3)</desc>
+  </entry>
+
+  <entry id="q10ano2denit_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: Q10 factor for denitrification on NO2 (-)</desc>
+  </entry>
+
+  <entry id="bkoxano2denit_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on NO2 (kmol/m3)</desc>
+  </entry>
+
+  <entry id="bkano2denit_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: Half-saturation constant for denitrification on NO2 (kmol/m3)</desc>
+  </entry>
+
+  <entry id="q10an2odenit_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: Q10 factor for denitrificationj on N2O (-)</desc>
+  </entry>
+
+  <entry id="bkoxan2odenit_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on N2O (kmol/m3)</desc>
+  </entry>
+
+  <entry id="bkan2odenit_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: Half-saturation constant for denitrification on N2O (kmol/m3)</desc>
+  </entry>
+
+  <entry id="q10dnra_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: Q10 factor for DNRA on NO2 (-)</desc>
+  </entry>
+
+  <entry id="bkoxdnra_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: Half saturation constant for (quadratic) oxygen inhibition function of DNRA on NO2 (kmol/m3)</desc>
+  </entry>
+
+  <entry id="bkdnra_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment:  Half-saturation constant for DNRA on NO2 (kmol/m3)</desc>
+  </entry>
+
+  <entry id="q10anh4nitr_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: Q10 factor for nitrification on NH4 (-)</desc>
+  </entry>
+
+  <entry id="bkoxamox_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: Half-saturation constant for oxygen limitation of nitrification on NH4 (kmol/m3)</desc>
+  </entry>
+
+  <entry id="bkanh4nitr_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: Half-saturation constant for nitrification on NH4 (kmol/m3)</desc>
+  </entry>
+
+  <entry id="q10ano2nitr_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: Q10 factor for nitrification on NO2 (-)</desc>
+  </entry>
+
+  <entry id="bkoxnitr_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: Half-saturation constant for oxygen limitation of nitrification on NO2 (kmol/m3)</desc>
+  </entry>
+
+  <entry id="bkano2nitr_sed">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: Half-saturation constant for NO2 for nitrification on NO2 (kmol/m3)</desc>
+  </entry>
+
+  <entry id="atm_nh3">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>atmosphere ammonia mixing ratio (ppt)</desc>
+  </entry>
+
+  <entry id="atm_n2o">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>atmosphere laughing gas mixing ratio (ppt)</desc>
+  </entry>
+
+  <entry id="bkphosph">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for PO4 uptake by bulk phytoplankton (kmol/m3)</desc>
+  </entry>
+
+  <entry id="q10ano3denit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Q10 factor for denitrification on NO3 (-)</desc>
+  </entry>
+
+  <entry id="sc_ano3denit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Shape factor for NO3 denitrification oxygen inhibition function (m3/kmol)</desc>
+  </entry>
+
+  <entry id="bkano3denit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for NO3 denitrification (kmol/m3)</desc>
+  </entry>
+
+  <entry id="q10anmx">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc> Q10 factor for anammox (-)</desc>
+  </entry>
+
+  <entry id="alphaanmx">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Shape factor for anammox oxygen inhibition function (m3/kmol)</desc>
+  </entry>
+
+  <entry id="bkoxanmx">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for oxygen inhibition function (kmol/m3)</desc>
+  </entry>
+
+  <entry id="bkano2anmx">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for NO2 limitation (kmol/m3)</desc>
+  </entry>
+
+  <entry id="q10ano2denit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Q10 factor for denitrification on NO2 (-)</desc>
+  </entry>
+
+  <entry id="bkoxano2denit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on NO2 (kmol/m3)</desc>
+  </entry>
+
+  <entry id="bkano2denit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for denitrification on NO2 (kmol/m3)</desc>
+  </entry>
+
+  <entry id="q10an2odenit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Q10 factor for denitrificationj on N2O (-)</desc>
+  </entry>
+
+  <entry id="bkoxan2odenit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on N2O (kmol/m3)</desc>
+  </entry>
+
+  <entry id="bkan2odenit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for denitrification on N2O (kmol/m3)</desc>
+  </entry>
+
+  <entry id="q10dnra">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Q10 factor for DNRA on NO2 (-)</desc>
+  </entry>
+
+  <entry id="bkoxdnra">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half saturation constant for (quadratic) oxygen inhibition function of DNRA on NO2 (kmol/m3)</desc>
+  </entry>
+
+  <entry id="bkdnra">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for DNRA on NO2 (kmol/m3)</desc>
+  </entry>
+
+  <entry id="q10anh4nitr">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Q10 factor for nitrification on NH4 (-)</desc>
+  </entry>
+
+  <entry id="bkoxamox">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for oxygen limitation of nitrification on NH4 (kmol/m3)</desc>
+  </entry>
+
+  <entry id="bkanh4nitr">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for nitrification on NH4 (kmol/m3)</desc>
+  </entry>
+
+  <entry id="q10ano2nitr">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc> Q10 factor for nitrification on NO2 (-)</desc>
+  </entry>
+
+  <entry id="bkoxnitr">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for oxygen limitation of nitrification on NO2 (kmol/m3)</desc>
+  </entry>
+
+  <entry id="bkano2nitr">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for NO2 for nitrification on NO2 (kmol/m3)</desc>
+  </entry>
+
+
   <!-- TODO: how to handle mathematical expressions like below -->
   <!-- <entry id="wlin"> -->
   <!--   <type>real</type> -->
@@ -4399,6 +5124,30 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Nitrate (no3) [mol N m-3]</desc>
+  </entry>
+
+  <entry id="srf_ano2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Surface nitrite concentration [mol NO2 m-3] - extended N cycle only</desc>
+  </entry>
+
+  <entry id="srf_anh4">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Surface ammonium concentration [mol NH4 m-3] - extended N cycle only</desc>
   </entry>
 
   <entry id="srf_alkali">
@@ -4617,16 +5366,52 @@
     <desc>Nitrogen flux (fgn2) [mol N2 m-2 s-1]</desc>
   </entry>
 
+   <entry id="srf_pn2om">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Surface pN2O under moist air [uatm]</desc>
+  </entry>
+
   <entry id="srf_n2ofx">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Nitrous oxide flux [mol N2O m-2 s-1]</desc>
+  </entry>
+
+  <entry id="srf_pnh3">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Surface pNH3 under moist air [natm]</desc>
+  </entry>
+
+  <entry id="srf_anh3fx">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Ammonia flux [mol NH3 m-2 s-1]</desc>
   </entry>
 
   <entry id="srf_dmsflux">
@@ -4723,6 +5508,30 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Atmospheric N2 (atmn2) [ppm]</desc>
+  </entry>
+
+  <entry id="srf_atmnh3">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Atmospheric NH3 [ppt]</desc>
+  </entry>
+
+  <entry id="srf_atmn2o">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Atmospheric N2O [ppt]</desc>
   </entry>
 
   <entry id="srf_natdic">
@@ -4869,6 +5678,18 @@
     <desc>SF6 flux [mol SF6 m-2 s-1]</desc>
   </entry>
 
+  <entry id="srf_atmbromo">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Atmospheric bromoform [ppt]</desc>
+  </entry>
+
   <entry id="srf_bromo">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -4953,7 +5774,7 @@
     <desc>Vertically integrated denitrification</desc>
   </entry>
 
-  <entry id="flx_ndep">
+  <entry id="flx_ndepnoy">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4962,7 +5783,19 @@
       <value blom_n_deposition="yes">0,2,2</value>
       <value blom_n_deposition="yes" is_test="yes">4,2,2</value>
     </values>
-    <desc>Nitrogen deposition flux [mol N m-2 s-1]</desc>
+    <desc>NOy nitrogen deposition flux [mol N m-2 s-1]</desc>
+  </entry>
+
+  <entry id="flx_ndepnhx">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,0</value>
+      <value blom_n_deposition="yes">0,2,2</value>
+      <value blom_n_deposition="yes" is_test="yes">4,2,2</value>
+    </values>
+    <desc>NHx nitrogen deposition flux [mol N m-2 s-1] - extended N cycle only</desc>
   </entry>
 
   <entry id="flx_oalk">
@@ -5289,6 +6122,354 @@
     <desc>add desc</desc>
   </entry>
 
+  <entry id="lyr_ano2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Nitrite concentration [mol NO2 m-3] - extended N cycle only</desc>
+  </entry>
+
+  <entry id="lyr_anh4">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Ammonium concentration [mol NH4 m-3] - extended N cycle only</desc>
+  </entry>
+
+  <entry id="lyr_nitr_nh4">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>nitrification rate on NH4 [mol NH4 m-3 s-1] - extended N cycle only   </desc>
+  </entry>
+
+  <entry id="lyr_nitr_no2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>nitrification rate on NO2 [mol NO2 m-3 s-1] - extended N cycle only</desc>
+  </entry>
+
+  <entry id="lyr_nitr_n2o_prod">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>N2O production rate during nitrification on NH4 [mol N2O m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="lyr_nitr_nh4_om">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>detritus production during nitrification on NH4 [mol P m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="lyr_nitr_no2_om">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>detritus production during nitrification on NO2 [mol P m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="lyr_denit_no3">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>denitrification rate on NO3 [mol NO3 m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="lyr_denit_no2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>denitrification rate on NO2 [mol NO2 m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="lyr_denit_n2o">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>denitrification rate on N20 [mol N20 m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="lyr_dnra_no2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>DNRA on NO2 [mol NO2 m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="lyr_anmx_n2_prod">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>anammox N2 production [mol N2 m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="lyr_anmx_om_prod">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>anammox detritus production [mol P m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="lyr_phosy_nh4">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only </desc>
+  </entry>
+
+  <entry id="lyr_phosy_no3">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only </desc>
+  </entry>
+
+  <entry id="lyr_remin_aerob">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>aerob remineralization rate (sev. sources) [mol NH4 m-3 s-1] - ext. N cycle only </desc>
+  </entry>
+
+  <entry id="lyr_remin_sulf">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>sulfate-based remin rate on det [mol P m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="lyr_agg_ws">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>M4AGO aggregate mean settling velocity [m/d]</desc>
+  </entry>
+
+  <entry id="lyr_dynvis">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>molecular dynamic viscosity of sea water [kg m-1 s-1]</desc>
+  </entry>
+
+  <entry id="lyr_agg_stick">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>stickiness of opal frustule [-]</desc>
+  </entry>
+
+  <entry id="lyr_agg_stickf">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>stickiness of opal frustule [-]</desc>
+  </entry>
+
+  <entry id="lyr_agg_dmax">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>maximum aggregate diameter [m]</desc>
+  </entry>
+
+  <entry id="lyr_agg_avdp">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>mean primary particle diameter [m]</desc>
+  </entry>
+
+  <entry id="lyr_agg_avrhop">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>mean primary particle density [kg/m3]</desc>
+  </entry>
+
+  <entry id="lyr_agg_avdc">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>concentration weighted mean diameter of aggregates [m]</desc>
+  </entry>
+
+  <entry id="lyr_agg_df">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>fractal dimension of aggregates [-]</desc>
+  </entry>
+
+  <entry id="lyr_agg_b">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>slope of aggregate number distribution [-]</desc>
+  </entry>
+
+  <entry id="lyr_agg_vrhof">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Volume-weighted mean aggregate density [kg m-3]</desc>
+  </entry>
+
+  <entry id="lyr_agg_vpor">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Volume-weighted mean aggregate porosity [-]</desc>
+  </entry>
+
   <entry id="lyr_alkali">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -5455,6 +6636,18 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>add desc</desc>
+  </entry>
+
+  <entry id="lyr_prefsilica">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,4</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Pre-formed silica [mol m-3]</desc>
   </entry>
 
   <entry id="lyr_prefalk">
@@ -5911,6 +7104,354 @@
     <desc>Nitrate (no3) [mol N m-3]</desc>
   </entry>
 
+  <entry id="lvl_ano2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Nitrite concentration [mol NO2 m-3] - extended N cycle only</desc>
+  </entry>
+
+  <entry id="lvl_anh4">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Ammonium concentration [mol NH4 m-3] - extended N cycle only</desc>
+  </entry>
+
+  <entry id="lvl_nitr_nh4">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>nitrification rate on NH4 [mol NH4 m-3 s-1] - extended N cycle only   </desc>
+  </entry>
+
+  <entry id="lvl_nitr_no2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>nitrification rate on NO2 [mol NO2 m-3 s-1] - extended N cycle only</desc>
+  </entry>
+
+  <entry id="lvl_nitr_n2o_prod">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>N2O production rate during nitrification on NH4 [mol N2O m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="lvl_nitr_nh4_om">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>detritus production during nitrification on NH4 [mol P m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="lvl_nitr_no2_om">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>detritus production during nitrification on NO2 [mol P m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="lvl_denit_no3">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>denitrification rate on NO3 [mol NO3 m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="lvl_denit_no2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>denitrification rate on NO2 [mol NO2 m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="lvl_denit_n2o">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>denitrification rate on N20 [mol N20 m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="lvl_dnra_no2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>DNRA on NO2 [mol NO2 m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="lvl_anmx_n2_prod">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>anammox N2 production [mol N2 m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="lvl_anmx_om_prod">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>anammox detritus production [mol P m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="lvl_phosy_nh4">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only </desc>
+  </entry>
+
+  <entry id="lvl_phosy_no3">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only </desc>
+  </entry>
+
+  <entry id="lvl_remin_aerob">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>aerob remineralization rate (sev. sources) [mol NH4 m-3 s-1] - ext. N cycle only </desc>
+  </entry>
+
+  <entry id="lvl_remin_sulf">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>sulfate-based remin rate on det [mol P m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="lvl_agg_ws">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>M4AGO aggregate mean settling velocity [m/d]</desc>
+  </entry>
+
+  <entry id="lvl_dynvis">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>molecular dynamic viscosity of sea water [kg m-1 s-1]</desc>
+  </entry>
+
+  <entry id="lvl_agg_stick">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>stickiness of opal frustule [-]</desc>
+  </entry>
+
+  <entry id="lvl_agg_stickf">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>stickiness of opal frustule [-]</desc>
+  </entry>
+
+  <entry id="lvl_agg_dmax">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>maximum aggregate diameter [m]</desc>
+  </entry>
+
+  <entry id="lvl_agg_avdp">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>mean primary particle diameter [m]</desc>
+  </entry>
+
+  <entry id="lvl_agg_avrhop">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>mean primary particle density [kg/m3]</desc>
+  </entry>
+
+  <entry id="lvl_agg_avdc">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>concentration weighted mean diameter of aggregates [m]</desc>
+  </entry>
+
+  <entry id="lvl_agg_df">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>fractal dimension of aggregates [-]</desc>
+  </entry>
+
+  <entry id="lvl_agg_b">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>slope of aggregate number distribution [-]</desc>
+  </entry>
+
+  <entry id="lvl_agg_vrhof">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Volume-weighted mean aggregate density [kg m-3]</desc>
+  </entry>
+
+  <entry id="lvl_agg_vpor">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Volume-weighted mean aggregate porosity [-]</desc>
+  </entry>
+
   <entry id="lvl_alkali">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -6075,6 +7616,18 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>preformed phosphate (p_po4) [mol PO4 m-3]</desc>
+  </entry>
+
+  <entry id="lvl_prefsilica">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,4,4</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Pre-formed silica [mol m-3]</desc>
   </entry>
 
   <entry id="lvl_prefalk">
@@ -6473,6 +8026,42 @@
     <desc>sediment - water-column diffusive flux of nitrate [mol NO3 m-2 s-1]</desc>
   </entry>
 
+  <entry id="flx_sediffnh4">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Sediment - water-column diffusive flux of ammonium [mol NH4 m-2 s-1]</desc>
+  </entry>
+
+  <entry id="flx_sediffn2o">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Sediment - water-column diffusive flux of N2O [mol N2O m-2 s-1]</desc>
+  </entry>
+
+  <entry id="flx_sediffno2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Sediment - water-column diffusive flux of nitrite [mol NO2 m-2 s-1]</desc>
+  </entry>
+
   <entry id="flx_sediffsi">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -6483,6 +8072,54 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>sediment - water-column diffusive flux of silica [mol Si m-2 s-1]</desc>
+  </entry>
+
+  <entry id="flx_bursso12">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>burial fluxes organic carbon [mol P m-2 s-1]</desc>
+  </entry>
+
+  <entry id="flx_bursssc12">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>burial fluxes of calcium carbonate [mol Ca m-2 s-1]</desc>
+  </entry>
+
+  <entry id="flx_burssssil">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>burial fluxes of silicate [mol Si m-2 s-1]</desc>
+  </entry>
+
+  <entry id="flx_burssster">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>burial fluxes of clay [g m-2 s-1]</desc>
   </entry>
 
   <entry id="sdm_powaic">
@@ -6555,6 +8192,198 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>(powno3)[mol N m-3]</desc>
+  </entry>
+
+  <entry id="sdm_pownh4">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>(pownh4) [mol NH4 m-3] - extended N cycle only</desc>
+  </entry>
+
+  <entry id="sdm_pown2o">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>(pown2o) [mol N2O m-3] - extended N cycle only</desc>
+  </entry>
+
+  <entry id="sdm_powno2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>(powno2) [mol NO2 m-3] - extended N cycle only</desc>
+  </entry>
+
+  <entry id="sdm_nitr_nh4">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>nitrification rate on NH4 [mol NH4 m-3 s-1] - extended N cycle only   </desc>
+  </entry>
+
+  <entry id="sdm_nitr_no2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>nitrification rate on NO2 [mol NO2 m-3 s-1] - extended N cycle only</desc>
+  </entry>
+
+  <entry id="sdm_nitr_n2o_prod">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>N2O production rate during nitrification on NH4 [mol N2O m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="sdm_nitr_nh4_om">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>detritus production during nitrification on NH4 [mol P m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="sdm_nitr_no2_om">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>detritus production during nitrification on NO2 [mol P m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="sdm_denit_no3">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>denitrification rate on NO3 [mol NO3 m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="sdm_denit_no2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>denitrification rate on NO2 [mol NO2 m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="sdm_denit_n2o">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>denitrification rate on N20 [mol N20 m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="sdm_dnra_no2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>DNRA on NO2 [mol NO2 m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="sdm_anmx_n2_prod">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>anammox N2 production [mol N2 m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="sdm_anmx_om_prod">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>anammox detritus production [mol P m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="sdm_remin_aerob">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>aerob remineralization rate (sev. sources) [mol NH4 m-3 s-1] - ext. N cycle only </desc>
+  </entry>
+
+  <entry id="sdm_remin_sulf">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>sulfate-based remin rate on det [mol P m-3 s-1] - ext. N cycle only</desc>
   </entry>
 
   <entry id="sdm_powasi">

@@ -27,7 +27,8 @@ contains
 
   subroutine hamocc4bcm(kpie,kpje,kpke,kbnd,kplyear,kplmon,kplday,kldtday,pdlxp,pdlyp,pddpo,prho,  &
                         pglat,omask, dust,rivin,ndep,oafx,pi_ph,pfswr,psicomo,ppao,pfu10,ptho,psao,&
-                        patmco2,pflxco2,pflxdms,patmbromo,pflxbromo)
+                        patmco2,pflxco2,pflxdms,patmbromo,pflxbromo,                               &
+                        patmn2o,pflxn2o,patmnh3,pflxnh3)
 
     !***********************************************************************************************
     ! Main routine of iHAMOCC.
@@ -53,8 +54,9 @@ contains
     use mo_control_bgc,   only: ldtrunbgc,dtbgc,ldtbgc,io_stdo_bgc,dtbgc,ndtdaybgc,                &
                                 do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,               &
                                 use_BROMO, use_CFC, use_PBGC_CK_TIMESTEP,                          &
-                                use_BOXATM, use_sedbypass,ocn_co2_type
-    use mo_param1_bgc,    only: iatmco2,iatmdms,nocetra,nriv,iatmbromo
+                                use_BOXATM, use_sedbypass,ocn_co2_type,                            &
+                                do_n2onh3_coupled,use_extNcycle
+    use mo_param1_bgc,    only: iatmco2,iatmdms,nocetra,nriv,iatmbromo,nndep,iatmn2o,iatmnh3
     use mo_vgrid,         only: set_vgrid
     use mo_apply_fedep,   only: apply_fedep
     use mo_apply_rivin,   only: apply_rivin
@@ -69,6 +71,7 @@ contains
     use mo_cyano,         only: cyano
     use mo_ocprod,        only: ocprod
     use mo_carchm,        only: carchm
+    use mo_chemcon,       only: mw_nh3,mw_n2o
 
     ! Arguments
     integer, intent(in)  :: kpie                                            ! 1st dimension of model grid.
@@ -87,7 +90,7 @@ contains
     real,    intent(in)  :: omask  (kpie,kpje)                              ! land/ocean mask.
     real,    intent(in)  :: dust   (kpie,kpje)                              ! dust deposition flux [kg/m2/month].
     real,    intent(in)  :: rivin  (kpie,kpje,nriv)                         ! riverine input [kmol m-2 yr-1].
-    real,    intent(in)  :: ndep   (kpie,kpje)                              ! nitrogen deposition [kmol m-2 yr-1].
+    real,    intent(in)  :: ndep   (kpie,kpje,nndep)                        ! nitrogen deposition [kmol m-2 yr-1].
     real,    intent(in)  :: oafx   (kpie,kpje)                              ! alkalinity flux from alkalinization [kmol m-2 yr-1]
     real,    intent(in)  :: pi_ph  (kpie,kpje)                              ! pre-ind. pH climatology used for pH-dependent DMS fluxes [log10([H+])]
     real,    intent(in)  :: pfswr  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! solar radiation [W/m**2].
@@ -101,6 +104,10 @@ contains
     real,    intent(out) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! DMS flux [kg/m^2/s].
     real,    intent(in)  :: patmbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)    ! atmospheric bromoform concentration [ppt] used in fully coupled mode.
     real,    intent(out) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)    ! Bromoform flux [kg/m^2/s].
+    real,    intent(in)  :: patmn2o(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! atmospheric nitrous oxide concentration [ppt] used in fully coupled mode.
+    real,    intent(out) :: pflxn2o(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! Nitrous oxide flux [kg N2O m-2 s-1].
+    real,    intent(in)  :: patmnh3(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! atmospheric ammonia concentration [ppt] used in fully coupled mode
+    real,    intent(out) :: pflxnh3(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! Ammonia flux [kg NH3 m-2 s-1].
 
     ! Local variables
     integer :: i,j,k,l
@@ -164,6 +171,24 @@ contains
       if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting bromoform from atm'
     endif
 
+    if (use_extNcycle) then
+      if (do_n2onh3_coupled) then
+        !$OMP PARALLEL DO PRIVATE(i)
+        do  j=1,kpje
+          do  i=1,kpie
+            if (patmn2o(i,j) > 0.) then
+              atm(i,j,iatmn2o)=patmn2o(i,j)
+            endif
+            if (patmnh3(i,j) > 0.) then
+              atm(i,j,iatmnh3)=patmnh3(i,j)
+            endif
+          enddo
+        enddo
+        !$OMP END PARALLEL DO
+        if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting N2O and NH3 conc. from atm'
+      endif
+    endif
+
     !--------------------------------------------------------------------
     ! Read atmospheric cfc concentrations
     !
@@ -190,7 +215,7 @@ contains
     ! the model
     call apply_fedep(kpie,kpje,kpke,pddpo,omask,dust)
 
-    call ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
+    call ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph,psao,ppao,prho)
 
     if (use_PBGC_CK_TIMESTEP   ) then
       if (mnproc.eq.1) then
@@ -317,7 +342,7 @@ contains
           lspin=.false.
         endif
 
-        call powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
+        call powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
 
       enddo
 
@@ -386,7 +411,27 @@ contains
     enddo
     !$OMP END PARALLEL DO
     !--------------------------------------------------------------------
-
+    ! Pass nitrous oxide and ammonia fluxes. Convert unit from kmol N2O (NH3)/m2/Delta t to kg/m2/s
+    ! negative values to the atmosphere
+    !$OMP PARALLEL DO PRIVATE(i)
+    do  j=1,kpje
+      do  i=1,kpie
+        if (use_extNcycle) then
+          if (do_n2onh3_coupled) then
+              if(omask(i,j) > 0.5) pflxn2o(i,j)=-mw_n2o*atmflx(i,j,iatmn2o)/dtbgc  ! conversion factor checked against CAM
+              if(omask(i,j) > 0.5) pflxnh3(i,j)=-mw_nh3*atmflx(i,j,iatmnh3)/dtbgc  ! conversion factor checked against CAM
+          else
+              if(omask(i,j) > 0.5) pflxn2o(i,j)=0.0
+              if(omask(i,j) > 0.5) pflxnh3(i,j)=0.0
+          endif
+        else
+          if(omask(i,j) > 0.5) pflxn2o(i,j)=0.0
+          if(omask(i,j) > 0.5) pflxnh3(i,j)=0.0
+        endif
+      enddo
+    enddo
+    !$OMP END PARALLEL DO
+    !--------------------------------------------------------------------
   end subroutine hamocc4bcm
 
 end module mo_hamocc4bcm

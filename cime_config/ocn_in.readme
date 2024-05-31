@@ -363,7 +363,9 @@
 ! DO_RIVINPT  : Logical switch to activate riverine input
 ! RIVINFILE   : File name (incl. full path) for riverine input data
 ! DO_NDEP     : Logical switch to activate N-deposition
+! DO_NDEP_COUPLED: Logical to apply N-deposition fluxes received from the atmosphere (true=atm, false=clim), requires DO_NDEP=TRUE
 ! NDEPFILE    : File name (incl. full path) for atmopheric N-deposition data
+! DO_N2ONH3_COUPLED: Logical switch for interactive coupling of N2O and NH3 fluxes (true=atm, false=fix atmospheric value)
 ! DO_SEDSPINUP: Logical switch to activate sediment spin-up
 ! SEDSPIN_YR_S: Start year for sediment spinup
 ! SEDSPIN_YR_E: End   year for sediment spinup
@@ -372,6 +374,8 @@
 !                OXY, NO3, SIL, D13C, and D14C
 ! WITH_DMSPH  : Logical switch to activate DMS calculation as function of pH
 ! PI_PH_FILE  : File name (incl. full path) for surface PI pH input data.
+! use_M4AGO     : Switch for M4AGO settling scheme
+! LEUPHOTIC_CYA : Switch to perform bluefix (cyanobacteria) only in the euphotic zone
 ! L_3DVARSEDPOR : Logical switch to enable lon-lat-depth variable sediment porosity (as opposed to default: only depth) 
 ! SEDPORFILE  : File name (incl. full path) for sediment porosity
 !
@@ -400,7 +404,7 @@
 ! Namelist acronyms:
 !   GLB_     - global parameters i.e. valid for entire output group
 !   SRF_     - surface variables (includes some non-surface 2d fields)
-!   FLX_     - interior ocean particle fuxes at different depth (2d)
+!   FLX_     - (interior) ocean (particle) fluxes at different depth (2d)
 !   INT_     - vertically integrated fields (2d)
 !   LYR_     - 3d fields with sigma layers as vertical coordinate
 !   LVL_     - 3d fields with levitus levels as vertical coordinate
@@ -433,6 +437,8 @@
 !   ALKALI         - Alkalinity (talk) [eq m-3]
 !   OXYGEN         - Oxygen (o2) [mol O2 m-3]
 !   ANO3           - Nitrate (no3) [mol N m-3]
+!   ANO2           - Nitrite (no2) [mol N m-3] - extended N cycle only
+!   ANH4           - Ammonium (nh4) [mol N m-3] - extended N cycle only
 !   PHOSPH         - Phosphorus (po4) [mol P m-3]
 !   IRON           - Dissolved iron (dfe) [mol Fe m-3]
 !   SILICA         - Silicate (si) [mol Si m-3]
@@ -447,6 +453,7 @@
 !   PREFO2         - preformed oxygen (p_o2) [mol O2 m-3]
 !   O2SAT          - Saturated oxygen (satoxy) [mol O2 m-3]
 !   PREFPO4        - preformed phosphate (p_po4) [mol PO4 m-3]
+!   PREFSILICA     - preformed silica (p_si) [mol Si m-3]
 !   PREFALK        - preformed alkalinity (p_talk) [eq m-3]
 !   PREFDIC        - preformed DIC (p_dic) [mol C m-3]
 !   DICSAT         - saturated DIC (dic_sat) [mol C m-3]
@@ -458,6 +465,33 @@
 !   PHOSY          - Primary production (pp) [mol C m-3 s-1]
 !   CO3            - Carbonate ions (co3) [mol C m-3]
 !   N2O            - Nitrous oxide concentration [mol N2O m-3]
+!   NITR_NH4       - nitrification rate on NH4 [mol NH4 m-3 s-1] - extended N cycle only   
+!   NITR_NO2       - nitrification rate on NO2 [mol NO2 m-3 s-1] - extended N cycle only
+!   NITR_N2O_PROD  - N2O production rate during nitrification on NH4 [mol N2O m-3 s-1] - ext. N cycle only
+!   NITR_NH4_OM    - detritus production during nitrification on NH4 [mol P m-3 s-1] - ext. N cycle only
+!   NITR_NO2_OM    - detritus production during nitrification on NO2 [mol P m-3 s-1] - ext. N cycle only
+!   DENIT_NO3      - denitrification rate on NO3 [mol NO3 m-3 s-1] - ext. N cycle only
+!   DENIT_NO2      - denitrification rate on NO2 [mol NO2 m-3 s-1] - ext. N cycle only
+!   DENIT_N2O      - denitrification rate on N20 [mol N20 m-3 s-1] - ext. N cycle only
+!   DNRA_NO2       - DNRA on NO2 [mol NO2 m-3 s-1] - ext. N cycle only
+!   ANMX_N2_PROD   - anammox N2 production [mol N2 m-3 s-1] - ext. N cycle only
+!   ANMX_OM_PROD   - anammox detritus production [mol P m-3 s-1] - ext. N cycle only
+!   PHOSY_NH4      - PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only 
+!   PHOSY_NO3      - PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only 
+!   REMIN_AEROB    - aerob remineralization rate (sev. sources) [mol NH4 m-3 s-1] - ext. N cycle only 
+!   REMIN_SULF     - sulfate-based remin rate on det [mol P m-3 s-1] - ext. N cycle only
+!   AGG_WS         - M4AGO aggregate mean settling velocity [m/d]
+!   DYNVIS         - molecular dynamic viscosity of sea water [kg m-1 s-1]
+!   AGG_STICK      - mean stickiness of marine aggregates [-]
+!   AGG_STICKF     - stickiness of opal frustule [-]
+!   AGG_DMAX       - maximum aggregate diameter [m]
+!   AGG_AVDP       - mean primary particle diameter [m]
+!   AGG_AVRHOP     - mean primary particle density [kg/m3]
+!   AGG_AVDC       - concentration weighted mean diameter of aggregates [m]
+!   AGG_DF         - fractal dimension of aggregates [-]
+!   AGG_B          - slope of aggregate number distribution [-]
+!   AGG_VRHOF      - Volume-weighted mean aggregate density [kg m-3]
+!   AGG_VPOR       - Volume weighted mean aggregate porosity [-]
 !   OMEGAA         - Aragonite saturation state (omegaa) [1]
 !   OMEGAC         - Calcite saturation state (omegac) [1]
 !   NATDIC         - Natural dissolved carbon (natdissic) [mol C m-3]
@@ -499,7 +533,13 @@
 !   CO2FXU         - Upward CO2 flux (co2fxu) [kg C m-2 s-1]
 !   NIFLUX         - Nitrogen flux (fgn2) [mol N2 m-2 s-1]
 !   OXFLUX         - Oxygen flux (fgo2) [mol O2 m-2 s-1]
+!   PN2OM          - Surface pN2O under moist air [uatm]
 !   N2OFX          - Nitrous oxide flux [mol N2O m-2 s-1]
+!   PNH3           - Surface pNH3 under moist air [natm]
+!   ANH3FX         - Ammonia flux [mol NH3 m-2 s-1]
+!   ATMNH3         - Atmospheric NH3 [ppt]
+!   ATMN2O         - Atmospheric N2O [ppt]
+!   ATMBROMO       - Atmospheric bromoform [ppt]
 !   DMSFLUX        - DMS flux (dmsflux) [mol DMS m-2 s-1]
 !   DMS            - surface DMS concentration (dms) [mol DMS m-3]
 !   DMSPROD        - DMS production (dmsprod) [mol DMS m-2 s-1]
@@ -523,9 +563,11 @@
 !   NFIX           - Vertically integrated nitrogen fixation
 !   DNIT           - Vertically integrated denitrification
 !
-! Particle fluxes (FLX, e.g CARFLX****, where ****=0100,0500,1000,2000,4000, or _BOT),
+!
+! Particle fluxes (FLX_, e.g FLX_CAR****, where ****=0100,0500,1000,2000,4000, or _BOT),
 ! diffusive fluxes at the sediment - water-column interface (SEDIFF*), and other fluxes
-!   NDEP           - Nitrogen deposition flux [mol N m-2 s-1]
+!   NDEPNOY        - Nitrogen deposition flux in form of nitrate [mol N m-2 s-1]
+!   NDEPNHX        - Nitrogen deposition flux in form of ammonium [mol N m-2 s-1]
 !   OALK           - Flux of alkalinity due to ocean alkalinization [mol N m-2 s-1]
 !   CARFLX****     - POC flux at **** metres depth [mol C m-2 s-1]
 !   BSIFLX****     - Biogenic silica flux at **** metres depth [mol Si m-2 s-1]
@@ -536,7 +578,14 @@
 !   SEDIFFOX       - sediment - water-column diffusive flux of oxygen [mol O2 m-2 s-1]
 !   SEDIFFN2       - sediment - water-column diffusive flux of N2 [mol N2 m-2 s-1]
 !   SEDIFFNO3      - sediment - water-column diffusive flux of nitrate [mol NO3 m-2 s-1]
+!   SEDIFFNO2      - sediment - water-column diffusive flux of nitrite [mol NO2 m-2 s-1] - extended N cycle only
+!   SEDIFFN2O      - sediment - water-column diffusive flux of N2O [mol N2O m-2 s-1] - extended N cycle only
+!   SEDIFFNH4      - sediment - water-column diffusive flux of ammonium [mol NH4 m-2 s-1] - extended N cycle only
 !   SEDIFFSI       - sediment - water-column diffusive flux of silica [mol Si m-2 s-1]
+!   BURSSO12       - burial fluxes organic carbon [mol P m-2 s-1]
+!   BURSSSC12      - burial fluxes of calcium carbonate [mol Ca m-2 s-1]
+!   BURSSSSIL      - burial fluxes of silicate [mol Si m-2 s-1]
+!   BURSSSTER      - burial fluxes of clay [g m-2 s-1]
 !   
 ! Sediment fields (SDM)
 !   POWAIC         - (powdic) [mol C m-3]
@@ -546,15 +595,33 @@
 !   POWN2          - (pown2) [mol N2 m-3]
 !   POWNO3         - (powno3)[mol N m-3]
 !   POWASI         - (powsi) [mol Si m-3]
+!   POWNH4         - (pownh4) [mol NH4 m-3] - extended N cycle only
+!   POWN2O         - (pown2o) [mol N2O m-3] - extended N cycle only
+!   POWNO2         - (powno2) [mol NO2 m-3] - extended N cycle only
+!   NITR_NH4       - nitrification rate on NH4 [mol NH4 m-3 s-1] - extended N cycle only   
+!   NITR_NO2       - nitrification rate on NO2 [mol NO2 m-3 s-1] - extended N cycle only
+!   NITR_N2O_PROD  - N2O production rate during nitrification on NH4 [mol N2O m-3 s-1] - ext. N cycle only
+!   NITR_NH4_OM    - detritus production during nitrification on NH4 [mol P m-3 s-1] - ext. N cycle only
+!   NITR_NO2_OM    - detritus production during nitrification on NO2 [mol P m-3 s-1] - ext. N cycle only
+!   DENIT_NO3      - denitrification rate on NO3 [mol NO3 m-3 s-1] - ext. N cycle only
+!   DENIT_NO2      - denitrification rate on NO2 [mol NO2 m-3 s-1] - ext. N cycle only
+!   DENIT_N2O      - denitrification rate on N20 [mol N20 m-3 s-1] - ext. N cycle only
+!   DNRA_NO2       - DNRA on NO2 [mol NO2 m-3 s-1] - ext. N cycle only
+!   ANMX_N2_PROD   - anammox N2 production [mol N2 m-3 s-1] - ext. N cycle only
+!   ANMX_OM_PROD   - anammox detritus production [mol P m-3 s-1] - ext. N cycle only
+!   PHOSY_NH4      - PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only 
+!   PHOSY_NO3      - PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only 
+!   REMIN_AEROB    - aerob remineralization rate (sev. sources) [mol NH4 m-3 s-1] - ext. N cycle only 
+!   REMIN_SULF     - sulfate-based remin rate on det [mol P m-3 s-1] - ext. N cycle only
 !   SSSO12         - (ssso12) [mol m-3]
 !   SSSSIL         - (ssssil) [mol Si m-3]
 !   SSSC12         - (sssc12) [mol C m-3]
-!   SSSTER         - (ssster) [mol m-3]
+!   SSSTER         - (ssster) [kg m-3]
 !
 ! Burial fields (BUR)
 !   SSSO12         - Solid sediment organic carbon [mol P m-2]
 !   SSSSIL         - Solid sediment silica [mol Si m-2]
 !   SSSC12         - Solid sediment inorganic carbon [mol C m-2]
-!   SSSTER         - 
+!   SSSTER         - Solid sediment mineral component [kg m-2]
 !
 !===========================================================================

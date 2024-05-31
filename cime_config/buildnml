@@ -80,6 +80,10 @@ def buildnml(case, caseroot, compname):
     blom_tracer_modules       = case.get_value("BLOM_TRACER_MODULES")
     blom_atrc                 = case.get_value("BLOM_ATRC")
     hamocc_ciso               = case.get_value("HAMOCC_CISO")
+    hamocc_extncycle          = case.get_value("HAMOCC_EXTNCYCLE")
+    hamocc_n2oc               = case.get_value("HAMOCC_N2OC")
+    hamocc_atmndepc           = case.get_value("HAMOCC_ATMNDEPC")
+    hamocc_m4ago              = case.get_value("HAMOCC_M4AGO")
     hamocc_sedbypass          = case.get_value("HAMOCC_SEDBYPASS")
     hamocc_sedspinup          = case.get_value("HAMOCC_SEDSPINUP")
     hamocc_sedspinup_yr_start = case.get_value("HAMOCC_SEDSPINUP_YR_START")
@@ -185,6 +189,10 @@ def buildnml(case, caseroot, compname):
         config["blom_tracer_modules"] = blom_tracer_modules
         config["blom_atrc"] = blom_atrc
         config["hamocc_ciso"] = "yes" if hamocc_ciso else "no"
+        config["hamocc_extncycle"] = "yes" if hamocc_extncycle else "no"
+        config["hamocc_n2oc"] = "yes" if hamocc_n2oc else "no"
+        config["hamocc_atmndepc"] = "yes" if hamocc_atmndepc else "no"
+        config["hamocc_m4ago"] = "yes" if hamocc_m4ago else "no"
         config["hamocc_sedbypass"] = "yes" if hamocc_sedbypass else "no"
         config["hamocc_sedspinup"] = "yes" if hamocc_sedspinup else "no"
         config["hamocc_sedspinup_yr_start"] = hamocc_sedspinup_yr_start
