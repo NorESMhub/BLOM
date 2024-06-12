@@ -38,7 +38,7 @@ contains
                               use_sedbypass,use_BOXATM,use_M4AGO,use_extNcycle
     use mo_vgrid,       only: k0100,k0500,k1000,k2000,k4000
     use mo_param1_bgc,  only: ks
-    use mod_nctools,    only: ncwrt1,ncdims,nctime,ncfcls,ncfopn,ncdimc,ncputr,ncputi
+    use mod_nctools,    only: ncwrt1,ncdims,nctime,ncfcls,ncfopn,ncdimc,ncputr,ncputi,ncwrtr
     use mo_bgcmean,     only: domassfluxes,flx_ndepnoy,flx_oalk,                                   &
                               flx_cal0100,flx_cal0500,flx_cal1000,                                 &
                               flx_cal2000,flx_cal4000,flx_cal_bot,                                 &
@@ -221,6 +221,7 @@ contains
     character(len=20)        :: startdate
     character(len=30)        :: timeunits
     real                     :: datenum,rnacc
+    integer,dimension(2,2)   :: dummy
 
     data append2file /nbgcmax*.false./
 
@@ -294,12 +295,13 @@ contains
     call ncwrt1('sigma','sigma',sigmar1)
     call ncwrt1('depth','depth',depthslev)
     call ncwrt1('depth_bnds','bounds depth',depthslev_bnds)
+    dummy = 0
     if (cmpflg.ne.0) then
-      call ncwrt1('plon','pcomp',plon(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
-      call ncwrt1('plat','pcomp',plat(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
+      call ncwrtr('plon','pcomp',plon(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),dummy,0,1.,0.,8)
+      call ncwrtr('plat','pcomp',plat(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),dummy,0,1.,0.,8)
     else
-      call ncwrt1('plon','x y',plon(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
-      call ncwrt1('plat','x y',plat(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
+      call ncwrtr('plon','x y',plon(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),dummy,0,1.,0.,8)
+      call ncwrtr('plat','x y',plat(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),dummy,0,1.,0.,8)
     endif
 
     ! --- finalize accumulation
@@ -1355,16 +1357,16 @@ contains
     call ncdefvar('depth_bnds','bounds depth',ndouble,8)
 
     if (cmpflg == 1) then
-      call ncdefvar('plon','pcomp',ndouble,8)
+      call ncdefvar('plon','pcomp',ndouble,0)
     else
-      call ncdefvar('plon','x y',ndouble,8)
+      call ncdefvar('plon','x y',ndouble,0)
     endif
     call ncattr('long_name','longitude')
     call ncattr('units','degrees_east')
     if (cmpflg == 1) then
-      call ncdefvar('plat','pcomp',ndouble,8)
+      call ncdefvar('plat','pcomp',ndouble,0)
     else
-      call ncdefvar('plat','x y',ndouble,8)
+      call ncdefvar('plat','x y',ndouble,0)
     endif
     call ncattr('long_name','latitude')
     call ncattr('units','degrees_north')
