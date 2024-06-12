@@ -31,8 +31,8 @@ contains
     ! **********************************************************************************************
 
     use mod_time,       only: date0,date,calendar,nstep,nstep_in_day,nday_of_year,time0,time
-    use mod_xc,         only: kdm,mnproc,itdm,jtdm,lp
-    use mod_grid,       only: depths
+    use mod_xc,         only: kdm,mnproc,itdm,jtdm,lp,idm,jdm,nbdy
+    use mod_grid,       only: depths,plat,plon
     use mod_dia,        only: diafnm,sigmar1,iotype,ddm,depthslev,depthslev_bnds
     use mo_control_bgc, only: dtbgc,use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO,              &
                               use_sedbypass,use_BOXATM,use_M4AGO,use_extNcycle
@@ -294,6 +294,13 @@ contains
     call ncwrt1('sigma','sigma',sigmar1)
     call ncwrt1('depth','depth',depthslev)
     call ncwrt1('depth_bnds','bounds depth',depthslev_bnds)
+    if (cmpflg.ne.0) then
+      call ncwrt1('plon','pcomp',plon(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
+      call ncwrt1('plat','pcomp',plat(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
+    else
+      call ncwrt1('plon','x y',plon(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
+      call ncwrt1('plat','x y',plat(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
+    endif
 
     ! --- finalize accumulation
     call finlyr(jphyto(iogrp),jdp(iogrp))
@@ -1346,6 +1353,22 @@ contains
     call ncattr('positive','down')
     call ncattr('bounds','depth_bnds')
     call ncdefvar('depth_bnds','bounds depth',ndouble,8)
+
+    if (cmpflg == 1) then
+      call ncdefvar('plon','pcomp',ndouble,8)
+    else
+      call ncdefvar('plon','x y',ndouble,8)
+    endif
+    call ncattr('long_name','longitude')
+    call ncattr('units','degrees_east')
+    if (cmpflg == 1) then
+      call ncdefvar('plat','pcomp',ndouble,8)
+    else
+      call ncdefvar('plat','x y',ndouble,8)
+    endif
+    call ncattr('long_name','latitude')
+    call ncattr('units','degrees_north')
+
     call ncdefvar3d(SRF_KWCO2(iogrp),cmpflg,'p',                                &
          &   'kwco2','CO2 piston velocity',' ','m s-1',0)
     call ncdefvar3d(SRF_KWCO2KHM(iogrp),cmpflg,'p',                             &
