@@ -1,29 +1,30 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2022 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
-
+! Copyright (C) 2008-2024 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin,
+!                         Mariana Vertenstein
+!
 ! This file is part of BLOM.
-
+!
 ! BLOM is free software: you can redistribute it and/or modify it under the
 ! terms of the GNU Lesser General Public License as published by the Free
 ! Software Foundation, either version 3 of the License, or (at your option)
 ! any later version.
-
+!
 ! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
 ! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
 ! more details.
-
+!
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
 module mod_inicon
 
-  ! --- ------------------------------------------------------------------
-  ! --- This module contains variables and procedures related to advection
-  ! --- of layer pressure thickness and tracers by calling incremental
-  ! --- remapping routines.
-  ! --- ------------------------------------------------------------------
+  ! ------------------------------------------------------------------
+  ! This module contains variables and procedures related to advection
+  ! of layer pressure thickness and tracers by calling incremental
+  ! remapping routines.
+  ! ------------------------------------------------------------------
 
   use dimensions,    only: idm, jdm, kdm, itdm, jtdm
   use mod_types,     only: r8
@@ -64,7 +65,7 @@ module mod_inicon
   implicit none
   private
 
-  ! --- Variables to be set in namelist:
+  ! Variables to be set in namelist:
   character(len = 256), public :: &
        icfile ! Name of file containing initial conditions, that is
   ! either a valid restart file or 'inicon.nc' if
@@ -78,17 +79,17 @@ module mod_inicon
 
 contains
 
-  ! --- ------------------------------------------------------------------
-  ! --- Private procedures.
-  ! --- ------------------------------------------------------------------
+  ! ------------------------------------------------------------------
+  ! Private procedures.
+  ! ------------------------------------------------------------------
 
   function getpl(th,s,phiu,phil,pup) result(plo)
 
-    ! --- ------------------------------------------------------------------
-    ! --- Get lower pressure interface of a layer knowing the temperature,
-    ! --- salinity of the layer and the geopotential at upper and lower
-    ! --- interface.
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Get lower pressure interface of a layer knowing the temperature,
+    ! salinity of the layer and the geopotential at upper and lower
+    ! interface.
+    ! ------------------------------------------------------------------
 
     ! Arguments
     real(r8), intent(in) :: &
@@ -108,11 +109,11 @@ contains
     ! Local variables
     real(r8) :: q,dphi,alpu,alpl
 
-    ! --- first guess on pressure interface
+    ! first guess on pressure interface
     plo = pup-rho(pup,th,s)*(phil-phiu)
 
-    ! --- improve the accuracy of the pressure interface by an
-    ! --- iterative procedure
+    ! improve the accuracy of the pressure interface by an
+    ! iterative procedure
     q = 1._r8
     do while (abs(q) > 1.e-5_r8*p_mks2cgs)
       call delphi(pup,plo,th,s,dphi,alpu,alpl)
@@ -122,14 +123,14 @@ contains
 
   end function getpl
 
-  ! --- ------------------------------------------------------------------
+  ! ------------------------------------------------------------------
 
   subroutine ictsz_file
 
-    ! --- ------------------------------------------------------------------
-    ! --- Read initial conditions from file to define layer temperature and
-    ! --- salinity and geopotential at layer interfaces.
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Read initial conditions from file to define layer temperature and
+    ! salinity and geopotential at layer interfaces.
+    ! ------------------------------------------------------------------
 
     ! Local variables
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm+1) :: z
@@ -147,7 +148,7 @@ contains
            trim(icfile)
       call flush(lp)
 
-      ! --- - Open netcdf file
+      ! Open netcdf file
       status = nf90_open(icfile,nf90_nowrite,ncid)
       if (status /= nf90_noerr) then
         write(lp,'(4a)') ' nf90_open: ',trim(icfile),': ', &
@@ -156,7 +157,7 @@ contains
         stop '(ictsz_file)'
       end if
 
-      ! --- - Check dimensions
+      ! Check dimensions
       status = nf90_inq_dimid(ncid,'x',dimid)
       if (status /= nf90_noerr) then
         write(lp,'(2a)') ' nf90_inq_dimid: x: ',nf90_strerror(status)
@@ -214,7 +215,7 @@ contains
     count(2) = jtdm
     count(3) = 1
 
-    ! --- Read reference potential density
+    ! Read reference potential density
     if (mnproc == 1) then
       status = nf90_inq_varid(ncid,'sigma',varid)
       if (status /= nf90_noerr) then
@@ -238,7 +239,7 @@ contains
       call xcaput(tmp2d,sigmar(1-nbdy,1-nbdy,k),1)
     end do
 
-    ! --- Read potential temperature
+    ! Read potential temperature
     if (mnproc == 1) then
       status = nf90_inq_varid(ncid,'temp',varid)
       if (status /= nf90_noerr) then
@@ -262,7 +263,7 @@ contains
       call xcaput(tmp2d,temp(1-nbdy,1-nbdy,k),1)
     end do
 
-    ! --- Read salinity
+    ! Read salinity
     if (mnproc == 1) then
       status = nf90_inq_varid(ncid,'saln',varid)
       if (status /= nf90_noerr) then
@@ -286,7 +287,7 @@ contains
       call xcaput(tmp2d,saln(1-nbdy,1-nbdy,k),1)
     end do
 
-    ! --- Read layer thickness
+    ! Read layer thickness
     if (mnproc == 1) then
       status = nf90_inq_varid(ncid,'dz',varid)
       if (status /= nf90_noerr) then
@@ -319,7 +320,7 @@ contains
     end if
 
     if (vcoord_type_tag == cntiso_hybrid) then
-      !$OMP PARALLEL DO PRIVATE(l,i,k,kb,dsig,a0,a1,a2)
+      !$omp parallel do private(l,i,k,kb,dsig,a0,a1,a2)
       do j = 1,jj
         do l = 1,isp(j)
           do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -332,7 +333,7 @@ contains
             end if
             do k = kdmic,2,-1
               sigmar(i,j,k+kk-kdmic) = .5_r8*(sigmar(i,j,k-1) &
-                   +sigmar(i,j,k  ))
+                                             +sigmar(i,j,k  ))
             end do
             kb = kk-kdmic+2
             dsig = sigmar(i,j,kb+1)-sigmar(i,j,kb)
@@ -353,30 +354,30 @@ contains
           end do
         end do
       end do
-      !$OMP END PARALLEL DO
+      !$omp end parallel do
 
     end if
 
-    ! --- Construct interface depths [cm] from layer thicknesses [m] and
-    ! --- convert unit of reference potential density from [kg/m^3] to
-    ! --- [g/cm^3]
-    !$OMP PARALLEL DO PRIVATE(l,i)
+    ! Construct interface depths [cm] from layer thicknesses [m] and
+    ! convert unit of reference potential density from [kg/m^3] to
+    ! [g/cm^3]
+    !$omp parallel do private(l,i)
     do j = 1,jj
       do l = 1,isp(j)
         do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-          !         z(i,j,1)=z(i,j,1)*L_mks2cgs
+          ! z(i,j,1)=z(i,j,1)*L_mks2cgs
           z(i,j,1) = 0.
         end do
       end do
     end do
-    !$OMP END PARALLEL DO
-    !$OMP PARALLEL DO PRIVATE(k,l,i)
+    !$omp end parallel do
+    !$omp parallel do private(k,l,i)
     do j = 1,jj
       do k = 1,kdmic
         do l = 1,isp(j)
           do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
             z(i,j,k+1) = min(depths(i,j)*L_mks2cgs, &
-                 z(i,j,k)+dz(i,j,k)*L_mks2cgs)
+                             z(i,j,k)+dz(i,j,k)*L_mks2cgs)
           end do
         end do
       end do
@@ -390,8 +391,9 @@ contains
       do k = 2,kk
         do l = 1,isp(j)
           do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-            if (z(i,j,kk+1)-z(i,j,k) < 1.e-6*l_mks2cgs) &
-                 z(i,j,k) = depths(i,j)*L_mks2cgs
+            if (z(i,j,kk+1)-z(i,j,k) < 1.e-6*l_mks2cgs) then
+              z(i,j,k) = depths(i,j)*L_mks2cgs
+            end if
           end do
         end do
       end do
@@ -408,10 +410,10 @@ contains
         end do
       end do
     end do
-    !$OMP END PARALLEL DO
+    !$omp end parallel do
 
-    ! --- Compute layer interface geopotential
-    !$OMP PARALLEL DO PRIVATE(k,l,i)
+    ! compute layer interface geopotential
+    !$omp parallel do private(k,l,i)
     do j = 1,jj
       do k = 1,kk+1
         do l = 1,isp(j)
@@ -421,58 +423,57 @@ contains
         end do
       end do
     end do
-    !$OMP END PARALLEL DO
+    !$omp end parallel do
 
   end subroutine ictsz_file
 
-  ! --- ------------------------------------------------------------------
-  ! --- Public procedures.
-  ! --- ------------------------------------------------------------------
+  ! ------------------------------------------------------------------
+  ! Public procedures.
+  ! ------------------------------------------------------------------
 
   subroutine inicon()
-
-    ! --- ------------------------------------------------------------------
-    ! --- Define initial conditions
-    ! --- ------------------------------------------------------------------
+  ! ------------------------------------------------------------------
+  ! Define initial conditions
+  ! ------------------------------------------------------------------
 
     ! Local variables
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: tfrz
     integer :: i,j,k,l
     real :: q,tsfac,dps
 
-    ! --- ------------------------------------------------------------------
-    ! --- Define layer interface heights and layer temperature and salinity
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Define layer interface heights and layer temperature and salinity
+    ! ------------------------------------------------------------------
 
     select case (trim(expcnf))
-    case ('cesm', 'ben02clim', 'ben02syn', 'single_column')
-      call ictsz_file
-    case ('fuk95')
-      call ictsz_fuk95
-    case ('channel')
-      call ictsz_channel
-    case ('isomip1')
-      !         call ictsz_isomip1
-    case ('isomip2')
-      !         call ictsz_isomip2
-    case default
-      if (mnproc == 1) then
-        write (lp,'(3a)') ' inicon: expcnf = ', trim(expcnf), &
-             ' is unsupported!'
-      end if
-      call xcstop('(inicon)')
-      stop '(inicon)'
+      case ('cesm', 'ben02clim', 'ben02syn', 'single_column')
+        call ictsz_file
+      case ('fuk95')
+        call ictsz_fuk95
+      case ('channel')
+        call ictsz_channel
+      case ('isomip1')
+        ! call ictsz_isomip1
+      case ('isomip2')
+        ! call ictsz_isomip2
+      case default
+        if (mnproc == 1) then
+          write (lp,'(3a)') ' inicon: expcnf = ', trim(expcnf), &
+               ' is unsupported!'
+        end if
+        call xcstop('(inicon)')
+        stop '(inicon)'
     end select
 
-    ! --- ------------------------------------------------------------------
-    ! --- Set minimum physical temperature for each isopycnic layer
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Set minimum physical temperature for each isopycnic layer
+    ! ------------------------------------------------------------------
 
     call settemmin
 
-    ! --- ------------------------------------------------------------------
-    ! --- Initialize configuration specific variables
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Initialize configuration specific variables
+    ! ------------------------------------------------------------------
 
     select case (trim(expcnf))
     case ('cesm')
@@ -481,11 +482,11 @@ contains
       call inicon_ben02
     end select
 
-    ! --- ------------------------------------------------------------------
-    ! --- Make sure layer temperature is greater than the lower physical
-    ! --- bound and make temperature, salinity, and potential density
-    ! --- variables consistent.
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Make sure layer temperature is greater than the lower physical
+    ! bound and make temperature, salinity, and potential density
+    ! variables consistent.
+    ! ------------------------------------------------------------------
 
     select case (vcoord_type_tag)
 
@@ -493,7 +494,7 @@ contains
 
       do k = 1,2
         tfrz(1:ii,1:jj) = swtfrz(p(1:ii,1:jj,1),saln(1:ii,1:jj,k))
-        !$OMP PARALLEL DO PRIVATE(l,i)
+        !$omp parallel do private(l,i)
         do j = 1,jj
           do l = 1,isp(j)
             do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -502,11 +503,11 @@ contains
             end do
           end do
         end do
-        !$OMP END PARALLEL DO
+        !$omp end parallel do
       end do
       do k = 3,kk
         tfrz(1:ii,1:jj) = swtfrz(p(1:ii,1:jj,1),saln(1:ii,1:jj,k))
-        !$OMP PARALLEL DO PRIVATE(l,i)
+        !$omp parallel do private(l,i)
         do j = 1,jj
           do l = 1,isp(j)
             do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -516,14 +517,14 @@ contains
             end do
           end do
         end do
-        !$OMP END PARALLEL DO
+        !$omp end parallel do
       end do
 
     case (cntiso_hybrid)
 
       do k = 1,kk
         tfrz(1:ii,1:jj) = swtfrz(p(1:ii,1:jj,1),saln(1:ii,1:jj,k))
-        !$OMP PARALLEL DO PRIVATE(l,i)
+        !$omp parallel do private(l,i)
         do j = 1,jj
           do l = 1,isp(j)
             do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -532,7 +533,7 @@ contains
             end do
           end do
         end do
-        !$OMP END PARALLEL DO
+        !$omp end parallel do
       end do
 
     case default
@@ -550,11 +551,11 @@ contains
            (sigmar(itest,jtest,k),k = 1,kk)
     end if
 
-    ! --- ------------------------------------------------------------------
-    ! --- Find layer interface pressure
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Find layer interface pressure
+    ! ------------------------------------------------------------------
 
-    !$OMP PARALLEL DO PRIVATE(l,i,k)
+    !$omp parallel do private(l,i,k)
     do j = 1,jj
       do l = 1,isp(j)
         do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -564,22 +565,22 @@ contains
       do k = 1,kk
         do l = 1,isp(j)
           do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-            p(i,j,k+1) = getpl(temp(i,j,k),saln(i,j,k), &
-                 phi(i,j,k),phi(i,j,k+1),p(i,j,k))
+            p(i,j,k+1) = getpl(temp(i,j,k), saln(i,j,k), &
+                               phi(i,j,k), phi(i,j,k+1), p(i,j,k))
           end do
         end do
       end do
     end do
-    !$OMP END PARALLEL DO
+    !$omp end parallel do
 
     call xctilr(p, 1,kk+1, 2,2, halo_ps)
     call xctilr(phi(1-nbdy,1-nbdy,kk+1), 1,1, 1,1, halo_ps)
 
-    ! --- ------------------------------------------------------------------
-    ! --- Set layer thickness and bottom pressure
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Set layer thickness and bottom pressure
+    ! ------------------------------------------------------------------
 
-    !$OMP PARALLEL DO PRIVATE(k,l,i)
+    !$omp parallel do private(k,l,i)
     do j = 0,jj+1
       do k = 1,kk
         do l = 1,isp(j)
@@ -589,9 +590,9 @@ contains
         end do
       end do
     end do
-    !$OMP END PARALLEL DO
+    !$omp end parallel do
 
-    !$OMP PARALLEL DO PRIVATE(k,l,i)
+    !$omp parallel do private(k,l,i)
     do j = 0,jj+1
       do k = 1,kk
         do l = 1,isp(j)
@@ -601,9 +602,9 @@ contains
         end do
       end do
     end do
-    !$OMP END PARALLEL DO
+    !$omp end parallel do
 
-    !$OMP PARALLEL DO PRIVATE(l,i)
+    !$omp parallel do private(l,i)
     do j = 0,jj+1
       do l = 1,isp(j)
         do i = max(0,ifp(j,l)),min(ii+1,ilp(j,l))
@@ -615,9 +616,9 @@ contains
         end do
       end do
     end do
-    !$OMP END PARALLEL DO
+    !$omp end parallel do
 
-    !$OMP PARALLEL DO PRIVATE(l,i)
+    !$omp parallel do private(l,i)
     do j = 1,jj
       do l = 1,isu(j)
         do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -634,9 +635,9 @@ contains
         end do
       end do
     end do
-    !$OMP END PARALLEL DO
+    !$omp end parallel do
 
-    !$OMP PARALLEL DO PRIVATE(k,l,i,q)
+    !$omp parallel do private(k,l,i,q)
     do j = -1,jj+2
       do k = 1,kk
         do l = 1,isu(j)
@@ -644,7 +645,7 @@ contains
             q = min(p(i,j,kk+1),p(i-1,j,kk+1))
             dpu(i,j,k)= &
                  .5*((min(q,p(i-1,j,k+1))-min(q,p(i-1,j,k))) &
-                 +(min(q,p(i  ,j,k+1))-min(q,p(i  ,j,k))))
+                    +(min(q,p(i  ,j,k+1))-min(q,p(i  ,j,k))))
             pu(i,j,k+1) = pu(i,j,k)+dpu(i,j,k)
           end do
         end do
@@ -653,13 +654,13 @@ contains
             q = min(p(i,j,kk+1),p(i,j-1,kk+1))
             dpv(i,j,k)= &
                  .5*((min(q,p(i,j-1,k+1))-min(q,p(i,j-1,k))) &
-                 +(min(q,p(i,j  ,k+1))-min(q,p(i,j  ,k))))
+                    +(min(q,p(i,j  ,k+1))-min(q,p(i,j  ,k))))
             pv(i,j,k+1) = pv(i,j,k)+dpv(i,j,k)
           end do
         end do
       end do
     end do
-    !$OMP END PARALLEL DO
+    !$omp end parallel do
 
     if (vcoord_type_tag == cntiso_hybrid) then
       call cntiso_hybrid_regrid_direct_remap(2,1,kk,0,kk+1,1)
@@ -668,7 +669,7 @@ contains
     call xctilr(temp, 1,kk, 1,1, halo_ps)
     call xctilr(saln, 1,kk, 1,1, halo_ps)
 
-    !$OMP PARALLEL DO PRIVATE(k,l,i)
+    !$omp parallel do private(k,l,i)
     do j = 1,jj
       do k = 1,kk
         do l = 1,isp(j)
@@ -691,13 +692,13 @@ contains
         end do
       end do
     end do
-    !$OMP END PARALLEL DO
+    !$omp end parallel do
 
-    ! --- ------------------------------------------------------------------
-    ! --- Initialize potential vorticity of barotropic flow
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Initialize potential vorticity of barotropic flow
+    ! ------------------------------------------------------------------
 
-    !$OMP PARALLEL DO PRIVATE(l,i,q)
+    !$omp parallel do private(l,i,q)
     do j = 0,jj
       do l = 1,isu(j)
         do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -709,8 +710,8 @@ contains
         end do
       end do
     end do
-    !$OMP END PARALLEL DO
-    !$OMP PARALLEL DO PRIVATE(l,i,q)
+    !$omp end parallel do
+    !$omp parallel do private(l,i,q)
     do j = 1,jj
       do l = 1,isv(j)
         do i = max(0,ifv(j,l)),min(ii,ilv(j,l))
@@ -722,25 +723,25 @@ contains
         end do
       end do
     end do
-    !$OMP END PARALLEL DO
+    !$omp end parallel do
 
-    !$OMP PARALLEL DO PRIVATE(l,i)
+    !$omp parallel do private(l,i)
     do j = 1,jj
       do l = 1,isq(j)
         do i = max(1,ifq(j,l)),min(ii,ilq(j,l))
           pvtrop(i,j,1) = corioq(i,j)*4./(pb_p(i,j  )+pb_p(i-1,j  ) &
-               +pb_p(i,j-1)+pb_p(i-1,j-1))
+                                         +pb_p(i,j-1)+pb_p(i-1,j-1))
           pvtrop(i,j,2) = pvtrop(i,j,1)
         end do
       end do
     end do
-    !$OMP END PARALLEL DO
+    !$omp end parallel do
 
-    ! --- ------------------------------------------------------------------
-    ! --- Separate baroclinic and barotropic velocity components
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! separate baroclinic and barotropic velocity components
+    ! ------------------------------------------------------------------
 
-    !$OMP PARALLEL DO PRIVATE(l,i,k)
+    !$omp parallel do private(l,i,k)
     do j = 1,jj
 
       do l = 1,isu(j)
@@ -773,10 +774,10 @@ contains
         end do
       end do
     end do
-    !$OMP END PARALLEL DO
+    !$omp end parallel do
 
     do k = 1,kk
-      !$OMP PARALLEL DO PRIVATE(l,i)
+      !$omp parallel do private(l,i)
       do j = 1,jj
         do l = 1,isu(j)
           do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -791,12 +792,12 @@ contains
           end do
         end do
       end do
-      !$OMP END PARALLEL DO
+      !$omp end parallel do
     end do
 
     tsfac = delt1/dlt
 
-    !$OMP PARALLEL DO PRIVATE(l,i)
+    !$omp parallel do private(l,i)
     do j = 1,jj
       do l = 1,isu(j)
         do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -826,37 +827,37 @@ contains
         end do
       end do
     end do
-    !$OMP END PARALLEL DO
-    !$OMP PARALLEL DO PRIVATE(l,i)
+    !$omp end parallel do
+    !$omp parallel do private(l,i)
     do j = 1,jj
       do l = 1,isu(j)
         do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
           ubcors_p(i,j)= (vbflx_mn(i  ,j  ,1)*scvxi(i  ,j  ) &
-               +vbflx_mn(i  ,j+1,1)*scvxi(i  ,j+1) &
-               +vbflx_mn(i-1,j  ,1)*scvxi(i-1,j  ) &
-               +vbflx_mn(i-1,j+1,1)*scvxi(i-1,j+1)) &
-               *(pvtrop(i,j,1)+pvtrop(i,j+1,1))*.125*tsfac
+                         +vbflx_mn(i  ,j+1,1)*scvxi(i  ,j+1) &
+                         +vbflx_mn(i-1,j  ,1)*scvxi(i-1,j  ) &
+                         +vbflx_mn(i-1,j+1,1)*scvxi(i-1,j+1)) &
+                         *(pvtrop(i,j,1)+pvtrop(i,j+1,1))*.125*tsfac
         end do
       end do
       do l = 1,isv(j)
         do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
           ubcors_p(i,j) = -(ubflx_mn(i  ,j  ,1)*scuyi(i  ,j  ) &
-               +ubflx_mn(i+1,j  ,1)*scuyi(i+1,j  ) &
-               +ubflx_mn(i  ,j-1,1)*scuyi(i  ,j-1) &
-               +ubflx_mn(i+1,j-1,1)*scuyi(i+1,j-1)) &
-               *(pvtrop(i,j,1)+pvtrop(i+1,j,1))*.125*tsfac
+                           +ubflx_mn(i+1,j  ,1)*scuyi(i+1,j  ) &
+                           +ubflx_mn(i  ,j-1,1)*scuyi(i  ,j-1) &
+                           +ubflx_mn(i+1,j-1,1)*scuyi(i+1,j-1)) &
+                           *(pvtrop(i,j,1)+pvtrop(i+1,j,1))*.125*tsfac
         end do
       end do
     end do
-    !$OMP END PARALLEL DO
+    !$omp end parallel do
 
-    ! --- ------------------------------------------------------------------
-    ! --- Initialize fields related to the pressure gradient force
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Initialize fields related to the pressure gradient force
+    ! ------------------------------------------------------------------
 
     call pgforc(2,1,kk,0,kk+1,1)
 
-    !$OMP PARALLEL DO PRIVATE(k,l,i)
+    !$omp parallel do private(k,l,i)
     do j = 1,jj
       do k = 1,kk
         do l = 1,isu(j)
@@ -885,13 +886,13 @@ contains
         end do
       end do
     end do
-    !$OMP END PARALLEL DO
+    !$omp end parallel do
 
-    ! --- ------------------------------------------------------------------
-    ! --- Define first physical interior layer
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Define first physical interior layer
+    ! ------------------------------------------------------------------
 
-    !$OMP PARALLEL DO PRIVATE(l,i,k,dps)
+    !$omp parallel do private(l,i,k,dps)
     do j = 1,jj
       do l = 1,isp(j)
         do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -916,13 +917,13 @@ contains
         end do
       end do
     end do
-    !$OMP END PARALLEL DO
+    !$omp end parallel do
 
-    ! --- ------------------------------------------------------------------
-    ! --- Set other time level layer thicknesses
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Set other time level layer thicknesses
+    ! ------------------------------------------------------------------
 
-    !$OMP PARALLEL DO PRIVATE(k,l,i)
+    !$omp parallel do private(k,l,i)
     do j = 1,jj
       do k = 1,kk
         do l = 1,isp(j)
@@ -934,7 +935,7 @@ contains
         end do
       end do
     end do
-    !$OMP END PARALLEL DO
+    !$omp end parallel do
 
     if (mnproc == ptest) then
       i = itest

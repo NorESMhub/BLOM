@@ -1,19 +1,20 @@
 ! ------------------------------------------------------------------------------
 ! Copyright (C) 2005 HYCOM Consortium and contributors
 ! Copyright (C) 2006-2020 Lars Inge Enstad, Mats Bentsen, Alok Kumar Gupta
-
+! Copyright (C) 2024 Mariana Vertenstein
+!
 ! This file is part of BLOM.
-
+!
 ! BLOM is free software: you can redistribute it and/or modify it under the
 ! terms of the GNU Lesser General Public License as published by the Free
 ! Software Foundation, either version 3 of the License, or (at your option)
 ! any later version.
-
+!
 ! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
 ! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
 ! more details.
-
+!
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
@@ -30,32 +31,32 @@ module mod_xc
   implicit none
   public
 
-  ! --- HYCOM communication interface.
-  ! --- see README.src.mod_xc for more details.
+  ! HYCOM communication interface.
+  ! see README.src.mod_xc for more details.
 
-  ! --- Externally set mpi communicator
+  ! Externally set mpi communicator
   integer :: mpicom_external = -1
 
-  ! --- mxthrd= maximum number of OpenMP threads
+  ! mxthrd= maximum number of OpenMP threads
   integer, parameter :: mxthrd=8  ! NOMP = 0,1
 
-  ! --- halo size
+  ! halo size
   integer, parameter :: nbdy = 3
 
-  ! --- OpenMP will allocate jblk rows to each thread in turn
+  ! OpenMP will allocate jblk rows to each thread in turn
   integer, parameter :: jblk = (jdm+2*nbdy+mxthrd-1)/mxthrd
 
-  ! --- how far out the halo is valid (margin<=nbdy)
+  ! how far out the halo is valid (margin<=nbdy)
   integer :: margin
 
-  ! --- actual extent of this tile is (i0+1:i0+ii,j0+1:j0+jj,1:kk)
+  ! actual extent of this tile is (i0+1:i0+ii,j0+1:j0+jj,1:kk)
   integer :: i0,j0,ii,jj
   integer, parameter :: kk = kdm
 
-  ! --- ms-1  = max. number of interruptions of any tile row or column by land
+  ! ms-1  = max. number of interruptions of any tile row or column by land
   integer, parameter :: ms = 100  ! should be enough for any region
 
-  ! --- information in /gindex/ keeps do loops from running into land
+  ! information in /gindex/ keeps do loops from running into land
   ! Set in mod_bigrid.F90
   integer, dimension (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ip
   integer, dimension (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: iu
@@ -89,30 +90,30 @@ module mod_xc
   integer, dimension (1-nbdy:idm+nbdy) :: jsu
   integer, dimension (1-nbdy:idm+nbdy) :: jsv
 
-  ! --- line printer unit (stdout) and file unit with default values 6 and
-  ! --- 12, respectively
+  ! line printer unit (stdout) and file unit with default values 6 and
+  ! 12, respectively
   integer :: lp=6, nfu = 12
 
-  ! --- tile dimensions and tile numbers (counting from 1), see xcspmd
+  ! tile dimensions and tile numbers (counting from 1), see xcspmd
   integer, public :: ipr, jpr, ijpr, mproc, nproc, mnproc
 
-  ! --- timers on, usually and default .true.
+  ! timers on, usually and default .true.
   logical, public :: timer_on = .true.
 
-  ! --- fill value for land, usually 0.0
+  ! fill value for land, usually 0.0
   real, public :: vland
 
-  ! --- xctilr halo options
+  ! xctilr halo options
   integer, public, parameter :: halo_ps=1, halo_pv = 11
   integer, public, parameter :: halo_qs=2, halo_qv = 12
   integer, public, parameter :: halo_us=3, halo_uv = 13
   integer, public, parameter :: halo_vs=4, halo_vv = 14
 
-  ! --- xcsync stdout flushing options
+  ! xcsync stdout flushing options
   logical, public, parameter :: flush_lp = .true.
   logical, public, parameter :: no_flush = .false.
 
-  ! --- generic subroutine names
+  ! generic subroutine names
   interface xcmax
     module procedure xcmax_i0  ! rank 0 integer array (i.e. scalar)
     module procedure xcmax_i1  ! rank 1 integer array
@@ -137,7 +138,7 @@ module mod_xc
     module procedure xcbcst_c  ! rank 1 character array
   end interface xcbcst
 
-  ! --- private timer variables, see xctmri
+  ! private timer variables, see xctmri
   character*6, private, dimension(97) :: cc
   integer,     private                :: nxc
   integer,     private, dimension(97) :: nc
@@ -581,7 +582,7 @@ contains
     kdb = mod(kdb+1,2)  ! the least recently used of the two buffers
 
     if ((jinc == 0 .and. iinc == 1) .or. nl == 1) then
-      ! ---   horizontal forward line.
+      !   horizontal forward line.
       al(1:nl,kdb) = vland
       np  = npe_j(j1)
       do mp= mpe_1(np),mpe_e(np)
@@ -623,7 +624,7 @@ contains
 
     else if (iinc == 0 .and. jinc == 1) then
 
-      ! ---   vertical forward line.
+      !   vertical forward line.
       al(1:nl,kdb) = vland
 
       do np= 1,jpr
@@ -1469,8 +1470,8 @@ contains
     end do
 
     if (use_ARCTIC) then
-       ! --- all arctic patch tiles must be the same size or empty,
-       ! --- and empty tiles must be "twinned" across the top boundary.
+       ! all arctic patch tiles must be the same size or empty,
+       ! and empty tiles must be "twinned" across the top boundary.
 
        if (ipr > 1) then
           do m= 1,ipr
@@ -2247,7 +2248,7 @@ contains
     data ilold,ltsold,lbsold,lbrold,ltrold,lasold,larold &
          / 0,0,0,0,0,0,0 /
 
-    ! --- split large requests into smaller pieces
+    ! split large requests into smaller pieces
 
     if (ld-l1+1 > lsize) then
       do k= l1,ld,lsize
@@ -2843,7 +2844,7 @@ contains
     integer, save :: mpireqa(4*iqr),mpireqb(4),ilold,jlold,nreqa ! persistent communication handles.
     data ilold,jlold / 0,0 /
 
-    ! --- split large requests into smaller pieces
+    ! split large requests into smaller pieces
     if (ld-l1+1 > lsize) then
       do k= l1,ld,lsize
         l = min(k+lsize-1,ld)

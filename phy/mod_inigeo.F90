@@ -1,6 +1,6 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2021 Mats Bentsen, Alok Kumar Gupta, Mehmet Ilicak,
-!                         Aleksi Nummelin
+! Copyright (C) 2015-2024 Mats Bentsen, Alok Kumar Gupta, Mehmet Ilicak,
+!                         Aleksi Nummelin, Mariana Vertenstein
 
 ! This file is part of BLOM.
 
@@ -55,9 +55,9 @@ contains
 
   subroutine inigeo
 
-    ! --- ------------------------------------------------------------------
-    ! --- Initialize the geographic environment
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Initialize the geographic environment
+    ! ------------------------------------------------------------------
 
     ! Local variables
     real :: avgbot
@@ -67,42 +67,41 @@ contains
     real :: rnwp,rmxnbp,rtnbp,rnbp
     integer :: i,j,k,l,kmax
 
-    ! --- ------------------------------------------------------------------
-    ! --- Initialize grid variables.
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Initialize grid variables.
+    ! ------------------------------------------------------------------
 
     call inivar_grid
 
-    ! --- ------------------------------------------------------------------
-    ! --- Define bathymetry, grid specification and Coriolis parameter
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Define bathymetry, grid specification and Coriolis parameter
+    ! ------------------------------------------------------------------
 
     select case (trim(expcnf))
-    case ('cesm')
-      call geoenv_file
-      call geoenv_cesmextra
-    case ('ben02clim', 'ben02syn', 'isomip1', 'isomip2')
-      call geoenv_file
-    case ('fuk95')
-      call geoenv_fuk95
-    case ('channel')
-      call geoenv_channel
-    case ('single_column')
-      call geoenv_single_column
-    case ('test')
-      call geoenv_test
-    case default
-      if (mnproc == 1) then
-        write (lp,'(3a)') ' inigeo: expcnf = ', trim(expcnf), &
-             ' is unsupported!'
-      end if
-      call xcstop('(inigeo)')
-      stop '(inigeo)'
+      case ('cesm')
+        call geoenv_file
+        call geoenv_cesmextra
+      case ('ben02clim', 'ben02syn', 'isomip1', 'isomip2')
+        call geoenv_file
+      case ('fuk95')
+        call geoenv_fuk95
+      case ('channel')
+        call geoenv_channel
+      case ('single_column')
+        call geoenv_single_column
+      case ('test')
+        call geoenv_test
+      case default
+        if (mnproc == 1) then
+          write (lp,'(3a)') ' inigeo: expcnf = ', trim(expcnf),' is unsupported!'
+        end if
+        call xcstop('(inigeo)')
+        stop '(inigeo)'
     end select
 
-    ! --- ------------------------------------------------------------------
-    ! --- Compute auxilary grid parameters
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Compute auxilary grid parameters
+    ! ------------------------------------------------------------------
 
     !$omp parallel do private(i)
     do j = 1,jj
@@ -117,15 +116,15 @@ contains
     end do
     !$omp end parallel do
 
-    ! --- ------------------------------------------------------------------
-    ! --- Determine do-loop limits for u,v,p,q points
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Determine do-loop limits for u,v,p,q points
+    ! ------------------------------------------------------------------
 
     call bigrid(depths)
 
-    ! --- ------------------------------------------------------------------
-    ! --- Update halos for parameters related to the geographic environment
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Update halos for parameters related to the geographic environment
+    ! ------------------------------------------------------------------
 
     call xctilr(qlat, 1,1, nbdy,nbdy, halo_qs)
     call xctilr(qlon, 1,1, nbdy,nbdy, halo_qs)
@@ -184,9 +183,9 @@ contains
       !$omp end parallel do
     end if
 
-    ! --- ------------------------------------------------------------------
-    ! --- Set mask used for global sums
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Set mask used for global sums
+    ! ------------------------------------------------------------------
 
     if (nreg == 2.and.nproc == jpr) then
       !$omp parallel do private(i)
@@ -232,7 +231,7 @@ contains
     call xcsum(avgbot,util1,ips)
     call xcsum(area,  util2,ips)
     avgbot = avgbot/area
-    if     (mnproc == 1) then
+    if (mnproc == 1) then
       if (nwp /= nint(rnwp)) then
         write (lp,'(a)') ' xcsum test failed!'
         write (lp,'(a,i7)') ' number of wet points:',nwp
@@ -241,14 +240,12 @@ contains
         stop '(inigeo)'
       end if
       write (lp,100) avgbot,area
-      call flush(lp)
-100   format(' mean basin depth (m) and area (10^6 km^2):',f9.1, &
-           -16p,f9.1)
+100   format(' mean basin depth (m) and area (10^6 km^2):',f9.1,-16p,f9.1)
     end if
 
-    ! --- ------------------------------------------------------------------
-    ! --- Set mask for grid cells connected to the world ocean
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Set mask for grid cells connected to the world ocean
+    ! ------------------------------------------------------------------
 
     !$omp parallel do private(i)
     do j = 1,jj
@@ -260,7 +257,6 @@ contains
     call xcsum(rnwp,util1,ips)
     if (mnproc == 1) then
       write (lp,*) 'Number of wet points',nint(rnwp)
-      call flush(lp)
     end if
 
     !$omp parallel do private(i)
@@ -313,7 +309,6 @@ contains
       call xcsum(rnbp,util2,ips)
       if (mnproc == 1) then
         write (lp,*) 'Number of basin points',nint(rnbp)
-        call flush(lp)
       end if
       if (rnbp > rmxnbp) then
         rmxnbp = rnbp

@@ -1,5 +1,6 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2021 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
+! Copyright (C) 2015-2024 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin,
+!                         Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -39,29 +40,29 @@ contains
     ! ---------------------------------------------------------------------------
 
     select case (trim(expcnf))
-    case ('cesm')
-      call inifrc_cesm
-    case ('ben02clim')
-      call inifrc_ben02clim
-    case ('ben02syn')
-      call inifrc_ben02syn
-    case ('fuk95')
-      call inifrc_fuk95
-    case ('channel')
-      call inifrc_channel
-    case ('isomip1')
-      !        call inifrc_isomip1
-    case ('isomip2')
-      !        call inifrc_isomip2
-    case ('single_column')
-      call inifrc_ben02clim
-    case default
-      if (mnproc == 1) then
-        write (lp,'(3a)') ' inifrc: expcnf = ', trim(expcnf), &
-             ' is unsupported!'
-      endif
-      call xcstop('(inifrc)')
-      stop '(inifrc)'
+      case ('cesm')
+        call inifrc_cesm
+      case ('ben02clim')
+        call inifrc_ben02clim
+      case ('ben02syn')
+        call inifrc_ben02syn
+      case ('fuk95')
+        call inifrc_fuk95
+      case ('channel')
+        call inifrc_channel
+      case ('isomip1')
+        !        call inifrc_isomip1
+      case ('isomip2')
+        !        call inifrc_isomip2
+      case ('single_column')
+        call inifrc_ben02clim
+      case default
+        if (mnproc == 1) then
+          write (lp,'(3a)') ' inifrc: expcnf = ', trim(expcnf), &
+               ' is unsupported!'
+        endif
+        call xcstop('(inifrc)')
+        stop '(inifrc)'
     end select
 
   end subroutine inifrc
