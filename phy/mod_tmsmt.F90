@@ -1,30 +1,30 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2005-2022 Mats Bentsen, Mehmet Ilicak
-
+! Copyright (C) 2005-2024 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
+!
 ! This file is part of BLOM.
-
+!
 ! BLOM is free software: you can redistribute it and/or modify it under the
 ! terms of the GNU Lesser General Public License as published by the Free
 ! Software Foundation, either version 3 of the License, or (at your option)
 ! any later version.
-
+!
 ! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
 ! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
 ! more details.
-
+!
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
 module mod_tmsmt
 
-  ! --- ------------------------------------------------------------------
-  ! --- This module contains variables and procedures related to time
-  ! --- smoothing. Note that time smoothing of baroclinic velocity is
-  ! --- carried out in the baroclinic momentum equation solver (routine
-  ! --- momtum of mod_momtum.F90).
-  ! --- ------------------------------------------------------------------
+  ! ------------------------------------------------------------------
+  ! This module contains variables and procedures related to time
+  ! smoothing. Note that time smoothing of baroclinic velocity is
+  ! carried out in the baroclinic momentum equation solver (routine
+  ! momtum of mod_momtum.F90).
+  ! ------------------------------------------------------------------
 
   use dimensions,    only: idm, jdm, kdm
   use mod_xc,        only: xctilr, nbdy, ii, jj, kk, isu, ifu, ilu, &
@@ -42,7 +42,7 @@ module mod_tmsmt
   implicit none
   private
 
-  ! --- Weights for time smoothing.
+  ! Weights for time smoothing.
   real(r8) ::   &
        wuv1 = .75_r8,   &
        wuv2 = .125_r8,  &
@@ -75,9 +75,9 @@ contains
 
   subroutine inivar_tmsmt()
 
-    ! --- ------------------------------------------------------------------
-    ! --- Initialize arrays.
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Initialize arrays.
+    ! ------------------------------------------------------------------
 
     integer :: i,j,k,l
 
@@ -96,8 +96,8 @@ contains
     end do
     !$omp end parallel do
 
-    ! --- initialize  dpuold  upstream and downstream of p-points as well as
-    ! --- at lateral neighbors of interior u-points.
+    ! initialize  dpuold  upstream and downstream of p-points as well as
+    ! at lateral neighbors of interior u-points.
 
     !$omp parallel do private(l,i,k)
     do j = 0,jj+1
@@ -124,8 +124,8 @@ contains
     end do
     !$omp end parallel do
 
-    ! --- initialize  dpvold  upstream and downstream of p-points as well as
-    ! --- at lateral neighbors of interior v-points.
+    ! initialize  dpvold  upstream and downstream of p-points as well as
+    ! at lateral neighbors of interior v-points.
 
     !$omp parallel do private(l,j,k)
     do i = 0,ii+1
@@ -169,8 +169,8 @@ contains
 
   subroutine initms(mm)
 
-    ! --- save old layer thickness, temperature and salinity for time
-    ! --- smoothing
+    ! save old layer thickness, temperature and salinity for time
+    ! smoothing
 
     ! Arguments
     integer, intent(in)  :: mm
@@ -219,8 +219,8 @@ contains
 
   subroutine tmsmt1(nn)
 
-    ! --- save old layer thickness at velocity points for time smoothing in
-    ! --- momentum equation.
+    ! save old layer thickness at velocity points for time smoothing in
+    ! momentum equation.
 
     ! Arguments
     integer, intent(in) :: nn
@@ -260,7 +260,7 @@ contains
 
   subroutine tmsmt2(m,mm,nn,k1m)
 
-    ! --- time smoothing of layer thickness, temperature and salinity
+    ! time smoothing of layer thickness, temperature and salinity
 
     ! Arguments
     integer, intent(in) :: m,mm,nn,k1m
@@ -310,8 +310,8 @@ contains
             pmid = pmid+epsilp
             pnew = pnew+epsilp
             temp(i,j,km) = (wts1*pmid*temp(i,j,km) &
-                 +wts2*(pold*told(i,j,k)+pnew*temp(i,j,kn))) &
-                 /(dp(i,j,km)+epsilp)
+                           +wts2*(pold*told(i,j,k)+pnew*temp(i,j,kn))) &
+                           /(dp(i,j,km)+epsilp)
             told(i,j,k) = temp(i,j,km)
             saln(i,j,km) = (wts1*pmid*saln(i,j,km) &
                  +wts2*(pold*sold(i,j,k)+pnew*saln(i,j,kn))) &
@@ -320,9 +320,9 @@ contains
             if (use_TRC) then
               do nt = 1,ntr
                 trc(i,j,km,nt) = (wts1*pmid*trc(i,j,km,nt) &
-                     +wts2*(pold*trcold(i,j,k,nt) &
-                     +pnew*trc(i,j,kn,nt))) &
-                     /(dp(i,j,km)+epsilp)
+                                 +wts2*(pold*trcold(i,j,k,nt) &
+                                 +pnew*trc(i,j,kn,nt))) &
+                                 /(dp(i,j,km)+epsilp)
                 trcold(i,j,k,nt) = trc(i,j,km,nt)
               end do
             end if
@@ -357,7 +357,7 @@ contains
               q = min(p(i,j,kk+1),p(i-1,j,kk+1))
               dpu(i,j,km)= &
                    .5*((min(q,p(i-1,j,k+1))-min(q,p(i-1,j,k))) &
-                   +(min(q,p(i  ,j,k+1))-min(q,p(i  ,j,k))))
+                      +(min(q,p(i  ,j,k+1))-min(q,p(i  ,j,k))))
             end do
           end do
           do l = 1,isv(j)
@@ -365,7 +365,7 @@ contains
               q = min(p(i,j,kk+1),p(i,j-1,kk+1))
               dpv(i,j,km)= &
                    .5*((min(q,p(i,j-1,k+1))-min(q,p(i,j-1,k))) &
-                   +(min(q,p(i,j  ,k+1))-min(q,p(i,j  ,k))))
+                      +(min(q,p(i,j  ,k+1))-min(q,p(i,j  ,k))))
             end do
           end do
         end do

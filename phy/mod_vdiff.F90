@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2021-2023 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2021-2024 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -112,24 +112,24 @@ contains
           bei = 1._r8/(dp_1d(1) + fp(2))
           rhs = dp_1d(1)*temp_1d(1) &
                - ( (1._r8 - t_ns_nonloc(i,j,2))*hfns &
-               + (1._r8 - t_sw_nonloc(i,j,2))*hfsw &
-               + (1._r8 - t_rs_nonloc(i,j,2))*hfrs)*dtg*cpi
+                 + (1._r8 - t_sw_nonloc(i,j,2))*hfsw &
+                 + (1._r8 - t_rs_nonloc(i,j,2))*hfrs)*dtg*cpi
           temp_1d(1) = rhs*bei
           do k = 2, kk - 1
             gam(k) = - fp(k)*bei
             bei = 1._r8/(dp_1d(k) + fp(k)*(1._r8 + gam(k)) + fp(k + 1))
             rhs = dp_1d(k)*temp_1d(k) &
                  - ( (t_ns_nonloc(i,j,k) - t_ns_nonloc(i,j,k+1))*hfns &
-                 + (t_sw_nonloc(i,j,k) - t_sw_nonloc(i,j,k+1))*hfsw &
-                 + (t_rs_nonloc(i,j,k) - t_rs_nonloc(i,j,k+1))*hfrs)*dtg*cpi
+                   + (t_sw_nonloc(i,j,k) - t_sw_nonloc(i,j,k+1))*hfsw &
+                   + (t_rs_nonloc(i,j,k) - t_rs_nonloc(i,j,k+1))*hfrs)*dtg*cpi
             temp_1d(k) = (rhs + fp(k)*temp_1d(k - 1))*bei
           enddo
           gam(kk) = - fp(kk)*bei
           bei = 1._r8/(dp_1d(kk) + fp(kk)*(1._r8 + gam(kk)))
           rhs = dp_1d(kk)*temp_1d(kk) &
                - ( (t_ns_nonloc(i,j,kk) - t_ns_nonloc(i,j,kk+1))*hfns &
-               + (t_sw_nonloc(i,j,kk) - t_sw_nonloc(i,j,kk+1))*hfsw &
-               + (t_rs_nonloc(i,j,kk) - t_rs_nonloc(i,j,kk+1))*hfrs)*dtg*cpi
+                 + (t_sw_nonloc(i,j,kk) - t_sw_nonloc(i,j,kk+1))*hfsw &
+                 + (t_rs_nonloc(i,j,kk) - t_rs_nonloc(i,j,kk+1))*hfrs)*dtg*cpi
           temp_1d(kk) = (rhs + fp(kk)*temp_1d(kk - 1))*bei
           do k = kk - 1, 1, - 1
             temp_1d(k) = temp_1d(k) - gam(k + 1)*temp_1d(k + 1)
@@ -142,24 +142,24 @@ contains
           bei = 1._r8/(dp_1d(1) + fp(2))
           rhs = dp_1d(1)*saln_1d(1) &
                - ( (1._r8 - s_nb_nonloc(i,j,2))*sfnb &
-               + (1._r8 - s_br_nonloc(i,j,2))*sfbr &
-               + (1._r8 - s_rs_nonloc(i,j,2))*sfrs)*dtg
+                 + (1._r8 - s_br_nonloc(i,j,2))*sfbr &
+                 + (1._r8 - s_rs_nonloc(i,j,2))*sfrs)*dtg
           saln_1d(1) = rhs*bei
           do k = 2, kk - 1
             gam(k) = - fp(k)*bei
             bei = 1._r8/(dp_1d(k) + fp(k)*(1._r8 + gam(k)) + fp(k + 1))
             rhs = dp_1d(k)*saln_1d(k) &
                  - ( (s_nb_nonloc(i,j,k) - s_nb_nonloc(i,j,k+1))*sfnb &
-                 + (s_br_nonloc(i,j,k) - s_br_nonloc(i,j,k+1))*sfbr &
-                 + (s_rs_nonloc(i,j,k) - s_rs_nonloc(i,j,k+1))*sfrs)*dtg
+                   + (s_br_nonloc(i,j,k) - s_br_nonloc(i,j,k+1))*sfbr &
+                   + (s_rs_nonloc(i,j,k) - s_rs_nonloc(i,j,k+1))*sfrs)*dtg
             saln_1d(k) = (rhs + fp(k)*saln_1d(k - 1))*bei
           enddo
           gam(kk) = - fp(kk)*bei
           bei = 1._r8/(dp_1d(kk) + fp(kk)*(1._r8 + gam(kk)))
           rhs = dp_1d(kk)*saln_1d(kk) &
                - ( (s_nb_nonloc(i,j,kk) - s_nb_nonloc(i,j,kk+1))*sfnb &
-               + (s_br_nonloc(i,j,kk) - s_br_nonloc(i,j,kk+1))*sfbr &
-               + (s_rs_nonloc(i,j,kk) - s_rs_nonloc(i,j,kk+1))*sfrs)*dtg
+                 + (s_br_nonloc(i,j,kk) - s_br_nonloc(i,j,kk+1))*sfbr &
+                 + (s_rs_nonloc(i,j,kk) - s_rs_nonloc(i,j,kk+1))*sfrs)*dtg
           saln_1d(kk) = (rhs + fp(kk)*saln_1d(kk - 1))*bei
           do k = kk - 1, 1, - 1
             saln_1d(k) = saln_1d(k) - gam(k + 1)*saln_1d(k + 1)
@@ -182,7 +182,7 @@ contains
               do nt = 1, ntr
                 rhs = dp_1d(k)*trc_1d(k,nt) &
                      - (s_nb_nonloc(i,j,k) - s_nb_nonloc(i,j,k+1)) &
-                     *trflx(nt,i,j)*dtg
+                       *trflx(nt,i,j)*dtg
                 trc_1d(k, nt) = (rhs + fp(k)*trc_1d(k - 1, nt))*bei
               enddo
             enddo
@@ -191,7 +191,7 @@ contains
             do nt = 1, ntr
               rhs = dp_1d(kk)*trc_1d(kk,nt) &
                    - (s_nb_nonloc(i,j,kk) - s_nb_nonloc(i,j,kk+1)) &
-                   *trflx(nt,i,j)*dtg
+                     *trflx(nt,i,j)*dtg
               trc_1d(kk, nt) = (rhs + fp(kk)*trc_1d(kk - 1, nt))*bei
             enddo
             do k = kk - 1, 1, - 1

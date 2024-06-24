@@ -19,11 +19,11 @@
 
 module mod_temmin
 
-  ! --- ------------------------------------------------------------------
-  ! --- This module contains variables and procedures related to defining
-  ! --- the lower bound of physical temperature values in isopycnic
-  ! --- layers.
-  ! --- ------------------------------------------------------------------
+  ! ------------------------------------------------------------------
+  ! This module contains variables and procedures related to defining
+  ! the lower bound of physical temperature values in isopycnic
+  ! layers.
+  ! ------------------------------------------------------------------
 
   use dimensions,    only: idm,jdm, kdm
   use mod_types,     only: r8
@@ -50,9 +50,9 @@ contains
 
   subroutine settemmin()
 
-    ! --- ------------------------------------------------------------------
-    ! --- Set minimum physical temperature values in isopycnic layers
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Set minimum physical temperature values in isopycnic layers
+    ! ------------------------------------------------------------------
 
     integer :: i,j,k,l
     real :: salfrz,a,b,c
@@ -60,7 +60,7 @@ contains
     if     (vcoord_type_tag /= isopyc_bulkml .or. &
          expcnf == 'cesm' .or. expcnf == 'single_column') then
 
-      ! --- - Set temmin to a constant freezing temperature for all layers
+      ! Set temmin to a constant freezing temperature for all layers
       !$omp parallel do private(k,l,i)
       do j = 1,jj
         do k = 2,kk
@@ -76,10 +76,10 @@ contains
     else if (expcnf == 'ben02clim'.or.expcnf == 'ben02syn'.or. &
          expcnf == 'fuk95'.or.expcnf == 'channel') then
 
-      ! --- - Let temmin be the freezing temperature of a given potential
-      ! --- - density. This can be achieved by using potential density given
-      ! --- - in the function sig and the salinity dependent freezing
-      ! --- - temperature given in the function swtfrz.
+      ! Let temmin be the freezing temperature of a given potential
+      ! density. This can be achieved by using potential density given
+      ! in the function sig and the salinity dependent freezing
+      ! temperature given in the function swtfrz.
 
       !$omp parallel do private(k,l,i,a,b,c,salfrz)
       do j = 1,jj
@@ -101,7 +101,7 @@ contains
 
     else if (expcnf == 'isomip1'.or.expcnf == 'isomip2') then
 
-      ! --- - Set temmin to a low value.
+      ! Set temmin to a low value.
       !$omp parallel do private(k,l,i)
       do j = 1,jj
         do k = 2,kk

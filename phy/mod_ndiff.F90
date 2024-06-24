@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2022 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2024 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -115,16 +115,16 @@ contains
          c1_4 = 1._r8/4._r8, &
          c1_5 = 1._r8/5._r8
 
-    f = (            pc(1) &
-         + (     c1_2*pc(2) &
-         + (   c1_3*pc(3) &
-         + ( c1_4*pc(4) &
-         + c1_5*pc(5)*x1)*x1)*x1)*x1)*x1 &
-         - (            pc(1) &
-         + (     c1_2*pc(2) &
-         + (   c1_3*pc(3) &
-         + ( c1_4*pc(4) &
-         + c1_5*pc(5)*x0)*x0)*x0)*x0)*x0
+    f =    (     pc(1) &
+         + (c1_2*pc(2) &
+         + (c1_3*pc(3) &
+         + (c1_4*pc(4) &
+         +  c1_5*pc(5)*x1)*x1)*x1)*x1)*x1 &
+         - (     pc(1) &
+         + (c1_2*pc(2) &
+         + (c1_3*pc(3) &
+         + (c1_4*pc(4) &
+         +  c1_5*pc(5)*x0)*x0)*x0)*x0)*x0
 
   end function ipeval
 
@@ -251,13 +251,13 @@ contains
     ks_p = 1
     is_p = 1
     drho_curr = drho(t_srcdi_m(is_m,ks_m,it), &
-         t_srcdi_m(is_m,ks_m,is), &
-         t_srcdi_p(is_p,ks_p,it), &
-         t_srcdi_p(is_p,ks_p,is), &
-         .5_r8*( drhodt_srcdi_m(is_m,ks_m) &
-         + drhodt_srcdi_p(is_p,ks_p)), &
-         .5_r8*( drhods_srcdi_m(is_m,ks_m) &
-         + drhods_srcdi_p(is_p,ks_p)))
+                     t_srcdi_m(is_m,ks_m,is), &
+                     t_srcdi_p(is_p,ks_p,it), &
+                     t_srcdi_p(is_p,ks_p,is), &
+                    .5_r8*( drhodt_srcdi_m(is_m,ks_m) &
+                          + drhodt_srcdi_p(is_p,ks_p)), &
+                    .5_r8*( drhods_srcdi_m(is_m,ks_m) &
+                          + drhods_srcdi_p(is_p,ks_p)))
     p_ni_m_prev = p_srcdi_m(1,1)
     p_ni_p_prev = p_srcdi_p(1,1)
 
@@ -271,27 +271,27 @@ contains
         if (drho_neg) then
           if (is_m == 2) then
             drhodt_x0 = .5_r8*( drhodt_srcdi_m(1   ,ks_m) &
-                 + drhodt_srcdi_p(is_p,ks_p))
+                              + drhodt_srcdi_p(is_p,ks_p))
             drhodt_x1 = .5_r8*( drhodt_srcdi_m(2   ,ks_m) &
-                 + drhodt_srcdi_p(is_p,ks_p))
+                              + drhodt_srcdi_p(is_p,ks_p))
             drhods_x0 = .5_r8*( drhods_srcdi_m(1   ,ks_m) &
-                 + drhods_srcdi_p(is_p,ks_p))
+                              + drhods_srcdi_p(is_p,ks_p))
             drhods_x1 = .5_r8*( drhods_srcdi_m(2   ,ks_m) &
-                 + drhods_srcdi_p(is_p,ks_p))
+                             + drhods_srcdi_p(is_p,ks_p))
             x = drhoroot(tpc_src_m(:,ks_m,it), tpc_src_m(:,ks_m,is), &
-                 t_srcdi_p(is_p,ks_p,it), &
-                 t_srcdi_p(is_p,ks_p,is), &
-                 drhodt_x1, drhodt_x0, &
-                 drhods_x1, drhods_x0)
+                         t_srcdi_p(is_p,ks_p,it), &
+                         t_srcdi_p(is_p,ks_p,is), &
+                         drhodt_x1, drhodt_x0, &
+                         drhods_x1, drhods_x0)
             p_ni_srcdi_p(is_p,ks_p) = p_srcdi_m(2,ks_m)*x &
-                 + p_srcdi_m(1,ks_m)*(1._r8 - x)
+                                    + p_srcdi_m(1,ks_m)*(1._r8 - x)
             if (p_ni_srcdi_p(is_p,ks_p) > p_ni_m_prev) then
               p_ni_m_prev = p_ni_srcdi_p(is_p,ks_p)
               nns = nns + 1
               nslp_src(nns) = - cnslp*(    p_srcdi_p(is_p,ks_p) &
-                   - p_ni_srcdi_p(is_p,ks_p))
+                                         - p_ni_srcdi_p(is_p,ks_p))
               p_nslp_src(nns) = .5_r8*(    p_srcdi_p(is_p,ks_p) &
-                   + p_ni_srcdi_p(is_p,ks_p))
+                                         + p_ni_srcdi_p(is_p,ks_p))
             else
               p_ni_srcdi_p(is_p,ks_p) = mval
             endif
@@ -299,27 +299,26 @@ contains
         elseif (drho_pos) then
           if (is_p == 2) then
             drhodt_x0 = .5_r8*( drhodt_srcdi_m(is_m,ks_m) &
-                 + drhodt_srcdi_p(1   ,ks_p))
+                              + drhodt_srcdi_p(1   ,ks_p))
             drhodt_x1 = .5_r8*( drhodt_srcdi_m(is_m,ks_m) &
-                 + drhodt_srcdi_p(2   ,ks_p))
+                              + drhodt_srcdi_p(2   ,ks_p))
             drhods_x0 = .5_r8*( drhods_srcdi_m(is_m,ks_m) &
-                 + drhods_srcdi_p(1   ,ks_p))
+                              + drhods_srcdi_p(1   ,ks_p))
             drhods_x1 = .5_r8*( drhods_srcdi_m(is_m,ks_m) &
-                 + drhods_srcdi_p(2   ,ks_p))
+                              + drhods_srcdi_p(2   ,ks_p))
             x = drhoroot(tpc_src_p(:,ks_p,it), tpc_src_p(:,ks_p,is), &
-                 t_srcdi_m(is_m,ks_m,it), &
-                 t_srcdi_m(is_m,ks_m,is), &
-                 drhodt_x1, drhodt_x0, &
-                 drhods_x1, drhods_x0)
+                         t_srcdi_m(is_m,ks_m,it), t_srcdi_m(is_m,ks_m,is), &
+                         drhodt_x1, drhodt_x0, &
+                         drhods_x1, drhods_x0)
             p_ni_srcdi_m(is_m,ks_m) = p_srcdi_p(2,ks_p)*x &
-                 + p_srcdi_p(1,ks_p)*(1._r8 - x)
+                                    + p_srcdi_p(1,ks_p)*(1._r8 - x)
             if (p_ni_srcdi_m(is_m,ks_m) > p_ni_p_prev) then
               p_ni_p_prev = p_ni_srcdi_m(is_m,ks_m)
               nns = nns + 1
               nslp_src(nns) = - cnslp*( p_ni_srcdi_m(is_m,ks_m) &
-                   -    p_srcdi_m(is_m,ks_m))
+                                   -    p_srcdi_m(is_m,ks_m))
               p_nslp_src(nns) = .5_r8*( p_ni_srcdi_m(is_m,ks_m) &
-                   +    p_srcdi_m(is_m,ks_m))
+                                   +    p_srcdi_m(is_m,ks_m))
             else
               p_ni_srcdi_m(is_m,ks_m) = mval
             endif
@@ -329,9 +328,9 @@ contains
           p_ni_srcdi_m(is_m,ks_m) = p_srcdi_p(is_p,ks_p)
           nns = nns + 1
           nslp_src(nns) = - cnslp*( p_srcdi_p(is_p,ks_p) &
-               - p_srcdi_m(is_m,ks_m))
+                                  - p_srcdi_m(is_m,ks_m))
           p_nslp_src(nns) = .5_r8*( p_srcdi_p(is_p,ks_p) &
-               + p_srcdi_m(is_m,ks_m))
+                                  + p_srcdi_m(is_m,ks_m))
         endif
       endif
 
@@ -346,16 +345,15 @@ contains
             is_m = 1
           endif
           drho_curr = drho(t_srcdi_m(is_m,ks_m,it), &
-               t_srcdi_m(is_m,ks_m,is), &
-               t_srcdi_p(is_p,ks_p,it), &
-               t_srcdi_p(is_p,ks_p,is), &
-               .5_r8*( drhodt_srcdi_m(is_m,ks_m) &
-               + drhodt_srcdi_p(is_p,ks_p)), &
-               .5_r8*( drhods_srcdi_m(is_m,ks_m) &
-               + drhods_srcdi_p(is_p,ks_p)))
+                           t_srcdi_m(is_m,ks_m,is), &
+                           t_srcdi_p(is_p,ks_p,it), &
+                           t_srcdi_p(is_p,ks_p,is), &
+                           .5_r8*( drhodt_srcdi_m(is_m,ks_m) &
+                                 + drhodt_srcdi_p(is_p,ks_p)), &
+                           .5_r8*( drhods_srcdi_m(is_m,ks_m) &
+                                 + drhods_srcdi_p(is_p,ks_p)))
           if (drho_prev - drho_curr > rhoeps) then
-            if (is_m == 2 .and. &
-                 p_srcdi_m(2,ks_m) - p_srcdi_m(1,ks_m) > onemm) &
+            if (is_m == 2 .and. p_srcdi_m(2,ks_m) - p_srcdi_m(1,ks_m) > onemm) &
                  stab_src_m(ks_m) = .true.
             exit
           endif
@@ -376,16 +374,15 @@ contains
             is_p = 1
           endif
           drho_curr = drho(t_srcdi_m(is_m,ks_m,it), &
-               t_srcdi_m(is_m,ks_m,is), &
-               t_srcdi_p(is_p,ks_p,it), &
-               t_srcdi_p(is_p,ks_p,is), &
-               .5_r8*( drhodt_srcdi_m(is_m,ks_m) &
-               + drhodt_srcdi_p(is_p,ks_p)), &
-               .5_r8*( drhods_srcdi_m(is_m,ks_m) &
-               + drhods_srcdi_p(is_p,ks_p)))
+                           t_srcdi_m(is_m,ks_m,is), &
+                           t_srcdi_p(is_p,ks_p,it), &
+                           t_srcdi_p(is_p,ks_p,is), &
+                           .5_r8*( drhodt_srcdi_m(is_m,ks_m) &
+                                 + drhodt_srcdi_p(is_p,ks_p)), &
+                           .5_r8*( drhods_srcdi_m(is_m,ks_m) &
+                                 + drhods_srcdi_p(is_p,ks_p)))
           if (drho_curr - drho_prev > rhoeps) then
-            if (is_p == 2 .and. &
-                 p_srcdi_p(2,ks_p) - p_srcdi_p(1,ks_p) > onemm) &
+            if (is_p == 2 .and. p_srcdi_p(2,ks_p) - p_srcdi_p(1,ks_p) > onemm) &
                  stab_src_p(ks_p) = .true.
             exit
           endif
@@ -463,8 +460,9 @@ contains
             ks_p = ks_p + 1
             if (ks_p > ksmx_p) exit search_loop2
             is_p = 1
-            if (stab_src_p(ks_p) .and. p_ni_srcdi_p(is_p,ks_p) /= mval) &
-                 exit
+            if (stab_src_p(ks_p) .and. p_ni_srcdi_p(is_p,ks_p) /= mval) then
+              exit
+            end if
           endif
         enddo
         isn_p = is_p
@@ -526,12 +524,12 @@ contains
 
         if (is_p == 2 .and. is_m == 2) then
           x_ni_m(nic) = (p_dst_m(kd_m+1)   - p_srcdi_m(1,ks_m)) &
-               /(p_srcdi_m(2,ks_m) - p_srcdi_m(1,ks_m))
+                       /(p_srcdi_m(2,ks_m) - p_srcdi_m(1,ks_m))
           p_ni_m(nic) = p_dst_m(kd_m+1)
           t_ni_m(it,nic) = peval(tpc_src_m(:,ks_m,it), x_ni_m(nic))
           t_ni_m(is,nic) = peval(tpc_src_m(:,ks_m,is), x_ni_m(nic))
           x_ni_p(nic) = (p_dst_p(kd_p+1)   - p_srcdi_p(1,ks_p)) &
-               /(p_srcdi_p(2,ks_p) - p_srcdi_p(1,ks_p))
+                       /(p_srcdi_p(2,ks_p) - p_srcdi_p(1,ks_p))
           p_ni_p(nic) = p_dst_p(kd_p+1)
           t_ni_p(it,nic) = peval(tpc_src_p(:,ks_p,it), x_ni_p(nic))
           t_ni_p(is,nic) = peval(tpc_src_p(:,ks_p,is), x_ni_p(nic))
@@ -540,75 +538,71 @@ contains
           r_p = x_ni_p(nic)
           q_p = 1._r8 - r_p
           drho_curr = drho(t_ni_m(it,nic), t_ni_m(is,nic), &
-               t_ni_p(it,nic), t_ni_p(is,nic), &
-               .5_r8*( drhodt_srcdi_m(1,ks_m)*q_m &
-               + drhodt_srcdi_m(2,ks_m)*r_m &
-               + drhodt_srcdi_p(1,ks_p)*q_p &
-               + drhodt_srcdi_p(2,ks_p)*r_p), &
-               .5_r8*( drhods_srcdi_m(1,ks_m)*q_m &
-               + drhods_srcdi_m(2,ks_m)*r_m &
-               + drhods_srcdi_p(1,ks_p)*q_p &
-               + drhods_srcdi_p(2,ks_p)*r_p))
+                           t_ni_p(it,nic), t_ni_p(is,nic), &
+                           .5_r8*( drhodt_srcdi_m(1,ks_m)*q_m &
+                                 + drhodt_srcdi_m(2,ks_m)*r_m &
+                                 + drhodt_srcdi_p(1,ks_p)*q_p &
+                                 + drhodt_srcdi_p(2,ks_p)*r_p), &
+                            .5_r8*( drhods_srcdi_m(1,ks_m)*q_m &
+                                 + drhods_srcdi_m(2,ks_m)*r_m &
+                                 + drhods_srcdi_p(1,ks_p)*q_p &
+                                 + drhods_srcdi_p(2,ks_p)*r_p))
           if     (drho_curr <= - rhoeps) then
             drhodt_x0 = .5_r8*( drhodt_srcdi_m(1,ks_m) &
-                 + drhodt_srcdi_p(1,ks_p)*q_p &
-                 + drhodt_srcdi_p(2,ks_p)*r_p)
+                              + drhodt_srcdi_p(1,ks_p)*q_p &
+                              + drhodt_srcdi_p(2,ks_p)*r_p)
             drhodt_x1 = .5_r8*( drhodt_srcdi_m(2,ks_m) &
-                 + drhodt_srcdi_p(1,ks_p)*q_p &
-                 + drhodt_srcdi_p(2,ks_p)*r_p)
+                              + drhodt_srcdi_p(1,ks_p)*q_p &
+                              + drhodt_srcdi_p(2,ks_p)*r_p)
             drhods_x0 = .5_r8*( drhods_srcdi_m(1,ks_m) &
-                 + drhods_srcdi_p(1,ks_p)*q_p &
-                 + drhods_srcdi_p(2,ks_p)*r_p)
+                              + drhods_srcdi_p(1,ks_p)*q_p &
+                              + drhods_srcdi_p(2,ks_p)*r_p)
             drhods_x1 = .5_r8*( drhods_srcdi_m(2,ks_m) &
-                 + drhods_srcdi_p(1,ks_p)*q_p &
-                 + drhods_srcdi_p(2,ks_p)*r_p)
+                              + drhods_srcdi_p(1,ks_p)*q_p &
+                              + drhods_srcdi_p(2,ks_p)*r_p)
             x = drhoroot(tpc_src_m(:,ks_m,it), tpc_src_m(:,ks_m,is), &
-                 t_ni_p(it,nic), t_ni_p(is,nic), &
-                 drhodt_x1, drhodt_x0, drhods_x1, drhods_x0)
+                         t_ni_p(it,nic), t_ni_p(is,nic), &
+                         drhodt_x1, drhodt_x0, drhods_x1, drhods_x0)
             p_ni_m(nic) = p_srcdi_m(2,ks_m)*x &
-                 + p_srcdi_m(1,ks_m)*(1._r8 - x)
+                        + p_srcdi_m(1,ks_m)*(1._r8 - x)
             if (p_ni_m(nic) > p_ni_m(nip) .and. &
-                 p_ni_m(nic) < p_ni_srcdi_p(isn_p,ksn_p)) then
+                p_ni_m(nic) < p_ni_srcdi_p(isn_p,ksn_p)) then
               x_ni_m(nic) = x
               do nt = 1, ntr_loc
-                t_ni_m(nt,nic) = peval(tpc_src_m(:,ks_m,nt), &
-                     x_ni_m(nic))
+                t_ni_m(nt,nic) = peval(tpc_src_m(:,ks_m,nt), x_ni_m(nic))
               enddo
               do nt = 3, ntr_loc
-                t_ni_p(nt,nic) = peval(tpc_src_p(:,ks_p,nt), &
-                     x_ni_p(nic))
+                t_ni_p(nt,nic) = peval(tpc_src_p(:,ks_p,nt), x_ni_p(nic))
               enddo
               found_ni = .true.
             endif
             advance_dst_p = .true.
           elseif (drho_curr >=   rhoeps) then
             drhodt_x0 = .5_r8*( drhodt_srcdi_p(1,ks_p) &
-                 + drhodt_srcdi_m(1,ks_m)*q_m &
-                 + drhodt_srcdi_m(2,ks_m)*r_m)
+                              + drhodt_srcdi_m(1,ks_m)*q_m &
+                              + drhodt_srcdi_m(2,ks_m)*r_m)
             drhodt_x1 = .5_r8*( drhodt_srcdi_p(2,ks_p) &
-                 + drhodt_srcdi_m(1,ks_m)*q_m &
-                 + drhodt_srcdi_m(2,ks_m)*r_m)
+                              + drhodt_srcdi_m(1,ks_m)*q_m &
+                              + drhodt_srcdi_m(2,ks_m)*r_m)
             drhods_x0 = .5_r8*( drhods_srcdi_p(1,ks_p) &
-                 + drhods_srcdi_m(1,ks_m)*q_m &
-                 + drhods_srcdi_m(2,ks_m)*r_m)
+                              + drhods_srcdi_m(1,ks_m)*q_m &
+                              + drhods_srcdi_m(2,ks_m)*r_m)
             drhods_x1 = .5_r8*( drhods_srcdi_p(2,ks_p) &
-                 + drhods_srcdi_m(1,ks_m)*q_m &
-                 + drhods_srcdi_m(2,ks_m)*r_m)
+                              + drhods_srcdi_m(1,ks_m)*q_m &
+                              + drhods_srcdi_m(2,ks_m)*r_m)
             x = drhoroot(tpc_src_p(:,ks_p,it), tpc_src_p(:,ks_p,is), &
                  t_ni_m(it,nic), t_ni_m(is,nic), &
                  drhodt_x1, drhodt_x0, drhods_x1, drhods_x0)
             p_ni_p(nic) = p_srcdi_p(2,ks_p)*x &
-                 + p_srcdi_p(1,ks_p)*(1._r8 - x)
+                        + p_srcdi_p(1,ks_p)*(1._r8 - x)
             if (p_ni_p(nic) > p_ni_p(nip) .and. &
-                 p_ni_p(nic) < p_ni_srcdi_m(isn_m,ksn_m)) then
+                p_ni_p(nic) < p_ni_srcdi_m(isn_m,ksn_m)) then
               x_ni_p(nic) = x
               do nt = 1, ntr_loc
-                t_ni_p(nt,nic) = peval(tpc_src_p(:,ks_p,nt), &
-                     x_ni_p(nic))
+                t_ni_p(nt,nic) = peval(tpc_src_p(:,ks_p,nt), x_ni_p(nic))
               enddo
               do nt = 3, ntr_loc
-                t_ni_m(nt,nic) = peval(tpc_src_m(:,ks_m,nt), &
-                     x_ni_m(nic))
+                t_ni_m(nt,nic) = peval(tpc_src_m(:,ks_m,nt), x_ni_m(nic))
               enddo
               found_ni = .true.
             endif
@@ -631,31 +625,31 @@ contains
 
         if (is_p == 2) then
           x_ni_m(nic) = (p_dst_m(kd_m+1)   - p_srcdi_m(1,ks_m)) &
-               /(p_srcdi_m(2,ks_m) - p_srcdi_m(1,ks_m))
+                       /(p_srcdi_m(2,ks_m) - p_srcdi_m(1,ks_m))
           p_ni_m(nic) = p_dst_m(kd_m+1)
           t_ni_m(it,nic) = peval(tpc_src_m(:,ks_m,it), x_ni_m(nic))
           t_ni_m(is,nic) = peval(tpc_src_m(:,ks_m,is), x_ni_m(nic))
           r_m = x_ni_m(nic)
           q_m = 1._r8 - r_m
           drhodt_x0 = .5_r8*( drhodt_srcdi_p(1,ks_p) &
-               + drhodt_srcdi_m(1,ks_m)*q_m &
-               + drhodt_srcdi_m(2,ks_m)*r_m)
+                            + drhodt_srcdi_m(1,ks_m)*q_m &
+                            + drhodt_srcdi_m(2,ks_m)*r_m)
           drhodt_x1 = .5_r8*( drhodt_srcdi_p(2,ks_p) &
-               + drhodt_srcdi_m(1,ks_m)*q_m &
-               + drhodt_srcdi_m(2,ks_m)*r_m)
+                            + drhodt_srcdi_m(1,ks_m)*q_m &
+                            + drhodt_srcdi_m(2,ks_m)*r_m)
           drhods_x0 = .5_r8*( drhods_srcdi_p(1,ks_p) &
-               + drhods_srcdi_m(1,ks_m)*q_m &
-               + drhods_srcdi_m(2,ks_m)*r_m)
+                            + drhods_srcdi_m(1,ks_m)*q_m &
+                            + drhods_srcdi_m(2,ks_m)*r_m)
           drhods_x1 = .5_r8*( drhods_srcdi_p(2,ks_p) &
-               + drhods_srcdi_m(1,ks_m)*q_m &
-               + drhods_srcdi_m(2,ks_m)*r_m)
+                            + drhods_srcdi_m(1,ks_m)*q_m &
+                            + drhods_srcdi_m(2,ks_m)*r_m)
           x = drhoroot(tpc_src_p(:,ks_p,it), tpc_src_p(:,ks_p,is), &
-               t_ni_m(it,nic), t_ni_m(is,nic), &
-               drhodt_x1, drhodt_x0, drhods_x1, drhods_x0)
+                       t_ni_m(it,nic), t_ni_m(is,nic), &
+                       drhodt_x1, drhodt_x0, drhods_x1, drhods_x0)
           p_ni_p(nic) = p_srcdi_p(2,ks_p)*x &
-               + p_srcdi_p(1,ks_p)*(1._r8 - x)
+                      + p_srcdi_p(1,ks_p)*(1._r8 - x)
           if (p_ni_p(nic) > p_ni_p(nip) .and. &
-               p_ni_p(nic) < p_ni_srcdi_m(isn_m,ksn_m)) then
+              p_ni_p(nic) < p_ni_srcdi_m(isn_m,ksn_m)) then
             x_ni_p(nic) = x
             do nt = 1, ntr_loc
               t_ni_p(nt,nic) = peval(tpc_src_p(:,ks_p,nt), x_ni_p(nic))
@@ -680,31 +674,31 @@ contains
 
         if (is_m == 2) then
           x_ni_p(nic) = (p_dst_p(kd_p+1)   - p_srcdi_p(1,ks_p)) &
-               /(p_srcdi_p(2,ks_p) - p_srcdi_p(1,ks_p))
+                       /(p_srcdi_p(2,ks_p) - p_srcdi_p(1,ks_p))
           p_ni_p(nic) = p_dst_p(kd_p+1)
           t_ni_p(it,nic) = peval(tpc_src_p(:,ks_p,it), x_ni_p(nic))
           t_ni_p(is,nic) = peval(tpc_src_p(:,ks_p,is), x_ni_p(nic))
           r_p = x_ni_p(nic)
           q_p = 1._r8 - r_p
           drhodt_x0 = .5_r8*( drhodt_srcdi_m(1,ks_m) &
-               + drhodt_srcdi_p(1,ks_p)*q_p &
-               + drhodt_srcdi_p(2,ks_p)*r_p)
+                            + drhodt_srcdi_p(1,ks_p)*q_p &
+                            + drhodt_srcdi_p(2,ks_p)*r_p)
           drhodt_x1 = .5_r8*( drhodt_srcdi_m(2,ks_m) &
-               + drhodt_srcdi_p(1,ks_p)*q_p &
-               + drhodt_srcdi_p(2,ks_p)*r_p)
+                            + drhodt_srcdi_p(1,ks_p)*q_p &
+                            + drhodt_srcdi_p(2,ks_p)*r_p)
           drhods_x0 = .5_r8*( drhods_srcdi_m(1,ks_m) &
-               + drhods_srcdi_p(1,ks_p)*q_p &
-               + drhods_srcdi_p(2,ks_p)*r_p)
+                            + drhods_srcdi_p(1,ks_p)*q_p &
+                            + drhods_srcdi_p(2,ks_p)*r_p)
           drhods_x1 = .5_r8*( drhods_srcdi_m(2,ks_m) &
-               + drhods_srcdi_p(1,ks_p)*q_p &
-               + drhods_srcdi_p(2,ks_p)*r_p)
+                            + drhods_srcdi_p(1,ks_p)*q_p &
+                            + drhods_srcdi_p(2,ks_p)*r_p)
           x = drhoroot(tpc_src_m(:,ks_m,it), tpc_src_m(:,ks_m,is), &
-               t_ni_p(it,nic), t_ni_p(is,nic), &
-               drhodt_x1, drhodt_x0, drhods_x1, drhods_x0)
+                       t_ni_p(it,nic), t_ni_p(is,nic), &
+                       drhodt_x1, drhodt_x0, drhods_x1, drhods_x0)
           p_ni_m(nic) = p_srcdi_m(2,ks_m)*x &
-               + p_srcdi_m(1,ks_m)*(1._r8 - x)
+                      + p_srcdi_m(1,ks_m)*(1._r8 - x)
           if (p_ni_m(nic) > p_ni_m(nip) .and. &
-               p_ni_m(nic) < p_ni_srcdi_p(isn_p,ksn_p)) then
+              p_ni_m(nic) < p_ni_srcdi_p(isn_p,ksn_p)) then
             x_ni_m(nic) = x
             do nt = 1, ntr_loc
               t_ni_m(nt,nic) = peval(tpc_src_m(:,ks_m,nt), x_ni_m(nic))
@@ -728,7 +722,7 @@ contains
       elseif (case_m == 1 .and. case_p == 1) then
 
         if (p_ni_srcdi_m(is_m,ks_m) /= mval .and. &
-             p_ni_srcdi_p(is_p,ks_p) /= mval) then
+            p_ni_srcdi_p(is_p,ks_p) /= mval) then
           x_ni_m(nic) = real(is_m - 1, r8)
           p_ni_m(nic) = p_srcdi_m(is_m,ks_m)
           x_ni_p(nic) = real(is_p - 1, r8)
@@ -748,12 +742,12 @@ contains
       elseif (case_m == 1) then
 
         if (p_ni_srcdi_m(is_m,ks_m) /= mval .and. &
-             p_ni_srcdi_m(is_m,ks_m) >= p_srcdi_p(1,ks_p)) then
+            p_ni_srcdi_m(is_m,ks_m) >= p_srcdi_p(1,ks_p)) then
           x_ni_m(nic) = real(is_m - 1, r8)
           p_ni_m(nic) = p_srcdi_m(is_m,ks_m)
           p_ni_p(nic) = p_ni_srcdi_m(is_m,ks_m)
           x_ni_p(nic) = (p_ni_p(nic)       - p_srcdi_p(1,ks_p)) &
-               /(p_srcdi_p(2,ks_p) - p_srcdi_p(1,ks_p))
+                       /(p_srcdi_p(2,ks_p) - p_srcdi_p(1,ks_p))
           do nt = 1, ntr_loc
             t_ni_m(nt,nic) = t_srcdi_m(is_m,ks_m,nt)
             t_ni_p(nt,nic) = peval(tpc_src_p(:,ks_p,nt), x_ni_p(nic))
@@ -765,12 +759,12 @@ contains
       elseif (case_p == 1) then
 
         if (p_ni_srcdi_p(is_p,ks_p) /= mval .and. &
-             p_ni_srcdi_p(is_p,ks_p) >= p_srcdi_m(1,ks_m)) then
+            p_ni_srcdi_p(is_p,ks_p) >= p_srcdi_m(1,ks_m)) then
           x_ni_p(nic) = real(is_p - 1, r8)
           p_ni_p(nic) = p_srcdi_p(is_p,ks_p)
           p_ni_m(nic) = p_ni_srcdi_p(is_p,ks_p)
           x_ni_m(nic) = (p_ni_m(nic)       - p_srcdi_m(1,ks_m)) &
-               /(p_srcdi_m(2,ks_m) - p_srcdi_m(1,ks_m))
+                       /(p_srcdi_m(2,ks_m) - p_srcdi_m(1,ks_m))
           do nt = 1, ntr_loc
             t_ni_p(nt,nic) = t_srcdi_p(is_p,ks_p,nt)
             t_ni_m(nt,nic) = peval(tpc_src_m(:,ks_m,nt), x_ni_m(nic))
@@ -819,7 +813,7 @@ contains
             q = 1._r8/(x_ni_m(nic) - x_ni_m(nip))
             do nt = 1, ntr_loc
               t_nl_m(nt) = ipeval(tpc_src_m(:,ks_m,nt), &
-                   x_ni_m(nip), x_ni_m(nic))*q
+                           x_ni_m(nip), x_ni_m(nic))*q
             enddo
           endif
           if (x_ni_p(nic) - x_ni_p(nip) < 1.e-12_r8) then
@@ -830,7 +824,7 @@ contains
             q = 1._r8/(x_ni_p(nic) - x_ni_p(nip))
             do nt = 1, ntr_loc
               t_nl_p(nt) = ipeval(tpc_src_p(:,ks_p,nt), &
-                   x_ni_p(nip), x_ni_p(nic))*q
+                           x_ni_p(nip), x_ni_p(nic))*q
             enddo
           endif
 
@@ -838,27 +832,24 @@ contains
           dp_ni_p = p_ni_p(nic) - p_ni_p(nip)
 
           q = cdiff*(difiso(i_m,j_m,ks_m) + difiso(i_p,j_p,ks_p)) &
-               *dp_ni_m*dp_ni_p/max(dp_ni_m + dp_ni_p, 2._r8*dpeps)
+                    *dp_ni_m*dp_ni_p/max(dp_ni_m + dp_ni_p, 2._r8*dpeps)
 
           dt = t_nl_m(it) - t_nl_p(it)
           ds = t_nl_m(is) - t_nl_p(is)
 
           if (dt*( temp(i_m,j_m,ks_m+nn) &
-               - temp(i_p,j_p,ks_p+nn)) >= 0._r8 .and. &
-               dt*( t_ni_m(it,nip) - t_ni_p(it,nip)) >= 0._r8 .and. &
-               dt*( t_ni_m(it,nic) - t_ni_p(it,nic)) >= 0._r8 .and. &
-               ds*( saln(i_m,j_m,ks_m+nn) &
-               - saln(i_p,j_p,ks_p+nn)) >= 0._r8 .and. &
-               ds*( t_ni_m(is,nip) - t_ni_p(is,nip)) >= 0._r8 .and. &
-               ds*( t_ni_m(is,nic) - t_ni_p(is,nic)) >= 0._r8) then
+                 - temp(i_p,j_p,ks_p+nn)) >= 0._r8 .and. &
+              dt*( t_ni_m(it,nip) - t_ni_p(it,nip)) >= 0._r8 .and. &
+              dt*( t_ni_m(it,nic) - t_ni_p(it,nic)) >= 0._r8 .and. &
+              ds*( saln(i_m,j_m,ks_m+nn) &
+                 - saln(i_p,j_p,ks_p+nn)) >= 0._r8 .and. &
+              ds*( t_ni_m(is,nip) - t_ni_p(is,nip)) >= 0._r8 .and. &
+              ds*( t_ni_m(is,nic) - t_ni_p(is,nic)) >= 0._r8) then
             tflx = q*dt
-            flxconv_rs(kd_m,it,i_m,j_rs_m) = &
-                 flxconv_rs(kd_m,it,i_m,j_rs_m) + tflx
-            flxconv_rs(kd_p,it,i_p,j_rs_p) = &
-                 flxconv_rs(kd_p,it,i_p,j_rs_p) - tflx
+            flxconv_rs(kd_m,it,i_m,j_rs_m) = flxconv_rs(kd_m,it,i_m,j_rs_m) + tflx
+            flxconv_rs(kd_p,it,i_p,j_rs_p) = flxconv_rs(kd_p,it,i_p,j_rs_p) - tflx
             sflx = q*ds
-            flxconv_rs(kd_m,is,i_m,j_rs_m) = &
-                 flxconv_rs(kd_m,is,i_m,j_rs_m) + sflx
+            flxconv_rs(kd_m,is,i_m,j_rs_m) = flxconv_rs(kd_m,is,i_m,j_rs_m) + sflx
             flxconv_rs(kd_p,is,i_p,j_rs_p) = &
                  flxconv_rs(kd_p,is,i_p,j_rs_p) - sflx
             p_ni_up = .5_r8*(p_ni_m(nip) + p_ni_p(nip))
@@ -868,22 +859,16 @@ contains
               kuvm = kuv + mm
               if (puv(i_p,j_p,kuv+1) < p_ni_lo) then
                 mlfrac = max(0._r8, puv(i_p,j_p,kuv+1) &
-                     - max(p_ni_up, puv(i_p,j_p,kuv))) &
-                     *dp_ni_i
-                uvtflld(i_p,j_p,kuvm) = uvtflld(i_p,j_p,kuvm) &
-                     + tflx*mlfrac
-                uvsflld(i_p,j_p,kuvm) = uvsflld(i_p,j_p,kuvm) &
-                     + sflx*mlfrac
+                       - max(p_ni_up, puv(i_p,j_p,kuv))) *dp_ni_i
+                uvtflld(i_p,j_p,kuvm) = uvtflld(i_p,j_p,kuvm) + tflx*mlfrac
+                uvsflld(i_p,j_p,kuvm) = uvsflld(i_p,j_p,kuvm) + sflx*mlfrac
                 uvtflx(i_p,j_p,kuvm) = uvtflx(i_p,j_p,kuvm) + tflx*mlfrac
                 uvsflx(i_p,j_p,kuvm) = uvsflx(i_p,j_p,kuvm) + sflx*mlfrac
                 kuv = kuv + 1
               else
-                mlfrac = (p_ni_lo - max(p_ni_up, puv(i_p,j_p,kuv))) &
-                     *dp_ni_i
-                uvtflld(i_p,j_p,kuvm) = uvtflld(i_p,j_p,kuvm) &
-                     + tflx*mlfrac
-                uvsflld(i_p,j_p,kuvm) = uvsflld(i_p,j_p,kuvm) &
-                     + sflx*mlfrac
+                mlfrac = (p_ni_lo - max(p_ni_up, puv(i_p,j_p,kuv))) * dp_ni_i
+                uvtflld(i_p,j_p,kuvm) = uvtflld(i_p,j_p,kuvm) + tflx*mlfrac
+                uvsflld(i_p,j_p,kuvm) = uvsflld(i_p,j_p,kuvm) + sflx*mlfrac
                 uvtflx(i_p,j_p,kuvm) = uvtflx(i_p,j_p,kuvm) + tflx*mlfrac
                 uvsflx(i_p,j_p,kuvm) = uvsflx(i_p,j_p,kuvm) + sflx*mlfrac
                 exit
@@ -967,9 +952,9 @@ contains
 
     ! Allocate arrays depending on the tracer count.
     allocate(tpc_src_rs(p_ord+1,kdm,ntr_loc,1-nbdy:idm+nbdy,2), &
-         t_srcdi_rs(2,kdm,ntr_loc,1-nbdy:idm+nbdy,2), &
-         flxconv_rs(kdm,ntr_loc,1-nbdy:idm+nbdy,2), &
-         stat = errstat)
+             t_srcdi_rs(2,kdm,ntr_loc,1-nbdy:idm+nbdy,2), &
+             flxconv_rs(kdm,ntr_loc,1-nbdy:idm+nbdy,2), &
+             stat = errstat)
     if (errstat /= 0) then
       write(lp,*) 'Failed to allocate neutral diffusion arrays!'
       call xchalt('(ndiff_init)')
@@ -1025,17 +1010,17 @@ contains
             t_srcdi_rs(2,k,nt,i,j_rs) = peval1(tpc_src_rs(:,k,nt,i,j_rs))
           enddo
           drhodt_srcdi_rs(1,k,i,j_rs) = drhodt(p_srcdi_rs(1,k   ,i,j_rs), &
-               t_srcdi_rs(1,k,it,i,j_rs), &
-               t_srcdi_rs(1,k,is,i,j_rs))
+                                        t_srcdi_rs(1,k,it,i,j_rs), &
+                                        t_srcdi_rs(1,k,is,i,j_rs))
           drhodt_srcdi_rs(2,k,i,j_rs) = drhodt(p_srcdi_rs(2,k   ,i,j_rs), &
-               t_srcdi_rs(2,k,it,i,j_rs), &
-               t_srcdi_rs(2,k,is,i,j_rs))
+                                        t_srcdi_rs(2,k,it,i,j_rs), &
+                                        t_srcdi_rs(2,k,is,i,j_rs))
           drhods_srcdi_rs(1,k,i,j_rs) = drhods(p_srcdi_rs(1,k   ,i,j_rs), &
-               t_srcdi_rs(1,k,it,i,j_rs), &
-               t_srcdi_rs(1,k,is,i,j_rs))
+                                        t_srcdi_rs(1,k,it,i,j_rs), &
+                                        t_srcdi_rs(1,k,is,i,j_rs))
           drhods_srcdi_rs(2,k,i,j_rs) = drhods(p_srcdi_rs(2,k   ,i,j_rs), &
-               t_srcdi_rs(2,k,it,i,j_rs), &
-               t_srcdi_rs(2,k,is,i,j_rs))
+                                        t_srcdi_rs(2,k,it,i,j_rs), &
+                                        t_srcdi_rs(2,k,is,i,j_rs))
         enddo
 
         flxconv_rs(:,:,i,j_rs) = 0._r8
@@ -1176,7 +1161,7 @@ contains
       do i = max(i_lb, ifp(j, l)), min(i_ub, ilp(j, l))
         do k = 1, kk
           q = 1._r8/(scp2(i,j)*max( p_dst_rs(k+1,i,j_rs) &
-               - p_dst_rs(k  ,i,j_rs), dpeps))
+                                  - p_dst_rs(k  ,i,j_rs), dpeps))
           do nt = 1, ntr_loc
             trc_rm(k,nt,i) = trc_rm(k,nt,i) - q*flxconv_rs(k,nt,i,j_rs)
           enddo
