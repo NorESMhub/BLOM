@@ -1,18 +1,18 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2024 Mats Bentsen, Mehmet Ilicak
-
+! Copyright (C) 2008-2024 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
+!
 ! This file is part of BLOM.
-
+!
 ! BLOM is free software: you can redistribute it and/or modify it under the
 ! terms of the GNU Lesser General Public License as published by the Free
 ! Software Foundation, either version 3 of the License, or (at your option)
 ! any later version.
-
+!
 ! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
 ! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
 ! more details.
-
+!
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
@@ -83,10 +83,9 @@ module mod_blom_step
 contains
 
   subroutine blom_step()
-
-    ! --- ------------------------------------------------------------------
-    ! --- integrate a model time step
-    ! --- ------------------------------------------------------------------
+  ! ------------------------------------------------------------------
+  ! integrate a model time step
+  ! ------------------------------------------------------------------
 
     ! Local variables
     real    :: q
@@ -110,8 +109,8 @@ contains
     real    :: diaacc_time
     real    :: io_time
 
-    ! --- letter 'm' refers to mid-time level (example: dp(i,j,km) )
-    ! --- letter 'n' refers to old and new time level
+    ! letter 'm' refers to mid-time level (example: dp(i,j,km) )
+    ! letter 'n' refers to old and new time level
 
     m = mod(nstep  ,2)+1
     n = mod(nstep+1,2)+1
@@ -124,26 +123,26 @@ contains
 
     call step_time
 
-    ! --- ------------------------------------------------------------------
-    ! --- Reset fluxes to be accumulated over a model time step and update
-    ! --- flux halos the first time step of a day to reproduce results after
-    ! --- restart with tripolar grid.
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Reset fluxes to be accumulated over a model time step and update
+    ! flux halos the first time step of a day to reproduce results after
+    ! restart with tripolar grid.
+    ! ------------------------------------------------------------------
 
     update_flux_halos = nreg == 2 .and. mod(nstep,nstep_in_day) == 1
     call init_fluxes(m,n,mm,nn,k1m,k1n,update_flux_halos)
 
     auxil_time = get_time()
 
-    ! --- ------------------------------------------------------------------
-    ! --- Get forcing
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Get forcing
+    ! ------------------------------------------------------------------
 
     call getfrc
 
-    ! --- ------------------------------------------------------------------
-    ! --- Update arrays related to shortwave radiation absorption.
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Update arrays related to shortwave radiation absorption.
+    ! ------------------------------------------------------------------
 
     call updswa
 
@@ -231,7 +230,7 @@ contains
     end if
 
     if (use_TRC) then
-      ! --- update tracer due to non-passive processes
+      ! update tracer due to non-passive processes
       call updtrc(m,n,mm,nn,k1m,k1n)
     end if
 
@@ -266,27 +265,25 @@ contains
 
     auxil_time = auxil_time+get_time()
 
-    ! ----------------------------------------------------------------------
-
-    ! --- output and diagnostic calculations
-
-    ! ----------------------------------------------------------------------
+    !-------------------------------------------------------------------
+    ! output and diagnostic calculations
+    !-------------------------------------------------------------------
 
     call chkvar(m,n,mm,nn,k1m,k1n)
 
     if (mod(nstep,nstep_in_day) == 0.and.nday_of_year == 1) then
 
-      ! --- ------------------------------------------------------------------
-      ! --- - output diagnosed heat and salt flux
-      ! --- ------------------------------------------------------------------
+      ! ------------------------------------------------------------------
+      ! output diagnosed heat and salt flux
+      ! ------------------------------------------------------------------
 
       call wdiflx
 
     end if
 
-    ! --- ------------------------------------------------------------------
-    ! --- - output of BLOM diagnostics
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! output of BLOM diagnostics
+    ! ------------------------------------------------------------------
 
     do i = 1,nphy
       if (((diagann_phy(i).and.nday_of_year == 1.or.diagmon_phy(i) &
@@ -296,7 +293,7 @@ contains
            call diaout(i,m,n,mm,nn,k1m,k1n)
     end do
 
-    ! --- update total time spent by various tasks
+    ! update total time spent by various tasks
     auxil_total_time = auxil_total_time+auxil_time
     getfrc_total_time = getfrc_total_time+getfrc_time
     tmsmt1_total_time = tmsmt1_total_time+tmsmt1_time
@@ -319,9 +316,9 @@ contains
 
       if (expcnf /= 'cesm') then
 
-        ! --- ------------------------------------------------------------------
-        ! --- --- output restart files
-        ! --- ------------------------------------------------------------------
+        ! ------------------------------------------------------------------
+        ! output restart files
+        ! ------------------------------------------------------------------
 
         call restart_write()
 
@@ -329,9 +326,9 @@ contains
 
       io_time = get_time()
 
-      ! --- ------------------------------------------------------------------
-      ! --- - write timing diagnostics to standard out
-      ! --- ------------------------------------------------------------------
+      ! ------------------------------------------------------------------
+      ! write timing diagnostics to standard out
+      ! ------------------------------------------------------------------
 
       io_total_time = io_total_time+io_time
       total_step_time = auxil_time +getfrc_time+tmsmt1_time+advdif_time &
@@ -367,18 +364,18 @@ contains
 
     else
 
-      ! --- ------------------------------------------------------------------
-      ! --- - write time spent for current time step
-      ! --- ------------------------------------------------------------------
+      ! ------------------------------------------------------------------
+      ! write time spent for current time step
+      ! ------------------------------------------------------------------
 
       io_time = get_time()
       io_total_time = io_total_time+io_time
-      total_step_time = auxil_time +getfrc_time+tmsmt1_time+advdif_time &
-                       +sfcstr_time+momtum_time+pgforc_time+barotp_time &
-                       +pbcor2_time+convec_time+diapfl_time+thermf_time &
-                       +mxlayr_time+tmsmt2_time+diaacc_time+io_time
-      total_time = total_time+total_step_time
-      total_xio_time = total_xio_time+total_step_time-io_time
+      total_step_time = auxil_time  + getfrc_time + tmsmt1_time + advdif_time &
+                        + sfcstr_time + momtum_time + pgforc_time + barotp_time &
+                        + pbcor2_time + convec_time + diapfl_time + thermf_time &
+                        + mxlayr_time + tmsmt2_time + diaacc_time + io_time
+      total_time = total_time + total_step_time
+      total_xio_time = total_xio_time + total_step_time-io_time
 
       if (mnproc == 1) then
         write (lp,'(f12.4,a,i8)') total_step_time, '  sec for step ', nstep
@@ -386,7 +383,7 @@ contains
 
     end if
 
-    delt1 = baclin+baclin
+    delt1 = baclin + baclin
 
   end subroutine blom_step
 

@@ -1,18 +1,18 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2009-2022 Mats Bentsen, Mehmet Ilicak
-
+! Copyright (C) 2009-2024 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
+!
 ! This file is part of BLOM.
-
+!
 ! BLOM is free software: you can redistribute it and/or modify it under the
 ! terms of the GNU Lesser General Public License as published by the Free
 ! Software Foundation, either version 3 of the License, or (at your option)
 ! any later version.
-
+!
 ! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
 ! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
 ! more details.
-
+!
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
@@ -41,10 +41,10 @@ contains
 
   subroutine convec(m,n,mm,nn,k1m,k1n)
 
-    ! --- ------------------------------------------------------------------
-    ! --- Remove static instabilitites between the mixed layer and interior
-    ! --- layers
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Remove static instabilitites between the mixed layer and interior
+    ! layers
+    ! ------------------------------------------------------------------
 
     ! Arguments
     integer :: m,n,mm,nn,k1m,k1n
@@ -68,7 +68,7 @@ contains
       do l = 1,isp(j)
         do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
 
-          ! --- --- Copy variables into 1d arrays
+          ! Copy variables into 1d arrays
           do k = 1,kk
             kn = k+nn
             ttem(k) = temp(i,j,kn)
@@ -83,9 +83,9 @@ contains
             end if
           end do
 
-          ! --- ------------------------------------------------------------------
-          ! --- --- Define first physical interior layer
-          ! --- ------------------------------------------------------------------
+          !---------------------------------------------------------------
+          ! Define first physical interior layer
+          !---------------------------------------------------------------
 
           k = 3
           dps = 0.
@@ -184,9 +184,9 @@ contains
 
           if (kfpl <= kk) then
 
-            ! --- ------------------------------------------------------------------
-            ! --- ----- Remove static instabilities
-            ! --- ------------------------------------------------------------------
+            !---------------------------------------------------------------
+            ! Remove static instabilities
+            !---------------------------------------------------------------
 
             done = .false.
 
@@ -200,10 +200,10 @@ contains
 
               done = .true.
 
-              ! --- ------- Remove instabilities between the lower mixed layer and
-              ! --- ------- interior layers by considering the potential density jump
-              ! --- ------- across the mixed layer base with reference pressure at the
-              ! --- ------- interface
+              ! Remove instabilities between the lower mixed layer and
+              ! interior layers by considering the potential density jump
+              ! across the mixed layer base with reference pressure at the
+              ! interface
               tdps = ttem(2)*delp(2)
               sdps = ssal(2)*delp(2)
               dps = delp(2)
@@ -216,8 +216,8 @@ contains
               stmp = ssal(2)
               k = kfpl
               do while (rho(dps,ttmp,stmp) > &
-                   rho(dps,ttem(k),ssal(k)).or. &
-                   delp(k) < epsilp)
+                        rho(dps,ttem(k),ssal(k)).or. &
+                        delp(k) < epsilp)
                 tdps = tdps+ttem(k)*delp(k)
                 sdps = sdps+ssal(k)*delp(k)
                 dps = dps+delp(k)
@@ -275,7 +275,7 @@ contains
 
           kfpla(i,j,n) = kfpl
 
-          ! --- --- Copy 1d arrays to 3d arrays
+          ! Copy 1d arrays to 3d arrays
           do k = 1,kk
             kn = k+nn
             temp(i,j,kn) = ttem(k)
@@ -295,9 +295,9 @@ contains
     end do
     !$omp end parallel do
 
-    ! --- ------------------------------------------------------------------
-    ! --- Redistribute momentum
-    ! --- ------------------------------------------------------------------
+    !---------------------------------------------------------------
+    ! Redistribute momentum
+    !---------------------------------------------------------------
 
     call xctilr(p, 1,kk+1, 1,1, halo_ps)
 
@@ -329,7 +329,7 @@ contains
                 ko = ko+1
               end do
               un(kn) = (udpn+uo(ko)*(pn(kn+1)-max(po(ko),pn(kn)))) &
-                   /(pn(kn+1)-pn(kn))
+                      /(pn(kn+1)-pn(kn))
             end if
           end do
           do k = 1,kk
@@ -365,7 +365,7 @@ contains
                 ko = ko+1
               end do
               un(kn) = (udpn+uo(ko)*(pn(kn+1)-max(po(ko),pn(kn)))) &
-                   /(pn(kn+1)-pn(kn))
+                      /(pn(kn+1)-pn(kn))
             end if
           end do
           do k = 1,kk

@@ -1,18 +1,18 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2022 Mats Bentsen, Mehmet Ilicak
-
+! Copyright (C) 2008-2024 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
+!
 ! This file is part of BLOM.
-
+!
 ! BLOM is free software: you can redistribute it and/or modify it under the
 ! terms of the GNU Lesser General Public License as published by the Free
 ! Software Foundation, either version 3 of the License, or (at your option)
 ! any later version.
-
+!
 ! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
 ! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
 ! more details.
-
+!
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
@@ -29,10 +29,10 @@ module mod_blom_init
 contains
 
   subroutine blom_init()
+  ! ------------------------------------------------------------------
+  ! initialize the model
+  ! ------------------------------------------------------------------
 
-    ! --- ------------------------------------------------------------------
-    ! --- initialize the model
-    ! --- ------------------------------------------------------------------
     use dimensions,          only: itdm, nreg
     use mod_config,          only: expcnf
     use mod_time,            only: date, nday1, nday2, nstep1, nstep2, nstep, delt1, &
@@ -74,112 +74,111 @@ contains
     logical :: icrest,fexist
     integer :: icrest_int
 
-    ! --- ------------------------------------------------------------------
-    ! --- Initialize SPMD processing
-    ! --- ------------------------------------------------------------------
+    ! ---------------------------------------------------------------
+    ! Initialize SPMD processing
+    ! ------------------------------------------------------------------
 
     call xcspmd
 
-    ! --- ------------------------------------------------------------------
-    ! --- Initialize timing
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Initialize timing
+    ! ------------------------------------------------------------------
 
     call init_timing
 
-    ! --- print seconds elapsed since startup (should be almost zero)
+    ! print seconds elapsed since startup (should be almost zero)
     if (mnproc == 1) then
       write (lp,'(f12.4,a,i8)') get_time(),' Time 0 BLOM starting up'
       call flush(lp)
     end if
 
-    ! --- ------------------------------------------------------------------
-    ! --- Initialize check sum algorithm
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Initialize check sum algorithm
+    ! ------------------------------------------------------------------
 
     call crcinit
 
-    ! --- ------------------------------------------------------------------
-    ! --- Read limits file
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Read limits file
+    ! ------------------------------------------------------------------
 
     call rdlim
 
-    ! --- ------------------------------------------------------------------
-    ! --- Identify processor and horizontal indexes where detailed
-    ! --- diagnostics are desired
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Identify processor and horizontal indexes where detailed
+    ! diagnostics are desired
+    ! ------------------------------------------------------------------
 
     call init_ptest
 
-    ! --- ------------------------------------------------------------------
-    ! --- Initialize the geographic environment
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Initialize the geographic environment
+    ! ------------------------------------------------------------------
 
     call inigeo
 
-    ! --- ------------------------------------------------------------------
-    ! --- Initialize various arrays
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Initialize various arrays
+    ! ------------------------------------------------------------------
 
     call inivar
 
-    ! --- ------------------------------------------------------------------
-    ! --- Set various numerical bounds
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Set various numerical bounds
+    ! ------------------------------------------------------------------
 
     call numerical_bounds
 
-    ! --- ------------------------------------------------------------------
-    ! --- Initialize physical parameterizations
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Initialize physical parameterizations
+    ! ------------------------------------------------------------------
 
     call iniphy
 
-    ! --- ------------------------------------------------------------------
-    ! --- Initialize forcing
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Initialize forcing
+    ! ------------------------------------------------------------------
 
     call inifrc
 
-    ! --- ------------------------------------------------------------------
-    ! --- Define coefficients for equation of state functions
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Define coefficients for equation of state functions
+    ! ------------------------------------------------------------------
 
     call inieos
 
-    ! --- ------------------------------------------------------------------
-    ! --- Initialize shortwave radiation absorption
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Initialize shortwave radiation absorption
+    ! ------------------------------------------------------------------
 
     call iniswa
 
-
-    ! --- ------------------------------------------------------------------
-    ! --- Initialize second order turbulence closure closure
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Initialize second order turbulence closure closure
+    ! ------------------------------------------------------------------
 
     if (use_TRC .and. use_TKE) then
       call initke
     end if
 
-    ! --- ------------------------------------------------------------------
-    ! --- Initialize neutral diffusion
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Initialize neutral diffusion
+    ! ------------------------------------------------------------------
 
     call ndiff_init
 
-    ! --- ------------------------------------------------------------------
-    ! --- Initialize diagnostic accumulation fields
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Initialize diagnostic accumulation fields
+    ! ------------------------------------------------------------------
 
     call diaini
 
-    ! --- ------------------------------------------------------------------
-    ! --- Set up initial conditions or start from restart file
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Set up initial conditions or start from restart file
+    ! ------------------------------------------------------------------
 
-    ! --- check whether initial condition file given in namelist is a
-    ! --- restart file
+    ! check whether initial condition file given in namelist is a
+    ! restart file
     icrest = .false.
     icrest_int = 0
     if (mnproc == 1) then
@@ -200,9 +199,9 @@ contains
 
     if (nday1+nint(time0) == 0.and..not.icrest) then
 
-      ! --- ----------------------------------------------------------------
-      ! --- - start from initial conditions derived from climatology
-      ! --- ----------------------------------------------------------------
+      ! ----------------------------------------------------------------
+      ! start from initial conditions derived from climatology
+      ! ----------------------------------------------------------------
 
       if (date%month /= 1.or.date%day /= 1) then
         if (mnproc == 1) then
@@ -219,11 +218,11 @@ contains
         call initrc
       end if
 
-    else !  nday1+nint(time0) > 0 .or. icrest
+    else ! nday1+nint(time0) > 0 .or. icrest
 
-      ! --- ------------------------------------------------------------------
-      ! --- - start from restart file
-      ! --- ------------------------------------------------------------------
+      ! ------------------------------------------------------------------
+      ! start from restart file
+      ! ------------------------------------------------------------------
 
       delt1 = baclin+baclin
 
@@ -231,10 +230,10 @@ contains
 
     end if
 
-    ! --- ------------------------------------------------------------------
-    ! --- Initialize model time step and set time level indices consistent
-    ! --- with starting state
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Initialize model time step and set time level indices consistent
+    ! with starting state
+    ! ------------------------------------------------------------------
 
     nstep = nstep1
     m = mod(nstep+1,2)+1
@@ -244,9 +243,9 @@ contains
     k1m = 1+mm
     k1n = 1+nn
 
-    ! --- ------------------------------------------------------------------
-    ! --- Initialize layer thicknesses
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Initialize layer thicknesses
+    ! ------------------------------------------------------------------
 
     call xctilr(dp, 1,2*kk, 3,3, halo_ps)
 
@@ -255,7 +254,7 @@ contains
       do mt = n,3-n,3-2*n
         mmt = (mt-1)*kk
 
-        !$OMP PARALLEL DO PRIVATE(k,l,i)
+        !$omp parallel do private(k,l,i)
         do j = -2,jj+2
           do k = 1,kk
             do l = 1,isp(j)
@@ -265,9 +264,9 @@ contains
             end do
           end do
         end do
-        !$OMP END PARALLEL DO
+        !$omp end parallel do
 
-        !$OMP PARALLEL DO PRIVATE(k,km,l,i,q)
+        !$omp parallel do private(k,km,l,i,q)
         do j = -1,jj+2
           do k = 1,kk
             km = k+mmt
@@ -289,7 +288,7 @@ contains
             end do
           end do
         end do
-        !$OMP END PARALLEL DO
+        !$omp end parallel do
 
       end do
 
@@ -298,7 +297,7 @@ contains
       call xctilr(dpu, 1,2*kk, 3,3, halo_us)
       call xctilr(dpv, 1,2*kk, 3,3, halo_vs)
 
-      !$OMP PARALLEL DO PRIVATE(k,km,l,i)
+      !$omp parallel do private(k,km,l,i)
       do j = -2,jj+2
         do k = 1,kk
           km = k+mm
@@ -309,9 +308,9 @@ contains
           end do
         end do
       end do
-      !$OMP END PARALLEL DO
+      !$omp end parallel do
 
-      !$OMP PARALLEL DO PRIVATE(k,kn,l,i)
+      !$omp parallel do private(k,kn,l,i)
       do j = 1,jj
         do k = 1,kk
           kn = k+nn
@@ -327,19 +326,19 @@ contains
           end do
         end do
       end do
-      !$OMP END PARALLEL DO
+      !$omp end parallel do
 
     end if
 
-    ! --- ------------------------------------------------------------------
-    ! --- initialize budget calculations
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! initialize budget calculations
+    ! ------------------------------------------------------------------
 
     call budget_init
 
-    ! --- ------------------------------------------------------------------
-    ! --- update some halos
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! update some halos
+    ! ------------------------------------------------------------------
 
     call xctilr(uflx, 1,2*kk, 1,1, halo_uv)
     call xctilr(vflx, 1,2*kk, 1,1, halo_vv)
@@ -359,8 +358,8 @@ contains
        call xctilr(vmlres, 1,2, 0,1, halo_vv)
     end if
 
-    ! --- with arctic patch, switch xixp and xixm and xiyp and xiym in the
-    ! --- halo region adjacent to the arctic grid intersection
+    ! with arctic patch, switch xixp and xixm and xiyp and xiym in the
+    ! halo region adjacent to the arctic grid intersection
     if (nreg == 2.and.nproc == jpr) then
       do j = jj,jj+2
         do i = 0,ii+1
@@ -392,21 +391,21 @@ contains
       end do
     end if
 
-    ! --- ------------------------------------------------------------------
-    ! --- Initialize time smoothing variables and some common fields.
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Initialize time smoothing variables and some common fields.
+    ! ------------------------------------------------------------------
 
     call initms(mm)
     call cmnfld1(m,n,mm,nn,k1m,k1n)
 
-    ! --- ------------------------------------------------------------------
-    ! --- Extract reference potential density vector representative of the
-    ! --- dominating ocean domain
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Extract reference potential density vector representative of the
+    ! dominating ocean domain
+    ! ------------------------------------------------------------------
 
     call diasg1
 
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
 
     if (mnproc == 1.and.expcnf /= 'cesm') then
       write (lp,'(/2(a,i6),2(a,i9),a/)') &
@@ -415,7 +414,7 @@ contains
       call flush(lp)
     end if
 
-    ! --- print seconds elapsed since last call to system_clock (Time 0)
+    ! print seconds elapsed since last call to system_clock (Time 0)
     if (mnproc == 1) then
       write (lp,'(f12.4,a,i8)') get_time(),' Time 1 Just before main loop'
       call flush(lp)
@@ -424,10 +423,9 @@ contains
   end subroutine blom_init
 
   subroutine numerical_bounds
-
-    ! ---------------------------------------------------------------------------
-    ! Set various numerical bounds.
-    ! ---------------------------------------------------------------------------
+  !------------------------------------------------------------------------
+  ! Set various numerical bounds.
+  !------------------------------------------------------------------------
 
     use mod_types,     only: r8
     use mod_constants, only: g, spval, L_mks2cgs

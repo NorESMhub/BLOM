@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2021-2023 Mats Bentsen
+! Copyright (C) 2021-2024 Mats Bentsen, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -38,10 +38,10 @@ module mod_cntiso_hybrid_forcing
 contains
 
   subroutine cntiso_hybrid_forcing(m, n, mm, nn, k1m, k1n)
-    ! ------------------------------------------------------------------------------
-    ! Compute penetration factors for shortwave and brine flux and compute interface
-    ! buoyancy flux.
-    ! ------------------------------------------------------------------------------
+  ! ------------------------------------------------------------------------------
+  ! Compute penetration factors for shortwave and brine flux and compute interface
+  ! buoyancy flux.
+  ! ------------------------------------------------------------------------------
 
     ! Arguments
     integer, intent(in) :: m, n, mm, nn, k1m, k1n
@@ -129,8 +129,8 @@ contains
             if (dp(i,j,kn) > onemu) then
               q = min(cbra1, lei*p(i,j,k+1))
               q3 = q*q*q
-              !              s_br_nonloc(i,j,k+1) = &
-              !                 1._r8 - cbra2*q*q3*q3*(q3*(35._r8*q3 - 182._r8) + 260._r8)
+              ! s_br_nonloc(i,j,k+1) = &
+              !    1._r8 - cbra2*q*q3*q3*(q3*(35._r8*q3 - 182._r8) + 260._r8)
               s_br_nonloc(i,j,k+1) = 1._r8 - cbra2*q*q3*(7._r8-2._r8*q3)
               kmax = k
             else
@@ -189,7 +189,7 @@ contains
           ! Buoyancy flux at subsurface layer interfaces [cm2 s-3].
           do k = 2, kk+1
             buoyfl(i,j,k) = - ( dsgdt*t_sw_nonloc(i,j,k)*hfsw*cpi &
-                 + dsgds*s_br_nonloc(i,j,k)*sfbr)*gaa
+                              + dsgds*s_br_nonloc(i,j,k)*sfbr)*gaa
           enddo
 
         enddo

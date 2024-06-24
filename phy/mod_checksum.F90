@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2006-2021 Mats Bentsen
+! Copyright (C) 2006-2024 Mats Bentsen, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -123,19 +123,19 @@ contains
       integer :: ics, jcs, kcs
 
       do kcs = 1, kcsd
-      !$omp parallel do private(ics)
-         do jcs = 1, jj
-            do ics = 1, ii
-               if (msk(ics, jcs) == 0) then
-                  amsk(ics, jcs) = 0._r8
-               else
-                  amsk(ics, jcs) = a(ics, jcs, kcs)
-               endif
-            enddo
-         enddo
-      !$omp end parallel do
-         call xcaget(aa, amsk, 1)
-         cslist(kcs) = crc32(aa)
+        !$omp parallel do private(ics)
+        do jcs = 1, jj
+          do ics = 1, ii
+            if (msk(ics, jcs) == 0) then
+              amsk(ics, jcs) = 0._r8
+            else
+              amsk(ics, jcs) = a(ics, jcs, kcs)
+            endif
+          enddo
+        enddo
+        !$omp end parallel do
+        call xcaget(aa, amsk, 1)
+        cslist(kcs) = crc32(aa)
       enddo
 
       if (mnproc == 1) then

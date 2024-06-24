@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2020 Mats Bentsen
+! Copyright (C) 2020-2024 Mats Bentsen, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -144,10 +144,10 @@ contains
   ! ---------------------------------------------------------------------------
 
   pure function intdivfloor(a, b)
-    ! ---------------------------------------------------------------------------
-    ! Returns integer quotient of integer division, rounded towards minus
-    ! infinity. This function assumes a positive denominator.
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Returns integer quotient of integer division, rounded towards minus
+  ! infinity. This function assumes a positive denominator.
+  ! ---------------------------------------------------------------------------
 
     integer, intent(in) :: a, b
 
@@ -159,10 +159,10 @@ contains
   end function intdivfloor
 
   subroutine date_to_daynum_julian(date, daynum)
-    ! ---------------------------------------------------------------------------
-    ! Convert from Julian calendar date to Chronological Julian Day Number
-    ! (CJDN).
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Convert from Julian calendar date to Chronological Julian Day Number
+  ! (CJDN).
+  ! ---------------------------------------------------------------------------
 
     type(date_type), intent(in) :: date ! Julian calendar date.
     integer, intent(out) :: daynum      ! CJDN.
@@ -178,10 +178,10 @@ contains
   end subroutine date_to_daynum_julian
 
   subroutine date_to_daynum_gregorian(date, daynum)
-    ! ---------------------------------------------------------------------------
-    ! Convert from proleptic Gregorian calendar date to Chronological Julian Day
-    ! Number (CJDN).
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Convert from proleptic Gregorian calendar date to Chronological Julian Day
+  ! Number (CJDN).
+  ! ---------------------------------------------------------------------------
 
     type(date_type), intent(in) :: date ! Proleptic Gregorian calendar date.
     integer, intent(out) :: daynum      ! CJDN.
@@ -199,9 +199,9 @@ contains
   end subroutine date_to_daynum_gregorian
 
   subroutine date_to_daynum_365_day(date, daynum)
-    ! ---------------------------------------------------------------------------
-    ! Convert from 'noleap' or '365_day' calendar date to day number.
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Convert from 'noleap' or '365_day' calendar date to day number.
+  ! ---------------------------------------------------------------------------
 
     type(date_type), intent(in) :: date ! 'noleap' or '365_day' calendar date.
     integer, intent(out) :: daynum      ! Day number.
@@ -217,12 +217,12 @@ contains
   end subroutine date_to_daynum_365_day
 
   subroutine date_to_daynum_366_day(date, daynum)
-    ! ---------------------------------------------------------------------------
-    ! Convert from 'all_leap' or '366_day' calendar date to day number.
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Convert from 'all_leap' or '366_day' calendar date to day number.
+  ! ---------------------------------------------------------------------------
 
     type(date_type), intent(in) :: date ! 'all_leap' or '366_day' calendar
-    ! date.
+                                        ! date.
     integer, intent(out) :: daynum      ! Day number.
 
     integer :: c0
@@ -236,9 +236,9 @@ contains
   end subroutine date_to_daynum_366_day
 
   subroutine date_to_daynum_360_day(date, daynum)
-    ! ---------------------------------------------------------------------------
-    ! Convert from '360_day' calendar date to day number.
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Convert from '360_day' calendar date to day number.
+  ! ---------------------------------------------------------------------------
 
     type(date_type), intent(in) :: date ! '360_day' calendar date.
     integer, intent(out) :: daynum      ! Day number.
@@ -248,10 +248,10 @@ contains
   end subroutine date_to_daynum_360_day
 
   subroutine daynum_to_date_julian(daynum, date)
-    ! ---------------------------------------------------------------------------
-    ! Convert from Chronological Julian Day Number (CJDN) to Julian calendar
-    ! date.
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Convert from Chronological Julian Day Number (CJDN) to Julian calendar
+  ! date.
+  ! ---------------------------------------------------------------------------
 
     integer, intent(in) :: daynum        ! CJDN.
     type(date_type), intent(out) :: date ! Julian calendar date.
@@ -269,10 +269,10 @@ contains
   end subroutine daynum_to_date_julian
 
   subroutine daynum_to_date_gregorian(daynum, date)
-    ! ---------------------------------------------------------------------------
-    ! Convert from Chronological Julian Day Number (CJDN) to proleptic Gregorian
-    ! calendar date.
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Convert from Chronological Julian Day Number (CJDN) to proleptic Gregorian
+  ! calendar date.
+  ! ---------------------------------------------------------------------------
 
     integer, intent(in) :: daynum        ! CJDN.
     type(date_type), intent(out) :: date ! Proleptic Gregorian calendar date.
@@ -292,9 +292,9 @@ contains
   end subroutine daynum_to_date_gregorian
 
   subroutine daynum_to_date_365_day(daynum, date)
-    ! ---------------------------------------------------------------------------
-    ! Convert from day number to 'noleap' or '365_day' calendar date.
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Convert from day number to 'noleap' or '365_day' calendar date.
+  ! ---------------------------------------------------------------------------
 
     integer, intent(in) :: daynum        ! Day number.
     type(date_type), intent(out) :: date ! 'noleap' or '365_day' calendar.
@@ -313,9 +313,9 @@ contains
   end subroutine daynum_to_date_365_day
 
   subroutine daynum_to_date_366_day(daynum, date)
-    ! ---------------------------------------------------------------------------
-    ! Convert from day number to 'all_leap' or '366_day' calendar date.
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Convert from day number to 'all_leap' or '366_day' calendar date.
+  ! ---------------------------------------------------------------------------
 
     integer, intent(in) :: daynum        ! Day number.
     type(date_type), intent(out) :: date ! 'all_leap' or '366_day' calendar.
@@ -334,9 +334,9 @@ contains
   end subroutine daynum_to_date_366_day
 
   subroutine daynum_to_date_360_day(daynum, date)
-    ! ---------------------------------------------------------------------------
-    ! Convert from day number to '360_day' calendar date.
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Convert from day number to '360_day' calendar date.
+  ! ---------------------------------------------------------------------------
 
     integer, intent(in) :: daynum        ! Day number.
     type(date_type), intent(out) :: date ! '360_day' calendar date.
@@ -357,9 +357,9 @@ contains
   ! ---------------------------------------------------------------------------
 
   function date_to_daynum(calendar, date, daynum) result(errstat)
-    ! ---------------------------------------------------------------------------
-    ! Convert from calendar date to day number.
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Convert from calendar date to day number.
+  ! ---------------------------------------------------------------------------
 
     character(len = *), intent(in) :: calendar ! Calendar type.
     type(date_type), intent(in) :: date        ! Calendar date.
@@ -372,57 +372,57 @@ contains
     errstat = calendar_noerr
 
     select case (trim(calendar))
-    case ('gregorian', 'standard')
-      call date_to_daynum_gregorian(date, daynum)
-      if (daynum > last_julian_daynum) then
+      case ('gregorian', 'standard')
+        call date_to_daynum_gregorian(date, daynum)
+        if (daynum > last_julian_daynum) then
+          call daynum_to_date_gregorian(daynum, date_tmp)
+          if (date_tmp /= date) then
+            errstat = calendar_invalid_date
+          endif
+        else
+          call date_to_daynum_julian(date, daynum)
+          call daynum_to_date_julian(daynum, date_tmp)
+          if (date_tmp /= date) then
+            errstat = calendar_invalid_date
+          else
+            if (daynum > last_julian_daynum) then
+              errstat = calendar_invalid_gregorian_date
+            endif
+          endif
+        endif
+      case ('proleptic_gregorian')
+        call date_to_daynum_gregorian(date, daynum)
         call daynum_to_date_gregorian(daynum, date_tmp)
         if (date_tmp /= date) then
           errstat = calendar_invalid_date
         endif
-      else
+      case ('julian')
         call date_to_daynum_julian(date, daynum)
         call daynum_to_date_julian(daynum, date_tmp)
         if (date_tmp /= date) then
           errstat = calendar_invalid_date
-        else
-          if (daynum > last_julian_daynum) then
-            errstat = calendar_invalid_gregorian_date
-          endif
         endif
-      endif
-    case ('proleptic_gregorian')
-      call date_to_daynum_gregorian(date, daynum)
-      call daynum_to_date_gregorian(daynum, date_tmp)
-      if (date_tmp /= date) then
-        errstat = calendar_invalid_date
-      endif
-    case ('julian')
-      call date_to_daynum_julian(date, daynum)
-      call daynum_to_date_julian(daynum, date_tmp)
-      if (date_tmp /= date) then
-        errstat = calendar_invalid_date
-      endif
-    case ('noleap', '365_day')
-      call date_to_daynum_365_day(date, daynum)
-      call daynum_to_date_365_day(daynum, date_tmp)
-      if (date_tmp /= date) then
-        errstat = calendar_invalid_date
-      endif
-    case ('all_leap', '366_day')
-      call date_to_daynum_366_day(date, daynum)
-      call daynum_to_date_366_day(daynum, date_tmp)
-      if (date_tmp /= date) then
-        errstat = calendar_invalid_date
-      endif
-    case ('360_day')
-      call date_to_daynum_360_day(date, daynum)
-      call daynum_to_date_360_day(daynum, date_tmp)
-      if (date_tmp /= date) then
-        errstat = calendar_invalid_date
-      endif
-    case default
-      daynum = 0
-      errstat = calendar_unsupported
+      case ('noleap', '365_day')
+        call date_to_daynum_365_day(date, daynum)
+        call daynum_to_date_365_day(daynum, date_tmp)
+        if (date_tmp /= date) then
+          errstat = calendar_invalid_date
+        endif
+      case ('all_leap', '366_day')
+        call date_to_daynum_366_day(date, daynum)
+        call daynum_to_date_366_day(daynum, date_tmp)
+        if (date_tmp /= date) then
+          errstat = calendar_invalid_date
+        endif
+      case ('360_day')
+        call date_to_daynum_360_day(date, daynum)
+        call daynum_to_date_360_day(daynum, date_tmp)
+        if (date_tmp /= date) then
+          errstat = calendar_invalid_date
+        endif
+      case default
+        daynum = 0
+        errstat = calendar_unsupported
     end select
 
   end function date_to_daynum
@@ -443,58 +443,58 @@ contains
     errstat = calendar_noerr
 
     select case (trim(calendar))
-    case ('gregorian', 'standard')
-      if (daynum > last_julian_daynum) then
+      case ('gregorian', 'standard')
+        if (daynum > last_julian_daynum) then
+          call daynum_to_date_gregorian(daynum, date)
+          call date_to_daynum_gregorian(date, daynum_tmp)
+        else
+          call daynum_to_date_julian(daynum, date)
+          call date_to_daynum_julian(date, daynum_tmp)
+        endif
+        if (daynum_tmp /= daynum) then
+          errstat = calendar_daynum_overflow
+        endif
+      case ('proleptic_gregorian')
         call daynum_to_date_gregorian(daynum, date)
         call date_to_daynum_gregorian(date, daynum_tmp)
-      else
+        if (daynum_tmp /= daynum) then
+          errstat = calendar_daynum_overflow
+        endif
+      case ('julian')
         call daynum_to_date_julian(daynum, date)
         call date_to_daynum_julian(date, daynum_tmp)
-      endif
-      if (daynum_tmp /= daynum) then
-        errstat = calendar_daynum_overflow
-      endif
-    case ('proleptic_gregorian')
-      call daynum_to_date_gregorian(daynum, date)
-      call date_to_daynum_gregorian(date, daynum_tmp)
-      if (daynum_tmp /= daynum) then
-        errstat = calendar_daynum_overflow
-      endif
-    case ('julian')
-      call daynum_to_date_julian(daynum, date)
-      call date_to_daynum_julian(date, daynum_tmp)
-      if (daynum_tmp /= daynum) then
-        errstat = calendar_daynum_overflow
-      endif
-    case ('noleap', '365_day')
-      call daynum_to_date_365_day(daynum, date)
-      call date_to_daynum_365_day(date, daynum_tmp)
-      if (daynum_tmp /= daynum) then
-        errstat = calendar_daynum_overflow
-      endif
-    case ('all_leap', '366_day')
-      call daynum_to_date_366_day(daynum, date)
-      call date_to_daynum_366_day(date, daynum_tmp)
-      if (daynum_tmp /= daynum) then
-        errstat = calendar_daynum_overflow
-      endif
-    case ('360_day')
-      call daynum_to_date_360_day(daynum, date)
-      call date_to_daynum_360_day(date, daynum_tmp)
-      if (daynum_tmp /= daynum) then
-        errstat = calendar_daynum_overflow
-      endif
-    case default
-      date = date_type(0, 0, 0)
-      errstat = calendar_unsupported
+        if (daynum_tmp /= daynum) then
+          errstat = calendar_daynum_overflow
+        endif
+      case ('noleap', '365_day')
+        call daynum_to_date_365_day(daynum, date)
+        call date_to_daynum_365_day(date, daynum_tmp)
+        if (daynum_tmp /= daynum) then
+          errstat = calendar_daynum_overflow
+        endif
+      case ('all_leap', '366_day')
+        call daynum_to_date_366_day(daynum, date)
+        call date_to_daynum_366_day(date, daynum_tmp)
+        if (daynum_tmp /= daynum) then
+          errstat = calendar_daynum_overflow
+        endif
+      case ('360_day')
+        call daynum_to_date_360_day(daynum, date)
+        call date_to_daynum_360_day(date, daynum_tmp)
+        if (daynum_tmp /= daynum) then
+          errstat = calendar_daynum_overflow
+        endif
+      case default
+        date = date_type(0, 0, 0)
+        errstat = calendar_unsupported
     end select
 
   end function daynum_to_date
 
   function daynum_diff(calendar, date1, date2, dndiff) result(errstat)
-    ! ---------------------------------------------------------------------------
-    ! Calculate number of days between two calendar dates.
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Calculate number of days between two calendar dates.
+  ! ---------------------------------------------------------------------------
 
     character(len = *), intent(in) :: calendar ! Calendar type.
     type(date_type), intent(in) :: date1       ! First date.
@@ -519,9 +519,9 @@ contains
   end function daynum_diff
 
   function date_offset(calendar, date, dnoffset) result(errstat)
-    ! ---------------------------------------------------------------------------
-    ! Offset a date by a specified number of days.
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Offset a date by a specified number of days.
+  ! ---------------------------------------------------------------------------
 
     character(len = *), intent(in) :: calendar ! Calendar type.
     type(date_type), intent(inout) :: date     ! Calendar date.
@@ -544,9 +544,9 @@ contains
   end function date_offset
 
   function date_check(calendar, date) result(errstat)
-    ! ---------------------------------------------------------------------------
-    ! Check validity of date.
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Check validity of date.
+  ! ---------------------------------------------------------------------------
 
     character(len = *), intent(in) :: calendar ! Calendar type.
     type(date_type), intent(inout) :: date     ! Calendar date.
@@ -560,10 +560,10 @@ contains
   end function date_check
 
   pure function calendar_errstr(errstat) result(errstr)
-    ! ---------------------------------------------------------------------------
-    ! Returns static reference to an error message string corresponding to a
-    ! calendar error status.
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Returns static reference to an error message string corresponding to a
+  ! calendar error status.
+  ! ---------------------------------------------------------------------------
 
     integer, intent(in) :: errstat ! Error status.
 
@@ -578,54 +578,54 @@ contains
   end function calendar_errstr
 
   pure logical function dates_equal(date1, date2)
-    ! ---------------------------------------------------------------------------
-    ! Returns true if dates are equal. For overloading operator (==).
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Returns true if dates are equal. For overloading operator (==).
+  ! ---------------------------------------------------------------------------
 
     type(date_type), intent(in) :: date1, date2
 
     dates_equal = date1%year  == date2%year  .and. &
-         date1%month == date2%month .and. &
-         date1%day   == date2%day
+                  date1%month == date2%month .and. &
+                  date1%day   == date2%day
 
   end function dates_equal
 
   pure logical function date1_lt_date2(date1, date2)
-    ! ---------------------------------------------------------------------------
-    ! Returns true if date1 is less than date2. For overloading operator (<).
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Returns true if date1 is less than date2. For overloading operator (<).
+  ! ---------------------------------------------------------------------------
 
     type(date_type), intent(in) :: date1, date2
 
     date1_lt_date2 =  date1%year  <  date2%year   .or.  &
-         (date1%year  == date2%year   .and. &
-         date1%month <  date2%month) .or.  &
-         (date1%year  == date2%year   .and. &
-         date1%month == date2%month  .and. &
-         date1%day   <  date2%day)
+                     (date1%year  == date2%year   .and. &
+                     date1%month <  date2%month) .or.  &
+                     (date1%year  == date2%year   .and. &
+                     date1%month == date2%month  .and. &
+                     date1%day   <  date2%day)
 
   end function date1_lt_date2
 
   pure logical function date1_gt_date2(date1, date2)
-    ! ---------------------------------------------------------------------------
-    ! Returns true if date1 is greater than date2. For overloading operator (>).
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Returns true if date1 is greater than date2. For overloading operator (>).
+  ! ---------------------------------------------------------------------------
 
     type(date_type), intent(in) :: date1, date2
 
     date1_gt_date2 =  date1%year  >  date2%year   .or.  &
-         (date1%year  == date2%year   .and. &
-         date1%month >  date2%month) .or.  &
-         (date1%year  == date2%year   .and. &
-         date1%month == date2%month  .and. &
-         date1%day   >  date2%day)
+                     (date1%year  == date2%year   .and. &
+                     date1%month >  date2%month) .or.  &
+                     (date1%year  == date2%year   .and. &
+                     date1%month == date2%month  .and. &
+                     date1%day   >  date2%day)
 
   end function date1_gt_date2
 
   pure logical function dates_not_equal(date1, date2)
-    ! ---------------------------------------------------------------------------
-    ! Returns true if dates are not equal. For overloading operator (/=).
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Returns true if dates are not equal. For overloading operator (/=).
+  ! ---------------------------------------------------------------------------
 
     type(date_type), intent(in) :: date1, date2
 
@@ -634,10 +634,10 @@ contains
   end function dates_not_equal
 
   pure logical function date1_le_date2(date1, date2)
-    ! ---------------------------------------------------------------------------
-    ! Returns true if date1 is less or equal date2. For overloading operator
-    ! (<=).
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Returns true if date1 is less or equal date2. For overloading operator
+  ! (<=).
+  ! ---------------------------------------------------------------------------
 
     type(date_type), intent(in) :: date1, date2
 
@@ -646,10 +646,10 @@ contains
   end function date1_le_date2
 
   pure logical function date1_ge_date2(date1, date2)
-    ! ---------------------------------------------------------------------------
-    ! Returns true if date1 is greater or equal date2. For overloading operator
-    ! (>=).
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Returns true if date1 is greater or equal date2. For overloading operator
+  ! (>=).
+  ! ---------------------------------------------------------------------------
 
     type(date_type), intent(in) :: date1, date2
 

@@ -1,29 +1,29 @@
 ! ------------------------------------------------------------------------------
 ! Copyright (C) 2007-2020 Mats Bentsen, Mehmet Ilicak
-
+!
 ! This file is part of BLOM.
-
+!
 ! BLOM is free software: you can redistribute it and/or modify it under the
 ! terms of the GNU Lesser General Public License as published by the Free
 ! Software Foundation, either version 3 of the License, or (at your option)
 ! any later version.
-
+!
 ! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
 ! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
 ! more details.
-
+!
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
 module mod_advect
 
-  ! --- ------------------------------------------------------------------
-  ! --- This module contains variables and procedures related to advection
-  ! --- of layer pressure thickness and tracers by calling incremental
-  ! --- remapping routines.
-  ! --- ------------------------------------------------------------------
+  ! ------------------------------------------------------------------
+  ! This module contains variables and procedures related to advection
+  ! of layer pressure thickness and tracers by calling incremental
+  ! remapping routines.
+  ! ------------------------------------------------------------------
 
   use dimensions,    only: idm, jdm, kdm
   use mod_types,     only: r8
@@ -85,8 +85,8 @@ contains
           jne = j*(1-ip(ie,jn))+jn*ip(ie,jn)
           pbmin(i,j)= &
                min(p(isw,jsw,kk+1),p(i  ,js ,kk+1),p(ise,jse,kk+1), &
-               p(iw ,j  ,kk+1),p(i  ,j  ,kk+1),p(ie ,j  ,kk+1), &
-               p(inw,jnw,kk+1),p(i  ,jn ,kk+1),p(ine,jne,kk+1))
+                   p(iw ,j  ,kk+1),p(i  ,j  ,kk+1),p(ie ,j  ,kk+1), &
+                   p(inw,jnw,kk+1),p(i  ,jn ,kk+1),p(ine,jne,kk+1))
         end do
       end do
     end do
@@ -108,7 +108,7 @@ contains
         km = k+mm
         kn = k+nn
 
-        ! --- --- advective and diffusive velocity at mid time level
+        ! advective and diffusive velocity at mid time level
 
         do j = -1,jj+2
           do l = 1,isu(j)
@@ -126,28 +126,28 @@ contains
           do l = 1,isv(j)
             do i = max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
               vtotm(i,j) = v(i,j,km) &
-                   +(vbflxs_p(i,j,m)*dlt/pbv(i,j,m) &
-                   +(vmfltd(i,j,km)+vmflsm(i,j,km)) &
-                   /max(onemm,dpv(i,j,kn))) &
-                   /(delt1*scvx(i,j))
+                        + (vbflxs_p(i,j,m)*dlt/pbv(i,j,m) &
+                        + (vmfltd(i,j,km)+vmflsm(i,j,km)) &
+                        /max(onemm,dpv(i,j,kn))) &
+                        /(delt1*scvx(i,j))
               vtotm(i,j) = max(-vmax(i,j),min(vmax(i,j),vtotm(i,j)))
             end do
           end do
         end do
 
-        call remap_eitvel(scuy,scvx,scp2i,scp2,pbmin, &
-             pbu(1-nbdy,1-nbdy,n),pbv(1-nbdy,1-nbdy,n), &
-             p(1-nbdy,1-nbdy,k+1),utotm,vtotm,delt1,1, &
-             dp(1-nbdy,1-nbdy,kn), &
-             temp(1-nbdy,1-nbdy,kn), &
-             saln(1-nbdy,1-nbdy,kn), &
-             uflx(1-nbdy,1-nbdy,km), &
-             vflx(1-nbdy,1-nbdy,km), &
-             utflx(1-nbdy,1-nbdy,km), &
-             vtflx(1-nbdy,1-nbdy,km), &
-             usflx(1-nbdy,1-nbdy,km), &
-             vsflx(1-nbdy,1-nbdy,km), &
-             kn,trc)
+        call remap_eitvel(scuy, scvx, scp2i, scp2, pbmin, &
+                          pbu(1-nbdy, 1-nbdy, n), pbv(1-nbdy,1-nbdy,n), &
+                          p(1-nbdy,1-nbdy,k+1), utotm, vtotm, delt1,1, &
+                          dp(1-nbdy,1-nbdy,kn), &
+                          temp(1-nbdy,1-nbdy,kn), &
+                          saln(1-nbdy,1-nbdy,kn), &
+                          uflx(1-nbdy,1-nbdy,km), &
+                          vflx(1-nbdy,1-nbdy,km), &
+                          utflx(1-nbdy,1-nbdy,km), &
+                          vtflx(1-nbdy,1-nbdy,km), &
+                          usflx(1-nbdy,1-nbdy,km), &
+                          vsflx(1-nbdy,1-nbdy,km), &
+                          kn,trc)
       end do
       !$omp end parallel do
 
@@ -159,14 +159,14 @@ contains
         km = k+mm
         kn = k+nn
 
-        ! --- --- advective velocity and total eddy-induced mass flux at mid
-        ! --- --- time level
+        ! advective velocity and total eddy-induced mass flux at mid
+        ! time level
         do j = -1,jj+2
           do l = 1,isu(j)
             do i = max(0,ifu(j,l)),min(ii+2,ilu(j,l))
               utotm(i,j) = u(i,j,km) &
-                   +dlt*ubflxs_p(i,j,m) &
-                   /(delt1*pbu(i,j,m)*scuy(i,j))
+                         + dlt*ubflxs_p(i,j,m) &
+                         / (delt1*pbu(i,j,m)*scuy(i,j))
               utotm(i,j) = max(-umax(i,j),min(umax(i,j),utotm(i,j)))
               umflei(i,j) = umfltd(i,j,km)+umflsm(i,j,km)
             end do
@@ -176,31 +176,31 @@ contains
           do l = 1,isv(j)
             do i = max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
               vtotm(i,j) = v(i,j,km) &
-                   +dlt*vbflxs_p(i,j,m) &
-                   /(delt1*pbv(i,j,m)*scvx(i,j))
+                         + dlt*vbflxs_p(i,j,m) &
+                         / (delt1*pbv(i,j,m)*scvx(i,j))
               vtotm(i,j) = max(-vmax(i,j),min(vmax(i,j),vtotm(i,j)))
               vmflei(i,j) = vmfltd(i,j,km)+vmflsm(i,j,km)
             end do
           end do
         end do
 
-        call remap_eitflx(scuy,scvx,scp2i,scp2,pbmin, &
-             pbu(1-nbdy,1-nbdy,n),pbv(1-nbdy,1-nbdy,n), &
-             p(1-nbdy,1-nbdy,k+1),utotm,vtotm, &
-             umflei,vmflei, &
-             delt1,1, &
-             dp(1-nbdy,1-nbdy,kn), &
-             temp(1-nbdy,1-nbdy,kn), &
-             saln(1-nbdy,1-nbdy,kn), &
-             uflx(1-nbdy,1-nbdy,km), &
-             vflx(1-nbdy,1-nbdy,km), &
-             utflx(1-nbdy,1-nbdy,km), &
-             vtflx(1-nbdy,1-nbdy,km), &
-             usflx(1-nbdy,1-nbdy,km), &
-             vsflx(1-nbdy,1-nbdy,km), &
-             kn,trc)
-      end do
-      !$omp end parallel do
+        call remap_eitflx(scuy, scvx, scp2i, scp2, pbmin, &
+                          pbu(1-nbdy,1-nbdy,n), pbv(1-nbdy,1-nbdy,n), &
+                          p(1-nbdy,1-nbdy,k+1), utotm, vtotm, &
+                          umflei, vmflei, &
+                          delt1, 1, &
+                          dp(1-nbdy,1-nbdy,kn), &
+                          temp(1-nbdy,1-nbdy,kn), &
+                          saln(1-nbdy,1-nbdy,kn), &
+                          uflx(1-nbdy,1-nbdy,km), &
+                          vflx(1-nbdy,1-nbdy,km), &
+                          utflx(1-nbdy,1-nbdy,km), &
+                          vtflx(1-nbdy,1-nbdy,km), &
+                          usflx(1-nbdy,1-nbdy,km), &
+                          vsflx(1-nbdy,1-nbdy,km), &
+                          kn,trc)
+     end do
+     !$omp end parallel do
     else
       if (mnproc == 1) then
         write (lp,'(3a)') ' rmpmth = ',trim(rmpmth),' is unsupported!'

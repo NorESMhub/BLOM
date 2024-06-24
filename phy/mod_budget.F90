@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2007-2022 Mats Bentsen
+! Copyright (C) 2007-2024 Mats Bentsen, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -68,9 +68,9 @@ module mod_budget
 contains
 
   subroutine budget_init
-    ! ---------------------------------------------------------------------------
-    ! Compute initial global mass sum.
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Compute initial global mass sum.
+  ! ---------------------------------------------------------------------------
 
     integer :: i, j, l
 
@@ -79,8 +79,8 @@ contains
     !$omp parallel do private(l, i)
     do j = 1, jj
       do l = 1, isp(j)
-        do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
-          util1(i, j) = pb(i, j, 1)*scp2(i, j)
+        do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+          util1(i,j) = pb(i,j, 1)*scp2(i,j)
         enddo
       enddo
     enddo
@@ -90,9 +90,9 @@ contains
   end subroutine budget_init
 
   subroutine budget_sums(ncall, n, nn)
-    ! ---------------------------------------------------------------------------
-    ! Compute global mass weighted sums.
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Compute global mass weighted sums.
+  ! ---------------------------------------------------------------------------
 
     integer, intent(in) :: ncall, n, nn
 
@@ -104,13 +104,13 @@ contains
     !$omp parallel do private(l, i)
     do j = 1, jj
       do l = 1, isp(j)
-        do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
-          util1(i, j) = 0._r8
-          util2(i, j) = 0._r8
+        do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+          util1(i,j) = 0._r8
+          util2(i,j) = 0._r8
           if (use_TRC .and. use_TKE) then
-            util3(i, j) = 0._r8
+            util3(i,j) = 0._r8
             if (use_GLS) then
-              util4(i, j) = 0._r8
+              util4(i,j) = 0._r8
             end if
           end if
         enddo
@@ -123,14 +123,14 @@ contains
       do k = 1,kk
         kn = k + nn
         do l = 1,isp(j)
-          do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
-            q = dp(i, j, kn)*scp2(i, j)
-            util1(i, j) = util1(i, j) + saln(i, j, kn)*q
-            util2(i, j) = util2(i, j) + temp(i, j, kn)*q
+          do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+            q = dp(i,j,kn)*scp2(i,j)
+            util1(i,j) = util1(i,j) + saln(i,j,kn)*q
+            util2(i,j) = util2(i,j) + temp(i,j,kn)*q
             if (use_TRC .and. use_TKE) then
-              util3(i, j) = util3(i, j) + trc(i, j, kn, itrtke)*q
+              util3(i,j) = util3(i,j) + trc(i,j,kn,itrtke)*q
               if (use_GLS) then
-                util4(i, j) = util4(i, j) + trc(i, j, kn, itrgls)*q
+                util4(i,j) = util4(i,j) + trc(i,j,kn,itrgls)*q
               end if
             end if
           enddo
@@ -139,12 +139,12 @@ contains
     enddo
     !$omp end parallel do
 
-    call xcsum(sdp  (ncall, n), util1, ips)
-    call xcsum(tdp  (ncall, n), util2, ips)
+    call xcsum(sdp  (ncall,n), util1, ips)
+    call xcsum(tdp  (ncall,n), util2, ips)
     if (use_TRC .and. use_TKE) then
-      call xcsum(tkedp(ncall, n), util3, ips)
+      call xcsum(tkedp(ncall,n), util3, ips)
       if (use_GLS) then
-        call xcsum(glsdp(ncall, n), util4, ips)
+        call xcsum(glsdp(ncall,n), util4, ips)
       end if
     end if
 
@@ -152,8 +152,8 @@ contains
       !$omp parallel do private(l, i)
       do j = 1, jj
         do l = 1, isp(j)
-          do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
-            util1(i, j) = 0._r8
+          do i = max(1, ifp(j,l)), min(ii,ilp(j,l))
+            util1(i,j) = 0._r8
           enddo
         enddo
       enddo
@@ -164,28 +164,28 @@ contains
         do k = 1, kk
           kn = k + nn
           do l = 1, isp(j)
-            do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
-              q = dp(i, j, kn)*scp2(i, j)
-              util1(i, j) = util1(i, j) + trc(i, j, kn, 1)*q
+            do i = max(1, ifp(j,l)), min(ii,ilp(j,l))
+              q = dp(i,j,kn) * scp2(i,j)
+              util1(i,j) = util1(i,j) + trc(i,j,kn,1)*q
             enddo
           enddo
         enddo
       enddo
       !$omp end parallel do
 
-      call xcsum(trdp(ncall, n), util1, ips)
+      call xcsum(trdp(ncall,n), util1, ips)
     end if
 
   end subroutine budget_sums
 
   subroutine budget_output(m)
-    ! ---------------------------------------------------------------------------
-    ! Output budgets.
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Output budgets.
+  ! ---------------------------------------------------------------------------
 
     integer, intent(in) :: m
 
-    integer :: i, j, l
+    integer :: i, j,l
 
     if (.not.cnsvdi) return
 
@@ -318,11 +318,11 @@ contains
     !$omp parallel do private(l, i)
     do j = 1, jj
       do l = 1, isp(j)
-        do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
-          util1(i, j) = (salflx(i, j) + salrlx(i, j))*scp2(i, j)*delt1
-          util2(i, j) = (surflx(i, j) + surrlx(i, j))*scp2(i, j)*delt1
+        do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+          util1(i,j) = (salflx(i,j) + salrlx(i,j))*scp2(i,j)*delt1
+          util2(i,j) = (surflx(i,j) + surrlx(i,j))*scp2(i,j)*delt1
           if (use_TRC) then
-            util3(i, j) = trflx(1, i, j)*scp2(i, j)*delt1
+            util3(i,j) = trflx(1,i,j)*scp2(i,j)*delt1
           end if
         enddo
       enddo

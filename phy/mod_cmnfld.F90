@@ -16,12 +16,12 @@
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
- 
+
 module mod_cmnfld
-! ------------------------------------------------------------------------------
-! This module contains variables and procedures related to common fields used by
-! several subsequent routines.
-! ------------------------------------------------------------------------------
+   ! ------------------------------------------------------------------------------
+   ! This module contains variables and procedures related to common fields used by
+   ! several subsequent routines.
+   ! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
    use mod_constants, only: spval, onem, L_mks2cgs
@@ -84,7 +84,7 @@ module mod_cmnfld
 
       integer :: i,j,k
 
-   !$omp parallel do private(k, i)
+      !$omp parallel do private(k, i)
       do j = 1 - nbdy, jj + nbdy
          do k = 1, kk + 1
             do i = 1 - nbdy, ii + nbdy
@@ -107,7 +107,7 @@ module mod_cmnfld
             mlts(i, j) = spval
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
    end subroutine inivar_cmnfld
 
