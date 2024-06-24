@@ -299,6 +299,7 @@ contains
             call xcstop('(readnml_diffusion)')
                    stop '(readnml_diffusion)'
       end select
+
       select case (trim(edritp))
          case ('shear')
             edritp_opt = edritp_shear
@@ -312,6 +313,7 @@ contains
             call xcstop('(readnml_diffusion)')
                    stop '(readnml_diffusion)'
       end select
+
       select case (trim(edwmth))
          case ('smooth')
             edwmth_opt = edwmth_smooth
@@ -325,6 +327,7 @@ contains
             call xcstop('(readnml_diffusion)')
                    stop '(readnml_diffusion)'
       end select
+
       select case (trim(ltedtp))
          case ('layer')
             ltedtp_opt = ltedtp_layer
@@ -338,6 +341,7 @@ contains
             call xcstop('(readnml_diffusion)')
                    stop '(readnml_diffusion)'
       end select
+
       select case (trim(lngmtp))
          case ('none')
          case ('vr12-ma')

@@ -1,19 +1,20 @@
 ! ------------------------------------------------------------------------------
 ! Copyright (C) 2010-2023 Ingo Bethke, Mats Bentsen, Mehmet Ilicak,
-!                         Alok Kumar Gupta, Jörg Schwinger, Ping-Gin Chiu
-
+!                         Alok Kumar Gupta, Jörg Schwinger, Ping-Gin Chi,
+!                         Mariana Vertenstein
+!
 ! This file is part of BLOM.
-
+!
 ! BLOM is free software: you can redistribute it and/or modify it under the
 ! terms of the GNU Lesser General Public License as published by the Free
 ! Software Foundation, either version 3 of the License, or (at your option)
 ! any later version.
-
+!
 ! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
 ! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
 ! more details.
-
+!
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
@@ -71,12 +72,12 @@ module mod_dia
   implicit none
   private
 
-  ! --- ------------------------------------------------------------------
-  ! --- module variables related  to the accumulation and averaging of
-  ! --- diagnostic fields
-  ! --- ------------------------------------------------------------------
+  !---------------------------------------------------------------
+  ! module variables related  to the accumulation and averaging of
+  ! diagnostic fields
+  !---------------------------------------------------------------
 
-  ! --- Averaging and writing frequencies for diagnostics output
+  ! Averaging and writing frequencies for diagnostics output
   integer                    , public :: nphy
   integer, parameter         , public :: nphymax = 10
   integer, dimension(nphymax), public :: nacc_phy
@@ -87,23 +88,23 @@ module mod_dia
   logical, dimension(nphymax), public :: filemon_phy
   logical, dimension(nphymax), public :: fileann_phy
 
-  ! --- Restart parameters
+  ! Restart parameters
   real,    public :: rstfrq
   integer, public :: iotype
   integer, public :: rstcmp,rstfmt
   logical, public :: rstmon,rstann
 
-  ! --- Copies of BLOM variables that are used for HAMOCC diagnostics
+  ! Copies of BLOM variables that are used for HAMOCC diagnostics
   real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), public :: pbath,ubath,vbath
   integer, public :: nstepinday
 
-  ! --- 2d and 3d diagnostic variables
+  ! 2d and 3d diagnostic variables
   integer :: nphyh2d,nphylyr,nphylvl
   real, allocatable, dimension(:,:,:)  , public :: phyh2d
   real, allocatable, dimension(:,:,:,:), public :: phylyr
   real, allocatable, dimension(:,:,:,:), public :: phylvl
 
-  ! --- Levitus levels
+  ! Levitus levels
 #ifndef LEVITUS2X
   integer, parameter, public :: ddm = 35
   integer, parameter :: k350 = 12
@@ -156,7 +157,7 @@ module mod_dia
        6375.0,6375.0,6625.0,6625.0,8000.0/),(/2,ddm/))
 #endif
 
-  ! --- Meridional overturning and flux diagnostics
+  ! Meridional overturning and flux diagnostics
   integer, parameter         :: ldm=itdm+jtdm
   integer, parameter         :: sdm=ldm
   integer, parameter, public :: odm=10
@@ -179,18 +180,18 @@ module mod_dia
   real, allocatable, dimension(:,:) :: &
        mhflx,mhftd,mhfsm,mhfld,msflx,msftd,msfsm,msfld
 
-  ! --- Section transports
+  ! Section transports
   character(len = 256), public :: sec_sifile
   integer :: sec_num
   integer, parameter :: max_sec = 400
   character(len = slenmax) :: sec_name(max_sec)
   real, dimension(max_sec) :: voltr
 
-  ! --- Global sums and averages
+  ! Global sums and averages
   real, dimension(1) :: massgs,volgs,salnga,tempga,sssga,sstga
 
-  ! --- Pressure thickness [g cm-1 s-2] of region for bottom salinity and
-  ! --- temperature diagnostics
+  ! Pressure thickness [g cm-1 s-2] of region for bottom salinity and
+  ! temperature diagnostics
   real, parameter :: dpbot = onem
 
   real, parameter :: &
@@ -201,7 +202,7 @@ module mod_dia
        P_cgs2mks = 1./P_mks2cgs, &
        R_cgs2mks = 1./R_mks2cgs
 
-  ! --- Namelist
+  ! Namelist
   integer, dimension(nphymax), public :: &
        H2D_ABSWND ,H2D_ALB    ,H2D_BTMSTR ,H2D_BRNFLX ,H2D_BRNPD  , &
        H2D_DFL    ,H2D_EVA    ,H2D_FICE   ,H2D_FMLTFZ ,H2D_HICE   , &
@@ -372,10 +373,9 @@ module mod_dia
 contains
 
   subroutine diafnm(ctag,diagfq,diagmon,diagann,fname)
-
-    ! --- ------------------------------------------------------------------
-    ! --- Description: creates file name for the diagnostic output
-    ! --- ------------------------------------------
+  !---------------------------------------------------------------
+  ! Description: creates file name for the diagnostic output
+  !---------------------------------------
 
     ! Arguments
     character(len = *), intent(in) :: ctag    ! string used in middle of file name
@@ -449,17 +449,16 @@ contains
 
 
   subroutine diaini
-
-    ! --- ------------------------------------------------------------------
-    ! --- initialize diagnostic variables
-    ! --- ------------------------------------------------------------------
+  !---------------------------------------------------------------
+  ! initialize diagnostic variables
+  !---------------------------------------------------------------
 
     integer :: i,j,l,n,istat,istatsum
     integer, parameter :: imn=1-nbdy,imx=idm+nbdy,jmn=imn,jmx = jdm+nbdy
     logical :: fexist
 
-    ! --- Check existence of data files for meridional and section transport
-    ! --- diagnostics
+    ! Check existence of data files for meridional and section transport
+    ! diagnostics
     if (mnproc == 1) then
       if (sum(MSC_MMFLXL(1:nphy)+MSC_MMFLXD(1:nphy)+MSC_MMFTDL(1:nphy) &
            +MSC_MMFSML(1:nphy)+MSC_MMFTDD(1:nphy)+MSC_MMFSMD(1:nphy) &
@@ -496,11 +495,11 @@ contains
     nphylyr = 0
     nphylvl = 0
 
-    ! --- Loop over io groups
+    ! Loop over io groups
     do n = 1,nphy
       nacc_phy(n) = 0
 
-      ! --- - Solve dependencies for diagnostic variables (0=skipped)
+      ! - Solve dependencies for diagnostic variables (0=skipped)
       ACC_ABSWND(n)   = H2D_ABSWND(n)
       ACC_ALB(n)      = H2D_ALB(n)
       ACC_BRNFLX(n)   = H2D_BRNFLX(n)
@@ -687,7 +686,7 @@ contains
       ACC_MSFLD(n)    = MSC_MSFLD(n)
       ACC_VOLTR(n)    = MSC_VOLTR(n)
 
-      ! --- - Determine position in buffer
+      ! - Determine position in buffer
       if (acc_abswnd(n) /= 0) nphyh2d = nphyh2d+1
       ACC_ABSWND(n) = nphyh2d*min(1,ACC_ABSWND(n))
       if (acc_alb(n) /= 0) nphyh2d = nphyh2d+1
@@ -995,10 +994,10 @@ contains
       if (acc_gls_psilvl(n) /= 0) nphylvl = nphylvl+1
       ACC_GLS_PSILVL(n) = nphylvl*min(1,ACC_GLS_PSILVL(n))
 
-      ! --- End loop over io groups
+      ! End loop over io groups
     end do
 
-    ! --- Assign buffer positions for utility fields
+    ! Assign buffer positions for utility fields
     ACC_UTILH2D = 0
     nphyh2d = nphyh2d+1
     ACC_UTILH2D(1) = nphyh2d
@@ -1011,7 +1010,7 @@ contains
     nphylvl = nphylvl+1
     ACC_UTILLVL(1) = nphylvl
 
-    ! --- Allocate buffers
+    ! Allocate buffers
     istatsum = 0
     istat = 0
     if (nphyh2d /= 0) &
@@ -1029,13 +1028,13 @@ contains
       stop '(diaini)'
     end if
 
-    ! --- initialisation of h2h, lyr and lvl fields
+    ! initialisation of h2h, lyr and lvl fields
     do n = 1,nphy
       call inifld(n)
     end do
 
-    ! --- Load bathymetry into module mod_dia (used for vertical
-    ! --- interpolation in BLOM and HAMOCC)
+    ! Load bathymetry into module mod_dia (used for vertical
+    ! interpolation in BLOM and HAMOCC)
     nstepinday = nstep_in_day
     !$omp parallel do private(l,i)
     do j = 1,jj+1
@@ -1061,11 +1060,10 @@ contains
 
 
   subroutine diasg1
-
-    ! --- ------------------------------------------------------------------
-    ! --- Extract reference potential density vector representative of the
-    ! --- dominating ocean domain
-    ! --- ------------------------------------------------------------------
+  !---------------------------------------------------------------
+  ! Extract reference potential density vector representative of the
+  ! dominating ocean domain
+  !---------------------------------------------------------------
 
     integer :: i,j,k,i1,j1
     logical :: lsigmar1
@@ -1108,10 +1106,9 @@ contains
 
 
   subroutine diaacc(m,n,mm,nn,k1m,k1n)
-
-    ! --- ------------------------------------------------------------------
-    ! --- accumulate diagnostic variables
-    ! --- ------------------------------------------------------------------
+  !---------------------------------------------------------------
+  ! accumulate diagnostic variables
+  !---------------------------------------------------------------
 
     ! Arguments
     integer, intent(in) :: m,n,mm,nn,k1m,k1n
@@ -1128,12 +1125,12 @@ contains
          dpml,sbot,tbot,dps,t20d
     real :: dsig,q,zup,zlo,tup,tlo
 
-    ! --- Increase counter
+    ! Increase counter
     do iogrp = 1,nphy
       nacc_phy(iogrp) = nacc_phy(iogrp)+1
     end do
 
-    ! --- Define auxillary variables
+    ! Define auxillary variables
 
     if (sum(acc_uice(1:nphy)+acc_vice(1:nphy)) /= 0) then
       call xctilr(hicem, 1,1, 1,1, halo_ps)
@@ -1158,30 +1155,30 @@ contains
 
     if (sum(acc_mld(1:nphy)+acc_maxmld(1:nphy)) /= 0) then
       select case (vcoord_type_tag)
-      case (isopyc_bulkml)
-        !$omp parallel do private(l,i)
-        do j = 1,jj
-          do l = 1,isp(j)
-            do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-              dpml(i,j) = dp(i,j,1+mm)+dp(i,j,2+mm)
+        case (isopyc_bulkml)
+          !$omp parallel do private(l,i)
+          do j = 1,jj
+            do l = 1,isp(j)
+              do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
+                dpml(i,j) = dp(i,j,1+mm)+dp(i,j,2+mm)
+              end do
             end do
           end do
-        end do
-        !$omp end parallel do
-      case (cntiso_hybrid)
-        !$omp parallel do private(l,i)
-        do j = 1,jj
-          do l = 1,isp(j)
-            do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-              dpml(i,j) = OBLdepth(i,j)*onem
+          !$omp end parallel do
+        case (cntiso_hybrid)
+          !$omp parallel do private(l,i)
+          do j = 1,jj
+            do l = 1,isp(j)
+              do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
+                dpml(i,j) = OBLdepth(i,j)*onem
+              end do
             end do
           end do
-        end do
-        !$omp end parallel do
-      case default
-        write (lp,*) 'diaacc: unsupported vertical coordinate!'
-        call xcstop('(diaacc)')
-        stop '(diaacc)'
+          !$omp end parallel do
+        case default
+          write (lp,*) 'diaacc: unsupported vertical coordinate!'
+          call xcstop('(diaacc)')
+          stop '(diaacc)'
       end select
     end if
 
@@ -1336,354 +1333,354 @@ contains
       !$omp end parallel do
     end if
 
-    ! --- ------------------------------------------------------------------
-    ! --- accumulate 2d diagnostic variables
-    ! --- ------------------------------------------------------------------
+    !---------------------------------------------------------------
+    ! accumulate 2d diagnostic variables
+    !---------------------------------------------------------------
 
-    ! --- u-component of barotropic velocity [cm/s]
+    ! u-component of barotropic velocity [cm/s]
     call acch2d(ACC_UB,ub(1-nbdy,1-nbdy,m),dummy,0,'u')
 
-    ! --- u-component of barotropic mass flux [g*cm/s^3]
+    ! u-component of barotropic mass flux [g*cm/s^3]
     call acch2d(ACC_UBFLXS,ubflxs(1-nbdy,1-nbdy,n),dummy,0,'u')
 
-    ! --- u-component of wind stress [N/m^2]
+    ! u-component of wind stress [N/m^2]
     call acch2d(ACC_ZTX,ztx,dummy,0,'u')
 
-    ! --- u-component of momentum flux received by the ocean [dyn/cm^2]
+    ! u-component of momentum flux received by the ocean [dyn/cm^2]
     call acch2d(ACC_TAUX,taux,dummy,0,'u')
 
-    ! --- weighted u-component of ice velocity [m^2/s]
+    ! weighted u-component of ice velocity [m^2/s]
     call acch2d(ACC_UICE,uicem,util1,1,'u')
 
-    ! --- u-component of surface Stokes drift [m/s]
+    ! u-component of surface Stokes drift [m/s]
     call acch2d(ACC_USTOKES,ustokes,dummy,0,'u')
 
-    ! --- v-component of barotropic velocity [cm/s]
+    ! v-component of barotropic velocity [cm/s]
     call acch2d(ACC_VB,vb(1-nbdy,1-nbdy,m),dummy,0,'v')
 
-    ! --- v-component of barotropic mass flux [g*cm/s^3]
+    ! v-component of barotropic mass flux [g*cm/s^3]
     call acch2d(ACC_VBFLXS,vbflxs(1-nbdy,1-nbdy,n),dummy,0,'v')
 
-    ! --- v-component of wind stress [N/m^2]
+    ! v-component of wind stress [N/m^2]
     call acch2d(ACC_MTY,mty,dummy,0,'v')
 
-    ! --- v-component of momentum flux received by the ocean [dyn/cm^2]
+    ! v-component of momentum flux received by the ocean [dyn/cm^2]
     call acch2d(ACC_TAUY,tauy,dummy,0,'v')
 
-    ! --- weighted v-component of ice velocity [m^2/s]
+    ! weighted v-component of ice velocity [m^2/s]
     call acch2d(ACC_VICE,vicem,util3,1,'v')
 
-    ! --- v-component of surface Stokes drift [m/s]
+    ! v-component of surface Stokes drift [m/s]
     call acch2d(ACC_VSTOKES,vstokes,dummy,0,'v')
 
-    ! --- surface pressure [g/cm/s^2]
+    ! surface pressure [g/cm/s^2]
     call acch2d(ACC_PSRF,p(1-nbdy,1-nbdy,1),dummy,0,'p')
 
-    ! --- bottom pressure [g/cm/s^2]
+    ! bottom pressure [g/cm/s^2]
     call acch2d(ACC_PBOT,p(1-nbdy,1-nbdy,kk+1),dummy,0,'p')
 
-    ! --- sea level height [cm]
+    ! sea level height [cm]
     call acch2d(ACC_SEALV,z(1-nbdy,1-nbdy,1),dummy,0,'p')
 
-    ! --- mixed layer density (sigma units)
+    ! mixed layer density (sigma units)
     call acch2d(ACC_SIGMX,sigma(1-nbdy,1-nbdy,k1m),dummy,0,'p')
 
-    ! --- weighted ice thickness [m]
+    ! weighted ice thickness [m]
     call acch2d(ACC_HICE,hicem,ficem,1,'p')
 
-    ! --- weighted snow thickness [m]
+    ! weighted snow thickness [m]
     call acch2d(ACC_HSNW,hsnwm,ficem,1,'p')
 
-    ! --- fractional ice cover
+    ! fractional ice cover
     call acch2d(ACC_FICE,ficem,dummy,0,'p')
 
-    ! --- ice volume in u-points[m]
+    ! ice volume in u-points[m]
     call acch2d(ACC_IVOLU,util1,dummy,0,'u')
 
-    ! --- ice volume in v-points[m]
+    ! ice volume in v-points[m]
     call acch2d(ACC_IVOLV,util3,dummy,0,'v')
 
-    ! --- surface temperature [K]
+    ! surface temperature [K]
     call acch2d(ACC_TSRF,tsrfm,dummy,0,'p')
 
-    ! --- ice temperature [K]
+    ! ice temperature [K]
     call acch2d(ACC_TICE,ticem,dummy,0,'p')
 
-    ! --- short wave heat flux [W/m^2]
+    ! short wave heat flux [W/m^2]
     call acch2d(ACC_SWA,swa,dummy,0,'p')
 
-    ! --- non-solar heat flux [W/m^2]
+    ! non-solar heat flux [W/m^2]
     call acch2d(ACC_NSF,nsf,dummy,0,'p')
 
-    ! --- heat flux due to melting/freezing [W/m^2]
+    ! heat flux due to melting/freezing [W/m^2]
     call acch2d(ACC_HMLTFZ,hmltfz,dummy,0,'p')
 
-    ! --- derivative of non-solar heat flux by surface temperature [W/m^2/K]
+    ! derivative of non-solar heat flux by surface temperature [W/m^2/K]
     if (allocated(dfl)) call acch2d(ACC_DFL,dfl,dummy,0,'p')
 
-    ! --- liquid precipitation [mm/day]
+    ! liquid precipitation [mm/day]
     call acch2d(ACC_LIP,lip,dummy,0,'p')
 
-    ! --- solid precipitation [mm/day]
+    ! solid precipitation [mm/day]
     call acch2d(ACC_SOP,sop,dummy,0,'p')
 
-    ! --- evaporation [mm/day]
+    ! evaporation [mm/day]
     call acch2d(ACC_EVA,eva,dummy,0,'p')
 
-    ! --- fresh water flux due to melting/freezing [kg/m^2/s]
+    ! fresh water flux due to melting/freezing [kg/m^2/s]
     call acch2d(ACC_FMLTFZ,fmltfz,dummy,0,'p')
 
-    ! --- salt flux [kg/m^2/s]
+    ! salt flux [kg/m^2/s]
     call acch2d(ACC_SFL,sfl,dummy,0,'p')
 
-    ! --- albedo
+    ! albedo
     if (allocated(alb)) call acch2d(ACC_ALB,alb,dummy,0,'p')
 
-    ! --- liquid runoff [kg m-2 s-1]
+    ! liquid runoff [kg m-2 s-1]
     call acch2d(ACC_RNFFLX,rnf,dummy,0,'p')
 
-    ! --- frozen runoff [kg m-2 s-1]
+    ! frozen runoff [kg m-2 s-1]
     call acch2d(ACC_RFIFLX,rfi,dummy,0,'p')
 
-    ! --- friction velocity [cm s-1]
+    ! friction velocity [cm s-1]
     call acch2d(ACC_USTAR,ustar,dummy,0,'p')
 
-    ! --- friction velocity cubed [cm3 s-3]
+    ! friction velocity cubed [cm3 s-3]
     call acch2d(ACC_USTAR3,ustar3,dummy,0,'p')
 
-    ! --- mixed layer integrated inertial kinetic energy tendency [cm3 s-3]
+    ! mixed layer integrated inertial kinetic energy tendency [cm3 s-3]
     call acch2d(ACC_IDKEDT,idkedt,dummy,0,'p')
 
-    ! --- absolute wind speed [m s-1]
+    ! absolute wind speed [m s-1]
     call acch2d(ACC_ABSWND,abswnd,dummy,0,'p')
 
-    ! --- mixed layer TKE tendency related to friction velocity [cm3 s-3]
+    ! mixed layer TKE tendency related to friction velocity [cm3 s-3]
     call acch2d(ACC_MTKEUS,mtkeus,dummy,0,'p')
 
-    ! --- mixed layer TKE tendency related to near inertial motions [cm3 s-3]
+    ! mixed layer TKE tendency related to near inertial motions [cm3 s-3]
     call acch2d(ACC_MTKENI,mtkeni,dummy,0,'p')
 
-    ! --- mixed layer TKE tendency related to buoyancy forcing [cm3 s-3]
+    ! mixed layer TKE tendency related to buoyancy forcing [cm3 s-3]
     call acch2d(ACC_MTKEBF,mtkebf,dummy,0,'p')
 
-    ! --- mixed layer TKE tendency related to eddy restratification [cm3 s-3]
+    ! mixed layer TKE tendency related to eddy restratification [cm3 s-3]
     call acch2d(ACC_MTKERS,mtkers,dummy,0,'p')
 
-    ! --- mixed layer TKE tendency related to potential energy change [cm3 s-3]
+    ! mixed layer TKE tendency related to potential energy change [cm3 s-3]
     call acch2d(ACC_MTKEPE,mtkepe,dummy,0,'p')
 
-    ! --- mixed layer TKE tendency related to kinetic energy change [cm3 s-3]
+    ! mixed layer TKE tendency related to kinetic energy change [cm3 s-3]
     call acch2d(ACC_MTKEKE,mtkeke,dummy,0,'p')
 
-    ! --- Langmuir enhancement factor []
+    ! Langmuir enhancement factor []
     call acch2d(ACC_LAMULT,lamult,dummy,0,'p')
 
-    ! --- Surface layer averaged Langmuir number []
+    ! Surface layer averaged Langmuir number []
     call acch2d(ACC_LASL,lasl,dummy,0,'p')
 
-    ! --- sea surface salinity [g kg-1]
+    ! sea surface salinity [g kg-1]
     call acch2d(ACC_SSS,saln(1-nbdy,1-nbdy,k1m),dummy,0,'p')
 
-    ! --- sea surface temperature [degC]
+    ! sea surface temperature [degC]
     call acch2d(ACC_SST,temp(1-nbdy,1-nbdy,k1m),dummy,0,'p')
 
-    ! --- bottom salinity [g kg-1]
+    ! bottom salinity [g kg-1]
     call acch2d(ACC_SBOT,sbot,dummy,0,'p')
 
-    ! --- bottom temperature [degC]
+    ! bottom temperature [degC]
     call acch2d(ACC_TBOT,tbot,dummy,0,'p')
 
-    ! --- mixed layer pressure thickness [g/cm/s^2]
+    ! mixed layer pressure thickness [g/cm/s^2]
     call acch2d(ACC_MLD,dpml,dummy,0,'p')
 
-    ! --- mixed layer thickness using "sigma-t" criterion [cm]
+    ! mixed layer thickness using "sigma-t" criterion [cm]
     call acch2d(ACC_MLTS,mlts,dummy,0,'p')
 
-    ! --- 20C isoterm depth [cm]
+    ! 20C isoterm depth [cm]
     call acch2d(ACC_T20D,t20d,dummy,0,'p')
 
-    ! --- heat flux given by the ocean [W/cm^2]
+    ! heat flux given by the ocean [W/cm^2]
     call acch2d(ACC_SURFLX,surflx,dummy,0,'p')
 
-    ! --- salt flux given by the ocean [10^-3 g/cm^2/s]
+    ! salt flux given by the ocean [10^-3 g/cm^2/s]
     call acch2d(ACC_SALFLX,salflx,dummy,0,'p')
 
-    ! --- restoring heat flux received by the ocean [W/cm^2]
+    ! restoring heat flux received by the ocean [W/cm^2]
     call acch2d(ACC_SURRLX,surrlx,dummy,0,'p')
 
-    ! --- restoring salt flux received by the ocean [10^-3 g/cm^2/s]
+    ! restoring salt flux received by the ocean [10^-3 g/cm^2/s]
     call acch2d(ACC_SALRLX,salrlx,dummy,0,'p')
 
-    ! --- brine flux received by the ocean [10^-3 g/cm^2/s]
+    ! brine flux received by the ocean [10^-3 g/cm^2/s]
     call acch2d(ACC_BRNFLX,brnflx,dummy,0,'p')
 
-    ! --- brine plume pressure depth [g/cm/s^2]
+    ! brine plume pressure depth [g/cm/s^2]
     call acch2d(ACC_BRNPD,pbrnda,dummy,0,'p')
 
-    ! --- ------------------------------------------------------------------
-    ! --- store minimum or maximum of 2d diagnostic variables
-    ! --- ------------------------------------------------------------------
+    !---------------------------------------------------------------
+    ! store minimum or maximum of 2d diagnostic variables
+    !---------------------------------------------------------------
 
-    ! --- maximum mixed layer pressure thickness [g/cm/s^2]
+    ! maximum mixed layer pressure thickness [g/cm/s^2]
     call maxh2d(ACC_MAXMLD,dpml,'p')
 
-    ! --- minimum mixed layer thickness using "sigma-t" criterion [cm]
+    ! minimum mixed layer thickness using "sigma-t" criterion [cm]
     call minh2d(ACC_MLTSMN,mlts,'p')
 
-    ! --- maximum mixed layer thickness using "sigma-t" criterion [cm]
+    ! maximum mixed layer thickness using "sigma-t" criterion [cm]
     call maxh2d(ACC_MLTSMX,mlts,'p')
 
-    ! --- ------------------------------------------------------------------
-    ! --- store squared of 2d diagnostic variables
-    ! --- ------------------------------------------------------------------
+    !---------------------------------------------------------------
+    ! store squared of 2d diagnostic variables
+    !---------------------------------------------------------------
 
-    ! --- mixed layer thickness squared using "sigma-t" criterion [cm^2]
+    ! mixed layer thickness squared using "sigma-t" criterion [cm^2]
     call sqh2d(ACC_MLTSSQ,mlts,'p')
 
-    ! --- sea level height squared [cm^2]
+    ! sea level height squared [cm^2]
     call sqh2d(ACC_SLVSQ,z(1-nbdy,1-nbdy,1),'p')
 
-    ! --- sea surface salinity squared [g2 kg-2]
+    ! sea surface salinity squared [g2 kg-2]
     call sqh2d(ACC_SSSSQ,saln(1-nbdy,1-nbdy,k1m),'p')
 
-    ! --- sea surface temperature squared [degC2]
+    ! sea surface temperature squared [degC2]
     call sqh2d(ACC_SSTSQ,temp(1-nbdy,1-nbdy,k1m),'p')
 
-    ! --- ------------------------------------------------------------------
-    ! --- accumulate 3d diagnostic variables
-    ! --- ------------------------------------------------------------------
+    !---------------------------------------------------------------
+    ! accumulate 3d diagnostic variables
+    !---------------------------------------------------------------
 
-    ! --- weighted u-component of total velocity [g/s^3]
+    ! weighted u-component of total velocity [g/s^3]
     call acclyr(ACC_UVEL,uvel,dpu(1-nbdy,1-nbdy,k1m),1,'u')
 
-    ! --- layer pressure thickness at u-point [g/cm/s^2]
+    ! layer pressure thickness at u-point [g/cm/s^2]
     call acclyr(ACC_DPU,dpu(1-nbdy,1-nbdy,k1m),dummy,0,'u')
 
-    ! --- u-component of mass flux [g*cm/s^2]
+    ! u-component of mass flux [g*cm/s^2]
     call acclyr(ACC_UFLX,uflx(1-nbdy,1-nbdy,k1n),dummy,0,'u')
 
-    ! --- u-component of heat flux [K*g*cm/s^2]
+    ! u-component of heat flux [K*g*cm/s^2]
     call acclyr(ACC_UTFLX,utflx(1-nbdy,1-nbdy,k1n),dummy,0,'u')
 
-    ! --- u-component of salt flux [g^2*cm/kg/s^2]
+    ! u-component of salt flux [g^2*cm/kg/s^2]
     call acclyr(ACC_USFLX,usflx(1-nbdy,1-nbdy,k1n),dummy,0,'u')
 
-    ! --- u-component of mass flux due to thickness diffusion [g*cm/s^2]
+    ! u-component of mass flux due to thickness diffusion [g*cm/s^2]
     call acclyr(ACC_UMFLTD,umfltd(1-nbdy,1-nbdy,k1n),dummy,0,'u')
 
-    ! --- u-component of mass flux due to submesoscale transport [g*cm/s^2]
+    ! u-component of mass flux due to submesoscale transport [g*cm/s^2]
     call acclyr(ACC_UMFLSM,umflsm(1-nbdy,1-nbdy,k1n),dummy,0,'u')
 
-    ! --- u-component of heat flux due to thickness diffusion [K*g*cm/s^2]
+    ! u-component of heat flux due to thickness diffusion [K*g*cm/s^2]
     call acclyr(ACC_UTFLTD,utfltd(1-nbdy,1-nbdy,k1n),dummy,0,'u')
 
-    ! --- u-component of heat flux due to submesoscale transport [K*g*cm/s^2]
+    ! u-component of heat flux due to submesoscale transport [K*g*cm/s^2]
     call acclyr(ACC_UTFLSM,utflsm(1-nbdy,1-nbdy,k1n),dummy,0,'u')
 
-    ! --- u-component of heat flux due to lateral diffusion [K*g*cm/s^2]
+    ! u-component of heat flux due to lateral diffusion [K*g*cm/s^2]
     call acclyr(ACC_UTFLLD,utflld(1-nbdy,1-nbdy,k1n),dummy,0,'u')
 
-    ! --- u-component of salt flux due to thickness diffusion [g^2*cm/kg/s^2]
+    ! u-component of salt flux due to thickness diffusion [g^2*cm/kg/s^2]
     call acclyr(ACC_USFLTD,usfltd(1-nbdy,1-nbdy,k1n),dummy,0,'u')
 
-    ! --- u-component of salt flux due to submesoscale transport [g^2*cm/kg/s^2]
+    ! u-component of salt flux due to submesoscale transport [g^2*cm/kg/s^2]
     call acclyr(ACC_USFLSM,usflsm(1-nbdy,1-nbdy,k1n),dummy,0,'u')
 
-    ! --- u-component of salt flux due to lateral diffusion [g^2*cm/kg/s^2]
+    ! u-component of salt flux due to lateral diffusion [g^2*cm/kg/s^2]
     call acclyr(ACC_USFLLD,usflld(1-nbdy,1-nbdy,k1n),dummy,0,'u')
 
-    ! --- weighted v-component of total velocity [g/s^3]
+    ! weighted v-component of total velocity [g/s^3]
     call acclyr(ACC_VVEL,vvel,dpv(1-nbdy,1-nbdy,k1m),1,'v')
 
-    ! --- layer pressure thickness at v-point [g/cm/s^2]
+    ! layer pressure thickness at v-point [g/cm/s^2]
     call acclyr(ACC_DPV,dpv(1-nbdy,1-nbdy,k1m),dummy,0,'v')
 
-    ! --- v-component of mass flux [g*cm/s^2]
+    ! v-component of mass flux [g*cm/s^2]
     call acclyr(ACC_VFLX,vflx(1-nbdy,1-nbdy,k1n),dummy,0,'v')
 
-    ! --- v-component of heat flux [K*g*cm/s^2]
+    ! v-component of heat flux [K*g*cm/s^2]
     call acclyr(ACC_VTFLX,vtflx(1-nbdy,1-nbdy,k1n),dummy,0,'v')
 
-    ! --- v-component of salt flux [g^2*cm/kg/s^2]
+    ! v-component of salt flux [g^2*cm/kg/s^2]
     call acclyr(ACC_VSFLX,vsflx(1-nbdy,1-nbdy,k1n),dummy,0,'v')
 
-    ! --- v-component of mass flux due to thickness diffusion [g*cm/s^2]
+    ! v-component of mass flux due to thickness diffusion [g*cm/s^2]
     call acclyr(ACC_VMFLTD,vmfltd(1-nbdy,1-nbdy,k1n),dummy,0,'v')
 
-    ! --- v-component of mass flux due to submesoscale transport [g*cm/s^2]
+    ! v-component of mass flux due to submesoscale transport [g*cm/s^2]
     call acclyr(ACC_VMFLSM,vmflsm(1-nbdy,1-nbdy,k1n),dummy,0,'v')
 
-    ! --- v-component of heat flux due to thickness diffusion [K*g*cm/s^2]
+    ! v-component of heat flux due to thickness diffusion [K*g*cm/s^2]
     call acclyr(ACC_VTFLTD,vtfltd(1-nbdy,1-nbdy,k1n),dummy,0,'v')
 
-    ! --- v-component of heat flux due to submesoscale transport [K*g*cm/s^2]
+    ! v-component of heat flux due to submesoscale transport [K*g*cm/s^2]
     call acclyr(ACC_VTFLSM,vtflsm(1-nbdy,1-nbdy,k1n),dummy,0,'v')
 
-    ! --- v-component of heat flux due to lateral diffusion [K*g*cm/s^2]
+    ! v-component of heat flux due to lateral diffusion [K*g*cm/s^2]
     call acclyr(ACC_VTFLLD,vtflld(1-nbdy,1-nbdy,k1n),dummy,0,'v')
 
-    ! --- v-component of salt flux due to thickness diffusion [g^2*cm/kg/s^2]
+    ! v-component of salt flux due to thickness diffusion [g^2*cm/kg/s^2]
     call acclyr(ACC_VSFLTD,vsfltd(1-nbdy,1-nbdy,k1n),dummy,0,'v')
 
-    ! --- v-component of salt flux due to submesoscale transport [g^2*cm/kg/s^2]
+    ! v-component of salt flux due to submesoscale transport [g^2*cm/kg/s^2]
     call acclyr(ACC_VSFLSM,vsflsm(1-nbdy,1-nbdy,k1n),dummy,0,'v')
 
-    ! --- v-component of salt flux due to lateral diffusion [g^2*cm/kg/s^2]
+    ! v-component of salt flux due to lateral diffusion [g^2*cm/kg/s^2]
     call acclyr(ACC_VSFLLD,vsflld(1-nbdy,1-nbdy,k1n),dummy,0,'v')
 
-    ! --- weighted salinity [g/kg*g/cm/s^2]
+    ! weighted salinity [g/kg*g/cm/s^2]
     call acclyr(ACC_SALN,saln(1-nbdy,1-nbdy,k1m), dp(1-nbdy,1-nbdy,k1m),1,'p')
 
-    ! --- weighted temperature [degC*g/cm/s^2]
+    ! weighted temperature [degC*g/cm/s^2]
     call acclyr(ACC_TEMP,temp(1-nbdy,1-nbdy,k1m), dp(1-nbdy,1-nbdy,k1m),1,'p')
 
-    ! --- layer pressure thickness [g/cm/s^2]
+    ! layer pressure thickness [g/cm/s^2]
     call acclyr(ACC_DP,dp(1-nbdy,1-nbdy,k1m),dummy,0,'p')
 
-    ! --- layer thickness [cm]
+    ! layer thickness [cm]
     call acclyr(ACC_DZ,dz,dummy,0,'p')
 
-    ! --- buoyancy frequency squared [1/s]
+    ! buoyancy frequency squared [1/s]
     call acclyr(ACC_BFSQ,bfsql,dp(1-nbdy,1-nbdy,k1m),1,'p')
 
-    ! --- layer interface diffusivity [cm^2/s*g/cm/s^2]
+    ! layer interface diffusivity [cm^2/s*g/cm/s^2]
     call acclyr(ACC_DIFINT,difint,dp(1-nbdy,1-nbdy,k1m),1,'p')
 
-    ! --- isopycnal diffusivity [cm^2/s*g/cm/s^2]
+    ! isopycnal diffusivity [cm^2/s*g/cm/s^2]
     call acclyr(ACC_DIFISO,difiso,dp(1-nbdy,1-nbdy,k1m),1,'p')
 
-    ! --- vertical diffusivity (vcoord_type_tag == isopyc_bulkml) [cm^2/s*g/cm/s^2]
+    ! vertical diffusivity (vcoord_type_tag == isopyc_bulkml) [cm^2/s*g/cm/s^2]
     call acclyr(ACC_DIFDIA,difdia,dp(1-nbdy,1-nbdy,k1m),1,'p')
 
-    ! --- vertical momentum diffusivity (vcoord_type_tag == cntiso_hybrid) [cm^2/s*g/cm/s^2]
+    ! vertical momentum diffusivity (vcoord_type_tag == cntiso_hybrid) [cm^2/s*g/cm/s^2]
     call accily(ACC_DIFVMO,Kvisc_m,dp(1-nbdy,1-nbdy,k1m),1,'p')
 
-    ! --- vertical heat diffusivity (vcoord_type_tag == cntiso_hybrid) [cm^2/s*g/cm/s^2]
+    ! vertical heat diffusivity (vcoord_type_tag == cntiso_hybrid) [cm^2/s*g/cm/s^2]
     call accily(ACC_DIFVHO,Kdiff_t,dp(1-nbdy,1-nbdy,k1m),1,'p')
 
-    ! --- vertical salt diffusivity (vcoord_type_tag == cntiso_hybrid) [cm^2/s*g/cm/s^2]
+    ! vertical salt diffusivity (vcoord_type_tag == cntiso_hybrid) [cm^2/s*g/cm/s^2]
     call accily(ACC_DIFVSO,Kdiff_s,dp(1-nbdy,1-nbdy,k1m),1,'p')
 
-    ! --- absolute vorticity multiplied with potential density difference
-    ! --- over layer [g/cm^3/s]
+    ! absolute vorticity multiplied with potential density difference
+    ! over layer [g/cm^3/s]
     call acclyr(ACC_AVDSG,avdsg_p,dummy,0,'p')
 
-    ! --- layer pressure thickness used in vorticity computation [g/cm/s^2]
+    ! layer pressure thickness used in vorticity computation [g/cm/s^2]
     call acclyr(ACC_DPVOR,dpvor_p,dummy,0,'p')
 
     if (use_TRC .and. use_TKE) then
-      ! --- weighted tke [cm2/s2*g/cm/s^2]
+      ! weighted tke [cm2/s2*g/cm/s^2]
       call acclyr(ACC_TKE,trc(1-nbdy,1-nbdy,k1m,itrtke), &
            dp(1-nbdy,1-nbdy,k1m),1,'p')
 
-      ! --- weighted gls_psi [cm2/s3*g/cm/s^2]
+      ! weighted gls_psi [cm2/s3*g/cm/s^2]
       call acclyr(ACC_GLS_PSI,trc(1-nbdy,1-nbdy,k1m,itrgls), &
            dp(1-nbdy,1-nbdy,k1m),1,'p')
 
     end if
-    ! --- ------------------------------------------------------------------
-    ! --- accumulate 3d diagnostic variables on Levitus levels
-    ! --- ------------------------------------------------------------------
+    !---------------------------------------------------------------
+    ! accumulate 3d diagnostic variables on Levitus levels
+    !---------------------------------------------------------------
 
     do iogrp = 1,nphy
       if (acc_wflxlvl(iogrp)+acc_wflx2lvl(iogrp) /= 0) then
@@ -1717,50 +1714,50 @@ contains
       do k = 1,kk
         call diazlv('u',k,mm,nn,ind1,ind2,wghts,wghtsflx)
 
-        ! --- --- u-component of total velocity [cm/s]
+        ! u-component of total velocity [cm/s]
         call acclvl(ACC_UVELLVL,uvel,'u',k,ind1,ind2,wghts)
 
-        ! --- --- u-component of mass flux [g*cm/s^2]
+        ! u-component of mass flux [g*cm/s^2]
         call acclvl(ACC_UFLXLVL,uflx(1-nbdy,1-nbdy,k1n), &
              'u',k,ind1,ind2,wghtsflx)
 
-        ! --- --- u-component of heat flux [K*g*cm/s^2]
+        ! u-component of heat flux [K*g*cm/s^2]
         call acclvl(ACC_UTFLXLVL,utflx(1-nbdy,1-nbdy,k1n), &
              'u',k,ind1,ind2,wghtsflx)
 
-        ! --- --- u-component of salt flux [g^2*cm/kg/s^2]
+        ! u-component of salt flux [g^2*cm/kg/s^2]
         call acclvl(ACC_USFLXLVL,usflx(1-nbdy,1-nbdy,k1n), &
              'u',k,ind1,ind2,wghtsflx)
 
-        ! --- --- u-component of mass flux due to thickness diffusion [g*cm/s^2]
+        ! u-component of mass flux due to thickness diffusion [g*cm/s^2]
         call acclvl(ACC_UMFLTDLVL,umfltd(1-nbdy,1-nbdy,k1n), &
              'u',k,ind1,ind2,wghtsflx)
 
-        ! --- --- u-component of mass flux due to submesoscale transport [g*cm/s^2]
+        ! u-component of mass flux due to submesoscale transport [g*cm/s^2]
         call acclvl(ACC_UMFLSMLVL,umflsm(1-nbdy,1-nbdy,k1n), &
              'u',k,ind1,ind2,wghtsflx)
 
-        ! --- --- u-component of heat flux due to thickness diffusion [K*g*cm/s^2]
+        ! u-component of heat flux due to thickness diffusion [K*g*cm/s^2]
         call acclvl(ACC_UTFLTDLVL,utfltd(1-nbdy,1-nbdy,k1n), &
              'u',k,ind1,ind2,wghtsflx)
 
-        ! --- --- u-component of heat flux due to submesoscale transport [K*g*cm/s^2]
+        ! u-component of heat flux due to submesoscale transport [K*g*cm/s^2]
         call acclvl(ACC_UTFLSMLVL,utflsm(1-nbdy,1-nbdy,k1n), &
              'u',k,ind1,ind2,wghtsflx)
 
-        ! --- --- u-component of heat flux due to lateral diffusion [K*g*cm/s^2]
+        ! u-component of heat flux due to lateral diffusion [K*g*cm/s^2]
         call acclvl(ACC_UTFLLDLVL,utflld(1-nbdy,1-nbdy,k1n), &
              'u',k,ind1,ind2,wghtsflx)
 
-        ! --- --- u-component of salt flux due to thickness diffusion [g^2*cm/kg/s^2]
+        ! u-component of salt flux due to thickness diffusion [g^2*cm/kg/s^2]
         call acclvl(ACC_USFLTDLVL,usfltd(1-nbdy,1-nbdy,k1n), &
              'u',k,ind1,ind2,wghtsflx)
 
-        ! --- --- u-component of salt flux due to submesoscale transport [g^2*cm/kg/s^2]
+        ! u-component of salt flux due to submesoscale transport [g^2*cm/kg/s^2]
         call acclvl(ACC_USFLSMLVL,usflsm(1-nbdy,1-nbdy,k1n), &
              'u',k,ind1,ind2,wghtsflx)
 
-        ! --- --- u-component of salt flux due to lateral diffusion [g^2*cm/kg/s^2]
+        ! u-component of salt flux due to lateral diffusion [g^2*cm/kg/s^2]
         call acclvl(ACC_USFLLDLVL,usflld(1-nbdy,1-nbdy,k1n), &
              'u',k,ind1,ind2,wghtsflx)
       end do
@@ -1775,50 +1772,50 @@ contains
       do k = 1,kk
         call diazlv('v',k,mm,nn,ind1,ind2,wghts,wghtsflx)
 
-        ! --- --- v-component of total velocity [cm/s]
+        ! v-component of total velocity [cm/s]
         call acclvl(ACC_VVELLVL,vvel,'v',k,ind1,ind2,wghts)
 
-        ! --- --- v-component of mass flux [g*cm/s^2]
+        ! v-component of mass flux [g*cm/s^2]
         call acclvl(ACC_VFLXLVL,vflx(1-nbdy,1-nbdy,k1n), &
              'v',k,ind1,ind2,wghtsflx)
 
-        ! --- --- v-component of heat flux [K*g*cm/s^2]
+        ! v-component of heat flux [K*g*cm/s^2]
         call acclvl(ACC_VTFLXLVL,vtflx(1-nbdy,1-nbdy,k1n), &
              'v',k,ind1,ind2,wghtsflx)
 
-        ! --- --- v-component of salt flux [g^2*cm/kg/s^2]
+        ! v-component of salt flux [g^2*cm/kg/s^2]
         call acclvl(ACC_VSFLXLVL,vsflx(1-nbdy,1-nbdy,k1n), &
              'v',k,ind1,ind2,wghtsflx)
 
-        ! --- --- v-component of mass flux due to thickness diffusion [g*cm/s^2]
+        ! v-component of mass flux due to thickness diffusion [g*cm/s^2]
         call acclvl(ACC_VMFLTDLVL,vmfltd(1-nbdy,1-nbdy,k1n), &
              'v',k,ind1,ind2,wghtsflx)
 
-        ! --- --- v-component of mass flux due to submesoscale transport [g*cm/s^2]
+        ! v-component of mass flux due to submesoscale transport [g*cm/s^2]
         call acclvl(ACC_VMFLSMLVL,vmflsm(1-nbdy,1-nbdy,k1n), &
              'v',k,ind1,ind2,wghtsflx)
 
-        ! --- --- v-component of heat flux due to thickness diffusion [K*g*cm/s^2]
+        ! v-component of heat flux due to thickness diffusion [K*g*cm/s^2]
         call acclvl(ACC_VTFLTDLVL,vtfltd(1-nbdy,1-nbdy,k1n), &
              'v',k,ind1,ind2,wghtsflx)
 
-        ! --- --- v-component of heat flux due to submesoscale transport [K*g*cm/s^2]
+        ! v-component of heat flux due to submesoscale transport [K*g*cm/s^2]
         call acclvl(ACC_VTFLSMLVL,vtflsm(1-nbdy,1-nbdy,k1n), &
              'v',k,ind1,ind2,wghtsflx)
 
-        ! --- --- v-component of heat flux due to lateral diffusion [K*g*cm/s^2]
+        ! v-component of heat flux due to lateral diffusion [K*g*cm/s^2]
         call acclvl(ACC_VTFLLDLVL,vtflld(1-nbdy,1-nbdy,k1n), &
              'v',k,ind1,ind2,wghtsflx)
 
-        ! --- --- v-component of salt flux due to thickness diffusion [g^2*cm/kg/s^2]
+        ! v-component of salt flux due to thickness diffusion [g^2*cm/kg/s^2]
         call acclvl(ACC_VSFLTDLVL,vsfltd(1-nbdy,1-nbdy,k1n), &
              'v',k,ind1,ind2,wghtsflx)
 
-        ! --- --- v-component of salt flux due to submesoscale transport [g^2*cm/kg/s^2]
+        ! v-component of salt flux due to submesoscale transport [g^2*cm/kg/s^2]
         call acclvl(ACC_VSFLSMLVL,vsflsm(1-nbdy,1-nbdy,k1n), &
              'v',k,ind1,ind2,wghtsflx)
 
-        ! --- --- v-component of salt flux due to lateral diffusion [g^2*cm/kg/s^2]
+        ! v-component of salt flux due to lateral diffusion [g^2*cm/kg/s^2]
         call acclvl(ACC_VSFLLDLVL,vsflld(1-nbdy,1-nbdy,k1n), &
              'v',k,ind1,ind2,wghtsflx)
       end do
@@ -1834,52 +1831,52 @@ contains
       do k = 1,kk
         call diazlv('p',k,mm,nn,ind1,ind2,wghts,wghtsflx)
 
-        ! --- --- salinity [g/kg]
+        ! salinity [g/kg]
         call acclvl(ACC_SALNLVL,saln(1-nbdy,1-nbdy,k1m),'p',k,ind1,ind2,wghts)
 
-        ! --- --- temperature [degC]
+        ! temperature [degC]
         call acclvl(ACC_TEMPLVL,temp(1-nbdy,1-nbdy,k1m),'p',k,ind1,ind2,wghts)
 
-        ! --- --- buoyancy frequency squared [1/s]
+        ! buoyancy frequency squared [1/s]
         call acclvl(ACC_BFSQLVL,bfsql,'p',k,ind1,ind2,wghts)
 
-        ! --- --- layer interface diffusivity [cm^2/s]
+        ! layer interface diffusivity [cm^2/s]
         call acclvl(ACC_DIFINTLVL,difint,'p',k,ind1,ind2,wghts)
 
-        ! --- --- isopycnal diffusivity [cm^2/s]
+        ! isopycnal diffusivity [cm^2/s]
         call acclvl(ACC_DIFISOLVL,difiso,'p',k,ind1,ind2,wghts)
 
-        ! --- --- vertical diffusivity (vcoord_type_tag == isopyc_bulkml) [cm^2/s]
+        ! vertical diffusivity (vcoord_type_tag == isopyc_bulkml) [cm^2/s]
         call acclvl(ACC_DIFDIALVL,difdia,'p',k,ind1,ind2,wghts)
 
-        ! --- --- vertical momentum diffusivity (vcoord_type_tag == cntiso_hybrid)
-        ! --- --- [cm^2/s]
+        ! vertical momentum diffusivity (vcoord_type_tag == cntiso_hybrid)
+        ! [cm^2/s]
         call accilv(ACC_DIFVMOLVL,Kvisc_m,'p',k,ind1,ind2,wghts)
 
-        ! --- --- vertical heat diffusivity (vcoord_type_tag == cntiso_hybrid) [cm^2/s]
+        ! vertical heat diffusivity (vcoord_type_tag == cntiso_hybrid) [cm^2/s]
         call accilv(ACC_DIFVHOLVL,Kdiff_t,'p',k,ind1,ind2,wghts)
 
-        ! --- --- vertical salt diffusivity (vcoord_type_tag == cntiso_hybrid) [cm^2/s]
+        ! vertical salt diffusivity (vcoord_type_tag == cntiso_hybrid) [cm^2/s]
         call accilv(ACC_DIFVSOLVL,Kdiff_s,'p',k,ind1,ind2,wghts)
 
-        ! --- --- potential vorticity [s m-2]
+        ! potential vorticity [s m-2]
         call acclvl(ACC_PVLVL,pv_p,'p',k,ind1,ind2,wghts)
 
         if (use_TRC .and. use_TKE) then
-          ! --- --- tke [cm2/s2]
+          ! tke [cm2/s2]
           call acclvl(ACC_TKELVL,trc(1-nbdy,1-nbdy,k1m,itrtke),'p',k,ind1,ind2,wghts)
 
-          ! --- --- gls_psi [cm2/s3]
+          ! gls_psi [cm2/s3]
           call acclvl(ACC_GLS_PSILVL,trc(1-nbdy,1-nbdy,k1m,itrgls),'p',k,ind1,ind2,wghts)
 
         end if
-        ! --- --- layer thickness [cm]
+        ! layer thickness [cm]
         call acclvl(ACC_DZLVL,dz,'p',k,ind1,ind2,wghts)
 
       end do
     end if
 
-    ! --- Accumulate vertical velocity
+    ! Accumulate vertical velocity
     do iogrp = 1,nphy
       if (ACC_WFLX(iogrp)+ACC_WFLX2(iogrp)+ACC_WFLXLVL(iogrp) + acc_wflx2lvl(iogrp) /= 0) then
          call diavfl(iogrp,m,n,mm,nn,k1m,k1n)
@@ -1891,10 +1888,9 @@ contains
 
 
   subroutine diaout(iogrp,m,n,mm,nn,k1m,k1n)
-
-    ! --- -------------------------------------
-    ! --- Write high frequency diagnostic fields
-    ! --- -------------------------------------
+  !----------------------------------
+  ! Write high frequency diagnostic fields
+  !----------------------------------
 
     ! Arguments
     integer, intent(in) :: m,n,mm,nn,k1m,k1n
@@ -1928,15 +1924,15 @@ contains
     rnacc = 1./real(nacc_phy(iogrp))
     cmpflg = GLB_COMPFLAG(iogrp)
 
-    ! --- compute meridional transports and transports through sections
+    ! compute meridional transports and transports through sections
     if (ACC_MMFLXL(iogrp)+ACC_MMFLXD(iogrp)+ACC_MMFTDL(iogrp) &
-         +ACC_MMFSML(iogrp)+ACC_MMFTDD(iogrp)+ACC_MMFSMD(iogrp) &
-         +ACC_MHFLX (iogrp)+ACC_MHFTD (iogrp)+ACC_MHFSM (iogrp) &
-         +ACC_MHFLD (iogrp)+ACC_MSFLX (iogrp)+ACC_MSFTD (iogrp) &
-         +acc_msfsm (iogrp) +acc_msfld(iogrp) /= 0) call diamer(iogrp)
+       +ACC_MMFSML(iogrp)+ACC_MMFTDD(iogrp)+ACC_MMFSMD(iogrp) &
+       +ACC_MHFLX (iogrp)+ACC_MHFTD (iogrp)+ACC_MHFSM (iogrp) &
+       +ACC_MHFLD (iogrp)+ACC_MSFLX (iogrp)+ACC_MSFTD (iogrp) &
+       +acc_msfsm (iogrp) +acc_msfld(iogrp) /= 0) call diamer(iogrp)
     if (acc_voltr(iogrp) /= 0) call diasec(iogrp)
 
-    ! --- compute barotropic mass streamfunction
+    ! compute barotropic mass streamfunction
     if (h2d_btmstr(iogrp) /= 0) then
       if     (nreg <= 2) then
         call xcaget(bflxg,phyh2d(1-nbdy,1-nbdy,ACC_UBFLXS(iogrp)),1)
@@ -1980,16 +1976,16 @@ contains
           do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
             phyh2d(i,j,ACC_UTILH2D(1))= &
                  .25*(util1(i  ,j  )+util1(i+1,j  ) &
-                 +util1(i  ,j+1)+util1(i+1,j+1))
+                     +util1(i  ,j+1)+util1(i+1,j+1))
           end do
         end do
       end do
       !$omp end parallel do
     end if
 
-    ! --- compute global sums and averages
-    if (MSC_MASSGS(iogrp)+MSC_SALNGA(iogrp) &
-         +msc_tempga(iogrp) /= 0) then
+    ! compute global sums and averages
+    if (MSC_MASSGS(iogrp)+MSC_SALNGA(iogrp) +msc_tempga(iogrp) /= 0) then
+
       !$omp parallel do private(l,i)
       do j = 1,jj
         do l = 1,isp(j)
@@ -2021,6 +2017,7 @@ contains
       !$omp end parallel do
       call xcsum(massgs(1),util1,ips)
     end if
+
     if (msc_volgs(iogrp) /= 0) then
       !$omp parallel do private(l,i)
       do j = 1,jj
@@ -2150,13 +2147,13 @@ contains
       sstga(1) = rnacc*sstga(1)/area
     end if
 
-    ! --- finalize accumulation of 2d fields
+    ! finalize accumulation of 2d fields
     call finh2d(ACC_HICE(iogrp),ACC_FICE(iogrp),'p')
     call finh2d(ACC_HSNW(iogrp),ACC_FICE(iogrp),'p')
     call finh2d(ACC_UICE(iogrp),ACC_IVOLU(iogrp),'u')
     call finh2d(ACC_VICE(iogrp),ACC_IVOLV(iogrp),'v')
 
-    ! --- finalize accumulation of layer fields
+    ! finalize accumulation of layer fields
     call finlyr(ACC_UVEL(iogrp),ACC_DPU(iogrp),'u')
     call finlyr(ACC_VVEL(iogrp),ACC_DPV(iogrp),'v')
     call finlyr(ACC_SALN(iogrp),ACC_DP(iogrp),'p')
@@ -2174,7 +2171,7 @@ contains
       call finlyr(ACC_GLS_PSI(iogrp),ACC_DP(iogrp),'p')
     end if
 
-    ! --- compute log10 of diffusivities
+    ! compute log10 of diffusivities
     if (lyr_difdia(iogrp) == 2) &
          call loglyr(ACC_DIFDIA(iogrp),'p',A_cgs2mks,0.)
     if (lyr_difvmo(iogrp) == 2) &
@@ -2201,7 +2198,7 @@ contains
     if (lvl_difiso(iogrp) == 2) &
          call loglvl(ACC_DIFISOLVL(iogrp),'p',A_cgs2mks*rnacc,0.)
 
-    ! --- mask sea floor of level fields
+    ! mask sea floor of level fields
     call msklvl(ACC_BFSQLVL(iogrp),'p')
     call msklvl(ACC_DIFDIALVL(iogrp),'p')
     call msklvl(ACC_DIFVMOLVL(iogrp),'p')
@@ -2244,7 +2241,7 @@ contains
       call msklvl(ACC_GLS_PSILVL(iogrp),'p')
     end if
 
-    ! --- get instantaneous values for ice age
+    ! get instantaneous values for ice age
     if (acc_iage(iogrp) /= 0) then
       !$omp parallel do private(l,i)
       do j = 1,jj
@@ -2257,7 +2254,7 @@ contains
       !$omp end parallel do
     end if
 
-    ! --- set time information
+    ! set time information
     timeunits = ' '
     startdate = ' '
     write(timeunits,'(a11,i4.4,a1,i2.2,a1,i2.2,a6)') &
@@ -2266,7 +2263,7 @@ contains
          date0%year,'-',date0%month,'-',date0%day,' 00:00'
     datenum = time-time0-0.5*diagfq_phy(iogrp)/nstep_in_day
 
-    ! --- create file name
+    ! create file name
     if (.not.append2file(iogrp)) then
       call diafnm(GLB_FNAMETAG(IOGRP), &
            filefq_phy(iogrp)/real(nstep_in_day), &
@@ -2284,7 +2281,7 @@ contains
       append2file(iogrp) = .false.
     end if
 
-    ! --- open output file
+    ! open output file
     if (mnproc == 1) &
          write (lp,'(2a)') 'Writing physical diagnostics to file: ', &
          trim(fname(iogrp))
@@ -2296,7 +2293,7 @@ contains
       call ncfopn(fname(iogrp),'w','c',irec(iogrp),iotype)
     end if
 
-    ! --- compute extended ocean masks
+    ! compute extended ocean masks
     if (iniflg) then
       iniflg = .false.
       !$omp parallel do private(i)
@@ -2317,7 +2314,7 @@ contains
       !$omp end parallel do
     end if
 
-    ! --- define output dimensions
+    ! define output dimensions
     if (cmpflg /= 0) then
       call ncdimc('pcomp',ip,0)
       call ncdimc('ucomp',iuu,0)
@@ -2332,17 +2329,18 @@ contains
     call ncdims('time',0)
 
     if (ACC_MMFLXL(iogrp)+ACC_MMFLXD(iogrp)+ACC_MMFTDL(iogrp) &
-         +ACC_MMFSML(iogrp)+ACC_MMFTDD(iogrp)+ACC_MMFSMD(iogrp) &
-         +ACC_MHFLX (iogrp)+ACC_MHFTD (iogrp)+ACC_MHFSM (iogrp) &
-         +ACC_MHFLD (iogrp)+ACC_MSFLX (iogrp)+ACC_MSFTD (iogrp) &
-         +acc_msfsm (iogrp)+acc_msfld (iogrp)+msc_voltr (iogrp) /= 0) &
-         call ncdims('slenmax',slenmax)
+       +ACC_MMFSML(iogrp)+ACC_MMFTDD(iogrp)+ACC_MMFSMD(iogrp) &
+       +ACC_MHFLX (iogrp)+ACC_MHFTD (iogrp)+ACC_MHFSM (iogrp) &
+       +ACC_MHFLD (iogrp)+ACC_MSFLX (iogrp)+ACC_MSFTD (iogrp) &
+       +acc_msfsm (iogrp)+acc_msfld (iogrp)+msc_voltr (iogrp) /= 0) then
+      call ncdims('slenmax',slenmax)
+    end if
 
     if (ACC_MMFLXL(iogrp)+ACC_MMFLXD(iogrp)+ACC_MMFTDL(iogrp) &
-         +ACC_MMFSML(iogrp)+ACC_MMFTDD(iogrp)+ACC_MMFSMD(iogrp) &
-         +ACC_MHFLX (iogrp)+ACC_MHFTD (iogrp)+ACC_MHFSM (iogrp) &
-         +ACC_MHFLD (iogrp)+ACC_MSFLX (iogrp)+ACC_MSFTD (iogrp) &
-         +acc_msfsm (iogrp)+acc_msfld (iogrp) /= 0) then
+       +ACC_MMFSML(iogrp)+ACC_MMFTDD(iogrp)+ACC_MMFSMD(iogrp) &
+       +ACC_MHFLX (iogrp)+ACC_MHFTD (iogrp)+ACC_MHFSM (iogrp) &
+       +ACC_MHFLD (iogrp)+ACC_MSFLX (iogrp)+ACC_MSFTD (iogrp) &
+       +acc_msfsm (iogrp)+acc_msfld (iogrp) /= 0) then
       if ((lmax > 0.and.lmax <= ldm)) then
         call ncdims('lat',lmax)
         call ncdims('region',mer_nreg)
@@ -2370,15 +2368,15 @@ contains
 
     call nctime(datenum,calendar,timeunits,startdate)
 
-    ! --- write auxillary dimension information
+    ! write auxillary dimension information
     if (irec(iogrp) == 1) then
-      ! --- sigma levels
+      ! sigma levels
       call ncwrt1('sigma','sigma',sigmar1)
       call ncattr('long_name','Potential density')
       call ncattr('standard_name','sea_water_sigma_theta')
       call ncattr('units','kg m-3')
       call ncattr('positive','down')
-      ! --- zlevel
+      ! zlevel
       call ncwrt1('depth','depth',depthslev)
       call ncattr('long_name','z level')
       call ncattr('units','m')
@@ -2386,10 +2384,10 @@ contains
       call ncattr('bounds','depth_bnds')
       call ncwrt1('depth_bnds','bounds depth',depthslev_bnds)
       if (MSC_MMFLXL(iogrp)+MSC_MMFLXD(iogrp)+MSC_MMFTDL(iogrp) &
-           +MSC_MMFSML(iogrp)+MSC_MMFTDD(iogrp)+MSC_MMFSMD(iogrp) &
-           +MSC_MHFLX (iogrp)+MSC_MHFTD (iogrp)+MSC_MHFSM (iogrp) &
-           +MSC_MHFLD (iogrp)+MSC_MSFLX (iogrp)+MSC_MSFTD (iogrp) &
-           +msc_msfsm (iogrp)+msc_msfld (iogrp) /= 0) then
+         +MSC_MMFSML(iogrp)+MSC_MMFTDD(iogrp)+MSC_MMFSMD(iogrp) &
+         +MSC_MHFLX (iogrp)+MSC_MHFTD (iogrp)+MSC_MHFSM (iogrp) &
+         +MSC_MHFLD (iogrp)+MSC_MSFLX (iogrp)+MSC_MSFTD (iogrp) &
+         +msc_msfsm (iogrp)+msc_msfld (iogrp) /= 0) then
         call ncwrt1('lat','lat',mtlat)
         call ncattr('long_name','Latitude')
         call ncattr('standard_name','latitude')
@@ -2403,7 +2401,7 @@ contains
       end if
     end if
 
-    ! --- write 2d fields
+    ! write 2d fields
     call wrth2d(ACC_SIGMX(iogrp),H2D_SIGMX(iogrp),rnacc*R_cgs2mks, &
          0.,cmpflg,ip,'p','sigmx','Mixed layer density',' ','kg m-3')
 
@@ -2648,7 +2646,7 @@ contains
     call wrth2d(ACC_TBOT(iogrp),H2D_TBOT(iogrp),rnacc,0., &
          cmpflg,ip,'p','tbot','Bottom temperature',' ','degC')
 
-    ! --- write 3d layer fields
+    ! write 3d layer fields
     call wrtlyr(ACC_DP(iogrp),LYR_DP(iogrp),rnacc*P_cgs2mks,0., &
          cmpflg,ip,'p','dp','Layer pressure thickness',' ','Pa')
 
@@ -2858,7 +2856,7 @@ contains
            'm2 s-3')
 
     end if
-    ! --- Write 3d depth fields
+    ! Write 3d depth fields
     call wrtlvl(ACC_DZLVL(iogrp),LVL_DZ(iogrp), &
          rnacc*L_cgs2mks,0.,cmpflg,ip, &
          'p','dzlvl','Layer thickness',' ','m')
@@ -3075,7 +3073,7 @@ contains
            'Generic length scale',' ','m2 s-3')
     end if
 
-    ! --- store meridional transports
+    ! store meridional transports
     if (msc_mmflxl(iogrp) /= 0) then
       call ncwrt1('mmflxl','lat sigma region time',mmflxl)
       call ncattr('long_name', &
@@ -3163,14 +3161,14 @@ contains
       call ncattr('units','kg s-1')
     end if
 
-    ! --- store section transports
+    ! store section transports
     if (msc_voltr(iogrp) /= 0) then
       call ncwrt1('voltr','section time',voltr)
       call ncattr('long_name','Section transports')
       call ncattr('units','kg s-1')
     end if
 
-    ! --- store global sums and averages
+    ! store global sums and averages
     if (msc_massgs(iogrp) /= 0) then
       call ncwrt1('massgs','time',massgs)
       call ncattr('long_name','Sea water mass')
@@ -3213,7 +3211,7 @@ contains
       end if
       if (use_IDLAGE) then
 
-        ! --- ideal age tracer
+        ! ideal age tracer
         if (lyr_idlage(iogrp) /= 0) then
           call inilyr(ACC_UTILLYR(1),'p',0.)
           call acclyr(ACC_UTILLYR,trc(1-nbdy,1-nbdy,k1m,itriag),tmp3d,0, &
@@ -3236,7 +3234,7 @@ contains
         end if
       end if ! use_IDLAGE
 
-      ! --- ocean tracers
+      ! ocean tracers
       if (lyr_trc(iogrp) > 0.and.ntrocn > 0) then
         if (use_ATRC) then
           do nt = 1,ntrocn-natr
@@ -3337,13 +3335,13 @@ contains
       end if
     end if
 
-    ! --- close netcdf file
+    ! close netcdf file
     call ncfcls
 
-    ! --- initialisation of fields
+    ! initialisation of fields
     call inifld(iogrp)
 
-    ! --- reset accumulation counter
+    ! reset accumulation counter
     nacc_phy(iogrp) = 0
 
   end subroutine diaout
@@ -3372,9 +3370,9 @@ contains
          uflx_cumt,vflx_cumt,uflx_cum350t,vflx_cum350t
     real(8) :: volu,volv
 
-    ! --- ------------------------------------------------------------------
-    ! --- read section information
-    ! --- ------------------------------------------------------------------
+    !---------------------------------------------------------------
+    ! read section information
+    !---------------------------------------------------------------
     if (iniflg) then
       if (mnproc == 1) then
         equat_sec = -1
@@ -3405,7 +3403,7 @@ contains
       iniflg = .false.
     end if
 
-    ! --- Prepare 2d field
+    ! Prepare 2d field
     !$omp parallel do private(i)
     do j = 1,jj
       do i = 1,ii
@@ -3417,7 +3415,7 @@ contains
     end do
     !$omp end parallel do
 
-    ! --- Compute accumulated transports
+    ! Compute accumulated transports
     !$omp parallel do private(k,l,i)
     do j = 1,jj
       do k = 1,ddm
@@ -3436,7 +3434,7 @@ contains
           end do
         end do
 
-        ! --- -- the upper 350 m  for equatorial_undercurrent
+        ! the upper 350 m  for equatorial_undercurrent
         if (k == k350-1) then
           do l = 1,isu(j)
             do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -3466,13 +3464,13 @@ contains
     end do
     !$omp end parallel do
 
-    ! --- Collect data on master node
+    ! Collect data on master node
     call xcaget(uflx_cumt,uflx_cum,1)
     call xcaget(vflx_cumt,vflx_cum,1)
     call xcaget(uflx_cum350t,uflx_cum350,1)
     call xcaget(vflx_cum350t,vflx_cum350,1)
 
-    ! --- Compute section transports
+    ! Compute section transports
     if (mnproc == 1) then
       do s = 1,sec_num
         voltr(s) = 0.
@@ -3524,7 +3522,7 @@ contains
 
       if (mnproc == 1) then
 
-        ! --- --- Read ocean region flags from ocean_regions.nc
+        ! Read ocean region flags from ocean_regions.nc
         call ncerro(nf90_open(mer_orfile,nf90_nowrite,ncid))
         call ncerro(nf90_inq_dimid(ncid,'x',dimid))
         call ncerro(nf90_inquire_dimension(ncid,dimid,len = i))
@@ -3541,7 +3539,7 @@ contains
         call ncerro(nf90_get_var(ncid,varid,oflg))
         call ncerro(nf90_close(ncid))
 
-        ! --- --- Read section file metra_index.dat
+        ! Read section file metra_index.dat
         open(nfu,file=mer_mifile,status = 'old')
         lmax = 0
         do l = 1,ldm
@@ -3593,7 +3591,7 @@ contains
         end do
         close(nfu)
 
-        ! --- --- Allocate utility arrays for meridional fluxes
+        ! Allocate utility arrays for meridional fluxes
         allocate(mflx_or(lmax,ocn_nreg),mflx_mr(lmax,mer_nreg), &
              mflx_last_mr(lmax,mer_nreg), &
              mcnt_or(lmax,ocn_nreg),mcnt_mr(lmax,mer_nreg), &
@@ -3609,7 +3607,7 @@ contains
 
       call xcbcst(lmax)
 
-      ! --- - Allocate arrays for meridional fluxes
+      ! - Allocate arrays for meridional fluxes
       allocate(mmflxl(lmax,kdm,mer_nreg),mmftdl(lmax,kdm,mer_nreg), &
            mmfsml(lmax,kdm,mer_nreg),mmflxd(lmax,ddm,mer_nreg), &
            mmftdd(lmax,ddm,mer_nreg),mmfsmd(lmax,ddm,mer_nreg), &
@@ -3626,7 +3624,7 @@ contains
 
     end if
 
-    ! --- Compute vertical integrated heat and salt transports
+    ! Compute vertical integrated heat and salt transports
 
     !$omp parallel do private(i)
     do j = 1,jj
@@ -3715,7 +3713,7 @@ contains
       call xcaget(vcumg,vcum,1)
       if (mnproc == 1) then
         do l = 1,lmax
-          ! ---- ---- Accumulate meridional fluxes in seperate ocean regions
+          ! Accumulate meridional fluxes in seperate ocean regions
           do o = 1,ocn_nreg
             mflx_or(l,o) = 0.
             mcnt_or(l,o) = 0
@@ -3728,13 +3726,13 @@ contains
                  +uflg(s,l)*ucumg(i,j)+vflg(s,l)*vcumg(i,j)
             mcnt_or(l,o) = mcnt_or(l,o)+1
           end do
-          ! --- ----- Add together the ocean regions that belong to the regions of
-          ! --- ----- meridional flux diagnostics and apply a fill value outside
-          ! --- ----- the regions latitude bounds or when no values have been
-          ! --- ----- accumulated
+          ! Add together the ocean regions that belong to the regions of
+          ! meridional flux diagnostics and apply a fill value outside
+          ! the regions latitude bounds or when no values have been
+          ! accumulated
           do m = 1,mer_nreg
             if (mtlat(l) < mer_minlat(m).or. &
-                 mtlat(l) > mer_maxlat(m)) then
+                mtlat(l) > mer_maxlat(m)) then
               mflx_mr(l,m) = nf90_fill_double
             else
               mflx_mr(l,m) = 0.
@@ -3813,7 +3811,7 @@ contains
       end if
     end do
 
-    ! --- Compute overturning stream function at isopycnic layer interfaces
+    ! Compute overturning stream function at isopycnic layer interfaces
 
     r = 1./real(nacc_phy(iogrp))
     kmxl = 0
@@ -3925,7 +3923,7 @@ contains
         call xcaget(vcumg,vcum,1)
         if (mnproc == 1) then
           do l = 1,lmax
-            ! ---- ------ Accumulate meridional fluxes in seperate ocean regions
+            ! Accumulate meridional fluxes in seperate ocean regions
             do o = 1,ocn_nreg
               mflx_or(l,o) = 0.
             end do
@@ -3933,16 +3931,16 @@ contains
               i = iind(s,l)
               j = jind(s,l)
               o = oflg(i,j)
-              mflx_or(l,o) = mflx_or(l,o) &
-                   +uflg(s,l)*ucumg(i,j)+vflg(s,l)*vcumg(i,j)
+              mflx_or(l,o) = mflx_or(l,o)&
+                            +uflg(s,l)*ucumg(i,j)+vflg(s,l)*vcumg(i,j)
             end do
-            ! --- ------- Add together the ocean regions that belong to the regions
-            ! --- ------- of meridional flux diagnostics and apply a fill value
-            ! --- ------- outside the regions latitude bounds or when no values have
-            ! --- ------- been accumulated
+            ! Add together the ocean regions that belong to the regions
+            ! of meridional flux diagnostics and apply a fill value
+            ! outside the regions latitude bounds or when no values have
+            ! been accumulated
             do m = 1,mer_nreg
               if (mtlat(l) < mer_minlat(m).or. &
-                   mtlat(l) > mer_maxlat(m)) then
+                  mtlat(l) > mer_maxlat(m)) then
                 mflx_mr(l,m) = nf90_fill_double
               else
                 mflx_mr(l,m) = 0.
@@ -3995,8 +3993,8 @@ contains
       end do
     end do
 
-    ! --- Compute overturning stream function at levitus level interfaces
-    ! --- Prepare depth mask
+    ! Compute overturning stream function at levitus level interfaces
+    ! Prepare depth mask
 
     if (iniflg) call xcaget(depthst,depths,1)
     if (iniflg.and.mnproc == 1) then
@@ -4081,7 +4079,7 @@ contains
         call xcaget(vcumg,vcum,1)
         if (mnproc == 1) then
           do l = 1,lmax
-            ! ---- ------ Accumulate meridional fluxes in seperate ocean regions
+            ! Accumulate meridional fluxes in seperate ocean regions
             do o = 1,ocn_nreg
               mflx_or(l,o) = 0.
             end do
@@ -4092,9 +4090,9 @@ contains
               mflx_or(l,o) = mflx_or(l,o) &
                    +uflg(s,l)*ucumg(i,j)+vflg(s,l)*vcumg(i,j)
             end do
-            ! --- ------- Add together the ocean regions that belong to the regions
-            ! --- ------- of meridional flux diagnostics and apply a fill value
-            ! --- ------- outside the regions latitude and depth bounds
+            ! Add together the ocean regions that belong to the regions
+            ! of meridional flux diagnostics and apply a fill value
+            ! outside the regions latitude and depth bounds
             do m = 1,mer_nreg
               if (mtlat(l) < mer_minlat(m).or. &
                    mtlat(l) > mer_maxlat(m).or. &
@@ -4151,10 +4149,9 @@ contains
 
 
   subroutine diavfl(iogrp,m,n,mm,nn,k1m,k1n)
-
-    ! --- ------------------------------------------------------------------
-    ! --- computation of vertical mass flux at isopycnic layer interfaces
-    ! --- ------------------------------------------------------------------
+  !---------------------------------------------------------------
+  ! computation of vertical mass flux at isopycnic layer interfaces
+  !---------------------------------------------------------------
 
     integer :: iogrp,m,n,mm,nn,k1m,k1n
 
@@ -4162,9 +4159,9 @@ contains
     integer :: i,j,k,km,kn,l
     real :: q
 
-    ! ---
-    ! --- Compute vertical mass flux at isopycnic layer interfaces
-    ! ---
+    !
+    ! Compute vertical mass flux at isopycnic layer interfaces
+    !
     if (acc_wflx(iogrp)+acc_wflx2(iogrp) /= 0) then
 
       !$omp parallel do private(i)
@@ -4196,7 +4193,7 @@ contains
       end do
     end if
 
-    ! --- Computation of vertical mass flux at levitus layer interfaces
+    ! Computation of vertical mass flux at levitus layer interfaces
     if (acc_wflxlvl(iogrp)+acc_wflx2lvl(iogrp) /= 0) then
 
       call xctilr(phylvl(1-nbdy,1-nbdy,1,ACC_UFLXLVL(iogrp)), &
@@ -4277,17 +4274,17 @@ contains
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ddm),save :: dlevu
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ddm),save :: dlevv
 
-    ! --- Define thresholds
+    ! Define thresholds
     dzeps = 1e1*epsilp
     dpeps = 1e5*epsilp
     flxeps = 1e5*epsilp
 
-    ! --- Sort out stuff related to time stepping
+    ! Sort out stuff related to time stepping
     km = k+mm
     kn = k+nn
     k1m = 1+mm
 
-    ! --- Adjust bounds of levitus levels according to model bathymetry
+    ! Adjust bounds of levitus levels according to model bathymetry
     if (iniflg) then
       !$omp parallel do private(d,l,i)
       do j = 1,jj+1
@@ -4317,7 +4314,7 @@ contains
     end if
 
 
-    ! --- Compute top and bottom depths of density layers
+    ! Compute top and bottom depths of density layers
     if (k == 1) then
       if (gridid == 'p') then
         !$omp parallel do private(l,i,kl,kml)
@@ -4426,7 +4423,7 @@ contains
       end if
     end if
 
-    ! --- Compute interpolation weights
+    ! Compute interpolation weights
     if (gridid == 'p') then
       !$omp parallel do private(l,i,d)
       do j = 1,jj
@@ -4514,16 +4511,15 @@ contains
   end subroutine diazlv
 
 
-  ! --- ------------------------------------------------------------------
-  ! --- ------------------------------------------------------------------
-  ! --- ------------------------------------------------------------------
+  !---------------------------------------------------------------
+  !---------------------------------------------------------------
+  !---------------------------------------------------------------
 
 
   subroutine inih2d(pos,gridid,inival)
-
-    ! --- ------------------------------------------------------------------
-    ! --- Description: initialise 2d diagnostic field
-    ! --- ------------------------------------------------------------------
+  !---------------------------------------------------------------
+  ! Description: initialise 2d diagnostic field
+  !---------------------------------------------------------------
 
     ! Arguments
     integer,   intent(in) :: pos    ! position in common buffer
@@ -4533,7 +4529,7 @@ contains
     ! Local variables
     integer :: i,j
 
-    ! --- Check whether field should be initialised
+    ! Check whether field should be initialised
     if (pos == 0) return
 
     if (gridid(1:1) == 'u') then
@@ -4575,10 +4571,9 @@ contains
 
 
   subroutine inilyr(pos,gridid,inival)
-
-    ! --- ------------------------------------------------------------------
-    ! --- Description: initialise layer diagnostic field
-    ! --- ------------------------------------------------------------------
+  !---------------------------------------------------------------
+  ! Description: initialise layer diagnostic field
+  !---------------------------------------------------------------
 
     ! Arguments
     integer,   intent(in) :: pos    ! position in common buffer
@@ -4588,7 +4583,7 @@ contains
     ! LOCAL VARIABLES
     integer :: i,j,k
 
-    ! --- Check whether field should be initialised
+    ! Check whether field should be initialised
     if (pos == 0) return
 
     if (gridid(1:1) == 'u') then
@@ -4638,15 +4633,14 @@ contains
 
 
   subroutine inilvl(pos,gridid,inival)
-
-    ! --- ------------------------------------------------------------------
-    ! --- Description: initialise level diagnostic field
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : position in common buffer
-    ! ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
-    ! ---   real inival   (in)     : value used for initalisation
-    ! --- ------------------------------------------------------------------
+  !---------------------------------------------------------------
+  ! Description: initialise level diagnostic field
+  !
+  ! Arguments:
+  !   int  pos      (in)     : position in common buffer
+  !   char gridid   (in)     : grid identifier ('p','u' or 'v')
+  !   real inival   (in)     : value used for initalisation
+  !---------------------------------------------------------------
 
     integer :: pos
     real :: inival
@@ -4654,7 +4648,7 @@ contains
 
     integer :: i,j,k
 
-    ! --- Check whether field should be initialised
+    ! Check whether field should be initialised
     if (pos == 0) return
 
     if (gridid(1:1) == 'u') then
@@ -4704,17 +4698,16 @@ contains
 
 
   subroutine acch2d(pos,fld,wghts,wghtsflg,gridid)
-
-    ! --- ------------------------------------------------------------------
-    ! --- Description: accumulate 2d fields
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : position in 2d buffer
-    ! ---   real fld      (in)     : input data used for accumulation
-    ! ---   real wghts    (in)     : weights used for accumulation
-    ! ---   int  wghtsflg (in)     : weights flag (0=no weighting)
-    ! ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
-    ! --- ------------------------------------------------------------------
+  !---------------------------------------------------------------
+  ! Description: accumulate 2d fields
+  !
+  ! Arguments:
+  !   int  pos      (in)     : position in 2d buffer
+  !   real fld      (in)     : input data used for accumulation
+  !   real wghts    (in)     : weights used for accumulation
+  !   int  wghtsflg (in)     : weights flag (0=no weighting)
+  !   char gridid   (in)     : grid identifier ('p','u' or 'v')
+  !---------------------------------------------------------------
 
     integer :: pos(nphymax),wghtsflg
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: fld,wghts
@@ -4722,7 +4715,7 @@ contains
 
     integer :: i,j,l,o
 
-    ! --- Check whether field should be accumulated
+    ! Check whether field should be accumulated
     do o = 1,nphy
       if (pos(o) == 0) cycle
 
@@ -4808,15 +4801,14 @@ contains
 
 
   subroutine maxh2d(pos,fld,gridid)
-
-    ! --- ------------------------------------------------------------------
-    ! --- Description: store maximum of 2d fields
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : position in 2d buffer
-    ! ---   real fld      (in)     : input data used for finding maximum
-    ! ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
-    ! --- ------------------------------------------------------------------
+  !---------------------------------------------------------------
+  ! Description: store maximum of 2d fields
+  !
+  ! Arguments:
+  !   int  pos      (in)     : position in 2d buffer
+  !   real fld      (in)     : input data used for finding maximum
+  !   char gridid   (in)     : grid identifier ('p','u' or 'v')
+  !---------------------------------------------------------------
 
     integer :: pos(nphymax)
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: fld
@@ -4824,7 +4816,7 @@ contains
 
     integer :: i,j,l,o
 
-    ! --- Check whether maximum of field should be stored
+    ! Check whether maximum of field should be stored
     do o = 1,nphy
       if (pos(o) == 0) cycle
 
@@ -4871,15 +4863,14 @@ contains
 
 
   subroutine minh2d(pos,fld,gridid)
-
-    ! --- ------------------------------------------------------------------
-    ! --- Description: store minimum of 2d fields
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : position in 2d buffer
-    ! ---   real fld      (in)     : input data used for finding minimum
-    ! ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
-    ! --- ------------------------------------------------------------------
+  !---------------------------------------------------------------
+  ! Description: store minimum of 2d fields
+  !
+  ! Arguments:
+  !   int  pos      (in)     : position in 2d buffer
+  !   real fld      (in)     : input data used for finding minimum
+  !   char gridid   (in)     : grid identifier ('p','u' or 'v')
+  !---------------------------------------------------------------
 
     integer :: pos(nphymax)
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: fld
@@ -4887,7 +4878,7 @@ contains
 
     integer :: i,j,l,o
 
-    ! --- Check whether minimum of field should be stored
+    ! Check whether minimum of field should be stored
     do o = 1,nphy
       if (pos(o) == 0) cycle
 
@@ -4934,15 +4925,14 @@ contains
 
 
   subroutine sqh2d(pos,fld,gridid)
-
-    ! --- ------------------------------------------------------------------
-    ! --- Description: accumulate square of 2d fields
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : position in 2d buffer
-    ! ---   real fld      (in)     : input data used for accumulation
-    ! ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
-    ! --- ------------------------------------------------------------------
+  !---------------------------------------------------------------
+  ! Description: accumulate square of 2d fields
+  !
+  ! Arguments:
+  !   int  pos      (in)     : position in 2d buffer
+  !   real fld      (in)     : input data used for accumulation
+  !   char gridid   (in)     : grid identifier ('p','u' or 'v')
+  !---------------------------------------------------------------
 
     integer :: pos(nphymax)
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: fld
@@ -4950,7 +4940,7 @@ contains
 
     integer :: i,j,l,o
 
-    ! --- Check whether field should be accumulated
+    ! Check whether field should be accumulated
     do o = 1,nphy
       if (pos(o) == 0) cycle
 
@@ -4997,17 +4987,16 @@ contains
 
 
   subroutine acclyr(pos,fld,wghts,wghtsflg,gridid)
-
-    ! --- ------------------------------------------------------------------
-    ! --- Description: accumulate layer fields
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : position in 3d layer buffer
-    ! ---   real fld      (in)     : input data used for accumulation
-    ! ---   real wghts    (in)     : weights used for accumulation
-    ! ---   int  wghtsflg (in)     : weights flag (0=no weighting)
-    ! ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
-    ! --- ------------------------------------------------------------------
+  !---------------------------------------------------------------
+  ! Description: accumulate layer fields
+  !
+  ! Arguments:
+  !   int  pos      (in)     : position in 3d layer buffer
+  !   real fld      (in)     : input data used for accumulation
+  !   real wghts    (in)     : weights used for accumulation
+  !   int  wghtsflg (in)     : weights flag (0=no weighting)
+  !   char gridid   (in)     : grid identifier ('p','u' or 'v')
+  !---------------------------------------------------------------
 
     integer :: pos(nphymax),wghtsflg
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: fld,wghts
@@ -5015,7 +5004,7 @@ contains
 
     integer :: i,j,k,l,o
 
-    ! --- Check whether field should be accumulated
+    ! Check whether field should be accumulated
     do o = 1,nphy
       if (pos(o) == 0) cycle
 
@@ -5113,18 +5102,17 @@ contains
 
 
   subroutine accily(pos,fld,wghts,wghtsflg,gridid)
-
-    ! --- ------------------------------------------------------------------
-    ! --- Description: accumulate interface fields after interpolation to
-    ! ---              layers
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : position in 3d layer buffer
-    ! ---   real fld      (in)     : input data used for accumulation
-    ! ---   real wghts    (in)     : weights used for accumulation
-    ! ---   int  wghtsflg (in)     : weights flag (0=no weighting)
-    ! ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
-    ! --- ------------------------------------------------------------------
+  !---------------------------------------------------------------
+  ! Description: accumulate interface fields after interpolation to
+  !              layers
+  !
+  ! Arguments:
+  !   int  pos      (in)     : position in 3d layer buffer
+  !   real fld      (in)     : input data used for accumulation
+  !   real wghts    (in)     : weights used for accumulation
+  !   int  wghtsflg (in)     : weights flag (0=no weighting)
+  !   char gridid   (in)     : grid identifier ('p','u' or 'v')
+  !---------------------------------------------------------------
 
     integer :: pos(nphymax),wghtsflg
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm+1) :: fld
@@ -5133,7 +5121,7 @@ contains
 
     integer :: i,j,k,l,o
 
-    ! --- Check whether field should be accumulated
+    ! Check whether field should be accumulated
     do o = 1,nphy
       if (pos(o) == 0) cycle
 
@@ -5237,19 +5225,18 @@ contains
 
 
   subroutine acclvl(pos,fld,gridid,k,ind1,ind2,wghts)
-
-    ! --- ------------------------------------------------------------------
-    ! --- Description: accumulate layer fields mapped to levels
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : position in buffer
-    ! ---   real fld      (in)     : input data used for accumulation
-    ! ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
-    ! ---   int  k        (in)     : layer index of fld
-    ! ---   int  ind1     (in)     : index field for first accumulated level
-    ! ---   int  ind2     (in)     : index field for last accumulated level
-    ! ---   real wghts    (in)     : weights used for accumulation
-    ! --- ------------------------------------------------------------------
+  !---------------------------------------------------------------
+  ! Description: accumulate layer fields mapped to levels
+  !
+  ! Arguments:
+  !   int  pos      (in)     : position in buffer
+  !   real fld      (in)     : input data used for accumulation
+  !   char gridid   (in)     : grid identifier ('p','u' or 'v')
+  !   int  k        (in)     : layer index of fld
+  !   int  ind1     (in)     : index field for first accumulated level
+  !   int  ind2     (in)     : index field for last accumulated level
+  !   real wghts    (in)     : weights used for accumulation
+  !---------------------------------------------------------------
 
     integer :: pos(nphymax),k
     integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ind1,ind2
@@ -5259,7 +5246,7 @@ contains
 
     integer :: d,i,j,l,o
 
-    ! --- Check whether field should be accumulated
+    ! Check whether field should be accumulated
     do o = 1,nphy
       if (pos(o) == 0) cycle
 
@@ -5270,7 +5257,7 @@ contains
             do i = max(1,ifu(j,l)),min(ii+1,ilu(j,l))
               do d = ind1(i,j),ind2(i,j)
                 phylvl(i,j,d,pos(o)) = phylvl(i,j,d,pos(o)) &
-                     +fld(i,j,k)*wghts(i,j,d)
+                                      +fld(i,j,k)*wghts(i,j,d)
               end do
             end do
           end do
@@ -5283,7 +5270,7 @@ contains
             do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
               do d = ind1(i,j),ind2(i,j)
                 phylvl(i,j,d,pos(o)) = phylvl(i,j,d,pos(o)) &
-                     +fld(i,j,k)*wghts(i,j,d)
+                                      +fld(i,j,k)*wghts(i,j,d)
               end do
             end do
           end do
@@ -5296,7 +5283,7 @@ contains
             do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
               do d = ind1(i,j),ind2(i,j)
                 phylvl(i,j,d,pos(o)) = phylvl(i,j,d,pos(o)) &
-                     +fld(i,j,k)*wghts(i,j,d)
+                                      +fld(i,j,k)*wghts(i,j,d)
               end do
             end do
           end do
@@ -5314,19 +5301,18 @@ contains
 
 
   subroutine accilv(pos,fld,gridid,k,ind1,ind2,wghts)
-
-    ! --- ------------------------------------------------------------------
-    ! --- Description: accumulate interface fields mapped to levels
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : position in buffer
-    ! ---   real fld      (in)     : input data used for accumulation
-    ! ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
-    ! ---   int  k        (in)     : layer index of fld
-    ! ---   int  ind1     (in)     : index field for first accumulated level
-    ! ---   int  ind2     (in)     : index field for last accumulated level
-    ! ---   real wghts    (in)     : weights used for accumulation
-    ! --- ------------------------------------------------------------------
+  !---------------------------------------------------------------
+  ! Description: accumulate interface fields mapped to levels
+  !
+  ! Arguments:
+  !   int  pos      (in)     : position in buffer
+  !   real fld      (in)     : input data used for accumulation
+  !   char gridid   (in)     : grid identifier ('p','u' or 'v')
+  !   int  k        (in)     : layer index of fld
+  !   int  ind1     (in)     : index field for first accumulated level
+  !   int  ind2     (in)     : index field for last accumulated level
+  !   real wghts    (in)     : weights used for accumulation
+  !---------------------------------------------------------------
 
     integer :: pos(nphymax),k
     integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ind1,ind2
@@ -5336,7 +5322,7 @@ contains
 
     integer :: d,i,j,l,o
 
-    ! --- Check whether field should be accumulated
+    ! Check whether field should be accumulated
     do o = 1,nphy
       if (pos(o) == 0) cycle
 
@@ -5398,7 +5384,7 @@ contains
     ! Arguments
     integer, intent(in) :: iogrp
 
-    ! --- initialisation of 2d fields
+    ! initialisation of 2d fields
     call inih2d(ACC_UB(iogrp),'u',0.)
     call inih2d(ACC_UBFLXS(iogrp),'u',0.)
     call inih2d(ACC_ZTX(iogrp),'u',0.)
@@ -5469,7 +5455,7 @@ contains
     call inih2d(ACC_TSRF(iogrp),'p',0.)
     call inih2d(ACC_TICE(iogrp),'p',0.)
 
-    ! --- initialisation of 3d layer fields
+    ! initialisation of 3d layer fields
     call inilyr(ACC_UVEL(iogrp),'u',0.)
     call inilyr(ACC_DPU(iogrp),'u',0.)
     call inilyr(ACC_UFLX(iogrp),'u',0.)
@@ -5518,7 +5504,7 @@ contains
       call inilyr(ACC_GLS_PSI(iogrp),'p',0.)
     endif
 
-    ! --- initialsation of 3d level fields
+    ! initialsation of 3d level fields
     call inilvl(ACC_UVELLVL(iogrp),'u',0.)
     call inilvl(ACC_UFLXLVL(iogrp),'u',0.)
     call inilvl(ACC_UTFLXLVL(iogrp),'u',0.)
@@ -5568,10 +5554,9 @@ contains
 
 
   subroutine finh2d(posacc,poswgt,gridid)
-
-    ! --- ------------------------------------------------------------------
-    ! --- Description: finalise accumulation of weighted 2d fields
-    ! --- ------------------------------------------------------------------
+  !---------------------------------------------------------------
+  ! Description: finalise accumulation of weighted 2d fields
+  !---------------------------------------------------------------
 
     ! Arguments
     integer,   intent(in) :: posacc ! position of accumulated field in buffer
@@ -5582,7 +5567,7 @@ contains
     integer :: i,j,l
     real, parameter :: epsil = 1e-11
 
-    ! --- Check whether field should be initialised
+    ! Check whether field should be initialised
     if (posacc == 0) return
 
     if (gridid == 'u') then
@@ -5629,10 +5614,9 @@ contains
 
 
   subroutine finlyr(posacc,poswgt,gridid)
-
-    ! --- ------------------------------------------------------------------
-    ! --- Description: finalise accumulation of weighted 3d layer fields
-    ! --- ------------------------------------------------------------------
+  !---------------------------------------------------------------
+  ! Description: finalise accumulation of weighted 3d layer fields
+  !---------------------------------------------------------------
 
     ! Arguments
     integer,   intent(in) :: posacc ! position of accumulated field in buffer
@@ -5643,7 +5627,7 @@ contains
     integer :: i,j,k,l
     real, parameter :: epsil = 1e-11
 
-    ! --- Check whether field should be initialised
+    ! Check whether field should be initialised
     if (posacc == 0) return
 
     if (gridid == 'u') then
@@ -5653,8 +5637,7 @@ contains
           do l = 1,isu(j)
             do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
               if (phylyr(i,j,k,poswgt) > epsil) then
-                phylyr(i,j,k,posacc) = phylyr(i,j,k,posacc)/ &
-                     phylyr(i,j,k,poswgt)
+                phylyr(i,j,k,posacc) = phylyr(i,j,k,posacc)/phylyr(i,j,k,poswgt)
               else
                 phylyr(i,j,k,posacc) = nf90_fill_double
               end if
@@ -5670,8 +5653,7 @@ contains
           do l = 1,isv(j)
             do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
               if (phylyr(i,j,k,poswgt) > epsil) then
-                phylyr(i,j,k,posacc) = phylyr(i,j,k,posacc)/ &
-                     phylyr(i,j,k,poswgt)
+                phylyr(i,j,k,posacc) = phylyr(i,j,k,posacc)/phylyr(i,j,k,poswgt)
               else
                 phylyr(i,j,k,posacc) = nf90_fill_double
               end if
@@ -5687,8 +5669,7 @@ contains
           do l = 1,isp(j)
             do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
               if (phylyr(i,j,k,poswgt) > epsil) then
-                phylyr(i,j,k,posacc) = phylyr(i,j,k,posacc)/ &
-                     phylyr(i,j,k,poswgt)
+                phylyr(i,j,k,posacc) = phylyr(i,j,k,posacc)/phylyr(i,j,k,poswgt)
               else
                 phylyr(i,j,k,posacc) = nf90_fill_double
               end if
@@ -5709,10 +5690,9 @@ contains
 
   subroutine wrth2d(pos,frmt,sfac,offs,cmpflg,msk,gridid, &
        vnm,vlngnm,vstdnm,vunits)
-
-    ! --- ------------------------------------------------------------------
-    ! --- Description: writes diagnostic 2d field to file
-    ! --- ------------------------------------------------------------------
+  !---------------------------------------------------------------
+  ! Description: writes diagnostic 2d field to file
+  !---------------------------------------------------------------
 
     ! Arguments
     real,                  intent(in) :: sfac   ! user defined scale factor to be applied
@@ -5736,17 +5716,17 @@ contains
     ! Local variables
     character(len = 100) :: dims
 
-    ! --- Check whether field should be written
+    ! Check whether field should be written
     if (frmt == 0) return
 
-    ! --- Create dimension string
+    ! Create dimension string
     if (cmpflg == 1) then
       dims = gridid(1:1)//'comp time'
     else
       dims = 'x y time'
     end if
 
-    ! --- Check output format
+    ! Check output format
     if (frmt == 2) then
       if (cmpflg == 1) then
         call nccopa(vnm,dims,phyh2d(1-nbdy,1-nbdy,pos),msk,sfac, &
@@ -5777,7 +5757,7 @@ contains
       stop '(wrth2d)'
     end if
 
-    ! --- Define attributes
+    ! Define attributes
     !      if (len(trim(vunits)).ne.0) call ncattr('units',vunits)
     !      if (len(trim(vlngnm)).ne.0) call ncattr('long_name',vlngnm)
     !      if (len(trim(vstdnm)).ne.0) call ncattr('standard_name',vstdnm)
@@ -5791,10 +5771,9 @@ contains
 
   subroutine wrtlyr(pos,frmt,sfac,offs,cmpflg,msk,gridid, &
        vnm,vlngnm,vstdnm,vunits)
-
-    ! --- ------------------------------------------------------------------
-    ! --- Description: writes diagnostic layer field to file
-    ! --- ------------------------------------------------------------------
+  !---------------------------------------------------------------
+  ! Description: writes diagnostic layer field to file
+  !---------------------------------------------------------------
 
     ! Arguments
     real,                  intent(in) :: sfac   ! user defined scale factor to be applied
@@ -5818,17 +5797,17 @@ contains
     ! Local variables
     character(len = 100) :: dims
 
-    ! --- Check whether field should be written
+    ! Check whether field should be written
     if (frmt == 0) return
 
-    ! --- Create dimension string
+    ! Create dimension string
     if (cmpflg == 1) then
       dims = gridid(1:1)//'comp sigma time'
     else
       dims = 'x y sigma time'
     end if
 
-    ! --- Check output format
+    ! Check output format
     if (frmt == 2) then
       if (cmpflg == 1) then
         call nccopa(vnm,dims,phylyr(1-nbdy,1-nbdy,1,pos),msk,sfac, &
@@ -5859,7 +5838,7 @@ contains
       stop '(wrtlyr)'
     end if
 
-    ! --- Define attributes
+    ! Define attributes
     !      if (len(trim(vunits)).ne.0) call ncattr('units',vunits)
     !      if (len(trim(vlngnm)).ne.0) call ncattr('long_name',vlngnm)
     !      if (len(trim(vstdnm)).ne.0) call ncattr('standard_name',vstdnm)
@@ -5873,10 +5852,9 @@ contains
 
   subroutine wrtlvl(pos,frmt,sfac,offs,cmpflg,msk,gridid, &
        vnm,vlngnm,vstdnm,vunits)
-
-    ! --- ------------------------------------------------------------------
-    ! --- Description: writes diagnostic level field to file
-    ! --- ------------------------------------------------------------------
+  !---------------------------------------------------------------
+  ! Description: writes diagnostic level field to file
+  ! ------------------------------------------------------------------
 
     ! Arguments
     real,                  intent(in) :: sfac   ! user defined scale factor to be applied
@@ -5900,17 +5878,17 @@ contains
     ! Local variables
     character(len = 100) :: dims
 
-    ! --- Check whether field should be written
+    ! Check whether field should be written
     if (frmt == 0) return
 
-    ! --- Create dimension string
+    ! Create dimension string
     if (cmpflg == 1) then
       dims = gridid//'comp depth time'
     else
       dims = 'x y depth time'
     end if
 
-    ! --- Check output format
+    ! Check output format
     if (frmt == 2) then
       if (cmpflg == 1) then
         call nccopa(vnm,dims,phylvl(1-nbdy,1-nbdy,1,pos),msk,sfac, &
@@ -5941,7 +5919,7 @@ contains
       stop '(wrtlvl)'
     end if
 
-    ! --- Define attributes
+    ! Define attributes
     !      if (len(trim(vunits)).ne.0) call ncattr('units',vunits)
     !      if (len(trim(vlngnm)).ne.0) call ncattr('long_name',vlngnm)
     !      if (len(trim(vstdnm)).ne.0) call ncattr('standard_name',vstdnm)
@@ -5954,10 +5932,9 @@ contains
 
 
   subroutine logh2d(pos,gridid,sfac,offs)
-
-    ! --- ------------------------------------------------------------------
-    ! --- Description: replace 2d field with log10(field)
-    ! --- ------------------------------------------------------------------
+  ! ------------------------------------------------------------------
+  ! Description: replace 2d field with log10(field)
+  ! ------------------------------------------------------------------
 
     ! Arguments
     real,      intent(in) :: sfac   ! scale factor to be applied before log10
@@ -5969,7 +5946,7 @@ contains
     integer :: i,j,l
     real :: epsil = 1e-11
 
-    ! --- Check whether field should be processed
+    ! Check whether field should be processed
     if (pos == 0) return
 
     if (gridid == 'u') then
@@ -6024,10 +6001,9 @@ contains
 
 
   subroutine loglyr(pos,gridid,sfac,offs)
-
-    ! --- ------------------------------------------------------------------
-    ! --- Description: replace 3d layer field with log10(field)
-    ! --- ------------------------------------------------------------------
+  ! ------------------------------------------------------------------
+  ! Description: replace 3d layer field with log10(field)
+  ! ------------------------------------------------------------------
 
     ! Arguments
     real,      intent(in) :: sfac   ! scale factor to be applied before log10
@@ -6039,7 +6015,7 @@ contains
     integer :: i,j,k,l
     real :: epsil = 1e-11
 
-    ! --- Check whether field should be processed
+    ! Check whether field should be processed
     if (pos == 0) return
 
     if (gridid == 'u') then
@@ -6100,10 +6076,9 @@ contains
 
 
   subroutine loglvl(pos,gridid,sfac,offs)
-
-    ! --- ------------------------------------------------------------------
-    ! --- Description: replace 3d level field with log10(field)
-    ! --- ------------------------------------------------------------------
+  ! ------------------------------------------------------------------
+  ! Description: replace 3d level field with log10(field)
+  ! ------------------------------------------------------------------
 
     ! Arguments
     integer,          intent(in) :: pos    ! field position in layer buffer
@@ -6115,7 +6090,7 @@ contains
     integer :: i,j,k,l
     real :: epsil = 1e-11
 
-    ! --- Check whether field should be processed
+    ! Check whether field should be processed
     if (pos == 0) return
 
     if (gridid == 'u') then
@@ -6176,10 +6151,9 @@ contains
 
 
   subroutine msklvl(pos,gridid)
-
-    ! --- ------------------------------------------------------------------
-    ! --- Description: set sea floor points to NaN in level fields
-    ! --- ------------------------------------------------------------------
+  ! ------------------------------------------------------------------
+  ! Description: set sea floor points to NaN in level fields
+  ! ------------------------------------------------------------------
 
     integer,          intent(in) :: pos    ! field position in level buffer
     character(len=*), intent(in) :: gridid ! grid identifier ('p','u' or 'v')
@@ -6190,10 +6164,10 @@ contains
     integer, dimension(idm,jdm), save :: kmaxu,kmaxv,kmaxp
     real, parameter :: mskval = nf90_fill_double
 
-    ! --- Check whether field should be processed
+    ! Check whether field should be processed
     if (pos == 0) return
 
-    ! --- Prepare index fields for masking
+    ! Prepare index fields for masking
 
     if (iniflg) then
       !$omp parallel do private(i,k)
@@ -6206,10 +6180,12 @@ contains
         do k = 1,ddm
           do i = 1,ii
             if (depths(i,j) > depthslev_bnds(1,k)) kmaxp(i,j) = k
-            if (min(depths(i,j),depths(i-1,j)) > depthslev_bnds(1,k)) &
-                 kmaxu(i,j) = k
-            if (min(depths(i,j),depths(i,j-1)) > depthslev_bnds(1,k)) &
-                 kmaxv(i,j) = k
+            if (min(depths(i,j),depths(i-1,j)) > depthslev_bnds(1,k)) then
+              kmaxu(i,j) = k
+            end if
+            if (min(depths(i,j),depths(i,j-1)) > depthslev_bnds(1,k)) then
+              kmaxv(i,j) = k
+            end if
           end do
         end do
       end do
@@ -6257,10 +6233,9 @@ contains
 
 
   subroutine definevar(irec,iogrp,cmpflg,timeunits,calendar)
-
-    ! --- ------------------------------------------------------------------
-    ! --- Define output variables
-    ! --- ------------------------------------------------------------------
+  ! ------------------------------------------------------------------
+  ! Define output variables
+  ! ------------------------------------------------------------------
 
     ! Arguments
     integer,           intent(in) :: irec,iogrp,cmpflg
@@ -6276,13 +6251,13 @@ contains
     call ncattr('units',timeunits)
     call ncattr('calendar',calendar)
     if (irec == 1) then
-      ! --- - define sigma levels
+      ! define sigma levels
       call ncdefvar('sigma','sigma',ndouble,8)
       call ncattr('long_name','Potential density')
       call ncattr('standard_name','sea_water_sigma_theta')
       call ncattr('units','kg m-3')
       call ncattr('positive','down')
-      ! --- - define zlevel
+      ! define zlevel
       call ncdefvar('depth','depth',ndouble,8)
       call ncattr('long_name','z level')
       call ncattr('units','m')
@@ -6306,7 +6281,7 @@ contains
         call ncattr('long_name','Section name')
       end if
     end if
-    ! --- define 2d fields
+    ! define 2d fields
     call ncdefvar3d(H2D_SIGMX(iogrp),cmpflg,'p','sigmx', &
          'Mixed layer density',' ','kg m-3',0)
 
@@ -6516,7 +6491,7 @@ contains
     call ncdefvar3d(H2D_TBOT(iogrp),cmpflg,'p','tbot', &
          'Bottom temperature',' ','degC',0)
 
-    ! --- define 3d layer fields
+    ! define 3d layer fields
     call ncdefvar3d(LYR_DP(iogrp),cmpflg,'p','dp', &
          'Layer pressure thickness',' ','Pa',1)
 
@@ -6685,7 +6660,7 @@ contains
            'GLS_PSI','Generic length scale','m2 s-3',1)
     end if
 
-    ! --- define 3d depth fields
+    ! define 3d depth fields
     call ncdefvar3d(LVL_DZ(iogrp),cmpflg,'p','dzlvl', &
          'Layer thickness',' ','m',2)
 
@@ -6851,7 +6826,7 @@ contains
            'Generic length scale',' ','m2 s-3',2)
     endif
 
-    ! --- define meridional transports
+    ! define meridional transports
     if (msc_mmflxl(iogrp) /= 0) then
       call ncdefvar('mmflxl','lat sigma region time',ndouble,8)
       call ncattr('long_name', &
@@ -6939,14 +6914,14 @@ contains
       call ncattr('units','kg s-1')
     end if
 
-    ! --- store section transports
+    ! store section transports
     if (msc_voltr(iogrp) /= 0) then
       call ncdefvar('voltr','section time',ndouble,8)
       call ncattr('long_name','Section transports')
       call ncattr('units','kg s-1')
     end if
 
-    ! --- store global sums and averages
+    ! store global sums and averages
     if (msc_massgs(iogrp) /= 0) then
       call ncdefvar('massgs','time',ndouble,8)
       call ncattr('long_name','Sea water mass')
@@ -6984,7 +6959,7 @@ contains
         call ncdefvar3d(max(LYR_IDLAGE(iogrp),LYR_TRC(iogrp)),cmpflg, &
              'p','dp_trc','Layer pressure thickness',' ','Pa',1)
       end if
-      ! --- ideal age tracer
+      ! ideal age tracer
       if (use_IDLAGE) then
         call ncdefvar3d(LYR_IDLAGE(iogrp),cmpflg,'p','idlage', &
              'Ideal age','sea_water_age_since_surface_contact','year',1)
@@ -6995,7 +6970,7 @@ contains
         end if
       end if
 
-      ! --- ocean tracers
+      ! ocean tracers
       if (lyr_trc(iogrp) > 0.and.ntrocn > 0) then
         if (use_ATRC) then
           do nt = 1,ntrocn-natr

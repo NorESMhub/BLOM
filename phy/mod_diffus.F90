@@ -1,18 +1,18 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2006-2022 Mats Bentsen, Mehmet Ilicak
-
+! Copyright (C) 2006-2024 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
+!
 ! This file is part of BLOM.
-
+!
 ! BLOM is free software: you can redistribute it and/or modify it under the
 ! terms of the GNU Lesser General Public License as published by the Free
 ! Software Foundation, either version 3 of the License, or (at your option)
 ! any later version.
-
+!
 ! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
 ! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
 ! more details.
-
+!
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
@@ -41,9 +41,9 @@ contains
 
   subroutine diffus(m,n,mm,nn,k1m,k1n)
 
-    ! --- ------------------------------------------------------------------
-    ! --- diffusion of tracers
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! diffusion of tracers
+    ! ------------------------------------------------------------------
 
     ! Arguments
     integer, intent(in) :: m,n,mm,nn,k1m,k1n
@@ -91,8 +91,8 @@ contains
         do l = 1,isu(j)
           do i = max(0,ifu(j,l)),min(ii+2,ilu(j,l))
             q = delt1*.5*(difiso(i-1,j,k)+difiso(i,j,k)) &
-                 *scuy(i,j)*scuxi(i,j) &
-                 *max(min(dp(i-1,j,kn),dp(i,j,kn)),dpeps)
+                *scuy(i,j)*scuxi(i,j) &
+                *max(min(dp(i-1,j,kn),dp(i,j,kn)),dpeps)
             usflld(i,j,km) = q*(saln(i-1,j,kn)-saln(i,j,kn))
             utflld(i,j,km) = q*(temp(i-1,j,kn)-temp(i,j,kn))
             if (use_TRC) then
@@ -115,8 +115,8 @@ contains
         do l = 1,isv(j)
           do i = max(0,ifv(j,l)),min(ii+1,ilv(j,l))
             q = delt1*.5*(difiso(i,j-1,k)+difiso(i,j,k)) &
-                 *scvx(i,j)*scvyi(i,j) &
-                 *max(min(dp(i,j-1,kn),dp(i,j,kn)),dpeps)
+                *scvx(i,j)*scvyi(i,j) &
+                *max(min(dp(i,j-1,kn),dp(i,j,kn)),dpeps)
             vsflld(i,j,km) = q*(saln(i,j-1,kn)-saln(i,j,kn))
             vtflld(i,j,km) = q*(temp(i,j-1,kn)-temp(i,j,kn))
             if (use_TRC) then
@@ -140,11 +140,11 @@ contains
           do i = max(0,ifp(j,l)),min(ii+1,ilp(j,l))
             q = 1./(scp2(i,j)*max(dp(i,j,kn),dpeps))
             saln(i,j,kn) = saln(i,j,kn) &
-                 -q*(usflld(i+1,j,km)-usflld(i,j,km) &
-                 +vsflld(i,j+1,km)-vsflld(i,j,km))
+                           -q*(usflld(i+1,j,km)-usflld(i,j,km) &
+                              +vsflld(i,j+1,km)-vsflld(i,j,km))
             temp(i,j,kn) = temp(i,j,kn) &
-                 -q*(utflld(i+1,j,km)-utflld(i,j,km) &
-                 +vtflld(i,j+1,km)-vtflld(i,j,km))
+                          -q*(utflld(i+1,j,km)-utflld(i,j,km) &
+                             +vtflld(i,j+1,km)-vtflld(i,j,km))
             if (use_TRC) then
               do nt = 1,ntr
                 if (use_TKE .and. .not. use_TKEIDF) then
@@ -152,7 +152,7 @@ contains
                 end if
                 trc(i,j,kn,nt) = trc(i,j,kn,nt) &
                      -q*(uflxtr(nt,i+1,j)-uflxtr(nt,i,j) &
-                     +vflxtr(nt,i,j+1)-vflxtr(nt,i,j))
+                        +vflxtr(nt,i,j+1)-vflxtr(nt,i,j))
               end do
             end if
             sigma(i,j,kn) = sig(temp(i,j,kn),saln(i,j,kn))
