@@ -1,19 +1,19 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2023 Mats Bentsen, Mehmet Ilicak, Ingo Bethke,
-!                         Ping-Gin Chiu, Aleksi Nummelin
-
+! Copyright (C) 2008-2024 Mats Bentsen, Mehmet Ilicak, Ingo Bethke,
+!                         Ping-Gin Chiu, Aleksi Nummelin, Mariana Vertenstein
+!
 ! This file is part of BLOM.
-
+!
 ! BLOM is free software: you can redistribute it and/or modify it under the
 ! terms of the GNU Lesser General Public License as published by the Free
 ! Software Foundation, either version 3 of the License, or (at your option)
 ! any later version.
-
+!
 ! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
 ! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
 ! more details.
-
+!
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
@@ -113,10 +113,9 @@ module mod_rdlim
 contains
 
   subroutine rdlim()
-
-    ! --- ------------------------------------------------------------------
-    ! --- Read limits file
-    ! --- ------------------------------------------------------------------
+  ! ------------------------------------------------------------------
+  ! Read limits file
+  ! ------------------------------------------------------------------
 
     ! Local variables
     type(date_type) :: date0_rest
@@ -140,7 +139,7 @@ contains
          csdiag, &
          rstfrq,rstfmt,rstcmp,iotype,use_stream_relaxation
 
-    ! --- read limits namelist
+    ! read limits namelist
 
     if (mnproc == 1) then
 
@@ -163,7 +162,7 @@ contains
       read (unit=nfu,nml = LIMITS)
       close (unit = nfu)
 
-      ! --- - print limits namelist to stdout
+      ! print limits namelist to stdout
       write (lp,*)
       write (lp,*) 'rdlim: BLOM LIMITS NAMELIST GROUP:'
       write (lp,*) 'NDAY1',NDAY1
@@ -235,7 +234,7 @@ contains
 
     end if
 
-    ! --- broadcast variables set by limits namelist
+    ! broadcast variables set by limits namelist
 
     call xcbcst(nday1)
     call xcbcst(nday2)
@@ -304,38 +303,38 @@ contains
     call xcbcst(iotype)
     call xcbcst(use_stream_relaxation)
 
-    ! --- resolve options
+    ! resolve options
     select case (trim(wavsrc))
-    case ('none')
-      wavsrc_opt = wavsrc_none
-    case ('param')
-      wavsrc_opt = wavsrc_param
-    case ('extern')
-      if (expcnf /= 'cesm') then
+      case ('none')
+        wavsrc_opt = wavsrc_none
+      case ('param')
+        wavsrc_opt = wavsrc_param
+      case ('extern')
+        if (expcnf /= 'cesm') then
+          if (mnproc == 1) &
+               write (lp,'(3a)') &
+               ' rdlim: wavsrc = ', trim(wavsrc), &
+               ' is only supported for expcnf = cesm!'
+          call xcstop('(rdlim)')
+          stop '(rdlim)'
+        end if
+        wavsrc_opt = wavsrc_extern
+      case default
         if (mnproc == 1) &
              write (lp,'(3a)') &
              ' rdlim: wavsrc = ', trim(wavsrc), &
-             ' is only supported for expcnf = cesm!'
+             ' is unsupported!'
         call xcstop('(rdlim)')
         stop '(rdlim)'
-      end if
-      wavsrc_opt = wavsrc_extern
-    case default
-      if (mnproc == 1) &
-           write (lp,'(3a)') &
-           ' rdlim: wavsrc = ', trim(wavsrc), &
-           ' is unsupported!'
-      call xcstop('(rdlim)')
-      stop '(rdlim)'
     end select
 
-    ! --- read vertical coordinate namelist variables
+    ! read vertical coordinate namelist variables
     call readnml_vcoord
 
-    ! --- read diffusion namelist variables
+    ! read diffusion namelist variables
     call readnml_diffusion
 
-    ! --- read diaphy namelist
+    ! read diaphy namelist
 
     if (mnproc == 1) then
 
@@ -344,75 +343,77 @@ contains
       read (unit=nfu,nml=DIAPHY,iostat = ios)
       close (unit = nfu)
 
-      ! --- - determine number of io groups
+      ! determine number of io groups
       nphy = 0
       do n = 1,nphymax
         if (glb_aveperio(n) /= -999) nphy = nphy+1
       end do
 
-      ! --- - modify diaphy namelist variables based on dependency with other
-      ! --- - variables set in namelists
+      ! modify diaphy namelist variables based on dependency with other
+      ! variables set in namelists
       select case (vcoord_type_tag)
-      case (isopyc_bulkml)
-        LYR_DIFVMO(1:nphy) = 0
-        LYR_DIFVHO(1:nphy) = 0
-        LYR_DIFVSO(1:nphy) = 0
-        LYR_UMFLSM(1:nphy) = 0
-        LYR_UTFLSM(1:nphy) = 0
-        LYR_USFLSM(1:nphy) = 0
-        LYR_VMFLSM(1:nphy) = 0
-        LYR_VTFLSM(1:nphy) = 0
-        LYR_VSFLSM(1:nphy) = 0
-        LVL_UMFLSM(1:nphy) = 0
-        LVL_UTFLSM(1:nphy) = 0
-        LVL_USFLSM(1:nphy) = 0
-        LVL_VMFLSM(1:nphy) = 0
-        LVL_VTFLSM(1:nphy) = 0
-        LVL_VSFLSM(1:nphy) = 0
-        MSC_MMFSML(1:nphy) = 0
-        MSC_MMFSMD(1:nphy) = 0
-        MSC_MHFSM (1:nphy) = 0
-        MSC_MSFSM (1:nphy) = 0
-        LVL_DIFVMO(1:nphy) = 0
-        LVL_DIFVHO(1:nphy) = 0
-        LVL_DIFVSO(1:nphy) = 0
-      case (cntiso_hybrid)
-        H2D_IDKEDT(1:nphy) = 0
-        H2D_MTKEUS(1:nphy) = 0
-        H2D_MTKENI(1:nphy) = 0
-        H2D_MTKEBF(1:nphy) = 0
-        H2D_MTKERS(1:nphy) = 0
-        H2D_MTKEPE(1:nphy) = 0
-        H2D_MTKEKE(1:nphy) = 0
-        LYR_DIFDIA(1:nphy) = 0
-        LVL_DIFDIA(1:nphy) = 0
-      case default
-        write (lp,*) 'rdlim: unsupported vertical coordinate!'
-        call xcstop('(rdlim)')
-        stop '(rdlim)'
+        case (isopyc_bulkml)
+          LYR_DIFVMO(1:nphy) = 0
+          LYR_DIFVHO(1:nphy) = 0
+          LYR_DIFVSO(1:nphy) = 0
+          LYR_UMFLSM(1:nphy) = 0
+          LYR_UTFLSM(1:nphy) = 0
+          LYR_USFLSM(1:nphy) = 0
+          LYR_VMFLSM(1:nphy) = 0
+          LYR_VTFLSM(1:nphy) = 0
+          LYR_VSFLSM(1:nphy) = 0
+          LVL_UMFLSM(1:nphy) = 0
+          LVL_UTFLSM(1:nphy) = 0
+          LVL_USFLSM(1:nphy) = 0
+          LVL_VMFLSM(1:nphy) = 0
+          LVL_VTFLSM(1:nphy) = 0
+          LVL_VSFLSM(1:nphy) = 0
+          MSC_MMFSML(1:nphy) = 0
+          MSC_MMFSMD(1:nphy) = 0
+          MSC_MHFSM (1:nphy) = 0
+          MSC_MSFSM (1:nphy) = 0
+          LVL_DIFVMO(1:nphy) = 0
+          LVL_DIFVHO(1:nphy) = 0
+          LVL_DIFVSO(1:nphy) = 0
+        case (cntiso_hybrid)
+          H2D_IDKEDT(1:nphy) = 0
+          H2D_MTKEUS(1:nphy) = 0
+          H2D_MTKENI(1:nphy) = 0
+          H2D_MTKEBF(1:nphy) = 0
+          H2D_MTKERS(1:nphy) = 0
+          H2D_MTKEPE(1:nphy) = 0
+          H2D_MTKEKE(1:nphy) = 0
+          LYR_DIFDIA(1:nphy) = 0
+          LVL_DIFDIA(1:nphy) = 0
+        case default
+          write (lp,*) 'rdlim: unsupported vertical coordinate!'
+          call xcstop('(rdlim)')
+          stop '(rdlim)'
       end select
+
       if (trxday == 0.) then
         H2D_SURRLX(1:nphy) = 0
       end if
       if (srxday == 0.) then
         H2D_SALRLX(1:nphy) = 0
       end if
+
       select case (wavsrc_opt)
-      case (wavsrc_none)
-        H2D_LAMULT(1:nphy) = 0
-        H2D_LASL(1:nphy) = 0
-        H2D_USTOKES(1:nphy) = 0
-        H2D_VSTOKES(1:nphy) = 0
-      case (wavsrc_param)
-        if (vcoord_type_tag /= cntiso_hybrid) then
+        case (wavsrc_none)
           H2D_LAMULT(1:nphy) = 0
-        end if
-        H2D_LASL(1:nphy) = 0
-        H2D_USTOKES(1:nphy) = 0
-        H2D_VSTOKES(1:nphy) = 0
+          H2D_LASL(1:nphy) = 0
+          H2D_USTOKES(1:nphy) = 0
+          H2D_VSTOKES(1:nphy) = 0
+        case (wavsrc_param)
+          if (vcoord_type_tag /= cntiso_hybrid) then
+            H2D_LAMULT(1:nphy) = 0
+          end if
+          H2D_LASL(1:nphy) = 0
+          H2D_USTOKES(1:nphy) = 0
+          H2D_VSTOKES(1:nphy) = 0
       end select
 
-      ! --- - print diaphy namelist
+      ! print diaphy namelist
       write (lp,*)
       write (lp,*) 'rdlim: BLOM DIAPHY NAMELIST GROUP:'
       write (lp,*) 'GLB_FNAMETAG',GLB_FNAMETAG(1:nphy)
@@ -596,7 +597,7 @@ contains
 
     end if
 
-    ! --- broadcast variables set by diaphy namelist
+    ! broadcast variables set by diaphy namelist
 
     call xcbcst(H2D_ABSWND)
     call xcbcst(H2D_ALB)
@@ -779,7 +780,7 @@ contains
 
     call xcbcst(nphy)
 
-    ! --- read merdia namelist if needed
+    ! read merdia namelist if needed
 
     if (sum(MSC_MMFLXL(1:nphy)+MSC_MMFLXD(1:nphy)+MSC_MMFTDL(1:nphy) &
          +MSC_MMFSML(1:nphy)+MSC_MMFTDD(1:nphy)+MSC_MMFSMD(1:nphy) &
@@ -798,8 +799,8 @@ contains
           stop '(rdlim)'
         end if
 
-        ! --- --- determine number of regions for meridional overturning and
-        ! --- --- flux diagnostics and print namelist
+        ! determine number of regions for meridional overturning and
+        ! flux diagnostics and print namelist
         mer_nreg = 1
         do while (mer_regnam(mer_nreg) /= '')
           mer_nreg = mer_nreg+1
@@ -837,7 +838,7 @@ contains
 
     end if
 
-    ! --- read secdia namelist if needed
+    ! read secdia namelist if needed
 
     if (sum(msc_voltr(1:nphy)) /= 0) then
 
@@ -860,7 +861,7 @@ contains
 
     end if
 
-    ! --- convert integer dates
+    ! convert integer dates
     date%year = sign(abs(idate)/10000,idate)
     date%month = abs(idate)/100-abs(date%year)*100
     date%day = abs(idate)-abs(date%year)*10000-date%month*100
@@ -868,7 +869,7 @@ contains
     date0%month = abs(idate0)/100-abs(date0%year)*100
     date0%day = abs(idate0)-abs(date0%year)*10000-date0%month*100
 
-    ! --- set atm_path length
+    ! set atm_path length
     if (expcnf == 'ben02syn'.or.expcnf == 'ben02clim'.or. &
          expcnf == 'single_column') then
       atm_path_len = 1
@@ -879,17 +880,17 @@ contains
       atm_path_len = atm_path_len-1
     end if
 
-    ! --- initialize time variables
+    ! initialize time variables
     call init_timevars
 
     if (expcnf == 'cesm') then
 
-      ! --- - override namelist experiment id with the one received from
-      ! --- - coupler
+      ! override namelist experiment id with the one received from
+      ! coupler
       runid = runid_cesm
 
-      ! --- - verify integer number of baroclinic time steps per coupling
-      ! --- - interval
+      ! verify integer number of baroclinic time steps per coupling
+      ! interval
       if (mod(ocn_cpl_dt_cesm+epsilt,baclin) > 2.*epsilt) then
         if (mnproc == 1) then
           write (lp,*) 'rdlim: must have an integer number of '// &
@@ -900,8 +901,8 @@ contains
         stop '(rdlim)'
       end if
 
-      ! --- - get time step and correct model date after first coupling
-      ! --- - interval
+      ! get time step and correct model date after first coupling
+      ! interval
       nstep_in_cpl = nint(ocn_cpl_dt_cesm/baclin)
       if (mnproc == 1) then
         write (lp,*) 'rdlim: number of baroclinic time steps in a '// &
@@ -917,18 +918,18 @@ contains
 
       if (runtyp == 'startup') then
 
-        ! --- --- when runtyp equal 'startup' the ocean integration start after
-        ! --- --- first coupling interval
+        ! when runtyp equal 'startup' the ocean integration start after
+        ! first coupling interval
 
         nday1 = 0
         nstep1 = nstep0
 
       else
 
-        ! --- --- for runtyp equal 'hybrid', 'branch' or 'continue' a
-        ! --- --- 'rpointer.ocn' file containing the path to a valid restart
-        ! --- --- file is expected and integration time is retrieved from
-        ! --- --- restart file
+        ! for runtyp equal 'hybrid', 'branch' or 'continue' a
+        ! 'rpointer.ocn' file containing the path to a valid restart
+        ! file is expected and integration time is retrieved from
+        ! restart file
 
         if (mnproc == 1) &
              inquire(file='rpointer.ocn'//trim(inst_suffix),exist = fexist)
@@ -965,8 +966,8 @@ contains
 
         if (runtyp == 'hybrid') then
 
-          ! --- ----- When runtyp equal 'hybrid' the ocean integration starts
-          ! --- ----- after first coupling interval.
+          !-- When runtyp equal 'hybrid' the ocean integration starts
+          !-- after first coupling interval.
           n = 1
           do while (n < 256.and.rstfnm(n:n) /= ' ')
             n = n+1
@@ -990,8 +991,8 @@ contains
           date0 = date0_rest
           nstep1 = nday1*nstep_in_day
 
-          ! --- ----- For runtypes 'branch' or 'continue' override namelist date
-          ! --- ----- with date extracted from restart file name
+          ! For runtypes 'branch' or 'continue' override namelist date
+          ! with date extracted from restart file name
 
           n = 1
           do while (n < 256.and.rstfnm(n:n) /= ' ')
@@ -1009,8 +1010,8 @@ contains
 
       end if
 
-      ! --- - Last time step number of current integration, 'nstep2' is not
-      ! --- - used when coupled to CESM.
+      ! Last time step number of current integration, 'nstep2' is not
+      ! used when coupled to CESM.
       nstep2 = nstep1
 
     else
@@ -1051,7 +1052,7 @@ contains
         stop '(rdlim)'
       end if
 
-      ! --- - model is to be integrated from time step 'nstep1' to 'nstep2'
+      ! model is to be integrated from time step 'nstep1' to 'nstep2'
       time0 = 0.
       nstep0 = 0
       nstep1 = nday1*nstep_in_day
@@ -1081,7 +1082,7 @@ contains
       stop '(rdlim)'
     end if
 
-    ! --- represent time between restarts in time steps
+    ! represent time between restarts in time steps
     rstmon = .false.
     rstann = .false.
     if (nint(rstfrq) == 30) then
@@ -1091,7 +1092,7 @@ contains
     end if
     rstfrq = nstep_in_day*max(1.,rstfrq)
 
-    ! --- represent time between diagnostics in time steps
+    ! represent time between diagnostics in time steps
     do n = 1,nphy
       GLB_FILEFREQ(n) = max(GLB_AVEPERIO(n),GLB_FILEFREQ(n))
 
@@ -1142,7 +1143,6 @@ contains
       write (lp,'(a,l10)') ' rstmon:                         ',rstmon
       write (lp,'(a,l10)') ' rstann:                         ',rstann
       write (lp,*)
-      call flush(lp)
     end if
 
   end subroutine rdlim

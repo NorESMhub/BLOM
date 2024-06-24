@@ -172,9 +172,9 @@ contains
           do l = 1,isu(j)
             do i = max(1,ifu(j,l)),min(ii+1,ilu(j,l))
               if (utotm(i,j) > 0.) then
-                 uflux(i,j) = utotm(i,j)*dp(i-1,j,kn)/p(i-1,j,kk+1)
-                uflux2(i,j) = uflux(i,j)*saln(i-1,j,kn)
-                uflux3(i,j) = uflux(i,j)*temp(i-1,j,kn)
+                  uflux(i,j) = utotm(i,j)*dp(i-1,j,kn)/p(i-1,j,kk+1)
+                 uflux2(i,j) = uflux(i,j)*saln(i-1,j,kn)
+                 uflux3(i,j) = uflux(i,j)*temp(i-1,j,kn)
                 if (use_TRC) then
                   do nt = 1,ntr
                     if (use_TKE .and. .not. use_TKEADV) then
@@ -196,7 +196,7 @@ contains
                   end do
                 end if
               end if
-              uflx(i,j,km) = uflx(i,j,km)+uflux(i,j)
+               uflx(i,j,km) = uflx(i,j,km)+uflux(i,j)
               usflx(i,j,km) = usflx(i,j,km)+uflux2(i,j)
               utflx(i,j,km) = utflx(i,j,km)+uflux3(i,j)
             end do
@@ -345,19 +345,19 @@ contains
             dpo = dpo+dpeps1
             dpni = 1./(dp(i,j,kn)+dpeps1)
             saln(i,j,kn) = (dpo*saln(i,j,kn) &
-                 -(uflux2(i+1,j)-uflux2(i,j) &
-                  +vflux2(i,j+1)-vflux2(i,j))*scp2i(i,j))*dpni
+                           -(uflux2(i+1,j)-uflux2(i,j) &
+                            +vflux2(i,j+1)-vflux2(i,j))*scp2i(i,j))*dpni
             temp(i,j,kn) = (dpo*temp(i,j,kn) &
-                 -(uflux3(i+1,j)-uflux3(i,j) &
-                  +vflux3(i,j+1)-vflux3(i,j))*scp2i(i,j))*dpni
+                           -(uflux3(i+1,j)-uflux3(i,j) &
+                            +vflux3(i,j+1)-vflux3(i,j))*scp2i(i,j))*dpni
             if (use_TRC) then
               do nt = 1,ntr
                 if (use_TKE .and. .not. use_TKEADV) then
                   if (nt == itrtke.or.nt == itrgls) cycle
                 end if
                 trc(i,j,kn,nt) = (dpo*trc(i,j,kn,nt) &
-                     -(uflxtr(nt,i+1,j)-uflxtr(nt,i,j) &
-                      +vflxtr(nt,i,j+1)-vflxtr(nt,i,j))*scp2i(i,j))*dpni
+                                 -(uflxtr(nt,i+1,j)-uflxtr(nt,i,j) &
+                                  +vflxtr(nt,i,j+1)-vflxtr(nt,i,j))*scp2i(i,j))*dpni
               end do
             end if
             if (dp(i,j,kn) < dpeps2) dp(i,j,kn) = 0.
