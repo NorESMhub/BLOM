@@ -54,15 +54,19 @@ module mo_control_bgc
   ! Variables set via namelist bgcnml
   logical           :: l_3Dvarsedpor          = .false. ! apply spatially variable sediment porosity
   logical           :: do_ndep                = .true.  ! apply n-deposition
+  logical           :: do_ndep_coupled        = .false. ! for coupled simulations, use field provided by atmosphere
+  logical           :: do_n2onh3_coupled      = .false. ! for coupled simulations, use field provided by atmosphere
   logical           :: do_rivinpt             = .true.  ! apply riverine input
   logical           :: do_sedspinup           = .false. ! apply sediment spin-up
   logical           :: do_oalk                = .false. ! apply ocean alkalinization
   logical           :: with_dmsph             = .false. ! apply DMS with pH dependence
+  logical           :: use_M4AGO              = .false. ! run with M4AGO settling scheme
+  logical           :: leuphotic_cya          = .true. ! allow cyanobacteria to grow only in euphotic zone
   integer           :: sedspin_yr_s           = -1      ! start year for sediment spin-up
   integer           :: sedspin_yr_e           = -1      ! end   year for sediment spin-up
   integer           :: sedspin_ncyc           = -1      ! sediment spin-up sub-cycles
   character(len=64) :: ocn_co2_type                     ! indicates co2 coupling to an active atm
-                                                        ! model if set to 'diagnostic' 
+                                                        ! model if set to 'diagnostic'
                                                         ! or 'prognostic'
 
   ! Logical switches set via namelist config_bgc
@@ -77,6 +81,7 @@ module mo_control_bgc
   logical           :: use_FB_BGC_OCE         = .false.
   logical           :: use_BOXATM             = .false.
   logical           :: use_sedbypass          = .false.
+  logical           :: use_extNcycle          = .false.
 
 contains
 

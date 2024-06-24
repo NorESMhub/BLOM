@@ -82,6 +82,7 @@ module mod_restart
                                  acc_msflx ,acc_msftd ,acc_msfsm ,acc_msfld ,acc_voltr
    use mod_forcing,        only: ditflx, disflx, sprfac, tflxdi, sflxdi, nflxdi, &
                                  prfac, eiacc, pracc, flxco2, flxdms, flxbrf, &
+                                 flxn2o,flxnh3, &
                                  ustarb, buoyfl, ustar
    use mod_niw,            only: uml, vml, umlres, vmlres
    use mod_difest,         only: OBLdepth
@@ -94,7 +95,9 @@ module mod_restart
    use mod_cesm,           only: frzpot, mltpot, swa_da, nsf_da, hmlt_da, lip_da, &
                                  sop_da, eva_da, rnf_da, rfi_da, fmltfz_da, sfl_da, &
                                  ztx_da, mty_da, ustarw_da, slp_da, abswnd_da, &
-                                 atmco2_da, atmbrf_da, ficem_da, l1ci, l2ci
+                                 atmco2_da, atmbrf_da, &
+                                 atmco2_da, atmbrf_da, atmn2o_da, atmnh3_da, &
+                                 ficem_da, l1ci, l2ci
    use mod_ben02,          only: cd_d, ch_d, ce_d, wg2_d, cd_m, ch_m, ce_m, wg2_m, &
                                  rhoa, tsi_tda, tml_tda, sml_tda, alb_tda, fice_tda, &
                                  ntda, rnfres
@@ -104,7 +107,7 @@ module mod_restart
    use mod_tracers,        only: itrtke, itrgls, itriag, trc
    use mod_tke,            only: L_scale
 #ifdef HAMOCC
-   use mo_control_bgc,     only: use_BROMO
+   use mo_control_bgc,     only: use_BROMO, use_extNcycle
 #endif
    use mod_ifdefs,         only: use_TRC, use_TKE, use_IDLAGE, use_MKS
    use mod_idlage,         only: idlage_init
@@ -469,7 +472,11 @@ contains
          call defwrtfld('atmco2_da', trim(c5p)//' k2 time', &
                          atmco2_da, ip, defmode)
          call defwrtfld('atmbrf_da', trim(c5p)//' k2 time', &
-                         atmbrf_da, ip, defmode)  ! not read in restart_read, necesarry?
+                         atmbrf_da, ip, defmode)  ! not read in restart_read, necessary?
+         call defwrtfld('atmn2o_da', trim(c5p)//' k2 time', &
+                         atmn2o_da, ip, defmode)  ! not read in restart_read, necessary?
+         call defwrtfld('atmnh3_da', trim(c5p)//' k2 time', &
+                         atmnh3_da, ip, defmode)  ! not read in restart_read, necessary?
          call defwrtfld('frzpot', trim(c5p)//' time', &
                          frzpot, ip, defmode)
          call defwrtfld('mltpot', trim(c5p)//' time', &
@@ -481,6 +488,12 @@ contains
 #ifdef HAMOCC
          if (use_BROMO) then
             call defwrtfld('flxbrf', trim(c5p)//' time', flxbrf, ip, defmode)
+         endif
+         if (use_extNcycle) then
+            call defwrtfld('flxn2o', trim(c5p)//' time', &
+                            flxn2o, ip, defmode)
+            call defwrtfld('flxnh3', trim(c5p)//' time', &
+                            flxnh3, ip, defmode)
          endif
 #endif
       endif
@@ -1638,6 +1651,16 @@ contains
                       required = .false., fld_read = fld_read)
          if (.not.fld_read .and. mnproc == 1) &
             write(lp,*) 'restart_read: warning: bromoform flux is not read '// &
+                        'from restart file and will be initialized to zero.'
+         call readfld('flxn2o', no_unitconv, flxn2o, ip, &
+                      required = .false., fld_read = fld_read)
+         if (.not.fld_read .and. mnproc == 1) &
+            write(lp,*) 'restart_read: warning: N2O flux is not read '// &
+                        'from restart file and will be initialized to zero.'
+         call readfld('flxnh3', no_unitconv, flxnh3, ip, &
+                      required = .false., fld_read = fld_read)
+         if (.not.fld_read .and. mnproc == 1) &
+            write(lp,*) 'restart_read: warning: NH3 flux is not read '// &
                         'from restart file and will be initialized to zero.'
       endif
 

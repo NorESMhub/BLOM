@@ -39,7 +39,7 @@ contains
     !***********************************************************************************************
 
     use mo_carbch,     only: ocetra
-    use mo_param1_bgc, only: ialkali,ioxygen,iphosph,iprefalk,iprefdic,iprefo2,iprefpo4,isco212
+    use mo_param1_bgc, only: ialkali,ioxygen,iphosph,isilica,iprefalk,iprefdic,iprefo2,iprefpo4,isco212,iprefsilica
     use mo_vgrid,      only: kmle
 
     ! Arguments
@@ -55,6 +55,7 @@ contains
         if (omask(i,j) .gt. 0.5 ) then
           ocetra(i,j,1:kmle(i,j),iprefo2)  = ocetra(i,j,1:kmle(i,j),ioxygen)
           ocetra(i,j,1:kmle(i,j),iprefpo4) = ocetra(i,j,1:kmle(i,j),iphosph)
+          ocetra(i,j,1:kmle(i,j),iprefsilica)= ocetra(i,j,1:kmle(i,j),isilica)
           ocetra(i,j,1:kmle(i,j),iprefalk) = ocetra(i,j,1:kmle(i,j),ialkali)
           ocetra(i,j,1:kmle(i,j),iprefdic) = ocetra(i,j,1:kmle(i,j),isco212)
         endif

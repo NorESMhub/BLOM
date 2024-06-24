@@ -185,7 +185,7 @@ contains
                   end if
                 end if
               end if
-              trflx(nt,i,j) = -trc(i,j,k1n,nt)*fwflx*g2kg
+              trflx(nt,i,j) = -trc(i,j,k1n,nt)*fwflx
               ttrsf(nt,i,j) = trflx(nt,i,j)*scp2(i,j)
               ttrav(nt,i,j) = trc(i,j,k1n,nt)*scp2(i,j)
             end do
@@ -405,7 +405,7 @@ contains
         do j = 1,jj
           do l = 1,isp(j)
             do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-              trflx(nt,i,j) = -(trflx(nt,i,j)+trflxc)*(kg2g*(M_mks2cgs/L_mks2cgs**2))
+              trflx(nt,i,j) = -(trflx(nt,i,j)+trflxc)*(M_mks2cgs/L_mks2cgs**2)
             end do
           end do
         end do

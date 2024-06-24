@@ -1,18 +1,19 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2021 Mats Bentsen, Jerry Tjiputra, Jörg Schwinger
-
+! Copyright (C) 2008-2024 Mats Bentsen, Jerry Tjiputra, Jörg Schwinger,
+!                         Mariana Vertenstein
+!
 ! This file is part of BLOM.
-
+!
 ! BLOM is free software: you can redistribute it and/or modify it under the
 ! terms of the GNU Lesser General Public License as published by the Free
 ! Software Foundation, either version 3 of the License, or (at your option)
 ! any later version.
-
+!
 ! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
 ! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
 ! more details.
-
+!
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
@@ -33,7 +34,7 @@ subroutine export_mct(o2x_o, lsize, perm, jjcpl, nsend, sbuff, tlast_coupled)
   ! Input/output arguments
   type(mct_aVect)         , intent(inout) :: o2x_o
   integer                 , intent(in)    :: lsize
-  integer, dimension(lsize), intent(in)    :: perm
+  integer, dimension(lsize), intent(in)   :: perm
   integer                 , intent(in)    :: jjcpl
   integer                 , intent(in)    :: nsend
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nsend), &
@@ -67,19 +68,19 @@ subroutine export_mct(o2x_o, lsize, perm, jjcpl, nsend, sbuff, tlast_coupled)
     do i = 1, ii
       n = n + 1
       utmp = .5_r8*( sbuff(i  ,j,index_o2x_So_u) &
-           + sbuff(i+1,j,index_o2x_So_u))
+                   + sbuff(i+1,j,index_o2x_So_u))
       vtmp = .5_r8*( sbuff(i,j  ,index_o2x_So_v) &
-           + sbuff(i,j+1,index_o2x_So_v))
+                   + sbuff(i,j+1,index_o2x_So_v))
       o2x_o%rattr(index_o2x_So_u,n) = &
            (utmp*cosang(i,j) - vtmp*sinang(i,j))*tfac*iL_mks2cgs
       o2x_o%rattr(index_o2x_So_v,n) = &
            (utmp*sinang(i,j) + vtmp*cosang(i,j))*tfac*iL_mks2cgs
       utmp = ( sbuff(i  ,j,index_o2x_So_dhdx)*iu(i  ,j) &
-           + sbuff(i+1,j,index_o2x_So_dhdx)*iu(i+1,j)) &
-           /max(1,iu(i,j) + iu(i+1,j))
+             + sbuff(i+1,j,index_o2x_So_dhdx)*iu(i+1,j)) &
+             /max(1,iu(i,j) + iu(i+1,j))
       vtmp = ( sbuff(i,j  ,index_o2x_So_dhdy)*iv(i,j  ) &
-           + sbuff(i,j+1,index_o2x_So_dhdy)*iv(i,j+1)) &
-           /max(1,iv(i,j) + iv(i,j+1))
+             + sbuff(i,j+1,index_o2x_So_dhdy)*iv(i,j+1)) &
+             /max(1,iv(i,j) + iv(i,j+1))
       o2x_o%rAttr(index_o2x_So_dhdx,n) = &
            (utmp*cosang(i,j) - vtmp*sinang(i,j))*tfac
       o2x_o%rAttr(index_o2x_So_dhdy,n) = &
@@ -124,8 +125,9 @@ subroutine export_mct(o2x_o, lsize, perm, jjcpl, nsend, sbuff, tlast_coupled)
       end do
     end do
   else
-    if (mnproc == 1) &
-         write (lp,*) 'export_mct: dms flux not sent to coupler'
+    if (mnproc == 1) then
+      write (lp,*) 'export_mct: dms flux not sent to coupler'
+    end if
   end if
 
   ! ----------------------------------------------------------------
@@ -142,8 +144,9 @@ subroutine export_mct(o2x_o, lsize, perm, jjcpl, nsend, sbuff, tlast_coupled)
       end do
     end do
   else
-    if (mnproc == 1) &
-         write (lp,*) 'export_mct: co2 flux not sent to coupler'
+    if (mnproc == 1) then
+      write (lp,*) 'export_mct: co2 flux not sent to coupler'
+    end if
   end if
 
   ! ----------------------------------------------------------------
@@ -160,9 +163,49 @@ subroutine export_mct(o2x_o, lsize, perm, jjcpl, nsend, sbuff, tlast_coupled)
       end do
     end do
   else
-    if (mnproc == 1) &
-         write (lp,*) 'export_mct: bromoform flux not sent to coupler'
+    if (mnproc == 1) then
+      write (lp,*) 'export_mct: bromoform flux not sent to coupler'
+    end if
   end if
+
+  ! ----------------------------------------------------------------
+  ! Pack nitrous oxide flux (kg N2O/m^2/s), if requested
+  ! ----------------------------------------------------------------
+
+  if (index_o2x_Faoo_fn2o_ocn > 0) then
+    n = 0
+    do j = 1, jjcpl
+      do i = 1, ii
+        n = n + 1
+        o2x_o%rAttr(index_o2x_Faoo_fn2o_ocn,n) = &
+             sbuff(i,j,index_o2x_Faoo_fn2o_ocn)*tfac
+      enddo
+    enddo
+  else
+    if (mnproc == 1) then
+      write (lp,*) 'export_mct: nitrous oxide flux not sent to coupler'
+    end if
+  endif
+
+  ! ----------------------------------------------------------------
+  ! Pack ammonia flux (kg NH3/m^2/s), if requested
+  ! ----------------------------------------------------------------
+
+  if (index_o2x_Faoo_fnh3_ocn > 0) then
+    n = 0
+    do j = 1, jjcpl
+      do i = 1, ii
+        n = n + 1
+        o2x_o%rAttr(index_o2x_Faoo_fnh3_ocn,n) = &
+             sbuff(i,j,index_o2x_Faoo_fnh3_ocn)*tfac
+      enddo
+    enddo
+  else
+    if (mnproc == 1) then
+      write (lp,*) 'export_mct: ammonia flux not sent to coupler'
+    end if
+  endif
+
 
   tlast_coupled = 0._r8
 

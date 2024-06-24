@@ -43,4 +43,6 @@ sources += files(
   'mo_profile_gd.F90',
   'mo_restart_hamoccwt.F90',
   'mo_sedshi.F90',
-  'mo_trc_limitc.F90')
+  'mo_trc_limitc.F90',
+  'mo_extNwatercol.F90',
+  'mo_extNsediment.F90')

@@ -22,6 +22,8 @@ option('iage', type: 'boolean',
        description: 'Enable ideal age tracer', value: true)
 option('ecosys', type: 'boolean',
        description: 'Enable HAMOCC as ecosystem module', value: false)
+option('atrc', type: 'boolean',
+       description: 'Enable age tracer in BLOM', value: false)
 option('hamocc_agg', type: 'boolean',
        description: 'Enable Kriest aggregation scheme in HAMOCC', value: false)
 option('hamocc_boxatm', type: 'boolean',
@@ -40,6 +42,8 @@ option('hamocc_ciso', type: 'boolean',
        description: 'Enable carbon isotopes in HAMOCC', value: false)
 option('hamocc_fb_bgc_oce', type: 'boolean',
        description: 'Enable feedback of HAMOCC on ocean', value: false)
+option('hamocc_extNcycle', type: 'boolean',
+       description: 'Enable extended nitrogen cycle in HAMOCC', value: false)
 #HAMOCC debugging options:
 option('hamocc_debug_timestep', type: 'boolean',
        description: 'Debug HAMOCC on timestep basis', value: false)

@@ -1,19 +1,19 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2021 Mats Bentsen, Alok Kumar Gupta, Jerry Tjiputra,
-!                         Jörg Schwinger
-
+! Copyright (C) 2008-2024 Mats Bentsen, Alok Kumar Gupta, Jerry Tjiputra,
+!                         Jörg Schwinger, Mariana Vertenstein
+!
 ! This file is part of BLOM.
-
+!
 ! BLOM is free software: you can redistribute it and/or modify it under the
 ! terms of the GNU Lesser General Public License as published by the Free
 ! Software Foundation, either version 3 of the License, or (at your option)
 ! any later version.
-
+!
 ! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
 ! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
 ! more details.
-
+!
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
@@ -28,7 +28,9 @@ subroutine import_mct(x2o_o, lsize, perm, jjcpl)
   use mod_cesm,        only: swa_da, nsf_da, hmlt_da, lip_da, sop_da, &
                              eva_da, rnf_da, rfi_da, fmltfz_da, sfl_da, &
                              ztx_da, mty_da, ustarw_da, slp_da, abswnd_da, &
-                             atmco2_da, atmbrf_da, ficem_da, l1ci, l2ci
+                             atmco2_da, atmbrf_da,atmn2o_da,atmnh3_da, &
+                             atmnhxdep_da,atmnoydep_da, &
+                             ficem_da, l1ci, l2ci
   use mod_utility,     only: util1, util2
   use mod_checksum,    only: csdiag, chksummsk
   use mod_fill_global, only: fill_global
@@ -106,8 +108,7 @@ subroutine import_mct(x2o_o, lsize, perm, jjcpl)
 
   call fill_global(mval, fval, halo_pv, util1)
   call fill_global(mval, fval, halo_pv, util2)
-  call fill_global(mval, fval, halo_ps, &
-       ustarw_da(1-nbdy,1-nbdy,l2ci))
+  call fill_global(mval, fval, halo_ps, ustarw_da(1-nbdy,1-nbdy,l2ci))
 
   call xctilr(util1, 1,1, 1,1, halo_pv)
   call xctilr(util2, 1,1, 1,1, halo_pv)
@@ -226,12 +227,9 @@ subroutine import_mct(x2o_o, lsize, perm, jjcpl)
     call xctilr(hmlt_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
   end if
 
-  call fill_global(mval, fval, halo_ps, &
-       slp_da(1-nbdy,1-nbdy,l2ci))
-  call fill_global(mval, fval, halo_ps, &
-       ficem_da(1-nbdy,1-nbdy,l2ci))
-  call fill_global(mval, fval, halo_ps, &
-       abswnd_da(1-nbdy,1-nbdy,l2ci))
+  call fill_global(mval, fval, halo_ps, slp_da(1-nbdy,1-nbdy,l2ci))
+  call fill_global(mval, fval, halo_ps, ficem_da(1-nbdy,1-nbdy,l2ci))
+  call fill_global(mval, fval, halo_ps, abswnd_da(1-nbdy,1-nbdy,l2ci))
 
   if (ocn_co2_type == 'prognostic') then
     if (index_x2o_Sa_co2prog > 0) then
@@ -322,8 +320,7 @@ subroutine import_mct(x2o_o, lsize, perm, jjcpl)
         end if
       end do
     end do
-    call fill_global(mval, fval, halo_ps, &
-         atmbrf_da(1-nbdy,1-nbdy,l2ci))
+    call fill_global(mval, fval, halo_ps, atmbrf_da(1-nbdy,1-nbdy,l2ci))
     if (mnproc == 1) &
          write (lp,*) 'import_mct: prog. atmospheric bromoform read'
   else
@@ -338,6 +335,142 @@ subroutine import_mct(x2o_o, lsize, perm, jjcpl)
     end do
     if (mnproc == 1) &
          write (lp,*) 'import_mct: prog. atmospheric bromoform not read'
+  end if
+
+  if (index_x2o_Sa_n2oprog > 0) then
+    n = 0
+    do j = 1, jjcpl
+      do i = 1, ii
+        n = n + 1
+        if     (ip(i,j) == 0) then
+          atmn2o_da(i,j,l2ci) = mval
+        elseif (cplmsk(i,j) == 0) then
+          atmn2o_da(i,j,l2ci) = fval
+        else
+          ! Atmospheric nitrous oxide concentration [ppt]
+          atmn2o_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Sa_n2oprog,n)
+        endif
+      enddo
+    enddo
+    call fill_global(mval, fval, halo_ps, atmn2o_da(1-nbdy,1-nbdy,l2ci))
+    if (mnproc.eq.1) then
+      write (lp,*) 'import_mct: prog. atmospheric nitrous oxide read'
+    end if
+  else
+    do j = 1, jj
+      do i = 1, ii
+        if (ip(i,j) == 0) then
+          atmn2o_da(i,j,l2ci) = mval
+        else
+          atmn2o_da(i,j,l2ci) = -1
+        endif
+      enddo
+    enddo
+    if (mnproc.eq.1) then
+      write (lp,*) 'import_mct: prog. atmospheric nitrous oxide not read'
+    endif
+
+    if (index_x2o_Sa_nh3prog > 0) then
+      n = 0
+      do j = 1, jjcpl
+        do i = 1, ii
+          n = n + 1
+          if     (ip(i,j) == 0) then
+            atmnh3_da(i,j,l2ci) = mval
+          elseif (cplmsk(i,j) == 0) then
+            atmnh3_da(i,j,l2ci) = fval
+          else
+            ! Atmospheric nitrous oxide concentration [ppt]
+            atmnh3_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Sa_nh3prog,n)
+          endif
+        enddo
+      enddo
+      call fill_global(mval, fval, halo_ps, atmnh3_da(1-nbdy,1-nbdy,l2ci))
+      if (mnproc.eq.1) then
+        write (lp,*) 'import_mct: prog. atmospheric ammonia read'
+      end if
+    else
+      do j = 1, jj
+        do i = 1, ii
+          if (ip(i,j) == 0) then
+            atmnh3_da(i,j,l2ci) = mval
+          else
+            atmnh3_da(i,j,l2ci) = -1
+          endif
+        enddo
+      enddo
+      if (mnproc.eq.1) then
+        write (lp,*) 'import_mct: prog. atmospheric ammonia not read'
+      endif
+    end if
+
+    if (index_x2o_Faxa_nhx > 0) then
+      n = 0
+      do j = 1, jjcpl
+        do i = 1, ii
+          n = n + 1
+          if     (ip(i,j) == 0) then
+            atmnhxdep_da(i,j,l2ci) = mval
+          elseif (cplmsk(i,j) == 0) then
+            atmnhxdep_da(i,j,l2ci) = fval
+          else
+            ! Atmospheric nhx deposition [kgN/m2/sec]
+            atmnhxdep_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Faxa_nhx,n)
+          endif
+        enddo
+      enddo
+      call fill_global(mval, fval, halo_ps, atmnhxdep_da(1-nbdy,1-nbdy,l2ci))
+      if (mnproc.eq.1) then
+        write (lp,*) 'import_mct: atmospheric nhx deposition read'
+      end if
+    else
+      do j = 1, jj
+        do i = 1, ii
+          if (ip(i,j) == 0) then
+            atmnhxdep_da(i,j,l2ci) = mval
+          else
+            atmnhxdep_da(i,j,l2ci) = -1
+          endif
+        enddo
+      enddo
+      if (mnproc.eq.1) then
+        write (lp,*) 'import_mct: atmospheric nhx deposition not read'
+      endif
+    end if
+
+    if (index_x2o_Faxa_noy > 0) then
+      n = 0
+      do j = 1, jjcpl
+        do i = 1, ii
+          n = n + 1
+          if     (ip(i,j) == 0) then
+            atmnoydep_da(i,j,l2ci) = mval
+          elseif (cplmsk(i,j) == 0) then
+            atmnoydep_da(i,j,l2ci) = fval
+          else
+            ! Atmospheric noy deposition [kgN/m2/sec]
+            atmnoydep_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Faxa_noy,n)
+          endif
+        enddo
+      enddo
+      call fill_global(mval, fval, halo_ps, atmnoydep_da(1-nbdy,1-nbdy,l2ci))
+      if (mnproc.eq.1) then
+        write (lp,*) 'import_mct: atmospheric noy deposition read'
+      end if
+    else
+      do j = 1, jj
+        do i = 1, ii
+          if (ip(i,j) == 0) then
+            atmnoydep_da(i,j,l2ci) = mval
+          else
+            atmnoydep_da(i,j,l2ci) = -1
+          endif
+        enddo
+      enddo
+      if (mnproc.eq.1) then
+        write (lp,*) 'import_mct: atmospheric noy deposition not read'
+      endif
+    end if
   end if
 
   if (csdiag) then
@@ -362,6 +495,10 @@ subroutine import_mct(x2o_o, lsize, perm, jjcpl)
     call chksummsk(abswnd_da(1-nbdy,1-nbdy,l2ci),ip,1,'abswnd')
     call chksummsk(atmco2_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmco2')
     call chksummsk(atmbrf_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmbrf')
+    call chksummsk(atmn2o_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmn2o')
+    call chksummsk(atmnh3_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmnh3')
+    call chksummsk(atmnhxdep_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmnhxdep')
+    call chksummsk(atmnoydep_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmnoydep')
   end if
 
 end subroutine import_mct

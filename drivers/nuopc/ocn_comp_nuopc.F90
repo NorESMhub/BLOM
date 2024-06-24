@@ -38,9 +38,8 @@ module ocn_comp_nuopc
    use nuopc_shr_methods, only : ChkErr, set_component_logging, &
                                  get_component_instance, state_setscalar, &
                                  alarmInit
-   use shr_file_mod, only: shr_file_getUnit, shr_file_getLogUnit, &
-                           shr_file_setLogUnit
    use shr_cal_mod, only : shr_cal_ymd2date
+   use shr_file_mod, only: shr_file_getUnit, shr_file_getLogUnit, shr_file_setLogUnit
    use mod_nuopc_methods, only: fldlist_type, fldsMax, tlast_coupled, &
                                 blom_logwrite, blom_getgindex, blom_checkmesh, &
                                 blom_setareacor, blom_getglobdim, &
