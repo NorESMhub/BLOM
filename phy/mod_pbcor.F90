@@ -1,30 +1,30 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2005-2022 Mats Bentsen, Mehmet Ilicak
-
+! Copyright (C) 2005-2024 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
+!
 ! This file is part of BLOM.
-
+!
 ! BLOM is free software: you can redistribute it and/or modify it under the
 ! terms of the GNU Lesser General Public License as published by the Free
 ! Software Foundation, either version 3 of the License, or (at your option)
 ! any later version.
-
+!
 ! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
 ! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
 ! more details.
-
+!
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
 module mod_pbcor
 
-  ! --- ------------------------------------------------------------------
-  ! --- This module contains variables and procedures related to the
-  ! --- application of corrected layer-wise mass fluxes so that the
-  ! --- vertical sum of layer thicknesses match the bottom pressure found
-  ! --- by the integration of the barotropic equations.
-  ! --- ------------------------------------------------------------------
+  ! ------------------------------------------------------------------
+  ! This module contains variables and procedures related to the
+  ! application of corrected layer-wise mass fluxes so that the
+  ! vertical sum of layer thicknesses match the bottom pressure found
+  ! by the integration of the barotropic equations.
+  ! ------------------------------------------------------------------
 
   use dimensions,    only: idm, jdm
   use mod_types,     only: r8
@@ -47,13 +47,13 @@ module mod_pbcor
   implicit none
   private
 
-  ! --- Variables to be set in namelist:
+  ! Variables to be set in namelist:
   character(len = 80), public :: &
        bmcmth ! Baroclinic mass flux correction method. Valid methods:
               ! 'uc' (upstream column), 'dluc' (depth limited upstream
               ! column).
 
-  ! --- Parameters:
+  ! Parameters:
   real(r8), parameter :: &
        dpeps1 = 1.e-5_r8*P_mks2cgs  ! Small layer pressure thickness
                                     ! [g cm-1 s-2]. &
@@ -68,10 +68,10 @@ contains
 
   subroutine pbcor1(m,n,mm,nn,k1m,k1n)
 
-    ! --- ------------------------------------------------------------------
-    ! --- Correct the layer thicknesses to match the predictive bottom
-    ! --- pressure from the barotropic solution.
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Correct the layer thicknesses to match the predictive bottom
+    ! pressure from the barotropic solution.
+    ! ------------------------------------------------------------------
 
     ! Arguments
     integer, intent(in) :: m,n,mm,nn,k1m,k1n
@@ -172,7 +172,7 @@ contains
           do l = 1,isu(j)
             do i = max(1,ifu(j,l)),min(ii+1,ilu(j,l))
               if (utotm(i,j) > 0.) then
-                uflux(i,j) = utotm(i,j)*dp(i-1,j,kn)/p(i-1,j,kk+1)
+                 uflux(i,j) = utotm(i,j)*dp(i-1,j,kn)/p(i-1,j,kk+1)
                 uflux2(i,j) = uflux(i,j)*saln(i-1,j,kn)
                 uflux3(i,j) = uflux(i,j)*temp(i-1,j,kn)
                 if (use_TRC) then
@@ -184,7 +184,7 @@ contains
                   end do
                 end if
               else
-                uflux(i,j) = utotm(i,j)*dp(i  ,j,kn)/p(i  ,j,kk+1)
+                 uflux(i,j) = utotm(i,j)*dp(i  ,j,kn)/p(i  ,j,kk+1)
                 uflux2(i,j) = uflux(i,j)*saln(i  ,j,kn)
                 uflux3(i,j) = uflux(i,j)*temp(i  ,j,kn)
                 if (use_TRC) then
@@ -209,7 +209,7 @@ contains
           do l = 1,isv(j)
             do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
               if (vtotm(i,j) > 0.) then
-                vflux(i,j) = vtotm(i,j)*dp(i,j-1,kn)/p(i,j-1,kk+1)
+                 vflux(i,j) = vtotm(i,j)*dp(i,j-1,kn)/p(i,j-1,kk+1)
                 vflux2(i,j) = vflux(i,j)*saln(i,j-1,kn)
                 vflux3(i,j) = vflux(i,j)*temp(i,j-1,kn)
                 if (use_TRC) then
@@ -221,7 +221,7 @@ contains
                   end do
                 end if
               else
-                vflux(i,j) = vtotm(i,j)*dp(i,j  ,kn)/p(i,j  ,kk+1)
+                 vflux(i,j) = vtotm(i,j)*dp(i,j  ,kn)/p(i,j  ,kk+1)
                 vflux2(i,j) = vflux(i,j)*saln(i,j  ,kn)
                 vflux3(i,j) = vflux(i,j)*temp(i,j  ,kn)
                 if (use_TRC) then
@@ -233,7 +233,7 @@ contains
                   end do
                 end if
               end if
-              vflx(i,j,km) = vflx(i,j,km)+vflux(i,j)
+               vflx(i,j,km) = vflx(i,j,km)+vflux(i,j)
               vsflx(i,j,km) = vsflx(i,j,km)+vflux2(i,j)
               vtflx(i,j,km) = vtflx(i,j,km)+vflux3(i,j)
             end do
@@ -249,8 +249,8 @@ contains
               if (utotm(i,j) > 0.) then
                 uflux(i,j)= &
                      utotm(i,j) &
-                     *max(0.,min(pbu_t(i,j),p(i-1,j,k+1))-p(i-1,j,k)) &
-                     /pbu_t(i,j)
+                     *max(0.,min(pbu_t(i,j),&
+                                 p(i-1,j,k+1))-p(i-1,j,k))/pbu_t(i,j)
                 uflux2(i,j) = uflux(i,j)*saln(i-1,j,kn)
                 uflux3(i,j) = uflux(i,j)*temp(i-1,j,kn)
                 if (use_TRC) then
@@ -264,8 +264,8 @@ contains
               else
                 uflux(i,j)= &
                      utotm(i,j) &
-                     *max(0.,min(pbu_t(i,j),p(i  ,j,k+1))-p(i  ,j,k)) &
-                     /pbu_t(i,j)
+                     *max(0.,min(pbu_t(i,j),&
+                                 p(i,j,k+1))-p(i,j,k))/pbu_t(i,j)
                 uflux2(i,j) = uflux(i,j)*saln(i  ,j,kn)
                 uflux3(i,j) = uflux(i,j)*temp(i  ,j,kn)
                 if (use_TRC) then
@@ -292,8 +292,8 @@ contains
               if (vtotm(i,j) > 0.) then
                 vflux(i,j)= &
                      vtotm(i,j) &
-                     *max(0.,min(pbv_t(i,j),p(i,j-1,k+1))-p(i,j-1,k)) &
-                     /pbv_t(i,j)
+                     *max(0.,min(pbv_t(i,j),&
+                                 p(i,j-1,k+1))-p(i,j-1,k))/pbv_t(i,j)
                 vflux2(i,j) = vflux(i,j)*saln(i,j-1,kn)
                 vflux3(i,j) = vflux(i,j)*temp(i,j-1,kn)
                 if (use_TRC) then
@@ -307,8 +307,8 @@ contains
               else
                 vflux(i,j)= &
                      vtotm(i,j) &
-                     *max(0.,min(pbv_t(i,j),p(i,j  ,k+1))-p(i,j  ,k)) &
-                     /pbv_t(i,j)
+                     *max(0.,min(pbv_t(i,j),&
+                                 p(i,j,k+1))-p(i,j,k))/pbv_t(i,j)
                 vflux2(i,j) = vflux(i,j)*saln(i,j  ,kn)
                 vflux3(i,j) = vflux(i,j)*temp(i,j  ,kn)
                 if (use_TRC) then
@@ -320,7 +320,7 @@ contains
                   end do
                 end if
               end if
-              vflx(i,j,km) = vflx(i,j,km)+vflux(i,j)
+               vflx(i,j,km) = vflx(i,j,km)+vflux(i,j)
               vsflx(i,j,km) = vsflx(i,j,km)+vflux2(i,j)
               vtflx(i,j,km) = vtflx(i,j,km)+vflux3(i,j)
             end do
@@ -341,15 +341,15 @@ contains
           do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
             dpo = dp(i,j,kn)
             dp(i,j,kn) = max(0.,dpo-(uflux(i+1,j)-uflux(i,j) &
-                 +vflux(i,j+1)-vflux(i,j))*scp2i(i,j))
+                                    +vflux(i,j+1)-vflux(i,j))*scp2i(i,j))
             dpo = dpo+dpeps1
             dpni = 1./(dp(i,j,kn)+dpeps1)
             saln(i,j,kn) = (dpo*saln(i,j,kn) &
                  -(uflux2(i+1,j)-uflux2(i,j) &
-                 +vflux2(i,j+1)-vflux2(i,j))*scp2i(i,j))*dpni
+                  +vflux2(i,j+1)-vflux2(i,j))*scp2i(i,j))*dpni
             temp(i,j,kn) = (dpo*temp(i,j,kn) &
                  -(uflux3(i+1,j)-uflux3(i,j) &
-                 +vflux3(i,j+1)-vflux3(i,j))*scp2i(i,j))*dpni
+                  +vflux3(i,j+1)-vflux3(i,j))*scp2i(i,j))*dpni
             if (use_TRC) then
               do nt = 1,ntr
                 if (use_TKE .and. .not. use_TKEADV) then
@@ -357,7 +357,7 @@ contains
                 end if
                 trc(i,j,kn,nt) = (dpo*trc(i,j,kn,nt) &
                      -(uflxtr(nt,i+1,j)-uflxtr(nt,i,j) &
-                     +vflxtr(nt,i,j+1)-vflxtr(nt,i,j))*scp2i(i,j))*dpni
+                      +vflxtr(nt,i,j+1)-vflxtr(nt,i,j))*scp2i(i,j))*dpni
               end do
             end if
             if (dp(i,j,kn) < dpeps2) dp(i,j,kn) = 0.
@@ -412,14 +412,14 @@ contains
 
   end subroutine pbcor1
 
-  ! --- ------------------------------------------------------------------
+  ! ------------------------------------------------------------------
 
   subroutine pbcor2(m,n,mm,nn,k1m,k1n)
 
-    ! --- ------------------------------------------------------------------
-    ! --- Correct the layer thicknesses to better match the corrected bottom
-    ! --- pressure from the barotropic solution.
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Correct the layer thicknesses to better match the corrected bottom
+    ! pressure from the barotropic solution.
+    ! ------------------------------------------------------------------
 
     ! Arguments
     integer, intent(in) :: m,n,mm,nn,k1m,k1n
@@ -528,7 +528,7 @@ contains
           do l = 1,isu(j)
             do i = max(1,ifu(j,l)),min(ii+1,ilu(j,l))
               if (utotn(i,j) > 0.) then
-                uflux(i,j) = utotn(i,j)*dp(i-1,j,km)/p(i-1,j,kk+1)
+                 uflux(i,j) = utotn(i,j)*dp(i-1,j,km)/p(i-1,j,kk+1)
                 uflux2(i,j) = uflux(i,j)*saln(i-1,j,km)
                 uflux3(i,j) = uflux(i,j)*temp(i-1,j,km)
                 if (use_TRC) then
@@ -537,7 +537,7 @@ contains
                   end do
                 end if
               else
-                uflux(i,j) = utotn(i,j)*dp(i  ,j,km)/p(i  ,j,kk+1)
+                 uflux(i,j) = utotn(i,j)*dp(i  ,j,km)/p(i  ,j,kk+1)
                 uflux2(i,j) = uflux(i,j)*saln(i  ,j,km)
                 uflux3(i,j) = uflux(i,j)*temp(i  ,j,km)
                 if (use_TRC) then
@@ -546,7 +546,7 @@ contains
                   end do
                 end if
               end if
-              uflx(i,j,kn) = uflx(i,j,kn)+uflux(i,j)
+               uflx(i,j,kn) = uflx(i,j,kn)+uflux(i,j)
               usflx(i,j,kn) = usflx(i,j,kn)+uflux2(i,j)
               utflx(i,j,kn) = utflx(i,j,kn)+uflux3(i,j)
             end do
@@ -559,7 +559,7 @@ contains
           do l = 1,isv(j)
             do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
               if (vtotn(i,j) > 0.) then
-                vflux(i,j) = vtotn(i,j)*dp(i,j-1,km)/p(i,j-1,kk+1)
+                 vflux(i,j) = vtotn(i,j)*dp(i,j-1,km)/p(i,j-1,kk+1)
                 vflux2(i,j) = vflux(i,j)*saln(i,j-1,km)
                 vflux3(i,j) = vflux(i,j)*temp(i,j-1,km)
                 if (use_TRC) then
@@ -568,7 +568,7 @@ contains
                   end do
                 end if
               else
-                vflux(i,j) = vtotn(i,j)*dp(i,j  ,km)/p(i,j  ,kk+1)
+                 vflux(i,j) = vtotn(i,j)*dp(i,j  ,km)/p(i,j  ,kk+1)
                 vflux2(i,j) = vflux(i,j)*saln(i,j  ,km)
                 vflux3(i,j) = vflux(i,j)*temp(i,j  ,km)
                 if (use_TRC) then
@@ -577,7 +577,7 @@ contains
                   end do
                 end if
               end if
-              vflx(i,j,kn) = vflx(i,j,kn)+vflux(i,j)
+               vflx(i,j,kn) = vflx(i,j,kn)+vflux(i,j)
               vsflx(i,j,kn) = vsflx(i,j,kn)+vflux2(i,j)
               vtflx(i,j,kn) = vtflx(i,j,kn)+vflux3(i,j)
             end do
@@ -592,8 +592,8 @@ contains
               if (utotn(i,j) > 0.) then
                 uflux(i,j)= &
                      utotn(i,j) &
-                     *max(0.,min(pbu_t(i,j),p(i-1,j,k+1))-p(i-1,j,k)) &
-                     /pbu_t(i,j)
+                     *max(0.,min(pbu_t(i,j),&
+                                 p(i-1,j,k+1))-p(i-1,j,k))/pbu_t(i,j)
                 uflux2(i,j) = uflux(i,j)*saln(i-1,j,km)
                 uflux3(i,j) = uflux(i,j)*temp(i-1,j,km)
                 if (use_TRC) then
@@ -604,8 +604,8 @@ contains
               else
                 uflux(i,j)= &
                      utotn(i,j) &
-                     *max(0.,min(pbu_t(i,j),p(i  ,j,k+1))-p(i  ,j,k)) &
-                     /pbu_t(i,j)
+                     *max(0.,min(pbu_t(i,j),&
+                                 p(i,j,k+1))-p(i,j,k))/pbu_t(i,j)
                 uflux2(i,j) = uflux(i,j)*saln(i  ,j,km)
                 uflux3(i,j) = uflux(i,j)*temp(i  ,j,km)
                 if (use_TRC) then
@@ -614,7 +614,7 @@ contains
                   end do
                 end if
               end if
-              uflx(i,j,kn) = uflx(i,j,kn)+uflux(i,j)
+               uflx(i,j,kn) = uflx(i,j,kn)+uflux(i,j)
               usflx(i,j,kn) = usflx(i,j,kn)+uflux2(i,j)
               utflx(i,j,kn) = utflx(i,j,kn)+uflux3(i,j)
             end do
@@ -629,8 +629,8 @@ contains
               if (vtotn(i,j) > 0.) then
                 vflux(i,j)= &
                      vtotn(i,j) &
-                     *max(0.,min(pbv_t(i,j),p(i,j-1,k+1))-p(i,j-1,k)) &
-                     /pbv_t(i,j)
+                     *max(0.,min(pbv_t(i,j),&
+                                 p(i,j-1,k+1))-p(i,j-1,k))/pbv_t(i,j)
                 vflux2(i,j) = vflux(i,j)*saln(i,j-1,km)
                 vflux3(i,j) = vflux(i,j)*temp(i,j-1,km)
                 if (use_TRC) then
@@ -641,8 +641,8 @@ contains
               else
                 vflux(i,j)= &
                      vtotn(i,j) &
-                     *max(0.,min(pbv_t(i,j),p(i,j  ,k+1))-p(i,j  ,k)) &
-                     /pbv_t(i,j)
+                     *max(0.,min(pbv_t(i,j),&
+                                 p(i,j,k+1))-p(i,j,k))/pbv_t(i,j)
                 vflux2(i,j) = vflux(i,j)*saln(i,j  ,km)
                 vflux3(i,j) = vflux(i,j)*temp(i,j  ,km)
                 if (use_TRC) then
@@ -651,7 +651,7 @@ contains
                   end do
                 end if
               end if
-              vflx(i,j,kn) = vflx(i,j,kn)+vflux(i,j)
+               vflx(i,j,kn) = vflx(i,j,kn)+vflux(i,j)
               vsflx(i,j,kn) = vsflx(i,j,kn)+vflux2(i,j)
               vtflx(i,j,kn) = vtflx(i,j,kn)+vflux3(i,j)
             end do
@@ -671,19 +671,19 @@ contains
           do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
             dpo = dp(i,j,km)
             dp(i,j,km) = dpo-scp2i(i,j)*(uflux(i+1,j)-uflux(i,j) &
-                 +vflux(i,j+1)-vflux(i,j))
+                                        +vflux(i,j+1)-vflux(i,j))
             dpni = 1./dp(i,j,km)
             saln(i,j,km) = (dpo*saln(i,j,km) &
                  -scp2i(i,j)*(uflux2(i+1,j)-uflux2(i,j) &
-                 +vflux2(i,j+1)-vflux2(i,j)))*dpni
+                             +vflux2(i,j+1)-vflux2(i,j)))*dpni
             temp(i,j,km) = (dpo*temp(i,j,km) &
                  -scp2i(i,j)*(uflux3(i+1,j)-uflux3(i,j) &
-                 +vflux3(i,j+1)-vflux3(i,j)))*dpni
+                             +vflux3(i,j+1)-vflux3(i,j)))*dpni
             if (use_TRC) then
               do nt = 1,ntr
                 trc(i,j,km,nt) = (dpo*trc(i,j,km,nt) &
                      -(uflxtr(nt,i+1,j)-uflxtr(nt,i,j) &
-                     +vflxtr(nt,i,j+1)-vflxtr(nt,i,j))*scp2i(i,j))*dpni
+                      +vflxtr(nt,i,j+1)-vflxtr(nt,i,j))*scp2i(i,j))*dpni
               end do
             end if
             sigma(i,j,km) = sig(temp(i,j,km),saln(i,j,km))

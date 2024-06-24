@@ -1,25 +1,26 @@
 ! ------------------------------------------------------------------------------
 ! Copyright (C) 2004-2024 Ingo Bethke, Mats Bentsen, Alok Kumar Gupta
-
+!                         Mariana Vertenstein
+!
 ! This file is part of BLOM.
-
+!
 ! BLOM is free software: you can redistribute it and/or modify it under the
 ! terms of the GNU Lesser General Public License as published by the Free
 ! Software Foundation, either version 3 of the License, or (at your option)
 ! any later version.
-
+!
 ! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
 ! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
 ! more details.
-
+!
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
 module mod_nctools
   ! ----------------------------------------------------------------------
-  ! --- NetCDF tools -----------------------------------------------------
+  ! NetCDF tools
   ! ----------------------------------------------------------------------
 
   ! Description:
@@ -280,11 +281,10 @@ contains
 
 
   subroutine ncfcls
-
-    ! ----------------------------------------------------------------------
-    ! --- Description:
-    !       Closes NetCDF file
-    ! ----------------------------------------------------------------------
+  ! ----------------------------------------------------------------------
+  ! Description:
+  !       Closes NetCDF file
+  ! ----------------------------------------------------------------------
 
     if (io_type  ==  1) then
 #ifdef PNETCDF
@@ -300,14 +300,13 @@ contains
 
 
   subroutine ncdims(dnm,dim)
-
-    ! ----------------------------------------------------------------------
-    ! --- Description:
-    !       Creates a simple dimension
-    ! --- Arguments:
-    !       char(*) dnm  (in) -  name of the dimension
-    !       integer dim  (in) -  number of values on axis
-    ! ----------------------------------------------------------------------
+  ! ----------------------------------------------------------------------
+  ! Description:
+  !       Creates a simple dimension
+  ! Arguments:
+  !       char(*) dnm  (in) -  name of the dimension
+  !       integer dim  (in) -  number of values on axis
+  ! ----------------------------------------------------------------------
 
     character(len=*), intent(in) :: dnm
     integer, intent(in) :: dim

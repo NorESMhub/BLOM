@@ -1,18 +1,18 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2005-2020 Mats Bentsen, Alok Kumar Gupta
-
+! Copyright (C) 2005-2024 Mats Bentsen, Alok Kumar Gupta, Mariana Vertenstein
+!
 ! This file is part of BLOM.
-
+!
 ! BLOM is free software: you can redistribute it and/or modify it under the
 ! terms of the GNU Lesser General Public License as published by the Free
 ! Software Foundation, either version 3 of the License, or (at your option)
 ! any later version.
-
+!
 ! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
 ! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
 ! more details.
-
+!
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
@@ -74,7 +74,7 @@ contains
 
       call ncfcls
 
-      !$OMP PARALLEL DO PRIVATE(j,i)
+      !$omp parallel do private(j,i)
       do k = 1,48
         nflxdi(k) = 0
         do j = 1,jj
@@ -83,7 +83,7 @@ contains
           end do
         end do
       end do
-      !$OMP END PARALLEL DO
+      !$omp end parallel do
 
     end if
 
@@ -116,7 +116,7 @@ contains
 
       call ncfcls
 
-      !$OMP PARALLEL DO PRIVATE(j,i)
+      !$omp parallel do private(j,i)
       do k = 1,48
         nflxdi(k) = 0
         do j = 1,jj
@@ -125,7 +125,7 @@ contains
           end do
         end do
       end do
-      !$OMP END PARALLEL DO
+      !$omp end parallel do
 
     end if
 

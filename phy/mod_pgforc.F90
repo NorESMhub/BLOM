@@ -1,18 +1,18 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2005-2024 Mats Bentsen, Mehmet Ilicak
-
+! Copyright (C) 2005-2024 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
+!
 ! This file is part of BLOM.
-
+!
 ! BLOM is free software: you can redistribute it and/or modify it under the
 ! terms of the GNU Lesser General Public License as published by the Free
 ! Software Foundation, either version 3 of the License, or (at your option)
 ! any later version.
-
+!
 ! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
 ! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
 ! more details.
-
+!
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
@@ -103,13 +103,13 @@ module mod_pgforc
 
 contains
 
-  ! --- ------------------------------------------------------------------
+  ! ------------------------------------------------------------------
 
   subroutine inivar_pgforc()
 
-    ! --- ------------------------------------------------------------------
-    ! --- Initialize arrays.
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Initialize arrays.
+    ! ------------------------------------------------------------------
 
     ! Local variables
     integer :: i,j,k
@@ -151,13 +151,13 @@ contains
 
   end subroutine inivar_pgforc
 
-  ! --- ------------------------------------------------------------------
+  ! ------------------------------------------------------------------
 
   subroutine pgforc(m,n,mm,nn,k1m,k1n)
 
-    ! --- ------------------------------------------------------------------
-    ! --- compute the pressure gradient force
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! compute the pressure gradient force
+    ! ------------------------------------------------------------------
 
     ! Arguments
     integer, intent(in) :: m,n,mm,nn,k1m,k1n
@@ -169,7 +169,7 @@ contains
     integer :: kup(idm),kum(idm),kvp(idm),kvm(idm)
     integer :: i,j,k,l,kn
 
-    ! --- compute new -dpu,dpv- field.
+    ! compute new -dpu,dpv- field.
 
     !$omp parallel do private(k,kn,l,i)
     do j = -2,jj+2
@@ -193,7 +193,7 @@ contains
             q = min(p(i,j,kk+1),p(i-1,j,kk+1))
             dpu(i,j,kn)= &
                  .5*((min(q,p(i-1,j,k+1))-min(q,p(i-1,j,k))) &
-                 +(min(q,p(i  ,j,k+1))-min(q,p(i  ,j,k))))
+                    +(min(q,p(i  ,j,k+1))-min(q,p(i  ,j,k))))
             pu(i,j,k+1) = pu(i,j,k)+dpu(i,j,kn)
           end do
         end do
@@ -202,7 +202,7 @@ contains
             q = min(p(i,j,kk+1),p(i,j-1,kk+1))
             dpv(i,j,kn)= &
                  .5*((min(q,p(i,j-1,k+1))-min(q,p(i,j-1,k))) &
-                 +(min(q,p(i,j  ,k+1))-min(q,p(i,j  ,k))))
+                    +(min(q,p(i,j  ,k+1))-min(q,p(i,j  ,k))))
             pv(i,j,k+1) = pv(i,j,k)+dpv(i,j,kn)
           end do
         end do
@@ -288,7 +288,7 @@ contains
 
             prs = pu(i,j,k+1)-.5*dpu(i,j,kn)
 
-            do while (p(i  ,j,kup(i)) > prs)
+            do while (p(i,j,kup(i)) > prs)
               kup(i) = kup(i)-1
             end do
 
@@ -296,7 +296,7 @@ contains
               kum(i) = kum(i)-1
             end do
 
-            call delphi(prs,p(i  ,j,kup(i)+1), &
+            call delphi(prs,p(i,j,kup(i)+1), &
                  temp(i,j,kup(i)+nn),saln(i,j,kup(i)+nn), &
                  dphip,alpup,alplp)
 
@@ -311,10 +311,10 @@ contains
             cp = q*cp
             cm = q*cm
 
-            phi_p = phi(i  ,j,kup(i)+1)-dphip
+            phi_p = phi(i,j,kup(i)+1)-dphip
             xixp(i,j,n) = xixp(i,j,n) &
-                 +(phip(i  ,j,kup(i)+1) &
-                 +p(i  ,j,kup(i)+1)*alplp-cp*(alpup-alpum)) &
+                 +(phip(i,j,kup(i)+1) &
+                 +p(i,j,kup(i)+1)*alplp-cp*(alpup-alpum)) &
                  *dpu(i,j,kn)
 
             phi_m = phi(i-1,j,kum(i)+1)-dphim
