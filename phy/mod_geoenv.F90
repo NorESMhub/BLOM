@@ -1,19 +1,19 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2023 Mats Bentsen, Ping-Gin Chiu, Mehmet Ilicak,
-!                         Aleksi Nummelin
-
+! Copyright (C) 2015-2024 Mats Bentsen, Ping-Gin Chiu, Mehmet Ilicak,
+!                         Aleksi Nummelin, Mariana Vertenstein
+!
 ! This file is part of BLOM.
-
+!
 ! BLOM is free software: you can redistribute it and/or modify it under the
 ! terms of the GNU Lesser General Public License as published by the Free
 ! Software Foundation, either version 3 of the License, or (at your option)
 ! any later version.
-
+!
 ! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
 ! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
 ! more details.
-
+!
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
@@ -43,10 +43,10 @@ contains
 
   subroutine geoenv_file
 
-    ! --- ------------------------------------------------------------------
-    ! --- Get bathymetry and grid specification from file and compute
-    ! --- Coriolis parameter
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Get bathymetry and grid specification from file and compute
+    ! Coriolis parameter
+    ! ------------------------------------------------------------------
 
     ! Local variables
     integer, parameter :: cwmlen = 100
@@ -63,15 +63,15 @@ contains
 
     namelist /cwmod/ cwmtag,cwmedg,cwmi,cwmj,cwmwth
 
-    ! --- ------------------------------------------------------------------
-    ! --- read grid information from grid file
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! read grid information from grid file
+    ! ------------------------------------------------------------------
 
     if (mnproc == 1) then
       write (lp,'(2a)') ' reading grid information from ',trim(grfile)
       call flush(lp)
 
-      ! --- - open netcdf file
+      ! open netcdf file
       status = nf90_open(grfile,nf90_nowrite,ncid)
       if (status /= nf90_noerr) then
         write(lp,'(4a)') ' nf90_open: ',trim(grfile),': ', &
@@ -80,7 +80,7 @@ contains
         stop '(geoenv_file)'
       end if
 
-      ! --- - check dimensions
+      ! check dimensions
       status = nf90_inq_dimid(ncid,'x',dimid)
       if (status /= nf90_noerr) then
         write(lp,'(2a)') ' nf90_inq_dimid: x: ',nf90_strerror(status)
@@ -113,7 +113,7 @@ contains
         stop '(geoenv_file)'
       end if
 
-      ! --- - read bathymetry
+      ! read bathymetry
       status = nf90_inq_varid(ncid,'pdepth',varid)
       if (status /= nf90_noerr) then
         write(lp,'(2a)') ' nf90_inq_varid: pdepth: ', &
@@ -129,7 +129,7 @@ contains
         stop '(geoenv_file)'
       end if
 
-      ! --- - count number of wet points for subsequent xcsum testing
+      ! count number of wet points for subsequent xcsum testing
       nwp = 0
       do j = 1,jtdm
         do i = 1,itdm
@@ -140,7 +140,7 @@ contains
 
     call xcaput(tmpg,depths,1)
 
-    ! --- read grid coordinates
+    ! read grid coordinates
 
     if (mnproc == 1) then
       status = nf90_inq_varid(ncid,'qlon',varid)
@@ -468,7 +468,7 @@ contains
       call xcaput(tmpg,vclat(1-nbdy,1-nbdy,k),1)
     end do
 
-    ! --- read scale factors
+    ! read scale factors
 
     if (mnproc == 1) then
       status = nf90_inq_varid(ncid,'qdx',varid)
@@ -698,7 +698,7 @@ contains
     end if
     call xcaput(tmpg,angle,1)
 
-    ! --- close grid information file
+    ! close grid information file
 
     if (mnproc == 1) then
       status = nf90_close(ncid)
@@ -710,9 +710,9 @@ contains
       end if
     end if
 
-    ! --- ------------------------------------------------------------------
-    ! --- read topographic beta if needed
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! read topographic beta if needed
+    ! ------------------------------------------------------------------
 
     if (rhsctp) then
 
@@ -773,9 +773,9 @@ contains
       end if
 
     end if
-    ! --- ------------------------------------------------------------------
-    ! --- Apply channel width modifications if specified in namelist
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Apply channel width modifications if specified in namelist
+    ! ------------------------------------------------------------------
 
     if (mnproc == 1) then
       nlfnm = 'ocn_in'//trim(inst_suffix)
@@ -861,11 +861,11 @@ contains
       end do
     end if
 
-    ! --- ------------------------------------------------------------------
-    ! --- Get correct units of scale factors and topographic beta,
-    ! --- precompute cosine and sine of local angle of i-direction and with
-    ! --- eastward direction, and compute Coriolis and beta plane parameter
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Get correct units of scale factors and topographic beta,
+    ! precompute cosine and sine of local angle of i-direction and with
+    ! eastward direction, and compute Coriolis and beta plane parameter
+    ! ------------------------------------------------------------------
 
     !$omp parallel do private(i)
     do j = 1,jj
@@ -909,10 +909,10 @@ contains
 
   subroutine geoenv_test
 
-    ! --- ------------------------------------------------------------------
-    ! --- Define bathymetry, grid specification and Coriolis parameter for
-    ! --- test case
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Define bathymetry, grid specification and Coriolis parameter for
+    ! test case
+    ! ------------------------------------------------------------------
 
     depths = 0.
     nwp = 0

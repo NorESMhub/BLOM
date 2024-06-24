@@ -1,5 +1,6 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2021 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
+! Copyright (C) 2015-2024 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin,
+!                         Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -37,27 +38,26 @@ contains
     ! ---------------------------------------------------------------------------
 
     select case (trim(expcnf))
-    case ('cesm')
-      call getfrc_cesm
-    case ('ben02clim')
-      call getfrc_ben02clim
-    case ('ben02syn')
-      call getfrc_ben02syn
-    case ('channel')
-    case ('fuk95')
-    case ('isomip1')
-      !        call getfrc_isomip1
-    case ('isomip2')
-      !        call getfrc_isomip2
-    case ('single_column')
-      call getfrc_ben02clim
-    case default
-      if (mnproc == 1) then
-        write (lp,'(3a)') ' getfrc: expcnf = ', trim(expcnf), &
-             ' is unsupported!'
-      endif
-      call xcstop('(getfrc)')
-      stop '(getfrc)'
+      case ('cesm')
+        call getfrc_cesm
+      case ('ben02clim')
+        call getfrc_ben02clim
+      case ('ben02syn')
+        call getfrc_ben02syn
+      case ('channel')
+      case ('fuk95')
+      case ('isomip1')
+        ! call getfrc_isomip1
+      case ('isomip2')
+        ! call getfrc_isomip2
+      case ('single_column')
+        call getfrc_ben02clim
+      case default
+        if (mnproc == 1) then
+          write (lp,'(3a)') ' getfrc: expcnf = ', trim(expcnf),' is unsupported!'
+        endif
+        call xcstop('(getfrc)')
+        stop '(getfrc)'
     end select
 
   end subroutine getfrc
