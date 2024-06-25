@@ -33,9 +33,9 @@ contains
 
   subroutine idlage_init
 
-    ! --- ------------------------------------------------------------------
-    ! --- initialization of ideal age tracer
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! initialization of ideal age tracer
+    ! ------------------------------------------------------------------
 
     integer :: i,j,k,l
 
@@ -56,9 +56,9 @@ contains
 
   subroutine idlage_step(m,n,mm,nn,k1m,k1n)
 
-    ! --- ------------------------------------------------------------------
-    ! --- update ideal age tracer
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! update ideal age tracer
+    ! ------------------------------------------------------------------
 
     ! Arguments
     integer, intent(in) :: m,n,mm,nn,k1m,k1n
@@ -67,8 +67,8 @@ contains
     integer :: i,j,k,l,kn
     real :: q
 
-    ! --- set ideal age to zero in the surface layer and increment the age
-    ! --- in the subsurface layers
+    ! set ideal age to zero in the surface layer and increment the age
+    ! in the subsurface layers
     !$omp parallel do private(l,i)
     do j = 1-nbdy,jj+nbdy
       do l = 1,isp(j)
