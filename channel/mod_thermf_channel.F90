@@ -1,18 +1,18 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2021 Aleksi Nummelin, Mats Bentsen
-
+! Copyright (C) 2021-2024 Aleksi Nummelin, Mats Bentsen, Mariana Vertenstein
+!
 ! This file is part of BLOM.
-
+!
 ! BLOM is free software: you can redistribute it and/or modify it under the
 ! terms of the GNU Lesser General Public License as published by the Free
 ! Software Foundation, either version 3 of the License, or (at your option)
 ! any later version.
-
+!
 ! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
 ! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
 ! more details.
-
+!
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
@@ -45,18 +45,6 @@ module mod_thermf_channel
   use mod_tke,       only: gls_cmu0, zos, gls_p, gls_m, gls_n, vonKar
   use mod_intp1d,    only: intp1d
   use mod_ifdefs,    only: use_TRC, use_TKE, use_GLS
-
-  ! use mod_swabs, only: swbgal, swbgfc
-  ! use mod_ben02, only: tsi_tda, tml_tda, sml_tda, alb_tda,
-  !.                     fice_tda,
-  !.                     tsi, ntda, dfl, albw, alb,
-  !.                     rnfins, rnfres, nrfets, rhowat
-  ! use mod_thdysi, only: tsrfm, ticem, albi_f, albi_m, albs_f,
-  !.                      albs_m, rhoice, rhosnw, rkice, rksnw, fusi,
-  !.                      fuss, fice_max, tice_m, tsnw_m, hice_nhmn,
-  !.                      hice_shmn, sagets, sice, cwi, cuc
-  ! use mod_seaice, only: ficem, hicem, hsnwm, iagem
-  !
 
   implicit none
   private
@@ -97,7 +85,7 @@ contains
     m4 = mod(m3   ,48)+1
     m5 = mod(m3+ 1,48)+1
 
-    ! --- Time level for diagnosing heat and salt relaxation fluxes
+    ! Time level for diagnosing heat and salt relaxation fluxes
     k = m3
 
     if (ditflx.or.disflx) nflxdi(k) = nflxdi(k)+1
@@ -109,8 +97,8 @@ contains
       do l = 1,isp(j)
         do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
 
-          ! --- --- Initialize variables describing the state of the ocean top
-          ! --- --- layer, the mixed layer and ice/snow fraction
+          ! Initialize variables describing the state of the ocean top
+          ! layer, the mixed layer and ice/snow fraction
           dpotl = dp(i,j,k1n)
           hotl = dpotl/onem
           totl = temp(i,j,k1n)+t0deg
@@ -124,49 +112,48 @@ contains
                  +saln(i,j,2+nn)*dp(i,j,2+nn))/dpmxl
 
 
-          ! --- --- Accumulate the runoff in a reservoar to delay the discharge
-          ! --- --- into the ocean (by nrfets days approximately 1/e of runoff
-          ! --- --- added will by discharged).
-          !          rnfres(i,j)=rnfres(i,j)+rnf(i,j)
-          !          rnfflx(i,j)=rnfres(i,j)*rnf_fac
-          !          rnfres(i,j)=rnfres(i,j)*(1.-rnf_fac)
-          !          rfiflx(i,j)=rfi(i,j)
+          ! Accumulate the runoff in a reservoar to delay the discharge
+          ! into the ocean (by nrfets days approximately 1/e of runoff
+          ! added will by discharged).
+          !       rnfres(i,j)=rnfres(i,j)+rnf(i,j)
+          !       rnfflx(i,j)=rnfres(i,j)*rnf_fac
+          !       rnfres(i,j)=rnfres(i,j)*(1.-rnf_fac)
+          !       rfiflx(i,j)=rfi(i,j)
 
-          ! --- --- Fresh water flux due to melting/freezing [kg m-2 s-1]
-          ! --- --- (positive downwards)
+          ! Fresh water flux due to melting/freezing [kg m-2 s-1]
+          ! (positive downwards)
           fmltfz(i,j) = 0._r8 !-(dvi*rhoice+dvs*rhosnw)/dt
 
-          ! --- --- Fresh water flux [kg m-2 s-1] (positive downwards)
-          fwflx = eva(i,j)+lip(i,j)+sop(i,j)+rnf(i,j)+rfi(i,j) &
-                 +fmltfz(i,j)
+          ! Fresh water flux [kg m-2 s-1] (positive downwards)
+          fwflx = eva(i,j)+lip(i,j)+sop(i,j)+rnf(i,j)+rfi(i,j)+fmltfz(i,j)
 
-          ! --- --- Salt flux [kg m-2 s-1] (positive downwards)
+          ! Salt flux [kg m-2 s-1] (positive downwards)
           sfl(i,j) = 0._r8 !-sice*dvi*rhoice/dt*1.e-3
 
-          ! --- --- Salt flux due to brine rejection of freezing sea
-          ! --- --- ice [kg m-2 m-1] (positive downwards)
+          ! Salt flux due to brine rejection of freezing sea
+          ! ice [kg m-2 m-1] (positive downwards)
           brnflx(i,j) = 0._r8 !max(0.,-sotl*fmltfz(i,j)*1.e-3+sfl(i,j))
 
-          ! --- --- Virtual salt flux [kg m-2 s-1] (positive downwards)
+          ! Virtual salt flux [kg m-2 s-1] (positive downwards)
           vrtsfl(i,j) = -sotl*fwflx*1.e-3
 
-          ! --- --- Store area weighted virtual salt flux and fresh water flux
+          ! Store area weighted virtual salt flux and fresh water flux
           util1(i,j) = vrtsfl(i,j)*scp2(i,j)
           util2(i,j) = fwflx*scp2(i,j)
 
-          ! --- --- Heat flux due to melting/freezing [W m-2] (positive downwards)
+          ! Heat flux due to melting/freezing [W m-2] (positive downwards)
           hmltfz(i,j) = 0._r8 !(dvi*fusi+dvs*fuss)/dt
 
-          ! --- --- Total heat flux in MICOM units [W cm-2] (positive upwards)
+          ! Total heat flux in MICOM units [W cm-2] (positive upwards)
           surflx(i,j) = -(swa(i,j)+nsf(i,j)+hmltfz(i,j))*1.e-4_r8
 
-          ! --- --- Short-wave heat flux in MICOM units [W cm-2] (positive
-          ! --- --- upwards)
+          ! Short-wave heat flux in MICOM units [W cm-2] (positive
+          ! upwards)
           sswflx(i,j) = 0._r8 !-qsww*(1.-fice0)*1.e-4
 
-          ! --- ------------------------------------------------------------------
-          ! --- --- Tracer fluxes (positive downwards)
-          ! --- ------------------------------------------------------------------
+          !---------------------------------------------------------------
+          ! Tracer fluxes (positive downwards)
+          !---------------------------------------------------------------
 
           if (use_TRC) then
             do nt = 1,ntr
@@ -201,13 +188,13 @@ contains
             end do
           end if
 
-          ! --- ------------------------------------------------------------------
-          ! --- --- Relaxation fluxes
-          ! --- ------------------------------------------------------------------
+          !---------------------------------------------------------------
+          ! Relaxation fluxes
+          !---------------------------------------------------------------
 
           surrlx(i,j) = 0._r8
 
-          ! --- --- If  trxday>0 , apply relaxation towards observed sst
+          ! If  trxday>0 , apply relaxation towards observed sst
           if (trxday > epsilt) then
             sstc = intp1d(sstclm(i,j,l1mi),sstclm(i,j,l2mi), &
                           sstclm(i,j,l3mi),sstclm(i,j,l4mi), &
@@ -217,34 +204,34 @@ contains
                           ricclm(i,j,l5mi),xmi)
             sstc = (1._r8-rice)*sstc !max(sstc,tice_f)+rice*tice_f
             trxflx = spcifh*100._r8*min(hmxl,trxdpt)/(trxday*86400.) &
-                 *min(trxlim,max(-trxlim,sstc-tmxl))
+                                   *min(trxlim,max(-trxlim,sstc-tmxl))
             surrlx(i,j) = -trxflx
           else
             trxflx = 0._r8
           end if
 
-          ! --- --- If aptflx=.true., apply diagnosed relaxation flux
+          ! If aptflx=.true., apply diagnosed relaxation flux
           if (aptflx) then
             surrlx(i,j) = surrlx(i,j) &
                  -intp1d(tflxap(i,j,m1),tflxap(i,j,m2),tflxap(i,j,m3), &
                  tflxap(i,j,m4),tflxap(i,j,m5),y)
           end if
 
-          ! --- --- If ditflx=.true., diagnose relaxation flux by accumulating the
-          ! --- --- relaxation flux
+          ! If ditflx=.true., diagnose relaxation flux by accumulating the
+          ! relaxation flux
           if (ditflx) then
             tflxdi(i,j,k) = tflxdi(i,j,k)+trxflx
           end if
 
           salrlx(i,j) = 0._r8
 
-          ! --- --- if  srxday>0 , apply relaxation towards observed sss
+          ! if  srxday>0 , apply relaxation towards observed sss
           if (srxday > epsilt) then
             sssc = intp1d(sssclm(i,j,l1mi),sssclm(i,j,l2mi), &
                  sssclm(i,j,l3mi),sssclm(i,j,l4mi), &
                  sssclm(i,j,l5mi),xmi)
             srxflx = 100._r8*min(hmxl,srxdpt)/(srxday*86400.) &
-                 *min(srxlim,max(-srxlim,sssc-smxl))
+                            *min(srxlim,max(-srxlim,sssc-smxl))
             salrlx(i,j) = -srxflx
             util3(i,j) = max(0._r8,salrlx(i,j))*scp2(i,j)
             util4(i,j) = min(0._r8,salrlx(i,j))*scp2(i,j)
@@ -252,22 +239,22 @@ contains
             srxflx = 0.
           end if
 
-          ! --- --- If apsflx=.true., apply diagnosed relaxation flux
+          ! If apsflx=.true., apply diagnosed relaxation flux
           if (apsflx) then
             salrlx(i,j) = salrlx(i,j) &
                  -intp1d(sflxap(i,j,m1),sflxap(i,j,m2),sflxap(i,j,m3), &
-                 sflxap(i,j,m4),sflxap(i,j,m5),y)
+                         sflxap(i,j,m4),sflxap(i,j,m5),y)
           end if
 
-          ! --- --- If disflx=.true., diagnose relaxation flux by accumulating the
-          ! --- --- relaxation flux
+          ! If disflx=.true., diagnose relaxation flux by accumulating the
+          ! relaxation flux
           if (disflx) then
             sflxdi(i,j,k) = sflxdi(i,j,k)+srxflx
           end if
 
-          ! --- -------------------------------------------------------------------
-          ! --- --- Compute friction velocity (cm/s)
-          ! --- -------------------------------------------------------------------
+          !----------------------------------------------------------------
+          ! Compute friction velocity (cm/s)
+          !----------------------------------------------------------------
 
           ustar(i,j) = ustarw(i,j)*1.e2_r8
           !  ustar(i,j)=(min(ustari(i,j),.8e-2)*fice0 &
@@ -278,24 +265,24 @@ contains
     end do
     !$omp end parallel do
 
-    ! --- ------------------------------------------------------------------
-    ! --- Compute correction to the virtual salt flux so it is globally
-    ! --- consistent with a salt flux based on some reference salinity.
-    ! --- Also combine virtual and true salt flux and convert salt fluxes
-    ! --- used later to unit [10e-3 g cm-2 s-1] and positive upwards.
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Compute correction to the virtual salt flux so it is globally
+    ! consistent with a salt flux based on some reference salinity.
+    ! Also combine virtual and true salt flux and convert salt fluxes
+    ! used later to unit [10e-3 g cm-2 s-1] and positive upwards.
+    ! ------------------------------------------------------------------
 
     call xcsum(totsfl,util1,ips)
     call xcsum(totwfl,util2,ips)
 
-    ! --- Correction for the virtual salt flux [kg m-2 s-1]
+    ! Correction for the virtual salt flux [kg m-2 s-1]
     sflxc = (-sref*totwfl*1.e-3_r8-totsfl)/area
     if (mnproc == 1) then
       write (lp,*) 'thermf: totsfl/area,sflxc',totsfl/area,sflxc
     end if
 
-    ! --- Apply the virtual salt flux correction and the compute the total
-    ! --- salt flux by combining the virtual and true salt flux
+    ! Apply the virtual salt flux correction and the compute the total
+    ! salt flux by combining the virtual and true salt flux
     !$omp parallel do private(l,i)
     do j = 1,jj
       do l = 1,isp(j)
@@ -307,9 +294,9 @@ contains
     end do
     !$omp end parallel do
 
-    ! --- if  srxday>0  and  srxbal=.true. , balance the sss relaxation flux
-    ! --- so the net input of salt in grid cells connected to the world
-    ! --- ocean is zero
+    ! if  srxday>0  and  srxbal=.true. , balance the sss relaxation flux
+    ! so the net input of salt in grid cells connected to the world
+    ! ocean is zero
     if (srxday > epsilt.and.srxbal) then
       call xcsum(totsrp,util3,ipwocn)
       call xcsum(totsrn,util4,ipwocn)
@@ -360,9 +347,9 @@ contains
       end do
     end if
 
-    ! --- ------------------------------------------------------------------
-    ! --- number of accumulated fields for flux calculations
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! number of accumulated fields for flux calculations
+    ! ------------------------------------------------------------------
 
     ntda = ntda+1
 
@@ -370,7 +357,7 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'thermf_channel:'
       end if
-      !        call chksummsk(rnfres,ip,1,'rnfres')
+      ! call chksummsk(rnfres,ip,1,'rnfres')
       call chksummsk(surflx,ip,1,'surflx')
       call chksummsk(sswflx,ip,1,'sswflx')
       call chksummsk(salflx,ip,1,'salflx')

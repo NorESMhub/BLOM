@@ -68,5 +68,11 @@ module mod_ifdefs
 #else
   logical :: use_MKS = .false.
 #endif
+#ifdef DIAG
+  logical :: use_DIAG = .true.
+#else
+  logical :: use_DIAG = .false.
+#endif
+
 
 end module mod_ifdefs

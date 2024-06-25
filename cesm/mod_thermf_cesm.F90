@@ -1,18 +1,18 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2023 Mats Bentsen, Mehmet Ilicak
-
+! Copyright (C) 2008-2024 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
+!
 ! This file is part of BLOM.
-
+!
 ! BLOM is free software: you can redistribute it and/or modify it under the
 ! terms of the GNU Lesser General Public License as published by the Free
 ! Software Foundation, either version 3 of the License, or (at your option)
 ! any later version.
-
+!
 ! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
 ! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
 ! more details.
-
+!
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
@@ -58,7 +58,7 @@ contains
 
   subroutine thermf_cesm(m,n,mm,nn,k1m,k1n)
 
-    ! --- NERSC version of thermf. To be used when coupled to CESM
+    ! NERSC version of thermf. To be used when coupled to CESM
 
     ! Arguments
     integer, intent(in) :: m,n,mm,nn,k1m,k1n
@@ -75,8 +75,8 @@ contains
 
     A_cgs2mks = 1./(L_mks2cgs**2)
 
-    ! --- Set parameters for time interpolation when applying diagnosed heat
-    ! --- and salt relaxation fluxes
+    ! Set parameters for time interpolation when applying diagnosed heat
+    ! and salt relaxation fluxes
     y = (nday_of_year-1+mod(nstep,nstep_in_day)/real(nstep_in_day))*48./real(nday_in_year)
     m3 = int(y)+1
     y = y-real(m3-1)
@@ -85,10 +85,10 @@ contains
     m4 = mod(m3   ,48)+1
     m5 = mod(m3+ 1,48)+1
 
-    ! --- Time level for diagnosing heat and salt relaxation fluxes
+    ! Time level for diagnosing heat and salt relaxation fluxes
     ntld = m3
 
-    ! --- Compute freezing temperatures of sea water
+    ! Compute freezing temperatures of sea water
     tfrz(:,:) = swtfrz(p(:,:,1),saln(:,:,k1n))
     tfrzm(:,:) = swtfrz(p(:,:,1),.5*(saln(:,:,k1m)+saln(:,:,k1n)))
 
@@ -101,11 +101,11 @@ contains
       do l = 1,isp(j)
         do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
 
-          ! --- ------------------------------------------------------------------
-          ! --- --- Set some quantities
-          ! --- ------------------------------------------------------------------
+          ! ------------------------------------------------------------------
+          ! Set some quantities
+          ! ------------------------------------------------------------------
 
-          ! --- --- ocean top layer quantities
+          ! ocean top layer quantities
           dpotl = dp(i,j,k1n)
           hotl = dpotl/onem
           totl = temp(i,j,k1n)+t0deg
@@ -113,51 +113,51 @@ contains
 
           tice_f = tfrz(i,j)+t0deg
 
-          ! --- ------------------------------------------------------------------
-          ! --- --- Fresh water and salt fluxes
-          ! --- ------------------------------------------------------------------
+          ! ------------------------------------------------------------------
+          ! Fresh water and salt fluxes
+          ! ------------------------------------------------------------------
 
-          ! --- --- Fresh water flux [kg m-2 s-1] (positive downwards)
+          ! Fresh water flux [kg m-2 s-1] (positive downwards)
           fwflx = eva(i,j)+lip(i,j)+sop(i,j)+rnf(i,j)+rfi(i,j)+fmltfz(i,j)
 
-          ! --- --- Salt flux due to brine rejection of freezing sea
-          ! --- --- ice [kg m-2 m-1] (positive downwards)
+          ! Salt flux due to brine rejection of freezing sea
+          ! ice [kg m-2 m-1] (positive downwards)
           brnflx(i,j) = max(0.,-sotl*fmltfz(i,j)*g2kg+sfl(i,j))
 
-          ! --- --- Virtual salt flux [kg m-2 s-1] (positive downwards)
+          ! Virtual salt flux [kg m-2 s-1] (positive downwards)
           vrtsfl(i,j) = -sotl*fwflx*g2kg
 
-          ! --- --- Store area weighted virtual salt flux and fresh water flux
+          ! Store area weighted virtual salt flux and fresh water flux
           util1(i,j) = vrtsfl(i,j)*scp2(i,j)
           util2(i,j) = fwflx*scp2(i,j)
 
-          ! --- ------------------------------------------------------------------
-          ! --- --- Heat fluxes
-          ! --- ------------------------------------------------------------------
+          ! ------------------------------------------------------------------
+          ! Heat fluxes
+          ! ------------------------------------------------------------------
 
-          ! --- --- Freezing/melting potential [J m-2]. A positive flux means the ocean
-          ! --- --- surface has a temperature below freezing temperature and must
-          ! --- --- be heated. Note the freezing potential is multiplied by 1/2
-          ! --- --- due to the leap-frog time stepping. The melting potential uses
-          ! --- --- time averaged quantities since it is not accumulated.
+          ! Freezing/melting potential [J m-2]. A positive flux means the ocean
+          ! surface has a temperature below freezing temperature and must
+          ! be heated. Note the freezing potential is multiplied by 1/2
+          ! due to the leap-frog time stepping. The melting potential uses
+          ! time averaged quantities since it is not accumulated.
           frzpot(i,j) = max(0.,tice_f-totl)*spcifh*dpotl/(2.*g)*(L_mks2cgs**2)
           mltpot(i,j)=  min(0.,tfrzm(i,j)-.5*(temp(i,j,k1m)+temp(i,j,k1n))) &
                *spcifh*.5*(dp(i,j,k1m)+dp(i,j,k1n))/g*(L_mks2cgs**2)
 
-          ! --- --- Heat flux due to melting/freezing [W m-2] (positive downwards)
+          ! Heat flux due to melting/freezing [W m-2] (positive downwards)
           hmltfz(i,j) = hmlt(i,j)+frzpot(i,j)/baclin
 
-          ! --- --- Total heat flux in BLOM units [W cm-2] (positive upwards)
+          ! Total heat flux in BLOM units [W cm-2] (positive upwards)
           surflx(i,j) = -(swa(i,j)+nsf(i,j)+hmltfz(i,j))*A_cgs2mks
 
-          ! --- --- Short-wave heat flux in BLOM units [W cm-2] (positive
-          ! --- --- upwards)
+          ! Short-wave heat flux in BLOM units [W cm-2] (positive
+          ! upwards)
           sswflx(i,j) = -swa(i,j)*A_cgs2mks
 
           if (use_TRC) then
-            ! --- ------------------------------------------------------------------
-            ! --- --- Tracer fluxes (positive downwards)
-            ! --- ------------------------------------------------------------------
+            ! ------------------------------------------------------------------
+            ! Tracer fluxes (positive downwards)
+            ! ------------------------------------------------------------------
 
             do nt = 1,ntr
               if (use_TKE) then
@@ -191,13 +191,13 @@ contains
             end do
           end if
 
-          ! --- ------------------------------------------------------------------
-          ! --- --- Relaxation fluxes
-          ! --- ------------------------------------------------------------------
+          ! ------------------------------------------------------------------
+          ! Relaxation fluxes
+          ! ------------------------------------------------------------------
 
           surrlx(i,j) = 0.
 
-          ! --- --- If  trxday>0 , apply relaxation towards observed sst
+          ! If  trxday>0 , apply relaxation towards observed sst
           if (trxday > epsilt ) then
 
             if (use_stream_relaxation) then
@@ -245,21 +245,21 @@ contains
             trxflx = 0.
           end if
 
-          ! --- --- If aptflx=.true., apply diagnosed relaxation flux
+          ! If aptflx=.true., apply diagnosed relaxation flux
           if (aptflx) then
             surrlx(i,j) = surrlx(i,j) &
                  - intp1d(tflxap(i,j,m1),tflxap(i,j,m2),tflxap(i,j,m3),tflxap(i,j,m4),tflxap(i,j,m5),y)
           end if
 
-          ! --- --- If ditflx=.true., diagnose relaxation flux by accumulating the
-          ! --- --- relaxation flux
+          ! If ditflx=.true., diagnose relaxation flux by accumulating the
+          ! relaxation flux
           if (ditflx) then
             tflxdi(i,j,ntld) = tflxdi(i,j,ntld)+trxflx
           end if
 
           salrlx(i,j) = 0.
 
-          ! --- --- if  srxday>0 , apply relaxation towards observed sss
+          ! if  srxday>0 , apply relaxation towards observed sss
           if (srxday > epsilt ) then
             if (use_stream_relaxation) then
                sssc = sss_stream(i,j)
@@ -304,21 +304,21 @@ contains
             srxflx = 0.
           end if
 
-          ! --- --- If apsflx=.true., apply diagnosed relaxation flux
+          ! If apsflx=.true., apply diagnosed relaxation flux
           if (apsflx) then
             salrlx(i,j) = salrlx(i,j) &
                  -intp1d(sflxap(i,j,m1),sflxap(i,j,m2),sflxap(i,j,m3),sflxap(i,j,m4),sflxap(i,j,m5),y)
           end if
 
-          ! --- --- If disflx=.true., diagnose relaxation flux by accumulating the
-          ! --- --- relaxation flux
+          ! If disflx=.true., diagnose relaxation flux by accumulating the
+          ! relaxation flux
           if (disflx) then
             sflxdi(i,j,ntld) = sflxdi(i,j,ntld)+srxflx
           end if
 
-          ! --- -------------------------------------------------------------------
-          ! --- --- Friction velocity (cm/s)
-          ! --- -------------------------------------------------------------------
+          !----------------------------------------------------------------
+          ! Friction velocity (cm/s)
+          !----------------------------------------------------------------
 
           ustar(i,j) = ustarw(i,j)*L_mks2cgs
 
@@ -327,24 +327,24 @@ contains
     end do
     !$omp end parallel do
 
-    ! --- ------------------------------------------------------------------
-    ! --- Compute correction to the virtual salt flux so it is globally
-    ! --- consistent with a salt flux based on some reference salinity.
-    ! --- Also combine virtual and true salt flux and convert salt fluxes
-    ! --- used later to unit [10e-3 g cm-2 s-1] and positive upwards.
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Compute correction to the virtual salt flux so it is globally
+    ! consistent with a salt flux based on some reference salinity.
+    ! Also combine virtual and true salt flux and convert salt fluxes
+    ! used later to unit [10e-3 g cm-2 s-1] and positive upwards.
+    ! ------------------------------------------------------------------
 
     call xcsum(totsfl,util1,ips)
     call xcsum(totwfl,util2,ips)
 
-    ! --- Correction for the virtual salt flux [kg m-2 s-1]
+    ! Correction for the virtual salt flux [kg m-2 s-1]
     sflxc = (-sref*totwfl*g2kg-totsfl)/area
     if (mnproc == 1) then
       write (lp,*) 'thermf: totsfl/area,sflxc',totsfl/area,sflxc
     end if
 
-    ! --- Apply the virtual salt flux correction and the compute the total
-    ! --- salt flux by combining the virtual and true salt flux
+    ! Apply the virtual salt flux correction and the compute the total
+    ! salt flux by combining the virtual and true salt flux
     !$omp parallel do private(l,i)
     do j = 1,jj
       do l = 1,isp(j)
@@ -356,9 +356,9 @@ contains
     end do
     !$omp end parallel do
 
-    ! --- if  srxday>0  and  srxbal=.true. , balance the sss relaxation flux
-    ! --- so the net input of salt in grid cells connected to the world
-    ! --- ocean is zero
+    ! if  srxday>0  and  srxbal=.true. , balance the sss relaxation flux
+    ! so the net input of salt in grid cells connected to the world
+    ! ocean is zero
     if (srxday > epsilt.and.srxbal) then
       call xcsum(totsrp,util3,ipwocn)
       call xcsum(totsrn,util4,ipwocn)

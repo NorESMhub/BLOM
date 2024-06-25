@@ -1,5 +1,6 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2011-2022 Mats Bentsen, Jerry Tjiputra, Jörg Schwinger
+! Copyright (C) 2011-2024 Mats Bentsen, Jerry Tjiputra, Jörg Schwinger,
+!                         Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -41,6 +42,7 @@ module mod_cesm
 #ifdef HAMOCC
    use mo_control_bgc, only: use_bromo
 #endif
+   use mod_ifdefs,     only: use_DIAG
 
    implicit none
    private
@@ -157,12 +159,8 @@ contains
    ! Interpolate CESM forcing fields.
    ! ---------------------------------------------------------------------------
 
-#define DIAG
-#undef DIAG
-#ifdef DIAG
       use mod_nctools
       use mod_dia, only : iotype
-#endif
 
       integer :: i, j, l
       real(r8) :: w1, w2
@@ -175,7 +173,7 @@ contains
       endif
       w2 = 1._r8 - w1
 
-   !$omp parallel do private(l, i)
+      !$omp parallel do private(l, i)
       do j = 1, jj
         do l = 1, isp(j)
         do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
@@ -216,96 +214,96 @@ contains
         enddo
         enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
-#ifdef DIAG
-      call ncfopn('getfrc_cesm.nc', 'w', 'c', 1, iotype)
-      call ncdims('x', itdm)
-      call ncdims('y', jtdm)
-      call ncdefvar('ustarw_da', 'x y', ndouble, 8)
-      call ncdefvar('lip_da', 'x y', ndouble, 8)
-      call ncdefvar('sop_da', 'x y', ndouble, 8)
-      call ncdefvar('eva_da', 'x y', ndouble, 8)
-      call ncdefvar('rnf_da', 'x y', ndouble, 8)
-      call ncdefvar('rfi_da', 'x y', ndouble, 8)
-      call ncdefvar('fmltfz_da', 'x y', ndouble, 8)
-      call ncdefvar('sfl_da', 'x y', ndouble, 8)
-      call ncdefvar('swa_da', 'x y', ndouble, 8)
-      call ncdefvar('nsf_da', 'x y', ndouble, 8)
-      call ncdefvar('hmlt_da', 'x y', ndouble, 8)
-      call ncdefvar('slp_da', 'x y', ndouble, 8)
-      call ncdefvar('abswnd_da', 'x y', ndouble, 8)
-      call ncdefvar('ficem_da', 'x y', ndouble, 8)
-      call ncdefvar('lamult_da', 'x y', ndouble, 8)
-      call ncdefvar('lasl_da', 'x y', ndouble, 8)
-      call ncdefvar('ustokes_da', 'x y', ndouble, 8)
-      call ncdefvar('vstokes_da', 'x y', ndouble, 8)
-      call ncdefvar('atmco2_da', 'x y', ndouble, 8)
-      call ncdefvar('atmbrf_da', 'x y', ndouble, 8)
-      call ncdefvar('atmn2o_da', 'x y', ndouble, 8)
-      call ncdefvar('atmnh3_da', 'x y', ndouble, 8)
-      call ncdefvar('atmnoydep_da', 'x y', ndouble, 8)
-      call ncdefvar('atmnoydep_da', 'x y', ndouble, 8)
-      call ncdefvar('ztx_da', 'x y', ndouble, 8)
-      call ncdefvar('mty_da', 'x y', ndouble, 8)
-      call ncedef
+      if (use_DIAG) then
+        call ncfopn('getfrc_cesm.nc', 'w', 'c', 1, iotype)
+        call ncdims('x', itdm)
+        call ncdims('y', jtdm)
+        call ncdefvar('ustarw_da', 'x y', ndouble, 8)
+        call ncdefvar('lip_da', 'x y', ndouble, 8)
+        call ncdefvar('sop_da', 'x y', ndouble, 8)
+        call ncdefvar('eva_da', 'x y', ndouble, 8)
+        call ncdefvar('rnf_da', 'x y', ndouble, 8)
+        call ncdefvar('rfi_da', 'x y', ndouble, 8)
+        call ncdefvar('fmltfz_da', 'x y', ndouble, 8)
+        call ncdefvar('sfl_da', 'x y', ndouble, 8)
+        call ncdefvar('swa_da', 'x y', ndouble, 8)
+        call ncdefvar('nsf_da', 'x y', ndouble, 8)
+        call ncdefvar('hmlt_da', 'x y', ndouble, 8)
+        call ncdefvar('slp_da', 'x y', ndouble, 8)
+        call ncdefvar('abswnd_da', 'x y', ndouble, 8)
+        call ncdefvar('ficem_da', 'x y', ndouble, 8)
+        call ncdefvar('lamult_da', 'x y', ndouble, 8)
+        call ncdefvar('lasl_da', 'x y', ndouble, 8)
+        call ncdefvar('ustokes_da', 'x y', ndouble, 8)
+        call ncdefvar('vstokes_da', 'x y', ndouble, 8)
+        call ncdefvar('atmco2_da', 'x y', ndouble, 8)
+        call ncdefvar('atmbrf_da', 'x y', ndouble, 8)
+        call ncdefvar('atmn2o_da', 'x y', ndouble, 8)
+        call ncdefvar('atmnh3_da', 'x y', ndouble, 8)
+        call ncdefvar('atmnoydep_da', 'x y', ndouble, 8)
+        call ncdefvar('atmnoydep_da', 'x y', ndouble, 8)
+        call ncdefvar('ztx_da', 'x y', ndouble, 8)
+        call ncdefvar('mty_da', 'x y', ndouble, 8)
+        call ncedef
 
-      call ncwrtr('ustarw_da', 'x y', ustarw_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('lip_da', 'x y', lip_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('sop_da', 'x y', sop_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('eva_da', 'x y', eva_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('rnf_da', 'x y', rnf_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('rfi_da', 'x y', rfi_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('fmltfz_da', 'x y', fmltfz_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('sfl_da', 'x y', sfl_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('swa_da', 'x y', swa_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('nsf_da', 'x y', nsf_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('hmlt_da', 'x y', hmlt_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('slp_da', 'x y', slp_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('abswnd_da', 'x y', abswnd_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('ficem_da', 'x y', ficem_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('lamult_da', 'x y', lamult_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('lasl_da', 'x y', lasl_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('ustokes_da', 'x y', ustokes_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('vstokes_da', 'x y', vstokes_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('atmco2_da', 'x y', atmco2_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('atmbrf_da', 'x y', atmbrf_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('atmn2o_da', 'x y', atmn2o_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('atmnh3_da', 'x y', atmnh3_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('atmnhxdep_da', 'x y', atmnhxdep_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('atmnoydep_da', 'x y', atmnoydep_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('ztx_da', 'x y', ztx_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  iu, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('mty_da', 'x y', mty_da(1 - nbdy, 1 - nbdy, l2ci), &
-                  iv, 1, 1._r8, 0._r8, 8)
-      call ncfcls
-      call xcstop('(getfrc_cesm)')
-             stop '(getfrc_cesm)'
-#endif
+        call ncwrtr('ustarw_da', 'x y', ustarw_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('lip_da', 'x y', lip_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('sop_da', 'x y', sop_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('eva_da', 'x y', eva_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('rnf_da', 'x y', rnf_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('rfi_da', 'x y', rfi_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('fmltfz_da', 'x y', fmltfz_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('sfl_da', 'x y', sfl_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('swa_da', 'x y', swa_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('nsf_da', 'x y', nsf_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('hmlt_da', 'x y', hmlt_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('slp_da', 'x y', slp_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('abswnd_da', 'x y', abswnd_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('ficem_da', 'x y', ficem_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('lamult_da', 'x y', lamult_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('lasl_da', 'x y', lasl_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('ustokes_da', 'x y', ustokes_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('vstokes_da', 'x y', vstokes_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('atmco2_da', 'x y', atmco2_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('atmbrf_da', 'x y', atmbrf_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('atmn2o_da', 'x y', atmn2o_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('atmnh3_da', 'x y', atmnh3_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('atmnhxdep_da', 'x y', atmnhxdep_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('atmnoydep_da', 'x y', atmnoydep_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('ztx_da', 'x y', ztx_da(1 - nbdy, 1 - nbdy, l2ci), &
+             iu, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('mty_da', 'x y', mty_da(1 - nbdy, 1 - nbdy, l2ci), &
+             iv, 1, 1._r8, 0._r8, 8)
+        call ncfcls
+        call xcstop('(getfrc_cesm)')
+        stop '(getfrc_cesm)'
+      end if
 
       if (csdiag) then
          if (mnproc == 1) then

@@ -1,6 +1,6 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2007-2021 Mats Bentsen, Jörg Schwinger, Jerry Tjiputra,
-!                         Alok Kumar Gupta
+! Copyright (C) 2007-2024 Mats Bentsen, Jörg Schwinger, Jerry Tjiputra,
+!                         Alok Kumar Gupta, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -57,22 +57,22 @@ module mod_tracers_update
 contains
 
   subroutine initrc()
-    ! --- ------------------------------------------------------------------
-    ! --- initialization of ocean tracers
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! initialization of ocean tracers
+    ! ------------------------------------------------------------------
 
     integer :: i,j,k,l,nt,nat
 
-    ! --- ------------------------------------------------------------------
-    ! --- if no ocean tracers are defined
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! if no ocean tracers are defined
+    ! ------------------------------------------------------------------
 
     if (ntrocn /= 0) then
 
-      ! --- ------------------------------------------------------------------
-      ! --- if number of age tracers is greater than zero, CPP flag ATRC must
-      ! --- be defined
-      ! --- ------------------------------------------------------------------
+      ! ------------------------------------------------------------------
+      ! if number of age tracers is greater than zero, CPP flag ATRC must
+      ! be defined
+      ! ------------------------------------------------------------------
       if (.not. use_ATRC) then
         if (natr > 0) then
           if (mnproc == 1) then
@@ -84,9 +84,9 @@ contains
         end if
       end if
 
-      ! --- ------------------------------------------------------------------
-      ! --- check number of age tracers
-      ! --- ------------------------------------------------------------------
+      ! ------------------------------------------------------------------
+      ! check number of age tracers
+      ! ------------------------------------------------------------------
 
       if (natr < 0.or.2*natr > ntrocn) then
         if (mnproc == 1) then
@@ -98,9 +98,9 @@ contains
         stop '(ocntrc_init)'
       end if
 
-      ! --- ------------------------------------------------------------------
-      ! --- initialization of tracers
-      ! --- ------------------------------------------------------------------
+      ! ------------------------------------------------------------------
+      ! initialization of tracers
+      ! ------------------------------------------------------------------
 
       do nt = 1,ntrocn-natr
         !$omp parallel do private(k,l,i)
@@ -118,9 +118,9 @@ contains
         !$omp end parallel do
       end do
 
-      ! --- ------------------------------------------------------------------
-      ! --- initialization of age tracers
-      ! --- ------------------------------------------------------------------
+      ! ------------------------------------------------------------------
+      ! initialization of age tracers
+      ! ------------------------------------------------------------------
 
       do nt = 1,natr
         nat = ntr-natr+nt
@@ -154,9 +154,9 @@ contains
   ! ============================================================================
 
   subroutine updtrc(m,n,mm,nn,k1m,k1n)
-    ! --- ------------------------------------------------------------------
-    ! --- update tracers due to non-passive processes
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! update tracers due to non-passive processes
+    ! ------------------------------------------------------------------
     integer, intent(in) :: m,n,mm,nn,k1m,k1n
 
 #ifdef HAMOCC
@@ -170,9 +170,9 @@ contains
   ! ============================================================================
 
   subroutine restart_trcwt(rstfnm_ocn)
-    ! --- ------------------------------------------------------------------
-    ! --- Write tracer state to restart files
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Write tracer state to restart files
+    ! ------------------------------------------------------------------
 
     ! Arguments
     character(len=*), intent(in) :: rstfnm_ocn
@@ -182,9 +182,9 @@ contains
     character(len=256) :: rstfnm_ocntrc
     character(len=256) :: rstfnm_hamocc
 
-    ! --- ------------------------------------------------------------------
-    ! --- Generate file name
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Generate file name
+    ! ------------------------------------------------------------------
 
     if (mnproc == 1) then
       if (expcnf == 'cesm') then
@@ -219,9 +219,9 @@ contains
     call xcbcst(rstfnm_ocntrc)
     call xcbcst(rstfnm_hamocc)
 
-    ! --- ------------------------------------------------------------------
-    ! --- Write restart files
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Write restart files
+    ! ------------------------------------------------------------------
     !
     call restart_ocntrcwt(rstfnm_ocntrc)
 #ifdef HAMOCC
@@ -233,9 +233,9 @@ contains
   ! ============================================================================
 
   subroutine restart_trcrd(rstfnm_ocn)
-    ! --- ------------------------------------------------------------------
-    ! --- Read tracer state from restart files
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Read tracer state from restart files
+    ! ------------------------------------------------------------------
 
     ! Arguments
     character(len=*), intent(in) :: rstfnm_ocn
@@ -245,9 +245,9 @@ contains
     character(len=256) :: rstfnm_ocntrc
     character(len=256) :: rstfnm_hamocc
 
-    ! --- ------------------------------------------------------------------
-    ! --- Generate file name
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Generate file name
+    ! ------------------------------------------------------------------
     if (mnproc == 1) then
       if (expcnf == 'cesm') then
         call restart_getfile(rstfnm_ocn, 'rtrc', rstfnm_ocntrc, error)
@@ -281,9 +281,9 @@ contains
     call xcbcst(rstfnm_ocntrc)
     call xcbcst(rstfnm_hamocc)
 
-    ! --- ------------------------------------------------------------------
-    ! --- Read restart files
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Read restart files
+    ! ------------------------------------------------------------------
     call restart_ocntrcrd(rstfnm_ocntrc)
 #ifdef HAMOCC
     call hamocc_init(1,rstfnm_hamocc)
@@ -294,9 +294,9 @@ contains
   ! ============================================================================
 
   subroutine restart_ocntrcwt(rstfnm)
-    ! --- ------------------------------------------------------------------
-    ! --- Write ocean tracer state to restart file
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Write ocean tracer state to restart file
+    ! ------------------------------------------------------------------
 
     ! Arguments
     character :: rstfnm*(*)
@@ -305,14 +305,14 @@ contains
     integer :: nt,nat
     character(len = 256) :: trcnm
 
-    ! --- ------------------------------------------------------------------
-    ! --- if no ocean tracers are defined, return
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! if no ocean tracers are defined, return
+    ! ------------------------------------------------------------------
     if (ntrocn == 0) return
 
-    ! --- ------------------------------------------------------------------
-    ! --- Create file
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Create file
+    ! ------------------------------------------------------------------
     if (mnproc == 1) then
       write (lp,'(2a)') ' saving ocean tracer restart file ', &
            trim(rstfnm)
@@ -325,9 +325,9 @@ contains
       call ncfopn(rstfnm,'w','c',1,iotype)
     end if
 
-    ! --- ------------------------------------------------------------------
-    ! --- Create attributes and dimensions
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Create attributes and dimensions
+    ! ------------------------------------------------------------------
 
     call ncputi('nday0',date0%day)
     call ncputi('nmonth0',date0%month)
@@ -343,9 +343,9 @@ contains
     call ncdims('kk2',2*kk)
     call ncdims('time',1)
 
-    ! --- ------------------------------------------------------------------
-    ! --- Write tracer data to file
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Write tracer data to file
+    ! ------------------------------------------------------------------
 
     do nt = 1,ntrocn-natr
       write (trcnm,'(a,i3.3)') 'trc',nt
@@ -400,9 +400,9 @@ contains
   ! ============================================================================
 
   subroutine restart_ocntrcrd(rstfnm)
-    ! --- ------------------------------------------------------------------
-    ! --- Read ocean tracer state from restart file
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Read ocean tracer state from restart file
+    ! ------------------------------------------------------------------
 
     ! Arguments
     character :: rstfnm*(*)
@@ -414,23 +414,23 @@ contains
     logical :: fexist
     character(len = 256) :: trcnm
 
-    ! --- ------------------------------------------------------------------
-    ! --- If no ocean tracers are defined, return
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! If no ocean tracers are defined, return
+    ! ------------------------------------------------------------------
 
     if (ntrocn == 0) return
 
-    ! --- ------------------------------------------------------------------
-    ! --- Check for file existence
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! Check for file existence
+    ! ------------------------------------------------------------------
 
     inquire(file=rstfnm,exist = fexist)
 
     call xcbcst(fexist)
 
-    ! --- ------------------------------------------------------------------
-    ! --- If file exists, read tracer data from file
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
+    ! If file exists, read tracer data from file
+    ! ------------------------------------------------------------------
 
     if (.not.fexist) then
       if (mnproc == 1) then
@@ -481,9 +481,9 @@ contains
   ! ============================================================================
 
   subroutine restart_getfile(rstfnm_in, rstlabel, rstfnm_out, rstfnm_err)
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
     ! Generate filename for restart files to read or write tracer fields
-    ! --- ------------------------------------------------------------------
+    ! ------------------------------------------------------------------
 
     ! Argument
     character(len=*), intent(in)  :: rstfnm_in     ! Original restart file name
@@ -500,13 +500,13 @@ contains
     if (expcnf.eq.'cesm') then
       ! Assume file format: <str_restart.>'r'<.str_timestamp><.str_suffix>
       ! Search for '.' starting from end of "rstfnm_in" filename
-      !-- File suffix
+      ! File suffix
       i_suffix = index(rstfnm_in, '.', back=.true.)
       str_suffix = trim(rstfnm_in(i_suffix:))
-      !-- File timestamp
+      ! File timestamp
       i_time = index(rstfnm_in(:(i_suffix-1)), '.', back=.true.)
       str_time = rstfnm_in(i_time:(i_suffix-1))
-      !-- File without original restart label
+      ! File without original restart label
       i_restart = index(rstfnm_in(:(i_time-1)), '.', back=.true.)
       str_restart = rstfnm_in(:i_restart)
 
@@ -518,10 +518,10 @@ contains
     else
       ! Assume file format: <str_restart_>'restphy'<_str_suffix>
       ! Search for '_' starting from end of "rstfnm_in" filename
-      !-- File suffix
+      ! File suffix
       i_suffix = index(rstfnm_in, '_', back=.true.)
       str_suffix = trim(rstfnm_in(i_suffix:))
-      !-- File without original restart label
+      ! File without original restart label
       i_restart = index(rstfnm_in(:(i_suffix-1)), '_', back=.true.)
       str_restart = rstfnm_in(:i_restart)
 
