@@ -189,12 +189,12 @@ subroutine import_mct(x2o_o, lsize, perm, jjcpl)
 
         ! Non-solar heat flux, positive downwards [W/m^2]
         nsf_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Foxx_lat,n) &
-             + x2o_o%rAttr(index_x2o_Foxx_sen,n) &
-             + x2o_o%rAttr(index_x2o_Foxx_lwup,n) &
-             + x2o_o%rAttr(index_x2o_Faxa_lwdn,n) &
-             - ( x2o_o%rAttr(index_x2o_Faxa_snow,n) &
-             + x2o_o%rAttr(index_x2o_Foxx_rofi,n)) &
-             *SHR_CONST_LATICE
+                         + x2o_o%rAttr(index_x2o_Foxx_sen,n) &
+                         + x2o_o%rAttr(index_x2o_Foxx_lwup,n) &
+                         + x2o_o%rAttr(index_x2o_Faxa_lwdn,n) &
+                         - ( x2o_o%rAttr(index_x2o_Faxa_snow,n) &
+                           + x2o_o%rAttr(index_x2o_Foxx_rofi,n)) &
+                          *SHR_CONST_LATICE
 
         ! Heat flux due to melting, positive downwards [W/m^2]
         hmlt_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Fioi_melth,n)
