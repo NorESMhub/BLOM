@@ -322,6 +322,17 @@ def buildnml(case, caseroot, compname):
                     fwrite.write(line)
     shutil.move(namelist_file_temp, namelist_file)
 
+    # change xml variable settings if appropriate
+    if "ecosys" in case.get_value("BLOM_TRACER_MODULES"):
+        dms_emis = case.get_value("DMS_EMIS")
+        if dms_emis is not None or dms_emis is False:
+            case.set_value('DMS_EMIS','TRUE')
+            print ("   ***Resetting DMS_EMIS to TRUE***")
+        brf_emis = pg_blom.get_value('use_bromo')
+        if brf_emis == ".true.":
+            case.set_value('BRF_EMIS','TRUE')
+            print ("   ***Resetting BRF_EMIS to TRUE***")
+
 ###############################################################################
 def _main_func():
 
