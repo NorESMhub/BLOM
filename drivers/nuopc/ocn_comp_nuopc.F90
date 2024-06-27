@@ -52,6 +52,9 @@ module ocn_comp_nuopc
    use mod_time, only: blom_time
    use mod_forcing, only : srxday, trxday
    use mod_constants, only : epsilt
+   use mod_blom_init, only : blom_init
+   use mod_blom_step, only : blom_step
+   use mod_fill_global, only : fill_global
    use mod_restart, only : restart_write
    use ocn_stream_sss, only : ocn_stream_sss_init, ocn_stream_sss_interp
    use ocn_stream_sst, only : ocn_stream_sst_init, ocn_stream_sst_interp
@@ -439,7 +442,7 @@ contains
       ! Initialize BLOM.
       ! ------------------------------------------------------------------------
 
-      call blom_init
+      call blom_init()
 
       ! ------------------------------------------------------------------------
       ! Get ScalarField attributes.

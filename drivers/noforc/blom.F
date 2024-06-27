@@ -28,6 +28,8 @@ c
       use mod_state, only: dp
       use mod_cesm
       use mod_checksum, only: chksummsk
+      use mod_blom_init, only: blom_init
+      use mod_blom_step, only: blom_step
 c
       implicit none
 c

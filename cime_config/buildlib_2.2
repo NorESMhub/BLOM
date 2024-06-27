@@ -67,15 +67,14 @@ def _main_func():
                      os.path.join(comp_root_dir_ocn, "single_column"),
                      os.path.join(comp_root_dir_ocn, "pkgs", "CVMix-src", "src", "shared"),
                      os.path.join(comp_root_dir_ocn, "pkgs", "M4AGO-sinking-scheme", "src"),
-                     os.path.join(comp_root_dir_ocn, "phy")]
-
-            if turbclo != 0 and tracers != 0:
-                paths.append(os.path.join(comp_root_dir_ocn, "trc"))
+                     os.path.join(comp_root_dir_ocn, "phy"),
+                     os.path.join(comp_root_dir_ocn, "trc"),
+                     os.path.join(comp_root_dir_ocn, "idlage")]
 
             if tracers != 0:
                 for module in tracers.split():
                     if module == "iage":
-                        paths.append(os.path.join(comp_root_dir_ocn, "idlage"))
+                        continue
                     elif module == "ecosys":
                         paths.append(os.path.join(comp_root_dir_ocn, "hamocc"))
                     else:

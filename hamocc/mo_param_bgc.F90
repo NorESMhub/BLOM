@@ -497,7 +497,7 @@ module mo_param_bgc
 contains
 
   !********************************************************************
-  subroutine ini_parambgc(kpie,kpje)
+  subroutine ini_parambgc()
     !
     ! First, Initialze parameters of individual components with default values.
     ! The order of initialization can matter due to interdependcies.
@@ -505,9 +505,6 @@ contains
     ! adjust rates to 'per time step'
     ! Eventually write out the used parameters to the log file
     !
-    ! Arguments
-    integer, intent(in) :: kpie  ! 1st dimension of model grid.
-    integer, intent(in) :: kpje  ! 2nd dimension of model grid.
 
     call ini_param_biol()    ! initialize biological parameters
     if (use_AGG) then

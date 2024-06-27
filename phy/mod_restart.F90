@@ -21,57 +21,104 @@
 
 module mod_restart
 
-   use mod_types, only: r8
-   use mod_config, only: expcnf, runid, inst_suffix, resume_flag
-   use mod_calendar, only: date_type, daynum_diff, operator(/=)
-   use mod_time, only: date0, date, nday1, nstep0, nstep1, nstep, &
-                       nstep_in_day, nday_of_year
+   use mod_types,          only: r8
+   use mod_config,         only: expcnf, runid, inst_suffix, resume_flag
+   use mod_calendar,       only: date_type, daynum_diff, operator(/=), &
+                                 calendar_noerr, calendar_errstr
+   use mod_time,           only: date0, date, nday1, nstep0, nstep1, nstep, time, time0, &
+                                 nstep_in_day, nday_of_year, calendar
    use mod_xc
-   use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid
-   use mod_inicon, only: icfile
-   use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma, uflx, vflx, &
-                        utflx, vtflx, usflx, vsflx, phi, ubflxs, vbflxs, &
-                        ub, vb, pb, pbu, pbv, ubflxs_p, vbflxs_p, &
-                        pb_p, pbu_p, pbv_p, ubcors_p, vbcors_p, sealv, kfpla
-   use mod_pgforc, only: pgfx, pgfy, pgfxm, pgfym, xixp, xixm, xiyp, xiym
-   use mod_barotp, only: ubflx, vbflx, pb_mn, ubflx_mn, vbflx_mn, pvtrop
-   use mod_temmin, only: settemmin
-   use mod_nctools, only: nccomp, ncwrtr, ncdefvar
-   use mod_dia
-   use mod_forcing, only: ditflx, disflx, sprfac, tflxdi, sflxdi, nflxdi, &
-                          prfac, eiacc, pracc, flxco2, flxdms, flxbrf, &
-                          flxn2o,flxnh3, &
-                          ustarb, buoyfl
-   use mod_niw, only: uml, vml, umlres, vmlres
-   use mod_difest, only: OBLdepth
-   use mod_diffusion, only: difiso, Kvisc_m, Kdiff_t, Kdiff_s, &
-                            t_ns_nonloc, s_nb_nonloc, mu_nonloc, mv_nonloc
-   use mod_cesm, only: frzpot, mltpot, swa_da, nsf_da, hmlt_da, lip_da, &
-                       sop_da, eva_da, rnf_da, rfi_da, fmltfz_da, sfl_da, &
-                       ztx_da, mty_da, ustarw_da, slp_da, abswnd_da, &
-                       atmco2_da, atmbrf_da, atmn2o_da, atmnh3_da,   &
-                       ficem_da, l1ci, l2ci
-   use mod_ben02, only: cd_d, ch_d, ce_d, wg2_d, cd_m, ch_m, ce_m, wg2_m, &
-                        rhoa, tsi_tda, tml_tda, sml_tda, alb_tda, fice_tda, &
-                        ntda, rnfres
-   use mod_thdysi, only: tsrfm, ticem
-   use mod_seaice, only: ficem, hicem, hsnwm, iagem
-#if defined(TRC) && (defined(TKE) || defined(IDLAGE))
-   use mod_tracers, only: itrtke, itrgls, itriag, trc
-#  ifdef TKE
-   use mod_tke, only: L_scale
-#  endif
-#endif
+   use mod_vcoord,         only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid, sigmar
+   use mod_inicon,         only: icfile
+   use mod_state,          only: u, v, dp, dpu, dpv, temp, saln, sigma, uflx, vflx, &
+                                 utflx, vtflx, usflx, vsflx, phi, ubflxs, vbflxs, &
+                                 ub, vb, pb, pbu, pbv, ubflxs_p, vbflxs_p, &
+                                 pb_p, pbu_p, pbv_p, ubcors_p, vbcors_p, sealv, kfpla
+   use mod_pgforc,         only: pgfx, pgfy, pgfxm, pgfym, xixp, xixm, xiyp, xiym
+   use mod_barotp,         only: ubflx, vbflx, pb_mn, ubflx_mn, vbflx_mn, pvtrop
+   use mod_temmin,         only: settemmin
+   use mod_nctools,        only: nccomp, ncwrtr, ncdefvar, ndouble, ncinqv, ncinqa, &
+                                 ncread, ncfopn, ncgetr, ncfopn, ncgeti, ncgetr, ncfcls, &
+                                 ncputi, ncputr, ncdims, ncdimc, ncedef
+   use mod_dia,            only: rstfrq, iotype, rstfmt, rstcmp, rstmon, &
+                                 ddm, depthslev, phyh2d, phylyr, phylvl, &
+                                 nphy, nacc_phy, &
+                                 acc_abswnd ,acc_alb ,acc_brnflx ,acc_brnpd ,acc_dfl , &
+                                 acc_eva ,acc_fice ,acc_fmltfz ,acc_hice ,acc_hmltfz , &
+                                 acc_hsnw ,acc_iage ,acc_idkedt ,acc_lamult ,acc_lasl , &
+                                 acc_lip ,acc_maxmld ,acc_mld ,acc_mlts ,acc_mltsmn , &
+                                 acc_mltsmx ,acc_mltssq ,acc_mtkeus ,acc_mtkeni ,acc_mtkebf , &
+                                 acc_mtkers ,acc_mtkepe ,acc_mtkeke ,acc_mty ,acc_nsf , &
+                                 acc_pbot ,acc_psrf ,acc_rfiflx ,acc_rnfflx ,acc_salflx , &
+                                 acc_salrlx ,acc_sbot ,acc_sealv ,acc_slvsq ,acc_sfl , &
+                                 acc_sop ,acc_sigmx ,acc_sss ,acc_ssssq ,acc_sst , &
+                                 acc_sstsq ,acc_surflx ,acc_surrlx ,acc_swa ,acc_t20d , &
+                                 acc_taux ,acc_tauy ,acc_tbot ,acc_tice ,acc_tsrf , &
+                                 acc_ub ,acc_ubflxs ,acc_uice ,acc_ustar ,acc_ustar3 , &
+                                 acc_ustokes,acc_vb ,acc_vbflxs ,acc_vice ,acc_vstokes, &
+                                 acc_ztx ,acc_ivolu ,acc_ivolv ,acc_utilh2d, &
+                                 acc_bfsq ,acc_difdia ,acc_difvmo ,acc_difvho ,acc_difvso , &
+                                 acc_difint ,acc_difiso ,acc_dp ,acc_dpu ,acc_dpv , &
+                                 acc_dz ,acc_saln ,acc_temp ,acc_uflx ,acc_utflx , &
+                                 acc_usflx ,acc_umfltd ,acc_umflsm ,acc_utfltd ,acc_utflsm , &
+                                 acc_utflld ,acc_usfltd ,acc_usflsm ,acc_usflld ,acc_uvel , &
+                                 acc_vflx ,acc_vtflx ,acc_vsflx ,acc_vmfltd ,acc_vmflsm , &
+                                 acc_vtfltd ,acc_vtflsm ,acc_vtflld ,acc_vsfltd ,acc_vsflsm , &
+                                 acc_vsflld ,acc_vvel ,acc_wflx ,acc_wflx2 ,acc_avdsg , &
+                                 acc_dpvor ,acc_tke ,acc_gls_psi,acc_utillyr, &
+                                 acc_bfsqlvl ,acc_difdialvl ,acc_difvmolvl ,acc_difvholvl , &
+                                 acc_difvsolvl ,acc_difintlvl ,acc_difisolvl ,acc_dzlvl , &
+                                 acc_salnlvl ,acc_templvl ,acc_uflxlvl ,acc_utflxlvl , &
+                                 acc_usflxlvl ,acc_umfltdlvl ,acc_umflsmlvl ,acc_utfltdlvl , &
+                                 acc_utflsmlvl ,acc_utflldlvl ,acc_usfltdlvl ,acc_usflsmlvl , &
+                                 acc_usflldlvl ,acc_uvellvl ,acc_vflxlvl ,acc_vtflxlvl , &
+                                 acc_vsflxlvl ,acc_vmfltdlvl ,acc_vmflsmlvl ,acc_vtfltdlvl , &
+                                 acc_vtflsmlvl ,acc_vtflldlvl ,acc_vsfltdlvl ,acc_vsflsmlvl , &
+                                 acc_vsflldlvl ,acc_vvellvl ,acc_wflxlvl ,acc_wflx2lvl , &
+                                 acc_pvlvl ,acc_tkelvl ,acc_gls_psilvl,acc_uflxold , &
+                                 acc_vflxold ,acc_utillvl , &
+                                 acc_mmflxl,acc_mmflxd,acc_mmftdl,acc_mmfsml,acc_mmftdd, &
+                                 acc_mmfsmd,acc_mhflx ,acc_mhftd ,acc_mhfsm ,acc_mhfld , &
+                                 acc_msflx ,acc_msftd ,acc_msfsm ,acc_msfld ,acc_voltr
+   use mod_forcing,        only: ditflx, disflx, sprfac, tflxdi, sflxdi, nflxdi, &
+                                 prfac, eiacc, pracc, flxco2, flxdms, flxbrf, &
+                                 flxn2o,flxnh3, &
+                                 ustarb, buoyfl, ustar
+   use mod_niw,            only: uml, vml, umlres, vmlres
+   use mod_difest,         only: OBLdepth
+   use mod_diffusion,      only: difiso, Kvisc_m, Kdiff_t, Kdiff_s, &
+                                 t_ns_nonloc, s_nb_nonloc, mu_nonloc, mv_nonloc, difdia,&
+                                 umflsm, usfltd, utflld, usflsm, utfltd, &
+                                 usflld, utflsm, usflld, utflld, umfltd, usflld, &
+                                 vmflsm, vsfltd, vtflld, vsflsm, vtfltd, &
+                                 vsflld, vtflsm, vsflld, vtflld, vmfltd, vsflld
+   use mod_cesm,           only: frzpot, mltpot, swa_da, nsf_da, hmlt_da, lip_da, &
+                                 sop_da, eva_da, rnf_da, rfi_da, fmltfz_da, sfl_da, &
+                                 ztx_da, mty_da, ustarw_da, slp_da, abswnd_da, &
+                                 atmco2_da, atmbrf_da, &
+                                 atmco2_da, atmbrf_da, atmn2o_da, atmnh3_da, &
+                                 ficem_da, l1ci, l2ci
+   use mod_ben02,          only: cd_d, ch_d, ce_d, wg2_d, cd_m, ch_m, ce_m, wg2_m, &
+                                 rhoa, tsi_tda, tml_tda, sml_tda, alb_tda, fice_tda, &
+                                 ntda, rnfres
+   use mod_thdysi,         only: tsrfm, ticem
+   use mod_seaice,         only: ficem, hicem, hsnwm, iagem
+   use mod_tmsmt,          only: dpold
+   use mod_tracers,        only: itrtke, itrgls, itriag, trc
+   use mod_tke,            only: L_scale
 #ifdef HAMOCC
-   use mo_control_bgc, only : use_BROMO,use_extNcycle
+   use mo_control_bgc,     only: use_BROMO, use_extNcycle
 #endif
+   use mod_ifdefs,         only: use_TRC, use_TKE, use_IDLAGE, use_MKS
+   use mod_idlage,         only: idlage_init
+   use mod_tracers_update, only: restart_trcwt, restart_trcrd
 
    implicit none
 
    private
 
    real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) :: rkfpla
-   integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: iuu, ivv, iqq
+   integer , dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: iuu, ivv, iqq
    character(len = 5) :: c5p, c5u, c5v, c5q
    logical :: first_call = .true.
 
@@ -93,7 +140,12 @@ module mod_restart
       l2i_unitconv  = 1._r8, & ! One over length squared conversion.
       ml2i_unitconv = 1._r8    ! Mass over length squared conversion.
 
-   public :: restart_write, restart_read
+   public  :: restart_write, restart_read
+
+   private :: extended_masks
+   private :: defwrtfld
+   private :: defwrtflds
+   private :: readfld
 
 contains
 
@@ -435,8 +487,7 @@ contains
                          flxdms, ip, defmode)
 #ifdef HAMOCC
          if (use_BROMO) then
-            call defwrtfld('flxbrf', trim(c5p)//' time', &
-                            flxbrf, ip, defmode)
+            call defwrtfld('flxbrf', trim(c5p)//' time', flxbrf, ip, defmode)
          endif
          if (use_extNcycle) then
             call defwrtfld('flxn2o', trim(c5p)//' time', &
@@ -447,24 +498,18 @@ contains
 #endif
       endif
 
-#ifdef TRC
-# ifdef TKE
-      call defwrtfld('tke', trim(c5p)//' kk2 time', &
-                     trc(1-nbdy,1-nbdy,1,itrtke), ip, defmode)
-      call defwrtfld('gls_psi', trim(c5p)//' kk2 time', &
-                     trc(1-nbdy,1-nbdy,1,itrgls), ip, defmode)
-      call defwrtfld('L_scale', trim(c5p)//' kk time', &
-                      L_scale, ip, defmode)
-      call defwrtfld('difdia', trim(c5p)//' kk time', &
-                      difdia, ip, defmode)
-      call defwrtfld('ustarb', trim(c5p)//' time', &
-                      ustarb, ip, defmode)
-#  endif
-#  ifdef IDLAGE
-      call defwrtfld('idlage', trim(c5p)//' kk2 time', &
-                     trc(1-nbdy,1-nbdy,1,itriag), ip, defmode)
-#  endif
-#endif
+      if (use_TRC) then
+         if (use_TKE) then
+            call defwrtfld('tke', trim(c5p)//' kk2 time', trc(1-nbdy,1-nbdy,1,itrtke), ip, defmode)
+            call defwrtfld('gls_psi', trim(c5p)//' kk2 time', trc(1-nbdy,1-nbdy,1,itrgls), ip, defmode)
+            call defwrtfld('L_scale', trim(c5p)//' kk time', L_scale, ip, defmode)
+            call defwrtfld('difdia', trim(c5p)//' kk time', difdia, ip, defmode)
+            call defwrtfld('ustarb', trim(c5p)//' time', ustarb, ip, defmode)
+         end if
+         if (use_IDLAGE) then
+            call defwrtfld('idlage', trim(c5p)//' kk2 time', trc(1-nbdy,1-nbdy,1,itriag), ip, defmode)
+         end if
+      end if
 
       ! Write accumulated fields.
       do n = 1, nphy
@@ -794,14 +839,14 @@ contains
             if (ACC_DPVOR(n) /= 0) &
                call defwrtfld('dpvor_phy'//c2, trim(c5p)//' kk time', &
                               phylyr(1-nbdy,1-nbdy,1,ACC_DPVOR(n)), ip, defmode)
-#if defined(TRC) && defined(TKE)
-            if (ACC_TKE(n) /= 0) &
-               call defwrtfld('tke_phy'//c2, trim(c5p)//' kk time', &
-                              phylyr(1-nbdy,1-nbdy,1,ACC_TKE(n)), ip, defmode)
-            if (ACC_GLS_PSI(n) /= 0) &
-               call defwrtfld('gls_psi_phy'//c2, trim(c5p)//' kk time', &
-                              phylyr(1-nbdy,1-nbdy,1,ACC_GLS_PSI(n)), ip, defmode)
-#endif
+            if (use_TRC .and. use_TKE) then
+               if (ACC_TKE(n) /= 0) &
+                    call defwrtfld('tke_phy'//c2, trim(c5p)//' kk time', &
+                                   phylyr(1-nbdy,1-nbdy,1,ACC_TKE(n)), ip, defmode)
+               if (ACC_GLS_PSI(n) /= 0) &
+                    call defwrtfld('gls_psi_phy'//c2, trim(c5p)//' kk time', &
+                                   phylyr(1-nbdy,1-nbdy,1,ACC_GLS_PSI(n)), ip, defmode)
+            end if
             if (ACC_UVELLVL(n) /= 0) &
                call defwrtfld('uvellvl_phy'//c2, trim(c5u)//' plev time', &
                               phylvl(1-nbdy,1-nbdy,1,ACC_UVELLVL(n)), iuu, defmode)
@@ -913,14 +958,14 @@ contains
             if (ACC_PVLVL(n) /= 0) &
                call defwrtfld('pvlvl_phy'//c2, trim(c5p)//' plev time', &
                               phylvl(1-nbdy,1-nbdy,1,ACC_PVLVL(n)), ip, defmode)
-#if defined(TRC) && defined(TKE)
-            if (ACC_TKELVL(n) /= 0) &
-               call defwrtfld('tkelvl_phy'//c2, trim(c5p)//' plev time', &
-                              phylvl(1-nbdy,1-nbdy,1,ACC_TKELVL(n)), ip, defmode)
-            if(ACC_GLS_PSILVL(n) /= 0) &
-               call defwrtfld('gls_psilvl_phy'//c2, trim(c5p)//' plev time', &
-                              phylvl(1-nbdy,1-nbdy,1,ACC_GLS_PSILVL(n)), ip, defmode)
-#endif
+            if (use_TRC .and. use_TKE) then
+               if (ACC_TKELVL(n) /= 0) &
+                    call defwrtfld('tkelvl_phy'//c2, trim(c5p)//' plev time', &
+                                   phylvl(1-nbdy,1-nbdy,1,ACC_TKELVL(n)), ip, defmode)
+               if(ACC_GLS_PSILVL(n) /= 0) &
+                    call defwrtfld('gls_psilvl_phy'//c2, trim(c5p)//' plev time', &
+                                   phylvl(1-nbdy,1-nbdy,1,ACC_GLS_PSILVL(n)), ip, defmode)
+            end if
          endif
       enddo
 
@@ -1116,9 +1161,9 @@ contains
 
       call ncfcls
 
-#ifdef TRC
-      call restart_trcwt(rstfnm)
-#endif
+      if (use_TRC) then
+         call restart_trcwt(rstfnm)
+      end if
 
       if (ditflx) then
 
@@ -1385,41 +1430,41 @@ contains
       rho_restart = - pb_max/phi_min
 
       if (rho_restart > 1.e2_r8) then
-#ifndef MKS
-         if (mnproc == 1) &
-            write(lp,*) 'restart_read: restart variables will be converted '// &
-                        'from MKS to CGS units.'
-         l_unitconv    = 1.e2_r8
-         m_unitconv    = 1.e3_r8
-         p_unitconv    = 1.e1_r8
-         r_unitconv    = 1.e-3_r8
-         l2_unitconv   = 1.e4_r8
-         l3_unitconv   = 1.e6_r8
-         lm_unitconv   = 1.e5_r8
-         l2m2_unitconv = 1.e10_r8
-         pi_unitconv   = 1.e-1_r8
-         ri_unitconv   = 1.e3_r8
-         l2i_unitconv  = 1.e-4_r8
-         ml2i_unitconv = 1.e-1_r8
-#endif
+         if (.not. use_MKS) then
+            if (mnproc == 1) &
+                 write(lp,*) 'restart_read: restart variables will be converted '// &
+                             'from MKS to CGS units.'
+            l_unitconv    = 1.e2_r8
+            m_unitconv    = 1.e3_r8
+            p_unitconv    = 1.e1_r8
+            r_unitconv    = 1.e-3_r8
+            l2_unitconv   = 1.e4_r8
+            l3_unitconv   = 1.e6_r8
+            lm_unitconv   = 1.e5_r8
+            l2m2_unitconv = 1.e10_r8
+            pi_unitconv   = 1.e-1_r8
+            ri_unitconv   = 1.e3_r8
+            l2i_unitconv  = 1.e-4_r8
+            ml2i_unitconv = 1.e-1_r8
+         end if
       else
-#ifdef MKS
-         if (mnproc == 1) &
-            write(lp,*) 'restart_read: restart variables will be converted '// &
-                        'from CGS to MKS units.'
-         l_unitconv    = 1.e-2_r8
-         m_unitconv    = 1.e-3_r8
-         p_unitconv    = 1.e-1_r8
-         r_unitconv    = 1.e3_r8
-         l2_unitconv   = 1.e-4_r8
-         l3_unitconv   = 1.e-6_r8
-         lm_unitconv   = 1.e-5_r8
-         l2m2_unitconv = 1.e-10_r8
-         pi_unitconv   = 1.e1_r8
-         ri_unitconv   = 1.e-3_r8
-         l2i_unitconv  = 1.e4_r8
-         ml2i_unitconv = 1.e1_r8
-#endif
+         if (use_MKS) then
+            if (mnproc == 1) &
+                 write(lp,*) 'restart_read: restart variables will be converted '// &
+                             'from CGS to MKS units.'
+            l_unitconv    = 1.e-2_r8
+            m_unitconv    = 1.e-3_r8
+            p_unitconv    = 1.e-1_r8
+            r_unitconv    = 1.e3_r8
+            l2_unitconv   = 1.e-4_r8
+            l3_unitconv   = 1.e-6_r8
+            lm_unitconv   = 1.e-5_r8
+            l2m2_unitconv = 1.e-10_r8
+            pi_unitconv   = 1.e1_r8
+            ri_unitconv   = 1.e-3_r8
+            l2i_unitconv  = 1.e4_r8
+            ml2i_unitconv = 1.e1_r8
+         end if
       endif
 
       call readfld('u', l_unitconv, u, iuu)
@@ -1619,28 +1664,26 @@ contains
                         'from restart file and will be initialized to zero.'
       endif
 
-#ifdef TRC
-#  ifdef TKE
-      call readfld('tke', l2_unitconv, trc(1-nbdy,1-nbdy,1,itrtke), ip, &
-                   required = .false.)
-      call readfld('gls_psi', l2_unitconv, trc(1-nbdy,1-nbdy,1,itrgls), ip, &
-                   required = .false.)
-      call readfld('L_scale', l_unitconv, L_scale, ip, required = .false.)
-      call readfld('difdia', l2_unitconv, difdia, ip, required = .false.)
-      call readfld('ustarb', l_unitconv, ustarb, ip, required = .false.)
-#  endif
-#  ifdef IDLAGE
-      call readfld('idlage', no_unitconv, trc(1-nbdy,1-nbdy,1,itriag), ip, &
-                   required = .false., fld_read = fld_read)
-      if (.not.fld_read) then
-         if (mnproc == 1) &
-            write(lp,*) 'restart_read: warning: ideal age tracer is not '// &
-                        'read from restart file and will be initialized '// &
-                        'to zero.'
-        call idlage_init
-      endif
-#  endif
-#endif
+      if (use_TRC) then
+         if (use_TKE) then
+            call readfld('tke', l2_unitconv, trc(1-nbdy,1-nbdy,1,itrtke), ip, required=.false.)
+            call readfld('gls_psi', l2_unitconv, trc(1-nbdy,1-nbdy,1,itrgls), ip, required=.false.)
+            call readfld('L_scale', l_unitconv, L_scale, ip, required = .false.)
+            call readfld('difdia', l2_unitconv, difdia, ip, required = .false.)
+            call readfld('ustarb', l_unitconv, ustarb, ip, required = .false.)
+         end if
+         if (use_IDLAGE) then
+            call readfld('idlage', no_unitconv, trc(1-nbdy,1-nbdy,1,itriag), ip, &
+                 required=.false., fld_read=fld_read)
+            if (.not.fld_read) then
+               if (mnproc == 1) then
+                  write(lp,*) 'restart_read: warning: ideal age tracer is not '// &
+                       'read from restart file and will be initialized to zero'
+               end if
+               call idlage_init
+            endif
+         end if
+      end if
 
       ! Read accumulated fields.
       if (nstep1 > nstep0) then
@@ -1977,14 +2020,14 @@ contains
                if (ACC_DPVOR(n) /= 0) &
                   call readfld('dpvor_phy'//c2, p_unitconv, &
                                phylyr(1-nbdy,1-nbdy,1,ACC_DPVOR(n)), ip)
-#if defined(TRC) && defined(TKE)
-               if (ACC_TKE(n) /= 0) &
-                  call readfld('tke_phy'//c2, lm_unitconv, &
-                               phylyr(1-nbdy,1-nbdy,1,ACC_TKE(n)), ip)
-               if (ACC_GLS_PSI(n) /= 0) &
-                  call readfld('gls_psi_phy'//c2, lm_unitconv, &
-                               phylyr(1-nbdy,1-nbdy,1,ACC_GLS_PSI(n)), ip)
-#endif
+               if (use_TRC .and. use_TKE) then
+                  if (ACC_TKE(n) /= 0) &
+                       call readfld('tke_phy'//c2, lm_unitconv, &
+                                    phylyr(1-nbdy,1-nbdy,1,ACC_TKE(n)), ip)
+                  if (ACC_GLS_PSI(n) /= 0) &
+                       call readfld('gls_psi_phy'//c2, lm_unitconv, &
+                                    phylyr(1-nbdy,1-nbdy,1,ACC_GLS_PSI(n)), ip)
+               end if
                if (ACC_UVELLVL(n) /= 0) &
                   call readfld('uvellvl_phy'//c2, l_unitconv, &
                                phylvl(1-nbdy,1-nbdy,1,ACC_UVELLVL(n)), iuu)
@@ -2102,14 +2145,14 @@ contains
                if (ACC_PVLVL(n) /= 0) &
                   call readfld('pvlvl_phy'//c2, l2i_unitconv, &
                                 phylvl(1-nbdy,1-nbdy,1,ACC_PVLVL(n)), ip)
-#if defined(TRC) && defined(TKE)
-               if (ACC_TKELVL(n) /= 0) &
-                  call readfld('tkelvl_phy'//c2, l2_unitconv, &
-                               phylvl(1-nbdy,1-nbdy,1,ACC_TKELVL(n)), ip)
-               if (ACC_GLS_PSILVL(n) /= 0) &
-                  call readfld('gls_psilvl_phy'//c2, l2_unitconv, &
-                               phylvl(1-nbdy,1-nbdy,1,ACC_GLS_PSILVL(n)), ip)
-#endif
+               if (use_TRC .and. use_TKE) then
+                  if (ACC_TKELVL(n) /= 0) &
+                       call readfld('tkelvl_phy'//c2, l2_unitconv, &
+                                     phylvl(1-nbdy,1-nbdy,1,ACC_TKELVL(n)), ip)
+                  if (ACC_GLS_PSILVL(n) /= 0) &
+                       call readfld('gls_psilvl_phy'//c2, l2_unitconv, &
+                                    phylvl(1-nbdy,1-nbdy,1,ACC_GLS_PSILVL(n)), ip)
+               end if
             endif
          enddo
       endif
@@ -2133,9 +2176,9 @@ contains
 
       call settemmin
 
-#ifdef TRC
-      if (.not.resume_flag) call restart_trcrd(rstfnm)
-#endif
+      if (use_TRC) then
+         if (.not.resume_flag) call restart_trcrd(rstfnm)
+      end if
 
       if (ditflx) then
 

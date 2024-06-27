@@ -77,7 +77,7 @@ contains
 
       integer :: i, j, k, l
 
-   !$omp parallel do private(i, k)
+      !$omp parallel do private(i, k)
       do j = 1 - nbdy, jj + nbdy
          do k = 1, 4
             do i = 1 - nbdy, ii + nbdy
@@ -95,9 +95,9 @@ contains
             idkedt(i, j) = spval
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
-   !$omp parallel do private(k, l, i)
+      !$omp parallel do private(k, l, i)
       do j = 1, jj
         do k = 1, 4
           do l = 1, isu(j)
@@ -124,7 +124,7 @@ contains
           enddo
         enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
    end subroutine inivar_niw
 
@@ -144,7 +144,7 @@ contains
 
       mmm = (m - 1)*2
 
-   !$omp parallel do private(l, i, ubt, uml1t, uml2t, q, uml1a, uml2a)
+      !$omp parallel do private(l, i, ubt, uml1t, uml2t, q, uml1a, uml2a)
       do j = 1, jj
          do l = 1, isu(j)
          do i = max(1, ifu(j, l)), min(ii + 1, ilu(j, l))
@@ -176,8 +176,9 @@ contains
          enddo
          enddo
       enddo
-   !$omp end parallel do
-   !$omp parallel do private(l, i, vbt, vml1t, vml2t, q, vml1a, vml2a)
+      !$omp end parallel do
+
+      !$omp parallel do private(l, i, vbt, vml1t, vml2t, q, vml1a, vml2a)
       do j = 1, jj + 1
          do l = 1, isv(j)
          do i = max(1, ifv(j, l)), min(ii, ilv(j, l))
@@ -209,22 +210,23 @@ contains
          enddo
          enddo
       enddo
-   !$omp end parallel do
-   !$omp parallel do private(l, i)
+      !$omp end parallel do
+
+      !$omp parallel do private(l, i)
       do j = 1, jj
          do l = 1, isp(j)
          do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
             idkedt(i, j) = abs(  ( util1(i    , j)*iu(i    , j) &
                                  + util1(i + 1, j)*iu(i + 1, j)) &
-                                 /max(1, iu(i, j) + iu(i + 1, j)) &
+                                /max(1, iu(i, j) + iu(i + 1, j)) &
                                + ( util2(i, j    )*iv(i, j    ) &
                                  + util2(i, j + 1)*iv(i, j + 1)) &
-                                 /max(1, iv(i, j) + iv(i, j + 1))) &
+                                /max(1, iv(i, j) + iv(i, j + 1))) &
                            *alpha0/(2._r8*g*delt1)
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
    end subroutine niw_ke_tendency
 

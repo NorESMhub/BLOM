@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2022 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2015-2024 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -23,23 +23,23 @@ module mod_eddtra
 ! transport.
 ! ------------------------------------------------------------------------------
 
-   use mod_types, only: r8
+   use mod_types,     only: r8
    use mod_constants, only: g, alpha0, rho0, epsilp, onem, onecm, onemm, &
                             L_mks2cgs
-   use mod_time, only: delt1
+   use mod_time,      only: delt1
    use mod_xc
-   use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid
-   use mod_grid, only: scuy, scvx, scp2, scu2, scv2, scuxi, scvyi, coriop
-   use mod_eos, only: rho, sig0
-   use mod_state, only: dp, dpu, dpv, temp, saln, p, pbu, pbv, kfpla
+   use mod_vcoord,    only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid
+   use mod_grid,      only: scuy, scvx, scp2, scu2, scv2, scuxi, scvyi, coriop
+   use mod_eos,       only: rho, sig0
+   use mod_state,     only: dp, dpu, dpv, temp, saln, p, pbu, pbv, kfpla
    use mod_diffusion, only: eitmth_opt, eitmth_intdif, eitmth_gm, &
                             difint, umfltd, vmfltd, umflsm, vmflsm, &
                             utfltd, vtfltd, utflsm, vtflsm, &
                             usfltd, vsfltd, usflsm, vsflsm
-   use mod_cmnfld, only: dbcrit, nslpx, nslpy, mlts
-   use mod_mxlayr, only: ce
-   use mod_utility, only: util1
-   use mod_checksum, only: csdiag, chksummsk
+   use mod_cmnfld,    only: dbcrit, nslpx, nslpy, mlts
+   use mod_mxlayr,    only: ce
+   use mod_utility,   only: util1
+   use mod_checksum,  only: csdiag, chksummsk
 
    implicit none
 
@@ -68,7 +68,7 @@ contains
 
       call xctilr(difint, 1,kk, 2,2, halo_ps)
 
-   !$omp parallel do private(l, i)
+      !$omp parallel do private(l, i)
       do j = -1, jj+2
          do l = 1, isu(j)
          do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
@@ -78,8 +78,8 @@ contains
          enddo
          enddo
       enddo
-   !$omp end parallel do
-   !$omp parallel do private(l, i)
+      !$omp end parallel do
+      !$omp parallel do private(l, i)
       do j = 0, jj+2
          do l = 1, isv(j)
          do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
@@ -89,13 +89,13 @@ contains
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
       do k = 4, kk
          km = k + mm
          kn = k + nn
 
-      !$omp parallel do private(l, i, flxhi, flxlo, q)
+         !$omp parallel do private(l, i, flxhi, flxlo, q)
          do j = -1, jj+2
             do l = 1, isu(j)
             do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
@@ -112,9 +112,9 @@ contains
             enddo
             enddo
          enddo
-      !$omp end parallel do
+         !$omp end parallel do
 
-      !$omp parallel do private(l, i, flxhi, flxlo, q)
+         !$omp parallel do private(l, i, flxhi, flxlo, q)
          do j = 0, jj+2
             do l = 1, isv(j)
             do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
@@ -132,7 +132,7 @@ contains
             enddo
             enddo
          enddo
-      !$omp end parallel do
+         !$omp end parallel do
 
       enddo
 
@@ -166,7 +166,7 @@ contains
 
 
       ! Compute top pressure at velocity points.
-   !$omp parallel do private(l, i)
+      !$omp parallel do private(l, i)
       do j= -1, jj+2
          do l = 1, isu(j)
          do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
@@ -174,8 +174,8 @@ contains
          enddo
          enddo
       enddo
-   !$omp end parallel do
-   !$omp parallel do private(l, i)
+      !$omp end parallel do
+      !$omp parallel do private(l, i)
       do j = 0, jj+2
          do l = 1, isv(j)
          do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
@@ -183,15 +183,15 @@ contains
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
      ! -------------------------------------------------------------------------
      ! Compute u-component of eddy-induced mass fluxes.
      ! -------------------------------------------------------------------------
 
-   !$omp parallel do private(l, i, k, km, et2mf, kmax, kn, kintr, kappa, &
-   !$omp                     upsilon, kmin, mfl, dlm, dlp, fhi, flo, changed, &
-   !$omp                     niter, kdir, q)
+      !$omp parallel do private(l, i, k, km, et2mf, kmax, kn, kintr, kappa, &
+      !$omp                     upsilon, kmin, mfl, dlm, dlp, fhi, flo, changed, &
+      !$omp                     niter, kdir, q)
       do j = -1, jj+2
          do l = 1, isu(j)
          do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
@@ -552,15 +552,15 @@ contains
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
      ! -------------------------------------------------------------------------
      ! Compute v-component of eddy-induced mass fluxes.
      ! -------------------------------------------------------------------------
 
-   !$omp parallel do private(l, i, k, km, et2mf, kmax, kn, kintr, kappa, &
-   !$omp                     upsilon, kmin, mfl, dlm, dlp, fhi, flo, changed, &
-   !$omp                     niter, kdir, q)
+      !$omp parallel do private(l, i, k, km, et2mf, kmax, kn, kintr, kappa, &
+      !$omp                     upsilon, kmin, mfl, dlm, dlp, fhi, flo, changed, &
+      !$omp                     niter, kdir, q)
       do j = 0, jj+2
          do l = 1, isv(j)
          do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
@@ -921,7 +921,7 @@ contains
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
    end subroutine eddtra_gm_isopyc_bulkml
 
@@ -963,7 +963,7 @@ contains
       ! ------------------------------------------------------------------------
 
       ! Compute vertically averaged mixed layer density [g cm-3].
-   !$omp parallel do private(l, i, mlp, mldpi, tmldp, smldp, k, kn)
+      !$omp parallel do private(l, i, mlp, mldpi, tmldp, smldp, k, kn)
       do j=1,jj
          do l=1,isp(j)
          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -986,12 +986,12 @@ contains
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
       call xctilr(util1, 1,1, 2,2, halo_ps)
 
       ! Compute components of submesoscale eddy transport [cm2 s-1].
       csm = g*alpha0*ce
-   !$omp parallel do private(l, i, mldh, f, absfi, lfi)
+      !$omp parallel do private(l, i, mldh, f, absfi, lfi)
       do j = -1, jj+2
          do l = 1, isu(j)
          do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
@@ -1004,8 +1004,8 @@ contains
          enddo
          enddo
       enddo
-   !$omp end parallel do
-   !$omp parallel do private(l, i, mldh, f, absfi, lfi)
+      !$omp end parallel do
+      !$omp parallel do private(l, i, mldh, f, absfi, lfi)
       do j = 0, jj+2
          do l = 1, isv(j)
          do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
@@ -1018,10 +1018,10 @@ contains
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
       ! Compute top pressure at velocity points.
-   !$omp parallel do private(l, i)
+      !$omp parallel do private(l, i)
       do j = -1, jj+2
          do l = 1, isu(j)
          do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
@@ -1029,8 +1029,8 @@ contains
          enddo
          enddo
       enddo
-   !$omp end parallel do
-   !$omp parallel do private(l, i)
+      !$omp end parallel do
+      !$omp parallel do private(l, i)
       do j = 0, jj+2
          do l = 1, isv(j)
          do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
@@ -1038,15 +1038,15 @@ contains
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
      ! -------------------------------------------------------------------------
      ! Compute u-component of eddy-induced mass fluxes.
      ! -------------------------------------------------------------------------
 
-   !$omp parallel do private(l, i, k, km, mfleps, et2mf, kmax, puv, kn, mldh, &
-   !$omp                     mlp, mldpi, kml, kappa, mflgm, mflsm, q, mfl, &
-   !$omp                     dlm, dlp, changed, niter, kdir)
+      !$omp parallel do private(l, i, k, km, mfleps, et2mf, kmax, puv, kn, mldh, &
+      !$omp                     mlp, mldpi, kml, kappa, mflgm, mflsm, q, mfl, &
+      !$omp                     dlm, dlp, changed, niter, kdir)
       do j = -1, jj+2
          do l = 1, isu(j)
          do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
@@ -1308,15 +1308,15 @@ contains
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
      ! -------------------------------------------------------------------------
      ! Compute v-component of eddy-induced mass fluxes.
      ! -------------------------------------------------------------------------
 
-   !$omp parallel do private(l, i, k, km, mfleps, et2mf, kmax, puv, kn, mldh, &
-   !$omp                     mlp, mldpi, kml, kappa, mflgm, mflsm, q, mfl, &
-   !$omp                     dlm, dlp, changed, niter, kdir)
+      !$omp parallel do private(l, i, k, km, mfleps, et2mf, kmax, puv, kn, mldh, &
+      !$omp                     mlp, mldpi, kml, kappa, mflgm, mflsm, q, mfl, &
+      !$omp                     dlm, dlp, changed, niter, kdir)
       do j = 0, jj+2
          do l = 1, isv(j)
          do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
@@ -1578,7 +1578,7 @@ contains
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
    end subroutine eddtra_cntiso_hybrid
 
@@ -1614,7 +1614,7 @@ contains
          endif
 
          ! Diagnose eddy-induced transport components of heat and salt.
-      !$omp parallel do private(k, km, l, i)
+         !$omp parallel do private(k, km, l, i)
          do j = 1, jj
             do k = 1, kk
                km = k + mm
@@ -1636,7 +1636,7 @@ contains
                enddo
             enddo
          enddo
-      !$omp end parallel do
+         !$omp end parallel do
 
       else
 
@@ -1654,7 +1654,7 @@ contains
          endif
 
          ! Diagnose eddy-induced transport components of heat and salt.
-      !$omp parallel do private(k, km, l, i, q)
+         !$omp parallel do private(k, km, l, i, q)
          do j = 1, jj
             do k = 1, kk
                km = k + mm
@@ -1680,7 +1680,7 @@ contains
                enddo
             enddo
          enddo
-      !$omp end parallel do
+         !$omp end parallel do
 
       endif
 

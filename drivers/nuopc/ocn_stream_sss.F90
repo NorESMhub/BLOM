@@ -14,6 +14,7 @@ module ocn_stream_sss
    use shr_kind_mod      , only : r8 => shr_kind_r8, CL => shr_kind_cl, CS => shr_kind_cs
    use shr_log_mod       , only : errMsg => shr_log_errMsg
    use shr_sys_mod       , only : shr_sys_abort
+   use mod_fill_global   , only : fill_global
    use mod_xc
 
    implicit none
@@ -49,7 +50,6 @@ contains
       ! local variables
       integer                        :: nu_nml                ! unit for namelist file
       integer                        :: nml_error             ! namelist i/o error flag
-      integer                        :: ierr                  ! error status
       character(len=CL)              :: filein                ! ocn namelist file
       integer                        :: stream_sss_year_first ! first year in stream to use
       integer                        :: stream_sss_year_last  ! last year in stream to use

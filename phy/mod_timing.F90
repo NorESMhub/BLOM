@@ -18,91 +18,84 @@
 ! ------------------------------------------------------------------------------
 
 module mod_timing
-! ------------------------------------------------------------------------------
-! This module contains variables and procedures related to timing.
-! ------------------------------------------------------------------------------
+  ! ------------------------------------------------------------------------------
+  ! This module contains variables and procedures related to timing.
+  ! ------------------------------------------------------------------------------
 
-   use mod_types, only: r8
-   use mod_xc, only: mnproc
+  use mod_types, only: r8
+  use mod_xc   , only: mnproc
+  use mod_wtime, only: wtime
 
-   implicit none
+  implicit none
+  private
 
-   private
+  real(r8), public ::     &
+       total_time,        &
+       total_xio_time,    &
+       auxil_total_time,  &
+       getfrc_total_time, &
+       tmsmt1_total_time, &
+       advdif_total_time, &
+       sfcstr_total_time, &
+       momtum_total_time, &
+       pgforc_total_time, &
+       barotp_total_time, &
+       pbcor2_total_time, &
+       convec_total_time, &
+       diapfl_total_time, &
+       thermf_total_time, &
+       mxlayr_total_time, &
+       tmsmt2_total_time, &
+       diaacc_total_time, &
+       io_total_time,     &
+       wtimeold             ! time at initialisation
 
-   real(r8) :: &
-      total_time, &
-      total_xio_time, &
-      auxil_total_time, &
-      getfrc_total_time, &
-      tmsmt1_total_time, &
-      advdif_total_time, &
-      sfcstr_total_time, &
-      momtum_total_time, &
-      pgforc_total_time, &
-      barotp_total_time, &
-      pbcor2_total_time, &
-      convec_total_time, &
-      diapfl_total_time, &
-      thermf_total_time, &
-      mxlayr_total_time, &
-      tmsmt2_total_time, &
-      diaacc_total_time, &
-      io_total_time, &
-      wtimeold             ! time at initialisation 
-
-   real(r8), external :: &
-      wtime                ! external timing function 
-
-   public :: total_time, total_xio_time, auxil_total_time, getfrc_total_time, &
-             tmsmt1_total_time, advdif_total_time, sfcstr_total_time, &
-             momtum_total_time, pgforc_total_time, barotp_total_time, &
-             pbcor2_total_time, convec_total_time, diapfl_total_time, &
-             thermf_total_time, mxlayr_total_time, tmsmt2_total_time, &
-             diaacc_total_time, io_total_time, init_timing, get_time
+  ! Public routines
+  public :: init_timing, get_time
 
 contains
 
-   subroutine init_timing
-   ! ---------------------------------------------------------------------------
-   ! Initializes variables used for timing. Must be called before call to
-   ! 'get_time'.
-   ! ---------------------------------------------------------------------------
+  subroutine init_timing
+    ! ---------------------------------------------------------------------------
+    ! Initializes variables used for timing. Must be called before call to
+    ! 'get_time'.
+    ! ---------------------------------------------------------------------------
 
-      if (mnproc == 1) wtimeold = wtime()
+    if (mnproc == 1) wtimeold = wtime()
 
-      total_time        = 0._r8
-      total_xio_time    = 0._r8
-      auxil_total_time  = 0._r8
-      getfrc_total_time = 0._r8
-      tmsmt1_total_time = 0._r8
-      advdif_total_time = 0._r8
-      sfcstr_total_time = 0._r8
-      momtum_total_time = 0._r8
-      pgforc_total_time = 0._r8
-      barotp_total_time = 0._r8
-      pbcor2_total_time = 0._r8
-      convec_total_time = 0._r8
-      diapfl_total_time = 0._r8
-      thermf_total_time = 0._r8
-      mxlayr_total_time = 0._r8
-      tmsmt2_total_time = 0._r8
-      diaacc_total_time = 0._r8
-      io_total_time     = 0._r8
+    total_time        = 0._r8
+    total_xio_time    = 0._r8
+    auxil_total_time  = 0._r8
+    getfrc_total_time = 0._r8
+    tmsmt1_total_time = 0._r8
+    advdif_total_time = 0._r8
+    sfcstr_total_time = 0._r8
+    momtum_total_time = 0._r8
+    pgforc_total_time = 0._r8
+    barotp_total_time = 0._r8
+    pbcor2_total_time = 0._r8
+    convec_total_time = 0._r8
+    diapfl_total_time = 0._r8
+    thermf_total_time = 0._r8
+    mxlayr_total_time = 0._r8
+    tmsmt2_total_time = 0._r8
+    diaacc_total_time = 0._r8
+    io_total_time     = 0._r8
 
-   end subroutine init_timing
+  end subroutine init_timing
 
-   real(r8) function get_time()
-   ! ---------------------------------------------------------------------------
-   ! Return time in seconds since last call to either init_timing or get_time.
-   ! ---------------------------------------------------------------------------
+  real(r8) function get_time()
+    ! ---------------------------------------------------------------------------
+    ! Return time in seconds since last call to either init_timing or get_time.
+    ! ---------------------------------------------------------------------------
 
-      if (mnproc == 1) then
-         get_time = wtime() - wtimeold
-         wtimeold = get_time + wtimeold
-      else
-         get_time = 1._r8
-      endif
+    if (mnproc == 1) then
+      get_time = wtime() - wtimeold
+      wtimeold = get_time + wtimeold
+    else
+      get_time = 1._r8
+    endif
 
-   end function get_time
+  end function get_time
 
 end module mod_timing

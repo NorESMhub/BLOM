@@ -14,6 +14,7 @@ module ocn_stream_sst
    use shr_kind_mod      , only : r8 => shr_kind_r8, CL => shr_kind_cl, CS => shr_kind_cs
    use shr_log_mod       , only : errMsg => shr_log_errMsg
    use shr_sys_mod       , only : shr_sys_abort
+   use mod_fill_global   , only : fill_global
    use mod_xc
 
    implicit none

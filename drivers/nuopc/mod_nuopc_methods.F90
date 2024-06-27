@@ -23,26 +23,26 @@ module mod_nuopc_methods
 ! NUOPC cap.
 ! ------------------------------------------------------------------------------
 
+   use shr_const_mod,  only: SHR_CONST_RHOSW, SHR_CONST_LATICE, SHR_CONST_TKFRZ
    use mod_types,      only: r8
    use mod_constants,  only: rearth, onem, L_mks2cgs
    use mod_time,       only: nstep, baclin, delt1, dlt
    use mod_xc
    use mod_grid,       only: scuy, scvx, scp2, scuxi, scvyi, plon, plat, cosang, sinang
    use mod_state,      only: u, v, dp, temp, saln, pbu, pbv, ubflxs, vbflxs, sealv
-   use mod_forcing,    only: wavsrc_opt, wavsrc_extern, sprfac, prfac, flxco2,flxdms, flxbrf
+   use mod_forcing,    only: wavsrc_opt, wavsrc_extern, sprfac, prfac, &
+                             flxco2, flxdms, flxbrf, flxn2o, flxnh3
    use mod_difest,     only: obldepth
    use mod_vcoord,     only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid
    use mod_cesm,       only: frzpot, mltpot, &
                              swa_da, nsf_da, hmlt_da, lip_da, sop_da, eva_da, &
                              rnf_da, rfi_da, fmltfz_da, sfl_da, ztx_da, mty_da, &
                              ustarw_da, slp_da, abswnd_da, ficem_da, lamult_da, &
-                             lasl_da, ustokes_da, vstokes_da, atmco2_da, atmbrf_da, &
-                             flxdms_da, flxbrf_da, l1ci, l2ci
+                             lasl_da, ustokes_da, vstokes_da, atmco2_da, &
+                             l1ci, l2ci
    use mod_utility,    only: util1, util2
    use mod_checksum,   only: csdiag, chksummsk
-   use shr_const_mod,  only: SHR_CONST_RHOSW, SHR_CONST_LATICE, SHR_CONST_TKFRZ
 #ifdef HAMOCC
-   use mo_carbch,      only: ocetra
    use mo_control_bgc, only: use_BROMO, ocn_co2_type
 #endif
 
@@ -62,9 +62,20 @@ module mod_nuopc_methods
    integer, parameter :: fldsMax = 100
 
    real(r8), dimension(:), allocatable :: mod2med_areacor, med2mod_areacor
-   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
-      acc_u, acc_v, acc_dhdx, acc_dhdy, acc_t, acc_s, acc_frzpot, acc_bld, &
-      acc_fco2, acc_fdms, acc_fbrf
+   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_u
+   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_v
+   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_dhdx
+   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_dhdy
+   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_t
+   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_s
+   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_frzpot
+   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_bld
+   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_fco2
+   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_fdms
+   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_fbrf
+   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_fn2o
+   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_fnh3
+
    real(r8) :: tlast_coupled
    integer :: jjcpl
 
@@ -115,9 +126,11 @@ module mod_nuopc_methods
         index_So_s       = -1, &
         index_So_bldepth = -1, &
         index_Fioo_q     = -1, &
-        index_Faoo_dms   = -1, &
-        index_Faoo_brf   = -1, &
-        index_Faoo_fco2_ocn = -1
+        index_Faoo_fco2  = -1, &
+        index_Faoo_fdms  = -1, &
+        index_Faoo_fbrf  = -1, &
+        index_Faoo_fn2o  = -1, &
+        index_Faoo_fnh3  = -1
 
 contains
 
@@ -173,11 +186,11 @@ contains
      ! Determine fldsToOcn for import fields
      ! -------------------------------------------------------------------
 
-     character(len=*)   , intent(in)                  :: flds_scalar_name
-     integer            , intent(inout)               :: fldsToOcn_num
-     type(fldlist_type) , intent(inout), dimension(:) :: fldsToOcn
-     logical            , intent(in)                  :: flds_co2a
-     logical            , intent(in)                  :: flds_co2c
+     character(len=*)   , intent(in)    :: flds_scalar_name
+     integer            , intent(inout) :: fldsToOcn_num
+     type(fldlist_type) , intent(inout) :: fldsToOcn(:)
+     logical            , intent(in)    :: flds_co2a
+     logical            , intent(in)    :: flds_co2c
 
      integer :: index_scalar
 
@@ -196,7 +209,7 @@ contains
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_rofl', index_Foxx_rofl)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_rofi', index_Foxx_rofi)
 
-     ! From fields computed mediator:
+     ! From fields computed in mediator:
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'So_duu10n'  , index_So_duu10n)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_tauy'  , index_Foxx_tauy)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_taux'  , index_Foxx_taux)
@@ -219,8 +232,6 @@ contains
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_lwdn' , index_Faxa_lwdn)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_snow' , index_Faxa_snow)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_rain' , index_Faxa_rain)
-
-     ! From atm co2 fields:
      if (flds_co2a .or. flds_co2c) then
         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sa_co2diag' ,index_Sa_co2diag)
         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sa_co2prog', index_Sa_co2prog)
@@ -233,9 +244,9 @@ contains
      ! Determine fldsToOcn for export fields
      ! -------------------------------------------------------------------
 
-     character(len=*)                 , intent(in)    :: flds_scalar_name
-     integer                          , intent(inout) :: fldsFrOcn_num
-     type(fldlist_type), dimension(:) , intent(inout) :: fldsFrOcn
+     character(len=*)   , intent(in)    :: flds_scalar_name
+     integer            , intent(inout) :: fldsFrOcn_num
+     type(fldlist_type) , intent(inout) :: fldsFrOcn(:)
 
      integer :: index_scalar
 
@@ -250,13 +261,16 @@ contains
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_dhdy'       , index_So_dhdy)
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_bldepth'    , index_So_bldepth)
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Fioo_q'        , index_Fioo_q)
-     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fco2_ocn' , index_Faoo_fco2_ocn)
+     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fco2_ocn' , index_Faoo_fco2)
 #ifdef HAMOCC
-     ! call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faoo_dms', index_Faoo_dms)
-     ! if (use_BROMO) then
-     !    call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faoo_brf', index_Faoo_brf)
-     ! end if
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faoo_fdms_ocn' , index_Faoo_fdms)
+     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fn2o_ocn' , index_Faoo_fn2o)
+     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fnh3_ocn' , index_Faoo_fnh3)
+     if (use_BROMO) then
+        call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faoo_fbrf_ocn', index_Faoo_fbrf)
+     end if
 #endif
+
    end subroutine blom_advertise_exports
 
    subroutine blom_logwrite(msg)
@@ -482,6 +496,8 @@ contains
          acc_fco2  (:,:) = 0._r8
          acc_fdms  (:,:) = 0._r8
          acc_fbrf  (:,:) = 0._r8
+         acc_fn2o  (:,:) = 0._r8
+         acc_fnh3  (:,:) = 0._r8
       endif
 
       ! ------------------------------------------------------------------------
@@ -559,7 +575,7 @@ contains
             stop subname
       end select
 
-      if (index_Faoo_fco2_ocn > 0) then
+      if (index_Faoo_fco2 > 0) then
          !$omp parallel do private(l, i)
          do j = 1, jj
             do l = 1, isp(j)
@@ -571,7 +587,7 @@ contains
          !$omp end parallel do
       endif
 
-      if (index_Faoo_dms > 0) then
+      if (index_Faoo_fdms > 0) then
          !$omp parallel do private(l, i)
          do j = 1, jj
             do l = 1, isp(j)
@@ -583,12 +599,36 @@ contains
          !$omp end parallel do
       end if
 
-      if (index_Faoo_brf > 0) then
+      if (index_Faoo_fbrf > 0) then
          !$omp parallel do private(l, i)
          do j = 1, jj
             do l = 1, isp(j)
             do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
                acc_fbrf(i,j) = acc_fbrf(i,j) + flxbrf(i,j)*baclin
+            enddo
+            enddo
+         enddo
+         !$omp end parallel do
+      end if
+
+      if (index_Faoo_fn2o > 0) then
+         ! Pack nitrous oxide flux (kg N2O/m^2/s), if requested
+         do j = 1, jj
+            do l = 1, isp(j)
+            do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+               acc_fn2o(i,j) = acc_fn2o(i,j) + flxn2o(i,j)*baclin
+            enddo
+            enddo
+         enddo
+         !$omp end parallel do
+      end if
+
+      if (index_Faoo_fnh3 > 0) then
+         ! Pack nitrous oxide flux (kg NH3/m^2/s), if requested
+         do j = 1, jj
+            do l = 1, isp(j)
+            do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+               acc_fnh3(i,j) = acc_fnh3(i,j) + flxnh3(i,j)*baclin
             enddo
             enddo
          enddo
@@ -796,7 +836,7 @@ contains
       call fill_global(mval, fval, halo_ps, ficem_da(1-nbdy,1-nbdy,l2ci))
 
       if (wavsrc_opt == wavsrc_extern) then
-      !$omp parallel do private(i, n, utmp, vtmp)
+         !$omp parallel do private(i, n, utmp, vtmp)
          do j = 1, jjcpl
             do i = 1, ii
                if     (ip(i,j) == 0) then
@@ -856,7 +896,6 @@ contains
       end if
 
       ! CO2 flux
-
       index_co2 = -1
 #ifdef HAMOCC
       if (ocn_co2_type == 'diagnostic' .and. index_Sa_co2diag > 0) then
@@ -907,21 +946,21 @@ contains
             write(lp,*) subname//':'
          endif
          call chksummsk(ustarw_da(1-nbdy,1-nbdy,l2ci),ip,1,'ustarw')
-         call chksummsk(ztx_da(1-nbdy,1-nbdy,l2ci),iu,1,'ztx')
-         call chksummsk(mty_da(1-nbdy,1-nbdy,l2ci),iv,1,'mty')
-         call chksummsk(lip_da(1-nbdy,1-nbdy,l2ci),ip,1,'lip')
-         call chksummsk(sop_da(1-nbdy,1-nbdy,l2ci),ip,1,'sop')
-         call chksummsk(eva_da(1-nbdy,1-nbdy,l2ci),ip,1,'eva')
-         call chksummsk(rnf_da(1-nbdy,1-nbdy,l2ci),ip,1,'rnf')
-         call chksummsk(rfi_da(1-nbdy,1-nbdy,l2ci),ip,1,'rfi')
+         call chksummsk(   ztx_da(1-nbdy,1-nbdy,l2ci),iu,1,'ztx')
+         call chksummsk(   mty_da(1-nbdy,1-nbdy,l2ci),iv,1,'mty')
+         call chksummsk(   lip_da(1-nbdy,1-nbdy,l2ci),ip,1,'lip')
+         call chksummsk(   sop_da(1-nbdy,1-nbdy,l2ci),ip,1,'sop')
+         call chksummsk(   eva_da(1-nbdy,1-nbdy,l2ci),ip,1,'eva')
+         call chksummsk(   rnf_da(1-nbdy,1-nbdy,l2ci),ip,1,'rnf')
+         call chksummsk(   rfi_da(1-nbdy,1-nbdy,l2ci),ip,1,'rfi')
          call chksummsk(fmltfz_da(1-nbdy,1-nbdy,l2ci),ip,1,'fmltfz')
-         call chksummsk(sfl_da(1-nbdy,1-nbdy,l2ci),ip,1,'sfl')
-         call chksummsk(swa_da(1-nbdy,1-nbdy,l2ci),ip,1,'swa')
-         call chksummsk(nsf_da(1-nbdy,1-nbdy,l2ci),ip,1,'nsf')
-         call chksummsk(hmlt_da(1-nbdy,1-nbdy,l2ci),ip,1,'hmlt')
-         call chksummsk(slp_da(1-nbdy,1-nbdy,l2ci),ip,1,'slp')
+         call chksummsk(   sfl_da(1-nbdy,1-nbdy,l2ci),ip,1,'sfl')
+         call chksummsk(   swa_da(1-nbdy,1-nbdy,l2ci),ip,1,'swa')
+         call chksummsk(   nsf_da(1-nbdy,1-nbdy,l2ci),ip,1,'nsf')
+         call chksummsk(  hmlt_da(1-nbdy,1-nbdy,l2ci),ip,1,'hmlt')
+         call chksummsk(   slp_da(1-nbdy,1-nbdy,l2ci),ip,1,'slp')
          call chksummsk(abswnd_da(1-nbdy,1-nbdy,l2ci),ip,1,'abswnd')
-         call chksummsk(ficem_da(1-nbdy,1-nbdy,l2ci),ip,1,'ficem')
+         call chksummsk( ficem_da(1-nbdy,1-nbdy,l2ci),ip,1,'ficem')
          call chksummsk(atmco2_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmco2')
       endif
 
@@ -1018,69 +1057,91 @@ contains
       enddo
       !$omp end parallel do
 
-      if (index_Faoo_fco2_ocn > 0) then
+      if (index_Faoo_fco2 > 0) then
          ! CO2 flux [kg CO2 m-2 s-1]
-         if (associated(fldlist(index_Faoo_fco2_ocn)%dataptr)) then
-            fldlist(index_Faoo_fco2_ocn)%dataptr(:) = 0._r8
+         if (associated(fldlist(index_Faoo_fco2)%dataptr)) then
+            fldlist(index_Faoo_fco2)%dataptr(:) = 0._r8
             !$omp parallel do private(l, i, n)
             do j = 1, jjcpl
                do l = 1, isp(j)
                   do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
                      n = (j - 1)*ii + i
-                     fldlist(index_Faoo_fco2_ocn)%dataptr(n) = acc_fco2(i,j)*tfac*mod2med_areacor(n)
+                     fldlist(index_Faoo_fco2)%dataptr(n) = acc_fco2(i,j)*tfac*mod2med_areacor(n)
                   enddo
                enddo
             enddo
             !$omp end parallel do
          end if
       else
-         if (first_call) then
-            if (mnproc == 1 .and. first_call) then
-               write(lp,*) subname//': co2 flux not sent to coupler'
-            end if
-         end if
+        if (mnproc == 1 .and. first_call) write(lp,*) subname//': co2 flux not sent to coupler'
       end if
 
-      if (index_Faoo_dms > 0) then
-         ! dms flux (kmol DMS/m^2/s)
-         fldlist(index_Faoo_dms)%dataptr(:) = 0._r8
+      if (index_Faoo_fdms > 0) then
+         ! dms flux (kg DMS/m^2/s)
+         fldlist(index_Faoo_fdms)%dataptr(:) = 0._r8
          !$omp parallel do private(l, i, n)
          do j = 1, jjcpl
             do l = 1, isp(j)
                do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
                   n = (j - 1)*ii + i
-                  fldlist(index_Faoo_dms)%dataptr(n) = acc_fdms(i,j)*tfac*mod2med_areacor(n)
+                  fldlist(index_Faoo_fdms)%dataptr(n) = acc_fdms(i,j)*tfac*mod2med_areacor(n)
                enddo
             enddo
          enddo
          !$omp end parallel do
       else
-         if (first_call) then
-            if (mnproc == 1 .and. first_call) then
-               write(lp,*) subname//': dms flux not sent to coupler'
-            end if
-         end if
+        if (mnproc == 1 .and. first_call) write(lp,*) subname//': dms flux not sent to coupler'
       end if
 
-      if (index_Faoo_brf > 0) then
-         ! brf flux (kmol BRF/m^2/s)
-         fldlist(index_Faoo_brf)%dataptr(:) = 0._r8
+      if (index_Faoo_fbrf > 0) then
+         ! brf flux (kg BRF/m^2/s)
+         fldlist(index_Faoo_fbrf)%dataptr(:) = 0._r8
          !$omp parallel do private(l, i, n)
          do j = 1, jjcpl
             do l = 1, isp(j)
                do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
                   n = (j - 1)*ii + i
-                  fldlist(index_Faoo_brf)%dataptr(n) = acc_fbrf(i,j)*tfac*mod2med_areacor(n)
+                  fldlist(index_Faoo_fbrf)%dataptr(n) = acc_fbrf(i,j)*tfac*mod2med_areacor(n)
                enddo
             enddo
          enddo
          !$omp end parallel do
       else
-         if (first_call) then
-            if (mnproc == 1 .and. first_call) then
-               write(lp,*) subname//': brf flux not sent to coupler'
-            end if
-         end if
+        if (mnproc == 1 .and. first_call) write(lp,*) subname//': brf flux not sent to coupler'
+      end if
+
+      if (index_Faoo_fn2o > 0) then
+         ! n2o flux (kg N2O/m^2/s)
+         fldlist(index_Faoo_fn2o)%dataptr(:) = 0._r8
+         !$omp parallel do private(l, i, n)
+         do j = 1, jjcpl
+            do l = 1, isp(j)
+               do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                  n = (j - 1)*ii + i
+                  fldlist(index_Faoo_fn2o)%dataptr(n) = acc_fn2o(i,j)*tfac*mod2med_areacor(n)
+               enddo
+            enddo
+         enddo
+         !$omp end parallel do
+      else
+        if (mnproc == 1 .and. first_call) write(lp,*) subname//': n2o flux not sent to coupler'
+      end if
+
+      if (index_Faoo_fnh3 > 0) then
+         ! nh3 flux (kg NH3/m^2/s)
+         fldlist(index_Faoo_fnh3)%dataptr(:) = 0._r8
+         !$omp parallel do private(l, i, n)
+         do j = 1, jjcpl
+            do l = 1, isp(j)
+               do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                  n = (j - 1)*ii + i
+                  fldlist(index_Faoo_fnh3)%dataptr(n) = acc_fnh3(i,j)*tfac*mod2med_areacor(n)
+               enddo
+            enddo
+         enddo
+         !$omp end parallel do
+      else
+        if (mnproc == 1 .and. first_call) write(lp,*) subname//': nh3 flux not sent to coupler'
       end if
 
       if (first_call) then
