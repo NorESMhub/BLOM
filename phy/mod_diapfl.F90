@@ -91,6 +91,13 @@ contains
     ! Constant in the diffusion equation
     c = g*g*delt1/(alpha0*alpha0)
 
+    !! Technical note: 2024-06-27
+    !! This openMP code block breaks github CI test using macos-lates with
+    !! openmp enabled. The error seems to be specific to macos, and is
+    !! discussed in the PR
+    !! https://github.com/NorESMhub/BLOM/pull/317#issuecomment-2191552330
+    !! The CI test using macos-latest with openmp is now diabled.
+    !!
     !$omp parallel do private( &
     !$omp l,i,k,kn,ttem,ssal,delp,dens,sigr,nu,rstdns,ttem0,ssal0,delp0, &
     !$omp dens0,sigr0,nu0,kfpl,kmin,kmax,pres,fpu,fpl,delpu,delpl,nubbl, &
