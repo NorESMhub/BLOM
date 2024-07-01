@@ -45,6 +45,7 @@ module mod_nuopc_methods
 #ifdef HAMOCC
    use mo_control_bgc, only: use_BROMO, ocn_co2_type
 #endif
+   use mod_fill_global, only: fill_global
 
    implicit none
    private
@@ -263,11 +264,11 @@ contains
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Fioo_q'        , index_Fioo_q)
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fco2_ocn' , index_Faoo_fco2)
 #ifdef HAMOCC
-     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faoo_fdms_ocn' , index_Faoo_fdms)
+     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fdms_ocn' , index_Faoo_fdms)
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fn2o_ocn' , index_Faoo_fn2o)
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fnh3_ocn' , index_Faoo_fnh3)
      if (use_BROMO) then
-        call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faoo_fbrf_ocn', index_Faoo_fbrf)
+        call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fbrf_ocn', index_Faoo_fbrf)
      end if
 #endif
 
