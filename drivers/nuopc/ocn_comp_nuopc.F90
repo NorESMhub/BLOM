@@ -134,6 +134,8 @@ contains
                call ESMF_LogWrite(subname//trim(tag)//" Field = "// &
                                   trim(stdname)//" is connected on root pe", &
                                   ESMF_LOGMSG_INFO)
+               call blom_logwrite(subname//trim(tag)//" Field = "// &
+                                  trim(stdname)//" is connected on root pe")
                DistGrid = ESMF_DistGridCreate(minIndex=(/1/), maxIndex=(/1/), rc=rc)
                if (ChkErr(rc, __LINE__, u_FILE_u)) return
                grid = ESMF_GridCreate(DistGrid, rc=rc)
@@ -161,6 +163,7 @@ contains
                      subname//trim(tag)//" Field = "//trim(stdname)// &
                      " is connected using mesh with lbound, ubound = ", &
                      fldlist(n)%ungridded_lbound, fldlist(n)%ungridded_ubound
+                  call blom_logwrite(trim(msg))
                   call ESMF_LogWrite(msg, ESMF_LOGMSG_INFO)
                else
                   field = ESMF_FieldCreate(mesh, ESMF_TYPEKIND_R8, &
@@ -170,6 +173,7 @@ contains
                   write(msg,'(a)') &
                      subname//trim(tag)//" Field = "//trim(stdname)// &
                      " is connected using mesh without ungridded dimension"
+                  call blom_logwrite(trim(msg))
                   call ESMF_LogWrite(msg, ESMF_LOGMSG_INFO)
                endif
 
@@ -279,8 +283,14 @@ contains
             call ESMF_StateGet(exportState, trim(fldsFrOcn(n)%stdname), &
                                field=field, rc=rc)
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
-            call ESMF_FieldGet(field, farrayPtr=fldsFrOcn(n)%dataptr, rc=rc)
-            if (ChkErr(rc, __LINE__, u_FILE_u)) return
+            if (fldsFrOcn(n)%ungridded_lbound > 0 .and. fldsFrOcn(n)%ungridded_ubound > 0) then
+              write(6,'(a)')'DEBUG: setting dataptr2d for field '//trim(fldsFrOcn(n)%stdname)
+              call ESMF_FieldGet(field, farrayPtr=fldsFrOcn(n)%dataptr2d, rc=rc)
+              if (ChkErr(rc, __LINE__, u_FILE_u)) return
+            else
+              call ESMF_FieldGet(field, farrayPtr=fldsFrOcn(n)%dataptr, rc=rc)
+              if (ChkErr(rc, __LINE__, u_FILE_u)) return
+            end if
          endif
       enddo
 
@@ -520,12 +530,6 @@ contains
       read(cvalue,*) ocn2glc_coupling
       write(msg,'(a,l1)') subname//': ocn2glc coupling is ', ocn2glc_coupling
       call blom_logwrite(msg)
-      if (ocn2glc_coupling) then
-         call ESMF_LogSetError(ESMF_RC_NOT_IMPL, &
-            msg=subname//": ocn2glc coupling not implemented", &
-            line=__LINE__, file=u_FILE_u, rcToReturn=rc)
-         return
-      endif
 
       !NOTE: Nitrogen deposition is always sent from atm now (either CAM or DATM)
 
@@ -546,7 +550,7 @@ contains
       ! Advertise export fields.
       ! ------------------------------------------------------------------------
 
-      call blom_advertise_exports(flds_scalar_name, fldsFrOcn_num, fldsFrOcn)
+      call blom_advertise_exports(flds_scalar_name, fldsFrOcn_num, fldsFrOcn, ocn2glc_coupling)
 
       do n = 1,fldsFrOcn_num
          call NUOPC_Advertise(exportState, standardName=fldsFrOcn(n)%stdname, &
