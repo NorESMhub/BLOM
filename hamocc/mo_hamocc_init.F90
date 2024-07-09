@@ -178,7 +178,7 @@ contains
     !
     ! --- Initialize parameters
     !
-    call ini_parambgc(idm,jdm)
+    call ini_parambgc()
     if (use_M4AGO) then
       call init_m4ago_nml_params
       call init_m4ago_params
