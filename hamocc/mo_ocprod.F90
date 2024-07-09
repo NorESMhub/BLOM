@@ -356,13 +356,12 @@ contains
             gratpoc = (1.-epsher)*grazing
             grawa = epsher*zinges*grazing
             phythresh = max(0.,(ocetra(i,j,k,iphy)-2.*phytomi))
+            phymor = dyphy*phythresh
             zoothresh = max(0.,(ocetra(i,j,k,izoo)-2.*grami))
             if (lkwrbioz_off) then
               bacfra = 0.
-              phymor = 0.
             else
               bacfra = remido*ocetra(i,j,k,idoc)
-              phymor = dyphy*phythresh
             endif
             exud = gammap*phythresh
             zoomor = spemor*zoothresh*zoothresh           ! *10 compared to linear in tropics (tinka)
@@ -409,16 +408,14 @@ contains
               if (lkwrbioz_off) then
                 bacfra13 = 0.
                 bacfra14 = 0.
-
-                phymor13 = 0.
-                phymor14 = 0.
               else
                 bacfra13 = remido*ocetra(i,j,k,idoc13)
                 bacfra14 = remido*ocetra(i,j,k,idoc14)
-
-                phymor13 = phymor*rphy13
-                phymor14 = phymor*rphy14
               endif
+
+              phymor13 = phymor*rphy13
+              phymor14 = phymor*rphy14
+
               zoomor13 = zoomor*rzoo13
               zoomor14 = zoomor*rzoo14
 
@@ -621,34 +618,43 @@ contains
               avmass = ocetra(i,j,k,iphy)+ocetra(i,j,k,idet)
             endif
             temp = min(40.,max(-3.,ptho(i,j,k)))
-            phythresh = max(0.,(ocetra(i,j,k,iphy)-2.*phytomi))
-            zoothresh = max(0.,(ocetra(i,j,k,izoo)-2.*grami))
-            sterph = 0.5*dyphy*phythresh                                ! phytoplankton to detritus
-            sterzo = spemor*zoothresh*zoothresh                         ! quadratic mortality
-            if (use_cisonew) then
-              rphy13 = ocetra(i,j,k,iphy13)/(ocetra(i,j,k,iphy)+safediv)
-              rphy14 = ocetra(i,j,k,iphy14)/(ocetra(i,j,k,iphy)+safediv)
-              rzoo13 = ocetra(i,j,k,izoo13)/(ocetra(i,j,k,izoo)+safediv)
-              rzoo14 = ocetra(i,j,k,izoo14)/(ocetra(i,j,k,izoo)+safediv)
-              rdet13 = ocetra(i,j,k,idet13)/(ocetra(i,j,k,idet)+safediv)
-              rdet14 = ocetra(i,j,k,idet14)/(ocetra(i,j,k,idet)+safediv)
-              rdoc13 = ocetra(i,j,k,idoc13)/(ocetra(i,j,k,idoc)+safediv)
-              rdoc14 = ocetra(i,j,k,idoc14)/(ocetra(i,j,k,idoc)+safediv)
 
-              sterph13 = sterph*rphy13
-              sterph14 = sterph*rphy14
-              sterzo13 = sterzo*rzoo13
-              sterzo14 = sterzo*rzoo14
-            endif
-            ocetra(i,j,k,iphy) = ocetra(i,j,k,iphy)-sterph
-            ocetra(i,j,k,izoo) = ocetra(i,j,k,izoo)-sterzo
-            if (use_cisonew) then
-              ocetra(i,j,k,iphy13) = ocetra(i,j,k,iphy13)-sterph13
-              ocetra(i,j,k,iphy14) = ocetra(i,j,k,iphy14)-sterph14
-              ocetra(i,j,k,izoo13) = ocetra(i,j,k,izoo13)-sterzo13
-              ocetra(i,j,k,izoo14) = ocetra(i,j,k,izoo14)-sterzo14
-            endif
+            if (lkwrbioz_off) then
+              sterph   = 0.
+              sterzo   = 0.
+              sterph13 = 0.
+              sterph14 = 0.
+              sterzo13 = 0.
+              sterzo14 = 0.
+            else
+              phythresh = max(0.,(ocetra(i,j,k,iphy)-2.*phytomi))
+              zoothresh = max(0.,(ocetra(i,j,k,izoo)-2.*grami))
+              sterph = 0.5*dyphy*phythresh                                ! phytoplankton to detritus
+              sterzo = spemor*zoothresh*zoothresh                         ! quadratic mortality
+              if (use_cisonew) then
+                rphy13 = ocetra(i,j,k,iphy13)/(ocetra(i,j,k,iphy)+safediv)
+                rphy14 = ocetra(i,j,k,iphy14)/(ocetra(i,j,k,iphy)+safediv)
+                rzoo13 = ocetra(i,j,k,izoo13)/(ocetra(i,j,k,izoo)+safediv)
+                rzoo14 = ocetra(i,j,k,izoo14)/(ocetra(i,j,k,izoo)+safediv)
+                rdet13 = ocetra(i,j,k,idet13)/(ocetra(i,j,k,idet)+safediv)
+                rdet14 = ocetra(i,j,k,idet14)/(ocetra(i,j,k,idet)+safediv)
+                rdoc13 = ocetra(i,j,k,idoc13)/(ocetra(i,j,k,idoc)+safediv)
+                rdoc14 = ocetra(i,j,k,idoc14)/(ocetra(i,j,k,idoc)+safediv)
 
+                sterph13 = sterph*rphy13
+                sterph14 = sterph*rphy14
+                sterzo13 = sterzo*rzoo13
+                sterzo14 = sterzo*rzoo14
+              endif
+              ocetra(i,j,k,iphy) = ocetra(i,j,k,iphy)-sterph
+              ocetra(i,j,k,izoo) = ocetra(i,j,k,izoo)-sterzo
+              if (use_cisonew) then
+                ocetra(i,j,k,iphy13) = ocetra(i,j,k,iphy13)-sterph13
+                ocetra(i,j,k,iphy14) = ocetra(i,j,k,iphy14)-sterph14
+                ocetra(i,j,k,izoo13) = ocetra(i,j,k,izoo13)-sterzo13
+                ocetra(i,j,k,izoo14) = ocetra(i,j,k,izoo14)-sterzo14
+              endif
+            endif
             if(ocetra(i,j,k,ioxygen) > 5.e-8) then
               if (use_M4AGO) then
                 if (.not. use_extNcycle) then
@@ -671,6 +677,10 @@ contains
                 pocrem = min(o2lim*pocrem,              0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
                 docrem = min(remido*ocetra(i,j,k,idoc), 0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
                 phyrem = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
+              endif
+
+              if (lkwrbioz_off) then
+                phyrem = 0.
               endif
 
               if (use_cisonew) then
