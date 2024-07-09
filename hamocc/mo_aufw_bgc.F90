@@ -71,7 +71,7 @@ contains
 
     use netcdf,         only: nf90_64bit_offset,nf90_global,nf90_noerr,nf90_nofill,nf90_def_dim,   &
                               nf90_enddef,nf90_close,nf90_create,nf90_put_att,nf90_set_fill
-    use mod_xc,         only: nbdy,itdm,jtdm,mnproc,iqr,jqr,xchalt,mpicomm,mpierr,mpireq,mpistat
+    use mod_xc,         only: nbdy,itdm,jtdm,mnproc,iqr,jqr,xchalt
     use mod_dia,        only: iotype
     use mo_carbch,      only: co2star,co3,hi,satoxy,nathi
     use mo_control_bgc, only: io_stdo_bgc,ldtbgc,rmasks,rmasko,use_cisonew,use_AGG,use_BOXATM,     &
@@ -88,6 +88,9 @@ contains
                               ipowno3,isssc12,issso12,issssil,issster,iprefsilica,ianh4,iano2,     &
                               ipownh4,ipown2o,ipowno2
     use mo_netcdf_bgcrw,only: write_netcdf_var,netcdf_def_vardb
+#ifdef PNETCDF
+    use mod_xc,         only: mpicomm
+#endif
 
     ! Arguments
     integer,          intent(in) :: kpie             ! 1st dimension of model grid.
