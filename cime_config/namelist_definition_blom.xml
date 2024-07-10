@@ -3653,6 +3653,16 @@
     <desc>Switch for cyano-bluefix in euphotic zone only</desc>
   </entry>
 
+  <entry id="lkwrbioz_off">
+    <type>logical</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>.true.</value>
+    </values>
+    <desc>Switch for primary production and remineralization throughout the whole water column</desc>
+  </entry>
+
   <entry id="do_oalk">
     <type>logical</type>
     <category>bgcnml</category>
