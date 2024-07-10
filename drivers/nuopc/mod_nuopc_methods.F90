@@ -25,6 +25,7 @@ module mod_nuopc_methods
 
    use shr_const_mod,  only: SHR_CONST_RHOSW, SHR_CONST_LATICE, SHR_CONST_TKFRZ
    use shr_const_mod,  only: SHR_CONST_SPVAL
+   use shr_sys_mod,    only: shr_sys_abort
    use dimensions,     only: kdm
    use mod_dia,        only: depthslev
    use mod_types,      only: r8
@@ -49,6 +50,7 @@ module mod_nuopc_methods
    use mo_control_bgc, only: use_BROMO, ocn_co2_type
 #endif
    use mod_fill_global, only: fill_global
+   use mod_vertinterp,  only: vertinterp_wghts, vertinterp_accum
 
    implicit none
    private
@@ -66,7 +68,29 @@ module mod_nuopc_methods
    end type fldlist_type
    integer, parameter :: fldsMax = 100
 
+   ! Define export levels for multi-level fields.
+
+   integer, parameter :: nlev_export = 30
+   real(r8), dimension(nlev_export) :: vertical_levels = (/  &
+        0030., 0090., 0150., 0210., 0270., &
+        0330., 0390., 0450., 0510., 0570., &
+        0630., 0690., 0750., 0810., 0870., &
+        0930., 0990., 1050., 1110., 1170., &
+        1230., 1290., 1350., 1410., 1470., &
+        1530., 1590., 1650., 1710., 1770. /)
+
+   real(r8), dimension(2,nlev_export) :: vertical_levels_bnds = reshape((/ &
+        0000., 0060., 0060., 0120., 0120., 0180., 0180., 0240., 0240., 0300., &
+        0300., 0360., 0360., 0420., 0420., 0480., 0480., 0540., 0540., 0600., &
+        0600., 0660., 0660., 0720., 0720., 0780., 0780., 0840., 0840., 0900., &
+        0900., 0960., 0960., 1020., 1020., 1080., 1080., 1140., 1140., 1200., &
+        1200., 1260., 1260., 1320., 1320., 1380., 1380., 1440., 1440., 1500., &
+        1500., 1560., 1560., 1620., 1620., 1680., 1680., 1740., 1740., 1800./), &
+        (/2,nlev_export/))
+
    real(r8), dimension(:), allocatable :: mod2med_areacor, med2mod_areacor
+
+   ! Accumulated fields
    real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_u
    real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_v
    real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_dhdx
@@ -80,8 +104,8 @@ module mod_nuopc_methods
    real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_fbrf
    real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_fn2o
    real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_fnh3
-   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: acc_t_depth
-   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: acc_s_depth
+   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nlev_export) :: acc_t_depth
+   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nlev_export) :: acc_s_depth
 
    real(r8) :: tlast_coupled
    integer :: jjcpl
@@ -141,14 +165,6 @@ module mod_nuopc_methods
         index_So_t_depth = -1, &
         index_So_s_depth = -1
 
-   ! Define export levels for multi-level fields.
-   ! note: BLOM levels are defined in mod_dia.F90 in the array depthslev - which is public
-   integer, parameter :: nlev_export = 30
-   real(r8) :: vertical_levels(nlev_export) = (/  &
-        30., 90., 150., 210., 270., 330., 390., 450., 510., 570., &
-        630., 690., 750., 810., 870., 930., 990., 1050., 1110., 1170., &
-        1230., 1290., 1350., 1410., 1470., 1530., 1590., 1650., 1710., 1770. /)
-
 contains
 
    ! ---------------------------------------------------------------------------
@@ -186,7 +202,6 @@ contains
       index = num
 
       if (present(ungridded_lbound) .and. present(ungridded_ubound)) then
-         write(6,*)'DEBUG: adding upper bound to field '//trim(stdname),ungridded_ubound,num
          fldlist(num)%ungridded_lbound = ungridded_lbound
          fldlist(num)%ungridded_ubound = ungridded_ubound
       endif
@@ -268,6 +283,7 @@ contains
      type(fldlist_type) , intent(inout) :: fldsFrOcn(:)
      logical            , intent(in)    :: ocn2glc_coupling
 
+     ! Local variables
      integer :: index_scalar
 
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, trim(flds_scalar_name), index_scalar)
@@ -502,8 +518,11 @@ contains
 
       ! Local variables.
       real(r8) :: q
-      integer  :: m, n, mm, nn, k1m, k1n, i, j, l, k
+      integer  :: m, n, mm, nn, k1m, k1n, i, j, l, k, kml
       logical  :: first_call = .true.
+      integer , dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ind1
+      integer , dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ind2
+      real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nlev_export) :: wghts
 
       ! -----------------
       ! Set accumulation arrays to zero if this is the first call after a
@@ -532,10 +551,15 @@ contains
       ! Accumulate fields in send buffer
       ! -----------------
 
-      m = mod(nstep + 1, 2) + 1
-      n = mod(nstep    , 2) + 1
-      mm = (m - 1)*kk
-      nn = (n - 1)*kk
+      ! What is commented out here is what is used in mod_dia.F90
+      ! but this does not seem to work here
+      ! m = mod(nstep+1,2) + 1
+      ! n = mod(nstep  ,2) + 1
+
+      m = mod(nstep  ,2)+1
+      n = mod(nstep+1,2)+1
+      mm = (m-1)*kk
+      nn = (n-1)*kk
       k1m = 1 + mm
       k1n = 1 + nn
 
@@ -666,15 +690,11 @@ contains
       end if
 
       if (index_So_t_depth > 0 .and. index_So_s_depth > 0) then
+         ! Accumulate multi-level temperature and density on output levels
          do k = 1,kdm
-            do j = 1, jj
-               do l = 1, isp(j)
-               do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
-                  acc_t_depth(i,j,k) = acc_t_depth(i,j,k) + temp(i,j,k)*baclin
-                  acc_s_depth(i,j,k) = acc_s_depth(i,j,k) + saln(i,j,k)*baclin
-               enddo
-               end do
-            end do
+            call vertinterp_wghts(k, nlev_export, vertical_levels, vertical_levels_bnds, ind1, ind2, wghts)
+            call vertinterp_accum(kdm, nlev_export, k, ind1, ind2, wghts, temp(1-nbdy,1-nbdy,k1m), acc_t_depth)
+            call vertinterp_accum(kdm, nlev_export, k, ind1, ind2, wghts, saln(1-nbdy,1-nbdy,k1m), acc_s_depth)
          end do
       end if
 
@@ -1028,9 +1048,7 @@ contains
 
       ! Local variables.
       real(r8) :: tfac, utmp, vtmp
-      integer  :: n, l, i, j, ko, ki
-      logical  :: level_found
-      real(r8) :: factor
+      integer  :: n, l, i, j, k, ko, mm
       logical  :: first_call = .true.
 
       tfac = 1._r8/tlast_coupled
@@ -1198,35 +1216,13 @@ contains
          ! interpolate acc_saln and acc_temp to output levels and then sent
          do j = 1, jjcpl
             do l = 1, isp(j)
-            do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
-               n = (j - 1)*ii + i
-               do ko = 1,nlev_export
-                  level_found = .false.
-                  do ki = 1,kdm-1
-                     if (vertical_levels(ko) > depthslev(ki) .and. vertical_levels(ko) <= depthslev(ki+1)) then
-                        if (mnproc == 1 .and. first_call) then
-                           write(lp,'(a,3(i5,2x),3(f13.5,2x))') &
-                                'vertical interpolation: ki,ko,ki+1,lev(ki),lev(ko),lev(ki+1) = ',&
-                                ki,ko,ki+1,depthslev(ki), vertical_levels(ko), depthslev(ki+1)
-                        end if
-                        level_found = .true.
-                        factor = (acc_t_depth(i,j,ki+1) - acc_t_depth(i,j,ki))/(depthslev(ki+1)-depthslev(ki))
-                        fldlist(index_So_t_depth)%dataptr2d(ko,n) = acc_t_depth(i,j,ki)*tfac &
-                                                                  + (vertical_levels(ko)-depthslev(ki))*factor  &
-                                                                  + SHR_CONST_TKFRZ
-                        factor = (acc_s_depth(i,j,ki+1) - acc_s_depth(i,j,ki))/(depthslev(ki+1)-depthslev(ki))
-                        fldlist(index_So_s_depth)%dataptr2d(ko,n) = acc_s_depth(i,j,ki)*tfac &
-                                                                  + (vertical_levels(ko)-depthslev(ki))*factor
-                     end if
+               do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                  n = (j - 1)*ii + i
+                  do ko = 1,nlev_export
+                     fldlist(index_So_t_depth)%dataptr2d(ko,n) = acc_t_depth(i,j,ko)*tfac + SHR_CONST_TKFRZ
+                     fldlist(index_So_s_depth)%dataptr2d(ko,n) = acc_s_depth(i,j,ko)*tfac
                   end do
-                  if (.not. level_found) then
-                     write(lp,'(a)') trim(subname)//&
-                          ': BLOM ERROR: could not find level bounds for vertical interpolation'
-                     call xchalt(subname)
-                     stop subname
-                  end if
-               enddo
-            end do
+               end do
             end do
          end do
       end if
