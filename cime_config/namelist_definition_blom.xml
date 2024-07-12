@@ -5380,7 +5380,7 @@
     <desc>Piston velocity (kwco2)  [m s-1]</desc>
   </entry>
 
-  <entry id="srf_kwco2khm">
+  <entry id="srf_kwco2sol">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5389,10 +5389,10 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>Piston velocity times solubility (kwco2*kh; moist air) [m s-1 mol kg-1 uatm-1]</desc>
+    <desc>Piston velocity times solubility (kwco2*kh0) [m s-1 mol kg-1 uatm-1]</desc>
   </entry>
 
-  <entry id="srf_co2kh">
+  <entry id="srf_co2sol">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5401,10 +5401,10 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>Piston velocity times solubility (kwco2*kh; moist air) [m s-1 mol kg-1 uatm-1]</desc>
+    <desc>CO2 solubility (kh0) [mol kg-1 uatm-1]</desc>
   </entry>
 
-  <entry id="srf_co2khm">
+  <entry id="srf_fco2">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5413,7 +5413,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>CO2 solubility under moist air assumption (kh) [mol kg-1 atm-1] </desc>
+    <desc>Surface fugacity at 1 atm total pressure [uatm]</desc>
   </entry>
 
   <entry id="srf_pco2">
@@ -5425,10 +5425,10 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>Natural surface PCO2 (spco2) [uatm]</desc>
+    <desc>Surface pCO2 at 1 atm total pressure [uatm]</desc>
   </entry>
 
-  <entry id="srf_pco2m">
+  <entry id="srf_pco2_gex">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5437,7 +5437,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>Surface PCO2 under moist air assumption [uatm]</desc>
+    <desc>Atmospheric pCO2 at the air-sea interface as seen by the gas-exchange parameterization [uatm]</desc>
   </entry>
 
   <entry id="srf_co2fxd">
