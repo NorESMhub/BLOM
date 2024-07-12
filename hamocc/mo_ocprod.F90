@@ -94,7 +94,7 @@ contains
     use mo_control_bgc,   only: dtb,io_stdo_bgc,with_dmsph,                                        &
                                 use_BROMO,use_AGG,use_PBGC_OCNP_TIMESTEP,use_FB_BGC_OCE,           &
                                 use_AGG,use_cisonew,use_natDIC, use_WLIN,use_sedbypass,use_M4AGO,  &
-                                use_extNcycle
+                                use_extNcycle,lkwrbioz_off
     use mo_vgrid,         only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000,kwrbioz,ptiestu
     use mo_vgrid,         only: kmle
     use mo_clim_swa,      only: swa_clim
@@ -250,7 +250,7 @@ contains
           absorption    = 1.
           absorption_uv = 1.
 
-          vloop: do k = 1,kwrbioz(i,j)
+          vloop: do k = 1,merge(kpke,kwrbioz(i,j),lkwrbioz_off)
 
             if(pddpo(i,j,k) > 0.0) then
 
@@ -305,7 +305,7 @@ contains
 
     loop1: do j = 1,kpje
       do i = 1,kpie
-        do k = 1,kwrbioz(i,j)
+        do k = 1,merge(kpke,kwrbioz(i,j),lkwrbioz_off)
 
           if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
 
@@ -348,18 +348,21 @@ contains
               xn = xa/(1.+pho*avphy/(xa+bkphy))
               phosy = max(0.,xa-xn)
             endif
-            phosy = MERGE(avdic/rcar, phosy, avdic <= rcar*phosy)     ! limit phosy by available DIC
+            phosy = merge(avdic/rcar, phosy, avdic <= rcar*phosy)     ! limit phosy by available DIC
             ya = avphy+phosy
             yn = (ya+grazra*avgra*phytomi/(avphy+bkzoo))/(1.+grazra*avgra/(avphy+bkzoo))
             grazing = max(0.,ya-yn)
             graton = epsher*(1.-zinges)*grazing
             gratpoc = (1.-epsher)*grazing
             grawa = epsher*zinges*grazing
-            bacfra=remido*ocetra(i,j,k,idoc)
-
             phythresh = max(0.,(ocetra(i,j,k,iphy)-2.*phytomi))
-            zoothresh = max(0.,(ocetra(i,j,k,izoo)-2.*grami))
             phymor = dyphy*phythresh
+            zoothresh = max(0.,(ocetra(i,j,k,izoo)-2.*grami))
+            if (lkwrbioz_off) then
+              bacfra = 0.
+            else
+              bacfra = remido*ocetra(i,j,k,idoc)
+            endif
             exud = gammap*phythresh
             zoomor = spemor*zoothresh*zoothresh           ! *10 compared to linear in tropics (tinka)
             excdoc = gammaz*zoothresh                     ! excretion of doc by zooplankton
@@ -402,8 +405,13 @@ contains
               grawa13 = epsher*zinges*grazing13
               grawa14 = epsher*zinges*grazing14
 
-              bacfra13 = remido*ocetra(i,j,k,idoc13)
-              bacfra14 = remido*ocetra(i,j,k,idoc14)
+              if (lkwrbioz_off) then
+                bacfra13 = 0.
+                bacfra14 = 0.
+              else
+                bacfra13 = remido*ocetra(i,j,k,idoc13)
+                bacfra14 = remido*ocetra(i,j,k,idoc14)
+              endif
 
               phymor13 = phymor*rphy13
               phymor14 = phymor*rphy14
@@ -440,8 +448,12 @@ contains
               dms_ph  = 1.
             endif
             dmsprod = (dmsp5*delsil+dmsp4*delcar)*(1.+1./(temp+dmsp1)**2)*dms_ph
-            dms_bac = dmsp3*abs(temp+3.)*ocetra(i,j,k,idms)                 &
-                 &             *(ocetra(i,j,k,idms)/(dmsp6+ocetra(i,j,k,idms)))
+            if (lkwrbioz_off) then
+               dms_bac = 0.
+            else
+               dms_bac = dmsp3*abs(temp+3.)*ocetra(i,j,k,idms)                 &
+                       &             *(ocetra(i,j,k,idms)/(dmsp6+ocetra(i,j,k,idms)))
+            endif
             dms_uv  = dmsp2*phofa/pi_alpha*ocetra(i,j,k,idms)
 
             dtr = bacfra-phosy+graton+ecan*zoomor
@@ -494,10 +506,14 @@ contains
               ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)-2.*delcar-(rnit+1)*dtr
               ocetra(i,j,k,inatcalc) = ocetra(i,j,k,inatcalc)+delcar
             endif
-            if (use_M4AGO) then
-              opalrem = dremopal*opal_remin_q10**((ptho(i,j,k)-opal_remin_Tref)/10.)*ocetra(i,j,k,iopal)
+            if (lkwrbioz_off) then
+                  opalrem = 0.
             else
-              opalrem = dremopal*ocetra(i,j,k,iopal)
+               if (use_M4AGO) then
+                  opalrem = dremopal*opal_remin_q10**((ptho(i,j,k)-opal_remin_Tref)/10.)*ocetra(i,j,k,iopal)
+               else
+                  opalrem = dremopal*ocetra(i,j,k,iopal)
+               endif
             endif
             ocetra(i,j,k,isilica) = ocetra(i,j,k,isilica)-delsil+opalrem
             ocetra(i,j,k,iopal) = ocetra(i,j,k,iopal)+delsil-opalrem
@@ -595,7 +611,7 @@ contains
 
     loop2: do j = 1,kpje
       do i = 1,kpie
-        do k = kwrbioz(i,j)+1,kpke
+        do k = merge(1,kwrbioz(i,j)+1,lkwrbioz_off),kpke
           if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
 
             if (use_AGG) then
@@ -621,6 +637,16 @@ contains
               sterzo13 = sterzo*rzoo13
               sterzo14 = sterzo*rzoo14
             endif
+
+            if (lkwrbioz_off) then ! dying before in PP loop
+              sterph   = 0.
+              sterzo   = 0.
+              sterph13 = 0.
+              sterph14 = 0.
+              sterzo13 = 0.
+              sterzo14 = 0.
+            endif
+
             ocetra(i,j,k,iphy) = ocetra(i,j,k,iphy)-sterph
             ocetra(i,j,k,izoo) = ocetra(i,j,k,izoo)-sterzo
             if (use_cisonew) then
@@ -652,6 +678,10 @@ contains
                 pocrem = min(o2lim*pocrem,              0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
                 docrem = min(remido*ocetra(i,j,k,idoc), 0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
                 phyrem = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
+              endif
+
+              if (lkwrbioz_off) then ! dying before in PP loop
+                phyrem = 0.
               endif
 
               if (use_cisonew) then
@@ -782,7 +812,7 @@ contains
       !$OMP PARALLEL DO PRIVATE(remin,remin2o,dz,avmass,avnos,rem13,rem14,i,k)
       loop3: do j = 1,kpje
         do i = 1,kpie
-          do k = kwrbioz(i,j)+1,kpke
+          do k = merge(1,kwrbioz(i,j)+1,lkwrbioz_off),kpke
             if(omask(i,j) > 0.5) then
               if(ocetra(i,j,k,ioxygen) < 5.e-7 .and. pddpo(i,j,k) > dp_min) then
                 if (use_AGG) then
@@ -875,7 +905,7 @@ contains
     !$OMP PARALLEL DO PRIVATE(remin,avmass,avnos,rem13,rem14,i,k)
     loop4: do j = 1,kpje
       do i = 1,kpie
-        do k = kwrbioz(i,j)+1,kpke
+        do k = merge(1,kwrbioz(i,j)+1,lkwrbioz_off),kpke
           if(omask(i,j) > 0.5 .and. pddpo(i,j,k) > dp_min) then
             if(ocetra(i,j,k,ioxygen) < 5.e-7 .and. ocetra(i,j,k,iano3) < 3.e-6) then
 
