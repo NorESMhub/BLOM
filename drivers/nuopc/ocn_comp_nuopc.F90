@@ -284,7 +284,6 @@ contains
                                field=field, rc=rc)
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
             if (fldsFrOcn(n)%ungridded_lbound > 0 .and. fldsFrOcn(n)%ungridded_ubound > 0) then
-              write(6,'(a)')'DEBUG: setting dataptr2d for field '//trim(fldsFrOcn(n)%stdname)
               call ESMF_FieldGet(field, farrayPtr=fldsFrOcn(n)%dataptr2d, rc=rc)
               if (ChkErr(rc, __LINE__, u_FILE_u)) return
             else
