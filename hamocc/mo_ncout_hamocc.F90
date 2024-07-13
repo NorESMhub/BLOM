@@ -1377,7 +1377,7 @@ contains
          &   'kwco2sol','CO2 piston velocity times solubility',' ',             &
          &   'm s-1 mol kg-1 muatm-1',0)
     call ncdefvar3d(SRF_CO2SOL(iogrp),cmpflg,'p',                               &
-         &   'co2sol','CO2 solubility',' ','mol kg-1 atm-1',0)
+         &   'co2sol','CO2 solubility',' ','mol kg-1 muatm-1',0)
     call ncdefvar3d(SRF_FCO2(iogrp),cmpflg,'p',                                 &
          &   'fco2','Surface CO2 fugacity at 1 atm total pressure',' ','uatm',0)
     call ncdefvar3d(SRF_PCO2(iogrp),cmpflg,'p',                                 &

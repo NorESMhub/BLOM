@@ -586,9 +586,9 @@ contains
               endif
 
               ! Save product of piston velocity and solubility for output
-              kwco2sol(i,j) = kwco2*Kh0*1e-6 !m/s mol/kg/muatm
-              kwco2a(i,j)   = kwco2 ! m/s (incl. ice fraction!)
-              co2sol(i,j)   = Kh0   ! mol/kg/atm
+              kwco2sol(i,j) = kwco2*Kh0*1e-6 ! m/s mol/kg/muatm
+              kwco2a(i,j)   = kwco2          ! m/s (incl. ice fraction!)
+              co2sol(i,j)   = Kh0*1e-6       ! mol/kg/uatm
 
             endif ! k==1
 
