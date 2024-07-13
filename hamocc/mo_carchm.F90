@@ -504,16 +504,13 @@ contains
                   atm_sf6=fact*atm_sf6_nh+(1-fact)*atm_sf6_sh
                 endif
 
-                ! Use conversion of 9.86923e-6 [std atm / Pascal]
-                ! Surface flux of cfc11
-                flx11=kw_11*dtbgc*(a_11*atm_cfc11*ppao(i,j)*9.86923*1e-6-ocetra(i,j,1,icfc11))
+                ! Surface flux of cfc11, cfc12, and sf6
+                flx11=kw_11*dtbgc*(a_11*atm_cfc11*rpp0-ocetra(i,j,1,icfc11))
+                flx12=kw_12*dtbgc*(a_12*atm_cfc12*rpp0-ocetra(i,j,1,icfc12))
+                flxsf=kw_sf*dtbgc*(a_sf*atm_sf6  *rpp0-ocetra(i,j,1,isf6))
                 ocetra(i,j,1,icfc11)=ocetra(i,j,1,icfc11)+flx11/pddpo(i,j,1)
-                ! Surface flux of cfc12
-                flx12=kw_12*dtbgc*(a_12*atm_cfc12*ppao(i,j)*9.86923*1e-6-ocetra(i,j,1,icfc12))
                 ocetra(i,j,1,icfc12)=ocetra(i,j,1,icfc12)+flx12/pddpo(i,j,1)
-                ! Surface flux of sf6
-                flxsf=kw_sf*dtbgc*(a_sf*atm_sf6*ppao(i,j)*9.86923*1e-6-ocetra(i,j,1,isf6))
-                ocetra(i,j,1,isf6)=ocetra(i,j,1,isf6)+flxsf/pddpo(i,j,1)
+                ocetra(i,j,1,isf6)  =ocetra(i,j,1,isf6)  +flxsf/pddpo(i,j,1)
               endif
 
               ! Surface flux of dms
@@ -580,12 +577,12 @@ contains
                 co214fxu(i,j)= flux14u
               endif
 
-              ! Save CO2 fugacity and pCO2 [micro atm] in equilibrium with dry air at 1 atm for output
-              fco2(i,j)     = cu * 1.e6 / Kh0 / (1.0-pH2O)
+              ! Save CO2 fugacity and pCO2 [micro atm] in equilibrium with air of x'=atco2 for output
+              fco2(i,j)     = cu * 1.e6 / Kh0 / (rpp0-pH2O)
               pco2(i,j)     = fco2(i,j)/fc
               pco2_gex(i,j) = atco2*(rpp0-pH2O)
               if (use_natDIC) then
-                natpco2(i,j) = natcu * 1.e6 / Kh0 / (1.0-pH2O) / fc
+                natpco2(i,j) = natcu * 1.e6 / Kh0 / (rpp0-pH2O) / fc
               endif
 
               ! Save product of piston velocity and solubility for output
