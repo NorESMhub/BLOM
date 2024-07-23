@@ -1219,8 +1219,16 @@ contains
                do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
                   n = (j - 1)*ii + i
                   do ko = 1,nlev_export
-                     fldlist(index_So_t_depth)%dataptr2d(ko,n) = acc_t_depth(i,j,ko)*tfac + SHR_CONST_TKFRZ
-                     fldlist(index_So_s_depth)%dataptr2d(ko,n) = acc_s_depth(i,j,ko)*tfac
+                     if (acc_t_depth(i,j,ko) == 0._r8) then
+                        fldlist(index_So_t_depth)%dataptr2d(ko,n) = shr_const_spval
+                     else
+                        fldlist(index_So_t_depth)%dataptr2d(ko,n) = acc_t_depth(i,j,ko)*tfac + SHR_CONST_TKFRZ
+                     end if
+                     if (acc_s_depth(i,j,ko) == 0._r8) then
+                        fldlist(index_So_s_depth)%dataptr2d(ko,n) = shr_const_spval
+                     else
+                        fldlist(index_So_s_depth)%dataptr2d(ko,n) = acc_s_depth(i,j,ko)*tfac
+                     end if
                   end do
                end do
             end do
