@@ -551,15 +551,10 @@ contains
       ! Accumulate fields in send buffer
       ! -----------------
 
-      ! What is commented out here is what is used in mod_dia.F90
-      ! but this does not seem to work here
-      ! m = mod(nstep+1,2) + 1
-      ! n = mod(nstep  ,2) + 1
-
-      m = mod(nstep  ,2)+1
-      n = mod(nstep+1,2)+1
-      mm = (m-1)*kk
-      nn = (n-1)*kk
+      m = mod(nstep + 1, 2) + 1
+      n = mod(nstep    , 2) + 1
+      mm = (m - 1)*kk
+      nn = (n - 1)*kk
       k1m = 1 + mm
       k1n = 1 + nn
 
