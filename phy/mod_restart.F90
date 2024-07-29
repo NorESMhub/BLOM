@@ -1,7 +1,7 @@
 ! ------------------------------------------------------------------------------
 ! Copyright (C) 2006-2024 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
 !                         Ingo Bethke, Jerry Tjiputra, Ping-Gin Chiu,
-!                         Aleksi Nummelin, Jörg Schwinger
+!                         Aleksi Nummelin, Jörg Schwinger, Mariana Vertenstein, !                         Joeran Maerz
 !
 ! This file is part of BLOM.
 !
@@ -83,7 +83,7 @@ module mod_restart
    use mod_forcing,        only: ditflx, disflx, sprfac, tflxdi, sflxdi, nflxdi, &
                                  prfac, eiacc, pracc, flxco2, flxdms, flxbrf, &
                                  flxn2o,flxnh3, &
-                                 ustarb, buoyfl, ustar
+                                 ustarb, wstar3, buoyfl, ustar
    use mod_niw,            only: uml, vml, umlres, vmlres
    use mod_difest,         only: OBLdepth
    use mod_diffusion,      only: difiso, Kvisc_m, Kdiff_t, Kdiff_s, &
@@ -92,6 +92,7 @@ module mod_restart
                                  usflld, utflsm, usflld, utflld, umfltd, usflld, &
                                  vmflsm, vsfltd, vtflld, vsflsm, vtfltd, &
                                  vsflld, vtflsm, vsflld, vtflld, vmfltd, vsflld
+   use mod_eddtra,         only: hbl_tf, wpup_tf, hml_tf1, hml_tf
    use mod_cesm,           only: frzpot, mltpot, swa_da, nsf_da, hmlt_da, lip_da, &
                                  sop_da, eva_da, rnf_da, rfi_da, fmltfz_da, sfl_da, &
                                  ztx_da, mty_da, ustarw_da, slp_da, abswnd_da, &
@@ -351,9 +352,9 @@ contains
       endif
 
       if (vcoord_type_tag == cntiso_hybrid) then
-         call defwrtfld('dpu', trim(c5p)//' kk2 time', &
+         call defwrtfld('dpu', trim(c5u)//' kk2 time', &
                          dpu, iu, defmode)
-         call defwrtfld('dpv', trim(c5p)//' kk2 time', &
+         call defwrtfld('dpv', trim(c5v)//' kk2 time', &
                          dpv, iv, defmode)
          call defwrtfld('difiso', trim(c5p)//' kk time', &
                          difiso, ip, defmode)
@@ -379,6 +380,16 @@ contains
                          vtflsm, ivv, defmode)
          call defwrtfld('vsflsm', trim(c5v)//' kk2 time', &
                          vsflsm, ivv, defmode)
+         call defwrtfld('wstar3', trim(c5p)//' time', &
+                         wstar3, ip, defmode)
+         call defwrtfld('hbl_tf', trim(c5p)//' time', &
+                         hbl_tf, ip, defmode)
+         call defwrtfld('wpup_tf', trim(c5p)//' time', &
+                         wpup_tf, ip, defmode)
+         call defwrtfld('hml_tf1', trim(c5p)//' time', &
+                         hml_tf1, ip, defmode)
+         call defwrtfld('hml_tf', trim(c5p)//' time', &
+                         hml_tf, ip, defmode)
       endif
 
       if (sprfac) then
@@ -1549,6 +1560,11 @@ contains
          call readfld('vmflsm', lm_unitconv, vmflsm, ivv)
          call readfld('vtflsm', lm_unitconv, vtflsm, ivv)
          call readfld('vsflsm', lm_unitconv, vsflsm, ivv)
+         call readfld('wstar3', l3_unitconv, wstar3, ip)
+         call readfld('hbl_tf', l_unitconv, hbl_tf, ip)
+         call readfld('wpup_tf', l2_unitconv, wpup_tf, ip)
+         call readfld('hml_tf1', l_unitconv, hml_tf1, ip)
+         call readfld('hml_tf', l_unitconv, hml_tf, ip)
       endif
 
       if (sprfac) then

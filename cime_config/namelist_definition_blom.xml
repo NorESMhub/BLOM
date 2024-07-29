@@ -381,6 +381,130 @@
     <desc>Method of applying eddy-induced transport in the remap</desc>
   </entry>
 
+  <entry id="mlrmth">
+    <type>char</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>fox08</value>
+    </values>
+    <desc>Mixed layer restratification method</desc>
+  </entry>
+
+  <entry id="ce">
+    <type>real</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.06</value>
+      <value ocn_grid="tnx1v4"    blom_vcoord="isopyc_bulkml" ocn_ncpl="24">.5</value>
+      <value ocn_grid="tnx0.25v4" blom_vcoord="isopyc_bulkml">1.0</value>
+    </values>
+    <desc>Efficiency factor for the restratification by mixed layer</desc>
+  </entry>
+
+  <entry id="cl">
+    <type>real</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.25</value>
+    </values>
+    <desc>Scaling of the efficiency factor for the restratification by mixed layer eddies (Bodner et al., 2023)</desc>
+  </entry>
+
+  <entry id="tau_mlr">
+    <type>real</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>86400.</value>
+    </values>
+    <desc>Timescale for momentum mixing across mixed layer</desc>
+  </entry>
+
+  <entry id="tau_growing_hbl">
+    <type>real</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>0.</value>
+    </values>
+    <desc>Time-scale for running mean filter when signal is greater than filtered value (used for boundary layer thickness and vertical momentum flux)</desc>
+  </entry>
+
+  <entry id="tau_decaying_hbl">
+    <type>real</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>0.</value>
+    </values>
+    <desc>Time-scale for running mean filter when signal is less than filtered value (used for boundary layer thickness and vertical momentum flux)</desc>
+  </entry>
+
+  <entry id="tau_growing_hml">
+    <type>real</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>0.</value>
+    </values>
+    <desc>Time-scale for running mean filter when signal is greater than filtered value (used for mixed layer thickness)</desc>
+  </entry>
+
+  <entry id="tau_decaying_hml">
+    <type>real</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>0.</value>
+    </values>
+    <desc>Time-scale for running mean filter when signal is less than filtered value (used for mixed layer thickness)</desc>
+  </entry>
+
+  <entry id="lfmin">
+    <type>real</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>5000.</value>
+      <value blom_unit="cgs">5000.e2</value>
+    </values>
+    <desc>Minimum length scale of mixed layer fronts</desc>
+  </entry>
+
+  <entry id="mstar">
+    <type>real</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.5</value>
+    </values>
+    <desc>Scaling of boundary layer turbulence due to friction velocity (Bodner et al., 2023)</desc>
+  </entry>
+
+  <entry id="nstar">
+    <type>real</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.066</value>
+    </values>
+    <desc>Scaling of boundary layer turbulence due to convective velocity (Bodner et al., 2023)</desc>
+  </entry>
+
+  <entry id="wpup_min">
+    <type>real</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>1.e-7</value>
+      <value blom_unit="cgs">1.e-3</value>
+    </values>
+    <desc>Minimum vertical momentum flux (Bodner et al., 2023)</desc>
+  </entry>
+
   <entry id="mlrttp">
     <type>char</type>
     <category>limits</category>
@@ -409,18 +533,6 @@
       <value>0.</value>
     </values>
     <desc>Efficiency factor of TKE generation by momentum</desc>
-  </entry>
-
-  <entry id="ce">
-    <type>real</type>
-    <category>limits</category>
-    <group>limits</group>
-    <values>
-      <value>.06</value>
-      <value ocn_grid="tnx1v4"    blom_vcoord="isopyc_bulkml" ocn_ncpl="24">.5</value>
-      <value ocn_grid="tnx0.25v4" blom_vcoord="isopyc_bulkml">1.0</value>
-    </values>
-    <desc>Efficiency factor for the restratification by mixed layer</desc>
   </entry>
 
   <entry id="tdfile" is_inputdata="yes">

@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2021 Mats Bentsen, Jerry Tjiputra
+! Copyright (C) 2015-2024 Mats Bentsen, Jerry Tjiputra, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -27,6 +27,7 @@ module mod_inivar
   use mod_tmsmt,       only: inivar_tmsmt
   use mod_diffusion,   only: inivar_diffusion
   use mod_difest,      only: inivar_difest
+  use mod_eddtra,      only: inivar_eddtra
   use mod_utility,     only: inivar_utility
   use mod_mxlayr,      only: inivar_mxlayr
   use mod_seaice,      only: inivar_seaice
@@ -58,6 +59,7 @@ contains
     call inivar_tmsmt
     call inivar_diffusion
     call inivar_difest
+    call inivar_eddtra
     call inivar_utility
     call inivar_mxlayr
     call inivar_seaice
