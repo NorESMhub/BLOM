@@ -1,7 +1,7 @@
 ! ------------------------------------------------------------------------------
 ! Copyright (C) 2005 HYCOM Consortium and contributors
-! Copyright (C) 2006-2020 Lars Inge Enstad, Mats Bentsen, Alok Kumar Gupta
-! Copyright (C) 2024 Mariana Vertenstein
+! Copyright (C) 2006-2024 Lars Inge Enstad, Mats Bentsen, Alok Kumar Gupta,
+!                         Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -1388,6 +1388,8 @@ contains
     call mpi_comm_size(mpicomm, npesi, mpierr)
 
     mnproc = mypei + 1  ! mnproc counts from 1
+
+    call setlogunit
 
     if (use_DEBUG_ALL) then
        write(lp,'(a,i5)') 'mnproc =',mnproc
