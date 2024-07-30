@@ -40,14 +40,38 @@
 !            column) (a)
 ! RMPMTH   : Method of applying eddy-induced transport in the remap
 !            transport algorithm. Valid methods: 'eitvel', 'eitflx' (a)
+! MLRMTH   : Mixed layer restratification method. Valid methods: 'none',
+!            'fox08','bod23' (a)
+! CE       : Efficiency factor for the restratification by mixed layer
+!            eddies (Fox-Kemper et al., 2008) () (f)
+! CL       : Scaling of the efficiency factor for the restratification
+!            by mixed layer eddies (Bodner et al., 2023) () (f)
+! TAU_MLR  : Timescale for momentum mixing across mixed layer (s) (f).
+! TAU_GROWING_HBL  : Time-scale for running mean filter when signal is
+!                    greater than filtered value (used for boundary
+!                    layer thickness and vertical momentum flux) (s) (f)
+! TAU_DECAYING_HBL : Time-scale for running mean filter when signal is
+!                    less than filtered value (used for boundary layer
+!                    thickness and vertical momentum flux) (s) (f)
+! TAU_GROWING_HML  : Time-scale for running mean filter when signal is
+!                    greater than filtered value (used for mixed layer
+!                    thickness) (s) (f)
+! TAU_DECAYING_HML : Time-scale for running mean filter when signal is
+!                    less than filtered value (used for mixed layer
+!                    thickness) (s) (f)
+! LFMIN    : Minimum length scale of mixed layer fronts (cm) (f)
+! MSTAR    : Scaling of boundary layer turbulence due to friction
+!            velocity (Bodner et al., 2023) () (f)
+! NSTAR    : Scaling of boundary layer turbulence due to convective
+!            velocity (Bodner et al., 2023) () (f)
+! WPUP_MIN : Minimum vertical momentum flux (Bodner et al., 2023)
+!            (cm**2/s**2) (f)
 ! MLRTTP   : Type of mixed layer restratification time scale. Valid
 !            types: 'variable', 'constant', 'limited' (a)
 ! RM0      : Efficiency factor of wind TKE generation in the Oberhuber
 !            (1993) TKE closure () (f)
 ! RM5      : Efficiency factor of TKE generation by momentum
 !            entrainment in the Oberhuber (1993) TKE closure () (f)
-! CE       : Efficiency factor for the restratification by mixed layer
-!            eddies (Fox-Kemper et al., 2008) () (f)
 ! TDFILE   : Name of file containing tidal wave energy dissipation
 !            divided by by bottom buoyancy frequency (a)
 ! NIWGF    : Global factor applied to the energy input by near-intertial
@@ -101,8 +125,6 @@
 ! EDWMTH   : Method to estimate eddy diffusivity weight as a function of
 !            the ration of Rossby radius of deformation to the
 !            horizontal grid spacing. Valid methods: 'smooth', 'step' (a)
-! MLRTTP   : Type of mixed layer restratification time scale. Valid
-!            types: 'variable', 'constant', 'limited' (a)
 ! EDDF2D   : If true, eddy diffusivity has a 2d structure (l)
 ! EDSPRS   : Apply eddy mixing suppression away from steering level (l)
 ! EGC      : Parameter c in Eden and Greatbatch (2008) parameterization (f)
