@@ -42,10 +42,10 @@ contains
     use mod_xc,           only: mnproc
     use mod_dia,          only: ddm
     use mo_carbch,        only: atm,atmflx,co2fxd,co2fxu,co3,hi,kwco2sol,                          &
-                                ndepnoyflx,rivinflx,oalkflx,ocetra,omegaa,omegac,pco2d,            &
-                                satoxy,sedfluxo,sedfluxb,pco2m,kwco2d,co2sold,co2solm,pn2om,       &
+                                ndepnoyflx,rivinflx,oalkflx,ocetra,omegaa,omegac,fco2,pco2,        &
+                                pco2_gex,satoxy,sedfluxo,sedfluxb,kwco2a,co2sol,pn2om,             &
                                 co213fxd,co213fxu,co214fxd,co214fxu,                               &
-                                natco3,nathi,natomegaa,natomegac,natpco2d,pnh3,ndepnhxflx
+                                natco3,nathi,natomegaa,natomegac,natpco2,pnh3,ndepnhxflx
     use mo_biomod,        only: bsiflx_bot,bsiflx0100,bsiflx0500,bsiflx1000,                       &
                                 bsiflx2000,bsiflx4000,calflx_bot,calflx0100,calflx0500,            &
                                 calflx1000,calflx2000,calflx4000,carflx_bot,carflx0100,            &
@@ -86,8 +86,8 @@ contains
                                 jprorca,jprcaca,jsilpro,jpodiic,jpodial,jpodiph,                   &
                                 jpodiox,jpodin2,jpodino3,jpodisi,jndepnoy,jndepnhx,joalk,          &
                                 jniflux,jnos,jo2flux,jo2sat,jomegaa,jomegac,jopal,                 &
-                                joxflux,joxygen,jpco2,jpco2m,jkwco2khm,jco2khm,                    &
-                                jco2kh,jph,jphosph,jphosy,jphyto,jpoc,jprefalk,                    &
+                                joxflux,joxygen,jfco2,jpco2,jpco2_gex,jkwco2sol,jco2sol,           &
+                                jph,jphosph,jphosy,jphyto,jpoc,jprefalk,                           &
                                 jprefdic,jprefo2,jprefpo4,jsilica,jsrfalkali,                      &
                                 jsrfano3,jsrfdic,jsrfiron,jsrfoxygen,jsrfphosph,                   &
                                 jsrfphyto,jsrfsilica,jsrfph,jwnos,jwphy,jndepnoyfx,                &
@@ -281,12 +281,12 @@ contains
     endif
 
     ! Accumulate 2d diagnostics
-    call accsrf(jpco2,pco2d,omask,0)
-    call accsrf(jpco2m,pco2m,omask,0)
-    call accsrf(jkwco2khm,kwco2sol,omask,0)
-    call accsrf(jkwco2,kwco2d,omask,0)
-    call accsrf(jco2kh,co2sold,omask,0)
-    call accsrf(jco2khm,co2solm,omask,0)
+    call accsrf(jfco2,fco2,omask,0)
+    call accsrf(jpco2,pco2,omask,0)
+    call accsrf(jpco2_gex,pco2_gex,omask,0)
+    call accsrf(jkwco2sol,kwco2sol,omask,0)
+    call accsrf(jkwco2,kwco2a,omask,0)
+    call accsrf(jco2sol,co2sol,omask,0)
     call accsrf(jsrfphosph,ocetra(1,1,1,iphosph),omask,0)
     call accsrf(jsrfoxygen,ocetra(1,1,1,ioxygen),omask,0)
     call accsrf(jsrfiron,ocetra(1,1,1,iiron),omask,0)
@@ -310,7 +310,7 @@ contains
     if (use_natDIC) then
       call accsrf(jsrfnatdic,ocetra(1,1,1,inatsco212),omask,0)
       call accsrf(jsrfnatalk,ocetra(1,1,1,inatalkali),omask,0)
-      call accsrf(jnatpco2,natpco2d,omask,0)
+      call accsrf(jnatpco2,natpco2,omask,0)
       call accsrf(jsrfnatph,nathi(1,1,1),omask,0)
     endif
     if (use_BROMO) then
