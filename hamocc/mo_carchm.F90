@@ -261,7 +261,7 @@ contains
             if (k.eq.1) then
 
               ! -----------------------------------------------------------------
-              ! Calculatte Schmidt numbers, solubilities, and piston velocities
+              ! Calculate Schmidt numbers, solubilities, and piston velocities
               ! -----------------------------------------------------------------
               
               ! Schmidt numbers according to Wanninkhof (2014), Table 1
@@ -389,7 +389,7 @@ contains
 
 
               ! -----------------------------------------------------------------
-              ! Calculatte and apply surface fluxes
+              ! Calculate and apply surface fluxes
               ! -----------------------------------------------------------------
               
               atco2 = atm(i,j,iatmco2)
@@ -408,7 +408,7 @@ contains
               endif
 
               ! Sea level pressure in atm. This is used in all surface flux calculations where 
-              ! atmospheric concentration is given as a mixing ratio (i.e. partial presure = mixing ratio*SLP/P_0 [atm])
+              ! atmospheric concentration is given as a mixing ratio (i.e. partial pressure = mixing ratio*SLP/P_0 [atm])
               rpp0  = ppao(i,j)/101325.0
 
               ! calculate correction for non-ideality of CO2 (fugacity coefficient, Weiss and Price 1980)
