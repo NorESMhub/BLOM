@@ -24,6 +24,10 @@ module mod_nuopc_methods
 ! ------------------------------------------------------------------------------
 
    use shr_const_mod,  only: SHR_CONST_RHOSW, SHR_CONST_LATICE, SHR_CONST_TKFRZ
+   use shr_const_mod,  only: SHR_CONST_SPVAL
+   use shr_sys_mod,    only: shr_sys_abort
+   use dimensions,     only: kdm
+   use mod_dia,        only: depthslev
    use mod_types,      only: r8
    use mod_constants,  only: rearth, onem, L_mks2cgs
    use mod_time,       only: nstep, baclin, delt1, dlt
@@ -46,6 +50,7 @@ module mod_nuopc_methods
    use mo_control_bgc, only: use_BROMO, ocn_co2_type
 #endif
    use mod_fill_global, only: fill_global
+   use mod_vertinterp,  only: vertinterp_wghts, vertinterp_accum
 
    implicit none
    private
@@ -58,11 +63,34 @@ module mod_nuopc_methods
       character(len=128) :: stdname
       integer :: ungridded_lbound = 0
       integer :: ungridded_ubound = 0
-      real(r8), dimension(:), pointer :: dataptr
+      real(r8), dimension(:)  , pointer :: dataptr
+      real(r8), dimension(:,:), pointer :: dataptr2d
    end type fldlist_type
    integer, parameter :: fldsMax = 100
 
+   ! Define export levels for multi-level fields.
+
+   integer, parameter :: nlev_export = 30
+   real(r8), dimension(nlev_export) :: vertical_levels = (/  &
+        0030., 0090., 0150., 0210., 0270., &
+        0330., 0390., 0450., 0510., 0570., &
+        0630., 0690., 0750., 0810., 0870., &
+        0930., 0990., 1050., 1110., 1170., &
+        1230., 1290., 1350., 1410., 1470., &
+        1530., 1590., 1650., 1710., 1770. /)
+
+   real(r8), dimension(2,nlev_export) :: vertical_levels_bnds = reshape((/ &
+        0000., 0060., 0060., 0120., 0120., 0180., 0180., 0240., 0240., 0300., &
+        0300., 0360., 0360., 0420., 0420., 0480., 0480., 0540., 0540., 0600., &
+        0600., 0660., 0660., 0720., 0720., 0780., 0780., 0840., 0840., 0900., &
+        0900., 0960., 0960., 1020., 1020., 1080., 1080., 1140., 1140., 1200., &
+        1200., 1260., 1260., 1320., 1320., 1380., 1380., 1440., 1440., 1500., &
+        1500., 1560., 1560., 1620., 1620., 1680., 1680., 1740., 1740., 1800./), &
+        (/2,nlev_export/))
+
    real(r8), dimension(:), allocatable :: mod2med_areacor, med2mod_areacor
+
+   ! Accumulated fields
    real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_u
    real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_v
    real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_dhdx
@@ -76,6 +104,8 @@ module mod_nuopc_methods
    real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_fbrf
    real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_fn2o
    real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: acc_fnh3
+   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nlev_export) :: acc_t_depth
+   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nlev_export) :: acc_s_depth
 
    real(r8) :: tlast_coupled
    integer :: jjcpl
@@ -131,7 +161,9 @@ module mod_nuopc_methods
         index_Faoo_fdms  = -1, &
         index_Faoo_fbrf  = -1, &
         index_Faoo_fn2o  = -1, &
-        index_Faoo_fnh3  = -1
+        index_Faoo_fnh3  = -1, &
+        index_So_t_depth = -1, &
+        index_So_s_depth = -1
 
 contains
 
@@ -240,7 +272,8 @@ contains
 
    end subroutine blom_advertise_imports
 
-   subroutine blom_advertise_exports(flds_scalar_name, fldsFrOcn_num, fldsFrOcn)
+   subroutine blom_advertise_exports(flds_scalar_name, fldsFrOcn_num, fldsFrOcn, &
+        ocn2glc_coupling)
      ! -------------------------------------------------------------------
      ! Determine fldsToOcn for export fields
      ! -------------------------------------------------------------------
@@ -248,7 +281,9 @@ contains
      character(len=*)   , intent(in)    :: flds_scalar_name
      integer            , intent(inout) :: fldsFrOcn_num
      type(fldlist_type) , intent(inout) :: fldsFrOcn(:)
+     logical            , intent(in)    :: ocn2glc_coupling
 
+     ! Local variables
      integer :: index_scalar
 
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, trim(flds_scalar_name), index_scalar)
@@ -271,6 +306,12 @@ contains
         call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fbrf_ocn', index_Faoo_fbrf)
      end if
 #endif
+     if (ocn2glc_coupling) then
+        call fldList_add(fldsFrOcn_num, fldsFrOcn, 'So_t_depth', index_So_t_depth, &
+             ungridded_lbound=1, ungridded_ubound=nlev_export)
+        call fldList_add(fldsFrOcn_num, fldsFrOcn, 'So_s_depth', index_So_s_depth, &
+             ungridded_lbound=1, ungridded_ubound=nlev_export)
+     end if
 
    end subroutine blom_advertise_exports
 
@@ -477,13 +518,16 @@ contains
 
       ! Local variables.
       real(r8) :: q
-      integer m, n, mm, nn, k1m, k1n, i, j, l
-      logical :: first_call = .true.
+      integer  :: m, n, mm, nn, k1m, k1n, i, j, l, k, kml
+      logical  :: first_call = .true.
+      integer , dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ind1
+      integer , dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ind2
+      real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nlev_export) :: wghts
 
-      ! ------------------------------------------------------------------------
+      ! -----------------
       ! Set accumulation arrays to zero if this is the first call after a
       ! coupling interval.
-      ! ------------------------------------------------------------------------
+      ! -----------------
 
       if (tlast_coupled == 0._r8) then
          acc_u     (:,:) = 0._r8
@@ -499,11 +543,13 @@ contains
          acc_fbrf  (:,:) = 0._r8
          acc_fn2o  (:,:) = 0._r8
          acc_fnh3  (:,:) = 0._r8
+         acc_t_depth(:,:,:) = 0._r8
+         acc_s_depth(:,:,:) = 0._r8
       endif
 
-      ! ------------------------------------------------------------------------
+      ! -----------------
       ! Accumulate fields in send buffer
-      ! ------------------------------------------------------------------------
+      ! -----------------
 
       m = mod(nstep + 1, 2) + 1
       n = mod(nstep    , 2) + 1
@@ -614,6 +660,7 @@ contains
 
       if (index_Faoo_fn2o > 0) then
          ! Pack nitrous oxide flux (kg N2O/m^2/s), if requested
+         !$omp parallel do private(l, i)
          do j = 1, jj
             do l = 1, isp(j)
             do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
@@ -626,6 +673,7 @@ contains
 
       if (index_Faoo_fnh3 > 0) then
          ! Pack nitrous oxide flux (kg NH3/m^2/s), if requested
+         !$omp parallel do private(l, i)
          do j = 1, jj
             do l = 1, isp(j)
             do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
@@ -636,9 +684,18 @@ contains
          !$omp end parallel do
       end if
 
-      ! ------------------------------------------------------------------------
+      if (index_So_t_depth > 0 .and. index_So_s_depth > 0) then
+         ! Accumulate multi-level temperature and density on output levels
+         do k = 1,kdm
+            call vertinterp_wghts(k, nlev_export, vertical_levels, vertical_levels_bnds, ind1, ind2, wghts)
+            call vertinterp_accum(kdm, nlev_export, k, ind1, ind2, wghts, temp(1-nbdy,1-nbdy,k1m), acc_t_depth)
+            call vertinterp_accum(kdm, nlev_export, k, ind1, ind2, wghts, saln(1-nbdy,1-nbdy,k1m), acc_s_depth)
+         end do
+      end if
+
+      ! -----------------
       ! Increment time since last coupling.
-      ! ------------------------------------------------------------------------
+      ! -----------------
 
       tlast_coupled = tlast_coupled + baclin
 
@@ -986,8 +1043,8 @@ contains
 
       ! Local variables.
       real(r8) :: tfac, utmp, vtmp
-      integer  :: n, l, i, j
-      logical, save :: first_call = .true.
+      integer  :: n, l, i, j, k, ko, mm
+      logical  :: first_call = .true.
 
       tfac = 1._r8/tlast_coupled
 
@@ -1009,6 +1066,10 @@ contains
       fldlist(index_So_s)%dataptr(:) = 0._r8
       fldlist(index_So_bldepth)%dataptr(:) = 0._r8
       fldlist(index_Fioo_q)%dataptr(:) = 0._r8
+      if (index_So_t_depth > 0 .and. index_So_s_depth > 0) then
+         fldlist(index_So_t_depth)%dataptr2d(:,:) = SHR_CONST_SPVAL
+         fldlist(index_So_s_depth)%dataptr2d(:,:) = SHR_CONST_SPVAL
+      end if
 
       !$omp parallel do private(l, i, n, utmp, vtmp)
       do j = 1, jjcpl
@@ -1143,6 +1204,30 @@ contains
          !$omp end parallel do
       else
         if (mnproc == 1 .and. first_call) write(lp,*) subname//': nh3 flux not sent to coupler'
+      end if
+
+      if (index_So_t_depth > 0 .and. index_So_s_depth > 0) then
+         ! Multi-level saninity and temperature
+         ! interpolate acc_saln and acc_temp to output levels and then sent
+         do j = 1, jjcpl
+            do l = 1, isp(j)
+               do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                  n = (j - 1)*ii + i
+                  do ko = 1,nlev_export
+                     if (acc_t_depth(i,j,ko) == 0._r8) then
+                        fldlist(index_So_t_depth)%dataptr2d(ko,n) = shr_const_spval
+                     else
+                        fldlist(index_So_t_depth)%dataptr2d(ko,n) = acc_t_depth(i,j,ko)*tfac + SHR_CONST_TKFRZ
+                     end if
+                     if (acc_s_depth(i,j,ko) == 0._r8) then
+                        fldlist(index_So_s_depth)%dataptr2d(ko,n) = shr_const_spval
+                     else
+                        fldlist(index_So_s_depth)%dataptr2d(ko,n) = acc_s_depth(i,j,ko)*tfac
+                     end if
+                  end do
+               end do
+            end do
+         end do
       end if
 
       if (first_call) then
