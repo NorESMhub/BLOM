@@ -109,6 +109,7 @@
       <value>unset</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx2v1_20130206.nc</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx1v4_20170622.nc</value>
+      <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx0.5v1_20240702.nc</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx0.25v4_20170622.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx0.125v4_20221013.nc</value>
     </values>
@@ -123,6 +124,7 @@
       <value>unset</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx2v1_20130419.nc</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx1v4_20170622.nc</value>
+      <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.5v1_20240702.nc</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.25v4_20170623.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.125v4_20230318.nc</value>
     </values>
@@ -431,6 +433,7 @@
       <value>UNSET</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx2v1_20130419.nc</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx1v4_20170605.nc</value>
+      <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx0.5v1_20240702.nc</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx0.25v4_20170626.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx0.125v4_20221013.nc</value>
     </values>
@@ -508,6 +511,7 @@
     <values>
       <value>unset</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx1v4_20170608.nc</value>
+      <value ocn_grid="tnx0.5v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.50v1_20240702.nc</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.25v4_20170623.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.125v4_20221013.nc</value>
     </values>
@@ -757,6 +761,7 @@
     <values>
       <value>0</value>
       <value pio_netcdf_format_ocn="64bit_offset">1</value>
+      <value pio_netcdf_format_ocn="64bit_data">1</value>
     </values>
     <desc>Format of restart file (valid arguments are 0 for classic,</desc>
   </entry>
@@ -1315,6 +1320,7 @@
       <value>unset</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx2v1_20190826.dat</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx1v4_20190611.dat</value>
+      <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx0.5v1_20240702.dat</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx0.25v4_20190612.dat</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx0.125v4_20221013.dat</value>
     </values>
@@ -1378,6 +1384,7 @@
     <values>
       <value>0,0,0</value>
       <value pio_netcdf_format_ocn="64bit_offset">1,1,1</value>
+      <value pio_netcdf_format_ocn="64bit_data">1,1,1</value>
     </values>
     <desc>
       netcdf format (valid arguments are 0 for classic, 1 for 64-bit
@@ -3426,6 +3433,7 @@
       <value>UNSET</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx2v1_20190826.nc</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx1v4_20190729.nc</value>
+      <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx0.5v1_20240702.nc</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx0.25v4_20190612.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx0.125v4_20221013.nc</value>
     </values>
@@ -3440,6 +3448,7 @@
       <value>UNSET</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx2v1_20190826.dat</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx1v4_20190615.dat</value>
+      <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx0.5v1_20240702.dat</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx0.25v4_20190701.dat</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx0.125v4_20221013.dat</value>
     </values>
@@ -5074,6 +5083,7 @@
     <values>
       <value>0,0,0</value>
       <value pio_netcdf_format_ocn="64bit_offset">1,1,1</value>
+      <value pio_netcdf_format_ocn="64bit_data">1,1,1</value>
     </values>
     <desc>add desc</desc>
   </entry>
