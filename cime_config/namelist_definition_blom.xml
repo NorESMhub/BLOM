@@ -157,6 +157,7 @@
       <value ocn_grid="tnx1.5v1">4800.</value>
       <value ocn_grid="tnx1v4">3200.</value>
       <value ocn_grid="tnx1v4" ocn_ncpl="24">3600.</value>
+      <value ocn_grid="tnx0.5v1">1800.</value>
       <value ocn_grid="tnx0.25v4">900.</value>
       <value ocn_grid="tnx0.125v4">300.</value>
     </values>
@@ -174,6 +175,7 @@
       <value ocn_grid="tnx1.5v1">96.</value>
       <value ocn_grid="tnx1v4">64.</value>
       <value ocn_grid="tnx1v4" ocn_ncpl="24">60.</value>
+      <value ocn_grid="tnx0.5v1">30.</value>
       <value ocn_grid="tnx0.25v4">15.</value>
       <value ocn_grid="tnx0.125v4">6.</value>
     </values>
@@ -336,7 +338,8 @@
     <values>
       <value>5.e-5</value>
       <value ocn_grid="tnx1v4" ocn_ncpl="24">.75e-4</value>
-      <value ocn_grid="tnx0.25v4" >0.75e-4</value>
+      <value ocn_grid="tnx0.5v1" >.75e-4</value>
+      <value ocn_grid="tnx0.25v4" >.75e-4</value>
       <value ocn_grid="tnx0.125v4">.75e-4</value>
     </values>
     <desc>Coastal wave breaking damping reciprocal time scale (1/s) (f)</desc>
@@ -400,6 +403,7 @@
     <values>
       <value>.06</value>
       <value ocn_grid="tnx1v4"    blom_vcoord="isopyc_bulkml" ocn_ncpl="24">.5</value>
+      <value ocn_grid="tnx0.5v1"  blom_vcoord="isopyc_bulkml" ocn_ncpl="24">.5</value>
       <value ocn_grid="tnx0.25v4" blom_vcoord="isopyc_bulkml">1.0</value>
     </values>
     <desc>Efficiency factor for the restratification by mixed layer</desc>
@@ -623,7 +627,7 @@
     <values>
       <value>unset</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx1v4_20170608.nc</value>
-      <value ocn_grid="tnx0.5v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.50v1_20240702.nc</value>
+      <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.5v1_20240702.nc</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.25v4_20170623.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.125v4_20221013.nc</value>
     </values>
@@ -1214,6 +1218,7 @@
       <value>unset</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/topo_beta_tnx2v1_20130206_depth_python_SYNBATH_V1.1_3minute_filt_max100km_nc64bitoffset.nc</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/topo_beta_tnx1v4_20170622_depth_python_SYNBATH_V1.1_3minute_filt_max100km_nc64bitoffset.nc</value>
+      <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/topo_beta_tnx0.5v1_20240702_depth_python_SYNBATH_V1.1_3minute_filt_max100km_nc64bitoffset.nc</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/topo_beta_tnx0.125v4_20221013_depth_python_SYNBATH_V1.1_3minute_filt_max100km_nc64bitoffset.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/topo_beta_tnx0.125v4_20221013_depth_python_SYNBATH_V1.1_3minute_filt_max100km_nc64bitoffset.nc</value>
     </values>
