@@ -1,5 +1,6 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2002-2023 Mats Bentsen, Jerry Tjiputra, Jörg Schwinger
+! Copyright (C) 2002-2024 Mats Bentsen, Jerry Tjiputra, Jörg Schwinger,
+!                         Mariana Vertenstein, Joeran Maerz
 !
 ! This file is part of BLOM.
 !
@@ -153,7 +154,8 @@ module mod_forcing
       tauy, &         ! v-component of surface stress [g cm-1 s-2].
       ustar, &        ! Surface friction velocity [cm s-1].
       ustarb, &       ! Bottom friction velocity [cm s-1].
-      ustar3          ! Friction velocity cubed [cm3 s-3].
+      ustar3, &       ! Friction velocity cubed [cm3 s-3].
+      wstar3          ! Convective velocity cubed [cm3 s-3].
 
    ! Flux fields at model interfaces.
 
@@ -178,7 +180,7 @@ module mod_forcing
              atmco2, flxco2, flxdms, flxbrf, atmbrf, &
              atmn2o,flxn2o,atmnh3,flxnh3, atmnhxdep,atmnoydep, &
              surflx, surrlx, sswflx, salflx, brnflx, salrlx, taux, tauy, &
-             ustar, ustarb, ustar3, buoyfl, t_sw_nonloc, t_rs_nonloc, &
+             ustar, ustarb, ustar3, wstar3, buoyfl, t_sw_nonloc, t_rs_nonloc, &
              s_br_nonloc, s_rs_nonloc, inivar_forcing, fwbbal, &
              sss_stream, sst_stream, ice_stream, use_stream_relaxation
 
@@ -237,6 +239,7 @@ contains
             ustar(i, j) = spval
             ustarb(i, j) = spval
             ustar3(i, j) = spval
+            wstar3(i, j) = spval
          enddo
       enddo
    !$omp end parallel do
@@ -286,6 +289,7 @@ contains
             atmnoydep(i, j) = 0._r8
             ustar (i, j) = 0._r8
             ustarb(i, j) = 0._r8
+            wstar3(i, j) = 0._r8
          enddo
          enddo
       enddo

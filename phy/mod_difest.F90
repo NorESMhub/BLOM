@@ -46,7 +46,7 @@ module mod_difest
   use mod_cmnfld,            only: bfsqi, nnslpx, nnslpy, mlts
   use mod_forcing,           only: wavsrc_opt, wavsrc_param, &
                                    abswnd, lamult, lasl, &
-                                   ustar, ustarb, ustar3, &
+                                   ustar, ustarb, ustar3, wstar3, &
                                    buoyfl, t_sw_nonloc, surflx, sswflx, salflx
   use mod_tidaldissip,       only: twedon
   use mod_niw,               only: niwgf, niwbf, niwlf, idkedt, niw_ke_tendency
@@ -112,7 +112,8 @@ module mod_difest
        iL_mks2cgs = 1./L_mks2cgs, &
        iM_mks2cgs = 1./M_mks2cgs, &
        A_mks2cgs  = L_mks2cgs**2, &
-       A_cgs2mks  = 1./(L_mks2cgs*L_mks2cgs)
+       A_cgs2mks  = 1./(L_mks2cgs*L_mks2cgs), &
+       V_mks2cgs  = L_mks2cgs**3
 
   ! parameters:
   !   iidtyp - type of interface and isopycnal diffusivities. If
@@ -1384,6 +1385,9 @@ contains
             t_sw_nonloc(i,j,k) = max(t_sw_nonloc(i,j,k), &
                  nonLocalTrans(k,1))
           end do
+
+          ! Compute convective velocity cubed [cm3 s-3].
+          wstar3(i,j) = max(0.,-surfBuoyFlux)*OBLdepth(i,j)*V_mks2cgs
 
         end do
       end do

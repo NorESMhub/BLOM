@@ -48,7 +48,11 @@ module mod_rdlim
                              srxlim, srxbal, sprfac, use_stream_relaxation
   use mod_swabs,       only: swamth, jwtype, chlopt, ccfile
   use mod_diffusion,   only: readnml_diffusion
-  use mod_mxlayr,      only: rm0, rm5, ce, mlrttp
+  use mod_eddtra,      only: mlrmth, ce, cl, tau_mlr, tau_growing_hbl, &
+                             tau_decaying_hbl, tau_growing_hml, &
+                             tau_decaying_hml, lfmin, mstar, nstar, &
+                             wpup_min
+  use mod_mxlayr,      only: rm0, rm5, mlrttp
   use mod_niw,         only: niwgf, niwbf, niwlf
   use mod_tidaldissip, only: tdfile
   use mod_dia,         only: nphymax, glb_fnametag, rstfrq, rstfmt, rstcmp, &
@@ -127,8 +131,10 @@ contains
          grfile,icfile,pref,baclin,batrop, &
          mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo, &
          vsc2hi,vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls, &
-         mommth,bmcmth,rmpmth,mlrttp, &
-         rm0,rm5,ce,tdfile,niwgf,niwbf,niwlf, &
+         mommth,bmcmth,rmpmth, &
+         mlrmth,ce,cl,tau_mlr,tau_growing_hbl,tau_decaying_hbl, &
+         tau_growing_hml,tau_decaying_hml,lfmin,mstar,nstar,wpup_min, &
+         mlrttp,rm0,rm5,tdfile,niwgf,niwbf,niwlf, &
          swamth,jwtype,chlopt,ccfile, &
          trxday,srxday,trxdpt,srxdpt,trxlim,srxlim, &
          aptflx,apsflx,ditflx,disflx,srxbal,scfile, &
@@ -194,9 +200,21 @@ contains
       write (lp,*) 'MOMMTH ',trim(MOMMTH)
       write (lp,*) 'BMCMTH ',trim(BMCMTH)
       write (lp,*) 'RMPMTH ',trim(RMPMTH)
+      write (lp,*) 'MLRMTH ',trim(MLRMTH)
+      write (lp,*) 'CE',CE
+      write (lp,*) 'CL',CL
+      write (lp,*) 'TAU_MLR',TAU_MLR
+      write (lp,*) 'TAU_GROWING_HBL',TAU_GROWING_HBL
+      write (lp,*) 'TAU_DECAYING_HBL',TAU_DECAYING_HBL
+      write (lp,*) 'TAU_GROWING_HML',TAU_GROWING_HML
+      write (lp,*) 'TAU_DECAYING_HML',TAU_DECAYING_HML
+      write (lp,*) 'LFMIN',LFMIN
+      write (lp,*) 'MSTAR',MSTAR
+      write (lp,*) 'NSTAR',NSTAR
+      write (lp,*) 'WPUP_MIN',WPUP_MIN
+      write (lp,*) 'MLRTTP ',trim(MLRTTP)
       write (lp,*) 'RM0',RM0
       write (lp,*) 'RM5',RM5
-      write (lp,*) 'CE',CE
       write (lp,*) 'TDFILE',trim(TDFILE)
       write (lp,*) 'NIWGF',NIWGF
       write (lp,*) 'NIWBF',NIWBF
@@ -265,10 +283,21 @@ contains
     call xcbcst(mommth)
     call xcbcst(bmcmth)
     call xcbcst(rmpmth)
+    call xcbcst(mlrmth)
+    call xcbcst(ce)
+    call xcbcst(cl)
+    call xcbcst(tau_mlr)
+    call xcbcst(tau_growing_hbl)
+    call xcbcst(tau_decaying_hbl)
+    call xcbcst(tau_growing_hml)
+    call xcbcst(tau_decaying_hml)
+    call xcbcst(lfmin)
+    call xcbcst(mstar)
+    call xcbcst(nstar)
+    call xcbcst(wpup_min)
     call xcbcst(mlrttp)
     call xcbcst(rm0)
     call xcbcst(rm5)
-    call xcbcst(ce)
     call xcbcst(tdfile)
     call xcbcst(niwgf)
     call xcbcst(niwbf)
