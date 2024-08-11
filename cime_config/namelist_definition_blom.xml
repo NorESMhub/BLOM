@@ -109,6 +109,7 @@
       <value>unset</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx2v1_20130206.nc</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx1v4_20170622.nc</value>
+      <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx0.5v1_20240702.nc</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx0.25v4_20170622.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx0.125v4_20221013.nc</value>
     </values>
@@ -123,6 +124,7 @@
       <value>unset</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx2v1_20130419.nc</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx1v4_20170622.nc</value>
+      <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.5v1_20240702.nc</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.25v4_20170623.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.125v4_20230318.nc</value>
     </values>
@@ -155,6 +157,7 @@
       <value ocn_grid="tnx1.5v1">4800.</value>
       <value ocn_grid="tnx1v4">3200.</value>
       <value ocn_grid="tnx1v4" ocn_ncpl="24">3600.</value>
+      <value ocn_grid="tnx0.5v1">1800.</value>
       <value ocn_grid="tnx0.25v4">900.</value>
       <value ocn_grid="tnx0.125v4">300.</value>
     </values>
@@ -172,6 +175,7 @@
       <value ocn_grid="tnx1.5v1">96.</value>
       <value ocn_grid="tnx1v4">64.</value>
       <value ocn_grid="tnx1v4" ocn_ncpl="24">60.</value>
+      <value ocn_grid="tnx0.5v1">30.</value>
       <value ocn_grid="tnx0.25v4">15.</value>
       <value ocn_grid="tnx0.125v4">6.</value>
     </values>
@@ -334,7 +338,8 @@
     <values>
       <value>5.e-5</value>
       <value ocn_grid="tnx1v4" ocn_ncpl="24">.75e-4</value>
-      <value ocn_grid="tnx0.25v4" >0.75e-4</value>
+      <value ocn_grid="tnx0.5v1" >.75e-4</value>
+      <value ocn_grid="tnx0.25v4" >.75e-4</value>
       <value ocn_grid="tnx0.125v4">.75e-4</value>
     </values>
     <desc>Coastal wave breaking damping reciprocal time scale (1/s) (f)</desc>
@@ -398,6 +403,7 @@
     <values>
       <value>.06</value>
       <value ocn_grid="tnx1v4"    blom_vcoord="isopyc_bulkml" ocn_ncpl="24">.5</value>
+      <value ocn_grid="tnx0.5v1"  blom_vcoord="isopyc_bulkml" ocn_ncpl="24">.5</value>
       <value ocn_grid="tnx0.25v4" blom_vcoord="isopyc_bulkml">1.0</value>
     </values>
     <desc>Efficiency factor for the restratification by mixed layer</desc>
@@ -543,6 +549,7 @@
       <value>UNSET</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx2v1_20130419.nc</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx1v4_20170605.nc</value>
+      <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx0.5v1_20240702.nc</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx0.25v4_20170626.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx0.125v4_20221013.nc</value>
     </values>
@@ -620,6 +627,7 @@
     <values>
       <value>unset</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx1v4_20170608.nc</value>
+      <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.5v1_20240702.nc</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.25v4_20170623.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.125v4_20221013.nc</value>
     </values>
@@ -1209,6 +1217,7 @@
       <value>unset</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/topo_beta_tnx2v1_20130206_depth_python_SYNBATH_V1.1_3minute_filt_max100km_nc64bitoffset.nc</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/topo_beta_tnx1v4_20170622_depth_python_SYNBATH_V1.1_3minute_filt_max100km_nc64bitoffset.nc</value>
+      <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/topo_beta_tnx0.5v1_20240702_depth_python_SYNBATH_V1.1_3minute_filt_max100km_nc64bitoffset.nc</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/topo_beta_tnx0.125v4_20221013_depth_python_SYNBATH_V1.1_3minute_filt_max100km_nc64bitoffset.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/topo_beta_tnx0.125v4_20221013_depth_python_SYNBATH_V1.1_3minute_filt_max100km_nc64bitoffset.nc</value>
     </values>
@@ -1427,6 +1436,7 @@
       <value>unset</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx2v1_20190826.dat</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx1v4_20190611.dat</value>
+      <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx0.5v1_20240702.dat</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx0.25v4_20190612.dat</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx0.125v4_20221013.dat</value>
     </values>
@@ -3538,6 +3548,7 @@
       <value>UNSET</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx2v1_20190826.nc</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx1v4_20190729.nc</value>
+      <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx0.5v1_20240702.nc</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx0.25v4_20190612.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx0.125v4_20221013.nc</value>
     </values>
@@ -3552,6 +3563,7 @@
       <value>UNSET</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx2v1_20190826.dat</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx1v4_20190615.dat</value>
+      <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx0.5v1_20240702.dat</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx0.25v4_20190701.dat</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx0.125v4_20221013.dat</value>
     </values>
