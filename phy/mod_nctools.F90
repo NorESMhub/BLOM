@@ -1268,8 +1268,8 @@ contains
       fldmax = -abs(fillr8)
 
       if (mskflg == 1) then
-        !$omp parallel do reduction(min:fldmin) reduction(max:fldmax)
-        !$omp private(j,i,ij,ijk)
+        !$omp parallel do private(j,i,ij,ijk) &
+        !$omp reduction(min:fldmin) reduction(max:fldmax)
         do k = 1,kd
           do j = 1,jj
             do i = 1,ii
@@ -1284,8 +1284,8 @@ contains
         end do
         !$omp end parallel do
       else if (mskflg == 2) then
-        !$omp parallel do reduction(min:fldmin) reduction(max:fldmax)
-        !$omp private(j,i,ij,ijk)
+        !$omp parallel do private(j,i,ij,ijk) &
+        !$omp reduction(min:fldmin) reduction(max:fldmax)
         do k = 1,kd
           do j = 1,jj
             do i = 1,ii
@@ -1300,8 +1300,8 @@ contains
         end do
         !$omp end parallel do
       else
-        !$omp parallel do reduction(min:fldmin) reduction(max:fldmax)
-        !$omp private(j,i,ijk)
+        !$omp parallel do private(j,i,ij,ijk) &
+        !$omp reduction(min:fldmin) reduction(max:fldmax)
         do k = 1,kd
           do j = 1,jj
             do i = 1,ii
@@ -1350,8 +1350,7 @@ contains
 
       ! --- Prepare and write output field
       if (mskflg == 1) then
-        !$omp parallel do
-        !$omp private(j,i,ij)
+        !$omp parallel do private(j,i,ij)
         do k = 1,kd
           do j = 1,jj
             do i = 1,ii
@@ -1366,8 +1365,7 @@ contains
         end do
         !$omp end parallel do
       else if (mskflg == 2) then
-        !$omp parallel do
-        !$omp private(j,i,ij,ijk)
+        !$omp parallel do private(j,i,ij,ijk)
         do k = 1,kd
           do j = 1,jj
             do i = 1,ii
@@ -1383,8 +1381,7 @@ contains
         end do
         !$omp end parallel do
       else
-        !$omp parallel do
-        !$omp private(j,i,ijk)
+        !$omp parallel do private(j,i,ijk)
         do k = 1,kd
           do j = 1,jj
             do i = 1,ii
@@ -1446,8 +1443,8 @@ contains
       fldmin = abs(fillr8)
       fldmax = -abs(fillr8)
       if (mskflg == 1) then
-        !$omp parallel do reduction(min:fldmin) reduction(max:fldmax) &
-        !$omp private(j,i,ij,ijk)
+        !$omp parallel do private(j,i,ij,ijk) &
+        !$omp reduction(min:fldmin) reduction(max:fldmax)
         do k = 1,kd
           do j = 1,jj
             do i = 1,ii
@@ -1462,8 +1459,8 @@ contains
         end do
         !$omp end parallel do
       else if (mskflg == 2) then
-        !$omp parallel do reduction(min:fldmin) reduction(max:fldmax) &
-        !$omp private(j,i,ij,ijk)
+        !$omp parallel do private(j,i,ij,ijk) &
+        !$omp reduction(min:fldmin) reduction(max:fldmax)
         do k = 1,kd
           do j = 1,jj
             do i = 1,ii
@@ -1478,8 +1475,8 @@ contains
         end do
         !$omp end parallel do
       else
-        !$omp parallel do reduction(min:fldmin) reduction(max:fldmax) &
-        !$omp private(j,i,ijk)
+        !$omp parallel do private(j,i,ijk) &
+        !$omp reduction(min:fldmin) reduction(max:fldmax)
         do k = 1,kd
           do j = 1,jj
             do i = 1,ii
@@ -1914,8 +1911,7 @@ contains
 
       ! --- Prepare and write output field
       do k = 1,kd
-        !$omp parallel do
-        !$omp private(i,ij,ijk)
+        !$omp parallel do private(i,ij,ijk)
         do j = 1,jj
           do i = 1,ii
             ij = i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
