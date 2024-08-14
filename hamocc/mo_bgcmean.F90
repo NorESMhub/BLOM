@@ -93,9 +93,9 @@ module mo_bgcmean
 
   ! --- Namelist for diagnostic output
   integer, dimension(nbgcmax) ::                                          &
-       & SRF_KWCO2     =0    ,SRF_PCO2      =0    ,SRF_DMSFLUX   =0    ,  &
-       & SRF_KWCO2KHM  =0    ,SRF_CO2KHM    =0    ,SRF_CO2KH     =0    ,  &
-       & SRF_PCO2M     =0    ,                                            &
+       & SRF_KWCO2     =0    ,SRF_FCO2      =0    ,SRF_PCO2      =0    ,  &
+       & SRF_XCO2      =0    ,SRF_PCO2_GEX  =0    ,                       &
+       & SRF_DMSFLUX   =0    ,SRF_KWCO2SOL  =0    ,SRF_CO2SOL    =0    ,  &
        & SRF_CO2FXD    =0    ,SRF_CO2FXU    =0    ,SRF_CO213FXD  =0    ,  &
        & SRF_CO213FXU  =0    ,SRF_CO214FXD  =0    ,SRF_CO214FXU  =0    ,  &
        & SRF_OXFLUX    =0    ,SRF_NIFLUX    =0    ,SRF_DMS       =0    ,  &
@@ -107,14 +107,12 @@ module mo_bgcmean
        & SRF_SF6       =0    ,SRF_PHOSPH    =0    ,SRF_OXYGEN    =0    ,  &
        & SRF_IRON      =0    ,SRF_ANO3      =0    ,SRF_ALKALI    =0    ,  &
        & SRF_SILICA    =0    ,SRF_DIC       =0    ,SRF_PHYTO     =0    ,  &
-       & SRF_PH        =0    ,                                            &
-       & SRF_NATDIC    =0    ,SRF_NATALKALI =0    ,SRF_NATPCO2   =0    ,  &
-       & SRF_NATCO2FX  =0    ,SRF_NATPH     =0    ,                       &
+       & SRF_PH        =0    ,SRF_NATDIC    =0    ,SRF_NATALKALI =0    ,  &
+       & SRF_NATPCO2   =0    ,SRF_NATCO2FX  =0    ,SRF_NATPH     =0    ,  &
        & SRF_ATMBROMO  =0    ,SRF_BROMO     =0    ,SRF_BROMOFX   =0    ,  &
        & SRF_ANH4      =0    ,SRF_ANO2      =0    ,SRF_ANH3FX    =0    ,  &
        & SRF_PN2OM     =0    ,SRF_PNH3      =0    ,SRF_ATMNH3    =0    ,  &
-       & SRF_ATMN2O    =0    ,                                            &
-       & INT_BROMOPRO  =0    ,INT_BROMOUV   =0    ,                       &
+       & SRF_ATMN2O    =0    ,INT_BROMOPRO  =0    ,INT_BROMOUV   =0    ,  &
        & INT_PHOSY     =0    ,INT_NFIX      =0    ,INT_DNIT      =0    ,  &
        & FLX_NDEPNOY   =0    ,FLX_NDEPNHX   =0    ,FLX_OALK      =0    ,  &
        & FLX_CAR0100   =0    ,FLX_CAR0500   =0    ,FLX_CAR1000   =0    ,  &
@@ -144,8 +142,7 @@ module mo_bgcmean
        & LYR_CFC11     =0    ,LYR_CFC12     =0    ,LYR_SF6       =0    ,  &
        & LYR_NATDIC    =0    ,LYR_NATALKALI =0    ,LYR_NATCALC   =0    ,  &
        & LYR_NATPH     =0    ,LYR_NATOMEGAA =0    ,LYR_NATOMEGAC =0    ,  &
-       & LYR_NATCO3    =0    ,                                            &
-       & LYR_BROMO     =0    ,                                            &
+       & LYR_NATCO3    =0    ,LYR_BROMO     =0    ,                       &
        & LYR_D13C      =0    ,LYR_D14C      =0    ,LYR_BIGD14C   =0    ,  &
        & LYR_POC13     =0    ,LYR_DOC13     =0    ,LYR_CALC13    =0    ,  &
        & LYR_PHYTO13   =0    ,LYR_GRAZER13  =0    ,                       &
@@ -177,8 +174,7 @@ module mo_bgcmean
        & LVL_CFC11     =0    ,LVL_CFC12     =0    ,LVL_SF6       =0    ,  &
        & LVL_NATDIC    =0    ,LVL_NATALKALI =0    ,LVL_NATCALC   =0    ,  &
        & LVL_NATPH     =0    ,LVL_NATOMEGAA =0    ,LVL_NATOMEGAC =0    ,  &
-       & LVL_NATCO3    =0    ,                                            &
-       & LVL_BROMO     =0    ,                                            &
+       & LVL_NATCO3    =0    ,LVL_BROMO     =0    ,                       &
        & LVL_D13C      =0    ,LVL_D14C      =0    ,LVL_BIGD14C   =0    ,  &
        & LVL_POC13     =0    ,LVL_DOC13     =0    ,LVL_CALC13    =0    ,  &
        & LVL_PHYTO13   =0    ,LVL_GRAZER13  =0    ,                       &
@@ -212,9 +208,9 @@ module mo_bgcmean
 
   character(len=10), dimension(nbgcmax) :: glb_fnametag
   namelist /diabgc/                                                       &
-       & SRF_KWCO2         ,SRF_PCO2          ,SRF_DMSFLUX       ,        &
-       & SRF_KWCO2KHM      ,SRF_CO2KHM        ,SRF_CO2KH         ,        &
-       & SRF_PCO2M         ,                                              &
+       & SRF_KWCO2         ,SRF_FCO2          ,SRF_PCO2          ,        &
+       & SRF_XCO2          ,SRF_PCO2_GEX      ,                           & 
+       & SRF_DMSFLUX       ,SRF_KWCO2SOL      ,SRF_CO2SOL        ,        &
        & SRF_CO2FXD        ,SRF_CO2FXU        ,SRF_CO213FXD      ,        &
        & SRF_CO213FXU      ,SRF_CO214FXD      ,SRF_CO214FXU      ,        &
        & SRF_OXFLUX        ,SRF_NIFLUX        ,SRF_DMS           ,        &
@@ -226,14 +222,12 @@ module mo_bgcmean
        & SRF_SF6           ,SRF_PHOSPH        ,SRF_OXYGEN        ,        &
        & SRF_IRON          ,SRF_ANO3          ,SRF_ALKALI        ,        &
        & SRF_SILICA        ,SRF_DIC           ,SRF_PHYTO         ,        &
-       & SRF_PH            ,                                              &
-       & SRF_NATDIC        ,SRF_NATALKALI     ,SRF_NATPCO2       ,        &
-       & SRF_NATCO2FX      ,SRF_NATPH         ,                           &
+       & SRF_PH            ,SRF_NATDIC        ,SRF_NATALKALI     ,        &
+       & SRF_NATPCO2       ,SRF_NATCO2FX      ,SRF_NATPH         ,        &
        & SRF_ATMBROMO      ,SRF_BROMO         ,SRF_BROMOFX       ,        &
        & SRF_ANH4          ,SRF_ANO2          ,SRF_ANH3FX        ,        &
        & SRF_PN2OM         ,SRF_PNH3          ,SRF_ATMNH3        ,        &
-       & SRF_ATMN2O        ,                                              &
-       & INT_BROMOPRO      ,INT_BROMOUV       ,                           &
+       & SRF_ATMN2O        ,INT_BROMOPRO      ,INT_BROMOUV       ,        &
        & INT_PHOSY         ,INT_NFIX          ,INT_DNIT          ,        &
        & FLX_NDEPNOY       ,FLX_NDEPNHX       ,FLX_OALK          ,        &
        & FLX_CAR0100       ,FLX_CAR0500       ,FLX_CAR1000       ,        &
@@ -263,8 +257,7 @@ module mo_bgcmean
        & LYR_CFC11         ,LYR_CFC12         ,LYR_SF6           ,        &
        & LYR_NATDIC        ,LYR_NATALKALI     ,LYR_NATCALC       ,        &
        & LYR_NATPH         ,LYR_NATOMEGAA     ,LYR_NATOMEGAC     ,        &
-       & LYR_NATCO3        ,                                              &
-       & LYR_BROMO         ,                                              &
+       & LYR_NATCO3        ,LYR_BROMO         ,                           &
        & LYR_D13C          ,LYR_D14C          ,LYR_BIGD14C       ,        &
        & LYR_PHYTO13       ,LYR_GRAZER13      ,LYR_POC13         ,        &
        & LYR_DOC13         ,LYR_CALC13        ,                           &
@@ -288,13 +281,11 @@ module mo_bgcmean
        & LVL_WPHY          ,LVL_WNOS          ,LVL_EPS           ,        &
        & LVL_ASIZE         ,LVL_N2O           ,LVL_PREFO2        ,        &
        & LVL_O2SAT         ,LVL_PREFPO4       ,LVL_PREFALK       ,        &
-       & LVL_PREFDIC       ,LVL_DICSAT        ,                           &
-       & LVL_PREFSILICA    ,                                              &
+       & LVL_PREFDIC       ,LVL_DICSAT        ,LVL_PREFSILICA    ,        &
        & LVL_CFC11         ,LVL_CFC12         ,LVL_SF6           ,        &
        & LVL_NATDIC        ,LVL_NATALKALI     ,LVL_NATCALC       ,        &
        & LVL_NATPH         ,LVL_NATOMEGAA     ,LVL_NATOMEGAC     ,        &
-       & LVL_NATCO3        ,                                              &
-       & LVL_BROMO         ,                                              &
+       & LVL_NATCO3        ,LVL_BROMO         ,                           &
        & LVL_D13C          ,LVL_D14C          ,LVL_BIGD14C       ,        &
        & LVL_PHYTO13       ,LVL_GRAZER13      ,LVL_POC13         ,        &
        & LVL_DOC13         ,LVL_CALC13        ,                           &
@@ -359,11 +350,12 @@ module mo_bgcmean
   integer :: i_bsc_m2d
   integer, dimension(nbgcmax) ::                                          &
        &          jkwco2     = 0 ,                                        &
-       &          jkwco2khm  = 0 ,                                        &
-       &          jco2kh     = 0 ,                                        &
-       &          jco2khm    = 0 ,                                        &
+       &          jkwco2sol  = 0 ,                                        &
+       &          jco2sol    = 0 ,                                        &
+       &          jfco2      = 0 ,                                        &
        &          jpco2      = 0 ,                                        &
-       &          jpco2m     = 0 ,                                        &
+       &          jxco2      = 0 ,                                        &
+       &          jpco2_gex  = 0 ,                                        &
        &          jdmsflux   = 0 ,                                        &
        &          jco2fxd    = 0 ,                                        &
        &          jco2fxu    = 0 ,                                        &
@@ -763,16 +755,18 @@ CONTAINS
     do n=1,nbgc
       if (SRF_KWCO2(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jkwco2(n)=i_bsc_m2d*min(1,SRF_KWCO2(n))
-      if (SRF_KWCO2KHM(n) > 0) i_bsc_m2d=i_bsc_m2d+1
-      jkwco2khm(n)=i_bsc_m2d*min(1,SRF_KWCO2KHM(n))
-      if (SRF_CO2KH(n) > 0) i_bsc_m2d=i_bsc_m2d+1
-      jco2kh(n)=i_bsc_m2d*min(1,SRF_CO2KH(n))
-      if (SRF_CO2KHM(n) > 0) i_bsc_m2d=i_bsc_m2d+1
-      jco2khm(n)=i_bsc_m2d*min(1,SRF_CO2KHM(n))
+      if (SRF_KWCO2SOL(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jkwco2sol(n)=i_bsc_m2d*min(1,SRF_KWCO2SOL(n))
+      if (SRF_CO2SOL(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jco2sol(n)=i_bsc_m2d*min(1,SRF_CO2SOL(n))
+      if (SRF_FCO2(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jfco2(n)=i_bsc_m2d*min(1,SRF_FCO2(n))
       if (SRF_PCO2(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jpco2(n)=i_bsc_m2d*min(1,SRF_PCO2(n))
-      if (SRF_PCO2M(n) > 0) i_bsc_m2d=i_bsc_m2d+1
-      jpco2m(n)=i_bsc_m2d*min(1,SRF_PCO2M(n))
+      if (SRF_XCO2(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jxco2(n)=i_bsc_m2d*min(1,SRF_XCO2(n))
+      if (SRF_PCO2_GEX(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jpco2_gex(n)=i_bsc_m2d*min(1,SRF_PCO2_GEX(n))
       if (SRF_DMSFLUX(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jdmsflux(n)=i_bsc_m2d*min(1,SRF_DMSFLUX(n))
       if (SRF_CO2FXD(n) > 0) i_bsc_m2d=i_bsc_m2d+1
