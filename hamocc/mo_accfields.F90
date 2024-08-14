@@ -42,7 +42,7 @@ contains
     use mod_xc,           only: mnproc
     use mod_dia,          only: ddm
     use mo_carbch,        only: atm,atmflx,co2fxd,co2fxu,co3,hi,kwco2sol,                          &
-                                ndepnoyflx,rivinflx,oalkflx,ocetra,omegaa,omegac,fco2,pco2,        &
+                                ndepnoyflx,rivinflx,oalkflx,ocetra,omegaa,omegac,fco2,pco2,xco2,   &
                                 pco2_gex,satoxy,sedfluxo,sedfluxb,kwco2a,co2sol,pn2om,             &
                                 co213fxd,co213fxu,co214fxd,co214fxu,                               &
                                 natco3,nathi,natomegaa,natomegac,natpco2,pnh3,ndepnhxflx
@@ -86,7 +86,7 @@ contains
                                 jprorca,jprcaca,jsilpro,jpodiic,jpodial,jpodiph,                   &
                                 jpodiox,jpodin2,jpodino3,jpodisi,jndepnoy,jndepnhx,joalk,          &
                                 jniflux,jnos,jo2flux,jo2sat,jomegaa,jomegac,jopal,                 &
-                                joxflux,joxygen,jfco2,jpco2,jpco2_gex,jkwco2sol,jco2sol,           &
+                                joxflux,joxygen,jfco2,jpco2,jxco2,jpco2_gex,jkwco2sol,jco2sol,     &
                                 jph,jphosph,jphosy,jphyto,jpoc,jprefalk,                           &
                                 jprefdic,jprefo2,jprefpo4,jsilica,jsrfalkali,                      &
                                 jsrfano3,jsrfdic,jsrfiron,jsrfoxygen,jsrfphosph,                   &
@@ -283,6 +283,7 @@ contains
     ! Accumulate 2d diagnostics
     call accsrf(jfco2,fco2,omask,0)
     call accsrf(jpco2,pco2,omask,0)
+    call accsrf(jxco2,xco2,omask,0)
     call accsrf(jpco2_gex,pco2_gex,omask,0)
     call accsrf(jkwco2sol,kwco2sol,omask,0)
     call accsrf(jkwco2,kwco2a,omask,0)

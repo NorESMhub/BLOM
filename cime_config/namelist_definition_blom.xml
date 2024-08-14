@@ -5428,6 +5428,18 @@
     <desc>Surface pCO2 [uatm]</desc>
   </entry>
 
+  <entry id="srf_xco2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>CO2 dry air mixing ratio that would be in equilibrium with the surface ocean [ppm]</desc>
+  </entry>
+
   <entry id="srf_pco2_gex">
     <type>integer(3)</type>
     <category>diabgc</category>

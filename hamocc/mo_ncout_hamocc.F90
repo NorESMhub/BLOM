@@ -81,7 +81,7 @@ contains
                               jlvlwnos,jlvlwphy,jn2o,jsrfpn2om,                                    &
                               jn2ofx,jndepnoyfx,jniflux,jnos,joalkfx,                              &
                               jo2sat,jomegaa,jomegac,jopal,joxflux,joxygen,jfco2,                  &
-                              jpco2,jpco2_gex,jkwco2sol,jco2sol,                                   &
+                              jpco2,jxco2,jpco2_gex,jkwco2sol,jco2sol,                             &
                               jph,jphosph,jphosy,jphyto,jpoc,jprefalk,                             &
                               jprefdic,jprefo2,jprefpo4,jsilica,jprefsilica,                       &
                               jsrfalkali,jsrfano3,jsrfdic,jsrfiron,                                &
@@ -103,7 +103,7 @@ contains
                               lvl_prefalk,lvl_prefdic,lvl_dicsat,                                  &
                               lvl_o2sat,srf_n2ofx,srf_pn2om,srf_atmco2,srf_kwco2,                  &
                               srf_kwco2sol,srf_co2sol,srf_fco2,                                    &
-                              srf_pco2,srf_pco2_gex,srf_dmsflux,srf_co2fxd,                        &
+                              srf_pco2,srf_xco2,srf_pco2_gex,srf_dmsflux,srf_co2fxd,               &
                               srf_co2fxu,srf_oxflux,srf_niflux,srf_dms,                            &
                               srf_dmsprod,srf_dms_bac,srf_dms_uv,                                  &
                               srf_export,srf_exposi,srf_expoca,srf_dic,                            &
@@ -533,6 +533,7 @@ contains
     call wrtsrf(jco2sol(iogrp),      SRF_CO2SOL(iogrp),   rnacc,          0.,cmpflg,'co2sol')
     call wrtsrf(jfco2(iogrp),        SRF_FCO2(iogrp),     rnacc,          0.,cmpflg,'fco2')
     call wrtsrf(jpco2(iogrp),        SRF_PCO2(iogrp),     rnacc,          0.,cmpflg,'pco2')
+    call wrtsrf(jxco2(iogrp),        SRF_XCO2(iogrp),     rnacc,          0.,cmpflg,'xco2')
     call wrtsrf(jpco2_gex(iogrp),    SRF_PCO2_GEX(iogrp), rnacc,          0.,cmpflg,'pco2_gex')
     call wrtsrf(jdmsflux(iogrp),     SRF_DMSFLUX(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'dmsflux')
     call wrtsrf(jco2fxd(iogrp),      SRF_CO2FXD(iogrp),   rnacc*12./dtbgc,0.,cmpflg,'co2fxd')
@@ -887,6 +888,7 @@ contains
     call inisrf(jco2sol(iogrp),0.)
     call inisrf(jfco2(iogrp),0.)
     call inisrf(jpco2(iogrp),0.)
+    call inisrf(jxco2(iogrp),0.)
     call inisrf(jpco2_gex(iogrp),0.)
     call inisrf(jdmsflux(iogrp),0.)
     call inisrf(jco2fxd(iogrp),0.)
@@ -1240,9 +1242,9 @@ contains
     use mod_nctools,    only: ncdefvar,ncattr,ncfopn,ncdimc,ncdims,                                &
                               nctime,ncfcls,ncedef,ncdefvar3d,ndouble
     use mo_control_bgc, only: use_M4AGO
-    use mo_bgcmean,     only: srf_kwco2,srf_fco2,srf_pco2,srf_pco2_gex,srf_dmsflux,srf_co2fxd,     &
-                              srf_kwco2sol,srf_co2sol,                                             &
-                              srf_co2fxu,srf_oxflux,srf_niflux,srf_pn2om,srf_dms,srf_dmsprod,      &
+    use mo_bgcmean,     only: srf_kwco2,srf_fco2,srf_pco2,srf_xco2,srf_pco2_gex,srf_dmsflux,       &
+                              srf_co2fxd,srf_co2fxu,srf_kwco2sol,srf_co2sol,                       &
+                              srf_oxflux,srf_niflux,srf_pn2om,srf_dms,srf_dmsprod,                 &
                               srf_dms_bac,srf_dms_uv,srf_export,srf_exposi,srf_expoca,             &
                               srf_dic,srf_alkali,srf_phosph,srf_oxygen,srf_ano3,srf_silica,        &
                               srf_iron,srf_phyto,srf_ph,int_phosy,int_nfix,int_dnit,               &
@@ -1379,9 +1381,13 @@ contains
     call ncdefvar3d(SRF_CO2SOL(iogrp),cmpflg,'p',                               &
          &   'co2sol','CO2 solubility',' ','mol kg-1 muatm-1',0)
     call ncdefvar3d(SRF_FCO2(iogrp),cmpflg,'p',                                 &
-         &   'fco2','Surface CO2 fugacity at 1 atm total pressure',' ','uatm',0)
+         &   'fco2','Surface equilibrium CO2 fugacity at the air-sea interface',&
+         &   ' ','uatm',0)
     call ncdefvar3d(SRF_PCO2(iogrp),cmpflg,'p',                                 &
-         &   'pco2','Surface pCO2 at 1 atm total pressure',' ','uatm',0)
+         &   'pco2','Surface equilibrium pCO2 at the air-sea interface',        &
+         &   ' ','uatm',0)
+    call ncdefvar3d(SRF_XCO2(iogrp),cmpflg,'p',                                 &
+         &   'xco2','Equilibrium CO2 dry air mixing ratio',' ','ppm',0)
     call ncdefvar3d(SRF_PCO2_GEX(iogrp),cmpflg,'p',                             &
          &   'pco2_gex','Atmospheric pCO2 at the air-sea interface',' ','uatm',0)
     call ncdefvar3d(SRF_DMSFLUX(iogrp),                                         &

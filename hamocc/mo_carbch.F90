@@ -71,6 +71,7 @@ module mo_carbch
 
   real, dimension (:,:),     allocatable, public :: fco2
   real, dimension (:,:),     allocatable, public :: pco2
+  real, dimension (:,:),     allocatable, public :: xco2
   real, dimension (:,:),     allocatable, public :: pco2_gex
   real, dimension (:,:),     allocatable, public :: kwco2sol
   real, dimension (:,:),     allocatable, public :: kwco2a
@@ -344,6 +345,15 @@ contains
     allocate (pco2(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory pco2'
     pco2(:,:) = 0.0
+
+    if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)'Memory allocation for variable xco2 ...'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+    endif
+    allocate (xco2(kpie,kpje),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory xco2'
+    xco2(:,:) = 0.0
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable pco2_gex ...'

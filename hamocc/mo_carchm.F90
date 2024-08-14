@@ -67,7 +67,7 @@ contains
     !***********************************************************************************************
 
     use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co2star,co3,hi,keqb,kwco2sol,               &
-                              ocetra,omegaa,omegac,fco2,pco2,pco2_gex,satn2o,satoxy,               &
+                              ocetra,omegaa,omegac,fco2,pco2,xco2,pco2_gex,satn2o,satoxy,          &
                               kwco2a,co2sol,pn2om
     use mo_chemcon,     only: al1,al2,al3,al4,an0,an1,an2,an3,an4,an5,an6,                         &
                               bl1,bl2,bl3,calcon,ox0,ox1,ox2,ox3,ox4,ox5,ox6,                      &
@@ -148,6 +148,7 @@ contains
     co2fxu   (:,:)=0.
     fco2     (:,:)=0.
     pco2     (:,:)=0.
+    xco2     (:,:)=0.
     pco2_gex (:,:)=0.
     kwco2a   (:,:)=0.
     co2sol   (:,:)=0.
@@ -577,12 +578,13 @@ contains
                 co214fxu(i,j)= flux14u
               endif
 
-              ! Save CO2 fugacity and pCO2 [micro atm] in equilibrium with air of x'=atco2 for output
-              fco2(i,j)     = cu * 1.e6 / Kh0 / (rpp0-pH2O)
-              pco2(i,j)     = fco2(i,j)/fc
-              pco2_gex(i,j) = atco2*(rpp0-pH2O)
+              ! Save pCO2-related diagnostics for output
+              fco2(i,j)     = cu * 1.e6 / Kh0        ! Equilibrium CO2 fugacity at the air sea interface [micro atm]
+              pco2(i,j)     = fco2(i,j)/fc           ! Equilibrium CO2 partial pressure at the air sea interface [micro atm]
+              xco2(i,j)     = pco2(i,j)/(rpp0-pH2O)  ! Equilibrium CO2 dry air mixing raio [ppm]
+              pco2_gex(i,j) = atco2*(rpp0-pH2O)      ! Actual CO2 partial pressure at the air sea interface [micro atm]
               if (use_natDIC) then
-                natpco2(i,j) = natcu * 1.e6 / Kh0 / (rpp0-pH2O) / fc
+                natpco2(i,j) = natcu * 1.e6 / Kh0 / fc
               endif
 
               ! Save product of piston velocity and solubility for output
