@@ -333,6 +333,7 @@ contains
     ! update some halos
     ! ------------------------------------------------------------------
 
+    call xctilr(sigmar, 1,kk, 2,2, halo_ps)
     call xctilr(uflx, 1,2*kk, 1,1, halo_uv)
     call xctilr(vflx, 1,2*kk, 1,1, halo_vv)
     call xctilr(phi(1-nbdy,1-nbdy,kk+1), 1,1, 2,2, halo_ps)
@@ -343,7 +344,6 @@ contains
     call xctilr(pgfym, 1,2, 1,2, halo_vv)
     call xctilr(xiyp, 1,2, 1,2, halo_vs)
     call xctilr(xiym, 1,2, 1,2, halo_vs)
-    call xctilr(sigmar, 1,kk, 1,1, halo_ps)
     if (vcoord_type_tag == isopyc_bulkml) then
        call xctilr(uml, 1,4, 1,0, halo_uv)
        call xctilr(vml, 1,4, 0,1, halo_vv)

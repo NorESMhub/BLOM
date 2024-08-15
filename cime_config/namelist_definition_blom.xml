@@ -1063,7 +1063,7 @@
     <category>vcoord</category>
     <group>vcoord</group>
     <values>
-      <value>0</value>
+      <value>4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -1073,7 +1073,42 @@
     <category>vcoord</category>
     <group>vcoord</group>
     <values>
-      <value>0</value>
+      <value>2</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="regrid_nudge_ts">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>86400.</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="stab_fac_limit">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>.75</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="smooth_diff_max">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>50000.</value>
+      <value blom_unit="cgs">50000.e4</value>
+      <value ocn_grid="tnx0.25v4"  blom_unit="mks">40000.</value>
+      <value ocn_grid="tnx0.25v4"  blom_unit="cgs">40000.e4</value>
+      <value ocn_grid="tnx0.125v4" blom_unit="mks">20000.</value>
+      <value ocn_grid="tnx0.125v4" blom_unit="cgs">20000.e4</value>
     </values>
     <desc>add desc</desc>
   </entry>
