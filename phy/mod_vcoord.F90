@@ -18,10 +18,10 @@
 ! ------------------------------------------------------------------------------
 
 module mod_vcoord
-   ! ------------------------------------------------------------------------------
-   ! This module contains parameter, variables and procedures related to the
-   ! vertical coordinate.
-   ! ------------------------------------------------------------------------------
+! ------------------------------------------------------------------------------
+! This module contains parameter, variables and procedures related to the
+! vertical coordinate.
+! ------------------------------------------------------------------------------
 
    use mod_types,     only: r8
    use mod_config,    only: inst_suffix
@@ -83,16 +83,17 @@ module mod_vcoord
 
    ! Parameters:
    integer, parameter :: &
-        isopyc_bulkml = 1, &        ! Vertical coordinate type: bulk surface mixed
-                                ! layer with isopycnic layers below.
-        cntiso_hybrid = 2           ! Vertical coordinate type: Hybrid coordinate
-   ! with pressure coordinates towards the
-   ! surface and continuous isopycnal below.
+        isopyc_bulkml = 1, &        ! Vertical coordinate type: bulk surface
+                                    ! mixed layer with isopycnic layers below.
+        cntiso_hybrid = 2           ! Vertical coordinate type: Hybrid
+                                    ! coordinate with pressure coordinates
+                                    ! towards the surface and continuous
+                                    ! isopycnal below.
 
    real(r8), parameter :: &
         bfsq_min      = 1.e-7_r8, & ! Minimum buoyancy frequency squared in
-                                ! monotonized potential density to be used in
-                                ! regridding [s-2].
+                                    ! monotonized potential density to be used
+                                    ! in regridding [s-2].
         regrid_mval   = - 1.e33_r8  ! Missing value for regridding.
 
 
@@ -157,12 +158,13 @@ contains
 
    end function dpeval1
 
-   subroutine prep_recon_jslice(p_src, i_lb, i_ub, j, j_rs, nn)
-      ! ---------------------------------------------------------------------------
-      ! Prepare vertical layer reconstruction along a j-slice of the model data.
-      ! ---------------------------------------------------------------------------
+   subroutine prep_recon_jslice(p_src, ksmx, i_lb, i_ub, j, j_rs, nn)
+   ! ---------------------------------------------------------------------------
+   ! Prepare vertical layer reconstruction along a j-slice of the model data.
+   ! ---------------------------------------------------------------------------
 
       real(r8), dimension(:,1-nbdy:), intent(out) :: p_src
+      integer, dimension(1-nbdy:), intent(out) :: ksmx
       integer, intent(in) :: i_lb, i_ub, j, j_rs, nn
 
       integer :: l, i, k, errstat
@@ -170,9 +172,16 @@ contains
       do l = 1, isp(j)
          do i = max(i_lb, ifp(j,l)), min(i_ub, ilp(j,l))
 
+            ! Compute source layer interface pressure.
             p_src(1,i) = p(i,j,1)
             do k = 1, kk
                p_src(k+1,i) = p_src(k,i) + dp(i,j,k+nn)
+            enddo
+            
+            ! Find index of deepest source layer with non-zero thickness.
+            ksmx(i) = kk
+            do k = kk, 1, -1
+               if (p_src(k,i) == p_src(kk+1,i)) ksmx(i) = k - 1
             enddo
 
             errstat = prepare_reconstruction(rcgs, p_src(:,i), i, j_rs)
@@ -187,12 +196,14 @@ contains
 
    end subroutine prep_recon_jslice
 
-   subroutine recon_trc_jslice(i_lb, i_ub, j, j_rs, nn)
-      ! ---------------------------------------------------------------------------
-      ! Vertically reconstruct temperature, salinity and additional tracers along a
-      ! j-slice of the model data.
-      ! ---------------------------------------------------------------------------
+   subroutine recon_trc_jslice(ksmx, tpc_src, t_srcdi, i_lb, i_ub, j, j_rs, nn)
+   ! ---------------------------------------------------------------------------
+   ! Vertically reconstruct temperature, salinity and additional tracers along a
+   ! j-slice of the model data.
+   ! ---------------------------------------------------------------------------
 
+      integer, dimension(1-nbdy:), intent(in) :: ksmx
+      real(r8), intent(out) :: tpc_src(:,:,:,1-nbdy:), t_srcdi(:,:,:,1-nbdy:)
       integer, intent(in) :: i_lb, i_ub, j, j_rs, nn
 
       real(r8), dimension(kdm,ntr_loc) :: trc_1d
@@ -221,6 +232,23 @@ contains
                   call xchalt('(recon_trc_jslice)')
                   stop '(recon_trc_jslice)'
                endif
+            enddo
+
+            ! Extract polynomial coefficients of the reconstructions and store
+            ! tracer variables in dual interface arrays with with values
+            ! corresponding to upper and lower interface of each layer.
+            do nt = 1, ntr_loc
+               errstat = extract_polycoeff(trc_rcss(nt), tpc_src(:,:,nt,i), &
+                                           i, j_rs)
+               if (errstat /= hor3map_noerr) then
+                  write(lp,*) trim(hor3map_errstr(errstat))
+                  call xchalt('(recon_trc_jslice)')
+                  stop '(recon_trc_jslice)'
+               endif
+               do k = 1, ksmx(i)
+                  t_srcdi(1,k,nt,i) = peval0(tpc_src(:,k,nt,i))
+                  t_srcdi(2,k,nt,i) = peval1(tpc_src(:,k,nt,i))
+               enddo
             enddo
 
          enddo
@@ -519,21 +547,21 @@ contains
 
    end subroutine cntiso_regrid_direct_jslice
 
-   subroutine cntiso_regrid_nudge_jslice(p_src, p_dst, i_lb, i_ub, j, j_rs, nn)
+   subroutine cntiso_regrid_nudge_jslice(p_src, ksmx, tpc_src, t_srcdi, p_dst, &
+                                         i_lb, i_ub, j, j_rs)
 
       real(r8), dimension(:,1-nbdy:), intent(in) :: p_src
+      integer, dimension(1-nbdy:), intent(in) :: ksmx
+      real(r8), dimension(:,:,:,1-nbdy:), intent(in) :: tpc_src, t_srcdi
       real(r8), dimension(:,1-nbdy:), intent(out) :: p_dst
-      integer, intent(in) :: i_lb, i_ub, j, j_rs, nn
+      integer, intent(in) :: i_lb, i_ub, j, j_rs
 
       integer, parameter :: &
-           p_ord = 4, &
            it = 1, &
            is = 2
 
-      real(r8), dimension(p_ord+1,kdm,2,1-nbdy:idm+nbdy) :: tpc_src
-      real(r8), dimension(2,kdm,2,1-nbdy:idm+nbdy) :: t_srcdi
       real(r8), dimension(2,kdm) :: sig_srcdi
-      integer, dimension(1-nbdy:idm+nbdy) :: ksmx, kdmx
+      integer, dimension(1-nbdy:idm+nbdy) :: kdmx
 
       real(r8), dimension(kdm+1) :: sigmar_1d, pmin, sig_pmin
       real(r8) :: dpmin_inflation_factor_i, sig_max, dpmin_sfc, &
@@ -547,33 +575,12 @@ contains
       do l = 1, isp(j)
          do i = max(i_lb, ifp(j, l)), min(i_ub, ilp(j, l))
 
-            ! Extract polynomial coefficients of the reconstructions.
-            do nt = 1, 2
-               errstat = extract_polycoeff(trc_rcss(nt), &
-                    tpc_src(:,:,nt,i), i, j_rs)
-               if (errstat /= hor3map_noerr) then
-                  write(lp,*) trim(hor3map_errstr(errstat))
-                  call xchalt('(ndiff_prep_jslice)')
-                  stop '(ndiff_prep_jslice)'
-               endif
-            enddo
-
-            ! Find index of deepest source layer with non-zero thickness.
-            ksmx(i) = kk
-            do k = kk, 1, -1
-               if (p_src(k,i) == p_src(kk+1,i)) ksmx(i) = k - 1
-            enddo
-
-            ! Store variables in dual interface arrays with with values
-            ! corresponding to upper and lower interface of each layer. Also find
-            ! the maximum lower interface potential density of the reconstructed
-            ! column.
+            ! Store density in a dual interface array with with values
+            ! corresponding to upper and lower interface of each layer.  Also
+            ! find the maximum lower interface potential density of the
+            ! reconstructed column.
             sig_max = 0._r8
             do k = 1, ksmx(i)
-               do nt = 1, 2
-                  t_srcdi(1,k,nt,i) = peval0(tpc_src(:,k,nt,i))
-                  t_srcdi(2,k,nt,i) = peval1(tpc_src(:,k,nt,i))
-               enddo
                sig_srcdi(1,k) = sig(t_srcdi(1,k,it,i), t_srcdi(1,k,is,i))
                sig_srcdi(2,k) = sig(t_srcdi(2,k,it,i), t_srcdi(2,k,is,i))
                sig_max = max(sig_max, sig_srcdi(2,k))
@@ -982,9 +989,9 @@ contains
    end subroutine readnml_vcoord
 
    subroutine inivar_vcoord
-      ! ---------------------------------------------------------------------------
-      ! Initialize arrays and data structures.
-      ! ---------------------------------------------------------------------------
+   ! ---------------------------------------------------------------------------
+   ! Initialize arrays and data structures.
+   ! ---------------------------------------------------------------------------
 
       integer :: i, j, k, nt, errstat
 
@@ -1105,8 +1112,16 @@ contains
 
       integer, intent(in) :: m, n, mm, nn, k1m, k1n
 
+      integer, parameter :: p_ord = 4
+
       real(r8), dimension(kdm+1,1-nbdy:idm+nbdy,2) :: p_src_rs, p_dst_rs
+      real(r8), dimension(p_ord+1,kdm,ntr_loc,1-nbdy:idm+nbdy,2) :: tpc_src_rs
+      real(r8), dimension(2,kdm,ntr_loc,1-nbdy:idm+nbdy,2) :: t_srcdi_rs
+      real(r8), dimension(2,kdm,1-nbdy:idm+nbdy,2) :: &
+         p_srcdi_rs, drhodt_srcdi_rs, drhods_srcdi_rs
+      real(r8), dimension(kdm,ntr_loc,1-nbdy:idm+nbdy,2) :: flxconv_rs
       real(r8), dimension(kdm,ntr_loc,1-nbdy:idm+nbdy) :: trc_rm
+      integer, dimension(1-nbdy:idm+nbdy,2) :: ksmx_rs, kdmx_rs
       integer :: j_rs, jm_rs, jp_rs, j, nt
 
       if (ltedtp_opt /= ltedtp_neutral) then
@@ -1114,13 +1129,22 @@ contains
          j_rs = 1
 
          do j = 1, jj
-            call prep_recon_jslice(p_src_rs(:,:,j_rs), 1, ii, j, j_rs, nn)
-            call recon_trc_jslice(1, ii, j, j_rs, nn)
-            call cntiso_regrid_direct_jslice(p_src_rs(:,:,j_rs), p_dst_rs(:,:,j_rs), &
-                 1, ii, j, j_rs, nn)
-            call remap_trc_jslice(p_dst_rs(:,:,j_rs), trc_rm, &
-                 1, ii, j, j_rs)
-            call copy_jslice_to_3d(p_dst_rs(:,:,j_rs), trc_rm, 1, ii, j, nn)
+            call prep_recon_jslice          (p_src_rs(:,:,j_rs), &
+                                             ksmx_rs(:,j_rs), &
+                                             1, ii, j, j_rs, nn)
+            call recon_trc_jslice           (ksmx_rs(:,j_rs), &
+                                             tpc_src_rs(:,:,:,:,j_rs), &
+                                             t_srcdi_rs(:,:,:,:,j_rs), &
+                                             1, ii, j, j_rs, nn)
+            call cntiso_regrid_direct_jslice(p_src_rs(:,:,j_rs), &
+                                             p_dst_rs(:,:,j_rs), &
+                                             1, ii, j, j_rs, nn)
+            call remap_trc_jslice           (p_dst_rs(:,:,j_rs), &
+                                             trc_rm, &
+                                             1, ii, j, j_rs)
+            call copy_jslice_to_3d          (p_dst_rs(:,:,j_rs), &
+                                             trc_rm, &
+                                             1, ii, j, nn)
          enddo
 
       else
@@ -1145,36 +1169,67 @@ contains
          do j = -1, 0
             jm_rs = 3 - jm_rs
             jp_rs = 3 - jp_rs
-            call prep_recon_jslice(p_src_rs(:,:,jp_rs), &
-                 0, ii+1, j+1, jp_rs, nn)
-            call recon_trc_jslice(0, ii+1, j+1, jp_rs, nn)
+            call prep_recon_jslice          (p_src_rs(:,:,jp_rs), &
+                                             ksmx_rs(:,jp_rs), &
+                                             0, ii+1, j+1, jp_rs, nn)
+            call recon_trc_jslice           (ksmx_rs(:,jp_rs), &
+                                             tpc_src_rs(:,:,:,:,jp_rs), &
+                                             t_srcdi_rs(:,:,:,:,jp_rs), &
+                                             0, ii+1, j+1, jp_rs, nn)
             call cntiso_regrid_direct_jslice(p_src_rs(:,:,jp_rs), &
-                 p_dst_rs(:,:,jp_rs), &
-                 0, ii+1, j+1, jp_rs, nn)
-            call ndiff_prep_jslice(p_src_rs, p_dst_rs, trc_rcss, &
-                 0, ii+1, j+1, jp_rs, mm)
+                                             p_dst_rs(:,:,jp_rs), &
+                                             0, ii+1, j+1, jp_rs, nn)
+            call ndiff_prep_jslice          (p_src_rs, ksmx_rs, &
+                                             tpc_src_rs, t_srcdi_rs, &
+                                             p_dst_rs, kdmx_rs, p_srcdi_rs, &
+                                             drhodt_srcdi_rs, drhods_srcdi_rs, &
+                                             flxconv_rs, &
+                                             0, ii+1, j+1, jp_rs, mm)
          enddo
 
          j = 0
-         call ndiff_vflx_jslice(p_dst_rs, 1, ii, j+1, jp_rs, mm, nn)
+         call ndiff_vflx_jslice(ksmx_rs, tpc_src_rs, t_srcdi_rs, &
+                                p_dst_rs, kdmx_rs, p_srcdi_rs, &
+                                drhodt_srcdi_rs, drhods_srcdi_rs, &
+                                flxconv_rs, &
+                                ntr_loc, 1, ii, j+1, jp_rs, mm, nn)
 
          do j = 1, jj
             jm_rs = 3 - jm_rs
             jp_rs = 3 - jp_rs
-            call prep_recon_jslice(p_src_rs(:,:,jp_rs), &
-                 0, ii+1, j+1, jp_rs, nn)
-            call recon_trc_jslice(0, ii+1, j+1, jp_rs, nn)
+            call prep_recon_jslice          (p_src_rs(:,:,jp_rs), &
+                                             ksmx_rs(:,jp_rs), &
+                                             0, ii+1, j+1, jp_rs, nn)
+            call recon_trc_jslice           (ksmx_rs(:,jp_rs), &
+                                             tpc_src_rs(:,:,:,:,jp_rs), &
+                                             t_srcdi_rs(:,:,:,:,jp_rs), &
+                                             0, ii+1, j+1, jp_rs, nn)
             call cntiso_regrid_direct_jslice(p_src_rs(:,:,jp_rs), &
-                 p_dst_rs(:,:,jp_rs), &
-                 0, ii+1, j+1, jp_rs, nn)
-            call ndiff_prep_jslice(p_src_rs, p_dst_rs, trc_rcss, &
-                 0, ii+1, j+1, jp_rs, mm)
-            call ndiff_uflx_jslice(p_dst_rs, 1, ii+1, j, jm_rs, mm, nn)
-            call ndiff_vflx_jslice(p_dst_rs, 1, ii, j+1, jp_rs, mm, nn)
-            call remap_trc_jslice(p_dst_rs(:,:,jm_rs), trc_rm, &
-                 1, ii, j, jm_rs)
-            call ndiff_update_trc_jslice(p_dst_rs, trc_rm, 1, ii, j, jm_rs)
-            call copy_jslice_to_3d(p_dst_rs(:,:,jm_rs), trc_rm, 1, ii, j, nn)
+                                             p_dst_rs(:,:,jp_rs), &
+                                             0, ii+1, j+1, jp_rs, nn)
+            call ndiff_prep_jslice          (p_src_rs, ksmx_rs, &
+                                             tpc_src_rs, t_srcdi_rs, &
+                                             p_dst_rs, kdmx_rs, p_srcdi_rs, &
+                                             drhodt_srcdi_rs, drhods_srcdi_rs, &
+                                             flxconv_rs, &
+                                             0, ii+1, j+1, jp_rs, mm)
+            call ndiff_uflx_jslice          (ksmx_rs, tpc_src_rs, t_srcdi_rs, &
+                                             p_dst_rs, kdmx_rs, p_srcdi_rs, &
+                                             drhodt_srcdi_rs, drhods_srcdi_rs, &
+                                             flxconv_rs, &
+                                             ntr_loc, 1, ii+1, j, jm_rs, mm, nn)
+            call ndiff_vflx_jslice          (ksmx_rs, tpc_src_rs, t_srcdi_rs, &
+                                             p_dst_rs, kdmx_rs, p_srcdi_rs, &
+                                             drhodt_srcdi_rs, drhods_srcdi_rs, &
+                                             flxconv_rs, &
+                                             ntr_loc, 1, ii, j+1, jp_rs, mm, nn)
+            call remap_trc_jslice           (p_dst_rs(:,:,jm_rs), trc_rm, &
+                                             1, ii, j, jm_rs)
+            call ndiff_update_trc_jslice    (p_dst_rs, flxconv_rs, trc_rm, &
+                                             ntr_loc, 1, ii, j, jm_rs)
+            call copy_jslice_to_3d          (p_dst_rs(:,:,jm_rs), &
+                                             trc_rm, &
+                                             1, ii, j, nn)
          enddo
 
       endif
@@ -1201,8 +1256,16 @@ contains
 
       integer, intent(in) :: m, n, mm, nn, k1m, k1n
 
+      integer, parameter :: p_ord = 4
+
       real(r8), dimension(kdm+1,1-nbdy:idm+nbdy,2) :: p_src_rs, p_dst_rs
+      real(r8), dimension(p_ord+1,kdm,ntr_loc,1-nbdy:idm+nbdy,2) :: tpc_src_rs
+      real(r8), dimension(2,kdm,ntr_loc,1-nbdy:idm+nbdy,2) :: t_srcdi_rs
+      real(r8), dimension(2,kdm,1-nbdy:idm+nbdy,2) :: &
+         p_srcdi_rs, drhodt_srcdi_rs, drhods_srcdi_rs
+      real(r8), dimension(kdm,ntr_loc,1-nbdy:idm+nbdy,2) :: flxconv_rs
       real(r8), dimension(kdm,ntr_loc,1-nbdy:idm+nbdy) :: trc_rm
+      integer, dimension(1-nbdy:idm+nbdy,2) :: ksmx_rs, kdmx_rs
       integer :: j_rs, jm_rs, jp_rs, j, nt
 
       if (ltedtp_opt /= ltedtp_neutral) then
@@ -1210,13 +1273,25 @@ contains
          j_rs = 1
 
          do j = 1, jj
-            call prep_recon_jslice(p_src_rs(:,:,j_rs), 1, ii, j, j_rs, nn)
-            call recon_trc_jslice(1, ii, j, j_rs, nn)
-            call cntiso_regrid_nudge_jslice(p_src_rs(:,:,j_rs), p_dst_rs(:,:,j_rs), &
-                 1, ii, j, j_rs, nn)
-            call remap_trc_jslice(p_dst_rs(:,:,j_rs), trc_rm, &
-                 1, ii, j, j_rs)
-            call copy_jslice_to_3d(p_dst_rs(:,:,j_rs), trc_rm, 1, ii, j, nn)
+            call prep_recon_jslice         (p_src_rs(:,:,j_rs), &
+                                            ksmx_rs(:,j_rs), &
+                                            1, ii, j, j_rs, nn)
+            call recon_trc_jslice          (ksmx_rs(:,j_rs), &
+                                            tpc_src_rs(:,:,:,:,j_rs), &
+                                            t_srcdi_rs(:,:,:,:,j_rs), &
+                                            1, ii, j, j_rs, nn)
+            call cntiso_regrid_nudge_jslice(p_src_rs(:,:,j_rs), &
+                                            ksmx_rs(:,j_rs), &
+                                            tpc_src_rs(:,:,:,:,j_rs), &
+                                            t_srcdi_rs(:,:,:,:,j_rs), &
+                                            p_dst_rs(:,:,j_rs), &
+                                            1, ii, j, j_rs)
+            call remap_trc_jslice          (p_dst_rs(:,:,j_rs), &
+                                            trc_rm, &
+                                            1, ii, j, j_rs)
+            call copy_jslice_to_3d         (p_dst_rs(:,:,j_rs), &
+                                            trc_rm, &
+                                            1, ii, j, nn)
          enddo
 
       else
@@ -1241,36 +1316,73 @@ contains
          do j = -1, 0
             jm_rs = 3 - jm_rs
             jp_rs = 3 - jp_rs
-            call prep_recon_jslice(p_src_rs(:,:,jp_rs), &
-                 0, ii+1, j+1, jp_rs, nn)
-            call recon_trc_jslice(0, ii+1, j+1, jp_rs, nn)
+            call prep_recon_jslice         (p_src_rs(:,:,jp_rs), &
+                                            ksmx_rs(:,jp_rs), &
+                                            0, ii+1, j+1, jp_rs, nn)
+            call recon_trc_jslice          (ksmx_rs(:,jp_rs), &
+                                            tpc_src_rs(:,:,:,:,jp_rs), &
+                                            t_srcdi_rs(:,:,:,:,jp_rs), &
+                                            0, ii+1, j+1, jp_rs, nn)
             call cntiso_regrid_nudge_jslice(p_src_rs(:,:,jp_rs), &
-                 p_dst_rs(:,:,jp_rs), &
-                 0, ii+1, j+1, jp_rs, nn)
-            call ndiff_prep_jslice(p_src_rs, p_dst_rs, trc_rcss, &
-                 0, ii+1, j+1, jp_rs, mm)
+                                            ksmx_rs(:,jp_rs), &
+                                            tpc_src_rs(:,:,:,:,jp_rs), &
+                                            t_srcdi_rs(:,:,:,:,jp_rs), &
+                                            p_dst_rs(:,:,jp_rs), &
+                                            0, ii+1, j+1, jp_rs)
+            call ndiff_prep_jslice         (p_src_rs, ksmx_rs, &
+                                            tpc_src_rs, t_srcdi_rs, &
+                                            p_dst_rs, kdmx_rs, p_srcdi_rs, &
+                                            drhodt_srcdi_rs, drhods_srcdi_rs, &
+                                            flxconv_rs, &
+                                            0, ii+1, j+1, jp_rs, mm)
          enddo
 
          j = 0
-         call ndiff_vflx_jslice(p_dst_rs, 1, ii, j+1, jp_rs, mm, nn)
+         call ndiff_vflx_jslice(ksmx_rs, tpc_src_rs, t_srcdi_rs, &
+                                p_dst_rs, kdmx_rs, p_srcdi_rs, &
+                                drhodt_srcdi_rs, drhods_srcdi_rs, &
+                                flxconv_rs, &
+                                ntr_loc, 1, ii, j+1, jp_rs, mm, nn)
 
          do j = 1, jj
             jm_rs = 3 - jm_rs
             jp_rs = 3 - jp_rs
-            call prep_recon_jslice(p_src_rs(:,:,jp_rs), &
-                 0, ii+1, j+1, jp_rs, nn)
-            call recon_trc_jslice(0, ii+1, j+1, jp_rs, nn)
+            call prep_recon_jslice         (p_src_rs(:,:,jp_rs), &
+                                            ksmx_rs(:,jp_rs), &
+                                            0, ii+1, j+1, jp_rs, nn)
+            call recon_trc_jslice          (ksmx_rs(:,jp_rs), &
+                                            tpc_src_rs(:,:,:,:,jp_rs), &
+                                            t_srcdi_rs(:,:,:,:,jp_rs), &
+                                            0, ii+1, j+1, jp_rs, nn)
             call cntiso_regrid_nudge_jslice(p_src_rs(:,:,jp_rs), &
-                 p_dst_rs(:,:,jp_rs), &
-                 0, ii+1, j+1, jp_rs, nn)
-            call ndiff_prep_jslice(p_src_rs, p_dst_rs, trc_rcss, &
-                 0, ii+1, j+1, jp_rs, mm)
-            call ndiff_uflx_jslice(p_dst_rs, 1, ii+1, j, jm_rs, mm, nn)
-            call ndiff_vflx_jslice(p_dst_rs, 1, ii, j+1, jp_rs, mm, nn)
-            call remap_trc_jslice(p_dst_rs(:,:,jm_rs), trc_rm, &
-                 1, ii, j, jm_rs)
-            call ndiff_update_trc_jslice(p_dst_rs, trc_rm, 1, ii, j, jm_rs)
-            call copy_jslice_to_3d(p_dst_rs(:,:,jm_rs), trc_rm, 1, ii, j, nn)
+                                            ksmx_rs(:,jp_rs), &
+                                            tpc_src_rs(:,:,:,:,jp_rs), &
+                                            t_srcdi_rs(:,:,:,:,jp_rs), &
+                                            p_dst_rs(:,:,jp_rs), &
+                                            0, ii+1, j+1, jp_rs)
+            call ndiff_prep_jslice         (p_src_rs, ksmx_rs, &
+                                            tpc_src_rs, t_srcdi_rs, &
+                                            p_dst_rs, kdmx_rs, p_srcdi_rs, &
+                                            drhodt_srcdi_rs, drhods_srcdi_rs, &
+                                            flxconv_rs, &
+                                            0, ii+1, j+1, jp_rs, mm)
+            call ndiff_uflx_jslice         (ksmx_rs, tpc_src_rs, t_srcdi_rs, &
+                                            p_dst_rs, kdmx_rs, p_srcdi_rs, &
+                                            drhodt_srcdi_rs, drhods_srcdi_rs, &
+                                            flxconv_rs, &
+                                            ntr_loc, 1, ii+1, j, jm_rs, mm, nn)
+            call ndiff_vflx_jslice         (ksmx_rs, tpc_src_rs, t_srcdi_rs, &
+                                            p_dst_rs, kdmx_rs, p_srcdi_rs, &
+                                            drhodt_srcdi_rs, drhods_srcdi_rs, &
+                                            flxconv_rs, &
+                                            ntr_loc, 1, ii, j+1, jp_rs, mm, nn)
+            call remap_trc_jslice          (p_dst_rs(:,:,jm_rs), trc_rm, &
+                                            1, ii, j, jm_rs)
+            call ndiff_update_trc_jslice   (p_dst_rs, flxconv_rs, trc_rm, &
+                                            ntr_loc, 1, ii, j, jm_rs)
+            call copy_jslice_to_3d         (p_dst_rs(:,:,jm_rs), &
+                                            trc_rm, &
+                                            1, ii, j, nn)
          enddo
 
       endif

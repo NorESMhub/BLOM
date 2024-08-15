@@ -50,7 +50,6 @@ contains
     use mod_niw,             only: uml, vml, umlres, vmlres
     use mod_eos,             only: inieos
     use mod_swabs,           only: iniswa
-    use mod_ndiff,           only: ndiff_init
     use mod_tmsmt,           only: initms
     use mod_dia,             only: diaini, diasg1
     use mod_inicon,          only: inicon
@@ -160,12 +159,6 @@ contains
     if (use_TRC .and. use_TKE) then
       call initke
     end if
-
-    ! ------------------------------------------------------------------
-    ! Initialize neutral diffusion
-    ! ------------------------------------------------------------------
-
-    call ndiff_init
 
     ! ------------------------------------------------------------------
     ! Initialize diagnostic accumulation fields
