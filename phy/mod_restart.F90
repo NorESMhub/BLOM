@@ -92,7 +92,9 @@ module mod_restart
                                  usflld, utflsm, usflld, utflld, umfltd, usflld, &
                                  vmflsm, vsfltd, vtflld, vsflsm, vtfltd, &
                                  vsflld, vtflsm, vsflld, vtflld, vmfltd, vsflld
-   use mod_eddtra,         only: hbl_tf, wpup_tf, hml_tf1, hml_tf
+   use mod_eddtra,         only: tau_growing_hbl, tau_decaying_hbl, &
+                                 tau_growing_hml, tau_decaying_hml, &
+                                 hbl_tf, wpup_tf, hml_tf1, hml_tf
    use mod_cesm,           only: frzpot, mltpot, swa_da, nsf_da, hmlt_da, lip_da, &
                                  sop_da, eva_da, rnf_da, rfi_da, fmltfz_da, sfl_da, &
                                  ztx_da, mty_da, ustarw_da, slp_da, abswnd_da, &
@@ -382,14 +384,18 @@ contains
                          vsflsm, ivv, defmode)
          call defwrtfld('wstar3', trim(c5p)//' time', &
                          wstar3, ip, defmode)
-         call defwrtfld('hbl_tf', trim(c5p)//' time', &
-                         hbl_tf, ip, defmode)
-         call defwrtfld('wpup_tf', trim(c5p)//' time', &
-                         wpup_tf, ip, defmode)
-         call defwrtfld('hml_tf1', trim(c5p)//' time', &
-                         hml_tf1, ip, defmode)
-         call defwrtfld('hml_tf', trim(c5p)//' time', &
-                         hml_tf, ip, defmode)
+         if (tau_growing_hbl > 0._r8 .or. tau_decaying_hbl > 0._r8) then
+            call defwrtfld('hbl_tf', trim(c5p)//' time', &
+                            hbl_tf, ip, defmode)
+            call defwrtfld('wpup_tf', trim(c5p)//' time', &
+                            wpup_tf, ip, defmode)
+            call defwrtfld('hml_tf1', trim(c5p)//' time', &
+                            hml_tf1, ip, defmode)
+         endif
+         if (tau_growing_hml > 0._r8 .or. tau_decaying_hml > 0._r8) then
+            call defwrtfld('hml_tf', trim(c5p)//' time', &
+                            hml_tf, ip, defmode)
+         endif
       endif
 
       if (sprfac) then
@@ -1560,11 +1566,11 @@ contains
          call readfld('vmflsm', lm_unitconv, vmflsm, ivv)
          call readfld('vtflsm', lm_unitconv, vtflsm, ivv)
          call readfld('vsflsm', lm_unitconv, vsflsm, ivv)
-         call readfld('wstar3', l3_unitconv, wstar3, ip)
-         call readfld('hbl_tf', l_unitconv, hbl_tf, ip)
-         call readfld('wpup_tf', l2_unitconv, wpup_tf, ip)
-         call readfld('hml_tf1', l_unitconv, hml_tf1, ip)
-         call readfld('hml_tf', l_unitconv, hml_tf, ip)
+         call readfld('wstar3', l3_unitconv, wstar3, ip, required = .false.)
+         call readfld('hbl_tf', l_unitconv, hbl_tf, ip, required = .false.)
+         call readfld('wpup_tf', l2_unitconv, wpup_tf, ip, required = .false.)
+         call readfld('hml_tf1', l_unitconv, hml_tf1, ip, required = .false.)
+         call readfld('hml_tf', l_unitconv, hml_tf, ip, required = .false.)
       endif
 
       if (sprfac) then
