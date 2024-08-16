@@ -869,6 +869,7 @@
     <values>
       <value>0</value>
       <value pio_netcdf_format_ocn="64bit_offset">1</value>
+      <value pio_netcdf_format_ocn="64bit_data">1</value>
     </values>
     <desc>Format of restart file (valid arguments are 0 for classic,</desc>
   </entry>
@@ -1490,6 +1491,7 @@
     <values>
       <value>0,0,0</value>
       <value pio_netcdf_format_ocn="64bit_offset">1,1,1</value>
+      <value pio_netcdf_format_ocn="64bit_data">1,1,1</value>
     </values>
     <desc>
       netcdf format (valid arguments are 0 for classic, 1 for 64-bit
@@ -5186,6 +5188,7 @@
     <values>
       <value>0,0,0</value>
       <value pio_netcdf_format_ocn="64bit_offset">1,1,1</value>
+      <value pio_netcdf_format_ocn="64bit_data">1,1,1</value>
     </values>
     <desc>add desc</desc>
   </entry>
