@@ -38,7 +38,7 @@
     </options>
   </test>
   <!-- Declarations for tests with different iHAMOCC settings: aux_hamocc_noresm -->
-  <test name="SMS D_Ld1" grid="T62_tn14" compset="NOINYOC" testmods="hamocc/hamocc1">
+  <test name="SMS_D_Ld1" grid="T62_tn14" compset="NOINYOC" testmods="hamocc/hamocc1">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_hamocc_noresm"/>
     </machines>
