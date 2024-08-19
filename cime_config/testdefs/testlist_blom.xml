@@ -34,7 +34,7 @@
     </machines>
     <options>
       <option name="wallclock">00:20:00</option>
-      <option name="comment">test restart with isopycnic layers, hamocc and core forcing</option>
+      <option name="comment">test bfb with changing processor count and openmp on</option>
     </options>
   </test>
   <!-- Declarations for tests with different iHAMOCC settings: aux_hamocc_noresm -->
