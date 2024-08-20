@@ -48,15 +48,30 @@
     <alias>NOIIA</alias>
     <lname>2000_DATM%IAF_SLND_CICE_BLOM_DROF%IAF_SGLC_SWAV</lname>
   </compset>
+  <compset>
+    <!-- not valid for noresm2.5 -->
+    <alias>N2NOIIA</alias>
+    <lname>2000_DATM%IAF_SLND_CICE%NORESM-CMIP6_BLOM_DROF%IAF_SGLC_SWAV</lname>
+  </compset>
 
   <compset>
     <alias>NOIIAOC</alias>
     <lname>2000_DATM%IAF_SLND_CICE_BLOM%ECO_DROF%IAF_SGLC_SWAV</lname>
   </compset>
+  <compset>
+    <!-- not valid for noresm2.5 -->
+    <alias>N2NOIIAOC</alias>
+    <lname>2000_DATM%IAF_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%IAF_SGLC_SWAV</lname>
+  </compset>
 
   <compset>
     <alias>NOIIAOC20TR</alias>
     <lname>20TR_DATM%IAF_SLND_CICE_BLOM%ECO_DROF%IAF_SGLC_SWAV</lname>
+  </compset>
+  <compset>
+    <!-- not valid for noresm2.5 -->
+    <alias>N2NOIIAOC20TR</alias>
+    <lname>20TR_DATM%IAF_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%IAF_SGLC_SWAV</lname>
   </compset>
 
   <!-- JRA forcing - no prognostic wave -->
@@ -65,15 +80,30 @@
     <alias>NOIIAJRA</alias>
     <lname>2000_DATM%JRA_SLND_CICE_BLOM_DROF%JRA_SGLC_SWAV</lname>
   </compset>
+  <compset>
+    <!-- not valid for noresm2.5 -->
+    <alias>N2NOIIAJRA</alias>
+    <lname>2000_DATM%JRA_SLND_CICE%NORESM-CMIP6_BLOM_DROF%JRA_SGLC_SWAV</lname>
+  </compset>
 
   <compset>
     <alias>NOIIAJRAOC</alias>
     <lname>2000_DATM%JRA_SLND_CICE_BLOM%ECO_DROF%JRA_SGLC_SWAV</lname>
   </compset>
+  <compset>
+    <!-- not valid for noresm2.5 -->
+    <alias>NOIIAJRAOC</alias>
+    <lname>2000_DATM%JRA_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%JRA_SGLC_SWAV</lname>
+  </compset>
 
   <compset>
     <alias>NOIIAJRAOC20TR</alias>
     <lname>20TR_DATM%JRA_SLND_CICE_BLOM%ECO_DROF%JRA_SGLC_SWAV</lname>
+  </compset>
+  <compset>
+    <!-- not valid for noresm2.5 -->
+    <alias>N2NOIIAJRAOC20TR</alias>
+    <lname>20TR_DATM%JRA_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%JRA_SGLC_SWAV</lname>
   </compset>
 
   <compset>
@@ -83,6 +113,10 @@
 
   <entries>
     <entry id="RUN_STARTDATE">
+      <values match="last">
+        <value  compset="20TR_DATM%IAF_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%IAF_SGLC_SWAV">1700-01-01</value>
+        <value  compset="20TR_DATM%JRA_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%JRA_SGLC_SWAV">1653-01-01</value>
+      </values>
     </entry>
   </entries>
 
