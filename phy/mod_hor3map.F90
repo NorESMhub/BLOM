@@ -241,13 +241,13 @@ module mod_hor3map
       integer :: n_dst
 
       real(r8), allocatable, dimension(:,:) :: &
-         h_dst_data, hi_dst_data, seg_int_lim_data
+         seg_int_lim_data, seg_weight_data
       integer, allocatable, dimension(:,:) :: &
          n_src_seg_data, seg_dst_index_data
       logical, allocatable, dimension(:) :: &
          prepared_data
 
-      real(r8), dimension(:), pointer :: h_dst, hi_dst, seg_int_lim
+      real(r8), dimension(:), pointer :: seg_int_lim, seg_weight
       integer, dimension(:), pointer :: n_src_seg, seg_dst_index
       logical, pointer :: prepared
 
@@ -407,9 +407,8 @@ contains
                + (rms%rcgs%j_index - rms%rcgs%j_lbound) &
                 *(rms%rcgs%i_ubound - rms%rcgs%i_lbound + 1)
 
-      rms%h_dst => rms%h_dst_data(:,ij_index)
-      rms%hi_dst => rms%hi_dst_data(:,ij_index)
       rms%seg_int_lim => rms%seg_int_lim_data(:,ij_index)
+      rms%seg_weight => rms%seg_weight_data(:,ij_index)
       rms%n_src_seg => rms%n_src_seg_data(:,ij_index)
       rms%seg_dst_index => rms%seg_dst_index_data(:,ij_index)
       rms%prepared => rms%prepared_data(ij_index)
@@ -3795,9 +3794,8 @@ contains
       ij_size = (rcgs%i_ubound - rcgs%i_lbound + 1) &
                *(rcgs%j_ubound - rcgs%j_lbound + 1)
 
-      allocate(rms%h_dst_data(rms%n_dst,ij_size), &
-               rms%hi_dst_data(rms%n_dst,ij_size), &
-               rms%seg_int_lim_data(rcgs%n_src+rms%n_dst,ij_size), &
+      allocate(rms%seg_int_lim_data(rcgs%n_src+rms%n_dst,ij_size), &
+               rms%seg_weight_data(rcgs%n_src+rms%n_dst,ij_size), &
                rms%n_src_seg_data(rcgs%n_src,ij_size), &
                rms%seg_dst_index_data(rcgs%n_src+rms%n_dst,ij_size), &
                rms%prepared_data(ij_size), &
@@ -3807,9 +3805,8 @@ contains
          return
       endif
 #ifdef DEBUG
-      rms%h_dst_data(:,:) = ieee_value(1._r8, ieee_signaling_nan)
-      rms%hi_dst_data(:,:) = ieee_value(1._r8, ieee_signaling_nan)
       rms%seg_int_lim_data(:,:) = ieee_value(1._r8, ieee_signaling_nan)
+      rms%seg_weight_data(:,:) = ieee_value(1._r8, ieee_signaling_nan)
       rms%n_src_seg_data(:,:) = - 9999
       rms%seg_dst_index_data(:,:) = - 9999
 #endif
@@ -3952,6 +3949,7 @@ contains
 
       integer :: errstat
 
+      real(r8), dimension(size(x_edge_dst)-1) :: h_dst
       real(r8) :: xil
       integer :: n_dst, j, js, jd, iseg
 
@@ -4032,24 +4030,18 @@ contains
          enddo
       endif
 
-      ! From edge locations, obtain destination grid cell widths and their
-      ! multiplicative inverse.
-      do j = 1, rms%n_dst
-         rms%h_dst(j) = abs(x_edge_dst(j+1) - x_edge_dst(j))
-         if (rms%h_dst(j) > rcgs%x_eps) then
-            rms%hi_dst(j) = c1/rms%h_dst(j)
-         else
-            rms%hi_dst(j) = c0
-         endif
+      ! From edge locations, obtain destination grid cell widths.
+      do j = 1, n_dst
+         h_dst(j) = abs(x_edge_dst(j+1) - x_edge_dst(j))
       enddo
 
       ! Locate all segments that require integration of the reconstructed source
-      ! data and obtain integration limits and destination index for the
-      ! accumulation of integrals.
+      ! data and obtain integration limits, segment weights and destination
+      ! index for the accumulation of integrals.
 
       js = 1
       jd = 1
-      do while (rms%hi_dst(jd) == c0)
+      do while (h_dst(jd) <= rcgs%x_eps)
          jd = jd + 1
       enddo
       iseg = 0
@@ -4064,10 +4056,11 @@ contains
             rms%seg_dst_index(iseg) = jd
             if     (  abs(rcgs%x_edge_src(js+1) - x_edge_dst(jd+1)) &
                    <= rcgs%x_eps) then
-               if (rms%hi_dst(jd) == c0) then
-                  rms%seg_int_lim(iseg) = xil
-               else
+               if (h_dst(jd) > rcgs%x_eps) then
                   rms%seg_int_lim(iseg) = c1
+                  rms%seg_weight(iseg) = (c1 - xil)*rcgs%h_src(js)/h_dst(jd)
+               else
+                  rms%seg_int_lim(iseg) = xil
                endif
                if (js == rcgs%n_src_actual) exit
                xil = c0
@@ -4076,16 +4069,19 @@ contains
                rms%n_src_seg(js) = 0
             elseif (rcgs%x_edge_src(js+1) < x_edge_dst(jd+1)) then
                rms%seg_int_lim(iseg) = c1
+               rms%seg_weight(iseg) = (c1 - xil)*rcgs%h_src(js)/h_dst(jd)
                xil = c0
                js = js + 1
                rms%n_src_seg(js) = 0
             else
-               if (rms%hi_dst(jd) == c0) then
-                  rms%seg_int_lim(iseg) = xil
-               else
+               if (h_dst(jd) > rcgs%x_eps) then
                   rms%seg_int_lim(iseg) = &
                      (x_edge_dst(jd+1) - rcgs%x_edge_src(js))*rcgs%hi_src(js)
+                  rms%seg_weight(iseg) = (rms%seg_int_lim(iseg) - xil) &
+                                         *rcgs%h_src(js)/h_dst(jd)
                   xil = rms%seg_int_lim(iseg)
+               else
+                  rms%seg_int_lim(iseg) = xil
                endif
                jd = jd + 1
             endif
@@ -4099,10 +4095,11 @@ contains
             rms%seg_dst_index(iseg) = jd
             if     (  abs(rcgs%x_edge_src(js+1) - x_edge_dst(jd+1)) &
                    <= rcgs%x_eps) then
-               if (rms%hi_dst(jd) == c0) then
-                  rms%seg_int_lim(iseg) = xil
-               else
+               if (h_dst(jd) > rcgs%x_eps) then
                   rms%seg_int_lim(iseg) = c1
+                  rms%seg_weight(iseg) = (c1 - xil)*rcgs%h_src(js)/h_dst(jd)
+               else
+                  rms%seg_int_lim(iseg) = xil
                endif
                if (js == rcgs%n_src_actual) exit
                xil = c0
@@ -4111,16 +4108,19 @@ contains
                rms%n_src_seg(js) = 0
             elseif (rcgs%x_edge_src(js+1) > x_edge_dst(jd+1)) then
                rms%seg_int_lim(iseg) = c1
+               rms%seg_weight(iseg) = (c1 - xil)*rcgs%h_src(js)/h_dst(jd)
                xil = c0
                js = js + 1
                rms%n_src_seg(js) = 0
             else
-               if (rms%hi_dst(jd) == c0) then
-                  rms%seg_int_lim(iseg) = xil
-               else
+               if (h_dst(jd) > rcgs%x_eps) then
                   rms%seg_int_lim(iseg) = &
                      (rcgs%x_edge_src(js) - x_edge_dst(jd+1))*rcgs%hi_src(js)
+                  rms%seg_weight(iseg) = (rms%seg_int_lim(iseg) - xil) &
+                                         *rcgs%h_src(js)/h_dst(jd)
                   xil = rms%seg_int_lim(iseg)
+               else
+                  rms%seg_int_lim(iseg) = xil
                endif
                jd = jd + 1
             endif
@@ -4379,15 +4379,14 @@ contains
                   else
                      if (jd /= jd_prev) xi0 = c0
                      jd_prev = jd
-                     polycoeff(1,js) =   rcss%polycoeff(1,jd) &
-                                     + ( rcss%polycoeff(2,jd) &
-                                       + rcss%polycoeff(3,jd)*xi0)*xi0
-                     polycoeff(2,js) = (    rcss%polycoeff(2,jd) &
-                                       + c2*rcss%polycoeff(3,jd)*xi0) &
-                                       *rcss%rcgs%src_dst_weight(js)
-                     polycoeff(3,js) = rcss%polycoeff(3,jd) &
-                                       *rcss%rcgs%src_dst_weight(js) &
-                                       *rcss%rcgs%src_dst_weight(js)
+                     polycoeff(1,js) = (    rcss%polycoeff(3,jd) *xi0 &
+                                       +    rcss%polycoeff(2,jd))*xi0 &
+                                       +    rcss%polycoeff(1,jd)
+                     q =   rcss%rcgs%src_dst_weight(js)
+                     polycoeff(2,js) = ( c2*rcss%polycoeff(3,jd) *xi0 &
+                                       +    rcss%polycoeff(2,jd))*q
+                     q = q*rcss%rcgs%src_dst_weight(js)
+                     polycoeff(3,js) =      rcss%polycoeff(3,jd) *q
                      xi0 = xi0 + rcss%rcgs%src_dst_weight(js)
                   endif
                endif
@@ -4421,28 +4420,25 @@ contains
                   else
                      if (jd /= jd_prev) xi0 = c0
                      jd_prev = jd
-                     polycoeff(1,js) =       rcss%polycoeff(1,jd) &
-                                     + (     rcss%polycoeff(2,jd) &
-                                       + (   rcss%polycoeff(3,jd) &
-                                         + ( rcss%polycoeff(4,jd) &
-                                           + rcss%polycoeff(5,jd) &
-                                       *xi0)*xi0)*xi0)*xi0
-                     q = rcss%rcgs%src_dst_weight(js)
-                     polycoeff(2,js) = (        rcss%polycoeff(2,jd) &
-                                       + (   c2*rcss%polycoeff(3,jd) &
-                                         + ( c3*rcss%polycoeff(4,jd) &
-                                           + c4*rcss%polycoeff(5,jd) &
-                                         *xi0)*xi0)*xi0)*q
+                     polycoeff(1,js) = (((    rcss%polycoeff(5,jd) *xi0 &
+                                         +    rcss%polycoeff(4,jd))*xi0 &
+                                         +    rcss%polycoeff(3,jd))*xi0 &
+                                         +    rcss%polycoeff(2,jd))*xi0 &
+                                         +    rcss%polycoeff(1,jd)
+                     q =   rcss%rcgs%src_dst_weight(js)
+                     polycoeff(2,js) = ((( c4*rcss%polycoeff(5,jd) *xi0 &
+                                         + c3*rcss%polycoeff(4,jd))*xi0 &
+                                         + c2*rcss%polycoeff(3,jd))*xi0 &
+                                         +    rcss%polycoeff(2,jd))*q
                      q = q*rcss%rcgs%src_dst_weight(js)
-                     polycoeff(3,js) = (        rcss%polycoeff(3,jd) &
-                                       + (   c3*rcss%polycoeff(4,jd) &
-                                         +   c6*rcss%polycoeff(5,jd) &
-                                         *xi0)*xi0)*q
+                     polycoeff(3,js) =  (( c6*rcss%polycoeff(5,jd) *xi0 &
+                                         + c3*rcss%polycoeff(4,jd))*xi0 &
+                                         +    rcss%polycoeff(3,jd))*q
                      q = q*rcss%rcgs%src_dst_weight(js)
-                     polycoeff(4,js) = (    rcss%polycoeff(4,jd) &
-                                       + c4*rcss%polycoeff(5,jd)*xi0)*q
+                     polycoeff(4,js) =   ( c4*rcss%polycoeff(5,jd) *xi0 &
+                                         +    rcss%polycoeff(4,jd))*q
                      q = q*rcss%rcgs%src_dst_weight(js)
-                     polycoeff(5,js) = rcss%polycoeff(5,jd)*q
+                     polycoeff(5,js) =        rcss%polycoeff(5,jd) *q
                      xi0 = xi0 + rcss%rcgs%src_dst_weight(js)
                   endif
                endif
@@ -4609,7 +4605,7 @@ contains
 
       integer :: errstat
 
-      real(r8) :: xil, xir, adl, adr
+      real(r8) :: xil, xir, b1, b2, b3, b4, b5
       integer :: ns, iseg, js, jd, i_src_seg
 
       errstat = hor3map_noerr
@@ -4676,8 +4672,7 @@ contains
                if (rms%n_src_seg(js) == 1) then
                   iseg = iseg + 1
                   jd = rms%seg_dst_index(iseg)
-                  u_dst(jd) = u_dst(jd) &
-                            + rcss%u_src(js)*rcss%rcgs%h_src(js)*rms%hi_dst(jd)
+                  u_dst(jd) = u_dst(jd) + rcss%u_src(js)*rms%seg_weight(iseg)
                else
                   xil = c0
                   do i_src_seg = 1, rms%n_src_seg(js)
@@ -4688,8 +4683,7 @@ contains
                         u_dst(jd) = rcss%u_src(js)
                      else
                         u_dst(jd) = u_dst(jd) &
-                                  + rcss%u_src(js)*(xir - xil) &
-                                    *rcss%rcgs%h_src(js)*rms%hi_dst(jd)
+                                  + rcss%u_src(js)*rms%seg_weight(iseg)
                         xil = xir
                      endif
                   enddo
@@ -4714,26 +4708,34 @@ contains
                if (rms%n_src_seg(js) == 1) then
                   iseg = iseg + 1
                   jd = rms%seg_dst_index(iseg)
-                  u_dst(jd) = u_dst(jd) &
-                            + rcss%u_src(js)*rcss%rcgs%h_src(js)*rms%hi_dst(jd)
+                  u_dst(jd) = u_dst(jd) + rcss%u_src(js)*rms%seg_weight(iseg)
                else
                   xil = c0
-                  adl = c0
                   do i_src_seg = 1, rms%n_src_seg(js)
                      iseg = iseg + 1
                      xir = rms%seg_int_lim(iseg)
                      jd = rms%seg_dst_index(iseg)
                      if (xil == xir) then
-                        u_dst(jd) = rcss%polycoeff(1,js) &
-                                  + rcss%polycoeff(2,js)*xir
-                     else
-                        adr = (      rcss%polycoeff(1,js) &
-                              + c1_2*rcss%polycoeff(2,js)*xir)*xir
+                        u_dst(jd) = rcss%polycoeff(2,js)*xir &
+                                  + rcss%polycoeff(1,js)
+                     elseif (xil == c0) then
                         u_dst(jd) = u_dst(jd) &
-                                  + (adr - adl)*rcss%rcgs%h_src(js) &
-                                    *rms%hi_dst(jd)
+                                  + ( c1_2*rcss%polycoeff(2,js)*xir &
+                                    +      rcss%polycoeff(1,js)) &
+                                    *rms%seg_weight(iseg)
                         xil = xir
-                        adl = adr
+                     elseif (xir == c1) then
+                        b2 = c1_2*rcss%polycoeff(2,js)
+                        b1 =      rcss%polycoeff(1,js) + b2
+                        u_dst(jd) = u_dst(jd) &
+                                  + (b2*xil + b1)*rms%seg_weight(iseg)
+                        xil = xir
+                     else
+                        b2 = c1_2*rcss%polycoeff(2,js)
+                        b1 =      rcss%polycoeff(1,js) + b2*xir
+                        u_dst(jd) = u_dst(jd) &
+                                  + (b2*xil + b1)*rms%seg_weight(iseg)
+                        xil = xir
                      endif
                   enddo
                endif
@@ -4761,28 +4763,40 @@ contains
                if (rms%n_src_seg(js) == 1) then
                   iseg = iseg + 1
                   jd = rms%seg_dst_index(iseg)
-                  u_dst(jd) = u_dst(jd) &
-                            + rcss%u_src(js)*rcss%rcgs%h_src(js)*rms%hi_dst(jd)
+                  u_dst(jd) = u_dst(jd) + rcss%u_src(js)*rms%seg_weight(iseg)
                else
                   xil = c0
-                  adl = c0
                   do i_src_seg = 1, rms%n_src_seg(js)
                      iseg = iseg + 1
                      xir = rms%seg_int_lim(iseg)
                      jd = rms%seg_dst_index(iseg)
                      if (xil == xir) then
-                        u_dst(jd) =   rcss%polycoeff(1,js) &
-                                  + ( rcss%polycoeff(2,js) &
-                                    + rcss%polycoeff(3,js)*xir)*xir
-                     else
-                        adr = (        rcss%polycoeff(1,js) &
-                              + ( c1_2*rcss%polycoeff(2,js) &
-                                + c1_3*rcss%polycoeff(3,js)*xir)*xir)*xir
+                        u_dst(jd) = ( rcss%polycoeff(3,js) *xir &
+                                    + rcss%polycoeff(2,js))*xir &
+                                    + rcss%polycoeff(1,js)
+                     elseif (xil == c0) then
                         u_dst(jd) = u_dst(jd) &
-                                  + (adr - adl)*rcss%rcgs%h_src(js) &
-                                    *rms%hi_dst(jd)
+                                  + (( c1_3*rcss%polycoeff(3,js) *xir &
+                                     + c1_2*rcss%polycoeff(2,js))*xir &
+                                     +      rcss%polycoeff(1,js)) &
+                                    *rms%seg_weight(iseg)
                         xil = xir
-                        adl = adr
+                     elseif (xir == c1) then
+                        b3 = c1_3*rcss%polycoeff(3,js)
+                        b2 = c1_2*rcss%polycoeff(2,js) + b3
+                        b1 =      rcss%polycoeff(1,js) + b2
+                        u_dst(jd) = u_dst(jd) &
+                                  + ((b3*xil + b2)*xil + b1) &
+                                    *rms%seg_weight(iseg)
+                        xil = xir
+                     else
+                        b3 = c1_3*rcss%polycoeff(3,js)
+                        b2 = c1_2*rcss%polycoeff(2,js) + b3*xir
+                        b1 =      rcss%polycoeff(1,js) + b2*xir
+                        u_dst(jd) = u_dst(jd) &
+                                  + ((b3*xil + b2)*xil + b1) &
+                                    *rms%seg_weight(iseg)
+                        xil = xir
                      endif
                   enddo
                endif
@@ -4811,34 +4825,48 @@ contains
                if (rms%n_src_seg(js) == 1) then
                   iseg = iseg + 1
                   jd = rms%seg_dst_index(iseg)
-                  u_dst(jd) = u_dst(jd) &
-                            + rcss%u_src(js)*rcss%rcgs%h_src(js)*rms%hi_dst(jd)
+                  u_dst(jd) = u_dst(jd) + rcss%u_src(js)*rms%seg_weight(iseg)
                else
                   xil = c0
-                  adl = c0
                   do i_src_seg = 1, rms%n_src_seg(js)
                      iseg = iseg + 1
                      xir = rms%seg_int_lim(iseg)
                      jd = rms%seg_dst_index(iseg)
                      if (xil == xir) then
-                        u_dst(jd) =       rcss%polycoeff(1,js) &
-                                  + (     rcss%polycoeff(2,js) &
-                                    + (   rcss%polycoeff(3,js) &
-                                      + ( rcss%polycoeff(4,js) &
-                                        + rcss%polycoeff(5,js) &
-                                    *xir)*xir)*xir)*xir
-                     else
-                        adr = (            rcss%polycoeff(1,js) &
-                              + (     c1_2*rcss%polycoeff(2,js) &
-                                + (   c1_3*rcss%polycoeff(3,js) &
-                                  + ( c1_4*rcss%polycoeff(4,js) &
-                                    + c1_5*rcss%polycoeff(5,js) &
-                              *xir)*xir)*xir)*xir)*xir
+                        u_dst(jd) = ((( rcss%polycoeff(5,js) *xir &
+                                      + rcss%polycoeff(4,js))*xir &
+                                      + rcss%polycoeff(3,js))*xir &
+                                      + rcss%polycoeff(2,js))*xir &
+                                      + rcss%polycoeff(1,js)
+                     elseif (xil == c0) then
                         u_dst(jd) = u_dst(jd) &
-                                  + (adr - adl)*rcss%rcgs%h_src(js) &
-                                    *rms%hi_dst(jd)
+                                  + (((( c1_5*rcss%polycoeff(5,js) *xir &
+                                       + c1_4*rcss%polycoeff(4,js))*xir &
+                                       + c1_3*rcss%polycoeff(3,js))*xir &
+                                       + c1_2*rcss%polycoeff(2,js))*xir &
+                                       +      rcss%polycoeff(1,js)) &
+                                    *rms%seg_weight(iseg)
                         xil = xir
-                        adl = adr
+                     elseif (xir == c1) then
+                        b5 = c1_5*rcss%polycoeff(5,js)
+                        b4 = c1_4*rcss%polycoeff(4,js) + b5
+                        b3 = c1_3*rcss%polycoeff(3,js) + b4
+                        b2 = c1_2*rcss%polycoeff(2,js) + b3
+                        b1 =      rcss%polycoeff(1,js) + b2
+                        u_dst(jd) = u_dst(jd) &
+                           + ((((b5*xil + b4)*xil + b3)*xil + b2)*xil + b1) &
+                             *rms%seg_weight(iseg)
+                        xil = xir
+                     else
+                        b5 = c1_5*rcss%polycoeff(5,js)
+                        b4 = c1_4*rcss%polycoeff(4,js) + b5*xir
+                        b3 = c1_3*rcss%polycoeff(3,js) + b4*xir
+                        b2 = c1_2*rcss%polycoeff(2,js) + b3*xir
+                        b1 =      rcss%polycoeff(1,js) + b2*xir
+                        u_dst(jd) = u_dst(jd) &
+                           + ((((b5*xil + b4)*xil + b3)*xil + b2)*xil + b1) &
+                             *rms%seg_weight(iseg)
+                        xil = xir
                      endif
                   enddo
                endif
@@ -4949,9 +4977,9 @@ contains
 
       type(remap_struct), intent(inout) :: rms
 
-      nullify(rms%h_dst, rms%hi_dst, rms%seg_int_lim, rms%n_src_seg, &
+      nullify(rms%seg_int_lim, rms%seg_weight, rms%n_src_seg, &
               rms%seg_dst_index, rms%prepared, rms%rms_dep_next)
-      deallocate(rms%h_dst_data, rms%hi_dst_data, rms%seg_int_lim_data, &
+      deallocate(rms%seg_int_lim_data, rms%seg_weight_data, &
                  rms%n_src_seg_data, rms%seg_dst_index_data, rms%prepared_data)
 
       rms%i_index_curr = 0
