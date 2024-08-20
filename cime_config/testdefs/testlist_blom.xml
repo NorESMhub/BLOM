@@ -19,13 +19,13 @@
       <option name="comment">test restart with isopycnic layers, hamocc and core forcing</option>
     </options>
   </test>
-  <test name="ERR_Ld3" grid="TL319_tn14" compset="NOIIAJRAOC" testmods="blom/hybrid_hammocc">
+  <test name="ERR_Ld3" grid="TL319_tn14" compset="NOIIAJRAOC">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
     </machines>
     <options>
       <option name="wallclock">00:20:00</option>
-      <option name="comment">test restart/resubmit with hybrid coordinates, hamocc and JRA forcing</option>
+      <option name="comment">test restart/resubmit with isopycnic coordinates, hamocc and JRA forcing</option>
     </options>
   </test>
   <test name="ERP_Ld3" grid="T62_tn14" compset="NOINY">
