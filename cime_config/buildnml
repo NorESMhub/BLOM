@@ -94,7 +94,7 @@ def buildnml(case, caseroot, compname):
 
     blom_vcoord = case.get_value("BLOM_VCOORD")
     turbclo = case.get_value("BLOM_TURBULENT_CLOSURE")
-    expect(blom_vcoord != "cntiso_hybrid" or not turbclo,
+    expect(blom_vcoord != "cntiso_hybrid" or turbclo == "null",
            f"BLOM_VCOORD == {blom_vcoord} and BLOM_TURBULENT_CLOSURE == {turbclo} is not a valid combination")
 
     #--------------------------

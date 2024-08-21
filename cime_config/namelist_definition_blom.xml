@@ -338,7 +338,7 @@
     <values>
       <value>5.e-5</value>
       <value ocn_grid="tnx1v4" ocn_ncpl="24">.75e-4</value>
-      <value ocn_grid="tnx0.5v1" >.75e-4</value>
+      <value ocn_grid="tnx0.5v1"  >.75e-4</value>
       <value ocn_grid="tnx0.25v4" >.75e-4</value>
       <value ocn_grid="tnx0.125v4">.75e-4</value>
     </values>
@@ -3997,8 +3997,8 @@
     <group>config_bgc</group>
     <values>
       <value>.false.</value>
-      <value compset="HIST_CAM60%NORESM.*_BLOM%ECO">.true.</value>
-      <value compset="20TR_DATM.*_BLOM%ECO">.true.</value>
+      <value compset="HIST_CAM60%NORESM.*_BLOM.*%ECO">.true.</value>
+      <value compset="20TR_DATM.*_BLOM.*%ECO">.true.</value>
     </values>
     <desc>activates HAMOCC CFC code</desc>
   </entry>
@@ -4010,7 +4010,7 @@
     <values>
       <value>.false.</value>
       <value compset="HIST_CAM60%NORESM.*">.true.</value>
-      <value compset="20TR_DATM.*_BLOM%ECO">.true.</value>
+      <value compset="20TR_DATM.*_BLOM.*%ECO">.true.</value>
     </values>
     <desc>activates HAMOCC natural tracer code</desc>
   </entry>
