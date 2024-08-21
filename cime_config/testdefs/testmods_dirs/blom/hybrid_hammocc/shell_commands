@@ -1,2 +1,0 @@
-./xmlchange BLOM_TURBULENT_CLOSURE=
-./xmlchange BLOM_VCOORD=cntiso_hybrid
