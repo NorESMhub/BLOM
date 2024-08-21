@@ -37,24 +37,6 @@
       <option name="comment">test bfb with changing processor count and openmp on</option>
     </options>
   </test>
-  <test name="ERS_Ld3" grid="T62_tn14_wtn14nw" compset="NOINY_WW3">
-    <machines>
-      <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
-    </machines>
-    <options>
-      <option name="wallclock">00:20:00</option>
-      <option name="comment">test restart with WW3</option>
-    </options>
-  </test>
-  <test name="ERS_Ld3" grid="T62_tn14_wtn14nw" compset="NOINY_WW3" testmods="blom/wavice">
-    <machines>
-      <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
-    </machines>
-    <options>
-      <option name="wallclock">00:20:00</option>
-      <option name="comment">test restart with WW3 + CICE</option>
-    </options>
-  </test>
   <!-- Declarations for tests with different iHAMOCC settings: aux_hamocc_noresm -->
   <test name="SMS_D_Ld1" grid="T62_tn14" compset="NOINYOC" testmods="hamocc/hamocc1">
     <machines>
