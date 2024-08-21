@@ -180,7 +180,7 @@ contains
       use dshr_strdata_mod , only : shr_strdata_advance
       use dshr_methods_mod , only : dshr_fldbun_getfldptr
       use mod_forcing      , only : sss_stream
-      use mod_checksum     , only : chksummsk
+      use mod_checksum     , only : csdiag, chksummsk
 
       ! input/output variables
       type(ESMF_Clock), intent(in)  :: model_clock
@@ -252,7 +252,12 @@ contains
 
       call fill_global(mval, fval, halo_ps, sss_stream(1-nbdy,1-nbdy))
 
-      call chksummsk(sss_stream(1-nbdy,1-nbdy),ip,1,'sst_stream')
+      if (csdiag) then
+         if (mnproc == 1) then
+            write(lp,*) 'ocn_stream_sss_interp:'
+         end if
+         call chksummsk(sss_stream(1-nbdy,1-nbdy),ip,1,'sss_stream')
+      end if
 
    end subroutine ocn_stream_sss_interp
 
