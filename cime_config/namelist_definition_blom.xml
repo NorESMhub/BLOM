@@ -1373,6 +1373,7 @@
       <value>'',''</value>
       <value ocn_grid="tnx2v1">'Gibraltar','Gibraltar'</value>
       <value ocn_grid="tnx1v4">'Gibraltar','Gibraltar'</value>
+      <value ocn_grid="tnx0.5v1">'Gibraltar','Gibraltar','Bab-el-Mandeb','Bab-el-Mandeb','Dardanelles','Bosporus'</value>
     </values>
     <desc>Array of geographical names of channels to be modified (a)</desc>
   </entry>
@@ -1385,6 +1386,7 @@
       <value>'unset','unset'</value>
       <value ocn_grid="tnx2v1">'u','u'</value>
       <value ocn_grid="tnx1v4">'u','u'</value>
+      <value ocn_grid="tnx0.5v1">'u','u','v','v','v','v'</value>
     </values>
     <desc>Array of C grid cell edges to be modified. Valid options:</desc>
   </entry>
@@ -1397,6 +1399,7 @@
       <value>-999,-999</value>
       <value ocn_grid="tnx2v1">53,54</value>
       <value ocn_grid="tnx1v4">105,106</value>
+      <value ocn_grid="tnx0.5v1">209,210,307,307,274,279</value>
     </values>
     <desc>Array of grid cell i-indices (i)</desc>
   </entry>
@@ -1409,6 +1412,7 @@
       <value>-999,-999</value>
       <value ocn_grid="tnx2v1">137,137</value>
       <value ocn_grid="tnx1v4">273,273</value>
+      <value ocn_grid="tnx0.5v1">417,417,353,354,429,431</value>
     </values>
     <desc>Array of grid cell j-indices (i)</desc>
   </entry>
@@ -1421,6 +1425,7 @@
       <value>1.e36,1.e36</value>
       <value ocn_grid="tnx2v1">30.e3,30.e3</value>
       <value ocn_grid="tnx1v4">30.e3,30.e3</value>
+      <value ocn_grid="tnx0.5v1">30.e3,30.e3,30.e3,30.e3,5.e3,5.e3</value>
     </values>
     <desc>Array of modified grid cell widths (m) (f)</desc>
   </entry>
