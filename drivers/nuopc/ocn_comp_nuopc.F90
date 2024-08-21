@@ -331,7 +331,7 @@ contains
 
       ! Local variables.
       logical :: isPresent, isSet
-      character(len=cslen) :: cvalue
+      character(len=cllen) :: cvalue
 
       ! Switch to IPDv01 by filtering all other PhaseMap entries
       call NUOPC_CompFilterPhaseMap(gcomp, ESMF_METHOD_INITIALIZE, &
@@ -373,8 +373,8 @@ contains
       type(ESMF_VM) :: vm
       type(ESMF_TimeInterval) :: timeStep
       integer :: localPet, nthrds, shrlogunit, n
-      character(len=cslen) :: starttype, stdname, cvalue, cname
-      character(len=cllen) :: msg
+      character(len=cslen) :: starttype, stdname
+      character(len=cllen) :: msg, cvalue
       logical :: isPresent, isSet
       logical :: flds_co2a, flds_co2c
 
@@ -401,7 +401,7 @@ contains
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
          read(cvalue,*) nthrds
       endif
-!$    call omp_set_num_threads(nthrds)
+      !$    call omp_set_num_threads(nthrds)
 
       ! Reset shr logging to components log file.
       call set_component_logging(gcomp, localPet==0, lp, shrlogunit, rc)
