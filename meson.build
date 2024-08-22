@@ -14,6 +14,9 @@ if fcc.get_id() == 'gcc'
                            '-ffpe-trap=invalid,zero,overflow'],
                           language: 'fortran')
   endif
+  if get_option('buildtype') == 'release'
+    add_project_arguments('-ffp-contract=off'.split(),language: 'fortran')
+  endif
   # If MPI is enabled we need to allow for argument mismatch with gfortran to
   # make it able to compile
   if get_option('mpi') and fcc.has_argument('-fallow-argument-mismatch')

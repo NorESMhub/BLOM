@@ -18,15 +18,17 @@
 ! ------------------------------------------------------------------------------
 
 module mod_vcoord
-   ! ------------------------------------------------------------------------------
-   ! This module contains parameter, variables and procedures related to the
-   ! vertical coordinate.
-   ! ------------------------------------------------------------------------------
+! ------------------------------------------------------------------------------
+! This module contains parameter, variables and procedures related to the
+! vertical coordinate.
+! ------------------------------------------------------------------------------
 
    use mod_types,     only: r8
    use mod_config,    only: inst_suffix
    use mod_constants, only: g, epsilp, spval, onem
+   use mod_time,      only: delt1
    use mod_xc
+   use mod_grid, only: scuy, scvx, scp2, scuxi, scvyi, scp2i
    use mod_eos,       only: sig, dsigdt, dsigds
    use mod_state,     only: u, v, dp, dpu, dpv, temp, saln, sigma, p, pu, pv
    use mod_hor3map,   only: recon_grd_struct, recon_src_struct, remap_struct, &
@@ -38,7 +40,7 @@ module mod_vcoord
         extract_polycoeff, regrid2, &
         prepare_remapping, remap, &
         hor3map_noerr, hor3map_errstr
-   use mod_diffusion, only: ltedtp_opt, ltedtp_neutral, difiso
+   use mod_diffusion, only: ltedtp_opt, ltedtp_neutral, difiso, difmxp
    use mod_ndiff,     only: ndiff_prep_jslice, ndiff_uflx_jslice, &
         ndiff_vflx_jslice, ndiff_update_trc_jslice
    use mod_checksum,  only: csdiag, chksummsk
@@ -66,7 +68,9 @@ module mod_vcoord
         dpmin_surface          = 1.5_r8, &
         dpmin_inflation_factor = 1._r8, &
         dpmin_interior         = .1_r8, &
-        regrid_nudge_factor    = .1_r8
+        regrid_nudge_ts        = 86400._r8, &
+        stab_fac_limit         = .25_r8, &
+        smooth_diff_max        = 50000.e4_r8
    integer :: &
         upper_bndr_ord = 6, &
         lower_bndr_ord = 4, &
@@ -83,17 +87,20 @@ module mod_vcoord
 
    ! Parameters:
    integer, parameter :: &
-        isopyc_bulkml = 1, &        ! Vertical coordinate type: bulk surface mixed
-                                ! layer with isopycnic layers below.
-        cntiso_hybrid = 2           ! Vertical coordinate type: Hybrid coordinate
-   ! with pressure coordinates towards the
-   ! surface and continuous isopycnal below.
+        isopyc_bulkml = 1, &          ! Vertical coordinate type: bulk surface
+                                      ! mixed layer with isopycnic layers below.
+        cntiso_hybrid = 2             ! Vertical coordinate type: Hybrid
+                                      ! coordinate with pressure coordinates
+                                      ! towards the surface and continuous
+                                      ! isopycnal below.
 
    real(r8), parameter :: &
-        bfsq_min      = 1.e-7_r8, & ! Minimum buoyancy frequency squared in
-                                ! monotonized potential density to be used in
-                                ! regridding [s-2].
-        regrid_mval   = - 1.e33_r8  ! Missing value for regridding.
+        bfsq_min      = 1.e-7_r8, &   ! Minimum buoyancy frequency squared in
+                                      ! monotonized potential density to be used
+                                      ! in regridding [s-2].
+        regrid_mval   = - 1.e33_r8, & ! Missing value for regridding.
+        x_eps         = 1.e-14_r8     ! Small non-dimensional value used in the
+                                      ! construction of Bezier curves.
 
 
    integer :: ntr_loc
@@ -157,12 +164,13 @@ contains
 
    end function dpeval1
 
-   subroutine prep_recon_jslice(p_src, i_lb, i_ub, j, j_rs, nn)
-      ! ---------------------------------------------------------------------------
-      ! Prepare vertical layer reconstruction along a j-slice of the model data.
-      ! ---------------------------------------------------------------------------
+   subroutine prep_recon_jslice(p_src, ksmx, i_lb, i_ub, j, j_rs, nn)
+   ! ---------------------------------------------------------------------------
+   ! Prepare vertical layer reconstruction along a j-slice of the model data.
+   ! ---------------------------------------------------------------------------
 
       real(r8), dimension(:,1-nbdy:), intent(out) :: p_src
+      integer, dimension(1-nbdy:), intent(out) :: ksmx
       integer, intent(in) :: i_lb, i_ub, j, j_rs, nn
 
       integer :: l, i, k, errstat
@@ -170,9 +178,16 @@ contains
       do l = 1, isp(j)
          do i = max(i_lb, ifp(j,l)), min(i_ub, ilp(j,l))
 
+            ! Compute source layer interface pressure.
             p_src(1,i) = p(i,j,1)
             do k = 1, kk
                p_src(k+1,i) = p_src(k,i) + dp(i,j,k+nn)
+            enddo
+
+            ! Find index of deepest source layer with non-zero thickness.
+            ksmx(i) = kk
+            do k = kk, 1, -1
+               if (p_src(k,i) == p_src(kk+1,i)) ksmx(i) = k - 1
             enddo
 
             errstat = prepare_reconstruction(rcgs, p_src(:,i), i, j_rs)
@@ -187,12 +202,14 @@ contains
 
    end subroutine prep_recon_jslice
 
-   subroutine recon_trc_jslice(i_lb, i_ub, j, j_rs, nn)
-      ! ---------------------------------------------------------------------------
-      ! Vertically reconstruct temperature, salinity and additional tracers along a
-      ! j-slice of the model data.
-      ! ---------------------------------------------------------------------------
+   subroutine recon_trc_jslice(ksmx, tpc_src, t_srcdi, i_lb, i_ub, j, j_rs, nn)
+   ! ---------------------------------------------------------------------------
+   ! Vertically reconstruct temperature, salinity and additional tracers along a
+   ! j-slice of the model data.
+   ! ---------------------------------------------------------------------------
 
+      integer, dimension(1-nbdy:), intent(in) :: ksmx
+      real(r8), intent(out) :: tpc_src(:,:,:,1-nbdy:), t_srcdi(:,:,:,1-nbdy:)
       integer, intent(in) :: i_lb, i_ub, j, j_rs, nn
 
       real(r8), dimension(kdm,ntr_loc) :: trc_1d
@@ -221,6 +238,23 @@ contains
                   call xchalt('(recon_trc_jslice)')
                   stop '(recon_trc_jslice)'
                endif
+            enddo
+
+            ! Extract polynomial coefficients of the reconstructions and store
+            ! tracer variables in dual interface arrays with with values
+            ! corresponding to upper and lower interface of each layer.
+            do nt = 1, ntr_loc
+               errstat = extract_polycoeff(trc_rcss(nt), tpc_src(:,:,nt,i), &
+                                           i, j_rs)
+               if (errstat /= hor3map_noerr) then
+                  write(lp,*) trim(hor3map_errstr(errstat))
+                  call xchalt('(recon_trc_jslice)')
+                  stop '(recon_trc_jslice)'
+               endif
+               do k = 1, ksmx(i)
+                  t_srcdi(1,k,nt,i) = peval0(tpc_src(:,k,nt,i))
+                  t_srcdi(2,k,nt,i) = peval1(tpc_src(:,k,nt,i))
+               enddo
             enddo
 
          enddo
@@ -519,61 +553,41 @@ contains
 
    end subroutine cntiso_regrid_direct_jslice
 
-   subroutine cntiso_regrid_nudge_jslice(p_src, p_dst, i_lb, i_ub, j, j_rs, nn)
+   subroutine cntiso_regrid_nudge_jslice(p_src, ksmx, tpc_src, t_srcdi, p_dst, &
+                                         stab_fac, i_lb, i_ub, j, j_rs)
 
       real(r8), dimension(:,1-nbdy:), intent(in) :: p_src
-      real(r8), dimension(:,1-nbdy:), intent(out) :: p_dst
-      integer, intent(in) :: i_lb, i_ub, j, j_rs, nn
+      integer, dimension(1-nbdy:), intent(in) :: ksmx
+      real(r8), dimension(:,:,:,1-nbdy:), intent(in) :: tpc_src, t_srcdi
+      real(r8), dimension(:,1-nbdy:), intent(out) :: p_dst, stab_fac
+      integer, intent(in) :: i_lb, i_ub, j, j_rs
 
       integer, parameter :: &
-           p_ord = 4, &
            it = 1, &
            is = 2
 
-      real(r8), dimension(p_ord+1,kdm,2,1-nbdy:idm+nbdy) :: tpc_src
-      real(r8), dimension(2,kdm,2,1-nbdy:idm+nbdy) :: t_srcdi
       real(r8), dimension(2,kdm) :: sig_srcdi
-      integer, dimension(1-nbdy:idm+nbdy) :: ksmx, kdmx
+      integer, dimension(1-nbdy:idm+nbdy) :: kdmx
 
-      real(r8), dimension(kdm+1) :: sigmar_1d, pmin, sig_pmin
+      real(r8), dimension(kdm+1) :: sigmar_1d, pmin, sig_pmin, sig_trg
+      real(r8), dimension(kdm) :: dsigmar_1d
       real(r8) :: dpmin_inflation_factor_i, sig_max, dpmin_sfc, &
-           dsig, dsigdx, dsigdx_up, dsigdx_lo, dp_up, dp_lo, sig_intrp, &
-           ckt, a, p1, dp0, b, c, q, d, rk
-      integer :: l, i, nt, k, kt, kl, ktzmin, ktzmax, klastok, errstat
-      logical :: tzfound, ok
+                  ckt, sig_up, sig_lo, dk, dki, dsigdx_up, dsigdx_lo, &
+                  x, xi, si, t, nudge_fac, dsig, dsigdx, dp_up, dp_lo, &
+                  sig_intrp, q
+      integer :: l, i, k, kt, kl, ktzmin, ktzmax
 
       dpmin_inflation_factor_i = 1._r8/dpmin_inflation_factor
 
       do l = 1, isp(j)
          do i = max(i_lb, ifp(j, l)), min(i_ub, ilp(j, l))
 
-            ! Extract polynomial coefficients of the reconstructions.
-            do nt = 1, 2
-               errstat = extract_polycoeff(trc_rcss(nt), &
-                    tpc_src(:,:,nt,i), i, j_rs)
-               if (errstat /= hor3map_noerr) then
-                  write(lp,*) trim(hor3map_errstr(errstat))
-                  call xchalt('(ndiff_prep_jslice)')
-                  stop '(ndiff_prep_jslice)'
-               endif
-            enddo
-
-            ! Find index of deepest source layer with non-zero thickness.
-            ksmx(i) = kk
-            do k = kk, 1, -1
-               if (p_src(k,i) == p_src(kk+1,i)) ksmx(i) = k - 1
-            enddo
-
-            ! Store variables in dual interface arrays with with values
-            ! corresponding to upper and lower interface of each layer. Also find
-            ! the maximum lower interface potential density of the reconstructed
-            ! column.
+            ! Store density in a dual interface array with with values
+            ! corresponding to upper and lower interface of each layer.  Also
+            ! find the maximum lower interface potential density of the
+            ! reconstructed column.
             sig_max = 0._r8
             do k = 1, ksmx(i)
-               do nt = 1, 2
-                  t_srcdi(1,k,nt,i) = peval0(tpc_src(:,k,nt,i))
-                  t_srcdi(2,k,nt,i) = peval1(tpc_src(:,k,nt,i))
-               enddo
                sig_srcdi(1,k) = sig(t_srcdi(1,k,it,i), t_srcdi(1,k,is,i))
                sig_srcdi(2,k) = sig(t_srcdi(2,k,it,i), t_srcdi(2,k,is,i))
                sig_max = max(sig_max, sig_srcdi(2,k))
@@ -584,6 +598,10 @@ contains
                sigmar_1d(k) = sigmar(i,j,k)
             enddo
             sigmar_1d(kk+1) = sigmar_1d(kk)
+            do k = 1, kk-1
+               dsigmar_1d(k) = sigmar_1d(k+1) - sigmar(i,j,k)
+            enddo
+            dsigmar_1d(kk) = dsigmar_1d(kk-1)
 
             ! Find the index of the first layer which lower interface reference
             ! potential density is denser than the maximum lower interface
@@ -593,10 +611,6 @@ contains
             enddo
             kdmx(i) = max(1, k)
 
-            do k = kdmx(i)+1, kk+1
-               p_dst(k,i) = p_src(kk+1,i)
-            enddo
-
             ! Set minimum interface pressure.
             dpmin_sfc = dpmin_surface
             pmin(1) = p_src(1,i)
@@ -605,185 +619,278 @@ contains
                dpmin_sfc = dpmin_sfc*dpmin_inflation_factor
             enddo
             p_dst(1,i) = pmin(1)
+            stab_fac(1,i) = 0._r8
+
+            nudge_fac = delt1/regrid_nudge_ts
 
             ! Find the index of the first interface with potential density at
             ! minimum interface pressure smaller than the reference potential
-            ! density of that interface. This transition interface is the first
-            ! interface below layers with prescribed minimum thickness.
+            ! density of this transition interface. A layer range above and
+            ! below the transition interface may be specified, making a
+            ! transition zone where interface reference potential densities are
+            ! adjusted to achieve a more gradual change from pressure level to
+            ! isopycnic interfaces.
+            sig_trg(:) = sigmar_1d(:)
             sig_pmin(1) = sig_srcdi(1,1)
             kt = 2
             kl = 1
-            tzfound = .false.
             do while (kt <= kdmx(i))
                do while (p_src(kl+1,i) < pmin(kt))
                   kl = kl + 1
                enddo
                sig_pmin(kt) = ( (p_src(kl+1,i) - pmin(kt))*sig_srcdi(1,kl) &
-                    + (pmin(kt) - p_src(kl,i))*sig_srcdi(2,kl)) &
-                    /(p_src(kl+1,i) - p_src(kl,i))
+                              + (pmin(kt) - p_src(kl,i))*sig_srcdi(2,kl)) &
+                              /(p_src(kl+1,i) - p_src(kl,i))
                if (sigmar_1d(kt) > sig_pmin(kt)) then
-                  ktzmin = max(2, kt - dktzu)
-                  ktzmax = min(ksmx(i) + 1, kt + dktzl)
-                  if (ktzmin < kt .and. ktzmax - ktzmin > 1) tzfound = .true.
+                  ktzmin = max(3, kt - dktzu)
+                  ktzmax = min(kk - 1, kt + dktzl)
+                  if (ktzmin < kt .and. ktzmax - ktzmin > 1) then
+                     ! For a smooth transition in layer reference potential
+                     ! densities, try to construct a quadratic Bezier curve
+                     ! specified by the density and density gradients at the
+                     ! boundary of the transition zone. If construction of a
+                     ! Bezier curve fails, use a linear change of reference
+                     ! potential densities in the transition zone.
+                     ckt = (sigmar_1d(kt) - sig_pmin(kt)) &
+                           /( sigmar_1d(kt) - sigmar_1d(kt-1) &
+                            - sig_pmin (kt) + sig_pmin (kt-1))
+                     sig_up = sig_pmin (ktzmin-1)*ckt &
+                            + sig_pmin (ktzmin  )*(1._r8 - ckt)
+                     sig_lo = sigmar_1d(ktzmax-1)*ckt &
+                            + sigmar_1d(ktzmax  )*(1._r8 - ckt)
+                     dk = real(ktzmax - ktzmin, r8)
+                     dki = 1._r8/dk
+                     dsigdx_up = .5*( ( sig_pmin (ktzmin  ) &
+                                      - sig_pmin (ktzmin-2))*ckt &
+                                    + ( sig_pmin (ktzmin+1) &
+                                      - sig_pmin (ktzmin-1))*(1. - ckt))*dk
+                     dsigdx_lo = .5*( ( sigmar_1d(ktzmax  ) &
+                                      - sigmar_1d(ktzmax-2))*ckt &
+                                    + ( sigmar_1d(ktzmax+1) &
+                                      - sigmar_1d(ktzmax-1))*(1. - ckt))*dk
+                     dsigdx_up = max(0._r8, dsigdx_up)
+                     if (dsigdx_lo <= dsigdx_up .or. &
+                         sig_up - sig_lo <= - dsigdx_lo .or. &
+                         sig_up - sig_lo >= - dsigdx_up) then
+                        do k = ktzmin, ktzmax - 1
+                           x = (k - ktzmin + ckt)*dki
+                           sig_trg(k) = sig_up*(1._r8 - x) + sig_lo*x
+                        enddo
+                     else
+                        xi = (sig_up - sig_lo + dsigdx_lo) &
+                             /(dsigdx_lo - dsigdx_up)
+                        si = ( dsigdx_lo*(sig_up + dsigdx_up) &
+                             - dsigdx_up*sig_lo)/(dsigdx_lo - dsigdx_up)
+                        if (abs(xi - .5_r8) < x_eps) then
+                           do k = ktzmin, ktzmax-1
+                              t = (k - ktzmin + ckt)*dki
+                              sig_trg(k) = &
+                                 (1._r8 - t)*((1._r8 - t)*sig_up + 2._r8*t*si) &
+                               + t*t*sig_lo
+                           enddo
+                        else
+                           do k = ktzmin, ktzmax-1
+                              x = (k - ktzmin + ckt)*dki
+                              t = (sqrt(xi*(xi - 2_r8*x) + x) - xi) &
+                                  /(1._r8 - 2_r8*xi)
+                              sig_trg(k) = &
+                                 (1._r8 - t)*((1._r8 - t)*sig_up + 2._r8*t*si) &
+                               + t*t*sig_lo
+                           enddo
+                        endif
+                     endif
+                     kt = ktzmin
+                  endif
                   exit
                endif
-               p_dst(kt,i) = pmin(kt)
+               p_dst(kt,i) = p_src(kt,i) + nudge_fac*(pmin(kt) - p_src(kt,i))
+               p_dst(kt,i) = &
+                  min(max(p_dst(kt,i), pmin(kt), &
+                          p_dst(kt-1,i) + dpmin_interior), &
+                      p_src(kk+1,i))
+               stab_fac(kt,i) = 0._r8
                kt = kt + 1
             enddo
 
-            ! Starting at the transition interface, nudge the interface pressures
-            ! to reduce the deviation from the interface reference potential
-            ! density.
+            ! Starting at the transition interface, nudge the interface
+            ! pressures to reduce the deviation from the interface reference
+            ! potential density.
 
-            klastok = kt - 1
+            do k = kt, kk+1
+               p_dst(k,i) = p_src(kk+1,i)
+               stab_fac(k,i) = 1._r8
+            enddo
+
             do k = kt, min(ksmx(i), kdmx(i))
-               ok = .true.
-               if      (sigmar_1d(k) < sig_srcdi(2,k-1) .and. &
-                    sigmar_1d(k) < sig_srcdi(1,k  )) then
-                  dsig = (sigmar_1d(k) - sig_srcdi(2,k-1))*regrid_nudge_factor
+               if      (sig_trg(k) < sig_srcdi(2,k-1) .and. &
+                        sig_trg(k) < sig_srcdi(1,k  )) then
+                  dsig = sig_trg(k) - sig_srcdi(2,k-1)
                   dsigdx = dsigdt(t_srcdi(2,k-1,it,i), t_srcdi(2,k-1,is,i)) &
-                       *dpeval1(tpc_src(:,k-1,it,i)) &
-                       + dsigds(t_srcdi(2,k-1,it,i), t_srcdi(2,k-1,is,i)) &
-                       *dpeval1(tpc_src(:,k-1,is,i))
-                  if (- dsig > .5_r8*dsigdx) then
-                     dsigdx = sig_srcdi(2,k-1) - sig_srcdi(1,k-1)
-                     if (- dsig > .5_r8*dsigdx) ok = .false.
-                  endif
-                  if (ok) p_dst(k,i) = p_src(k,i) &
-                       + dsig*(p_src(k,i) - p_src(k-1,i))/dsigdx
-               elseif  (sigmar_1d(k) > sig_srcdi(2,k-1) .and. &
-                    sigmar_1d(k) > sig_srcdi(1,k  )) then
-                  dsig = (sigmar_1d(k) - sig_srcdi(1,k))*regrid_nudge_factor
+                           *dpeval1(tpc_src(:,k-1,it,i)) &
+                         + dsigds(t_srcdi(2,k-1,it,i), t_srcdi(2,k-1,is,i)) &
+                           *dpeval1(tpc_src(:,k-1,is,i))
+                  stab_fac(k,i) = dsigdx/dsigmar_1d(k-1)
+                  dsigdx = dsigmar_1d(k-1)*max(stab_fac(k,i), stab_fac_limit)
+                  p_dst(k,i) = p_src(k,i) &
+                             + max(- .5_r8, dsig*nudge_fac/dsigdx) &
+                               *(p_src(k,i) - p_src(k-1,i))
+               elseif  (sig_trg(k) > sig_srcdi(2,k-1) .and. &
+                        sig_trg(k) > sig_srcdi(1,k  )) then
+                  dsig = sig_trg(k) - sig_srcdi(1,k)
                   dsigdx = dsigdt(t_srcdi(1,k,it,i), t_srcdi(1,k,is,i)) &
-                       *dpeval0(tpc_src(:,k,it,i)) &
-                       + dsigds(t_srcdi(1,k,it,i), t_srcdi(1,k,is,i)) &
-                       *dpeval0(tpc_src(:,k,is,i))
-                  if (dsig > .5_r8*dsigdx) then
-                     dsigdx = sig_srcdi(2,k) - sig_srcdi(1,k)
-                     if (dsig > .5_r8*dsigdx) ok = .false.
-                  endif
-                  if (ok) p_dst(k,i) = p_src(k,i) &
-                       + dsig*(p_src(k+1,i) - p_src(k,i))/dsigdx
+                           *dpeval0(tpc_src(:,k,it,i)) &
+                         + dsigds(t_srcdi(1,k,it,i), t_srcdi(1,k,is,i)) &
+                           *dpeval0(tpc_src(:,k,is,i))
+                  stab_fac(k,i) = dsigdx/dsigmar_1d(k)
+                  dsigdx = dsigmar_1d(k)*max(stab_fac(k,i), stab_fac_limit)
+                  p_dst(k,i) = p_src(k,i) &
+                             + min(.5_r8, dsig*nudge_fac/dsigdx) &
+                               *(p_src(k+1,i) - p_src(k,i))
                else
                   dsigdx_up = dsigdt(t_srcdi(2,k-1,it,i), t_srcdi(2,k-1,is,i)) &
-                       *dpeval1(tpc_src(:,k-1,it,i)) &
-                       + dsigds(t_srcdi(2,k-1,it,i), t_srcdi(2,k-1,is,i)) &
-                       *dpeval1(tpc_src(:,k-1,is,i))
+                              *dpeval1(tpc_src(:,k-1,it,i)) &
+                            + dsigds(t_srcdi(2,k-1,it,i), t_srcdi(2,k-1,is,i)) &
+                              *dpeval1(tpc_src(:,k-1,is,i))
                   dsigdx_lo = dsigdt(t_srcdi(1,k,it,i), t_srcdi(1,k,is,i)) &
-                       *dpeval0(tpc_src(:,k,it,i)) &
-                       + dsigds(t_srcdi(1,k,it,i), t_srcdi(1,k,is,i)) &
-                       *dpeval0(tpc_src(:,k,is,i))
+                              *dpeval0(tpc_src(:,k,it,i)) &
+                            + dsigds(t_srcdi(1,k,it,i), t_srcdi(1,k,is,i)) &
+                              *dpeval0(tpc_src(:,k,is,i))
                   dp_up = max(p_src(k  ,i) - p_src(k-1,i), epsilp)
                   dp_lo = max(p_src(k+1,i) - p_src(k  ,i), epsilp)
                   sig_intrp = ( (sig_srcdi(1,k  ) + .5_r8*dsigdx_lo)*dp_up &
-                       + (sig_srcdi(2,k-1) - .5_r8*dsigdx_up)*dp_lo) &
-                       /(dp_up + dp_lo)
+                              + (sig_srcdi(2,k-1) - .5_r8*dsigdx_up)*dp_lo) &
+                              /(dp_up + dp_lo)
                   sig_intrp = max(min(sig_srcdi(2,k-1),sig_srcdi(1,k)), &
-                       min(max(sig_srcdi(2,k-1),sig_srcdi(1,k)), sig_intrp))
-                  dsig = (sigmar_1d(k) - sig_intrp)*regrid_nudge_factor
+                                  min(max(sig_srcdi(2,k-1),sig_srcdi(1,k)), &
+                                          sig_intrp))
+                  dsig = sig_trg(k) - sig_intrp
                   if (dsig < 0._r8) then
                      dsigdx = dsigdx_up + 2._r8*(sig_intrp - sig_srcdi(2,k-1))
-                     if (- dsig > .5_r8*dsigdx) ok = .false.
-                     if (ok) p_dst(k,i) = p_src(k,i) &
-                          + dsig*(p_src(k,i) - p_src(k-1,i))/dsigdx
+                     stab_fac(k,i) = dsigdx/dsigmar_1d(k-1)
+                     dsigdx = dsigmar_1d(k-1)*max(stab_fac(k,i), stab_fac_limit)
+                     p_dst(k,i) = p_src(k,i) &
+                                + max(- .5_r8, dsig*nudge_fac/dsigdx) &
+                                  *(p_src(k,i) - p_src(k-1,i))
                   else
                      dsigdx = dsigdx_lo + 2._r8*(sig_srcdi(1,k  ) - sig_intrp)
-                     if (dsig > .5_r8*dsigdx) ok = .false.
-                     if (ok) p_dst(k,i) = p_src(k,i) &
-                          + dsig*(p_src(k+1,i) - p_src(k,i))/dsigdx
+                     stab_fac(k,i) = dsigdx/dsigmar_1d(k)
+                     dsigdx = dsigmar_1d(k)*max(stab_fac(k,i), stab_fac_limit)
+                     p_dst(k,i) = p_src(k,i) &
+                                + min(.5_r8, dsig*nudge_fac/dsigdx) &
+                                  *(p_src(k+1,i) - p_src(k,i))
                   endif
                endif
-               if (ok) then
-                  p_dst(k,i) = &
-                       min(max(p_dst(k,i), pmin(k), &
-                       p_dst(klastok,i) + (k - klastok)*dpmin_interior), &
-                       p_src(kk+1,i))
-                  if (k - klastok > 1) then
-                     q = (p_dst(k,i) - p_dst(klastok,i))/(k - klastok)
-                     do kl = klastok+1, k-1
-                        p_dst(kl,i) = min(max(p_dst(kl-1,i) + q, pmin(kl)), &
-                             p_src(kk+1,i))
-                     enddo
-                  endif
-                  klastok = k
-               endif
+               p_dst(k,i) = &
+                  min(max(p_dst(k,i), pmin(k), p_dst(k-1,i) + dpmin_interior), &
+                      p_src(kk+1,i))
             enddo
 
             do k = max(kt, min(ksmx(i), kdmx(i))) + 1, kdmx(i)
-               ok = .true.
-               if (sigmar_1d(k) < sig_srcdi(2,ksmx(i))) then
-                  dsig = (sigmar_1d(k) - sig_srcdi(2,ksmx(i)))*regrid_nudge_factor
+               if (sig_trg(k) < sig_srcdi(2,ksmx(i))) then
+                  dsig = sig_trg(k) - sig_srcdi(2,ksmx(i))
                   dsigdx = dsigdt(t_srcdi(2,ksmx(i),it,i), &
-                       t_srcdi(2,ksmx(i),is,i)) &
-                       *dpeval1(tpc_src(:,ksmx(i),it,i)) &
-                       + dsigds(t_srcdi(2,ksmx(i),it,i), &
-                       t_srcdi(2,ksmx(i),is,i)) &
-                       *dpeval1(tpc_src(:,ksmx(i),is,i))
-                  if (- dsig > .5_r8*dsigdx) then
-                     dsigdx = sig_srcdi(2,ksmx(i)) - sig_srcdi(1,ksmx(i))
-                     if (- dsig > .5_r8*dsigdx) ok = .false.
-                  endif
-                  if (ok) p_dst(k,i) = p_src(kk+1,i) &
-                       + dsig*(p_src(kk+1,i) - p_src(ksmx(i),i)) &
-                       /dsigdx
-               else
-                  p_dst(k,i) = p_src(kk+1,i)
-               endif
-               if (ok) then
+                                  t_srcdi(2,ksmx(i),is,i)) &
+                           *dpeval1(tpc_src(:,ksmx(i),it,i)) &
+                         + dsigds(t_srcdi(2,ksmx(i),it,i), &
+                                  t_srcdi(2,ksmx(i),is,i)) &
+                           *dpeval1(tpc_src(:,ksmx(i),is,i))
+                  stab_fac(k,i) = dsigdx/dsigmar_1d(ksmx(i)-1)
+                  dsigdx = dsigmar_1d(ksmx(i)-1) &
+                           *max(stab_fac(k,i), stab_fac_limit)
+                  p_dst(k,i) = p_src(kk+1,i) &
+                             + max(- .5_r8, dsig*nudge_fac/dsigdx) &
+                               *(p_src(kk+1,i) - p_src(ksmx(i),i))
                   p_dst(k,i) = &
-                       min(max(p_dst(k,i), pmin(k), &
-                       p_dst(klastok,i) + (k - klastok)*dpmin_interior), &
-                       p_src(kk+1,i))
-                  if (k - klastok > 1) then
-                     q = (p_dst(k,i) - p_dst(klastok,i))/(k - klastok)
-                     do kl = klastok+1, k-1
-                        p_dst(kl,i) = min(max(p_dst(kl-1,i) + q, pmin(kl)), &
-                             p_src(kk+1,i))
-                     enddo
-                  endif
-                  klastok = k
+                     min(max(p_dst(k,i), pmin(k), &
+                             p_dst(k-1,i) + dpmin_interior), &
+                         p_src(kk+1,i))
                endif
             enddo
-
-            if (kdmx(i) - klastok > 0) then
-               q = (p_dst(kdmx(i)+1,i) - p_dst(klastok,i))/(kdmx(i) + 1 - klastok)
-               do kl = klastok+1, kdmx(i)
-                  p_dst(kl,i) = min(max(p_dst(kl-1,i) + q, pmin(kl)), &
-                       p_src(kk+1,i))
-               enddo
-            endif
-
-            ! Enforce a gradual change of layer thickness in a transition zone that
-            ! is defined by prescribed layer range above and below the transition
-            ! interface.
-            if (tzfound) then
-               ckt = (sigmar_1d(kt) - sig_pmin(kt)) &
-                    /( sigmar_1d(kt) - sigmar_1d(kt-1) &
-                    - sig_pmin (kt) + sig_pmin (kt-1))
-               a  = p_dst(ktzmin-1,i)*ckt + p_dst(ktzmin,i)*(1 - ckt)
-               p1 = p_dst(ktzmax-1,i)*ckt + p_dst(ktzmax,i)*(1 - ckt)
-               dp0 = p_dst(ktzmin,i) - p_dst(ktzmin-1,i)
-               if (ckt > .5_r8) then
-                  b = dp0*((ckt - .5_r8)*dpmin_inflation_factor_i + 1.5_r8 - ckt)
-               else
-                  b = dp0*(ckt + .5_r8 + dpmin_inflation_factor*(.5_r8 - ckt))
-               endif
-               c = .5_r8*dp0*(dpmin_inflation_factor - 1._r8) &
-                    *(ckt*dpmin_inflation_factor_i + 1._r8 - ckt)
-               q = 1._r8/(ktzmax - ktzmin)
-               d = (((p1 - a)*q - b)*q - c)*q
-               if (d > 0._r8) then
-                  do k = ktzmin, ktzmax-1
-                     rk = k - ktzmin + ckt
-                     p_dst(k,i) = max(p_dst(k,i), a + rk*(b + rk*(c + rk*d)))
-                  enddo
-               endif
-            endif
 
          enddo
       enddo
 
    end subroutine cntiso_regrid_nudge_jslice
+
+   subroutine cntiso_regrid_smooth_jslice(p_dst_rs, stab_fac_rs, &
+                                          smtflxconv_rs, &
+                                          i_lb, i_ub, j, jp_rs, jn_rs)
+
+      real(r8), dimension(:,1-nbdy:,:), intent(inout) :: &
+         p_dst_rs, stab_fac_rs, smtflxconv_rs
+      integer, intent(in) :: i_lb, i_ub, j, jp_rs, jn_rs
+
+      real(r8) :: cdiff, difmx, flxhi, flxlo, flx, q, sdiff
+      integer :: l, i, k
+
+      smtflxconv_rs(:,:,jn_rs) = 0._r8
+
+      do l = 1, isu(j+1)
+         do i = max(i_lb, ifu(j+1,l)), min(i_ub+1, ilu(j+1,l))
+            cdiff = delt1*scuy(i,j+1)*scuxi(i,j+1)
+            difmx = .5_r8*(difmxp(i-1,j+1) + difmxp(i,j+1))
+            do k = 2, kk
+               flxhi =   .125_r8*min(( p_dst_rs(k,  i-1,jn_rs) &
+                                     - p_dst_rs(k-1,i-1,jn_rs))*scp2(i-1,j+1), &
+                                     ( p_dst_rs(k+1,i  ,jn_rs) &
+                                     - p_dst_rs(k  ,i  ,jn_rs))*scp2(i  ,j+1))
+               flxlo = - .125_r8*min(( p_dst_rs(k  ,i  ,jn_rs) &
+                                     - p_dst_rs(k-1,i  ,jn_rs))*scp2(i  ,j+1), &
+                                     ( p_dst_rs(k+1,i-1,jn_rs) &
+                                     - p_dst_rs(k  ,i-1,jn_rs))*scp2(i-1,j+1))
+               q = .5_r8*( max(0._r8, min(stab_fac_limit, &
+                                          stab_fac_rs(k,i-1,jn_rs))) &
+                         + max(0._r8, min(stab_fac_limit, &
+                                          stab_fac_rs(k,i  ,jn_rs))))
+               sdiff = min((stab_fac_limit - q)*smooth_diff_max &
+                           /stab_fac_limit, difmx)
+               flx = min(flxhi, max(flxlo, &
+                                    cdiff*sdiff*( p_dst_rs(k,i-1,jn_rs) &
+                                                - p_dst_rs(k,i  ,jn_rs))))
+               smtflxconv_rs(k,i-1,jn_rs) = smtflxconv_rs(k,i-1,jn_rs) + flx
+               smtflxconv_rs(k,i  ,jn_rs) = smtflxconv_rs(k,i  ,jn_rs) - flx
+            enddo
+         enddo
+      enddo
+
+      do l = 1, isv(j+1)
+         do i = max(i_lb, ifv(j+1,l)), min(i_ub, ilv(j+1,l))
+            cdiff = delt1*scvx(i,j+1)*scvyi(i,j+1)
+            difmx = .5_r8*(difmxp(i,j) + difmxp(i,j+1))
+            do k = 2, kk
+               flxhi =   .125_r8*min(( p_dst_rs(k,  i,jp_rs) &
+                                     - p_dst_rs(k-1,i,jp_rs))*scp2(i,j  ), &
+                                     ( p_dst_rs(k+1,i,jn_rs) &
+                                     - p_dst_rs(k  ,i,jn_rs))*scp2(i,j+1))
+               flxlo = - .125_r8*min(( p_dst_rs(k  ,i,jn_rs) &
+                                     - p_dst_rs(k-1,i,jn_rs))*scp2(i,j+1), &
+                                     ( p_dst_rs(k+1,i,jp_rs) &
+                                     - p_dst_rs(k  ,i,jp_rs))*scp2(i,j  ))
+               q = .5_r8*( max(0._r8, min(stab_fac_limit, &
+                                          stab_fac_rs(k,i,jp_rs))) &
+                         + max(0._r8, min(stab_fac_limit, &
+                                          stab_fac_rs(k,i,jn_rs))))
+               sdiff = min((stab_fac_limit - q)*smooth_diff_max &
+                           /stab_fac_limit, difmx)
+               flx = min(flxhi, max(flxlo, &
+                                    cdiff*sdiff*( p_dst_rs(k,i,jp_rs) &
+                                                - p_dst_rs(k,i,jn_rs))))
+               smtflxconv_rs(k,i,jp_rs) = smtflxconv_rs(k,i,jp_rs) + flx
+               smtflxconv_rs(k,i,jn_rs) = smtflxconv_rs(k,i,jn_rs) - flx
+            enddo
+         enddo
+      enddo
+
+      do l = 1, isp(j)
+         do i = max(i_lb, ifp(j,l)), min(i_ub, ilp(j,l))
+            do k = 2, kk
+               p_dst_rs(k,i,jp_rs) = p_dst_rs(k,i,jp_rs) &
+                                   - smtflxconv_rs(k,i,jp_rs)*scp2i(i,j)
+            enddo
+         enddo
+      enddo
+
+   end subroutine cntiso_regrid_smooth_jslice
 
    subroutine copy_jslice_to_3d(p_dst, trc_rm, i_lb, i_ub, j, nn)
 
@@ -831,7 +938,7 @@ contains
            tracer_pc_upper_bndr, tracer_pc_lower_bndr, &
            velocity_pc_upper_bndr, velocity_pc_lower_bndr, &
            dpmin_surface, dpmin_inflation_factor, dpmin_interior, &
-           regrid_nudge_factor, dktzu, dktzl
+           regrid_nudge_ts, stab_fac_limit, smooth_diff_max, dktzu, dktzl
 
       ! Read variables in the namelist group 'vcoord'.
       if (mnproc == 1) then
@@ -876,7 +983,9 @@ contains
          call xcbcst(dpmin_surface)
          call xcbcst(dpmin_inflation_factor)
          call xcbcst(dpmin_interior)
-         call xcbcst(regrid_nudge_factor)
+         call xcbcst(regrid_nudge_ts)
+         call xcbcst(stab_fac_limit)
+         call xcbcst(smooth_diff_max)
          call xcbcst(dktzu)
          call xcbcst(dktzl)
       endif
@@ -903,7 +1012,9 @@ contains
          write (lp,*) '  dpmin_surface =          ', dpmin_surface
          write (lp,*) '  dpmin_inflation_factor = ', dpmin_inflation_factor
          write (lp,*) '  dpmin_interior =         ', dpmin_interior
-         write (lp,*) '  regrid_nudge_factor =    ', regrid_nudge_factor
+         write (lp,*) '  regrid_nudge_ts =        ', regrid_nudge_ts
+         write (lp,*) '  stab_fac_limit =         ', stab_fac_limit
+         write (lp,*) '  smooth_diff_max =        ', smooth_diff_max
          write (lp,*) '  dktzu =                  ', dktzu
          write (lp,*) '  dktzl =                  ', dktzl
       endif
@@ -982,9 +1093,9 @@ contains
    end subroutine readnml_vcoord
 
    subroutine inivar_vcoord
-      ! ---------------------------------------------------------------------------
-      ! Initialize arrays and data structures.
-      ! ---------------------------------------------------------------------------
+   ! ---------------------------------------------------------------------------
+   ! Initialize arrays and data structures.
+   ! ---------------------------------------------------------------------------
 
       integer :: i, j, k, nt, errstat
 
@@ -1019,12 +1130,14 @@ contains
       ! the source grid.
       rcgs%n_src = kk
       if (ltedtp_opt == ltedtp_neutral) then
+         rcgs%i_lbound = -1
+         rcgs%i_ubound = ii + 2
+         rcgs%j_ubound = 3
+      else
          rcgs%i_lbound = 0
          rcgs%i_ubound = ii + 1
-      else
-         rcgs%i_ubound = ii
+         rcgs%j_ubound = 2
       endif
-      rcgs%j_ubound = 2
       rcgs%method = reconstruction_method_tag
       rcgs%left_bndr_ord = upper_bndr_ord
       rcgs%right_bndr_ord = lower_bndr_ord
@@ -1105,8 +1218,16 @@ contains
 
       integer, intent(in) :: m, n, mm, nn, k1m, k1n
 
+      integer, parameter :: p_ord = 4
+
       real(r8), dimension(kdm+1,1-nbdy:idm+nbdy,2) :: p_src_rs, p_dst_rs
+      real(r8), dimension(p_ord+1,kdm,ntr_loc,1-nbdy:idm+nbdy,2) :: tpc_src_rs
+      real(r8), dimension(2,kdm,ntr_loc,1-nbdy:idm+nbdy,2) :: t_srcdi_rs
+      real(r8), dimension(2,kdm,1-nbdy:idm+nbdy,2) :: &
+         p_srcdi_rs, drhodt_srcdi_rs, drhods_srcdi_rs
+      real(r8), dimension(kdm,ntr_loc,1-nbdy:idm+nbdy,2) :: flxconv_rs
       real(r8), dimension(kdm,ntr_loc,1-nbdy:idm+nbdy) :: trc_rm
+      integer, dimension(1-nbdy:idm+nbdy,2) :: ksmx_rs, kdmx_rs
       integer :: j_rs, jm_rs, jp_rs, j, nt
 
       if (ltedtp_opt /= ltedtp_neutral) then
@@ -1114,13 +1235,22 @@ contains
          j_rs = 1
 
          do j = 1, jj
-            call prep_recon_jslice(p_src_rs(:,:,j_rs), 1, ii, j, j_rs, nn)
-            call recon_trc_jslice(1, ii, j, j_rs, nn)
-            call cntiso_regrid_direct_jslice(p_src_rs(:,:,j_rs), p_dst_rs(:,:,j_rs), &
-                 1, ii, j, j_rs, nn)
-            call remap_trc_jslice(p_dst_rs(:,:,j_rs), trc_rm, &
-                 1, ii, j, j_rs)
-            call copy_jslice_to_3d(p_dst_rs(:,:,j_rs), trc_rm, 1, ii, j, nn)
+            call prep_recon_jslice          (p_src_rs(:,:,j_rs), &
+                                             ksmx_rs(:,j_rs), &
+                                             1, ii, j, j_rs, nn)
+            call recon_trc_jslice           (ksmx_rs(:,j_rs), &
+                                             tpc_src_rs(:,:,:,:,j_rs), &
+                                             t_srcdi_rs(:,:,:,:,j_rs), &
+                                             1, ii, j, j_rs, nn)
+            call cntiso_regrid_direct_jslice(p_src_rs(:,:,j_rs), &
+                                             p_dst_rs(:,:,j_rs), &
+                                             1, ii, j, j_rs, nn)
+            call remap_trc_jslice           (p_dst_rs(:,:,j_rs), &
+                                             trc_rm, &
+                                             1, ii, j, j_rs)
+            call copy_jslice_to_3d          (p_dst_rs(:,:,j_rs), &
+                                             trc_rm, &
+                                             1, ii, j, nn)
          enddo
 
       else
@@ -1145,36 +1275,70 @@ contains
          do j = -1, 0
             jm_rs = 3 - jm_rs
             jp_rs = 3 - jp_rs
-            call prep_recon_jslice(p_src_rs(:,:,jp_rs), &
-                 0, ii+1, j+1, jp_rs, nn)
-            call recon_trc_jslice(0, ii+1, j+1, jp_rs, nn)
+            call prep_recon_jslice          (p_src_rs(:,:,jp_rs), &
+                                             ksmx_rs(:,jp_rs), &
+                                             0, ii+1, j+1, jp_rs, nn)
+            call recon_trc_jslice           (ksmx_rs(:,jp_rs), &
+                                             tpc_src_rs(:,:,:,:,jp_rs), &
+                                             t_srcdi_rs(:,:,:,:,jp_rs), &
+                                             0, ii+1, j+1, jp_rs, nn)
             call cntiso_regrid_direct_jslice(p_src_rs(:,:,jp_rs), &
-                 p_dst_rs(:,:,jp_rs), &
-                 0, ii+1, j+1, jp_rs, nn)
-            call ndiff_prep_jslice(p_src_rs, p_dst_rs, trc_rcss, &
-                 0, ii+1, j+1, jp_rs, mm)
+                                             p_dst_rs(:,:,jp_rs), &
+                                             0, ii+1, j+1, jp_rs, nn)
+            call ndiff_prep_jslice          (p_src_rs, ksmx_rs, &
+                                             tpc_src_rs, t_srcdi_rs, &
+                                             p_dst_rs, kdmx_rs, p_srcdi_rs, &
+                                             drhodt_srcdi_rs, drhods_srcdi_rs, &
+                                             flxconv_rs, &
+                                             0, ii+1, j+1, jp_rs, mm)
          enddo
 
          j = 0
-         call ndiff_vflx_jslice(p_dst_rs, 1, ii, j+1, jp_rs, mm, nn)
+         call ndiff_vflx_jslice(ksmx_rs, tpc_src_rs, t_srcdi_rs, &
+                                p_dst_rs, kdmx_rs, p_srcdi_rs, &
+                                drhodt_srcdi_rs, drhods_srcdi_rs, &
+                                flxconv_rs, &
+                                ntr_loc, 1, ii, j+1, &
+                                jm_rs, jp_rs, mm, nn)
 
          do j = 1, jj
             jm_rs = 3 - jm_rs
             jp_rs = 3 - jp_rs
-            call prep_recon_jslice(p_src_rs(:,:,jp_rs), &
-                 0, ii+1, j+1, jp_rs, nn)
-            call recon_trc_jslice(0, ii+1, j+1, jp_rs, nn)
+            call prep_recon_jslice          (p_src_rs(:,:,jp_rs), &
+                                             ksmx_rs(:,jp_rs), &
+                                             0, ii+1, j+1, jp_rs, nn)
+            call recon_trc_jslice           (ksmx_rs(:,jp_rs), &
+                                             tpc_src_rs(:,:,:,:,jp_rs), &
+                                             t_srcdi_rs(:,:,:,:,jp_rs), &
+                                             0, ii+1, j+1, jp_rs, nn)
             call cntiso_regrid_direct_jslice(p_src_rs(:,:,jp_rs), &
-                 p_dst_rs(:,:,jp_rs), &
-                 0, ii+1, j+1, jp_rs, nn)
-            call ndiff_prep_jslice(p_src_rs, p_dst_rs, trc_rcss, &
-                 0, ii+1, j+1, jp_rs, mm)
-            call ndiff_uflx_jslice(p_dst_rs, 1, ii+1, j, jm_rs, mm, nn)
-            call ndiff_vflx_jslice(p_dst_rs, 1, ii, j+1, jp_rs, mm, nn)
-            call remap_trc_jslice(p_dst_rs(:,:,jm_rs), trc_rm, &
-                 1, ii, j, jm_rs)
-            call ndiff_update_trc_jslice(p_dst_rs, trc_rm, 1, ii, j, jm_rs)
-            call copy_jslice_to_3d(p_dst_rs(:,:,jm_rs), trc_rm, 1, ii, j, nn)
+                                             p_dst_rs(:,:,jp_rs), &
+                                             0, ii+1, j+1, jp_rs, nn)
+            call ndiff_prep_jslice          (p_src_rs, ksmx_rs, &
+                                             tpc_src_rs, t_srcdi_rs, &
+                                             p_dst_rs, kdmx_rs, p_srcdi_rs, &
+                                             drhodt_srcdi_rs, drhods_srcdi_rs, &
+                                             flxconv_rs, &
+                                             0, ii+1, j+1, jp_rs, mm)
+            call ndiff_uflx_jslice          (ksmx_rs, tpc_src_rs, t_srcdi_rs, &
+                                             p_dst_rs, kdmx_rs, p_srcdi_rs, &
+                                             drhodt_srcdi_rs, drhods_srcdi_rs, &
+                                             flxconv_rs, &
+                                             ntr_loc, 1, ii+1, j, &
+                                             jm_rs, mm, nn)
+            call ndiff_vflx_jslice          (ksmx_rs, tpc_src_rs, t_srcdi_rs, &
+                                             p_dst_rs, kdmx_rs, p_srcdi_rs, &
+                                             drhodt_srcdi_rs, drhods_srcdi_rs, &
+                                             flxconv_rs, &
+                                             ntr_loc, 1, ii, j+1, &
+                                             jm_rs, jp_rs, mm, nn)
+            call remap_trc_jslice           (p_dst_rs(:,:,jm_rs), trc_rm, &
+                                             1, ii, j, jm_rs)
+            call ndiff_update_trc_jslice    (p_dst_rs, flxconv_rs, trc_rm, &
+                                             ntr_loc, 1, ii, j, jm_rs)
+            call copy_jslice_to_3d          (p_dst_rs(:,:,jm_rs), &
+                                             trc_rm, &
+                                             1, ii, j, nn)
          enddo
 
       endif
@@ -1201,30 +1365,89 @@ contains
 
       integer, intent(in) :: m, n, mm, nn, k1m, k1n
 
-      real(r8), dimension(kdm+1,1-nbdy:idm+nbdy,2) :: p_src_rs, p_dst_rs
+      integer, parameter :: p_ord = 4
+
+      real(r8), dimension(kdm+1,1-nbdy:idm+nbdy,3) :: &
+         p_src_rs, p_dst_rs, stab_fac_rs, smtflxconv_rs
+      real(r8), dimension(p_ord+1,kdm,ntr_loc,1-nbdy:idm+nbdy,3) :: tpc_src_rs
+      real(r8), dimension(2,kdm,ntr_loc,1-nbdy:idm+nbdy,3) :: t_srcdi_rs
+      real(r8), dimension(2,kdm,1-nbdy:idm+nbdy,3) :: &
+         p_srcdi_rs, drhodt_srcdi_rs, drhods_srcdi_rs
+      real(r8), dimension(kdm,ntr_loc,1-nbdy:idm+nbdy,3) :: flxconv_rs
       real(r8), dimension(kdm,ntr_loc,1-nbdy:idm+nbdy) :: trc_rm
-      integer :: j_rs, jm_rs, jp_rs, j, nt
+      integer, dimension(1-nbdy:idm+nbdy,3) :: ksmx_rs, kdmx_rs
+      integer :: j_rs, jm_rs, jp_rs, jn_rs, j, nt
+
+      smtflxconv_rs(:,:,:) = 0._r8
 
       if (ltedtp_opt /= ltedtp_neutral) then
-
-         j_rs = 1
-
-         do j = 1, jj
-            call prep_recon_jslice(p_src_rs(:,:,j_rs), 1, ii, j, j_rs, nn)
-            call recon_trc_jslice(1, ii, j, j_rs, nn)
-            call cntiso_regrid_nudge_jslice(p_src_rs(:,:,j_rs), p_dst_rs(:,:,j_rs), &
-                 1, ii, j, j_rs, nn)
-            call remap_trc_jslice(p_dst_rs(:,:,j_rs), trc_rm, &
-                 1, ii, j, j_rs)
-            call copy_jslice_to_3d(p_dst_rs(:,:,j_rs), trc_rm, 1, ii, j, nn)
-         enddo
-
-      else
 
          call xctilr(dp   (1-nbdy,1-nbdy,k1n), 1, kk, 1, 1, halo_ps)
          call xctilr(temp (1-nbdy,1-nbdy,k1n), 1, kk, 1, 1, halo_ps)
          call xctilr(saln (1-nbdy,1-nbdy,k1n), 1, kk, 1, 1, halo_ps)
          call xctilr(sigma(1-nbdy,1-nbdy,k1n), 1, kk, 1, 1, halo_ps)
+
+         jm_rs = 1
+         jp_rs = 2
+
+         do j = -1, 0
+            jm_rs = 3 - jm_rs
+            jp_rs = 3 - jp_rs
+            call prep_recon_jslice         (p_src_rs(:,:,jp_rs), &
+                                            ksmx_rs(:,jp_rs), &
+                                            0, ii+1, j+1, jp_rs, nn)
+            call recon_trc_jslice          (ksmx_rs(:,jp_rs), &
+                                            tpc_src_rs(:,:,:,:,jp_rs), &
+                                            t_srcdi_rs(:,:,:,:,jp_rs), &
+                                            0, ii+1, j+1, jp_rs, nn)
+            call cntiso_regrid_nudge_jslice(p_src_rs(:,:,jp_rs), &
+                                            ksmx_rs(:,jp_rs), &
+                                            tpc_src_rs(:,:,:,:,jp_rs), &
+                                            t_srcdi_rs(:,:,:,:,jp_rs), &
+                                            p_dst_rs(:,:,jp_rs), &
+                                            stab_fac_rs(:,:,jp_rs), &
+                                            0, ii+1, j+1, jp_rs)
+         enddo
+
+         j = 0
+         call cntiso_regrid_smooth_jslice(p_dst_rs, stab_fac_rs, &
+                                          smtflxconv_rs, &
+                                          1, ii, j, jm_rs, jp_rs)
+
+         do j = 1, jj
+            jm_rs = 3 - jm_rs
+            jp_rs = 3 - jp_rs
+            call prep_recon_jslice          (p_src_rs(:,:,jp_rs), &
+                                             ksmx_rs(:,jp_rs), &
+                                             0, ii+1, j+1, jp_rs, nn)
+            call recon_trc_jslice           (ksmx_rs(:,jp_rs), &
+                                             tpc_src_rs(:,:,:,:,jp_rs), &
+                                             t_srcdi_rs(:,:,:,:,jp_rs), &
+                                             0, ii+1, j+1, jp_rs, nn)
+            call cntiso_regrid_nudge_jslice (p_src_rs(:,:,jp_rs), &
+                                             ksmx_rs(:,jp_rs), &
+                                             tpc_src_rs(:,:,:,:,jp_rs), &
+                                             t_srcdi_rs(:,:,:,:,jp_rs), &
+                                             p_dst_rs(:,:,jp_rs), &
+                                             stab_fac_rs(:,:,jp_rs), &
+                                             0, ii+1, j+1, jp_rs)
+            call cntiso_regrid_smooth_jslice(p_dst_rs, stab_fac_rs, &
+                                             smtflxconv_rs, &
+                                             1, ii, j, jm_rs, jp_rs)
+            call remap_trc_jslice           (p_dst_rs(:,:,jm_rs), &
+                                             trc_rm, &
+                                             1, ii, j, jm_rs)
+            call copy_jslice_to_3d          (p_dst_rs(:,:,jm_rs), &
+                                             trc_rm, &
+                                             1, ii, j, nn)
+         enddo
+
+      else
+
+         call xctilr(dp   (1-nbdy,1-nbdy,k1n), 1, kk, 2, 2, halo_ps)
+         call xctilr(temp (1-nbdy,1-nbdy,k1n), 1, kk, 2, 2, halo_ps)
+         call xctilr(saln (1-nbdy,1-nbdy,k1n), 1, kk, 2, 2, halo_ps)
+         call xctilr(sigma(1-nbdy,1-nbdy,k1n), 1, kk, 2, 2, halo_ps)
          if (use_TRC) then
             do nt = 1, ntr
                !#  if defined(TKE) && !defined(TKEIDF)
@@ -1235,42 +1458,129 @@ contains
          end if
          call xctilr(difiso, 1,kk, 1,1, halo_ps)
 
+         j = -3
          jm_rs = 1
          jp_rs = 2
+         jn_rs = 3
+         call prep_recon_jslice         (p_src_rs(:,:,jn_rs), &
+                                         ksmx_rs(:,jn_rs), &
+                                         -1, ii+2, j+2, jn_rs, nn)
+         call recon_trc_jslice          (ksmx_rs(:,jn_rs), &
+                                         tpc_src_rs(:,:,:,:,jn_rs), &
+                                         t_srcdi_rs(:,:,:,:,jn_rs), &
+                                         -1, ii+2, j+2, jn_rs, nn)
+         call cntiso_regrid_nudge_jslice(p_src_rs(:,:,jn_rs), &
+                                         ksmx_rs(:,jn_rs), &
+                                         tpc_src_rs(:,:,:,:,jn_rs), &
+                                         t_srcdi_rs(:,:,:,:,jn_rs), &
+                                         p_dst_rs(:,:,jn_rs), &
+                                         stab_fac_rs(:,:,jn_rs), &
+                                         -1, ii+2, j+2, jn_rs)
+
+         j = -2
+         jm_rs = jp_rs
+         jp_rs = jn_rs
+         jn_rs = mod(jn_rs,3) + 1
+         call prep_recon_jslice          (p_src_rs(:,:,jn_rs), &
+                                          ksmx_rs(:,jn_rs), &
+                                          -1, ii+2, j+2, jn_rs, nn)
+         call recon_trc_jslice           (ksmx_rs(:,jn_rs), &
+                                          tpc_src_rs(:,:,:,:,jn_rs), &
+                                          t_srcdi_rs(:,:,:,:,jn_rs), &
+                                          -1, ii+2, j+2, jn_rs, nn)
+         call cntiso_regrid_nudge_jslice (p_src_rs(:,:,jn_rs), &
+                                          ksmx_rs(:,jn_rs), &
+                                          tpc_src_rs(:,:,:,:,jn_rs), &
+                                          t_srcdi_rs(:,:,:,:,jn_rs), &
+                                          p_dst_rs(:,:,jn_rs), &
+                                          stab_fac_rs(:,:,jn_rs), &
+                                          -1, ii+2, j+2, jn_rs)
+         call cntiso_regrid_smooth_jslice(p_dst_rs, stab_fac_rs, &
+                                          smtflxconv_rs, &
+                                          0, ii+1, j+1, jp_rs, jn_rs)
 
          do j = -1, 0
-            jm_rs = 3 - jm_rs
-            jp_rs = 3 - jp_rs
-            call prep_recon_jslice(p_src_rs(:,:,jp_rs), &
-                 0, ii+1, j+1, jp_rs, nn)
-            call recon_trc_jslice(0, ii+1, j+1, jp_rs, nn)
-            call cntiso_regrid_nudge_jslice(p_src_rs(:,:,jp_rs), &
-                 p_dst_rs(:,:,jp_rs), &
-                 0, ii+1, j+1, jp_rs, nn)
-            call ndiff_prep_jslice(p_src_rs, p_dst_rs, trc_rcss, &
-                 0, ii+1, j+1, jp_rs, mm)
+            jm_rs = jp_rs
+            jp_rs = jn_rs
+            jn_rs = mod(jn_rs,3) + 1
+            call prep_recon_jslice          (p_src_rs(:,:,jn_rs), &
+                                             ksmx_rs(:,jn_rs), &
+                                             -1, ii+2, j+2, jn_rs, nn)
+            call recon_trc_jslice           (ksmx_rs(:,jn_rs), &
+                                             tpc_src_rs(:,:,:,:,jn_rs), &
+                                             t_srcdi_rs(:,:,:,:,jn_rs), &
+                                             -1, ii+2, j+2, jn_rs, nn)
+            call cntiso_regrid_nudge_jslice (p_src_rs(:,:,jn_rs), &
+                                             ksmx_rs(:,jn_rs), &
+                                             tpc_src_rs(:,:,:,:,jn_rs), &
+                                             t_srcdi_rs(:,:,:,:,jn_rs), &
+                                             p_dst_rs(:,:,jn_rs), &
+                                             stab_fac_rs(:,:,jn_rs), &
+                                             -1, ii+2, j+2, jn_rs)
+            call cntiso_regrid_smooth_jslice(p_dst_rs, stab_fac_rs, &
+                                             smtflxconv_rs, &
+                                             0, ii+1, j+1, jp_rs, jn_rs)
+            call ndiff_prep_jslice          (p_src_rs, ksmx_rs, &
+                                             tpc_src_rs, t_srcdi_rs, &
+                                             p_dst_rs, kdmx_rs, p_srcdi_rs, &
+                                             drhodt_srcdi_rs, drhods_srcdi_rs, &
+                                             flxconv_rs, &
+                                             0, ii+1, j+1, jp_rs, mm)
          enddo
 
          j = 0
-         call ndiff_vflx_jslice(p_dst_rs, 1, ii, j+1, jp_rs, mm, nn)
+         call ndiff_vflx_jslice(ksmx_rs, tpc_src_rs, t_srcdi_rs, &
+                                p_dst_rs, kdmx_rs, p_srcdi_rs, &
+                                drhodt_srcdi_rs, drhods_srcdi_rs, &
+                                flxconv_rs, &
+                                ntr_loc, 1, ii, j+1, &
+                                jm_rs, jp_rs, mm, nn)
 
          do j = 1, jj
-            jm_rs = 3 - jm_rs
-            jp_rs = 3 - jp_rs
-            call prep_recon_jslice(p_src_rs(:,:,jp_rs), &
-                 0, ii+1, j+1, jp_rs, nn)
-            call recon_trc_jslice(0, ii+1, j+1, jp_rs, nn)
-            call cntiso_regrid_nudge_jslice(p_src_rs(:,:,jp_rs), &
-                 p_dst_rs(:,:,jp_rs), &
-                 0, ii+1, j+1, jp_rs, nn)
-            call ndiff_prep_jslice(p_src_rs, p_dst_rs, trc_rcss, &
-                 0, ii+1, j+1, jp_rs, mm)
-            call ndiff_uflx_jslice(p_dst_rs, 1, ii+1, j, jm_rs, mm, nn)
-            call ndiff_vflx_jslice(p_dst_rs, 1, ii, j+1, jp_rs, mm, nn)
-            call remap_trc_jslice(p_dst_rs(:,:,jm_rs), trc_rm, &
-                 1, ii, j, jm_rs)
-            call ndiff_update_trc_jslice(p_dst_rs, trc_rm, 1, ii, j, jm_rs)
-            call copy_jslice_to_3d(p_dst_rs(:,:,jm_rs), trc_rm, 1, ii, j, nn)
+            jm_rs = jp_rs
+            jp_rs = jn_rs
+            jn_rs = mod(jn_rs,3) + 1
+            call prep_recon_jslice          (p_src_rs(:,:,jn_rs), &
+                                             ksmx_rs(:,jn_rs), &
+                                             -1, ii+2, j+2, jn_rs, nn)
+            call recon_trc_jslice           (ksmx_rs(:,jn_rs), &
+                                             tpc_src_rs(:,:,:,:,jn_rs), &
+                                             t_srcdi_rs(:,:,:,:,jn_rs), &
+                                             -1, ii+2, j+2, jn_rs, nn)
+            call cntiso_regrid_nudge_jslice (p_src_rs(:,:,jn_rs), &
+                                             ksmx_rs(:,jn_rs), &
+                                             tpc_src_rs(:,:,:,:,jn_rs), &
+                                             t_srcdi_rs(:,:,:,:,jn_rs), &
+                                             p_dst_rs(:,:,jn_rs), &
+                                             stab_fac_rs(:,:,jn_rs), &
+                                             -1, ii+2, j+2, jn_rs)
+            call cntiso_regrid_smooth_jslice(p_dst_rs, stab_fac_rs, &
+                                             smtflxconv_rs, &
+                                             0, ii+1, j+1, jp_rs, jn_rs)
+            call ndiff_prep_jslice          (p_src_rs, ksmx_rs, &
+                                             tpc_src_rs, t_srcdi_rs, &
+                                             p_dst_rs, kdmx_rs, p_srcdi_rs, &
+                                             drhodt_srcdi_rs, drhods_srcdi_rs, &
+                                             flxconv_rs, &
+                                             0, ii+1, j+1, jp_rs, mm)
+            call ndiff_uflx_jslice          (ksmx_rs, tpc_src_rs, t_srcdi_rs, &
+                                             p_dst_rs, kdmx_rs, p_srcdi_rs, &
+                                             drhodt_srcdi_rs, drhods_srcdi_rs, &
+                                             flxconv_rs, &
+                                             ntr_loc, 1, ii+1, j, jm_rs, mm, nn)
+            call ndiff_vflx_jslice          (ksmx_rs, tpc_src_rs, t_srcdi_rs, &
+                                             p_dst_rs, kdmx_rs, p_srcdi_rs, &
+                                             drhodt_srcdi_rs, drhods_srcdi_rs, &
+                                             flxconv_rs, &
+                                             ntr_loc, 1, ii, j+1, &
+                                             jm_rs, jp_rs, mm, nn)
+            call remap_trc_jslice           (p_dst_rs(:,:,jm_rs), trc_rm, &
+                                             1, ii, j, jm_rs)
+            call ndiff_update_trc_jslice    (p_dst_rs, flxconv_rs, trc_rm, &
+                                             ntr_loc, 1, ii, j, jm_rs)
+            call copy_jslice_to_3d          (p_dst_rs(:,:,jm_rs), &
+                                             trc_rm, &
+                                             1, ii, j, nn)
          enddo
 
       endif
@@ -1283,7 +1593,6 @@ contains
          call chksummsk(temp (1-nbdy,1-nbdy,k1n), ip, kk, 'temp')
          call chksummsk(saln (1-nbdy,1-nbdy,k1n), ip, kk, 'saln')
          call chksummsk(sigma(1-nbdy,1-nbdy,k1n), ip, kk, 'sigma')
-         call chksummsk(sigmar, ip, kk, 'sigmar')
          if (use_TRC) then
             do nt = 1, ntr
                call chksummsk(trc(1-nbdy,1-nbdy,k1n,nt), ip, kk, 'trc')

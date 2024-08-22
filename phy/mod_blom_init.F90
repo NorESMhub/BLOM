@@ -50,7 +50,6 @@ contains
     use mod_niw,             only: uml, vml, umlres, vmlres
     use mod_eos,             only: inieos
     use mod_swabs,           only: iniswa
-    use mod_ndiff,           only: ndiff_init
     use mod_tmsmt,           only: initms
     use mod_dia,             only: diaini, diasg1
     use mod_inicon,          only: inicon
@@ -160,12 +159,6 @@ contains
     if (use_TRC .and. use_TKE) then
       call initke
     end if
-
-    ! ------------------------------------------------------------------
-    ! Initialize neutral diffusion
-    ! ------------------------------------------------------------------
-
-    call ndiff_init
 
     ! ------------------------------------------------------------------
     ! Initialize diagnostic accumulation fields
@@ -340,6 +333,7 @@ contains
     ! update some halos
     ! ------------------------------------------------------------------
 
+    call xctilr(sigmar, 1,kk, 2,2, halo_ps)
     call xctilr(uflx, 1,2*kk, 1,1, halo_uv)
     call xctilr(vflx, 1,2*kk, 1,1, halo_vv)
     call xctilr(phi(1-nbdy,1-nbdy,kk+1), 1,1, 2,2, halo_ps)
@@ -350,7 +344,6 @@ contains
     call xctilr(pgfym, 1,2, 1,2, halo_vv)
     call xctilr(xiyp, 1,2, 1,2, halo_vs)
     call xctilr(xiym, 1,2, 1,2, halo_vs)
-    call xctilr(sigmar, 1,kk, 1,1, halo_ps)
     if (vcoord_type_tag == isopyc_bulkml) then
        call xctilr(uml, 1,4, 1,0, halo_uv)
        call xctilr(vml, 1,4, 0,1, halo_vv)
