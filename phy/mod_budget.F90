@@ -26,7 +26,7 @@ module mod_budget
   use mod_constants, only: g, spcifh
   use mod_time,      only: nstep, nstep1, delt1
   use mod_xc
-  use mod_vcoord,    only: vcoord_type_tag, isopyc_bulkml
+  use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml
   use mod_grid,      only: scp2
   use mod_state,     only: pb, dp, temp, saln
   use mod_forcing,   only: surflx, surrlx, salflx, salrlx
@@ -191,7 +191,7 @@ contains
 
     if (mnproc == 1 .and. nstep > nstep1 + 1) then
 
-      if (vcoord_type_tag == isopyc_bulkml) then
+      if (vcoord_tag == vcoord_isopyc_bulkml) then
 
         open (unit = nfu, file = 'salbud', position = 'append')
         write (nfu, '(i8,6e12.4)') nstep - 1, &

@@ -29,7 +29,7 @@ module mod_eddtra
                             L_mks2cgs
    use mod_time,      only: delt1
    use mod_xc
-   use mod_vcoord,    only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid
+   use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml
    use mod_grid,      only: scuy, scvx, scp2, scu2, scv2, scuxi, scvyi, coriop
    use mod_eos,       only: rho, sig0
    use mod_state,     only: dp, dpu, dpv, temp, saln, p, pbu, pbv, kfpla
@@ -1018,7 +1018,7 @@ contains
 
    end subroutine eddtra_gm_isopyc_bulkml
 
-   subroutine eddtra_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
+   subroutine eddtra_ale(m, n, mm, nn, k1m, k1n)
    ! ---------------------------------------------------------------------------
    ! Estimate eddy-induced transport following the Gent-McWilliams
    ! parameterization.
@@ -1361,8 +1361,8 @@ contains
                         /(max(onemm, dpu(i,j,kn))*delt1*scuy(i,j))
                   enddo
                   write(lp,*) 'no convergence u', i+i0, j+j0
-                  call xchalt('(eddtra_cntiso_hybrid)')
-                         stop '(eddtra_cntiso_hybrid)'
+                  call xchalt('(eddtra_ale)')
+                         stop '(eddtra_ale)'
                endif
 
                changed = .false.
@@ -1485,19 +1485,19 @@ contains
                endif
                if (umfltd(i,j,km) + umflsm(i,j,km) > &
                     ffac*max(epsilp, dlm(k))*scp2(i-1,j)) then
-                  write(lp,*) 'eddtra_cntiso_hybrid u >', &
+                  write(lp,*) 'eddtra_ale u >', &
                               i+i0, j+j0, k, umfltd(i,j,km) + umflsm(i,j,km), &
                               ffac*max(epsilp, dlm(k))*scp2(i-1,j)
-                  call xchalt('(eddtra_cntiso_hybrid)')
-                         stop '(eddtra_cntiso_hybrid)'
+                  call xchalt('(eddtra_ale)')
+                         stop '(eddtra_ale)'
                endif
                if (umfltd(i,j,km) + umflsm(i,j,km) < &
                   - ffac*max(epsilp, dlp(k))*scp2(i  ,j)) then
-                  write(lp,*) 'eddtra_cntiso_hybrid u <', &
+                  write(lp,*) 'eddtra_ale u <', &
                               i+i0, j+j0, k, umfltd(i,j,km) + umflsm(i,j,km), &
                             - ffac*max(epsilp, dlp(k))*scp2(i  ,j)
-                  call xchalt('(eddtra_cntiso_hybrid)')
-                         stop '(eddtra_cntiso_hybrid)'
+                  call xchalt('(eddtra_ale)')
+                         stop '(eddtra_ale)'
                endif
             enddo
 
@@ -1631,8 +1631,8 @@ contains
                         /(max(onemm, dpv(i,j,kn))*delt1*scvx(i,j))
                   enddo
                   write(lp,*) 'no convergence v', i+i0, j+j0
-                  call xchalt('(eddtra_cntiso_hybrid)')
-                         stop '(eddtra_cntiso_hybrid)'
+                  call xchalt('(eddtra_ale)')
+                         stop '(eddtra_ale)'
                endif
 
                changed = .false.
@@ -1755,19 +1755,19 @@ contains
                endif
                if (vmfltd(i,j,km) + vmflsm(i,j,km) > &
                     ffac*max(epsilp, dlm(k))*scp2(i,j-1)) then
-                  write(lp,*) 'eddtra_cntiso_hybrid v >', &
+                  write(lp,*) 'eddtra_ale v >', &
                               i+i0, j+j0, k, vmfltd(i,j,km) + vmflsm(i,j,km), &
                               ffac*max(epsilp, dlm(k))*scp2(i,j-1)
-                  call xchalt('(eddtra_cntiso_hybrid)')
-                         stop '(eddtra_cntiso_hybrid)'
+                  call xchalt('(eddtra_ale)')
+                         stop '(eddtra_ale)'
                endif
                if (vmfltd(i,j,km) + vmflsm(i,j,km) < &
                   - ffac*max(epsilp, dlp(k))*scp2(i,j  )) then
-                  write(lp,*) 'eddtra_cntiso_hybrid v <', &
+                  write(lp,*) 'eddtra_ale v <', &
                               i+i0, j+j0, k, vmfltd(i,j,km) + vmflsm(i,j,km), &
                             - ffac*max(epsilp, dlp(k))*scp2(i,j  )
-                  call xchalt('(eddtra_cntiso_hybrid)')
-                         stop '(eddtra_cntiso_hybrid)'
+                  call xchalt('(eddtra_ale)')
+                         stop '(eddtra_ale)'
                endif
             enddo
 
@@ -1776,7 +1776,7 @@ contains
       enddo
       !$omp end parallel do
 
-   end subroutine eddtra_cntiso_hybrid
+   end subroutine eddtra_ale
 
    ! ---------------------------------------------------------------------------
    ! Public procedures.
@@ -1824,17 +1824,17 @@ contains
       select case (trim(mlrmth))
          case ('none')
             mlrmth_opt = mlrmth_none
-            if (vcoord_type_tag == isopyc_bulkml) then
+            if (vcoord_tag == vcoord_isopyc_bulkml) then
                ce = 0._r8
             endif
          case ('fox08')
             mlrmth_opt = mlrmth_fox08
          case ('bod23')
-            if (vcoord_type_tag == isopyc_bulkml) then
+            if (vcoord_tag == vcoord_isopyc_bulkml) then
                if (mnproc == 1) &
                   write (lp,'(3a)') &
                      ' init_eddtra: mlrmth = ', trim(mlrmth), &
-                     ' is unsupported with vcoord_type = isopyc_bulkml!'
+                     ' is unsupported with vcoord = ''isopyc_bulkml''!'
                call xcstop('(init_eddtra)')
                       stop '(init_eddtra)'
             endif
@@ -1860,7 +1860,7 @@ contains
       real(r8) :: q
       integer :: i, j, k, l, km
 
-      if (vcoord_type_tag == isopyc_bulkml) then
+      if (vcoord_tag == vcoord_isopyc_bulkml) then
 
          ! Compute eddy-induced transport of mass.
          if     (eitmth_opt == eitmth_intdif) then
@@ -1871,7 +1871,7 @@ contains
             if (mnproc == 1) then
                write(lp,'(a,i1,2a)') &
                   ' eitmth_opt = ', eitmth_opt, ' is unsupported ', &
-                  'for vcoord_type = ''isopyc_bulkml''!'
+                  'for vcoord = ''isopyc_bulkml''!'
             endif
             call xcstop('(eddtra)')
                    stop '(eddtra)'
@@ -1906,12 +1906,12 @@ contains
 
          ! Compute eddy-induced transport of mass.
          if     (eitmth_opt == eitmth_gm) then
-            call eddtra_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
+            call eddtra_ale(m, n, mm, nn, k1m, k1n)
          else
             if (mnproc == 1) then
                write(lp,'(a,i1,2a)') &
                   ' eitmth_opt = ', eitmth_opt, ' is unsupported ', &
-                  'for vcoord_type = ''cntiso_hybrid''!'
+                  'for vcoord = ''cntiso_hybrid''!'
             endif
             call xcstop('(eddtra)')
                    stop '(eddtra)'

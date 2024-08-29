@@ -25,8 +25,7 @@ module mod_difest
                                    onecm, L_mks2cgs, M_mks2cgs, R_mks2cgs
   use mod_time,              only: delt1, dlt
   use mod_xc
-  use mod_vcoord,            only: vcoord_type_tag, isopyc_bulkml, &
-                                   cntiso_hybrid, sigmar
+  use mod_vcoord,            only: sigmar
   use mod_grid,              only: scpx, scpy, scp2, scuyi, scvxi, plat, &
                                    coriop, betafp, betatp, cosang, sinang, hangle
   use mod_eos,               only: rho
@@ -386,8 +385,7 @@ contains
 
     !-----------------------------------------------------------
     ! Obtain common fields for the estimation of lateral and vertical
-    ! diffusivities diapycnal diffusivities when vcoord_type_tag ==
-    ! isopyc_bulkml.
+    ! diffusivities diapycnal diffusivities when vcoord == 'isopyc_bulkml'.
     !-----------------------------------------------------------
 
     integer :: m,n,mm,nn,k1m,k1n
@@ -622,8 +620,7 @@ contains
 
     !-----------------------------------------------------------
     ! Obtain common fields for the estimation of lateral and vertical
-    ! diffusivities diapycnal diffusivities when vcoord_type_tag ==
-    ! isopyc_bulkml.
+    ! diffusivities diapycnal diffusivities when vcoord == 'isopyc_bulkml'.
     !-----------------------------------------------------------
 
     integer :: m,n,mm,nn,k1m,k1n

@@ -28,7 +28,7 @@ module mod_restart
    use mod_time,           only: date0, date, nday1, nstep0, nstep1, nstep, time, time0, &
                                  nstep_in_day, nday_of_year, calendar
    use mod_xc
-   use mod_vcoord,         only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid, sigmar
+   use mod_vcoord,         only: vcoord_tag, vcoord_isopyc_bulkml, sigmar
    use mod_inicon,         only: icfile
    use mod_state,          only: u, v, dp, dpu, dpv, temp, saln, sigma, uflx, vflx, &
                                  utflx, vtflx, usflx, vsflx, phi, ubflxs, vbflxs, &
@@ -340,7 +340,7 @@ contains
       call defwrtfld('ficem', trim(c5p)//' time', &
                       ficem, ip, defmode)
 
-      if (vcoord_type_tag == isopyc_bulkml) then
+      if (vcoord_tag == vcoord_isopyc_bulkml) then
          call defwrtfld('buoyfl', trim(c5p)//' time', &
                          buoyfl, ip, defmode)
          call defwrtfld('uml', trim(c5u)//' k4 time', &
@@ -353,7 +353,7 @@ contains
                          vmlres, ivv, defmode)
       endif
 
-      if (vcoord_type_tag == cntiso_hybrid) then
+      if (vcoord_tag /= vcoord_isopyc_bulkml) then
          call defwrtfld('dpu', trim(c5u)//' kk2 time', &
                          dpu, iu, defmode)
          call defwrtfld('dpv', trim(c5v)//' kk2 time', &
@@ -1543,7 +1543,7 @@ contains
       call readfld('kfpla', no_unitconv, rkfpla, ip)
       call readfld('ficem', no_unitconv, ficem, ip)
 
-      if (vcoord_type_tag == isopyc_bulkml) then
+      if (vcoord_tag == vcoord_isopyc_bulkml) then
          call readfld('buoyfl', l2_unitconv, buoyfl, ip)
          call readfld('uml', l_unitconv, uml, iuu, required = .false.)
          call readfld('vml', l_unitconv, vml, ivv, required = .false.)
@@ -1551,7 +1551,7 @@ contains
          call readfld('vmlres', l_unitconv, vmlres, ivv, required = .false.)
       endif
 
-      if (vcoord_type_tag == cntiso_hybrid) then
+      if (vcoord_tag /= vcoord_isopyc_bulkml) then
          call readfld('dpu', p_unitconv, dpu, iu)
          call readfld('dpv', p_unitconv, dpv, iv)
          call readfld('difiso', l2_unitconv, difiso, ip)

@@ -35,10 +35,9 @@ module mod_blom_step
                                  diaacc_total_time, io_total_time, &
                                  get_time
   use mod_xc,              only: lp, kk, mnproc, xctilr, xcsum
-  use mod_vcoord,          only: vcoord_type_tag, isopyc_bulkml, &
-                                 cntiso_hybrid, cntiso_hybrid_regrid_remap, &
-                                 remap_velocity
-  use mod_vdiff,           only: cntiso_hybrid_vdifft, cntiso_hybrid_vdiffm
+  use mod_vcoord,          only: vcoord_tag, vcoord_isopyc_bulkml
+  use mod_ale_regrid_remap, only: ale_regrid_remap
+  use mod_ale_vdiff,       only: ale_vdifft, ale_vdiffm
   use mod_swabs,           only: updswa
   use mod_tmsmt,           only: tmsmt1, tmsmt2
   use mod_eddtra,          only: eddtra
@@ -48,8 +47,7 @@ module mod_blom_step
   use mod_momtum,          only: momtum
   use mod_mxlayr,          only: mxlayr
   use mod_barotp,          only: barotp
-  use mod_cmnfld_routines, only: cmnfld_bfsqi_cntiso_hybrid, &
-                                 cmnfld1, cmnfld2
+  use mod_cmnfld_routines, only: cmnfld_bfsqi_ale, cmnfld1, cmnfld2
   use mod_forcing,         only: fwbbal
   use mod_budget,          only: budget_sums, budget_output
   use mod_eddtra,          only: eddtra
@@ -71,8 +69,7 @@ module mod_blom_step
   use mod_restart,         only: restart_write
   use mod_tracers_update,  only: updtrc
   use mod_ifdefs,          only: use_TRC
-
-  use mod_cntiso_hybrid_forcing, only: cntiso_hybrid_forcing
+  use mod_ale_forcing,     only: ale_forcing
 
   implicit none
   private
@@ -148,9 +145,8 @@ contains
 
     getfrc_time = get_time()
 
-    if (vcoord_type_tag == cntiso_hybrid) then
-      call cntiso_hybrid_regrid_remap(m,n,mm,nn,k1m,k1n)
-      call remap_velocity(m,n,mm,nn,k1m,k1n)
+    if (vcoord_tag /= vcoord_isopyc_bulkml) then
+      call ale_regrid_remap(m,n,mm,nn,k1m,k1n)
       convec_time = get_time()
       call budget_sums(2,n,nn)
     end if
@@ -162,7 +158,7 @@ contains
     tmsmt1_time = get_time()
 
     !diag write (lp,*) 'advdif...'
-    if (vcoord_type_tag == isopyc_bulkml) then
+    if (vcoord_tag == vcoord_isopyc_bulkml) then
       call difest_isobml(m,n,mm,nn,k1m,k1n)
     else
       call difest_lateral_hybrid(m,n,mm,nn,k1m,k1n)
@@ -173,7 +169,7 @@ contains
     call diffus(m,n,mm,nn,k1m,k1n)
     advdif_time = get_time()
 
-    if (vcoord_type_tag == isopyc_bulkml) then
+    if (vcoord_tag == vcoord_isopyc_bulkml) then
       call budget_sums(2,n,nn)
     else
       call budget_sums(3,n,nn)
@@ -192,7 +188,7 @@ contains
     call momtum(m,n,mm,nn,k1m,k1n)
     momtum_time = get_time()
 
-    if (vcoord_type_tag == isopyc_bulkml) then
+    if (vcoord_tag == vcoord_isopyc_bulkml) then
 
       !diag   write (lp,*) 'convec...'
       call convec(m,n,mm,nn,k1m,k1n)
@@ -214,17 +210,17 @@ contains
     call thermf(m,n,mm,nn,k1m,k1n)
     thermf_time = get_time()
 
-    if (vcoord_type_tag == isopyc_bulkml) then
+    if (vcoord_tag == vcoord_isopyc_bulkml) then
       !diag   write (lp,*) 'mxlayr...'
       call mxlayr(m,n,mm,nn,k1m,k1n)
       mxlayr_time = get_time()
     else
-      call cmnfld_bfsqi_cntiso_hybrid(m,n,mm,nn,k1m,k1n)
-      call cntiso_hybrid_forcing(m,n,mm,nn,k1m,k1n)
+      call cmnfld_bfsqi_ale(m,n,mm,nn,k1m,k1n)
+      call ale_forcing(m,n,mm,nn,k1m,k1n)
       call difest_vertical_hybrid(m,n,mm,nn,k1m,k1n)
       mxlayr_time = get_time()
-      call cntiso_hybrid_vdifft(m,n,mm,nn,k1m,k1n)
-      call cntiso_hybrid_vdiffm(m,n,mm,nn,k1m,k1n)
+      call ale_vdifft(m,n,mm,nn,k1m,k1n)
+      call ale_vdiffm(m,n,mm,nn,k1m,k1n)
       call budget_sums(4,n,nn)
       diapfl_time = get_time()
     end if

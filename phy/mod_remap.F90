@@ -30,7 +30,7 @@ module mod_remap
   use mod_types,     only: r8
   use mod_xc
   use mod_constants, only: P_mks2cgs
-  use mod_tracers,   only: ntr, itrtke, itrgls, natr ! TRC
+  use mod_tracers,   only: ntr, itrtke, itrgls, natr, trc ! TRC
   use mod_ifdefs,    only: use_TRC, use_ATRC, use_TKE, use_TKEADV
 
   implicit none
@@ -206,9 +206,8 @@ contains
   !---------------------------------------------------------------
 
   subroutine remap_eitvel(scuy,scvx,scp2i,scp2,pbmin,pbu,pbv,plo, &
-       u,v,dt,mrg,dp,temp,saln,uflx,vflx, &
-       utflx,vtflx,usflx,vsflx, &
-       k,trc)
+                          u,v,dt,mrg,dp,temp,saln,uflx,vflx, &
+                          utflx,vtflx,usflx,vsflx,k)
 
     !---------------------------------------------------------------
     ! Advection of layer pressure thickness and tracers by incremental
@@ -264,7 +263,6 @@ contains
     real,    intent(out),   dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: vtflx
     real,    intent(out),   dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: usflx
     real,    intent(out),   dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: vsflx
-    real,    intent(inout), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2*kdm,ntr) :: trc
 
     ! Local variables.
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
@@ -1536,9 +1534,8 @@ contains
   !---------------------------------------------------------------
 
   subroutine remap_eitflx(scuy,scvx,scp2i,scp2,pbmin,pbu,pbv,plo, &
-       u,v,umfl,vmfl,dt,mrg,dp,temp,saln, &
-       uflx,vflx,utflx,vtflx,usflx,vsflx, &
-       k,trc)
+                          u,v,umfl,vmfl,dt,mrg,dp,temp,saln, &
+                          uflx,vflx,utflx,vtflx,usflx,vsflx,k)
 
     !---------------------------------------------------------------
     ! Advection of layer pressure thickness and tracers by incremental
@@ -1599,7 +1596,6 @@ contains
     real,    intent(out),   dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: vtflx
     real,    intent(out),   dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: usflx
     real,    intent(out),   dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: vsflx
-    real,    intent(inout), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2*kdm,ntr) :: trc
 
     ! Local variables.
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
