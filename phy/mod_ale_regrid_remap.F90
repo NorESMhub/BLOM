@@ -957,7 +957,8 @@ contains
 
    subroutine readnml_ale_regrid_remap
    ! ---------------------------------------------------------------------------
-   ! Read variables in the namelist group 'ale' and resolve options.
+   ! Read variables in the namelist group 'ale_regrid_remap' and resolve
+   ! options.
    ! ---------------------------------------------------------------------------
 
       character(len = 80) :: nml_fname
@@ -1147,14 +1148,22 @@ contains
       ! Configuration of the reconstruction data structure that only depends on
       ! the source grid.
       rcgs%n_src = kk
+      rcgs%i_ubound = ii
       if (ltedtp_opt == ltedtp_neutral) then
-         rcgs%i_lbound = -1
-         rcgs%i_ubound = ii + 2
-         rcgs%j_ubound = 3
-      else
-         rcgs%i_lbound = 0
-         rcgs%i_ubound = ii + 1
-         rcgs%j_ubound = 2
+         ! Neutral diffusion is requested so increase the index range of the
+         ! reconstruction data structure.
+         rcgs%i_lbound = rcgs%i_lbound - 1
+         rcgs%i_ubound = rcgs%i_ubound + 1
+         rcgs%j_ubound = rcgs%j_ubound + 1
+      endif
+      if (vcoord_tag == vcoord_cntiso_hybrid .and. &
+          regrid_method_tag == regrid_method_nudge .and. &
+          smooth_diff_max > 0._r8) then
+         ! Lateral smoothing of interfaces after regridding is requested so
+         ! increase the index range of the reconstruction data structure.
+         rcgs%i_lbound = rcgs%i_lbound - 1
+         rcgs%i_ubound = rcgs%i_ubound + 1
+         rcgs%j_ubound = rcgs%j_ubound + 1
       endif
       rcgs%method = reconstruction_method_tag
       rcgs%left_bndr_ord = upper_bndr_ord
@@ -1267,7 +1276,7 @@ contains
       ! reconstruction data structures.
       ! ------------------------------------------------------------------------
 
-      ! Check if lateral smoothing of the interfaces after regridding should be
+      ! Check if lateral smoothing of interfaces after regridding should be
       ! applied.
       if (vcoord_tag == vcoord_cntiso_hybrid .and. &
           regrid_method_tag == regrid_method_nudge .and. &
