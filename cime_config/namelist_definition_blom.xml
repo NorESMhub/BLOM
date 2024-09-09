@@ -4145,6 +4145,17 @@
     <desc>add desc</desc>
   </entry>
 
+  <entry id="use_pref_tracers" modify_via_xml="HAMOCC_PREF_TRACERS">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.true.</value>
+      <value hamocc_pref_tracers="false">.false.</value>
+    </values>
+    <desc>activate the HAMOCC preformed tracers code</desc>
+  </entry>
+
   <!-- ========================= -->
   <!-- namelist group: bgcoafx -->
   <!-- These options can be activated by expert users via user namelist. -->

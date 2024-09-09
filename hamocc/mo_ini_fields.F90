@@ -94,7 +94,7 @@ contains
     use mo_param_bgc,   only: fesoly,cellmass,fractdim,bifr13_ini,bifr14_ini,c14fac,re1312,re14to
     use mo_biomod,      only: abs_oce
     use mo_control_bgc, only: rmasks,use_FB_BGC_OCE,use_cisonew,use_AGG,use_CFC,use_natDIC,        &
-                              use_BROMO, use_sedbypass,use_extNcycle
+                              use_BROMO, use_sedbypass,use_extNcycle,use_pref_tracers
     use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,     &
                               iiron,iopal,ioxygen,iphosph,iphy,iprefalk,iprefdic,iprefo2,iprefpo4, &
                               isco212,isilica,izoo,iadust,inos,ibromo,icfc11,icfc12,isf6,          &
@@ -190,15 +190,17 @@ contains
             ocetra(i,j,k,idms)   =0.
             ocetra(i,j,k,ifdust) =0.
             ocetra(i,j,k,iiron)  =fesoly
-            ocetra(i,j,k,iprefo2)=0.
-            ocetra(i,j,k,iprefpo4)=0.
-            ocetra(i,j,k,iprefsilica)=0.
-            ocetra(i,j,k,iprefalk)=0.
-            ocetra(i,j,k,iprefdic)=0.
             ocetra(i,j,k,idicsat)=1.e-8
             hi(i,j,k)            =1.e-8
             co3(i,j,k)           =0.
             co2star(i,j,k)       =20.e-6
+            if (use_pref_tracers) then
+              ocetra(i,j,k,iprefo2)     = 0.
+              ocetra(i,j,k,iprefpo4)    = 0.
+              ocetra(i,j,k,iprefsilica) = 0.
+              ocetra(i,j,k,iprefalk)    = 0.
+              ocetra(i,j,k,iprefdic)    = 0.
+            endif
             if (use_AGG) then
               ! calculate initial numbers from mass, to start with appropriate size distribution
               snow = (ocetra(i,j,k,iphy)+ocetra(i,j,k,idet))*1.e+6
@@ -243,19 +245,21 @@ contains
       enddo
     enddo
 
-    ! Initialise preformed tracers in the mixed layer; note that the
-    ! whole field has been initialised to zero above
-    do j=1,kpje
-      do i=1,kpie
-        if (omask(i,j) > 0.5) then
-          ocetra(i,j,1:kmle(i,j),iprefo2)  = ocetra(i,j,1:kmle(i,j),ioxygen)
-          ocetra(i,j,1:kmle(i,j),iprefpo4) = ocetra(i,j,1:kmle(i,j),iphosph)
-          ocetra(i,j,1:kmle(i,j),iprefsilica)= ocetra(i,j,1:kmle(i,j),isilica)
-          ocetra(i,j,1:kmle(i,j),iprefalk) = ocetra(i,j,1:kmle(i,j),ialkali)
-          ocetra(i,j,1:kmle(i,j),iprefdic) = ocetra(i,j,1:kmle(i,j),isco212)
-        endif
+    if (use_pref_tracers) then
+      ! Initialise preformed tracers in the mixed layer; note that the
+      ! whole field has been initialised to zero above
+      do j=1,kpje
+        do i=1,kpie
+          if (omask(i,j) > 0.5) then
+            ocetra(i,j,1:kmle(i,j),iprefo2)  = ocetra(i,j,1:kmle(i,j),ioxygen)
+            ocetra(i,j,1:kmle(i,j),iprefpo4) = ocetra(i,j,1:kmle(i,j),iphosph)
+            ocetra(i,j,1:kmle(i,j),iprefsilica)= ocetra(i,j,1:kmle(i,j),isilica)
+            ocetra(i,j,1:kmle(i,j),iprefalk) = ocetra(i,j,1:kmle(i,j),ialkali)
+            ocetra(i,j,1:kmle(i,j),iprefdic) = ocetra(i,j,1:kmle(i,j),isco212)
+          endif
+        enddo
       enddo
-    enddo
+    endif
 
 
     ! Initial values for sediment

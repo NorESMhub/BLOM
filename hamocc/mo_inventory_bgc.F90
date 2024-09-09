@@ -682,7 +682,7 @@ contains
                                idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,   &
                                inatalkali,inatcalc,inatsco212,ianh4,iano2,iprefsilica
       use mo_control_bgc,only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,  &
-                               use_CFC,use_natDIC,use_BROMO
+                               use_CFC,use_natDIC,use_BROMO,use_pref_tracers
 
       implicit none
 
@@ -1098,66 +1098,6 @@ contains
              &    'Mean dissolved iron concentration') )
         call nccheck( NF90_PUT_ATT(ncid, zc_iron_varid, 'units', 'kmol/m^3') )
 
-        call nccheck( NF90_DEF_VAR(ncid, 'zt_prefo2', NF90_DOUBLE,                &
-             &    time_dimid, zt_prefo2_varid) )
-        call nccheck( NF90_PUT_ATT(ncid, zt_prefo2_varid, 'long_name',            &
-             &    'Total preformed oxygen tracer') )
-        call nccheck( NF90_PUT_ATT(ncid, zt_prefo2_varid, 'units', 'kmol') )
-
-        call nccheck( NF90_DEF_VAR(ncid, 'zc_prefo2', NF90_DOUBLE,                &
-             &    time_dimid, zc_prefo2_varid) )
-        call nccheck( NF90_PUT_ATT(ncid, zc_prefo2_varid, 'long_name',            &
-             &    'Mean preformed oxygen concentration') )
-        call nccheck( NF90_PUT_ATT(ncid, zc_prefo2_varid, 'units', 'kmol/m^3') )
-
-        call nccheck( NF90_DEF_VAR(ncid, 'zt_prefpo4', NF90_DOUBLE,               &
-             &    time_dimid, zt_prefpo4_varid) )
-        call nccheck( NF90_PUT_ATT(ncid, zt_prefpo4_varid, 'long_name',           &
-             &    'Total preformed phosphate tracer') )
-        call nccheck( NF90_PUT_ATT(ncid, zt_prefpo4_varid, 'units', 'kmol') )
-
-        call nccheck( NF90_DEF_VAR(ncid, 'zc_prefpo4', NF90_DOUBLE,               &
-             &    time_dimid, zc_prefpo4_varid) )
-        call nccheck( NF90_PUT_ATT(ncid, zc_prefpo4_varid, 'long_name',           &
-             &    'Mean preformed phosphate concentration') )
-        call nccheck( NF90_PUT_ATT(ncid, zc_prefpo4_varid, 'units', 'kmol/m^3') )
-
-        call nccheck( NF90_DEF_VAR(ncid, 'zt_prefsilica', NF90_DOUBLE,            &
-             &    time_dimid, zt_prefsilica_varid) )
-        call nccheck( NF90_PUT_ATT(ncid, zt_prefsilica_varid, 'long_name',        &
-             &    'Total preformed silica tracer') )
-        call nccheck( NF90_PUT_ATT(ncid, zt_prefsilica_varid, 'units', 'kmol') )
-
-        call nccheck( NF90_DEF_VAR(ncid, 'zc_prefsilica', NF90_DOUBLE,            &
-             &    time_dimid, zc_prefsilica_varid) )
-        call nccheck( NF90_PUT_ATT(ncid, zc_prefsilica_varid, 'long_name',        &
-             &    'Mean preformed silica concentration') )
-        call nccheck( NF90_PUT_ATT(ncid, zc_prefsilica_varid, 'units', 'kmol/m^3') )
-
-        call nccheck( NF90_DEF_VAR(ncid, 'zt_prefalk', NF90_DOUBLE,               &
-             &    time_dimid, zt_prefalk_varid) )
-        call nccheck( NF90_PUT_ATT(ncid, zt_prefalk_varid, 'long_name',           &
-             &    'Total preformed alkalinity tracer') )
-        call nccheck( NF90_PUT_ATT(ncid, zt_prefalk_varid, 'units', 'kmol') )
-
-        call nccheck( NF90_DEF_VAR(ncid, 'zc_prefalk', NF90_DOUBLE,               &
-             &    time_dimid, zc_prefalk_varid) )
-        call nccheck( NF90_PUT_ATT(ncid, zc_prefalk_varid, 'long_name',           &
-             &    'Mean preformed alkalinity concentration') )
-        call nccheck( NF90_PUT_ATT(ncid, zc_prefalk_varid, 'units', 'kmol/m^3') )
-
-        call nccheck( NF90_DEF_VAR(ncid, 'zt_prefdic', NF90_DOUBLE,               &
-             &    time_dimid, zt_prefdic_varid) )
-        call nccheck( NF90_PUT_ATT(ncid, zt_prefdic_varid, 'long_name',           &
-             &    'Total preformed DIC tracer') )
-        call nccheck( NF90_PUT_ATT(ncid, zt_prefdic_varid, 'units', 'kmol') )
-
-        call nccheck( NF90_DEF_VAR(ncid, 'zc_prefdic', NF90_DOUBLE,               &
-             &    time_dimid, zc_prefdic_varid) )
-        call nccheck( NF90_PUT_ATT(ncid, zc_prefdic_varid, 'long_name',           &
-             &    'Mean preformed DIC concentration') )
-        call nccheck( NF90_PUT_ATT(ncid, zc_prefdic_varid, 'units', 'kmol/m^3') )
-
         call nccheck( NF90_DEF_VAR(ncid, 'zt_dicsat', NF90_DOUBLE,                &
              &    time_dimid, zt_dicsat_varid) )
         call nccheck( NF90_PUT_ATT(ncid, zt_dicsat_varid, 'long_name',            &
@@ -1170,6 +1110,67 @@ contains
              &    'Mean saturated DIC concentration') )
         call nccheck( NF90_PUT_ATT(ncid, zc_dicsat_varid, 'units', 'kmol/m^3') )
 
+        if (use_pref_tracers) then
+          call nccheck( NF90_DEF_VAR(ncid, 'zt_prefo2', NF90_DOUBLE,                &
+               &    time_dimid, zt_prefo2_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zt_prefo2_varid, 'long_name',            &
+               &    'Total preformed oxygen tracer') )
+          call nccheck( NF90_PUT_ATT(ncid, zt_prefo2_varid, 'units', 'kmol') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zc_prefo2', NF90_DOUBLE,                &
+               &    time_dimid, zc_prefo2_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zc_prefo2_varid, 'long_name',            &
+               &    'Mean preformed oxygen concentration') )
+          call nccheck( NF90_PUT_ATT(ncid, zc_prefo2_varid, 'units', 'kmol/m^3') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zt_prefpo4', NF90_DOUBLE,               &
+               &    time_dimid, zt_prefpo4_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zt_prefpo4_varid, 'long_name',           &
+               &    'Total preformed phosphate tracer') )
+          call nccheck( NF90_PUT_ATT(ncid, zt_prefpo4_varid, 'units', 'kmol') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zc_prefpo4', NF90_DOUBLE,               &
+               &    time_dimid, zc_prefpo4_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zc_prefpo4_varid, 'long_name',           &
+               &    'Mean preformed phosphate concentration') )
+          call nccheck( NF90_PUT_ATT(ncid, zc_prefpo4_varid, 'units', 'kmol/m^3') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zt_prefsilica', NF90_DOUBLE,            &
+               &    time_dimid, zt_prefsilica_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zt_prefsilica_varid, 'long_name',        &
+               &    'Total preformed silica tracer') )
+          call nccheck( NF90_PUT_ATT(ncid, zt_prefsilica_varid, 'units', 'kmol') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zc_prefsilica', NF90_DOUBLE,            &
+               &    time_dimid, zc_prefsilica_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zc_prefsilica_varid, 'long_name',        &
+               &    'Mean preformed silica concentration') )
+          call nccheck( NF90_PUT_ATT(ncid, zc_prefsilica_varid, 'units', 'kmol/m^3') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zt_prefalk', NF90_DOUBLE,               &
+               &    time_dimid, zt_prefalk_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zt_prefalk_varid, 'long_name',           &
+               &    'Total preformed alkalinity tracer') )
+          call nccheck( NF90_PUT_ATT(ncid, zt_prefalk_varid, 'units', 'kmol') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zc_prefalk', NF90_DOUBLE,               &
+               &    time_dimid, zc_prefalk_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zc_prefalk_varid, 'long_name',           &
+               &    'Mean preformed alkalinity concentration') )
+          call nccheck( NF90_PUT_ATT(ncid, zc_prefalk_varid, 'units', 'kmol/m^3') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zt_prefdic', NF90_DOUBLE,               &
+               &    time_dimid, zt_prefdic_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zt_prefdic_varid, 'long_name',           &
+               &    'Total preformed DIC tracer') )
+          call nccheck( NF90_PUT_ATT(ncid, zt_prefdic_varid, 'units', 'kmol') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zc_prefdic', NF90_DOUBLE,               &
+               &    time_dimid, zc_prefdic_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zc_prefdic_varid, 'long_name',           &
+               &    'Mean preformed DIC concentration') )
+          call nccheck( NF90_PUT_ATT(ncid, zc_prefdic_varid, 'units', 'kmol/m^3') )
+        endif
         if (use_cisonew) then
           call nccheck( NF90_DEF_VAR(ncid, 'zt_sco213', NF90_DOUBLE,                &
                &    time_dimid, zt_sco213_varid) )
@@ -1593,18 +1594,20 @@ contains
         call nccheck( NF90_INQ_VARID(ncid, "zc_fdust", zc_fdust_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zt_iron", zt_iron_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zc_iron", zc_iron_varid) )
-        call nccheck( NF90_INQ_VARID(ncid, "zt_prefo2", zt_prefo2_varid) )
-        call nccheck( NF90_INQ_VARID(ncid, "zc_prefo2", zc_prefo2_varid) )
-        call nccheck( NF90_INQ_VARID(ncid, "zt_prefpo4", zt_prefpo4_varid) )
-        call nccheck( NF90_INQ_VARID(ncid, "zc_prefpo4", zc_prefpo4_varid) )
-        call nccheck( NF90_INQ_VARID(ncid, "zt_prefsilica", zt_prefsilica_varid) )
-        call nccheck( NF90_INQ_VARID(ncid, "zc_prefsilica", zc_prefsilica_varid) )
-        call nccheck( NF90_INQ_VARID(ncid, "zt_prefalk", zt_prefalk_varid) )
-        call nccheck( NF90_INQ_VARID(ncid, "zc_prefalk", zc_prefalk_varid) )
-        call nccheck( NF90_INQ_VARID(ncid, "zt_prefdic", zt_prefdic_varid) )
-        call nccheck( NF90_INQ_VARID(ncid, "zc_prefdic", zc_prefdic_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zt_dicsat", zt_dicsat_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zc_dicsat", zc_dicsat_varid) )
+        if (use_pref_tracers) then
+          call nccheck( NF90_INQ_VARID(ncid, "zt_prefo2", zt_prefo2_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zc_prefo2", zc_prefo2_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zt_prefpo4", zt_prefpo4_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zc_prefpo4", zc_prefpo4_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zt_prefsilica", zt_prefsilica_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zc_prefsilica", zc_prefsilica_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zt_prefalk", zt_prefalk_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zc_prefalk", zc_prefalk_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zt_prefdic", zt_prefdic_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zc_prefdic", zc_prefdic_varid) )
+        endif
         if (use_cisonew) then
           call nccheck( NF90_INQ_VARID(ncid, "zt_sco213", zt_sco213_varid) )
           call nccheck( NF90_INQ_VARID(ncid, "zc_sco213", zc_sco213_varid) )
@@ -1778,30 +1781,32 @@ contains
            &    zocetratot(iiron), start = wrstart) )
       call nccheck( NF90_PUT_VAR(ncid, zc_iron_varid,                              &
            &    zocetratoc(iiron), start = wrstart) )
-      call nccheck( NF90_PUT_VAR(ncid, zt_prefo2_varid,                            &
-           &    zocetratot(iprefo2), start = wrstart) )
-      call nccheck( NF90_PUT_VAR(ncid, zc_prefo2_varid,                            &
-           &    zocetratoc(iprefo2), start = wrstart) )
-      call nccheck( NF90_PUT_VAR(ncid, zt_prefpo4_varid,                           &
-           &    zocetratot(iprefpo4), start = wrstart) )
-      call nccheck( NF90_PUT_VAR(ncid, zc_prefpo4_varid,                           &
-           &    zocetratoc(iprefpo4), start = wrstart) )
-      call nccheck( NF90_PUT_VAR(ncid, zt_prefsilica_varid,                        &
-           &    zocetratot(iprefsilica), start = wrstart) )
-      call nccheck( NF90_PUT_VAR(ncid, zc_prefsilica_varid,                        &
-           &    zocetratoc(iprefsilica), start = wrstart) )
-      call nccheck( NF90_PUT_VAR(ncid, zt_prefalk_varid,                           &
-           &    zocetratot(iprefalk), start = wrstart) )
-      call nccheck( NF90_PUT_VAR(ncid, zc_prefalk_varid,                           &
-           &    zocetratoc(iprefalk), start = wrstart) )
-      call nccheck( NF90_PUT_VAR(ncid, zt_prefdic_varid,                           &
-           &    zocetratot(iprefdic), start = wrstart) )
-      call nccheck( NF90_PUT_VAR(ncid, zc_prefdic_varid,                           &
-           &    zocetratoc(iprefdic), start = wrstart) )
       call nccheck( NF90_PUT_VAR(ncid, zt_dicsat_varid,                            &
            &    zocetratot(idicsat), start = wrstart) )
-      call nccheck( NF90_PUT_VAR(ncid, zc_dicsat_varid,                            &
-           &    zocetratoc(idicsat), start = wrstart) )
+      if (use_pref_tracers) then
+        call nccheck( NF90_PUT_VAR(ncid, zc_dicsat_varid,                            &
+             &    zocetratoc(idicsat), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zt_prefo2_varid,                            &
+             &    zocetratot(iprefo2), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zc_prefo2_varid,                            &
+             &    zocetratoc(iprefo2), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zt_prefpo4_varid,                           &
+             &    zocetratot(iprefpo4), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zc_prefpo4_varid,                           &
+             &    zocetratoc(iprefpo4), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zt_prefsilica_varid,                        &
+             &    zocetratot(iprefsilica), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zc_prefsilica_varid,                        &
+             &    zocetratoc(iprefsilica), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zt_prefalk_varid,                           &
+             &    zocetratot(iprefalk), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zc_prefalk_varid,                           &
+             &    zocetratoc(iprefalk), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zt_prefdic_varid,                           &
+             &    zocetratot(iprefdic), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zc_prefdic_varid,                           &
+             &    zocetratoc(iprefdic), start = wrstart) )
+      endif
       if (use_cisonew) then
         call nccheck( NF90_PUT_VAR(ncid, zt_sco213_varid,                            &
              &    zocetratot(isco213), start = wrstart) )

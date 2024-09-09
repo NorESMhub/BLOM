@@ -83,6 +83,7 @@ module mo_control_bgc
   logical           :: use_BOXATM             = .false.
   logical           :: use_sedbypass          = .false.
   logical           :: use_extNcycle          = .false.
+  logical           :: use_pref_tracers       = .true.
 
 contains
 

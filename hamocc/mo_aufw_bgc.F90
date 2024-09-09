@@ -75,7 +75,8 @@ contains
     use mod_dia,        only: iotype
     use mo_carbch,      only: co2star,co3,hi,satoxy,nathi
     use mo_control_bgc, only: io_stdo_bgc,ldtbgc,rmasks,rmasko,use_cisonew,use_AGG,use_BOXATM,     &
-                              use_BROMO,use_CFC,use_natDIC,use_sedbypass,use_extNcycle
+                              use_BROMO,use_CFC,use_natDIC,use_sedbypass,use_extNcycle,            &
+                              use_pref_tracers
     use mo_sedmnt,      only: sedhpl
     use mo_intfcblom,   only: sedlay2,powtra2,burial2,atm2
     use mo_param1_bgc,  only: ialkali, ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,    &
@@ -762,12 +763,14 @@ contains
     call write_netcdf_var(ncid,'dms',locetra(1,1,1,idms),2*kpke,0)
     call write_netcdf_var(ncid,'fdust',locetra(1,1,1,ifdust),2*kpke,0)
     call write_netcdf_var(ncid,'iron',locetra(1,1,1,iiron),2*kpke,0)
-    call write_netcdf_var(ncid,'prefo2',locetra(1,1,1,iprefo2),2*kpke,0)
-    call write_netcdf_var(ncid,'prefpo4',locetra(1,1,1,iprefpo4),2*kpke,0)
-    call write_netcdf_var(ncid,'prefsilica',locetra(1,1,1,iprefsilica),2*kpke,0)
-    call write_netcdf_var(ncid,'prefalk',locetra(1,1,1,iprefalk),2*kpke,0)
-    call write_netcdf_var(ncid,'prefdic',locetra(1,1,1,iprefdic),2*kpke,0)
     call write_netcdf_var(ncid,'dicsat',locetra(1,1,1,idicsat),2*kpke,0)
+    if (use_pref_tracers) then
+      call write_netcdf_var(ncid,'prefo2',locetra(1,1,1,iprefo2),2*kpke,0)
+      call write_netcdf_var(ncid,'prefpo4',locetra(1,1,1,iprefpo4),2*kpke,0)
+      call write_netcdf_var(ncid,'prefsilica',locetra(1,1,1,iprefsilica),2*kpke,0)
+      call write_netcdf_var(ncid,'prefalk',locetra(1,1,1,iprefalk),2*kpke,0)
+      call write_netcdf_var(ncid,'prefdic',locetra(1,1,1,iprefdic),2*kpke,0)
+    endif
     if (use_cisonew) then
       call write_netcdf_var(ncid,'sco213'   ,locetra(1,1,1,isco213) ,2*kpke,0)
       call write_netcdf_var(ncid,'sco214'   ,locetra(1,1,1,isco214) ,2*kpke,0)
