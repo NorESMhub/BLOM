@@ -75,7 +75,7 @@ contains
     do j=1,kpje
       do i=1,kpie
         if (omask(i,j) > 0.5) then
-          do k=1,kwrbioz(i,j) ! if leuphotic_cya=.true., do bluefix only in euphotic zone
+          do k=1,kwrbioz(i,j) ! bluefix only in euphotic zone
             if (ocetra(i,j,k,iano3) < (rnit*ocetra(i,j,k,iphosph))) then
               if (use_extNcycle) then
                 ! assuming nitrate and ammonium required for cyanobacteria growth (as bulk PP)
