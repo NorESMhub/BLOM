@@ -49,7 +49,7 @@ contains
     use mo_param_bgc,   only: bluefix,rnit,tf0,tf1,tf2,tff
     use mo_param1_bgc,  only: ialkali,iano3,igasnit,iphosph,ioxygen,inatalkali,ianh4
     use mo_biomod,      only: intnfix
-    use mo_control_bgc, only: use_natDIC,leuphotic_cya,use_extNcycle
+    use mo_control_bgc, only: use_natDIC,use_extNcycle
 
     ! Arguments
     integer, intent(in) :: kpie                                          ! 1st dimension of model grid.
@@ -75,7 +75,7 @@ contains
     do j=1,kpje
       do i=1,kpie
         if (omask(i,j) > 0.5) then
-          do k=1,merge(kwrbioz(i,j),kmle(i,j),leuphotic_cya) ! if leuphotic_cya=.true., do bluefix only in euphotic zone
+          do k=1,kwrbioz(i,j) ! if leuphotic_cya=.true., do bluefix only in euphotic zone
             if (ocetra(i,j,k,iano3) < (rnit*ocetra(i,j,k,iphosph))) then
               if (use_extNcycle) then
                 ! assuming nitrate and ammonium required for cyanobacteria growth (as bulk PP)

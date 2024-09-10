@@ -3809,16 +3809,6 @@
     <desc>Switch for M4AGO settling scheme</desc>
   </entry>
 
-  <entry id="leuphotic_cya">
-    <type>logical</type>
-    <category>bgcnml</category>
-    <group>bgcnml</group>
-    <values>
-      <value>.false.</value>
-    </values>
-    <desc>Switch for cyano-bluefix in euphotic zone only</desc>
-  </entry>
-
   <entry id="lkwrbioz_off">
     <type>logical</type>
     <category>bgcnml</category>
