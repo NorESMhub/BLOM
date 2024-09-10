@@ -31,7 +31,7 @@
     <default_value>FALSE</default_value>
     <group>build_component_blom</group>
     <file>env_build.xml</file>
-    <desc>Set preprocessor option to activate age tracer code. Requires module iage or ecosys</desc>
+    <desc>Set namelist option to activate age tracer code. Requires module iage or ecosys</desc>
   </entry>
 
   <entry id="BLOM_TURBULENT_CLOSURE">
@@ -151,7 +151,7 @@
     </values>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>Set preprocessor option to activate the extended nitrogen cycle code. Requires module ecosys</desc>
+    <desc>Set namelist option to activate the extended nitrogen cycle code. Requires module ecosys</desc>
   </entry>
 
   <entry id="HAMOCC_ATMNDEPC">
@@ -184,7 +184,7 @@
     <default_value>FALSE</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>Set preprocessor option to activate the M4AGO sinking scheme. Requires module ecosys</desc>
+    <desc>Set namelist option to activate the M4AGO sinking scheme. Requires module ecosys</desc>
   </entry>
 
   <entry id="HAMOCC_PREF_TRACERS">
@@ -193,7 +193,7 @@
     <default_value>TRUE</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>Set preprocessor option to activate the preformed tracer code. Requires module ecosys</desc>
+    <desc>Set namelist option to activate the preformed tracer code. Requires module ecosys</desc>
   </entry>
 
   <entry id="HAMOCC_CISO">
@@ -202,7 +202,7 @@
     <default_value>FALSE</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>Set preprocessor option to activate the carbon isotope code. Requires module ecosys</desc>
+    <desc>Set namelist option to activate the carbon isotope code. Requires module ecosys</desc>
   </entry>
 
   <entry id="HAMOCC_SEDBYPASS">
@@ -211,7 +211,7 @@
     <default_value>FALSE</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>Set preprocessor option to bypass the sediment code. Requires module ecosys</desc>
+    <desc>Set namelist option to bypass the sediment code. Requires module ecosys</desc>
   </entry>
 
   <entry id="HAMOCC_SEDSPINUP">
