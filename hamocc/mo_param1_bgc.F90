@@ -29,7 +29,8 @@ module mo_param1_bgc
 
   use mo_control_bgc, only: use_BROMO, use_AGG, use_WLIN, use_natDIC, use_CFC,                     &
                             use_cisonew, use_PBGC_OCNP_TIMESTEP, use_PBGC_CK_TIMESTEP,             &
-                            use_FB_BGC_OCE, use_BOXATM, use_sedbypass, use_extNcycle
+                            use_FB_BGC_OCE, use_BOXATM, use_sedbypass, use_extNcycle,              &
+                            use_pref_tracers
   implicit none
   public
 
@@ -58,11 +59,14 @@ module mo_param1_bgc
   integer, protected :: idms
   integer, protected :: iiron
   integer, protected :: ifdust
+  integer, protected :: idicsat
+
+  ! Indices for preformed tracers
+  integer, protected :: i_pref
   integer, protected :: iprefo2
   integer, protected :: iprefpo4
   integer, protected :: iprefalk
   integer, protected :: iprefdic
-  integer, protected :: idicsat
   integer, protected :: iprefsilica
 
   ! Indices for C-isotope tracers
@@ -238,12 +242,12 @@ contains
     use mo_control_bgc, only: bgc_namelist,get_bgc_namelist, io_stdo_bgc
     use mo_control_bgc, only: use_BROMO,use_AGG,use_WLIN,use_natDIC,use_CFC,use_cisonew,           &
                               use_sedbypass,use_PBGC_OCNP_TIMESTEP,use_PBGC_CK_TIMESTEP,           &
-                              use_FB_BGC_OCE, use_BOXATM,use_extNcycle
+                              use_FB_BGC_OCE, use_BOXATM,use_extNcycle,use_pref_tracers
     integer :: iounit
 
     namelist / config_bgc / use_BROMO,use_AGG,use_WLIN,use_natDIC,use_CFC,use_cisonew,             &
                             use_sedbypass,use_PBGC_OCNP_TIMESTEP,use_PBGC_CK_TIMESTEP,             &
-                            use_FB_BGC_OCE,use_BOXATM,use_extNcycle
+                            use_FB_BGC_OCE,use_BOXATM,use_extNcycle,use_pref_tracers
 
     io_stdo_bgc = lp              !  standard out.
 
@@ -259,7 +263,7 @@ contains
     endif
 
     ! Tracer indices
-    i_base   = 23
+    i_base   = 18
     isco212  = 1
     ialkali  = 2
     iphosph  = 3
@@ -277,12 +281,7 @@ contains
     idms     = 15
     iiron    = 16
     ifdust   = 17
-    iprefo2  = 18
-    iprefpo4 = 19
-    iprefalk = 20
-    iprefdic = 21
-    idicsat  = 22
-    iprefsilica = 23
+    idicsat  = 18
     if (use_cisonew) then
       i_iso    = 12
       isco213  = i_base+1
@@ -359,9 +358,24 @@ contains
       iano2  = -1
       ianh4  = -1
     endif
+    if (use_pref_tracers) then
+      i_pref      = 5
+      iprefo2     = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+1
+      iprefpo4    = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+2
+      iprefalk    = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+3
+      iprefdic    = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+4
+      iprefsilica = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+5
+    else
+      i_pref      = 0
+      iprefo2     = -1
+      iprefpo4    = -1
+      iprefalk    = -1
+      iprefdic    = -1
+      iprefsilica = -1
+    endif
 
     ! total number of advected tracers
-    nocetra=i_base+i_iso+i_cfc+i_agg+i_nat_dic +i_bromo+i_extn
+    nocetra=i_base+i_iso+i_cfc+i_agg+i_nat_dic +i_bromo+i_extn+i_pref
 
     ! ATMOSPHERE
     i_base_atm=5
