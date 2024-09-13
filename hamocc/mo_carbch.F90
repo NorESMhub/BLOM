@@ -233,7 +233,7 @@ contains
     endif
     allocate (sedfluxb(kpie,kpje,nsedtra),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory sedfluxb'
-    sedfluxo(:,:,:) = 0.0
+    sedfluxb(:,:,:) = 0.0
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable satn2o ...'
