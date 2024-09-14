@@ -35,7 +35,7 @@ contains
     use mod_grid,       only: depths,plat,plon
     use mod_dia,        only: diafnm,sigmar1,iotype,ddm,depthslev,depthslev_bnds
     use mo_control_bgc, only: dtbgc,use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO,              &
-                              use_sedbypass,use_BOXATM,use_M4AGO,use_extNcycle
+                              use_sedbypass,use_BOXATM,use_M4AGO,use_extNcycle,use_pref_tracers
     use mo_vgrid,       only: k0100,k0500,k1000,k2000,k4000
     use mo_param1_bgc,  only: ks
     use mod_nctools,    only: ncwrt1,ncdims,nctime,ncfcls,ncfopn,ncdimc,ncputr,ncputi,ncwrtr
@@ -324,13 +324,15 @@ contains
     call finlyr(jomegaa(iogrp),jdp(iogrp))
     call finlyr(jomegac(iogrp),jdp(iogrp))
     call finlyr(jn2o(iogrp),jdp(iogrp))
-    call finlyr(jprefo2(iogrp),jdp(iogrp))
     call finlyr(jo2sat(iogrp),jdp(iogrp))
-    call finlyr(jprefpo4(iogrp),jdp(iogrp))
-    call finlyr(jprefsilica(iogrp),jdp(iogrp))
-    call finlyr(jprefalk(iogrp),jdp(iogrp))
-    call finlyr(jprefdic(iogrp),jdp(iogrp))
     call finlyr(jdicsat(iogrp),jdp(iogrp))
+    if (use_pref_tracers) then
+      call finlyr(jprefo2(iogrp),jdp(iogrp))
+      call finlyr(jprefpo4(iogrp),jdp(iogrp))
+      call finlyr(jprefsilica(iogrp),jdp(iogrp))
+      call finlyr(jprefalk(iogrp),jdp(iogrp))
+      call finlyr(jprefdic(iogrp),jdp(iogrp))
+    endif
     if (use_cisonew) then
       call finlyr(jdic13(iogrp),jdp(iogrp))
       call finlyr(jdic14(iogrp),jdp(iogrp))
@@ -439,13 +441,15 @@ contains
     call msklvl(jlvlomegaa(iogrp),depths)
     call msklvl(jlvlomegac(iogrp),depths)
     call msklvl(jlvln2o(iogrp),depths)
-    call msklvl(jlvlprefo2(iogrp),depths)
     call msklvl(jlvlo2sat(iogrp),depths)
-    call msklvl(jlvlprefpo4(iogrp),depths)
-    call msklvl(jlvlprefsilica(iogrp),depths)
-    call msklvl(jlvlprefalk(iogrp),depths)
-    call msklvl(jlvlprefdic(iogrp),depths)
     call msklvl(jlvldicsat(iogrp),depths)
+    if (use_pref_tracers) then
+      call msklvl(jlvlprefo2(iogrp),depths)
+      call msklvl(jlvlprefpo4(iogrp),depths)
+      call msklvl(jlvlprefsilica(iogrp),depths)
+      call msklvl(jlvlprefalk(iogrp),depths)
+      call msklvl(jlvlprefdic(iogrp),depths)
+    endif
     if (use_cisonew) then
       call msklvl(jlvldic13(iogrp),depths)
       call msklvl(jlvldic14(iogrp),depths)
@@ -664,13 +668,15 @@ contains
     call wrtlyr(jomegaa(iogrp),      LYR_OMEGAA(iogrp),   1.,             0.,cmpflg,'omegaa')
     call wrtlyr(jomegac(iogrp),      LYR_OMEGAC(iogrp),   1.,             0.,cmpflg,'omegac')
     call wrtlyr(jn2o(iogrp),         LYR_N2O(iogrp),      1e3,            0.,cmpflg,'n2o')
-    call wrtlyr(jprefo2(iogrp),      LYR_PREFO2(iogrp),   1e3,            0.,cmpflg,'p_o2')
     call wrtlyr(jo2sat(iogrp),       LYR_O2SAT(iogrp),    1e3,            0.,cmpflg,'satoxy')
-    call wrtlyr(jprefpo4(iogrp),     LYR_PREFPO4(iogrp),  1e3,            0.,cmpflg,'p_po4')
-    call wrtlyr(jprefsilica(iogrp),  LYR_PREFSILICA(iogrp), 1e3,          0.,cmpflg,'p_silica')
-    call wrtlyr(jprefalk(iogrp),     LYR_PREFALK(iogrp),  1e3,            0.,cmpflg,'p_talk')
-    call wrtlyr(jprefdic(iogrp),     LYR_PREFDIC(iogrp),  1e3,            0.,cmpflg,'p_dic')
     call wrtlyr(jdicsat(iogrp),      LYR_DICSAT(iogrp),   1e3,            0.,cmpflg,'sat_dic')
+    if (use_pref_tracers) then
+      call wrtlyr(jprefo2(iogrp),      LYR_PREFO2(iogrp),   1e3,            0.,cmpflg,'p_o2')
+      call wrtlyr(jprefpo4(iogrp),     LYR_PREFPO4(iogrp),  1e3,            0.,cmpflg,'p_po4')
+      call wrtlyr(jprefsilica(iogrp),  LYR_PREFSILICA(iogrp), 1e3,          0.,cmpflg,'p_silica')
+      call wrtlyr(jprefalk(iogrp),     LYR_PREFALK(iogrp),  1e3,            0.,cmpflg,'p_talk')
+      call wrtlyr(jprefdic(iogrp),     LYR_PREFDIC(iogrp),  1e3,            0.,cmpflg,'p_dic')
+    endif
     if (use_cisonew) then
       call wrtlyr(jdic13(iogrp),       LYR_DIC13(iogrp),    1.e3,           0.,cmpflg,'dissic13')
       call wrtlyr(jdic14(iogrp),       LYR_DIC14(iogrp),    1.e3*c14fac,    0.,cmpflg,'dissic14')
@@ -762,13 +768,15 @@ contains
     call wrtlvl(jlvlomegaa(iogrp),   LVL_OMEGAA(iogrp),   rnacc,          0.,cmpflg,'omegaalvl')
     call wrtlvl(jlvlomegac(iogrp),   LVL_OMEGAC(iogrp),   rnacc,          0.,cmpflg,'omegaclvl')
     call wrtlvl(jlvln2o(iogrp),      LVL_N2O(iogrp),      rnacc*1e3,      0.,cmpflg,'n2olvl')
-    call wrtlvl(jlvlprefo2(iogrp),   LVL_PREFO2(iogrp),   rnacc*1e3,      0.,cmpflg,'p_o2lvl')
     call wrtlvl(jlvlo2sat(iogrp),    LVL_O2SAT(iogrp),    rnacc*1e3,      0.,cmpflg,'satoxylvl')
-    call wrtlvl(jlvlprefpo4(iogrp),  LVL_PREFPO4(iogrp),  rnacc*1e3,      0.,cmpflg,'p_po4lvl')
-    call wrtlvl(jlvlprefsilica(iogrp),LVL_PREFSILICA(iogrp), rnacc*1e3,   0.,cmpflg,'p_silicalvl')
-    call wrtlvl(jlvlprefalk(iogrp),  LVL_PREFALK(iogrp),  rnacc*1e3,      0.,cmpflg,'p_talklvl')
-    call wrtlvl(jlvlprefdic(iogrp),  LVL_PREFDIC(iogrp),  rnacc*1e3,      0.,cmpflg,'p_diclvl')
     call wrtlvl(jlvldicsat(iogrp),   LVL_DICSAT(iogrp),   rnacc*1e3,      0.,cmpflg,'sat_diclvl')
+    if (use_pref_tracers) then
+      call wrtlvl(jlvlprefo2(iogrp),   LVL_PREFO2(iogrp),   rnacc*1e3,      0.,cmpflg,'p_o2lvl')
+      call wrtlvl(jlvlprefpo4(iogrp),  LVL_PREFPO4(iogrp),  rnacc*1e3,      0.,cmpflg,'p_po4lvl')
+      call wrtlvl(jlvlprefsilica(iogrp),LVL_PREFSILICA(iogrp), rnacc*1e3,   0.,cmpflg,'p_silicalvl')
+      call wrtlvl(jlvlprefalk(iogrp),  LVL_PREFALK(iogrp),  rnacc*1e3,      0.,cmpflg,'p_talklvl')
+      call wrtlvl(jlvlprefdic(iogrp),  LVL_PREFDIC(iogrp),  rnacc*1e3,      0.,cmpflg,'p_diclvl')
+    endif
     if (use_cisonew) then
       call wrtlvl(jlvldic13(iogrp),    LVL_DIC13(iogrp),    rnacc*1.e3,     0.,cmpflg,'dissic13lvl')
       call wrtlvl(jlvldic14(iogrp),    LVL_DIC14(iogrp),    rnacc*1.e3*c14fac,0.,cmpflg,'dissic14lvl')
@@ -1019,13 +1027,15 @@ contains
     call inilyr(jomegaa(iogrp),0.)
     call inilyr(jomegac(iogrp),0.)
     call inilyr(jn2o(iogrp),0.)
-    call inilyr(jprefo2(iogrp),0.)
     call inilyr(jo2sat(iogrp),0.)
-    call inilyr(jprefpo4(iogrp),0.)
-    call inilyr(jprefsilica(iogrp),0.)
-    call inilyr(jprefalk(iogrp),0.)
-    call inilyr(jprefdic(iogrp),0.)
     call inilyr(jdicsat(iogrp),0.)
+    if (use_pref_tracers) then
+      call inilyr(jprefo2(iogrp),0.)
+      call inilyr(jprefpo4(iogrp),0.)
+      call inilyr(jprefsilica(iogrp),0.)
+      call inilyr(jprefalk(iogrp),0.)
+      call inilyr(jprefdic(iogrp),0.)
+    endif
     if (use_cisonew) then
       call inilyr(jdic13(iogrp),0.)
       call inilyr(jdic14(iogrp),0.)
@@ -1115,13 +1125,15 @@ contains
     call inilvl(jlvlomegaa(iogrp),0.)
     call inilvl(jlvlomegac(iogrp),0.)
     call inilvl(jlvln2o(iogrp),0.)
-    call inilvl(jlvlprefo2(iogrp),0.)
     call inilvl(jlvlo2sat(iogrp),0.)
-    call inilvl(jlvlprefpo4(iogrp),0.)
-    call inilvl(jlvlprefsilica(iogrp),0.)
-    call inilvl(jlvlprefalk(iogrp),0.)
-    call inilvl(jlvlprefdic(iogrp),0.)
     call inilvl(jlvldicsat(iogrp),0.)
+    if (use_pref_tracers) then
+      call inilvl(jlvlprefo2(iogrp),0.)
+      call inilvl(jlvlprefpo4(iogrp),0.)
+      call inilvl(jlvlprefsilica(iogrp),0.)
+      call inilvl(jlvlprefalk(iogrp),0.)
+      call inilvl(jlvlprefdic(iogrp),0.)
+    endif
     if (use_cisonew) then
       call inilvl(jlvldic13(iogrp),0.)
       call inilvl(jlvldic14(iogrp),0.)
@@ -1336,7 +1348,7 @@ contains
                               SDM_remin_sulf,jsediffnh4,jsediffn2o,jsediffno2,                     &
                               FLX_SEDIFFNH4,FLX_SEDIFFN2O,FLX_SEDIFFNO2
     use mo_control_bgc, only: use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO,                    &
-                              use_sedbypass,use_BOXATM,use_extNcycle
+                              use_sedbypass,use_BOXATM,use_extNcycle,use_pref_tracers
 
     ! Arguments
     integer   :: iogrp,cmpflg
@@ -1645,20 +1657,22 @@ contains
          &   'omegac','OmegaC',' ','1',1)
     call ncdefvar3d(LYR_N2O(iogrp),cmpflg,'p',                                  &
          &   'n2o','N2O',' ','mol N2O m-3',1)
-    call ncdefvar3d(LYR_PREFO2(iogrp),cmpflg,'p',                               &
-         &   'p_o2','Preformed oxygen',' ','mol O2 m-3',1)
     call ncdefvar3d(LYR_O2SAT(iogrp),cmpflg,'p',                                &
          &   'satoxy','Saturated oxygen',' ','mol O2 m-3',1)
-    call ncdefvar3d(LYR_PREFPO4(iogrp),cmpflg,'p',                              &
-         &   'p_po4','Preformed phosphorus',' ','mol P m-3',1)
-    call ncdefvar3d(LYR_PREFSILICA(iogrp),cmpflg,'p',                           &
-       &   'p_silica','Preformed silica',' ','mol N m-3',1)
-    call ncdefvar3d(LYR_PREFALK(iogrp),cmpflg,'p',                              &
-         &   'p_talk','Preformed alkalinity',' ','eq m-3',1)
-    call ncdefvar3d(LYR_PREFDIC(iogrp),cmpflg,'p',                              &
-         &   'p_dic','Preformed DIC',' ','mol C m-3',1)
     call ncdefvar3d(LYR_DICSAT(iogrp),cmpflg,'p',                               &
          &   'sat_dic','Saturated DIC',' ','mol C m-3',1)
+    if (use_pref_tracers) then
+      call ncdefvar3d(LYR_PREFO2(iogrp),cmpflg,'p',                             &
+           &   'p_o2','Preformed oxygen',' ','mol O2 m-3',1)
+      call ncdefvar3d(LYR_PREFPO4(iogrp),cmpflg,'p',                            &
+           &   'p_po4','Preformed phosphorus',' ','mol P m-3',1)
+      call ncdefvar3d(LYR_PREFSILICA(iogrp),cmpflg,'p',                         &
+         &   'p_silica','Preformed silica',' ','mol N m-3',1)
+      call ncdefvar3d(LYR_PREFALK(iogrp),cmpflg,'p',                            &
+           &   'p_talk','Preformed alkalinity',' ','eq m-3',1)
+      call ncdefvar3d(LYR_PREFDIC(iogrp),cmpflg,'p',                            &
+           &   'p_dic','Preformed DIC',' ','mol C m-3',1)
+    endif
     if (use_cisonew) then
       call ncdefvar3d(LYR_DIC13(iogrp),cmpflg,'p',                              &
            &   'dissic13','Dissolved C13',' ','mol 13C m-3',1)
@@ -1826,20 +1840,22 @@ contains
          &   'omegaclvl','OmegaC',' ','1',2)
     call ncdefvar3d(LVL_N2O(iogrp),cmpflg,'p',                                  &
          &   'n2olvl','N2O',' ','mol N2O m-3',2)
-    call ncdefvar3d(LVL_PREFO2(iogrp),cmpflg,'p',                               &
-         &   'p_o2lvl','Preformed oxygen',' ','mol O2 m-3',2)
     call ncdefvar3d(LVL_O2SAT(iogrp),cmpflg,'p',                                &
          &   'satoxylvl','Saturated oxygen',' ','mol O2 m-3',2)
-    call ncdefvar3d(LVL_PREFPO4(iogrp),cmpflg,'p',                              &
-         &   'p_po4lvl','Preformed phosphorus',' ','mol P m-3',2)
-    call ncdefvar3d(LVL_PREFSILICA(iogrp),cmpflg,'p',                           &
-         &   'p_silicalvl','Preformed silica',' ','mol N m-3',2)
-    call ncdefvar3d(LVL_PREFALK(iogrp),cmpflg,'p',                              &
-         &   'p_talklvl','Preformed alkalinity',' ','eq m-3',2)
-    call ncdefvar3d(LVL_PREFDIC(iogrp),cmpflg,'p',                              &
-         &   'p_diclvl','Preformed DIC',' ','mol C m-3',2)
     call ncdefvar3d(LVL_DICSAT(iogrp),cmpflg,'p',                               &
          &   'sat_diclvl','Saturated DIC',' ','mol C m-3',2)
+    if (use_pref_tracers) then
+      call ncdefvar3d(LVL_PREFO2(iogrp),cmpflg,'p',                               &
+           &   'p_o2lvl','Preformed oxygen',' ','mol O2 m-3',2)
+      call ncdefvar3d(LVL_PREFPO4(iogrp),cmpflg,'p',                              &
+           &   'p_po4lvl','Preformed phosphorus',' ','mol P m-3',2)
+      call ncdefvar3d(LVL_PREFSILICA(iogrp),cmpflg,'p',                           &
+           &   'p_silicalvl','Preformed silica',' ','mol N m-3',2)
+      call ncdefvar3d(LVL_PREFALK(iogrp),cmpflg,'p',                              &
+           &   'p_talklvl','Preformed alkalinity',' ','eq m-3',2)
+      call ncdefvar3d(LVL_PREFDIC(iogrp),cmpflg,'p',                              &
+           &   'p_diclvl','Preformed DIC',' ','mol C m-3',2)
+    endif
     if (use_cisonew) then
       call ncdefvar3d(LVL_DIC13(iogrp),cmpflg,'p',                              &
            &   'dissic13lvl','Dissolved C13',' ','mol 13C m-3',2)

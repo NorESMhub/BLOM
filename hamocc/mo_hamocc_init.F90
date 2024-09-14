@@ -43,7 +43,7 @@ contains
                               do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,                 &
                               dtb,dtbgc,io_stdo_bgc,ldtbgc,                                        &
                               ldtrunbgc,ndtdaybgc,with_dmsph,l_3Dvarsedpor,use_M4AGO,              &
-                              do_ndep_coupled,leuphotic_cya,lkwrbioz_off,do_n2onh3_coupled,        &
+                              do_ndep_coupled,lkwrbioz_off,do_n2onh3_coupled,                      &
                               ocn_co2_type, use_sedbypass, use_BOXATM, use_BROMO,use_extNcycle
     use mo_param1_bgc,  only: ks,init_por2octra_mapping
     use mo_param_bgc,   only: ini_parambgc
@@ -81,7 +81,7 @@ contains
          &            do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,                         &
          &            inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c,swaclimfile,       &
          &            with_dmsph,pi_ph_file,l_3Dvarsedpor,sedporfile,ocn_co2_type,use_M4AGO,       &
-         &            leuphotic_cya, do_ndep_coupled,do_n2onh3_coupled,lkwrbioz_off
+         &            do_ndep_coupled,do_n2onh3_coupled,lkwrbioz_off
     !
     ! --- Set io units and some control parameters
     !
