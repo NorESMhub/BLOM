@@ -36,7 +36,7 @@ contains
     !***********************************************************************************************
 
     use mod_time,       only: date,baclin
-    use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,isp,ifp,ilp,mnproc,lp,nfu,xchalt
+    use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,isp,ifp,ilp,mnproc,lp,xchalt
     use mod_grid,       only: plon,plat
     use mod_tracers,    only: ntrbgc,ntr,itrbgc,trc
     use mo_control_bgc, only: bgc_namelist,get_bgc_namelist,do_ndep,do_rivinpt,do_oalk,            &

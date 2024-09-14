@@ -49,7 +49,7 @@ module ocn_comp_mct
    use mod_config,       only: inst_index, inst_name, inst_suffix, resume_flag
    use mod_time,         only: blom_time, nstep, baclin, delt1, dlt
    use mod_cesm,         only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
-   use mod_xc,           only: mnproc, mpicom_external, xctilr, nfu, lp, nbdy, &
+   use mod_xc,           only: mnproc, mpicom_external, xctilr, lp, nbdy, &
                                ii, jj, kk, i0, j0, nproc, jpr, cplmsk, halo_ps, &
                                ifu, ilu, isv, ifv, ilv, isp, ifp, ilp, isu
    use mod_blom_init,    only: blom_init
@@ -118,9 +118,6 @@ module ocn_comp_mct
 
       ! Set communicator to be used by blom
       mpicom_external = mpicom_ocn
-
-      ! Get file unit
-      nfu = shr_file_getUnit()
 
       ! Get multiple instance data
       inst_name   = seq_comm_name(OCNID)

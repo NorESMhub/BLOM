@@ -186,6 +186,7 @@ contains
     integer, intent(in) :: m
 
     integer :: i, j,l
+    integer :: nfu
 
     if (.not.cnsvdi) return
 
@@ -193,7 +194,7 @@ contains
 
       if (vcoord_type_tag == isopyc_bulkml) then
 
-        open (unit = nfu, file = 'salbud', position = 'append')
+        open (newunit = nfu, file = 'salbud', position = 'append')
         write (nfu, '(i8,6e12.4)') nstep - 1, &
              (sdp(2, m) - sdp(1, m))/mass0, &
              (sdp(3, m) - sdp(2, m))/mass0, &
@@ -202,7 +203,7 @@ contains
              (sdp(6, m) - sdp(5, m))/mass0, &
              (sdp(7, m) - sdp(6, m))/mass0
         close (nfu)
-        open (unit = nfu, file = 'tembud', position = 'append')
+        open (newunit = nfu, file = 'tembud', position = 'append')
         write (nfu, '(i8,6e12.4)') nstep - 1, &
              (tdp(2, m) - tdp(1, m))/mass0, &
              (tdp(3, m) - tdp(2, m))/mass0, &
@@ -213,7 +214,7 @@ contains
         close (nfu)
         if (use_TRC) then
           if (use_TKE) then
-            open (unit = nfu, file = 'tkebud', position = 'append')
+            open (newunit = nfu, file = 'tkebud', position = 'append')
             write (nfu, '(i8,6e12.4)') nstep - 1, &
                  (tkedp(2, m) - tkedp(1, m))/mass0, &
                  (tkedp(3, m) - tkedp(2, m))/mass0, &
@@ -223,7 +224,7 @@ contains
                  (tkedp(7, m) - tkedp(6, m))/mass0
             close (nfu)
             if (use_GLS) then
-              open (unit = nfu, file = 'glsbud', position = 'append')
+              open (newunit = nfu, file = 'glsbud', position = 'append')
               write (nfu, '(i8,6e12.4)') nstep - 1, &
                    (glsdp(2, m) - glsdp(1, m))/mass0, &
                    (glsdp(3, m) - glsdp(2, m))/mass0, &
@@ -234,7 +235,7 @@ contains
               close (nfu)
             end if
           end if
-          open (unit = nfu, file = 'trcbud', position = 'append')
+          open (newunit = nfu, file = 'trcbud', position = 'append')
           write (nfu, '(i8,6e12.4)') nstep - 1, &
                (trdp(2, m) - trdp(1, m))/mass0, &
                (trdp(3, m) - trdp(2, m))/mass0, &
@@ -243,7 +244,7 @@ contains
                (trdp(6, m) - trdp(5, m))/mass0, &
                (trdp(7, m) - trdp(6, m))/mass0
           close (nfu)
-          open (unit = nfu, file = 'trcbudtot', position = 'append')
+          open (newunit = nfu, file = 'trcbudtot', position = 'append')
           write (nfu, '(i8,7e18.10)') nstep - 1, &
                trdp(1, m)/mass0, trdp(2, m)/mass0, trdp(3, m)/mass0, &
                trdp(4, m)/mass0, trdp(5, m)/mass0, trdp(6, m)/mass0, &
@@ -253,7 +254,7 @@ contains
 
       else
 
-        open (unit = nfu, file = 'salbud', position = 'append')
+        open (newunit = nfu, file = 'salbud', position = 'append')
         write (nfu, '(i8,6e12.4)') nstep - 1, &
              (sdp(2, m) - sdp(1, m))/mass0, &
              (sdp(3, m) - sdp(2, m))/mass0, &
@@ -262,7 +263,7 @@ contains
              (sdp(6, m) - sdp(5, m))/mass0, &
              (sdp(7, m) - sdp(6, m))/mass0
         close (nfu)
-        open (unit = nfu, file = 'tembud', position = 'append')
+        open (newunit = nfu, file = 'tembud', position = 'append')
         write (nfu, '(i8,6e12.4)') nstep - 1, &
              (tdp(2, m) - tdp(1, m))/mass0, &
              (tdp(3, m) - tdp(2, m))/mass0, &
@@ -273,7 +274,7 @@ contains
         close (nfu)
         if (use_TRC) then
           if (use_TKE) then
-            open (unit = nfu, file = 'tkebud', position = 'append')
+            open (newunit = nfu, file = 'tkebud', position = 'append')
             write (nfu, '(i8,6e12.4)') nstep - 1, &
                  (tkedp(2, m) - tkedp(1, m))/mass0, &
                  (tkedp(3, m) - tkedp(2, m))/mass0, &
@@ -283,7 +284,7 @@ contains
                  (tkedp(7, m) - tkedp(6, m))/mass0
             close (nfu)
             if (use_GLS) then
-              open (unit = nfu, file = 'glsbud', position = 'append')
+              open (newunit = nfu, file = 'glsbud', position = 'append')
               write (nfu, '(i8,6e12.4)') nstep - 1, &
                    (glsdp(2, m) - glsdp(1, m))/mass0, &
                    (glsdp(3, m) - glsdp(2, m))/mass0, &
@@ -294,7 +295,7 @@ contains
               close (nfu)
             end if
           end if
-          open (unit = nfu, file = 'trcbud', position = 'append')
+          open (newunit = nfu, file = 'trcbud', position = 'append')
           write (nfu, '(i8,6e12.4)') nstep - 1, &
                (trdp(2, m) - trdp(1, m))/mass0, &
                (trdp(3, m) - trdp(2, m))/mass0, &
@@ -303,7 +304,7 @@ contains
                (trdp(6, m) - trdp(5, m))/mass0, &
                (trdp(7, m) - trdp(6, m))/mass0
           close (nfu)
-          open (unit = nfu, file = 'trcbudtot', position = 'append')
+          open (newunit = nfu, file = 'trcbudtot', position = 'append')
           write (nfu, '(i8,7e18.10)') nstep - 1, &
                trdp(1, m)/mass0, trdp(2, m)/mass0, trdp(3, m)/mass0, &
                trdp(4, m)/mass0, trdp(5, m)/mass0, trdp(6, m)/mass0, &

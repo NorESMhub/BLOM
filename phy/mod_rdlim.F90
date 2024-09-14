@@ -28,8 +28,7 @@ module mod_rdlim
                              nstep2, nstep, lstep, nstep_in_day, time0, &
                              time, baclin, batrop, init_timevars, &
                              set_day_of_year, step_time
-  use mod_xc,          only: xcbcst, xchalt, xcstop, mnproc, &
-                             nfu, lp
+  use mod_xc,          only: xcbcst, xchalt, xcstop, mnproc, lp
   use mod_grid,        only: grfile
   use mod_eos,         only: pref
   use mod_inicon,      only: icfile
@@ -126,6 +125,7 @@ contains
     character(len = 256) :: nlfnm,runtyp,rstfnm
     logical :: fexist
     integer :: m,n,idate,idate0,ios
+    integer :: nfu
 
     namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,runtyp, &
          grfile,icfile,pref,baclin,batrop, &
@@ -152,12 +152,12 @@ contains
       nlfnm = 'ocn_in'//trim(inst_suffix)
       inquire(file=nlfnm,exist = fexist)
       if (fexist) then
-        open (unit=nfu,file=nlfnm,status='old',action='read',recl = 80)
+        open (newunit=nfu,file=nlfnm,status='old',action='read',recl = 80)
       else
         nlfnm = 'limits'//trim(inst_suffix)
         inquire(file=nlfnm,exist = fexist)
         if (fexist) then
-          open (unit=nfu,file=nlfnm,status='old',action = 'read', &
+          open (newunit=nfu,file=nlfnm,status='old',action = 'read', &
                recl = 80)
         else
           write (lp,*) 'rdlim: could not find namelist file!'
@@ -368,7 +368,7 @@ contains
     if (mnproc == 1) then
 
       GLB_AVEPERIO(:) = -999
-      open (unit=nfu,file=nlfnm,status='old',action='read',recl = 80)
+      open (newunit=nfu,file=nlfnm,status='old',action='read',recl = 80)
       read (unit=nfu,nml=DIAPHY,iostat = ios)
       close (unit = nfu)
 
@@ -819,7 +819,7 @@ contains
 
       if (mnproc == 1) then
 
-        open (unit=nfu,file=nlfnm,status='old',action='read',recl = 80)
+        open (newunit=nfu,file=nlfnm,status='old',action='read',recl = 80)
         read (unit=nfu,nml=MERDIA,iostat = ios)
         close (unit = nfu)
         if (ios /= 0) then
@@ -873,7 +873,7 @@ contains
 
       if (mnproc == 1) then
 
-        open (unit=nfu,file=nlfnm,status='old',action='read',recl = 80)
+        open (newunit=nfu,file=nlfnm,status='old',action='read',recl = 80)
         read (unit=nfu,nml=SECDIA,iostat = ios)
         close (unit = nfu)
         if (ios /= 0) then
@@ -971,7 +971,7 @@ contains
           stop '(rdlim)'
         end if
         if (mnproc == 1) then
-          open (unit=nfu,file = 'rpointer.ocn'//trim(inst_suffix))
+          open (newunit=nfu,file = 'rpointer.ocn'//trim(inst_suffix))
           read (nfu,'(a)') rstfnm
           close (unit = nfu)
           inquire(file=rstfnm,exist = fexist)
