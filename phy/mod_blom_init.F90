@@ -65,6 +65,7 @@ contains
     use mod_restart,         only: restart_read
     use mod_ifdefs,          only: use_TRC, use_TKE
     use mod_tracers_update,  only: initrc
+    use mod_forcing,         only: use_stream_swa
     use netcdf
 
     ! Local variables

@@ -33,8 +33,9 @@ contains
     use mod_time,       only: date,nday_of_year,nstep,nstep_in_day
     use mod_grid,       only: plat
     use mod_state,      only: temp,saln
-    use mod_forcing,    only: swa,slp,abswnd,atmco2,flxco2,flxdms,atmbrf,flxbrf,                   &
-                              atmn2o,flxn2o,atmnh3,flxnh3,atmnhxdep,atmnoydep
+    use mod_forcing,    only: swa,slp,abswnd,atmco2,flxco2,flxdms,atmbrf,flxbrf, &
+                              atmn2o,flxn2o,atmnh3,flxnh3,atmnhxdep,atmnoydep, &
+                              use_stream_dust, dust_stream
     use mod_seaice,     only: ficem
     use mo_bgcmean,     only: nbgc,bgcwrt, diagfq_bgc,diagmon_bgc,diagann_bgc
     use mo_intfcblom,   only: bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask,blom2hamocc,hamocc2blom
@@ -74,10 +75,23 @@ contains
       end if
     enddo
 
-    call get_fedep(idm,jdm,date%month,dust)
+    if (use_stream_dust) then
+       do j = 1,jdm
+          do i = 1,idm
+             dust(i,j) = dust_stream(i,j)
+          end do
+       end do
+    else
+       call get_fedep(idm,jdm,date%month,dust)
+    end if
+
     call get_ndep(idm,jdm,nbdy,date%year,date%month,omask,ndep,atmnhxdep,atmnoydep)
+
     call get_oafx(idm,jdm,date%year,date%month,omask,oafx)
-    if(with_dmsph) call get_pi_ph(idm,jdm,date%month)
+
+    if (with_dmsph) then
+       call get_pi_ph(idm,jdm,date%month)
+    end if
 
     call hamocc4bcm(idm,jdm,kdm,nbdy,date%year,date%month,date%day,ldtday,bgc_dx,bgc_dy,bgc_dp,    &
          &          bgc_rho,plat,omask,dust,rivflx,ndep,oafx,pi_ph,swa,ficem,slp,abswnd,           &

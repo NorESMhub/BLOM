@@ -96,8 +96,14 @@ module mod_forcing
       sst_stream, &    ! Sea-surface temperature [deg C] from stream data.
       ice_stream, &    ! Sea-ice concentration [] from stream data.
       sss_stream       ! Sea-surface salinity [g kg-1] from stream data.
-
    logical :: use_stream_relaxation ! If true, use nuopc stream relaxation capability
+
+   real(r8), dimension(idm,jdm) :: &
+      dust_stream, &      ! iron dust deposition for hamocc
+      chloro_stream, &    ! chlorophyll concentration
+      swa_stream          ! short wave radiation absorbed
+
+   logical :: use_stream_dust       ! If true, use nuopc stream dust capability (hamocc only)
    logical :: use_stream_chloro     ! If true, use nuopc stream chlorophyll capability
    logical :: use_stream_swa        ! If true, use nuopc stream swa capability
 
@@ -185,7 +191,8 @@ module mod_forcing
              ustar, ustarb, ustar3, wstar3, buoyfl, t_sw_nonloc, t_rs_nonloc, &
              s_br_nonloc, s_rs_nonloc, inivar_forcing, fwbbal, &
              sss_stream, sst_stream, ice_stream, &
-             use_stream_relaxation, use_stream_swa
+             dust_stream, &
+             use_stream_relaxation, use_stream_swa, use_stream_dust, use_stream_chloro
 
 contains
 

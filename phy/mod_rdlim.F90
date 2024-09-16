@@ -45,7 +45,8 @@ module mod_rdlim
                              trxday, srxday, trxdpt, srxdpt, trxlim, &
                              srxlim, srxbal, sprfac, &
                              srxlim, srxbal, sprfac, &
-                             use_stream_relaxation, use_stream_swa
+                             use_stream_relaxation, use_stream_swa, &
+                             use_stream_chloro, use_stream_dust
   use mod_swabs,       only: swamth, jwtype, chlopt, ccfile
   use mod_diffusion,   only: readnml_diffusion
   use mod_eddtra,      only: mlrmth, ce, cl, tau_mlr, tau_growing_hbl, &
@@ -145,7 +146,8 @@ contains
          cnsvdi, &
          csdiag, &
          rstfrq,rstfmt,rstcmp,iotype,&
-         use_stream_relaxation, use_stream_swa
+         use_stream_relaxation, use_stream_swa, use_stream_chloro, &
+         use_stream_dust
 
     ! read limits namelist
 
@@ -251,6 +253,8 @@ contains
       write (lp,*) 'IOTYPE',IOTYPE
       write (lp,*) 'USE_STREAM_RELAXATION',use_stream_relaxation
       write (lp,*) 'USE_STREAM_SWA',use_stream_swa
+      write (lp,*) 'USE_STREAM_CHLORO',use_stream_chloro
+      write (lp,*) 'USE_STREAM_DUST',use_stream_dust
       write (lp,*)
 
     end if
@@ -335,6 +339,8 @@ contains
     call xcbcst(iotype)
     call xcbcst(use_stream_relaxation)
     call xcbcst(use_stream_swa)
+    call xcbcst(use_stream_chloro)
+    call xcbcst(use_stream_dust)
 
     ! resolve options
     select case (trim(wavsrc))

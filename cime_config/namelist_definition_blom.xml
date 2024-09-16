@@ -636,28 +636,6 @@
     </desc>
   </entry>
 
-  <entry id="use_stream_relaxation">
-    <type>logical</type>
-    <category>limits</category>
-    <group>limits</group>
-    <values>
-      <value>.false.</value>
-      <value comp_interface="nuopc">.true.</value>
-    </values>
-    <desc>if .true., use NUOPC stream relaxation capability</desc>
-  </entry>
-
-  <entry id="use_stream_swa">
-    <type>logical</type>
-    <category>limits</category>
-    <group>limits</group>
-    <values>
-      <value>.false.</value>
-      <value comp_interface="nuopc">.true.</value>
-    </values>
-    <desc>if .true., use NUOPC stream swa capability</desc>
-  </entry>
-
   <entry id="trxday">
     <type>real</type>
     <category>limits</category>
@@ -3820,6 +3798,16 @@
     <desc>Switch for M4AGO settling scheme</desc>
   </entry>
 
+  <entry id="leuphotic_cya">
+    <type>logical</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>Switch for cyano-bluefix in euphotic zone only</desc>
+  </entry>
+
   <entry id="lkwrbioz_off">
     <type>logical</type>
     <category>bgcnml</category>
@@ -4144,17 +4132,6 @@
       <value>.false.</value>
     </values>
     <desc>add desc</desc>
-  </entry>
-
-  <entry id="use_pref_tracers" modify_via_xml="HAMOCC_PREF_TRACERS">
-    <type>logical</type>
-    <category>config_bgc</category>
-    <group>config_bgc</group>
-    <values>
-      <value>.true.</value>
-      <value hamocc_pref_tracers="false">.false.</value>
-    </values>
-    <desc>activate the HAMOCC preformed tracers code</desc>
   </entry>
 
   <!-- ========================= -->
@@ -8699,6 +8676,28 @@
   <!-- namelist group: stream_sss -->
   <!-- =========================  -->
 
+  <entry id="use_stream_relaxation">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.true.</value>
+    </values>
+    <desc>if .true., use NUOPC stream relaxation capability</desc>
+  </entry>
+
+  <entry id="use_stream_swa">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.true.</value>
+    </values>
+    <desc>if .true., use NUOPC stream swabs capability</desc>
+  </entry>
+
   <entry id="stream_sss_mesh_filename">
     <type>char</type>
     <category>stream_sss</category>
@@ -8827,6 +8826,150 @@
     <type>integer</type>
     <category>stream_sst</category>
     <group>stream_sst</group>
+    <desc>
+      Align stream_year_first with this model year
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
+
+  <!-- =========================  -->
+  <!-- namelist group: stream_swa -->
+  <!-- =========================  -->
+
+  <entry id="stream_swa_mesh_filename">
+    <type>char</type>
+    <category>stream_swa</category>
+    <group>stream_swa</group>
+    <desc>stream mesh file</desc>
+    <values>
+      <value>$DIN_LOC_ROOT/share/meshes/tnx1v4_20170601_cdf5_ESMFmesh.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_swa_data_filename">
+    <type>char(10)</type>
+    <category>stream_swa</category>
+    <group>stream_swa</group>
+    <desc>
+      file name(s) containing salinity relaxation data
+    </desc>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/blom/bndcon/swa_clim_core_tnx0.25v4_20240512_cdf5.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_swa_varname">
+    <type>char</type>
+    <category>stream_swa</category>
+    <group>stream_swa</group>
+    <desc>
+      variable name on stream file
+    </desc>
+    <values>
+      <value>swa</value>
+    </values>
+  </entry>
+  <entry id="stream_swa_year_first">
+    <type>integer</type>
+    <category>stream_swa</category>
+    <group>stream_swa</group>
+    <desc>
+      First year in stream to use
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
+  <entry id="stream_swa_year_last">
+    <type>integer</type>
+    <category>stream_swa</category>
+    <group>stream_swa</group>
+    <desc>
+      Last year in stream to use
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
+  <entry id="stream_swa_year_align">
+    <type>integer</type>
+    <category>stream_swa</category>
+    <group>stream_swa</group>
+    <desc>
+      Align stream_year_first with this model year
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
+
+  <!-- =========================  -->
+  <!-- namelist group: stream_dust -->
+  <!-- =========================  -->
+
+  <entry id="stream_dust_mesh_filename">
+    <type>char</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>stream mesh file</desc>
+    <values>
+      <value ocn_grid="tnx2v1"    >$DIN_LOC_ROOT/share/meshes/tnx2v1_20230815_cdf5_ESMFmesh.nc</value>
+      <value ocn_grid="tnx1v4"    >$DIN_LOC_ROOT/share/meshes/tnx1v4_20170601_cdf5_ESMFmesh.nc</value>
+      <value ocn_grid="tnx0.25v4" >$DIN_LOC_ROOT/share/meshes/tnx0.25v4_ESMFmesh_cdf5_c20231006.nc</value>
+      <value ocn_grid="tnx0.125v4">FILL_THIS_IN</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_data_filename">
+    <type>char(10)</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>
+      file name(s) containing dust deposition data
+    </desc>
+    <values>
+      <value ocn_grid="tnx2v1"    >$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx2v1_20130506.nc</value>
+      <value ocn_grid="tnx1v4"    >$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx1v4_20171107.nc</value>
+      <value ocn_grid="tnx0.25v4" >$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.25v4_20181004.nc</value>
+      <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.125v4_20221013.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_varname">
+    <type>char</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>
+      variable name on stream file
+    </desc>
+    <values>
+      <value>DUST</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_year_first">
+    <type>integer</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>
+      First year in stream to use
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_year_last">
+    <type>integer</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>
+      Last year in stream to use
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_year_align">
+    <type>integer</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
     <desc>
       Align stream_year_first with this model year
     </desc>

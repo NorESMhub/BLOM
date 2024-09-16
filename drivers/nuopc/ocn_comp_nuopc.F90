@@ -51,7 +51,7 @@ module ocn_comp_nuopc
    use mod_config,        only: inst_index, inst_name, inst_suffix
    use mod_time,          only: blom_time
    use mod_forcing,       only: srxday, trxday
-   use mod_swa,           only: swamth, chlopt
+   use mod_swabs,         only: swamth, chlopt
    use mod_constants,     only: epsilt
    use mod_blom_init,     only: blom_init
    use mod_blom_step,     only: blom_step
@@ -60,8 +60,12 @@ module ocn_comp_nuopc
    use ocn_stream_sss,    only: ocn_stream_sss_init, ocn_stream_sss_interp
    use ocn_stream_sst,    only: ocn_stream_sst_init, ocn_stream_sst_interp
    use ocn_stream_swa,    only: ocn_stream_swa_init, ocn_stream_swa_interp
+   use ocn_stream_dust,   only: ocn_stream_dust_init, ocn_stream_dust_interp
+   use ocn_stream_chloro, only: ocn_stream_chloro_init, ocn_stream_chloro_interp
+   use mod_xc,            only: mnproc, xcstop
 #ifdef HAMOCC
    use mo_control_bgc,    only: use_BROMO
+   use mo_intfcblom,      only: omask
 #endif
 
    implicit none
@@ -84,13 +88,6 @@ module ocn_comp_nuopc
    integer              :: flds_scalar_index_nx = 0
    integer              :: flds_scalar_index_ny = 0
    integer              :: flds_scalar_index_precip_factor = 0
-
-#ifdef HAMOCC
-   logical :: hamocc_defined = .true.
-#else
-   logical :: hamocc_defined = .false.
-   logical :: use_BROMO = .false.
-#endif
 
    integer :: dbug = 0
    logical :: profile_memory = .false.
@@ -542,14 +539,14 @@ contains
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
       if (isPresent .and. isSet) then
          read(cvalue,*) flds_dms
-         if (.not. hamocc_defined) then
-            ! if not defined HAMOCC and request to export dms, abort
-            if (flds_dms) then
-               write(lp,'(a)') subname//' cannot export dms with out HAMOCC defined'
-               call xchalt(subname)
-               stop subname
-            end if
+         ! if not defined HAMOCC and request to export dms, abort
+         if (flds_dms) then
+#ifndef HAMOCC
+            write(lp,'(a)') subname//' cannot export dms with out HAMOCC defined'
+            call xchalt(subname)
+            stop subname
          end if
+#endif
       else
          flds_dms = .false.
       end if
@@ -562,22 +559,22 @@ contains
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
       if (isPresent .and. isSet) then
          read(cvalue,*) flds_brf
-         if (hamocc_defined) then
-            ! make sure that use_BROMO is true if ask for bromoform to be sent to mediator
-            if (flds_brf .and. .not. use_BROMO) then
-               write(lp,'(a)') subname//' cannot export bromoform if use_BROMO is not true'
-               call xchalt(subname)
-               stop subname
-            end if
-         else
-            ! if not defined HAMOCC and request to export brf, abort
-            if (flds_brf) then
-               write(lp,'(a)') subname//' cannot export bromoform with out HAMOCC defined'
-               call xchalt(subname)
-               stop subname
-            end if
+#ifdef HAMOCC
+         ! make sure that use_BROMO is true if ask for bromoform to be sent to mediator
+         if (flds_brf .and. .not. use_BROMO) then
+            write(lp,'(a)') subname//' cannot export bromoform if use_BROMO is not true'
+            call xchalt(subname)
+            stop subname
+         end if
+#else
+         ! if not defined HAMOCC and request to export brf, abort
+         if (flds_brf) then
+            write(lp,'(a)') subname//' cannot export bromoform with out HAMOCC defined'
+            call xchalt(subname)
+            stop subname
          end if
       end if
+#endif
       write(msg,'(a,l1)') subname//': export brf ', flds_brf
       call blom_logwrite(msg)
 
@@ -757,11 +754,16 @@ contains
          end if
       end if
 
+#ifdef HAMOCC
       ! Initialize sdat for swa climatology if appropriate
-      if (hamocc_defined) then
-         call ocn_stream_swa_init(Emesh, clock, rc)
-         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      call ocn_stream_swa_init(Emesh, clock, rc)
+      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+
+      ! Initialize sdat for dust deposition climatology if appropriate
+      call ocn_stream_dust_init(Emesh, clock, rc)
+      if (ChkErr(rc, __LINE__, u_FILE_u)) return
       end if
+#endif
 
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
 
@@ -931,11 +933,15 @@ contains
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
          end if
 
+#ifdef HAMOCC
          ! Advance swa stream input if appropriate
-         if (hamocc_defined) then
-            call ocn_stream_swa_interp(clock, rc)
-            if (ChkErr(rc, __LINE__, u_FILE_u)) return
-         end if
+         call ocn_stream_swa_interp(clock, omask, rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+
+         ! Advance dust stream input if appropriate
+         call ocn_stream_dust_interp(clock, omask, rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+#endif
 
          ! Advance the model a time step.
          call blom_step
