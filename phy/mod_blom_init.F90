@@ -150,7 +150,9 @@ contains
     ! Initialize shortwave radiation absorption
     ! ------------------------------------------------------------------
 
-    call iniswa
+    if (.not. use_stream_swa) then
+       call iniswa
+    end if
 
     ! ------------------------------------------------------------------
     ! Initialize second order turbulence closure closure

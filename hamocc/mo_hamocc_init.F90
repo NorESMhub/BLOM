@@ -38,6 +38,7 @@ contains
     use mod_time,       only: date,baclin
     use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,isp,ifp,ilp,mnproc,lp,xchalt
     use mod_grid,       only: plon,plat
+    use mod_forcing,    only: use_stream_swa
     use mod_tracers,    only: ntrbgc,ntr,itrbgc,trc
     use mo_control_bgc, only: bgc_namelist,get_bgc_namelist,do_ndep,do_rivinpt,do_oalk,            &
                               do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,                 &
@@ -201,7 +202,7 @@ contains
     call ini_read_ndep(idm,jdm)
     call ini_read_rivin(idm,jdm,omask)
     call ini_read_oafx(idm,jdm,bgc_dx,bgc_dy,plat,omask)
-    if (use_BROMO) then
+    if (use_BROMO .and. .not. use_stream_swa) then
       call ini_swa_clim(idm,jdm,omask)
     endif
     call ini_pi_ph(idm,jdm,omask)

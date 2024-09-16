@@ -51,6 +51,7 @@ module ocn_comp_nuopc
    use mod_config,        only: inst_index, inst_name, inst_suffix
    use mod_time,          only: blom_time
    use mod_forcing,       only: srxday, trxday
+   use mod_swa,           only: swamth, chlopt
    use mod_constants,     only: epsilt
    use mod_blom_init,     only: blom_init
    use mod_blom_step,     only: blom_step
@@ -58,6 +59,7 @@ module ocn_comp_nuopc
    use mod_restart,       only: restart_write
    use ocn_stream_sss,    only: ocn_stream_sss_init, ocn_stream_sss_interp
    use ocn_stream_sst,    only: ocn_stream_sst_init, ocn_stream_sst_interp
+   use ocn_stream_swa,    only: ocn_stream_swa_init, ocn_stream_swa_interp
 #ifdef HAMOCC
    use mo_control_bgc,    only: use_BROMO
 #endif
@@ -82,6 +84,13 @@ module ocn_comp_nuopc
    integer              :: flds_scalar_index_nx = 0
    integer              :: flds_scalar_index_ny = 0
    integer              :: flds_scalar_index_precip_factor = 0
+
+#ifdef HAMOCC
+   logical :: hamocc_defined = .true.
+#else
+   logical :: hamocc_defined = .false.
+   logical :: use_BROMO = .false.
+#endif
 
    integer :: dbug = 0
    logical :: profile_memory = .false.
@@ -379,17 +388,6 @@ contains
       logical :: isPresent, isSet
       logical :: ocn2glc_coupling
       logical :: flds_co2a, flds_co2c, flds_dms, flds_brf
-      logical :: hamocc_defined
-#ifndef HAMOCC
-      logical :: use_BROMO
-#endif
-
-#ifdef HAMOCC
-      hamocc_defined = .true.
-#else
-      hamocc_defined = .false.
-      use_BROMO = .false.
-#endif
 
       ! Get debug flag.
       call NUOPC_CompAttributeGet(gcomp, name='dbug_flag', value=cvalue, &
@@ -745,6 +743,26 @@ contains
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
       end if
 
+      ! Initialize sdat for chlorophyll concentration if appropriate
+      if (swamth == 'chlorophyll') then
+         if (chlopt == 'climatology') then
+            call ocn_stream_chloro_init(Emesh, clock, rc)
+            if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         else
+            if (mnproc == 1) then
+               write (lp,'(3a)') ' chlopt = ',trim(chlopt),' is unsupported!'
+            end if
+            call xcstop('(iniswa)')
+            stop '(iniswa)'
+         end if
+      end if
+
+      ! Initialize sdat for swa climatology if appropriate
+      if (hamocc_defined) then
+         call ocn_stream_swa_init(Emesh, clock, rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      end if
+
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
 
    end subroutine InitializeRealize
@@ -904,6 +922,18 @@ contains
          end if
          if (trxday > epsilt) then
             call ocn_stream_sst_interp(clock, rc)
+            if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         end if
+
+         ! Advance chlorophyll stream input if appropriate
+         if (swamth == 'chlorophyll' .and. chlopt == 'climatology') then
+            call ocn_stream_chloro_interp(clock, rc)
+            if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         end if
+
+         ! Advance swa stream input if appropriate
+         if (hamocc_defined) then
+            call ocn_stream_swa_interp(clock, rc)
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
          end if
 

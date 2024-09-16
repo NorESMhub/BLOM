@@ -33,7 +33,7 @@ module mod_cesm
                              lamult, lasl, ustokes, vstokes, atmco2, atmbrf, &
                              flxdms, flxbrf, &
                              atmn2o, atmnh3, atmnhxdep, atmnoydep, &
-                             use_stream_relaxation
+                             use_stream_relaxation, use_stream_swa
    use mod_ben02,      only: initai, rdcsic, rdctsf, fnlzai
    use mod_rdcsss,     only: rdcsss
    use mod_idarlx,     only: idarlx
