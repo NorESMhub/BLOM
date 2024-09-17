@@ -50,19 +50,19 @@ module ocn_comp_nuopc
    use mod_cesm,          only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
    use mod_config,        only: inst_index, inst_name, inst_suffix
    use mod_time,          only: blom_time
-   use mod_forcing,       only: srxday, trxday
+   use mod_forcing,       only: srxday, trxday, use_stream_dust, use_stream_swa
    use mod_swabs,         only: swamth, chlopt
    use mod_constants,     only: epsilt
    use mod_blom_init,     only: blom_init
    use mod_blom_step,     only: blom_step
    use mod_fill_global,   only: fill_global
    use mod_restart,       only: restart_write
+   use mod_xc,            only: mnproc, xcstop
    use ocn_stream_sss,    only: ocn_stream_sss_init, ocn_stream_sss_interp
    use ocn_stream_sst,    only: ocn_stream_sst_init, ocn_stream_sst_interp
    use ocn_stream_swa,    only: ocn_stream_swa_init, ocn_stream_swa_interp
    use ocn_stream_dust,   only: ocn_stream_dust_init, ocn_stream_dust_interp
    use ocn_stream_chloro, only: ocn_stream_chloro_init, ocn_stream_chloro_interp
-   use mod_xc,            only: mnproc, xcstop
 #ifdef HAMOCC
    use mo_control_bgc,    only: use_BROMO
    use mo_intfcblom,      only: omask
@@ -756,12 +756,16 @@ contains
 
 #ifdef HAMOCC
       ! Initialize sdat for swa climatology if appropriate
-      call ocn_stream_swa_init(Emesh, clock, rc)
-      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      if (use_stream_swa) then
+         call ocn_stream_swa_init(Emesh, clock, rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      end if
 
       ! Initialize sdat for dust deposition climatology if appropriate
-      call ocn_stream_dust_init(Emesh, clock, rc)
-      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      if (use_stream_dust) then
+         call ocn_stream_dust_init(Emesh, clock, rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      end if
 #endif
 
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
@@ -934,12 +938,16 @@ contains
 
 #ifdef HAMOCC
          ! Advance swa stream input if appropriate
-         call ocn_stream_swa_interp(clock, omask, rc)
-         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         if (use_stream_swa) then
+            call ocn_stream_swa_interp(clock, omask, rc)
+            if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         end if
 
          ! Advance dust stream input if appropriate
-         call ocn_stream_dust_interp(clock, omask, rc)
-         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         if (use_stream_dust) then
+            call ocn_stream_dust_interp(clock, omask, rc)
+            if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         end if
 #endif
 
          ! Advance the model a time step.

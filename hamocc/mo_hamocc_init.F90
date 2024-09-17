@@ -106,7 +106,9 @@ contains
     !
     ! --- Read the HAMOCC BGCNML namelist and check the value of some variables.
     !
-    if(.not. allocated(bgc_namelist)) call get_bgc_namelist
+    if(.not. allocated(bgc_namelist)) then
+       call get_bgc_namelist
+    end if
     open (newunit=iounit, file=bgc_namelist, status='old', action='read')
     read (unit=iounit, nml=BGCNML)
     close (unit=iounit)
