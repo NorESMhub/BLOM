@@ -3798,16 +3798,6 @@
     <desc>Switch for M4AGO settling scheme</desc>
   </entry>
 
-  <entry id="leuphotic_cya">
-    <type>logical</type>
-    <category>bgcnml</category>
-    <group>bgcnml</group>
-    <values>
-      <value>.false.</value>
-    </values>
-    <desc>Switch for cyano-bluefix in euphotic zone only</desc>
-  </entry>
-
   <entry id="lkwrbioz_off">
     <type>logical</type>
     <category>bgcnml</category>
@@ -4132,6 +4122,17 @@
       <value>.false.</value>
     </values>
     <desc>add desc</desc>
+  </entry>
+
+  <entry id="use_pref_tracers" modify_via_xml="HAMOCC_PREF_TRACERS">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.true.</value>
+      <value hamocc_pref_tracers="false">.false.</value>
+    </values>
+    <desc>activate the HAMOCC preformed tracers code</desc>
   </entry>
 
   <!-- ========================= -->
