@@ -35,7 +35,7 @@ contains
     use mod_state,      only: temp,saln
     use mod_forcing,    only: swa,slp,abswnd,atmco2,flxco2,flxdms,atmbrf,flxbrf, &
                               atmn2o,flxn2o,atmnh3,flxnh3,atmnhxdep,atmnoydep, &
-                              use_stream_dust, dust_stream
+                              use_stream_dust, dust_stream, ndep_stream, oafx_stream
     use mod_seaice,     only: ficem
     use mo_bgcmean,     only: nbgc,bgcwrt, diagfq_bgc,diagmon_bgc,diagann_bgc
     use mo_intfcblom,   only: bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask,blom2hamocc,hamocc2blom
@@ -55,9 +55,6 @@ contains
 
     ! Local variables
     integer :: l,ldtday
-    real    :: ndep(idm,jdm,nndep)
-    real    :: dust(idm,jdm)
-    real    :: oafx(idm,jdm)
 
     call trc_limitc(nn)
 
@@ -67,41 +64,38 @@ contains
 
     do l=1,nbgc
       bgcwrt(l)=.false.
-      if (((diagann_bgc(l).and.nday_of_year.eq.1.or.diagmon_bgc(l)                                 &
-           &   .and.date%day.eq.1).and.mod(nstep,nstep_in_day).eq.0).or.                           &
-           &   .not.(diagann_bgc(l).or.diagmon_bgc(l)).and.                                        &
-           &   mod(nstep+.5,diagfq_bgc(l)).lt.1.) then
+      if (((diagann_bgc(l).and.nday_of_year.eq.1.or.diagmon_bgc(l)   &
+           .and.date%day.eq.1).and.mod(nstep,nstep_in_day).eq.0).or. &
+           .not.(diagann_bgc(l).or.diagmon_bgc(l)).and.              &
+           mod(nstep+.5,diagfq_bgc(l)).lt.1.) then
         bgcwrt(l)=.true.
       end if
     enddo
 
-    if (use_stream_dust) then
-       do j = 1,jdm
-          do i = 1,idm
-             dust(i,j) = dust_stream(i,j)
-          end do
-       end do
-    else
-       call get_fedep(idm,jdm,date%month,dust)
+    if (.not. use_stream_dust) then
+       call get_fedep(date%month, dust_stream)
     end if
 
-    call get_ndep(idm,jdm,nbdy,date%year,date%month,omask,ndep,atmnhxdep,atmnoydep)
+    if (.not. allocated(ndep_stream)) then
+       allocate(ndep_stream(1-nbdy:idm+nbdy, 1-nbdy:jdm+nbdy, nndep))
+    end if
+    call get_ndep(date%year, date%month, omask, ndep_stream, atmnhxdep, atmnoydep)
 
-    call get_oafx(idm,jdm,date%year,date%month,omask,oafx)
+    call get_oafx(date%year, date%month, omask, oafx_stream)
 
     if (with_dmsph) then
        call get_pi_ph(idm,jdm,date%month)
     end if
 
-    call hamocc4bcm(idm,jdm,kdm,nbdy,date%year,date%month,date%day,ldtday,bgc_dx,bgc_dy,bgc_dp,    &
-         &          bgc_rho,plat,omask,dust,rivflx,ndep,oafx,pi_ph,swa,ficem,slp,abswnd,           &
-         &          temp(1-nbdy,1-nbdy,1+nn),saln(1-nbdy,1-nbdy,1+nn),                             &
-         &          atmco2,flxco2,flxdms,atmbrf,flxbrf,                                            &
-         &          atmn2o,flxn2o,atmnh3,flxnh3)
+    call hamocc4bcm(idm, jdm, kdm, nbdy,                                      &
+         date%year, date%month, date%day, ldtday, bgc_dx, bgc_dy, bgc_dp,     &
+         bgc_rho, plat, omask, dust_stream, rivflx, ndep_stream, oafx_stream, &
+         pi_ph, swa, ficem, slp, abswnd,                                      &
+         temp(1-nbdy,1-nbdy,1+nn), saln(1-nbdy,1-nbdy,1+nn),                  &
+         atmco2, flxco2, flxdms, atmbrf, flxbrf,                              &
+         atmn2o, flxn2o, atmnh3, flxnh3)
 
-    !
     ! --- accumulate fields and write output
-    !
     call accfields(idm,jdm,kdm,bgc_dx,bgc_dy,bgc_dp,omask)
 
     call hamocc2blom(m,n,mm,nn)

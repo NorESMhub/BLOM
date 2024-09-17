@@ -539,9 +539,9 @@ contains
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
       if (isPresent .and. isSet) then
          read(cvalue,*) flds_dms
+#ifndef HAMOCC
          ! if not defined HAMOCC and request to export dms, abort
          if (flds_dms) then
-#ifndef HAMOCC
             write(lp,'(a)') subname//' cannot export dms with out HAMOCC defined'
             call xchalt(subname)
             stop subname
@@ -573,8 +573,8 @@ contains
             call xchalt(subname)
             stop subname
          end if
-      end if
 #endif
+      end if
       write(msg,'(a,l1)') subname//': export brf ', flds_brf
       call blom_logwrite(msg)
 
@@ -762,7 +762,6 @@ contains
       ! Initialize sdat for dust deposition climatology if appropriate
       call ocn_stream_dust_init(Emesh, clock, rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
-      end if
 #endif
 
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)

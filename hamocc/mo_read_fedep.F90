@@ -114,9 +114,7 @@ contains
     do l=1,12
       do j=1,kpje
         do i=1,kpie
-
           if(omask(i,j).lt.0.5) dustflx(i,j,l) = 0.0
-
         enddo
       enddo
     enddo
@@ -124,7 +122,7 @@ contains
   end subroutine ini_read_fedep
 
 
-  subroutine get_fedep(kpie,kpje,kplmon,dust)
+  subroutine get_fedep(kplmon, dust)
 
     !***********************************************************************************************
     ! Get iron (dust) deposition for current month
@@ -132,12 +130,18 @@ contains
     !  J.Schwinger            *NORCE Climate, Bergen*       2020-05-19
     !***********************************************************************************************
 
-    integer, intent(in)  :: kpie             ! 1st dimension of model grid
-    integer, intent(in)  :: kpje             ! 2nd dimension of model grid
-    integer, intent(in)  :: kplmon           ! current month.
-    real,    intent(out) :: dust(kpie,kpje)  ! dust flux for current month
+    use mod_xc, only: idm, jdm, nbdy
 
-    dust = dustflx(:,:,kplmon)
+    integer, intent(in)  :: kplmon           ! current month.
+    real,    intent(out) :: dust(1-nbdy:idm+nbdy, 1-nbdy:jdm+nbdy) ! dust flux for current month
+
+    integer :: i,j
+
+    do j = 1,jdm
+       do i = 1,idm
+          dust(i,j) = dustflx(i,j,kplmon)
+       end do
+    end do
 
   end subroutine get_fedep
 

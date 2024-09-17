@@ -24,7 +24,7 @@ module ocn_stream_dust
    character(len=CS)      :: stream_dust_varname='DUST'
 
    ! Array to store dust flux after reading from file
-   real, allocatable, public :: dust_stream(:,:)
+   real(r8) :: dust_stream(1-nbdy:idm+nbdy, 1-nbdy:jdm+nbdy)
 
    integer, parameter :: nfiles_max = 100  ! maximum number of stream files
    character(len=*), parameter :: sourcefile = &
@@ -173,15 +173,6 @@ contains
       end if
 
       ! allocate field to hold dust fields
-      if (mnproc == 1) then
-         write(lp,'(a)')'Memory allocation for variable dust_stream ...'
-         write(lp,'(a,i10)')'First dimension    : ',idm
-         write(lp,'(a,i10)')'Second dimension   : ',jdm
-      endif
-      allocate (dust_stream(jdm,idm),stat=errstat)
-      if (errstat /= 0) then
-         stop 'not enough memory dust_stream'
-      end if
       dust_stream(:,:) = 0.0
 
    end subroutine ocn_stream_dust_init
@@ -189,10 +180,11 @@ contains
    !================================================================
    subroutine ocn_stream_dust_interp(model_clock, omask, rc)
 
-      use dshr_strdata_mod , only : shr_strdata_advance
-      use dshr_methods_mod , only : dshr_fldbun_getfldptr
-      use mod_forcing      , only : dust_stream
-      use mod_checksum     , only : csdiag, chksummsk
+      use dshr_strdata_mod   , only : shr_strdata_advance
+      use dshr_methods_mod   , only : dshr_fldbun_getfldptr
+      use mod_forcing        , only : dust_stream
+      use mod_checksum       , only : csdiag, chksummsk
+      use mod_output_forcing , only : output_forcing
 
       ! input/output variables
       type(ESMF_Clock), intent(in)  :: model_clock
@@ -211,6 +203,7 @@ contains
       real(r8), pointer   :: dataptr1(:)
       real(r8), parameter :: mval = -1.e12_r8
       real(r8), parameter :: fval = -1.e13_r8
+      logical             :: first_time = .true.
       !-----------------------------------------------------------------------
 
       ! Advance sdat stream
@@ -255,6 +248,10 @@ contains
                n = (j - 1)*ii + i
                dust_stream(i,j) = dataptr1(n)
             end if
+            ! set flux to zero over land
+            if (omask(i,j) < 0.5) then
+               dust_stream(i,j) = 0.0
+            end if
          end do
       end do
 
@@ -265,14 +262,10 @@ contains
          call chksummsk(dust_stream,ip,1,'dust_stream')
       end if
 
-      ! set flux to zero over land
-      do j=1,kdm
-         do i=1,idm
-            if (omask(i,j) < 0.5) then
-               dust_stream(i,j) = 0.0
-            end if
-         enddo
-      enddo
+      if (first_time) then
+         call output_forcing('dustdep_stream.nc', 'dustdep', dust_stream)
+         first_time = .false.
+      end if
 
    end subroutine ocn_stream_dust_interp
 
