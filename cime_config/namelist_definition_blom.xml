@@ -8913,7 +8913,7 @@
     <group>limits</group>
     <values>
       <value>.false.</value>
-      <value comp_interface="nuopc">.true.</value>
+      <value comp_interface="nuopc">.false.</value>
     </values>
     <desc>if .true., use NUOPC stream dust capability</desc>
   </entry>
