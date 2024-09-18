@@ -21,7 +21,7 @@ module ocn_stream_dust
    public :: ocn_stream_dust_interp    ! interpolates between two years of dust file data
 
    type(shr_strdata_type) :: sdat_dust ! input data stream
-   character(len=CS)      :: stream_dust_varname='DUST'
+   character(len=CS)      :: stream_dust_varname='dustdep'
 
    ! Array to store dust flux after reading from file
    real(r8) :: dust_stream(1-nbdy:idm+nbdy, 1-nbdy:jdm+nbdy)
@@ -147,6 +147,7 @@ contains
       endif
 
       ! Initialize the cdeps data type sdat_dust
+      ! tintalgo can be one of [lower,upper,nearest,linear,coszen]
       call shr_strdata_init_from_inline(sdat_dust,                 &
            my_task             = mnproc,                           &
            logunit             = lp,                               &
@@ -166,7 +167,7 @@ contains
            stream_taxmode      = 'cycle',                          &
            stream_dtlimit      = 1.0e30_r8,                        &
            stream_tintalgo     = 'linear',                         &
-           stream_name         = 'Dust Deposition',                &
+           stream_name         = 'Fe Dust Deposition',             &
            rc                  = rc)
       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) then
          call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -203,6 +204,7 @@ contains
       real(r8), pointer   :: dataptr1(:)
       real(r8), parameter :: mval = -1.e12_r8
       real(r8), parameter :: fval = -1.e13_r8
+      integer             :: seconds_per_month = 2592000 ! assuming 30 days per month
       logical             :: first_time = .true.
       !-----------------------------------------------------------------------
 
@@ -246,7 +248,8 @@ contains
                dust_stream(i,j) = fval
             else
                n = (j - 1)*ii + i
-               dust_stream(i,j) = dataptr1(n)
+               ! need dust_stream in units of kg/m2/month not kg/m2/s which is in the file
+               dust_stream(i,j) = dataptr1(n)*seconds_per_month
             end if
             ! set flux to zero over land
             if (omask(i,j) < 0.5) then
@@ -263,7 +266,7 @@ contains
       end if
 
       if (first_time) then
-         call output_forcing('dustdep_stream.nc', 'dustdep', dust_stream)
+         call output_forcing('fedep_stream.nc', 'fedep', dust_stream)
          first_time = .false.
       end if
 

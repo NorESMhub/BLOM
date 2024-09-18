@@ -8833,7 +8833,7 @@
     <group>limits</group>
     <values>
       <value>.false.</value>
-      <value comp_interface="nuopc">.true.</value>
+      <value comp_interface="nuopc">.false.</value>
     </values>
     <desc>if .true., use NUOPC stream swabs capability</desc>
   </entry>
@@ -8852,10 +8852,10 @@
     <category>stream_swa</category>
     <group>stream_swa</group>
     <desc>
-      file name(s) containing salinity relaxation data
+      file name(s) containing swa climatology
     </desc>
     <values>
-      <value>$DIN_LOC_ROOT/ocn/blom/bndcon/swa_clim_core_tnx0.25v4_20240512_cdf5.nc</value>
+      <value>$DIN_LOC_ROOT/ocn/blom/bndcon/Annual_clim_swa_tnx1v4_20210415.nc</value>
     </values>
   </entry>
   <entry id="stream_swa_varname">
@@ -8946,7 +8946,7 @@
       variable name on stream file
     </desc>
     <values>
-      <value>DUST</value>
+      <value>dustdep</value>
     </values>
   </entry>
   <entry id="stream_dust_year_first">
@@ -8980,6 +8980,86 @@
     </desc>
     <values>
       <value>1850</value>
+    </values>
+  </entry>
+
+  <!-- =========================  -->
+  <!-- namelist group: stream_oalk -->
+  <!-- =========================  -->
+
+  <entry id="use_stream_oalk">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.false.</value>
+    </values>
+    <desc>if .true., use NUOPC stream ocean alkalinity capability</desc>
+  </entry>
+
+  <entry id="stream_oalk_mesh_filename">
+    <type>char</type>
+    <category>stream_oalk</category>
+    <group>stream_oalk</group>
+    <desc>stream mesh file</desc>
+    <values>
+      <value>''</value>
+    </values>
+  </entry>
+  <entry id="stream_oalk_data_filename">
+    <type>char(10)</type>
+    <category>stream_oalk</category>
+    <group>stream_oalk</group>
+    <desc>
+      file name(s) containing oalk deposition data
+    </desc>
+    <values>
+      <value>''</value>
+    </values>
+  </entry>
+  <entry id="stream_oalk_varname">
+    <type>char</type>
+    <category>stream_oalk</category>
+    <group>stream_oalk</group>
+    <desc>
+      variable name on stream file
+    </desc>
+    <values>
+      <value>''</value>
+    </values>
+  </entry>
+  <entry id="stream_oalk_year_first">
+    <type>integer</type>
+    <category>stream_oalk</category>
+    <group>stream_oalk</group>
+    <desc>
+      First year in stream to use
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
+  <entry id="stream_oalk_year_last">
+    <type>integer</type>
+    <category>stream_oalk</category>
+    <group>stream_oalk</group>
+    <desc>
+      Last year in stream to use
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
+  <entry id="stream_oalk_year_align">
+    <type>integer</type>
+    <category>stream_oalk</category>
+    <group>stream_oalk</group>
+    <desc>
+      Align stream_year_first with this model year
+    </desc>
+    <values>
+      <value>1</value>
     </values>
   </entry>
 

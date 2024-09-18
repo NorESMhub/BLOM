@@ -28,12 +28,12 @@ contains
       real    :: arr_l(1-nbdy:idm+nbdy, 1-nbdy:jdm+nbdy, 1)
 
       if (mnproc==1) then
-         write(lp,*) 'creating netcdf file for dust stream'
+         write(lp,'(a)') 'creating netcdf file '//trim(filename)
 
          ! open file
-         ncstat = nf90_create('dustdep_stream.nc', NF90_64BIT_OFFSET, ncid)
+         ncstat = nf90_create(trim(filename), NF90_64BIT_OFFSET, ncid)
          if ( ncstat  /=  NF90_NOERR ) then
-            call xchalt('(cannot open dustdep_stream.nc)'); stop
+            call xchalt('(cannot open output forcing data file)'); stop
          endif
 
          ! defined dimensions
@@ -54,6 +54,7 @@ contains
             call xchalt('(cannot define variable)'); stop
          endif
 
+         ! end definition
          ncstat = nf90_enddef(ncid)
       end if
 
@@ -69,17 +70,19 @@ contains
       call xcaget(arr_g, arr_l, 1)
 
       if (mnproc == 1) then
-          ncstat = nf90_put_var(ncid, ncvarid, arr_g, start, count)
-          if (ncstat /= nf90_noerr) then
+         ! Output variable data
+         ncstat = nf90_put_var(ncid, ncvarid, arr_g, start, count)
+         if (ncstat /= nf90_noerr) then
             write(lp,'(4a)') 'nf90_put_var: ',trim(varname),': ',nf90_strerror(ncstat)
             call xchalt('(write_netcdf_var)'); stop
-          endif
-       end if
+         endif
 
-       ncstat = nf90_close(ncid)
-       if ( ncstat  /=  NF90_NOERR ) then
-          call xchalt('(cannot close file)'); stop
-       endif
+         ! Close file
+         ncstat = nf90_close(ncid)
+         if ( ncstat  /=  NF90_NOERR ) then
+            call xchalt('(cannot close file)'); stop
+         endif
+      end if
 
     end subroutine output_forcing
 

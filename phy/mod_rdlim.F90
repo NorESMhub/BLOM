@@ -46,7 +46,7 @@ module mod_rdlim
                              srxlim, srxbal, sprfac, &
                              srxlim, srxbal, sprfac, &
                              use_stream_relaxation, use_stream_swa, &
-                             use_stream_chloro, use_stream_dust
+                             use_stream_chloro, use_stream_dust, use_stream_oalk
   use mod_swabs,       only: swamth, jwtype, chlopt, ccfile
   use mod_diffusion,   only: readnml_diffusion
   use mod_eddtra,      only: mlrmth, ce, cl, tau_mlr, tau_growing_hbl, &
@@ -147,7 +147,7 @@ contains
          csdiag, &
          rstfrq,rstfmt,rstcmp,iotype,&
          use_stream_relaxation, use_stream_swa, use_stream_chloro, &
-         use_stream_dust
+         use_stream_dust, use_stream_oalk
 
     ! read limits namelist
 
@@ -251,10 +251,11 @@ contains
       write (lp,*) 'RSTFMT',RSTFMT
       write (lp,*) 'RSTCMP',RSTCMP
       write (lp,*) 'IOTYPE',IOTYPE
+      write (lp,*) 'USE_STREAM_CHLORO',use_stream_chloro
       write (lp,*) 'USE_STREAM_RELAXATION',use_stream_relaxation
       write (lp,*) 'USE_STREAM_SWA',use_stream_swa
-      write (lp,*) 'USE_STREAM_CHLORO',use_stream_chloro
       write (lp,*) 'USE_STREAM_DUST',use_stream_dust
+      write (lp,*) 'USE_STREAM_OALK',use_stream_oalk
       write (lp,*)
 
     end if
@@ -338,9 +339,10 @@ contains
     call xcbcst(rstcmp)
     call xcbcst(iotype)
     call xcbcst(use_stream_relaxation)
-    call xcbcst(use_stream_swa)
     call xcbcst(use_stream_chloro)
+    call xcbcst(use_stream_swa)
     call xcbcst(use_stream_dust)
+    call xcbcst(use_stream_oalk)
 
     ! resolve options
     select case (trim(wavsrc))

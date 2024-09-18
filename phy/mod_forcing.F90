@@ -102,13 +102,14 @@ module mod_forcing
       swa_stream, &       ! absorbed short wave radiation flux
       dust_stream, &      ! iron dust deposition flux (hamocc)
       chloro_stream, &    ! chlorophyll concentration (hamocc)
-      oafx_stream         ! alkalinization flux (hamocc)
+      oalk_stream         ! alkalinization flux (hamocc)
    real(r8), allocatable :: ndep_stream(:,:,:)  ! nitrogen deposition fluxes
    real(r8), allocatable :: rivin_stream(:,:,:) ! riverine fluxes
 
    logical :: use_stream_dust       ! If true, use nuopc stream dust capability (hamocc only)
    logical :: use_stream_chloro     ! If true, use nuopc stream chlorophyll capability
    logical :: use_stream_swa        ! If true, use nuopc stream swa capability
+   logical :: use_stream_oalk       ! If true, use nuopc stream for ocean alkalinity capability
 
    ! Variables related to balancing the freshwater forcing budget.
    real(r8) :: &
@@ -194,8 +195,9 @@ module mod_forcing
              ustar, ustarb, ustar3, wstar3, buoyfl, t_sw_nonloc, t_rs_nonloc, &
              s_br_nonloc, s_rs_nonloc, inivar_forcing, fwbbal, &
              sss_stream, sst_stream, ice_stream, &
-             dust_stream, chloro_stream, swa_stream, ndep_stream, oafx_stream, &
-             use_stream_relaxation, use_stream_swa, use_stream_dust, use_stream_chloro
+             dust_stream, chloro_stream, swa_stream, ndep_stream, oalk_stream, &
+             use_stream_relaxation, use_stream_swa, use_stream_dust, use_stream_chloro, &
+             use_stream_oalk
 
 contains
 

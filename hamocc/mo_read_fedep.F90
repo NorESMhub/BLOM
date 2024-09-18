@@ -62,8 +62,8 @@ contains
     real,    intent(in) :: omask(kpie,kpje)  ! land/ocean mask (1=ocean)
 
     ! Local variables
-    integer             :: i,j,l
-    integer             :: ncid,ncstat,ncvarid,errstat
+    integer :: i,j,l
+    integer :: ncid,ncstat,ncvarid,errstat
 
     ! allocate field to hold iron deposition fluxes
     if (mnproc.eq.1) then
@@ -131,17 +131,27 @@ contains
     !***********************************************************************************************
 
     use mod_xc, only: idm, jdm, nbdy
+    use mod_output_forcing, only : output_forcing
 
     integer, intent(in)  :: kplmon           ! current month.
     real,    intent(out) :: dust(1-nbdy:idm+nbdy, 1-nbdy:jdm+nbdy) ! dust flux for current month
 
     integer :: i,j
+    logical :: debug = .true.
+    logical :: first_time = .true.
 
     do j = 1,jdm
        do i = 1,idm
           dust(i,j) = dustflx(i,j,kplmon)
        end do
     end do
+
+    if (debug) then
+       if (first_time) then
+          call output_forcing('fedep_orig.nc', 'fedep', dust)
+          first_time = .false.
+       end if
+    end if
 
   end subroutine get_fedep
 
