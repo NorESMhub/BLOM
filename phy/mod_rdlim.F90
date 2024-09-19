@@ -46,7 +46,8 @@ module mod_rdlim
                              srxlim, srxbal, sprfac, &
                              srxlim, srxbal, sprfac, &
                              use_stream_relaxation, use_stream_swa, &
-                             use_stream_chloro, use_stream_dust, use_stream_oalk
+                             use_stream_chloro, use_stream_dust, use_stream_oalk, &
+                             use_stream_rivin, use_stream_ndep
   use mod_swabs,       only: swamth, jwtype, chlopt, ccfile
   use mod_diffusion,   only: readnml_diffusion
   use mod_eddtra,      only: mlrmth, ce, cl, tau_mlr, tau_growing_hbl, &
@@ -147,7 +148,7 @@ contains
          csdiag, &
          rstfrq,rstfmt,rstcmp,iotype,&
          use_stream_relaxation, use_stream_swa, use_stream_chloro, &
-         use_stream_dust, use_stream_oalk
+         use_stream_dust, use_stream_oalk, use_stream_rivin, use_stream_ndep
 
     ! read limits namelist
 
@@ -251,11 +252,13 @@ contains
       write (lp,*) 'RSTFMT',RSTFMT
       write (lp,*) 'RSTCMP',RSTCMP
       write (lp,*) 'IOTYPE',IOTYPE
-      write (lp,*) 'USE_STREAM_CHLORO',use_stream_chloro
       write (lp,*) 'USE_STREAM_RELAXATION',use_stream_relaxation
-      write (lp,*) 'USE_STREAM_SWA',use_stream_swa
+      write (lp,*) 'USE_STREAM_CHLORO',use_stream_chloro
       write (lp,*) 'USE_STREAM_DUST',use_stream_dust
       write (lp,*) 'USE_STREAM_OALK',use_stream_oalk
+      write (lp,*) 'USE_STREAM_RIVIN',use_stream_rivin
+      write (lp,*) 'USE_STREAM_NDEP',use_stream_ndep
+      write (lp,*) 'USE_STREAM_SWA',use_stream_swa
       write (lp,*)
 
     end if

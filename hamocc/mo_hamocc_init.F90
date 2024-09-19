@@ -38,7 +38,8 @@ contains
     use mod_time,       only: date,baclin
     use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,isp,ifp,ilp,mnproc,lp,xchalt
     use mod_grid,       only: plon,plat
-    use mod_forcing,    only: use_stream_swa
+    use mod_forcing,    only: use_stream_swa, use_stream_rivin, use_stream_dust, use_stream_ndep, &
+                              use_stream_oalk
     use mod_tracers,    only: ntrbgc,ntr,itrbgc,trc
     use mo_control_bgc, only: bgc_namelist,get_bgc_namelist,do_ndep,do_rivinpt,do_oalk,            &
                               do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,                 &
@@ -200,12 +201,22 @@ contains
     !
     ! --- Initialise reading of input data (dust, n-deposition, river, etc.)
     !
-    call ini_read_fedep(idm,jdm,omask)
-    call ini_read_ndep(idm,jdm)
-    call ini_read_rivin(idm,jdm,omask)
-    call ini_read_oafx(idm,jdm,bgc_dx,bgc_dy,plat,omask)
-    if (use_BROMO .and. .not. use_stream_swa) then
-      call ini_swa_clim(idm,jdm,omask)
+    if (.not. use_stream_dust) then
+       call ini_read_fedep(omask)
+    end if
+    if (.not. use_stream_ndep) then
+       call ini_read_ndep(idm,jdm)
+    end if
+    if (.not. use_stream_rivin) then
+       call ini_read_rivin(omask)
+    end if
+    if (.not. use_stream_oalk) then
+       call ini_read_oafx(idm,jdm,bgc_dx,bgc_dy,plat,omask)
+    end if
+    if (.not. use_stream_swa) then
+       if (use_BROMO) then
+          call ini_swa_clim(idm,jdm,omask)
+       end if
     endif
     call ini_pi_ph(idm,jdm,omask)
     !

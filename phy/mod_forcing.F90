@@ -99,17 +99,26 @@ module mod_forcing
    logical :: use_stream_relaxation ! If true, use nuopc stream relaxation capability
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
-      swa_stream, &       ! absorbed short wave radiation flux
-      dust_stream, &      ! iron dust deposition flux (hamocc)
-      chloro_stream, &    ! chlorophyll concentration (hamocc)
-      oalk_stream         ! alkalinization flux (hamocc)
-   real(r8), allocatable :: ndep_stream(:,:,:)  ! nitrogen deposition fluxes
-   real(r8), allocatable :: rivin_stream(:,:,:) ! riverine fluxes
+      swa_stream                          ! absorbed short wave radiation flux
+   logical :: use_stream_swa = .false.    ! If true, use nuopc stream swa capability
 
-   logical :: use_stream_dust       ! If true, use nuopc stream dust capability (hamocc only)
-   logical :: use_stream_chloro     ! If true, use nuopc stream chlorophyll capability
-   logical :: use_stream_swa        ! If true, use nuopc stream swa capability
-   logical :: use_stream_oalk       ! If true, use nuopc stream for ocean alkalinity capability
+   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
+        dust_stream                       ! iron dust deposition flux (hamocc)
+   logical :: use_stream_dust = .false.   ! If true, use nuopc stream dust capability (hamocc only)
+
+   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
+      chloro_stream                       ! chlorophyll concentration (hamocc)
+   logical :: use_stream_chloro = .false. ! If true, use nuopc stream chlorophyll capability
+
+   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
+      oalk_stream                         ! alkalinization flux (hamocc)
+   logical :: use_stream_oalk = .false.   ! If true, use nuopc stream for ocean alkalinity capability
+
+   real(r8), allocatable :: rivflx_stream(:,:,:) ! riverine fluxes
+   logical :: use_stream_rivin = .false.         ! If true, use nuopc input for rivin fluxes
+
+   real(r8), allocatable :: ndep_stream(:,:,:)   ! nitrogen deposition fluxes
+   logical :: use_stream_ndep = .false.          ! If true, use nuopc input for rivin fluxes
 
    ! Variables related to balancing the freshwater forcing budget.
    real(r8) :: &
@@ -195,9 +204,9 @@ module mod_forcing
              ustar, ustarb, ustar3, wstar3, buoyfl, t_sw_nonloc, t_rs_nonloc, &
              s_br_nonloc, s_rs_nonloc, inivar_forcing, fwbbal, &
              sss_stream, sst_stream, ice_stream, &
-             dust_stream, chloro_stream, swa_stream, ndep_stream, oalk_stream, &
+             dust_stream, chloro_stream, swa_stream, ndep_stream, oalk_stream, rivflx_stream, &
              use_stream_relaxation, use_stream_swa, use_stream_dust, use_stream_chloro, &
-             use_stream_oalk
+             use_stream_oalk, use_stream_rivin, use_stream_ndep
 
 contains
 

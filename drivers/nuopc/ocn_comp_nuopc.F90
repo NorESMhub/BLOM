@@ -61,19 +61,18 @@ module ocn_comp_nuopc
    use ocn_stream_sss,    only: ocn_stream_sss_init, ocn_stream_sss_interp
    use ocn_stream_sst,    only: ocn_stream_sst_init, ocn_stream_sst_interp
    use ocn_stream_swa,    only: ocn_stream_swa_init, ocn_stream_swa_interp
-   use ocn_stream_dust,   only: ocn_stream_dust_init, ocn_stream_dust_interp
    use ocn_stream_chloro, only: ocn_stream_chloro_init, ocn_stream_chloro_interp
 #ifdef HAMOCC
    use mo_control_bgc,    only: use_BROMO
    use mo_intfcblom,      only: omask
+   use ocn_stream_dust,   only: ocn_stream_dust_init, ocn_stream_dust_interp
+   use ocn_stream_rivin,  only: ocn_stream_rivin_init
 #endif
 
    implicit none
-
    private
 
-   integer, parameter :: cslen = 80  ! Short character string length.
-   integer, parameter :: cllen = 265 ! Long character string length.
+   integer, parameter :: cllen = 256 ! Long character string length.
    character(len=*), parameter :: modname = '(ocn_comp_nuopc)'
    character(len=*), parameter :: u_FILE_u = &
       __FILE__
@@ -380,7 +379,7 @@ contains
       type(ESMF_VM) :: vm
       type(ESMF_TimeInterval) :: timeStep
       integer :: localPet, nthrds, shrlogunit, n
-      character(len=cslen) :: starttype, stdname
+      character(len=cllen) :: starttype, stdname
       character(len=cllen) :: msg, cvalue
       logical :: isPresent, isSet
       logical :: ocn2glc_coupling
@@ -764,6 +763,11 @@ contains
       ! Initialize sdat for dust deposition climatology if appropriate
       if (use_stream_dust) then
          call ocn_stream_dust_init(Emesh, clock, rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      end if
+
+      if (use_stream_rivin) then
+         call ocn_stream_rivin_init(Emesh, rc)
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
       end if
 #endif

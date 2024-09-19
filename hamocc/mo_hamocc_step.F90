@@ -35,12 +35,11 @@ contains
     use mod_state,      only: temp,saln
     use mod_forcing,    only: swa,slp,abswnd,atmco2,flxco2,flxdms,atmbrf,flxbrf, &
                               atmn2o,flxn2o,atmnh3,flxnh3,atmnhxdep,atmnoydep, &
-                              use_stream_dust, use_stream_oalk, &
-                              dust_stream, ndep_stream, oalk_stream
+                              use_stream_dust, use_stream_oalk, use_stream_ndep, &
+                              dust_stream, ndep_stream, oalk_stream, rivflx_stream
     use mod_seaice,     only: ficem
     use mo_bgcmean,     only: nbgc,bgcwrt, diagfq_bgc,diagmon_bgc,diagann_bgc
     use mo_intfcblom,   only: bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask,blom2hamocc,hamocc2blom
-    use mo_read_rivin,  only: rivflx
     use mo_read_fedep,  only: get_fedep
     use mo_read_ndep,   only: get_ndep
     use mo_read_oafx,   only: get_oafx
@@ -77,10 +76,12 @@ contains
        call get_fedep(date%month, dust_stream)
     end if
 
-    if (.not. allocated(ndep_stream)) then
-       allocate(ndep_stream(1-nbdy:idm+nbdy, 1-nbdy:jdm+nbdy, nndep))
+    if (.not. use_stream_ndep) then
+       if (.not. allocated(ndep_stream)) then
+          allocate(ndep_stream(1-nbdy:idm+nbdy, 1-nbdy:jdm+nbdy, nndep))
+       end if
+       call get_ndep(date%year, date%month, omask, ndep_stream, atmnhxdep, atmnoydep)
     end if
-    call get_ndep(date%year, date%month, omask, ndep_stream, atmnhxdep, atmnoydep)
 
     if (.not. use_stream_oalk) then
        call get_oafx(date%year, date%month, omask, oalk_stream)
@@ -90,12 +91,13 @@ contains
        call get_pi_ph(idm,jdm,date%month)
     end if
 
-    call hamocc4bcm(idm, jdm, kdm, nbdy,                                      &
-         date%year, date%month, date%day, ldtday, bgc_dx, bgc_dy, bgc_dp,     &
-         bgc_rho, plat, omask, dust_stream, rivflx, ndep_stream, oalk_stream, &
-         pi_ph, swa, ficem, slp, abswnd,                                      &
-         temp(1-nbdy,1-nbdy,1+nn), saln(1-nbdy,1-nbdy,1+nn),                  &
-         atmco2, flxco2, flxdms, atmbrf, flxbrf,                              &
+    call hamocc4bcm(idm, jdm, kdm, nbdy,                                  &
+         date%year, date%month, date%day, ldtday, bgc_dx, bgc_dy, bgc_dp, &
+         bgc_rho, plat, omask,                                            &
+         dust_stream, rivflx_stream, ndep_stream, oalk_stream,            &
+         pi_ph, swa, ficem, slp, abswnd,                                  &
+         temp(1-nbdy,1-nbdy,1+nn), saln(1-nbdy,1-nbdy,1+nn),              &
+         atmco2, flxco2, flxdms, atmbrf, flxbrf,                          &
          atmn2o, flxn2o, atmnh3, flxnh3)
 
     ! --- accumulate fields and write output

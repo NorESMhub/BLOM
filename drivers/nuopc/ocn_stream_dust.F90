@@ -1,5 +1,5 @@
 module ocn_stream_dust
-
+#ifdef HAMOCC
    !-----------------------------------------------------------------------
    ! Contains methods for reading in dust forcing file
    !-----------------------------------------------------------------------
@@ -12,6 +12,7 @@ module ocn_stream_dust
    use shr_kind_mod      , only : r8 => shr_kind_r8, CL => shr_kind_cl, CS => shr_kind_cs
    use shr_log_mod       , only : errMsg => shr_log_errMsg
    use shr_sys_mod       , only : shr_sys_abort
+   use mod_forcing       , only : dust_stream
    use mod_xc
 
    implicit none
@@ -22,9 +23,6 @@ module ocn_stream_dust
 
    type(shr_strdata_type) :: sdat_dust ! input data stream
    character(len=CS)      :: stream_dust_varname='dustdep'
-
-   ! Array to store dust flux after reading from file
-   real(r8) :: dust_stream(1-nbdy:idm+nbdy, 1-nbdy:jdm+nbdy)
 
    integer, parameter :: nfiles_max = 100  ! maximum number of stream files
    character(len=*), parameter :: sourcefile = &
@@ -272,4 +270,5 @@ contains
 
    end subroutine ocn_stream_dust_interp
 
+#endif
 end module ocn_stream_dust
