@@ -257,7 +257,8 @@ def buildnml(case, caseroot, compname):
 
         # Create BLOM namelist
         groups=['limits','diffusion','merdia','secdia','diaphy',
-        'stream_sss','stream_sst','stream_swa','stream_dust','stream_oafx']
+        'stream_sss','stream_sst','stream_swa','stream_dust',
+        'stream_oalk', 'stream_rivin']
 
         groups.append('cwmod')
 

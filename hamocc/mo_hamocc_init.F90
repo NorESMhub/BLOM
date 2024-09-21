@@ -207,6 +207,7 @@ contains
     if (.not. use_stream_ndep) then
        call ini_read_ndep(idm,jdm)
     end if
+    write(6,*)'DEBUG: use_stream_rivin = ',use_stream_rivin
     if (.not. use_stream_rivin) then
        call ini_read_rivin(omask)
     end if

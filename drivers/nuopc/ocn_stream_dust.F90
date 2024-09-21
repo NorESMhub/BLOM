@@ -13,6 +13,7 @@ module ocn_stream_dust
    use shr_log_mod       , only : errMsg => shr_log_errMsg
    use shr_sys_mod       , only : shr_sys_abort
    use mod_forcing       , only : dust_stream
+   use mo_intfcblom      , only : omask
    use mod_xc
 
    implicit none
@@ -177,7 +178,7 @@ contains
    end subroutine ocn_stream_dust_init
 
    !================================================================
-   subroutine ocn_stream_dust_interp(model_clock, omask, rc)
+   subroutine ocn_stream_dust_interp(model_clock, rc)
 
       use dshr_strdata_mod   , only : shr_strdata_advance
       use dshr_methods_mod   , only : dshr_fldbun_getfldptr
@@ -187,7 +188,6 @@ contains
 
       ! input/output variables
       type(ESMF_Clock), intent(in)  :: model_clock
-      real            , intent(in)  :: omask(:,:)  ! land/ocean mask (1=ocean)
       integer         , intent(out) :: rc
 
       ! local variables

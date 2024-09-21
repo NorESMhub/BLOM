@@ -9063,4 +9063,57 @@
     </values>
   </entry>
 
+  <!-- =========================  -->
+  <!-- namelist group: stream_oalk -->
+  <!-- =========================  -->
+
+  <entry id="use_stream_rivin">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.false.</value>
+    </values>
+    <desc>if .true., use NUOPC stream ocean river nutrient  capability</desc>
+  </entry>
+
+  <entry id="stream_rivin_mesh_filename">
+    <type>char</type>
+    <category>stream_rivin</category>
+    <group>stream_rivin</group>
+    <desc>stream mesh file</desc>
+    <values>
+      <!-- for testing just assume input on a 1 degree blom grid -->
+      <value>$DIN_LOC_ROOT/share/meshes/tnx1v4_20170601_cdf5_ESMFmesh.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_rivin_data_filename">
+    <type>char(10)</type>
+    <category>stream_rivin</category>
+    <group>stream_rivin</group>
+    <desc>
+      file name(s) containing rivin deposition data
+    </desc>
+    <values>
+      <!-- for testing just assume input on a 1 degree blom grid -->
+      <value>$DIN_LOC_ROOT//ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx1v4_20170820.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_rivin_map_filename" is_inputdata="yes">
+    <type>char</type>
+    <category>stream_rivin</category>
+    <group>stream_rivin</group>
+    <desc>
+      map of stream resolution data to model resolution data
+    </desc>
+    <values>
+      <value ocn_grid="tnx2v1">unset</value>
+      <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/cpl/cpl6/map_r05_to_tnx1v4_e1000r300_170609.nc</value>
+      <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/cpl/cpl6/map_r05_to_tnx0.5v1_e300r100_20240702.nc</value>
+      <value ocn_grid="tnx0.25v4">unset</value>
+      <value ocn_grid="tnx0.125v4">unset</value>
+    </values>
+  </entry>
+
 </entry_id_pg>

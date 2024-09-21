@@ -93,32 +93,34 @@ module mod_forcing
       sssclm          ! Sea-surface salinity [g kg-1].
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
-      sst_stream, &    ! Sea-surface temperature [deg C] from stream data.
-      ice_stream, &    ! Sea-ice concentration [] from stream data.
-      sss_stream       ! Sea-surface salinity [g kg-1] from stream data.
+      sst_stream, &                 ! Sea-surface temperature [deg C] from stream data.
+      ice_stream, &                 ! Sea-ice concentration [] from stream data.
+      sss_stream                    ! Sea-surface salinity [g kg-1] from stream data.
    logical :: use_stream_relaxation ! If true, use nuopc stream relaxation capability
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
-      swa_stream                          ! absorbed short wave radiation flux
-   logical :: use_stream_swa = .false.    ! If true, use nuopc stream swa capability
+      swa_stream                    ! absorbed short wave radiation flux
+   logical :: use_stream_swa        ! If true, use nuopc stream swa capability
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
-        dust_stream                       ! iron dust deposition flux (hamocc)
-   logical :: use_stream_dust = .false.   ! If true, use nuopc stream dust capability (hamocc only)
+        dust_stream                 ! iron dust deposition flux (hamocc)
+   logical :: use_stream_dust       ! If true, use nuopc stream dust capability (hamocc only)
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
-      chloro_stream                       ! chlorophyll concentration (hamocc)
-   logical :: use_stream_chloro = .false. ! If true, use nuopc stream chlorophyll capability
+      chloro_stream                 ! chlorophyll concentration (hamocc)
+   logical :: use_stream_chloro     ! If true, use nuopc stream chlorophyll capability
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
-      oalk_stream                         ! alkalinization flux (hamocc)
-   logical :: use_stream_oalk = .false.   ! If true, use nuopc stream for ocean alkalinity capability
+      oalk_stream                   ! alkalinization flux (hamocc)
+   logical :: use_stream_oalk       ! If true, use nuopc stream for ocean alkalinity capability
 
-   real(r8), allocatable :: rivflx_stream(:,:,:) ! riverine fluxes
-   logical :: use_stream_rivin = .false.         ! If true, use nuopc input for rivin fluxes
+   real(r8), allocatable :: &
+        rivflx_stream(:,:,:)        ! riverine fluxes
+   logical :: use_stream_rivin      ! If true, use nuopc input for rivin fluxes
 
-   real(r8), allocatable :: ndep_stream(:,:,:)   ! nitrogen deposition fluxes
-   logical :: use_stream_ndep = .false.          ! If true, use nuopc input for rivin fluxes
+   real(r8), allocatable :: &
+        ndep_stream(:,:,:)          ! nitrogen deposition fluxes
+   logical :: use_stream_ndep       ! If true, use nuopc input for rivin fluxes
 
    ! Variables related to balancing the freshwater forcing budget.
    real(r8) :: &

@@ -5,7 +5,6 @@ module mod_blom_pio
    use mod_types         , only : r8, r4
    use mod_xc            , only : lp, mnproc
    use shr_pio_mod       , only : shr_pio_getiosys, shr_pio_getiotype, shr_pio_getioformat
-   use shr_pio_mod       , only : shr_pio_getiosys, shr_pio_getiotype
    use shr_sys_mod       , only : shr_sys_abort
    use nuopc_shr_methods , only : chkerr
 
@@ -35,6 +34,7 @@ contains
       pio_ioformat =  shr_pio_getioformat('OCN')
    end subroutine blom_pio_init
 
+   !===============================================================
    subroutine blom_pio_getdata(pioid, varname, mesh_i, data_i, rc)
 
       ! input/output variables

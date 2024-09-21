@@ -346,6 +346,8 @@ contains
     call xcbcst(use_stream_swa)
     call xcbcst(use_stream_dust)
     call xcbcst(use_stream_oalk)
+    call xcbcst(use_stream_rivin)
+    call xcbcst(use_stream_ndep)
 
     ! resolve options
     select case (trim(wavsrc))

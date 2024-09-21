@@ -50,7 +50,8 @@ module ocn_comp_nuopc
    use mod_cesm,          only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
    use mod_config,        only: inst_index, inst_name, inst_suffix
    use mod_time,          only: blom_time
-   use mod_forcing,       only: srxday, trxday, use_stream_dust, use_stream_swa
+   use mod_forcing,       only: srxday, trxday, use_stream_dust, use_stream_swa, &
+                                use_stream_rivin
    use mod_swabs,         only: swamth, chlopt
    use mod_constants,     only: epsilt
    use mod_blom_init,     only: blom_init
@@ -58,13 +59,13 @@ module ocn_comp_nuopc
    use mod_fill_global,   only: fill_global
    use mod_restart,       only: restart_write
    use mod_xc,            only: mnproc, xcstop
+   use mod_blom_pio,      only: blom_pio_init
    use ocn_stream_sss,    only: ocn_stream_sss_init, ocn_stream_sss_interp
    use ocn_stream_sst,    only: ocn_stream_sst_init, ocn_stream_sst_interp
    use ocn_stream_swa,    only: ocn_stream_swa_init, ocn_stream_swa_interp
    use ocn_stream_chloro, only: ocn_stream_chloro_init, ocn_stream_chloro_interp
 #ifdef HAMOCC
    use mo_control_bgc,    only: use_BROMO
-   use mo_intfcblom,      only: omask
    use ocn_stream_dust,   only: ocn_stream_dust_init, ocn_stream_dust_interp
    use ocn_stream_rivin,  only: ocn_stream_rivin_init
 #endif
@@ -727,6 +728,9 @@ contains
                            flds_scalar_name, flds_scalar_num, rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
 
+      ! Initialize pio subsystem
+      call blom_pio_init()
+
       ! Initialize sdat for relaxation to sss if appropriate
       if (srxday > epsilt) then
          call ocn_stream_sss_init(Emesh, clock, rc)
@@ -766,6 +770,7 @@ contains
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
       end if
 
+      ! Initialize time independent riverine nutrient input
       if (use_stream_rivin) then
          call ocn_stream_rivin_init(Emesh, rc)
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
@@ -943,13 +948,13 @@ contains
 #ifdef HAMOCC
          ! Advance swa stream input if appropriate
          if (use_stream_swa) then
-            call ocn_stream_swa_interp(clock, omask, rc)
+            call ocn_stream_swa_interp(clock, rc)
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
          end if
 
          ! Advance dust stream input if appropriate
          if (use_stream_dust) then
-            call ocn_stream_dust_interp(clock, omask, rc)
+            call ocn_stream_dust_interp(clock, rc)
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
          end if
 #endif
