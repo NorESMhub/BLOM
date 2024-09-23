@@ -9116,4 +9116,74 @@
     </values>
   </entry>
 
+  <!-- =========================  -->
+  <!-- namelist group: stream_ndep -->
+  <!-- =========================  -->
+
+  <entry id="stream_ndep_mesh_filename">
+    <type>char</type>
+    <category>stream_ndep</category>
+    <group>stream_ndep</group>
+    <desc>stream mesh file</desc>
+    <values>
+      <value>$DIN_LOC_ROOT/atm/cam/sst/sst_HadOIBl_bc_1x1_clim_c101029_ESMFmesh_120520.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_ndep_data_filename">
+    <type>char(10)</type>
+    <category>stream_ndep</category>
+    <group>stream_ndep</group>
+    <desc>
+      file name(s) containing nitrogen deposition data
+    </desc>
+    <values>
+      <value>$DIN_LOC_ROOT/lnd/clm2/ndepdata/fndep_clm_WACCM6_CMIP6piControl001_y21-50avg_1850monthly_0.95x1.25_c180802.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_ndep_varname">
+    <type>char(2)</type>
+    <category>stream_ndep</category>
+    <group>stream_ndep</group>
+    <desc>
+      variable name on stream file
+    </desc>
+    <values>
+      <value>NDEP_NHx_month, NDEP_NOy_month</value>
+    </values>
+  </entry>
+  <entry id="stream_ndep_year_first">
+    <type>integer</type>
+    <category>stream_ndep</category>
+    <group>stream_ndep</group>
+    <desc>
+      First year in stream to use
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
+  <entry id="stream_ndep_year_last">
+    <type>integer</type>
+    <category>stream_ndep</category>
+    <group>stream_ndep</group>
+    <desc>
+      Last year in stream to use
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
+  <entry id="stream_ndep_year_align">
+    <type>integer</type>
+    <category>stream_ndep</category>
+    <group>stream_ndep</group>
+    <desc>
+      Align stream_year_first with this model year
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
+
+
 </entry_id_pg>
