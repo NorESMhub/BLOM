@@ -22,42 +22,45 @@ module ocn_comp_nuopc
 ! This module contains the NUOPC cap for BLOM.
 ! ------------------------------------------------------------------------------
 
-   use ESMF ! TODO MOM6 uses "only" statements, while POP and CICE omits this.
-   use NUOPC, only: NUOPC_CompDerive, NUOPC_CompSetEntryPoint, &
-                    NUOPC_CompSpecialize, NUOPC_CompFilterPhaseMap, &
-                    NUOPC_IsUpdated, NUOPC_IsAtTime, NUOPC_CompAttributeGet, &
-                    NUOPC_Advertise, NUOPC_SetAttribute, &
-                    NUOPC_CompAttributeGet, NUOPC_CompAttributeSet, &
-                    NUOPC_IsConnected, NUOPC_Realize
-   use NUOPC_Model, only: NUOPC_ModelGet, SetVM, &
-                          model_routine_SS           => SetServices, &
-                          model_label_Advance        => label_Advance, &
-                          model_label_DataInitialize => label_DataInitialize, &
-                          model_label_SetRunClock    => label_SetRunClock, &
-                          model_label_Finalize       => label_Finalize
-   use nuopc_shr_methods, only : ChkErr, set_component_logging, &
-                                 get_component_instance, state_setscalar, &
-                                 alarmInit
-   use shr_cal_mod, only : shr_cal_ymd2date
-   use shr_file_mod, only: shr_file_getUnit, shr_file_getLogUnit, shr_file_setLogUnit
-   use mod_nuopc_methods, only: fldlist_type, fldsMax, tlast_coupled, &
+   use ESMF  ! TODO add " only" statements
+   use NUOPC,             only: NUOPC_CompDerive, NUOPC_CompSetEntryPoint, &
+                                NUOPC_CompSpecialize, NUOPC_CompFilterPhaseMap, &
+                                NUOPC_IsUpdated, NUOPC_IsAtTime, NUOPC_CompAttributeGet, &
+                                NUOPC_Advertise, NUOPC_SetAttribute, &
+                                NUOPC_CompAttributeGet, NUOPC_CompAttributeSet, &
+                                NUOPC_IsConnected, NUOPC_Realize
+   use NUOPC_Model,       only: NUOPC_ModelGet, SetVM, &
+                                model_routine_SS           => SetServices, &
+                                model_label_Advance        => label_Advance, &
+                                model_label_DataInitialize => label_DataInitialize, &
+                                model_label_SetRunClock    => label_SetRunClock, &
+                                model_label_Finalize       => label_Finalize
+   use nuopc_shr_methods, only: ChkErr, set_component_logging, &
+                                get_component_instance, state_setscalar, &
+                                alarmInit
+   use shr_cal_mod,       only: shr_cal_ymd2date
+   use shr_log_mod,       only: shr_log_getLogUnit, shr_log_setLogUnit
+   use ocn_import_export, only: fldlist_type, fldsMax, tlast_coupled, &
                                 blom_logwrite, blom_getgindex, blom_checkmesh, &
                                 blom_setareacor, blom_getglobdim, &
                                 blom_getprecipfact, blom_accflds, &
                                 blom_importflds, blom_exportflds, &
                                 blom_advertise_imports, blom_advertise_exports
-   use mod_xc, only: mpicom_external, lp, nfu
-   use mod_cesm, only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
-   use mod_config, only: inst_index, inst_name, inst_suffix
-   use mod_time, only: blom_time
-   use mod_forcing, only : srxday, trxday
-   use mod_constants, only : epsilt
-   use mod_blom_init, only : blom_init
-   use mod_blom_step, only : blom_step
-   use mod_fill_global, only : fill_global
-   use mod_restart, only : restart_write
-   use ocn_stream_sss, only : ocn_stream_sss_init, ocn_stream_sss_interp
-   use ocn_stream_sst, only : ocn_stream_sst_init, ocn_stream_sst_interp
+   use mod_xc,            only: mpicom_external, lp, xchalt
+   use mod_cesm,          only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
+   use mod_config,        only: inst_index, inst_name, inst_suffix
+   use mod_time,          only: blom_time
+   use mod_forcing,       only: srxday, trxday
+   use mod_constants,     only: epsilt
+   use mod_blom_init,     only: blom_init
+   use mod_blom_step,     only: blom_step
+   use mod_fill_global,   only: fill_global
+   use mod_restart,       only: restart_write
+   use ocn_stream_sss,    only: ocn_stream_sss_init, ocn_stream_sss_interp
+   use ocn_stream_sst,    only: ocn_stream_sst_init, ocn_stream_sst_interp
+#ifdef HAMOCC
+   use mo_control_bgc,    only: use_BROMO
+#endif
 
    implicit none
 
@@ -79,8 +82,6 @@ module ocn_comp_nuopc
    integer              :: flds_scalar_index_nx = 0
    integer              :: flds_scalar_index_ny = 0
    integer              :: flds_scalar_index_precip_factor = 0
-
-   logical              :: ocn2glc_coupling, flds_dms_med
 
    integer :: dbug = 0
    logical :: profile_memory = .false.
@@ -376,7 +377,19 @@ contains
       character(len=cslen) :: starttype, stdname
       character(len=cllen) :: msg, cvalue
       logical :: isPresent, isSet
-      logical :: flds_co2a, flds_co2c
+      logical :: ocn2glc_coupling
+      logical :: flds_co2a, flds_co2c, flds_dms, flds_brf
+      logical :: hamocc_defined
+#ifndef HAMOCC
+      logical :: use_BROMO
+#endif
+
+#ifdef HAMOCC
+      hamocc_defined = .true.
+#else
+      hamocc_defined = .false.
+      use_BROMO = .false.
+#endif
 
       ! Get debug flag.
       call NUOPC_CompAttributeGet(gcomp, name='dbug_flag', value=cvalue, &
@@ -406,13 +419,6 @@ contains
       ! Reset shr logging to components log file.
       call set_component_logging(gcomp, localPet==0, lp, shrlogunit, rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
-
-      ! Get generic file unit for master task.
-      if (localPet == 0) then
-         nfu = shr_file_getUnit()
-      else
-         nfu = -1
-      endif
 
       ! Get case name.
       call NUOPC_CompAttributeGet(gcomp, name='case_name', value=cvalue, rc=rc)
@@ -532,6 +538,51 @@ contains
 
       !NOTE: Nitrogen deposition is always sent from atm now (either CAM or DATM)
 
+      ! Determine if will export dms
+      call NUOPC_CompAttributeGet(gcomp, name='flds_dms', value=cvalue, &
+           ispresent=ispresent, isset=isset, rc=rc)
+      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      if (isPresent .and. isSet) then
+         read(cvalue,*) flds_dms
+         if (.not. hamocc_defined) then
+            ! if not defined HAMOCC and request to export dms, abort
+            if (flds_dms) then
+               write(lp,'(a)') subname//' cannot export dms with out HAMOCC defined'
+               call xchalt(subname)
+               stop subname
+            end if
+         end if
+      else
+         flds_dms = .false.
+      end if
+      write(msg,'(a,l1)') subname//': export dms ', flds_dms
+      call blom_logwrite(msg)
+
+      ! Determine if will export bromoform
+      call NUOPC_CompAttributeGet(gcomp, name="flds_brf", value=cvalue, &
+           ispresent=ispresent, isset=isset, rc=rc)
+      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      if (isPresent .and. isSet) then
+         read(cvalue,*) flds_brf
+         if (hamocc_defined) then
+            ! make sure that use_BROMO is true if ask for bromoform to be sent to mediator
+            if (flds_brf .and. .not. use_BROMO) then
+               write(lp,'(a)') subname//' cannot export bromoform if use_BROMO is not true'
+               call xchalt(subname)
+               stop subname
+            end if
+         else
+            ! if not defined HAMOCC and request to export brf, abort
+            if (flds_brf) then
+               write(lp,'(a)') subname//' cannot export bromoform with out HAMOCC defined'
+               call xchalt(subname)
+               stop subname
+            end if
+         end if
+      end if
+      write(msg,'(a,l1)') subname//': export brf ', flds_brf
+      call blom_logwrite(msg)
+
       ! ------------------------------------------------------------------------
       ! Advertise import fields.
       ! ------------------------------------------------------------------------
@@ -549,7 +600,8 @@ contains
       ! Advertise export fields.
       ! ------------------------------------------------------------------------
 
-      call blom_advertise_exports(flds_scalar_name, fldsFrOcn_num, fldsFrOcn, ocn2glc_coupling)
+      call blom_advertise_exports(flds_scalar_name, fldsFrOcn_num, fldsFrOcn, ocn2glc_coupling, &
+            flds_dms, flds_brf)
 
       do n = 1,fldsFrOcn_num
          call NUOPC_Advertise(exportState, standardName=fldsFrOcn(n)%stdname, &
@@ -771,7 +823,7 @@ contains
       ! Local variables.
       type(ESMF_State) :: importState, exportState
       type(ESMF_Clock) :: clock
-      type(ESMF_Time) :: currTime
+      type(ESMF_Time)  :: currTime
       type(ESMF_Alarm) :: restart_alarm
       integer :: shrlogunit, yr_sync, mon_sync, day_sync, tod_sync, ymd_sync, &
                  ymd, tod
@@ -786,8 +838,8 @@ contains
       ! Reset shr logging to components log file.
       ! ------------------------------------------------------------------------
 
-      call shr_file_getLogUnit(shrlogunit)
-      call shr_file_setLogUnit(lp)
+      call shr_log_getLogUnit(shrlogunit)
+      call shr_log_setLogUnit(lp)
 
       ! ------------------------------------------------------------------------
       ! Skip first coupling interval for an initial run.
@@ -895,7 +947,7 @@ contains
       ! Reset shr logging to original values.
       ! ------------------------------------------------------------------------
 
-      call shr_file_setLogUnit(shrlogunit)
+      call shr_log_setLogUnit(shrlogunit)
 
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
 

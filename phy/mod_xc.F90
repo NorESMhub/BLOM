@@ -90,9 +90,8 @@ module mod_xc
   integer, dimension (1-nbdy:idm+nbdy) :: jsu
   integer, dimension (1-nbdy:idm+nbdy) :: jsv
 
-  ! line printer unit (stdout) and file unit with default values 6 and
-  ! 12, respectively
-  integer :: lp=6, nfu = 12
+  ! line printer unit (stdout) with default values 6
+  integer :: lp=6
 
   ! tile dimensions and tile numbers (counting from 1), see xcspmd
   integer, public :: ipr, jpr, ijpr, mproc, nproc, mnproc

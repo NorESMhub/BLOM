@@ -35,7 +35,7 @@ module mod_dia
                            xceget, xctilr, xcsum, &
                            isp, ifp, ilp, isu, ifu, ilu, isv, ifv, ilv, &
                            isu, ifu, ilu, isv, ip, halo_ps, ipwocn, &
-                           iu, iv, nfu, ips, halo_qs, halo_uv, halo_vv
+                           iu, iv, ips, halo_qs, halo_uv, halo_vv
   use mod_nctools
   use netcdf,        only: nf90_fill_double
   use mod_vcoord,    only: vcoord_type_tag, isopyc_bulkml, &
@@ -3369,6 +3369,7 @@ contains
     real, dimension(itdm,jtdm) :: &
          uflx_cumt,vflx_cumt,uflx_cum350t,vflx_cum350t
     real(8) :: volu,volv
+    integer :: nfu
 
     !---------------------------------------------------------------
     ! read section information
@@ -3376,7 +3377,7 @@ contains
     if (iniflg) then
       if (mnproc == 1) then
         equat_sec = -1
-        open(nfu,file=sec_sifile,status = 'old')
+        open(newunit=nfu,file=sec_sifile,status = 'old')
         sec_num = 0
         do
           read(nfu,'(a120)',iostat = iostatus) char120
@@ -3515,6 +3516,7 @@ contains
     real :: r
     character :: c20*20
     logical :: iniflg = .true.
+    integer :: nfu
 
     save nind,iind,jind,oflg,uflg,vflg,depthst,iniflg,ocn_nreg
 
@@ -3540,7 +3542,7 @@ contains
         call ncerro(nf90_close(ncid))
 
         ! Read section file metra_index.dat
-        open(nfu,file=mer_mifile,status = 'old')
+        open(newunit=nfu,file=mer_mifile,status = 'old')
         lmax = 0
         do l = 1,ldm
           c20 = ' '
