@@ -17,7 +17,7 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-module mod_nuopc_methods
+module ocn_import_export
 ! ------------------------------------------------------------------------------
 ! This module contains routines operating on BLOM data structures needed by the
 ! NUOPC cap.
@@ -273,7 +273,7 @@ contains
    end subroutine blom_advertise_imports
 
    subroutine blom_advertise_exports(flds_scalar_name, fldsFrOcn_num, fldsFrOcn, &
-        ocn2glc_coupling)
+        ocn2glc_coupling, flds_dms, flds_brf)
      ! -------------------------------------------------------------------
      ! Determine fldsToOcn for export fields
      ! -------------------------------------------------------------------
@@ -282,6 +282,8 @@ contains
      integer            , intent(inout) :: fldsFrOcn_num
      type(fldlist_type) , intent(inout) :: fldsFrOcn(:)
      logical            , intent(in)    :: ocn2glc_coupling
+     logical            , intent(in)    :: flds_dms
+     logical            , intent(in)    :: flds_brf
 
      ! Local variables
      integer :: index_scalar
@@ -299,12 +301,14 @@ contains
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Fioo_q'        , index_Fioo_q)
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fco2_ocn' , index_Faoo_fco2)
 #ifdef HAMOCC
-     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fdms_ocn' , index_Faoo_fdms)
-     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fn2o_ocn' , index_Faoo_fn2o)
-     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fnh3_ocn' , index_Faoo_fnh3)
-     if (use_BROMO) then
+     if (flds_dms) then
+        call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fdms_ocn', index_Faoo_fdms)
+     end if
+     if (flds_brf) then
         call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fbrf_ocn', index_Faoo_fbrf)
      end if
+     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fn2o_ocn' , index_Faoo_fn2o)
+     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fnh3_ocn' , index_Faoo_fnh3)
 #endif
      if (ocn2glc_coupling) then
         call fldList_add(fldsFrOcn_num, fldsFrOcn, 'So_t_depth', index_So_t_depth, &
@@ -1232,4 +1236,4 @@ contains
 
    end subroutine blom_exportflds
 
-end module mod_nuopc_methods
+end module ocn_import_export

@@ -1041,6 +1041,7 @@ contains
       character(len = 256), dimension(4) :: rstdate_str
       character(len = 256) :: rstfnm, fnm
       character(len = 2) :: c2
+      integer :: nfu
 
       ! Formulate restart filename.
       if (expcnf == 'cesm') then
@@ -1064,7 +1065,7 @@ contains
                  trim(runid), '_restphy_', &
                  mod(nint(min(nstep/rstfrq, time)) - 1, 3) + 1, '.nc'
            endif
-           open(unit = nfu, file = 'rstdate.txt')
+           open(newunit = nfu, file = 'rstdate.txt')
            i = 1
  300       read(nfu, '(a)', end = 301) rstdate_str(i)
            i = i + 1
@@ -1076,12 +1077,12 @@ contains
               ', integration day ', nint(time)
            if (mnproc == 1) then
               if (i == 1) then
-                 open(unit = nfu, file = 'rstdate.txt')
+                 open(newunit = nfu, file = 'rstdate.txt')
                  write(nfu, '(a)') rstdate_str(1)(1:len_trim(runid) + 54)
                  close(unit = nfu)
               elseif (rstdate_str(max(1, i - 2)) /= rstdate_str(i) .and. &
                       rstdate_str(i - 1       ) /= rstdate_str(i)) then
-                 open(unit = nfu, file = 'rstdate.txt')
+                 open(newunit = nfu, file = 'rstdate.txt')
                  do j = max(1, i - 2), i
                     write(nfu, '(a)') rstdate_str(j)(1:len_trim(runid) + 54)
                  enddo
@@ -1265,7 +1266,7 @@ contains
       if (expcnf == 'cesm' .or. expcnf == 'channel') then
          ! Write restart filename to rpointer.ocn.
          if (mnproc == 1) then
-            open(unit = nfu, file = 'rpointer.ocn'//trim(inst_suffix))
+            open(newunit = nfu, file = 'rpointer.ocn'//trim(inst_suffix))
             write(nfu, '(a)') rstfnm
             close(unit = nfu)
          endif
@@ -1284,6 +1285,7 @@ contains
       character(len = 2) :: c2
       real(r8) :: pb_max, phi_min, rho_restart
       logical :: file_exist, fld_read
+      integer :: nfu
 
       ! Open restart file and adjust time information if needed.
       if     (nday1 + nint(time0) == 0 .and. (.not.resume_flag)) then
@@ -1315,7 +1317,7 @@ contains
          call xcbcst(file_exist)
          if (file_exist) then
             if (mnproc == 1) then
-               open(unit = nfu, file = 'rpointer.ocn'//trim(inst_suffix))
+               open(newunit = nfu, file = 'rpointer.ocn'//trim(inst_suffix))
                read(nfu, '(a)') rstfnm
                close(unit = nfu)
             endif

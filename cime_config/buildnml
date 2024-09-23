@@ -322,21 +322,6 @@ def buildnml(case, caseroot, compname):
                     fwrite.write(line)
     shutil.move(namelist_file_temp, namelist_file)
 
-    # change xml variable settings if appropriate
-    # Note - this does not change the blom namelist - it changes xml variables that are then
-    # used by cmeps to change attributes that are sent to the atm
-    # TODO: add n2o_emis and nh3_emis logic
-    if comp_interface == "nuopc":
-        if "ecosys" in case.get_value("BLOM_TRACER_MODULES"):
-            dms_emis = case.get_value("DMS_EMIS_OCN")
-            if dms_emis is not None:
-                case.set_value('DMS_EMIS_OCN','TRUE')
-                print ("   ***Setting DMS_EMIS_OCN to TRUE***")
-            brf_emis = pg_blom.get_value('use_bromo')
-            if brf_emis == ".true.":
-                case.set_value('BRF_EMIS_OCN','TRUE')
-                print ("   ***Setting BRF_EMIS_OCN to TRUE***")
-
 ###############################################################################
 def _main_func():
 

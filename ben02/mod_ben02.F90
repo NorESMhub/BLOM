@@ -662,6 +662,7 @@ contains
          jtp1
     logical :: dimok,exists
     character :: filename*120
+    integer :: nfu
 
     ! --- Get global coordinates of p-points.
     call xcaget(tmp2da,plat,1)
@@ -708,7 +709,7 @@ contains
       filename = 'atm_intwgt.uf'
       inquire(file=filename,exist = exists)
       if (exists) then
-        open (unit=nfu,file=filename,form = 'unformatted')
+        open (newunit=nfu,file=filename,form = 'unformatted')
         read (nfu) atm_idm_t,atm_jdm_t,idm_t,jdm_t,atm_nwgt_t
         if (atm_idm_t == atm_idm.and.atm_jdm_t == atm_jdm.and. &
              idm_t == itdm.and.jdm_t == jtdm.and. &
@@ -839,7 +840,7 @@ contains
           end do
         end if
 
-        open (unit=nfu,file=filename,form = 'unformatted')
+        open (newunit=nfu,file=filename,form = 'unformatted')
         write (nfu) atm_idm,atm_jdm,itdm,jtdm,atm_nwgt
         write (nfu) atm_wgt,atm_iwgt,atm_jwgt
         close (unit = nfu)
@@ -1936,10 +1937,11 @@ contains
     real*4, dimension(atm_idm,atm_jdm) :: atm_field_r4
     real, dimension(itdm,jtdm) :: tmp2d
     integer :: i,j,k
+    integer :: nfu
 
     if (mnproc == 1) then
       write (lp,*) 'reading atm. climatological ice concentration...'
-      open (unit=nfu,file = atm_path(1:atm_path_len) &
+      open (newunit=nfu,file = atm_path(1:atm_path_len) &
            //'clim/icec_1968-1996.uf', &
            form = 'unformatted')
     end if
@@ -1990,6 +1992,7 @@ contains
     real :: dx2,dy2
     integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: smtmsk
     integer :: i,j,k,l
+    integer :: nfu
 
     if (mnproc == 1) then
       write (lp,*) &
@@ -2031,7 +2034,7 @@ contains
     end if
 
     if (mnproc == 1) then
-      open (unit=nfu,file = atm_path(1:atm_path_len) &
+      open (newunit=nfu,file = atm_path(1:atm_path_len) &
            //'clim/skt_1968-1996.uf', &
            form = 'unformatted')
     end if
@@ -2101,9 +2104,10 @@ contains
     real :: dx2,dy2,prc_sum,eva_sum,rnf_sum,swa_sum,lwa_sum,lht_sum, &
          sht_sum,fwf_fac,dangle,garea,le,albedo,fac,swa_ave,lwa_ave, &
          lht_ave,sht_ave,crnf,cswa,A_cgs2mks
-    real*4 rw4
+    real*4 :: rw4
     integer :: i,j,k,l,il,jl
-    integer*2 rn2,ri2,rj2
+    integer*2 :: rn2,ri2,rj2
+    integer :: nfu
 
     A_cgs2mks = 1./(L_mks2cgs**2)
 
@@ -2239,7 +2243,7 @@ contains
     if (mnproc == 1) then
       write (lp,*) &
            'reading atm. climatological short-wave radiation flux...'
-      open (unit=nfu,file = atm_path(1:atm_path_len) &
+      open (newunit=nfu,file = atm_path(1:atm_path_len) &
            //'clim/dswrf_1968-1996.uf', &
            form = 'unformatted')
     end if
@@ -2276,7 +2280,7 @@ contains
     if (mnproc == 1) then
       write (lp,*) &
            'reading atm. climatological long-wave radiation flux...'
-      open (unit=nfu,file = atm_path(1:atm_path_len) &
+      open (newunit=nfu,file = atm_path(1:atm_path_len) &
            //'clim/nlwrs_1968-1996.uf', &
            form = 'unformatted')
     end if
@@ -2312,7 +2316,7 @@ contains
 
     if (mnproc == 1) then
       write(lp,*) 'reading atm. climatological total cloud cover...'
-      open (unit=nfu,file = atm_path(1:atm_path_len) &
+      open (newunit=nfu,file = atm_path(1:atm_path_len) &
            //'clim/tcdc_1968-1996.uf', &
            form = 'unformatted')
     end if
@@ -2359,7 +2363,7 @@ contains
 
     if (mnproc == 1) then
       write(lp,*) 'reading atm. climatological precipitation rate...'
-      open (unit=nfu,file = atm_path(1:atm_path_len) &
+      open (newunit=nfu,file = atm_path(1:atm_path_len) &
            //'clim/prate_1968-1996.uf', &
            form = 'unformatted')
     end if
@@ -2395,7 +2399,7 @@ contains
 
     if (mnproc == 1) then
       write(lp,*) 'reading atm. climatological latent heat flux...'
-      open (unit=nfu,file = atm_path(1:atm_path_len) &
+      open (newunit=nfu,file = atm_path(1:atm_path_len) &
            //'clim/lhtfl_1968-1996.uf', &
            form = 'unformatted')
     end if
@@ -2431,7 +2435,7 @@ contains
 
     if (mnproc == 1) then
       write(lp,*) 'reading atm. climatological sensible heat flux...'
-      open (unit=nfu,file = atm_path(1:atm_path_len) &
+      open (newunit=nfu,file = atm_path(1:atm_path_len) &
            //'clim/shtfl_1968-1996.uf', &
            form = 'unformatted')
     end if
@@ -2469,7 +2473,7 @@ contains
     if (mnproc == 1) then
       write (lp,*) &
            'reading atm. climatological surface temperature...'
-      open (unit=nfu,file = atm_path(1:atm_path_len) &
+      open (newunit=nfu,file = atm_path(1:atm_path_len) &
            //'clim/skt_1968-1996.uf', &
            form = 'unformatted')
 
@@ -2493,7 +2497,7 @@ contains
 
     if (mnproc == 1) then
       write(lp,*) 'reading atm. climatological surface pressure...'
-      open (unit=nfu,file = atm_path(1:atm_path_len) &
+      open (newunit=nfu,file = atm_path(1:atm_path_len) &
            //'clim/pres_1968-1996.uf', &
            form = 'unformatted')
     end if
@@ -2529,7 +2533,7 @@ contains
 
     if (mnproc == 1) then
       write(lp,*) 'reading atm. climatological momentum flux...'
-      open (unit=nfu,file = atm_path(1:atm_path_len) &
+      open (newunit=nfu,file = atm_path(1:atm_path_len) &
            //'clim/momfl_1968-1996.uf', &
            form = 'unformatted')
     end if
@@ -2564,7 +2568,7 @@ contains
     if (mnproc == 1) then
       write(lp,*) &
            'reading atm. climatological u-component of momentum flux...'
-      open (unit=nfu,file = atm_path(1:atm_path_len) &
+      open (newunit=nfu,file = atm_path(1:atm_path_len) &
            //'clim/uflx_1968-1996.uf', &
            form = 'unformatted')
     end if
@@ -2593,7 +2597,7 @@ contains
     if (mnproc == 1) then
       write(lp,*) &
            'reading atm. climatological v-component of momentum flux...'
-      open (unit=nfu,file = atm_path(1:atm_path_len) &
+      open (newunit=nfu,file = atm_path(1:atm_path_len) &
            //'clim/vflx_1968-1996.uf', &
            form = 'unformatted')
     end if
@@ -2662,7 +2666,7 @@ contains
         rnf_ocdpi = 0
         rnf_ocdpj = 0
       else
-        open (unit=nfu,file = 'runoffweights.uf', &
+        open (newunit=nfu,file = 'runoffweights.uf', &
              form='unformatted',status='old',action = 'read')
         do j = 1,atm_jdm
           do i = 1,atm_idm
@@ -2688,7 +2692,7 @@ contains
         close (unit = nfu)
       end if
 
-      open (unit=nfu,file = atm_path(1:atm_path_len) &
+      open (newunit=nfu,file = atm_path(1:atm_path_len) &
            //'clim/runof_1968-1996.uf', &
            form = 'unformatted')
     end if
@@ -2930,9 +2934,10 @@ contains
     ! --- ------------------------------------------------------------------
 
     real :: dx2,dy2
-    real*4 rw4
+    real*4 :: rw4
     integer :: errstat,i,j,k,l
-    integer*2 rn2,ri2,rj2
+    integer*2 :: rn2,ri2,rj2
+    integer :: nfu
 
     ! --- Allocate memory for daily forcing fields.
     allocate(taud  (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
@@ -3065,7 +3070,7 @@ contains
            rnf_ocdpi(atm_abdm,atm_idm,atm_jdm), &
            rnf_ocdpj(atm_abdm,atm_idm,atm_jdm))
 
-      open (unit=nfu,file = 'runoffweights.uf', &
+      open (newunit=nfu,file = 'runoffweights.uf', &
            form='unformatted',status='old',action = 'read')
       do j = 1,atm_jdm
         do i = 1,atm_idm

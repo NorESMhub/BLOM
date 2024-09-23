@@ -55,7 +55,7 @@ contains
                                 do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,               &
                                 use_BROMO, use_CFC, use_PBGC_CK_TIMESTEP,                          &
                                 use_BOXATM, use_sedbypass,ocn_co2_type,                            &
-                                do_n2onh3_coupled,use_extNcycle
+                                do_n2onh3_coupled,use_extNcycle,use_pref_tracers
     use mo_param1_bgc,    only: iatmco2,iatmdms,nocetra,nriv,iatmbromo,nndep,iatmn2o,iatmnh3
     use mo_vgrid,         only: set_vgrid
     use mo_apply_fedep,   only: apply_fedep
@@ -309,8 +309,10 @@ contains
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
 
-    ! update preformed tracers
-    call preftrc(kpie,kpje,omask)
+    if (use_pref_tracers) then
+      ! update preformed tracers
+      call preftrc(kpie,kpje,omask)
+    endif
 
     !--------------------------------------------------------------------
     !     Sediment module

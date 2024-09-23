@@ -128,7 +128,8 @@ contains
                                 jsdm_remin_sulf,jsediffnh4,jsediffn2o,jsediffno2,jatmn2o,jatmnh3,  &
                                 jndepnhxfx
     use mo_control_bgc,   only: io_stdo_bgc,dtb,use_BROMO,use_AGG,use_WLIN,use_natDIC,             &
-                                use_CFC,use_sedbypass,use_cisonew,use_BOXATM,use_M4AGO,use_extNcycle
+                                use_CFC,use_sedbypass,use_cisonew,use_BOXATM,use_M4AGO,            &
+                                use_extNcycle,use_pref_tracers
     use mo_param1_bgc,    only: ialkali,ian2o,iano3,iatmco2,iatmdms,iatmn2,iatmn2o,iatmo2,         &
                                 icalc,idet,idms,idicsat,idoc,iiron,iopal,                          &
                                 ioxygen,iphosph,iphy,iprefalk,iprefdic,                            &
@@ -394,12 +395,14 @@ contains
     call acclyr(jomegac,OmegaC,pddpo,1)
     call acclyr(jphosy,phosy3d,pddpo,1)
     call acclyr(jo2sat,satoxy,pddpo,1)
-    call acclyr(jprefo2,ocetra(1,1,1,iprefo2),pddpo,1)
-    call acclyr(jprefpo4,ocetra(1,1,1,iprefpo4),pddpo,1)
-    call acclyr(jprefsilica,ocetra(1,1,1,iprefsilica),pddpo,1)
-    call acclyr(jprefalk,ocetra(1,1,1,iprefalk),pddpo,1)
-    call acclyr(jprefdic,ocetra(1,1,1,iprefdic),pddpo,1)
     call acclyr(jdicsat,ocetra(1,1,1,idicsat),pddpo,1)
+    if (use_pref_tracers) then
+      call acclyr(jprefo2,ocetra(1,1,1,iprefo2),pddpo,1)
+      call acclyr(jprefpo4,ocetra(1,1,1,iprefpo4),pddpo,1)
+      call acclyr(jprefsilica,ocetra(1,1,1,iprefsilica),pddpo,1)
+      call acclyr(jprefalk,ocetra(1,1,1,iprefalk),pddpo,1)
+      call acclyr(jprefdic,ocetra(1,1,1,iprefdic),pddpo,1)
+    endif
     if (use_natDIC) then
       call acclyr(jnatalkali,ocetra(1,1,1,inatalkali),pddpo,1)
       call acclyr(jnatdic,ocetra(1,1,1,inatsco212),pddpo,1)
@@ -511,12 +514,14 @@ contains
         call acclvl(jlvlomegac,OmegaC,k,ind1,ind2,wghts)
         call acclvl(jlvlphosy,phosy3d,k,ind1,ind2,wghts)
         call acclvl(jlvlo2sat,satoxy,k,ind1,ind2,wghts)
-        call acclvl(jlvlprefo2,ocetra(1,1,1,iprefo2),k,ind1,ind2,wghts)
-        call acclvl(jlvlprefpo4,ocetra(1,1,1,iprefpo4),k,ind1,ind2,wghts)
-        call acclvl(jlvlprefsilica,ocetra(1,1,1,iprefsilica),k,ind1,ind2,wghts)
-        call acclvl(jlvlprefalk,ocetra(1,1,1,iprefalk),k,ind1,ind2,wghts)
-        call acclvl(jlvlprefdic,ocetra(1,1,1,iprefdic),k,ind1,ind2,wghts)
         call acclvl(jlvldicsat,ocetra(1,1,1,idicsat),k,ind1,ind2,wghts)
+        if (use_pref_tracers) then
+          call acclvl(jlvlprefo2,ocetra(1,1,1,iprefo2),k,ind1,ind2,wghts)
+          call acclvl(jlvlprefpo4,ocetra(1,1,1,iprefpo4),k,ind1,ind2,wghts)
+          call acclvl(jlvlprefsilica,ocetra(1,1,1,iprefsilica),k,ind1,ind2,wghts)
+          call acclvl(jlvlprefalk,ocetra(1,1,1,iprefalk),k,ind1,ind2,wghts)
+          call acclvl(jlvlprefdic,ocetra(1,1,1,iprefdic),k,ind1,ind2,wghts)
+        endif
         if (use_natDIC) then
           call acclvl(jlvlnatdic,ocetra(1,1,1,inatsco212),k,ind1,ind2,wghts)
           call acclvl(jlvlnatalkali,ocetra(1,1,1,inatalkali),k,ind1,ind2,wghts)

@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <testlist version="2.0">
+  <!-- aux_blom_noresm : Declarations for BLOM/iHAMOCC tests -->
   <test name="SMS_D_Ld1" grid="T62_tn14" compset="NOINYOC" testmods="blom/hybrid">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
@@ -61,6 +62,25 @@
     <options>
       <option name="wallclock">00:20:00</option>
       <option name="comment">test restart with wave code</option>
+    </options>
+  </test>
+  <!-- Declarations for tests with different iHAMOCC settings: aux_hamocc_noresm -->
+  <test name="SMS_D_Ld1" grid="T62_tn14" compset="NOINYOC" testmods="hamocc/hamocc1">
+    <machines>
+      <machine name="betzy" compiler="intel" category="aux_hamocc_noresm"/>
+    </machines>
+    <options>
+      <option name="wallclock">00:20:00</option>
+      <option name="comment">test debug mode with CISO=TRUE</option>
+    </options>
+  </test>
+  <test name="SMS_D_Ld1" grid="T62_tn14" compset="NOINYOC" testmods="hamocc/hamocc2">
+    <machines>
+      <machine name="betzy" compiler="intel" category="aux_hamocc_noresm"/>
+    </machines>
+    <options>
+      <option name="wallclock">00:20:00</option>
+      <option name="comment">test debug mode with CISO=TRUE; SEDBYPASS=TRUE</option>
     </options>
   </test>
 </testlist>
