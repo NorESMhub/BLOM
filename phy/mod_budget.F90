@@ -185,8 +185,7 @@ contains
 
     integer, intent(in) :: m
 
-    integer :: i, j,l
-    integer :: nfu
+    integer :: nfu, i, j, l
 
     if (.not.cnsvdi) return
 

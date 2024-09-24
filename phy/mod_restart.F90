@@ -1037,11 +1037,10 @@ contains
    ! Write model state to restart files.
    ! ---------------------------------------------------------------------------
 
-      integer :: i, j, n
+      integer :: nfu, i, j, n
       character(len = 256), dimension(4) :: rstdate_str
       character(len = 256) :: rstfnm, fnm
       character(len = 2) :: c2
-      integer :: nfu
 
       ! Formulate restart filename.
       if (expcnf == 'cesm') then
@@ -1280,12 +1279,11 @@ contains
    ! ---------------------------------------------------------------------------
 
       type(date_type) :: date_rest
-      integer errstat, dndiff, i, j, l, n
+      integer :: nfu, errstat, dndiff, i, j, l, n
       character(len = 256) :: rstfnm, fnm
       character(len = 2) :: c2
       real(r8) :: pb_max, phi_min, rho_restart
       logical :: file_exist, fld_read
-      integer :: nfu
 
       ! Open restart file and adjust time information if needed.
       if     (nday1 + nint(time0) == 0 .and. (.not.resume_flag)) then

@@ -78,9 +78,8 @@ contains
 
       character(len = 80) :: nml_fname
       real(r8) :: dpmin
-      integer :: ios, k
+      integer :: nfu, ios, k
       logical :: fexist
-      integer :: nfu
 
       namelist /vcoord/ &
          vcoord_type, dpmin_surface, dpmin_inflation_factor, &

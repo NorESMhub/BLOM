@@ -124,8 +124,7 @@ contains
     type(date_type) :: date0_rest
     character(len = 256) :: nlfnm,runtyp,rstfnm
     logical :: fexist
-    integer :: m,n,idate,idate0,ios
-    integer :: nfu
+    integer :: m,n,idate,idate0,nfu,ios
 
     namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,runtyp, &
          grfile,icfile,pref,baclin,batrop, &

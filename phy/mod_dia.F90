@@ -3355,8 +3355,7 @@ contains
     integer :: iogrp
 
     ! Local variables
-    integer       :: n,i,j,k,s,l
-    integer       :: iostatus
+    integer       :: nfu,iostatus,n,i,j,k,s,l
     integer, save :: nsi(max_sec)
     integer, save :: isi(max_sec,sdm)
     integer, save :: jsi(max_sec,sdm)
@@ -3370,7 +3369,6 @@ contains
     real, dimension(itdm,jtdm) :: &
          uflx_cumt,vflx_cumt,uflx_cum350t,vflx_cum350t
     real(8) :: volu,volv
-    integer :: nfu
 
     !---------------------------------------------------------------
     ! read section information
@@ -3505,7 +3503,7 @@ contains
     integer, intent(in) :: iogrp
 
     ! Local variables
-    integer :: ncid,dimid,varid,i,j,k,l,m,n,o,s,ocn_nreg,iostatus
+    integer :: ncid,dimid,varid,i,j,k,l,m,n,o,s,ocn_nreg,nfu,iostatus
     integer :: istat,iind1,jind1,uflg1,vflg1,nind1
     integer :: nfld,ACC_UIND,ACC_VIND,nind(ldm),iind(sdm,ldm),jind(sdm,ldm)
     integer :: kmxl(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy)
@@ -3517,7 +3515,6 @@ contains
     real :: r
     character :: c20*20
     logical :: iniflg = .true.
-    integer :: nfu
 
     save nind,iind,jind,oflg,uflg,vflg,depthst,iniflg,ocn_nreg
 
