@@ -962,7 +962,7 @@ contains
    ! ---------------------------------------------------------------------------
 
       character(len = 80) :: nml_fname
-      integer :: ios
+      integer :: nfu, ios
       logical :: fexist
 
       namelist /ale_regrid_remap/ &
@@ -977,18 +977,19 @@ contains
       ! Return if ALE method is not required.
       if (vcoord_tag == vcoord_isopyc_bulkml) return
 
-      ! Read variables in the namelist group 'ale'.
+      ! Read variables in the namelist group 'ale_regrid_remap'.
       if (mnproc == 1) then
          nml_fname = 'ocn_in'//trim(inst_suffix)
          inquire(file = nml_fname, exist = fexist)
          if (fexist) then
-            open (unit = nfu, file = nml_fname, status = 'old', action = 'read')
+            open (newunit = nfu, file = nml_fname, status = 'old', &
+                  action = 'read')
          else
             nml_fname = 'limits'//trim(inst_suffix)
             inquire(file = nml_fname, exist = fexist)
             if (fexist) then
-               open (unit = nfu, file = nml_fname, status = 'old', &
-                    action = 'read')
+               open (newunit = nfu, file = nml_fname, status = 'old', &
+                     action = 'read')
             else
                write (lp,*) &
                   'readnml_ale_regrid_remap: could not find namelist file!'
