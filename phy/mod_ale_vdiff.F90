@@ -17,10 +17,11 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-module mod_vdiff
-  ! ------------------------------------------------------------------------------
-  ! This module contains procedures for solving vertical diffusion equations.
-  ! ------------------------------------------------------------------------------
+module mod_ale_vdiff
+! ------------------------------------------------------------------------------
+! This module contains procedures for solving vertical diffusion equations with
+! the ALE method.
+! ------------------------------------------------------------------------------
 
   use mod_types,     only: r8
   use mod_constants, only: g, spcifh, alpha0, onem
@@ -41,11 +42,11 @@ module mod_vdiff
   real(r8), parameter :: &
        dpmin_vdiff  = 0.1_r8*onem
 
-  public :: cntiso_hybrid_vdifft, cntiso_hybrid_vdiffm
+  public :: ale_vdifft, ale_vdiffm
 
 contains
 
-  subroutine cntiso_hybrid_vdifft(m, n, mm, nn, k1m, k1n)
+  subroutine ale_vdifft(m, n, mm, nn, k1m, k1n)
 
     integer, intent(in) :: m, n, mm, nn, k1m, k1n
 
@@ -220,7 +221,7 @@ contains
 
     if (csdiag) then
       if (mnproc == 1) then
-        write (lp,*) 'cntiso_hybrid_vdifft:'
+        write (lp,*) 'ale_vdifft:'
       endif
       call chksummsk(temp, ip, 2*kk, 'temp')
       call chksummsk(saln, ip, 2*kk, 'saln')
@@ -232,9 +233,9 @@ contains
       end if
     endif
 
-  end subroutine cntiso_hybrid_vdifft
+  end subroutine ale_vdifft
 
-  subroutine cntiso_hybrid_vdiffm(m, n, mm, nn, k1m, k1n)
+  subroutine ale_vdiffm(m, n, mm, nn, k1m, k1n)
 
     integer, intent(in) :: m, n, mm, nn, k1m, k1n
 
@@ -357,12 +358,12 @@ contains
 
     if (csdiag) then
       if (mnproc == 1) then
-        write (lp,*) 'cntiso_hybrid_vdiffm:'
+        write (lp,*) 'ale_vdiffm:'
       endif
       call chksummsk(u, iu, 2*kk, 'u')
       call chksummsk(v, iv, 2*kk, 'v')
     endif
 
-  end subroutine cntiso_hybrid_vdiffm
+  end subroutine ale_vdiffm
 
-end module mod_vdiff
+end module mod_ale_vdiff

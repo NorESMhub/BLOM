@@ -195,9 +195,8 @@ contains
 
       ! Local variables
       character(len = 80) :: nml_fname
-      integer :: ios
+      integer :: nfu, ios
       logical :: fexist
-      integer :: nfu
 
       namelist /diffusion/ &
          egc, eggam, eglsmn, egmndf, egmxdf, egidfq, rhiscf, ri0, &

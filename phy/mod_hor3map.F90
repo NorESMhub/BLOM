@@ -52,12 +52,14 @@ module mod_hor3map
       hor3map_no_limiting            = 200, & ! Limiting methods
       hor3map_monotonic              = 201, &
       hor3map_non_oscillatory        = 203, &
-      hor3map_non_oscillatory_posdef = 204
+      hor3map_non_oscillatory_posdef = 204, &
+      hor3map_regrid_method_1        = 301, & ! Regrid methods
+      hor3map_regrid_method_2        = 302
 
    ! Error parameters.
    integer, parameter :: &
       hor3map_noerr                     =  0, &
-      hor3map_invalid_method            =  1, &
+      hor3map_invalid_recon_method      =  1, &
       hor3map_resizing_initialized_rcgs =  2, &
       hor3map_nonmonotonic_src_edges    =  3, &
       hor3map_src_extent_too_small      =  4, &
@@ -73,12 +75,13 @@ module mod_hor3map
       hor3map_invalid_ppm_limiting      = 14, &
       hor3map_invalid_pqm_limiting      = 15, &
       hor3map_recon_not_available       = 16, &
-      hor3map_grd_size_mismatch         = 17, &
-      hor3map_remap_not_prepared        = 18, &
-      hor3map_dst_size_mismatch         = 19, &
-      hor3map_index_out_of_bounds       = 20, &
-      hor3map_inconsistent_rcgs         = 21, &
-      hor3map_errmsg_num = 21
+      hor3map_invalid_regrid_method     = 17, &
+      hor3map_grd_size_mismatch         = 18, &
+      hor3map_remap_not_prepared        = 19, &
+      hor3map_dst_size_mismatch         = 20, &
+      hor3map_index_out_of_bounds       = 21, &
+      hor3map_inconsistent_rcgs         = 22, &
+      hor3map_errmsg_num = 22
    character(len = 80), dimension(hor3map_errmsg_num), parameter :: errmsg = &
       ["Invalid reconstruction method!                                   ", &
        "Cannot resize initialized reconstruction grid data structure!    ", &
@@ -96,6 +99,7 @@ module mod_hor3map
        "Invalid limiting method for PPM!                                 ", &
        "Invalid limiting method for PQM!                                 ", &
        "Call 'reconstruct' first!                                        ", &
+       "Invalid regrid method!                                           ", &
        "Size mismatch between grid edge values and locations!            ", &
        "Call 'prepare_remapping' first!                                  ", &
        "Size mismatch between destination grid edges and data array!     ", &
@@ -144,7 +148,10 @@ module mod_hor3map
       c5_2 = 5._r8/2._r8, c8_3 = 8._r8/3._r8, c10_3 = 10._r8/3._r8, &
       c9_2 = 9._r8/2._r8
 
+   ! Derived data types.
+
    type :: recon_grd_struct
+      ! Reconstruction grid data structure.
 
       integer :: &
          i_lbound       = 1, &
@@ -198,6 +205,7 @@ module mod_hor3map
    end type recon_grd_struct
 
    type :: recon_src_struct
+      ! Reconstruction source data structure.
 
       integer :: &
          limiting      = hor3map_monotonic, &
@@ -232,6 +240,7 @@ module mod_hor3map
    end type recon_src_struct
 
    type :: remap_struct
+      ! Remapping data structure.
 
       integer :: &
          i_index_curr = 0, &
@@ -259,7 +268,7 @@ module mod_hor3map
    public :: recon_grd_struct, recon_src_struct, remap_struct, &
              initialize_rcgs, initialize_rcss, initialize_rms, &
              prepare_reconstruction, prepare_remapping, &
-             reconstruct, extract_polycoeff, regrid, regrid2, remap, &
+             reconstruct, extract_polycoeff, regrid, remap, &
              free_rcgs, free_rcss, free_rms, &
              hor3map_pcm, hor3map_plm, hor3map_ppm, hor3map_pqm, &
              hor3map_no_limiting, hor3map_monotonic, hor3map_non_oscillatory, &
@@ -300,7 +309,7 @@ contains
 
       ij_index = rcgs%i_index - rcgs%i_lbound + 1 &
                + (rcgs%j_index - rcgs%j_lbound) &
-                *(rcgs%i_ubound - rcgs%i_lbound + 1)
+                 *(rcgs%i_ubound - rcgs%i_lbound + 1)
 
       rcgs%x_eps => rcgs%x_eps_data(ij_index)
       rcgs%x_edge_src => rcgs%x_edge_src_data(:,ij_index)
@@ -640,7 +649,7 @@ contains
    pure subroutine slope_ih3_coeff(h, tdscoeff)
    ! ---------------------------------------------------------------------------
    ! Compute row coefficients for the tridiagonal system of equations to be
-   ! solved for 3th order accurate slope estimates.
+   ! solved for 3rd order accurate slope estimates.
    ! ---------------------------------------------------------------------------
 
       real(r8), dimension(:), intent(in) :: h
@@ -3016,7 +3025,187 @@ contains
 
    end function quartic_intersection
 
-   pure subroutine regrid_plm_intersections(rcss, u_sgn, u_edge_grd, x_edge_grd)
+   pure subroutine regrid_plm_method_1(rcss, u_sgn, u_edge_grd, x_edge_grd)
+
+      type(recon_src_struct), intent(in) :: rcss
+      real(r8), dimension(:), intent(in) :: u_edge_grd
+      real(r8), dimension(:), intent(inout) :: x_edge_grd
+      real(r8), intent(in) :: u_sgn
+
+      real(r8) :: ue_min, ue_max, xi
+      integer :: ns, ng, jg, js
+
+      ! Number of source grid cells.
+      ns = rcss%rcgs%n_src_actual
+
+      ! Number of grid edges.
+      ng = size(u_edge_grd)
+
+      jg = 1
+      do
+         if ((u_edge_grd(jg) - rcss%uel(1))*u_sgn >= c0) exit
+         jg = jg + 1
+         if (jg > ng) return
+      enddo
+
+      js = 1
+      do
+         if (js + 1 > ns) exit
+         ue_min = min(rcss%uer(js)*u_sgn, rcss%uel(js+1)*u_sgn)
+         do
+            if (u_edge_grd(jg)*u_sgn >= ue_min) exit
+            xi = line_intersection(rcss%polycoeff(:,js), u_edge_grd(jg), &
+                                   rcss%u_eps, c0, c1)
+            x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
+                           + ( rcss%rcgs%x_edge_src(js+1) &
+                             - rcss%rcgs%x_edge_src(js  ))*xi
+            jg = jg + 1
+            if (jg > ng) return
+         enddo
+         ue_max = max(rcss%uer(js)*u_sgn, rcss%uel(js+1)*u_sgn)
+         do
+            if (u_edge_grd(jg)*u_sgn > ue_max) exit
+            x_edge_grd(jg) = rcss%rcgs%x_edge_src(js+1)
+            jg = jg + 1
+            if (jg > ng) return
+         enddo
+         js = js + 1
+      enddo
+
+      do
+         if ((u_edge_grd(jg) - rcss%uer(js))*u_sgn > c0) return
+         xi = line_intersection(rcss%polycoeff(:,js), u_edge_grd(jg), &
+                                rcss%u_eps, c0, c1)
+         x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
+                        + ( rcss%rcgs%x_edge_src(js+1) &
+                          - rcss%rcgs%x_edge_src(js  ))*xi
+         jg = jg + 1
+         if (jg > ng) return
+      enddo
+
+   end subroutine regrid_plm_method_1
+
+   pure subroutine regrid_ppm_method_1(rcss, u_sgn, u_edge_grd, x_edge_grd)
+
+      type(recon_src_struct), intent(in) :: rcss
+      real(r8), dimension(:), intent(in) :: u_edge_grd
+      real(r8), dimension(:), intent(inout) :: x_edge_grd
+      real(r8), intent(in) :: u_sgn
+
+      real(r8) :: ue_min, ue_max, xi
+      integer :: ns, ng, jg, js
+
+      ! Number of source grid cells.
+      ns = rcss%rcgs%n_src_actual
+
+      ! Number of grid edges.
+      ng = size(u_edge_grd)
+
+      jg = 1
+      do
+         if ((u_edge_grd(jg) - rcss%uel(1))*u_sgn >= c0) exit
+         jg = jg + 1
+         if (jg > ng) return
+      enddo
+
+      js = 1
+      do
+         if (js + 1 > ns) exit
+         ue_min = min(rcss%uer(js)*u_sgn, rcss%uel(js+1)*u_sgn)
+         do
+            if (u_edge_grd(jg)*u_sgn >= ue_min) exit
+            xi = parabola_intersection(rcss%polycoeff(:,js), u_edge_grd(jg), &
+                                       rcss%u_eps, c0, c1)
+            x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
+                           + ( rcss%rcgs%x_edge_src(js+1) &
+                             - rcss%rcgs%x_edge_src(js  ))*xi
+            jg = jg + 1
+            if (jg > ng) return
+         enddo
+         ue_max = max(rcss%uer(js)*u_sgn, rcss%uel(js+1)*u_sgn)
+         do
+            if (u_edge_grd(jg)*u_sgn > ue_max) exit
+            x_edge_grd(jg) = rcss%rcgs%x_edge_src(js+1)
+            jg = jg + 1
+            if (jg > ng) return
+         enddo
+         js = js + 1
+      enddo
+
+      do
+         if ((u_edge_grd(jg) - rcss%uer(js))*u_sgn > c0) return
+         xi = parabola_intersection(rcss%polycoeff(:,js), u_edge_grd(jg), &
+                                    rcss%u_eps, c0, c1)
+         x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
+                        + ( rcss%rcgs%x_edge_src(js+1) &
+                          - rcss%rcgs%x_edge_src(js  ))*xi
+         jg = jg + 1
+         if (jg > ng) return
+      enddo
+
+   end subroutine regrid_ppm_method_1
+
+   pure subroutine regrid_pqm_method_1(rcss, u_sgn, u_edge_grd, x_edge_grd)
+
+      type(recon_src_struct), intent(in) :: rcss
+      real(r8), dimension(:), intent(in) :: u_edge_grd
+      real(r8), dimension(:), intent(inout) :: x_edge_grd
+      real(r8), intent(in) :: u_sgn
+
+      real(r8) :: ue_min, ue_max, xi
+      integer :: ns, ng, jg, js
+
+      ! Number of source grid cells.
+      ns = rcss%rcgs%n_src_actual
+
+      ! Number of grid edges.
+      ng = size(u_edge_grd)
+
+      jg = 1
+      do
+         if ((u_edge_grd(jg) - rcss%uel(1))*u_sgn >= c0) exit
+         jg = jg + 1
+         if (jg > ng) return
+      enddo
+
+      js = 1
+      do
+         if (js + 1 > ns) exit
+         ue_min = min(rcss%uer(js)*u_sgn, rcss%uel(js+1)*u_sgn)
+         do
+            if (u_edge_grd(jg)*u_sgn >= ue_min) exit
+            xi = quartic_intersection(rcss%polycoeff(:,js), u_edge_grd(jg), &
+                                      rcss%u_eps, c0, c1)
+            x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
+                           + ( rcss%rcgs%x_edge_src(js+1) &
+                             - rcss%rcgs%x_edge_src(js  ))*xi
+            jg = jg + 1
+            if (jg > ng) return
+         enddo
+         ue_max = max(rcss%uer(js)*u_sgn, rcss%uel(js+1)*u_sgn)
+         do
+            if (u_edge_grd(jg)*u_sgn > ue_max) exit
+            x_edge_grd(jg) = rcss%rcgs%x_edge_src(js+1)
+            jg = jg + 1
+            if (jg > ng) return
+         enddo
+         js = js + 1
+      enddo
+
+      do
+         if ((u_edge_grd(jg) - rcss%uer(js))*u_sgn > c0) return
+         xi = quartic_intersection(rcss%polycoeff(:,js), u_edge_grd(jg), &
+                                   rcss%u_eps, c0, c1)
+         x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
+                        + ( rcss%rcgs%x_edge_src(js+1) &
+                          - rcss%rcgs%x_edge_src(js  ))*xi
+         jg = jg + 1
+         if (jg > ng) return
+      enddo
+
+   end subroutine regrid_pqm_method_1
+
+   pure subroutine regrid_plm_method_2(rcss, u_sgn, u_edge_grd, x_edge_grd)
 
       type(recon_src_struct), intent(in) :: rcss
       real(r8), dimension(:), intent(in) :: u_edge_grd
@@ -3071,7 +3260,7 @@ contains
 
          ! Construct new parabolas left and right of the edge that are
          ! continuous and smooth across the edge and with the original piecewise
-         ! parabolas left and right of the edge at the mid points of their
+         ! lines left and right of the edge at the mid points of their
          ! respective grid cells.
          duml = rcss%polycoeff(2,js-1)
          dumr = rcss%polycoeff(2,js  )
@@ -3082,8 +3271,8 @@ contains
             ! If the slope of the new parabolas are non-monotonic at the
             ! edge, set the edge slope to zero and enforce that the new
             ! parabolas cross the edge within the interval spanned by the
-            ! edge values of the original piecewise parabolas. Smoothness
-            ! with the original piecewise parabolas at grid cell mid points
+            ! edge values of the original piecewise lines. Smoothness
+            ! with the original piecewise lines at grid cell mid points
             ! is then not guaranteed.
             pcr(2) = c0
             uerl = rcss%uer(js-1)
@@ -3142,9 +3331,9 @@ contains
          if (jg > ng) return
       enddo
 
-   end subroutine regrid_plm_intersections
+   end subroutine regrid_plm_method_2
 
-   pure subroutine regrid_ppm_intersections(rcss, u_sgn, u_edge_grd, x_edge_grd)
+   pure subroutine regrid_ppm_method_2(rcss, u_sgn, u_edge_grd, x_edge_grd)
 
       type(recon_src_struct), intent(in) :: rcss
       real(r8), dimension(:), intent(in) :: u_edge_grd
@@ -3272,9 +3461,9 @@ contains
          if (jg > ng) return
       enddo
 
-   end subroutine regrid_ppm_intersections
+   end subroutine regrid_ppm_method_2
 
-   pure subroutine regrid_pqm_intersections(rcss, u_sgn, u_edge_grd, x_edge_grd)
+   pure subroutine regrid_pqm_method_2(rcss, u_sgn, u_edge_grd, x_edge_grd)
 
       type(recon_src_struct), intent(in) :: rcss
       real(r8), dimension(:), intent(in) :: u_edge_grd
@@ -3335,7 +3524,7 @@ contains
 
          ! Construct new parabolas left and right of the edge that are
          ! continuous and smooth across the edge and with the original piecewise
-         ! parabolas left and right of the edge at the mid points of their
+         ! quartics left and right of the edge at the mid points of their
          ! respective grid cells.
          duml =      rcss%polycoeff(2,js-1) +      rcss%polycoeff(3,js-1) &
               + c3_4*rcss%polycoeff(4,js-1) + c1_2*rcss%polycoeff(5,js-1)
@@ -3348,8 +3537,8 @@ contains
             ! If the slope of the new parabolas are non-monotonic at the
             ! edge, set the edge slope to zero and enforce that the new
             ! parabolas cross the edge within the interval spanned by the
-            ! edge values of the original piecewise parabolas. Smoothness
-            ! with the original piecewise parabolas at grid cell mid points
+            ! edge values of the original piecewise quartics. Smoothness
+            ! with the original piecewise quartics at grid cell mid points
             ! is then not guaranteed.
             pcr(2) = c0
             uerl = rcss%uer(js-1)
@@ -3408,187 +3597,7 @@ contains
          if (jg > ng) return
       enddo
 
-   end subroutine regrid_pqm_intersections
-
-   pure subroutine regrid2_plm_intersections(rcss, u_sgn, u_edge_grd, x_edge_grd)
-
-      type(recon_src_struct), intent(in) :: rcss
-      real(r8), dimension(:), intent(in) :: u_edge_grd
-      real(r8), dimension(:), intent(inout) :: x_edge_grd
-      real(r8), intent(in) :: u_sgn
-
-      real(r8) :: ue_min, ue_max, xi
-      integer :: ns, ng, jg, js
-
-      ! Number of source grid cells.
-      ns = rcss%rcgs%n_src_actual
-
-      ! Number of grid edges.
-      ng = size(u_edge_grd)
-
-      jg = 1
-      do
-         if ((u_edge_grd(jg) - rcss%uel(1))*u_sgn >= c0) exit
-         jg = jg + 1
-         if (jg > ng) return
-      enddo
-
-      js = 1
-      do
-         if (js + 1 > ns) exit
-         ue_min = min(rcss%uer(js)*u_sgn, rcss%uel(js+1)*u_sgn)
-         do
-            if (u_edge_grd(jg)*u_sgn >= ue_min) exit
-            xi = line_intersection(rcss%polycoeff(:,js), u_edge_grd(jg), &
-                                   rcss%u_eps, c0, c1)
-            x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
-                           + ( rcss%rcgs%x_edge_src(js+1) &
-                             - rcss%rcgs%x_edge_src(js  ))*xi
-            jg = jg + 1
-            if (jg > ng) return
-         enddo
-         ue_max = max(rcss%uer(js)*u_sgn, rcss%uel(js+1)*u_sgn)
-         do
-            if (u_edge_grd(jg)*u_sgn > ue_max) exit
-            x_edge_grd(jg) = rcss%rcgs%x_edge_src(js+1)
-            jg = jg + 1
-            if (jg > ng) return
-         enddo
-         js = js + 1
-      enddo
-
-      do
-         if ((u_edge_grd(jg) - rcss%uer(js))*u_sgn > c0) return
-         xi = line_intersection(rcss%polycoeff(:,js), u_edge_grd(jg), &
-                                rcss%u_eps, c0, c1)
-         x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
-                        + ( rcss%rcgs%x_edge_src(js+1) &
-                          - rcss%rcgs%x_edge_src(js  ))*xi
-         jg = jg + 1
-         if (jg > ng) return
-      enddo
-
-   end subroutine regrid2_plm_intersections
-
-   pure subroutine regrid2_ppm_intersections(rcss, u_sgn, u_edge_grd, x_edge_grd)
-
-      type(recon_src_struct), intent(in) :: rcss
-      real(r8), dimension(:), intent(in) :: u_edge_grd
-      real(r8), dimension(:), intent(inout) :: x_edge_grd
-      real(r8), intent(in) :: u_sgn
-
-      real(r8) :: ue_min, ue_max, xi
-      integer :: ns, ng, jg, js
-
-      ! Number of source grid cells.
-      ns = rcss%rcgs%n_src_actual
-
-      ! Number of grid edges.
-      ng = size(u_edge_grd)
-
-      jg = 1
-      do
-         if ((u_edge_grd(jg) - rcss%uel(1))*u_sgn >= c0) exit
-         jg = jg + 1
-         if (jg > ng) return
-      enddo
-
-      js = 1
-      do
-         if (js + 1 > ns) exit
-         ue_min = min(rcss%uer(js)*u_sgn, rcss%uel(js+1)*u_sgn)
-         do
-            if (u_edge_grd(jg)*u_sgn >= ue_min) exit
-            xi = parabola_intersection(rcss%polycoeff(:,js), u_edge_grd(jg), &
-                                       rcss%u_eps, c0, c1)
-            x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
-                           + ( rcss%rcgs%x_edge_src(js+1) &
-                             - rcss%rcgs%x_edge_src(js  ))*xi
-            jg = jg + 1
-            if (jg > ng) return
-         enddo
-         ue_max = max(rcss%uer(js)*u_sgn, rcss%uel(js+1)*u_sgn)
-         do
-            if (u_edge_grd(jg)*u_sgn > ue_max) exit
-            x_edge_grd(jg) = rcss%rcgs%x_edge_src(js+1)
-            jg = jg + 1
-            if (jg > ng) return
-         enddo
-         js = js + 1
-      enddo
-
-      do
-         if ((u_edge_grd(jg) - rcss%uer(js))*u_sgn > c0) return
-         xi = parabola_intersection(rcss%polycoeff(:,js), u_edge_grd(jg), &
-                                    rcss%u_eps, c0, c1)
-         x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
-                        + ( rcss%rcgs%x_edge_src(js+1) &
-                          - rcss%rcgs%x_edge_src(js  ))*xi
-         jg = jg + 1
-         if (jg > ng) return
-      enddo
-
-   end subroutine regrid2_ppm_intersections
-
-   pure subroutine regrid2_pqm_intersections(rcss, u_sgn, u_edge_grd, x_edge_grd)
-
-      type(recon_src_struct), intent(in) :: rcss
-      real(r8), dimension(:), intent(in) :: u_edge_grd
-      real(r8), dimension(:), intent(inout) :: x_edge_grd
-      real(r8), intent(in) :: u_sgn
-
-      real(r8) :: ue_min, ue_max, xi
-      integer :: ns, ng, jg, js
-
-      ! Number of source grid cells.
-      ns = rcss%rcgs%n_src_actual
-
-      ! Number of grid edges.
-      ng = size(u_edge_grd)
-
-      jg = 1
-      do
-         if ((u_edge_grd(jg) - rcss%uel(1))*u_sgn >= c0) exit
-         jg = jg + 1
-         if (jg > ng) return
-      enddo
-
-      js = 1
-      do
-         if (js + 1 > ns) exit
-         ue_min = min(rcss%uer(js)*u_sgn, rcss%uel(js+1)*u_sgn)
-         do
-            if (u_edge_grd(jg)*u_sgn >= ue_min) exit
-            xi = quartic_intersection(rcss%polycoeff(:,js), u_edge_grd(jg), &
-                                      rcss%u_eps, c0, c1)
-            x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
-                           + ( rcss%rcgs%x_edge_src(js+1) &
-                             - rcss%rcgs%x_edge_src(js  ))*xi
-            jg = jg + 1
-            if (jg > ng) return
-         enddo
-         ue_max = max(rcss%uer(js)*u_sgn, rcss%uel(js+1)*u_sgn)
-         do
-            if (u_edge_grd(jg)*u_sgn > ue_max) exit
-            x_edge_grd(jg) = rcss%rcgs%x_edge_src(js+1)
-            jg = jg + 1
-            if (jg > ng) return
-         enddo
-         js = js + 1
-      enddo
-
-      do
-         if ((u_edge_grd(jg) - rcss%uer(js))*u_sgn > c0) return
-         xi = quartic_intersection(rcss%polycoeff(:,js), u_edge_grd(jg), &
-                                   rcss%u_eps, c0, c1)
-         x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
-                        + ( rcss%rcgs%x_edge_src(js+1) &
-                          - rcss%rcgs%x_edge_src(js  ))*xi
-         jg = jg + 1
-         if (jg > ng) return
-      enddo
-
-   end subroutine regrid2_pqm_intersections
+   end subroutine regrid_pqm_method_2
 
    ! ---------------------------------------------------------------------------
    ! Public procedures.
@@ -3641,7 +3650,7 @@ contains
                   max(1, min(eb_ord_max_pqm, rcgs%right_bndr_ord))
             endif
          case default
-            errstat = hor3map_invalid_method
+            errstat = hor3map_invalid_recon_method
             return
       end select
 
@@ -4449,20 +4458,25 @@ contains
    end function extract_polycoeff
 
    function regrid(rcss, u_edge_grd, x_edge_grd, missing_value, &
-                   i_index, j_index) &
-      result(errstat)
+                   i_index, j_index, regrid_method) result(errstat)
    ! ---------------------------------------------------------------------------
    ! Find grid locations where desired grid cell edge data values intersect with
-   ! a reconstruction of the source data.
+   ! a reconstruction of the source data. The following methods are supported:
+   ! - Method 1: Find intersections with the piecewise polynomial reconstruction
+   !             provided in rcss. 
+   ! - Method 2: Find intersections with parabolas constructed to be continuous
+   !             and smooth across a grid cell edge and with the original
+   !             piecewise polynomials adjacent of the edge at the mid points of
+   !             their respective grid cells.
    ! ---------------------------------------------------------------------------
 
       type(recon_src_struct), intent(inout) :: rcss
       real(r8), dimension(:), intent(in) :: u_edge_grd
       real(r8), dimension(:), intent(out) :: x_edge_grd
       real(r8), intent(in) :: missing_value
-      integer, optional, intent(in) :: i_index, j_index
+      integer, optional, intent(in) :: i_index, j_index, regrid_method
 
-      integer :: errstat
+      integer :: errstat, regrid_method_resolved
 
       real(r8) :: u_sgn
 
@@ -4477,6 +4491,16 @@ contains
       ! Check optional arguments.
       if (present(i_index)) rcss%rcgs%i_index = i_index
       if (present(j_index)) rcss%rcgs%j_index = j_index
+      if (present(regrid_method)) then
+         if (regrid_method /= hor3map_regrid_method_1 .and. &
+             regrid_method /= hor3map_regrid_method_2) then
+            errstat = hor3map_invalid_regrid_method
+            return
+         endif
+         regrid_method_resolved = regrid_method
+      else
+         regrid_method_resolved = hor3map_regrid_method_1
+      endif
 
       ! Assign array pointers within data structures.
       errstat = assign_ptr_rcgs(rcss%rcgs)
@@ -4509,88 +4533,27 @@ contains
       ! the sign of the difference of the source boundary values.
       u_sgn = sign(c1, rcss%u_src(rcss%rcgs%n_src_actual) - rcss%u_src(1))
 
-      select case (rcss%rcgs%method_actual)
-         case (hor3map_plm)
-            call regrid_plm_intersections(rcss, u_sgn, u_edge_grd, x_edge_grd)
-         case (hor3map_ppm)
-            call regrid_ppm_intersections(rcss, u_sgn, u_edge_grd, x_edge_grd)
-         case (hor3map_pqm)
-            call regrid_pqm_intersections(rcss, u_sgn, u_edge_grd, x_edge_grd)
-      end select
+      if (regrid_method_resolved == hor3map_regrid_method_1) then
+         select case (rcss%rcgs%method_actual)
+            case (hor3map_plm)
+               call regrid_plm_method_1(rcss, u_sgn, u_edge_grd, x_edge_grd)
+            case (hor3map_ppm)
+               call regrid_ppm_method_1(rcss, u_sgn, u_edge_grd, x_edge_grd)
+            case (hor3map_pqm)
+               call regrid_pqm_method_1(rcss, u_sgn, u_edge_grd, x_edge_grd)
+         end select
+      else
+         select case (rcss%rcgs%method_actual)
+            case (hor3map_plm)
+               call regrid_plm_method_2(rcss, u_sgn, u_edge_grd, x_edge_grd)
+            case (hor3map_ppm)
+               call regrid_ppm_method_2(rcss, u_sgn, u_edge_grd, x_edge_grd)
+            case (hor3map_pqm)
+               call regrid_pqm_method_2(rcss, u_sgn, u_edge_grd, x_edge_grd)
+         end select
+      endif
 
    end function regrid
-
-   function regrid2(rcss, u_edge_grd, x_edge_grd, missing_value, &
-                    i_index, j_index) &
-      result(errstat)
-   ! ---------------------------------------------------------------------------
-   ! Find grid locations where desired grid cell edge data values intersect with
-   ! a reconstruction of the source data.
-   ! ---------------------------------------------------------------------------
-
-      type(recon_src_struct), intent(inout) :: rcss
-      real(r8), dimension(:), intent(in) :: u_edge_grd
-      real(r8), dimension(:), intent(out) :: x_edge_grd
-      real(r8), intent(in) :: missing_value
-      integer, optional, intent(in) :: i_index, j_index
-
-      integer :: errstat
-
-      real(r8) :: u_sgn
-
-      errstat = hor3map_noerr
-
-      ! Check that reconstruction source data structure has been initialized.
-      if (.not. rcss%initialized) then
-         errstat = hor3map_recon_not_available
-         return
-      endif
-
-      ! Check optional arguments.
-      if (present(i_index)) rcss%rcgs%i_index = i_index
-      if (present(j_index)) rcss%rcgs%j_index = j_index
-
-      ! Assign array pointers within data structures.
-      errstat = assign_ptr_rcgs(rcss%rcgs)
-      if (errstat /= hor3map_noerr) return
-      errstat = assign_ptr_rcss(rcss)
-      if (errstat /= hor3map_noerr) return
-
-      ! Check that the reconstruction is available.
-      if (.not. rcss%reconstructed) then
-         errstat = hor3map_recon_not_available
-         return
-      endif
-
-      ! Check grid array size consistency.
-      if (size(x_edge_grd) /= size(u_edge_grd)) then
-         errstat = hor3map_grd_size_mismatch
-         return
-      endif
-
-      ! Initialize grid intersections as missing value.
-      x_edge_grd(:) = missing_value
-
-      ! Return in case PCM method is used.
-      if (rcss%rcgs%method_actual == hor3map_pcm) return
-
-      ! Return in case the source data range is small.
-      if (rcss%u_range < eps) return
-
-      ! To indicate monotonically increasing or decreasing source values, use
-      ! the sign of the difference of the source boundary values.
-      u_sgn = sign(c1, rcss%u_src(rcss%rcgs%n_src_actual) - rcss%u_src(1))
-
-      select case (rcss%rcgs%method_actual)
-         case (hor3map_plm)
-            call regrid2_plm_intersections(rcss, u_sgn, u_edge_grd, x_edge_grd)
-         case (hor3map_ppm)
-            call regrid2_ppm_intersections(rcss, u_sgn, u_edge_grd, x_edge_grd)
-         case (hor3map_pqm)
-            call regrid2_pqm_intersections(rcss, u_sgn, u_edge_grd, x_edge_grd)
-      end select
-
-   end function regrid2
 
    function remap(rcss, rms, u_dst, i_index, j_index) result(errstat)
    ! ---------------------------------------------------------------------------

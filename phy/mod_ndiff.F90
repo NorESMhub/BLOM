@@ -18,9 +18,9 @@
 ! ------------------------------------------------------------------------------
 
 module mod_ndiff
-  ! ------------------------------------------------------------------------------
-  ! This module contains procedures for solving vertical diffusion equations.
-  ! ------------------------------------------------------------------------------
+! ------------------------------------------------------------------------------
+! This module contains procedures for solving vertical diffusion equations.
+! ------------------------------------------------------------------------------
 
   use mod_types,     only: r8
   use mod_constants, only: g, alpha0, epsilp, onemm, P_mks2cgs, R_mks2cgs
@@ -32,7 +32,6 @@ module mod_ndiff
   use mod_diffusion, only: difiso, utflld, vtflld, usflld, vsflld
   use mod_cmnfld,    only: nslpx, nslpy
   use mod_tracers,   only: trc
-  use mod_ifdefs,    only: use_TRC
 
   implicit none
   private
@@ -55,9 +54,9 @@ module mod_ndiff
 
 contains
 
-  ! ---------------------------------------------------------------------------
+  ! ----------------------------------------------------------------------------
   ! Private procedures.
-  ! ---------------------------------------------------------------------------
+  ! ----------------------------------------------------------------------------
 
   pure function peval(pc, x) result(f)
   ! ----------------------------------------------------------------------------
@@ -163,9 +162,9 @@ contains
                             p_srcdi_p, t_srcdi_p, tpc_src_p, &
                             drhodt_srcdi_p, drhods_srcdi_p, &
                             p_dst_p, ksmx_p, kdmx_p, &
-                            cdiff, cnslp, puv, flxconv_rs, &
+                            cdiff, cnslp, puv, flxconv_js, &
                             uvtflld, uvsflld, uvtflx, uvsflx, nslpxy, &
-                            ntr_loc, i_m, j_m, i_p, j_p, j_rs_m, j_rs_p, mm, nn)
+                            ntr_loc, i_m, j_m, i_p, j_p, js_m, js_p, mm, nn)
 
     real(r8), dimension(:,:), intent(in) :: &
          p_srcdi_m, drhodt_srcdi_m, drhods_srcdi_m, &
@@ -177,7 +176,7 @@ contains
     real(r8), dimension(1-nbdy:,1-nbdy:,:), intent(in) :: &
          puv
     real(r8), dimension(:,:,1-nbdy:,:), intent(inout) :: &
-         flxconv_rs
+         flxconv_js
     real(r8), dimension(1-nbdy:,1-nbdy:,:), intent(inout) :: &
          uvtflld, uvsflld, uvtflx, uvsflx
     real(r8), dimension(1-nbdy:,1-nbdy:,:), intent(out) :: &
@@ -185,7 +184,7 @@ contains
     real(r8), intent(in) :: cdiff, cnslp
     integer, intent(in) :: &
          ksmx_m, ksmx_p, kdmx_m, kdmx_p, ntr_loc, i_m, j_m, i_p, j_p, &
-         j_rs_m, j_rs_p, mm, nn
+         js_m, js_p, mm, nn
 
     real(r8), dimension(4*(kk+1)) :: nslp_src, p_nslp_src
     real(r8), dimension(2,kk) :: p_ni_srcdi_m, p_ni_srcdi_p
@@ -764,15 +763,11 @@ contains
               ds*( t_ni_m(is,nip) - t_ni_p(is,nip)) >= 0._r8 .and. &
               ds*( t_ni_m(is,nic) - t_ni_p(is,nic)) >= 0._r8) then
             tflx = q*dt
-            flxconv_rs(kd_m,it,i_m,j_rs_m) = flxconv_rs(kd_m,it,i_m,j_rs_m) &
-                                           + tflx
-            flxconv_rs(kd_p,it,i_p,j_rs_p) = flxconv_rs(kd_p,it,i_p,j_rs_p) &
-                                           - tflx
+            flxconv_js(kd_m,it,i_m,js_m) = flxconv_js(kd_m,it,i_m,js_m) + tflx
+            flxconv_js(kd_p,it,i_p,js_p) = flxconv_js(kd_p,it,i_p,js_p) - tflx
             sflx = q*ds
-            flxconv_rs(kd_m,is,i_m,j_rs_m) = flxconv_rs(kd_m,is,i_m,j_rs_m) &
-                                           + sflx
-            flxconv_rs(kd_p,is,i_p,j_rs_p) = flxconv_rs(kd_p,is,i_p,j_rs_p) &
-                                           - sflx
+            flxconv_js(kd_m,is,i_m,js_m) = flxconv_js(kd_m,is,i_m,js_m) + sflx
+            flxconv_js(kd_p,is,i_p,js_p) = flxconv_js(kd_p,is,i_p,js_p) - sflx
             p_ni_up = .5_r8*(p_ni_m(nip) + p_ni_p(nip))
             p_ni_lo = .5_r8*(p_ni_m(nic) + p_ni_p(nic))
             dp_ni_i = 1._r8/max(epsilp, p_ni_lo - p_ni_up)
@@ -797,21 +792,17 @@ contains
             enddo
           endif
 
-          if (use_TRC) then
-            do nt = 3, ntr_loc
-              dt = t_nl_m(nt) - t_nl_p(nt)
-              if (dt*( trc(i_m,j_m,ks_m+nn,nt-2) &
-                   - trc(i_p,j_p,ks_p+nn,nt-2)) >= 0._r8 .and. &
-                   dt*( t_ni_m(nt,nip) - t_ni_p(nt,nip)) >= 0._r8 .and. &
-                   dt*( t_ni_m(nt,nic) - t_ni_p(nt,nic)) >= 0._r8) then
-                tflx = q*dt
-                flxconv_rs(kd_m,nt,i_m,j_rs_m) = &
-                     flxconv_rs(kd_m,nt,i_m,j_rs_m) + tflx
-                flxconv_rs(kd_p,nt,i_p,j_rs_p) = &
-                     flxconv_rs(kd_p,nt,i_p,j_rs_p) - tflx
-              endif
-            enddo
-          end if
+          do nt = 3, ntr_loc
+            dt = t_nl_m(nt) - t_nl_p(nt)
+            if (dt*( trc(i_m,j_m,ks_m+nn,nt-2) &
+                 - trc(i_p,j_p,ks_p+nn,nt-2)) >= 0._r8 .and. &
+                 dt*( t_ni_m(nt,nip) - t_ni_p(nt,nip)) >= 0._r8 .and. &
+                 dt*( t_ni_m(nt,nic) - t_ni_p(nt,nic)) >= 0._r8) then
+              tflx = q*dt
+              flxconv_js(kd_m,nt,i_m,js_m) = flxconv_js(kd_m,nt,i_m,js_m) + tflx
+              flxconv_js(kd_p,nt,i_p,js_p) = flxconv_js(kd_p,nt,i_p,js_p) - tflx
+            endif
+          enddo
 
         endif
 
@@ -854,57 +845,57 @@ contains
 
   end subroutine ndiff_flx
 
-  ! ---------------------------------------------------------------------------
+  ! ----------------------------------------------------------------------------
   ! Public procedures.
-  ! ---------------------------------------------------------------------------
+  ! ----------------------------------------------------------------------------
 
-  subroutine ndiff_prep_jslice(p_src_rs, ksmx_rs, &
-                               tpc_src_rs, t_srcdi_rs, &
-                               p_dst_rs, kdmx_rs, p_srcdi_rs, &
-                               drhodt_srcdi_rs, drhods_srcdi_rs, &
-                               flxconv_rs, &
-                               i_lb, i_ub, j, j_rs, mm)
+  subroutine ndiff_prep_jslice(p_src_js, ksmx_js, &
+                               tpc_src_js, t_srcdi_js, &
+                               p_dst_js, kdmx_js, p_srcdi_js, &
+                               drhodt_srcdi_js, drhods_srcdi_js, &
+                               flxconv_js, &
+                               ilb, iub, j, js, mm)
 
-    real(r8), dimension(:,1-nbdy:,:), intent(in) :: p_src_rs, p_dst_rs
-    integer, dimension(1-nbdy:,:), intent(in) :: ksmx_rs
-    integer, dimension(1-nbdy:,:), intent(out) :: kdmx_rs
-    real(r8), dimension(:,:,:,1-nbdy:,:), intent(in) :: tpc_src_rs, t_srcdi_rs
+    real(r8), dimension(:,1-nbdy:,:), intent(in) :: p_src_js, p_dst_js
+    integer, dimension(1-nbdy:,:), intent(in) :: ksmx_js
+    integer, dimension(1-nbdy:,:), intent(out) :: kdmx_js
+    real(r8), dimension(:,:,:,1-nbdy:,:), intent(in) :: tpc_src_js, t_srcdi_js
     real(r8), dimension(:,:,1-nbdy:,:), intent(out) :: &
-      p_srcdi_rs, drhodt_srcdi_rs, drhods_srcdi_rs, flxconv_rs
-    integer, intent(in) :: i_lb, i_ub, j, j_rs, mm
+      p_srcdi_js, drhodt_srcdi_js, drhods_srcdi_js, flxconv_js
+    integer, intent(in) :: ilb, iub, j, js, mm
 
     integer :: l, i, nt, k, km, errstat
 
     do l = 1, isp(j)
-      do i = max(i_lb, ifp(j, l)), min(i_ub, ilp(j, l))
+      do i = max(ilb, ifp(j, l)), min(iub, ilp(j, l))
 
         ! Find index of deepest destination layer with non-zero thickness.
-        kdmx_rs(i,j_rs) = kk
+        kdmx_js(i,js) = kk
         do k = kk, 1, -1
-          if (p_dst_rs(k,i,j_rs) == p_dst_rs(kk+1,i,j_rs)) &
-            kdmx_rs(i,j_rs) = k - 1
+          if (p_dst_js(k,i,js) == p_dst_js(kk+1,i,js)) &
+            kdmx_js(i,js) = k - 1
         enddo
 
         ! Store variables in dual interface arrays with with values
         ! corresponding to upper and lower interface of each layer.
-        do k = 1, ksmx_rs(i,j_rs)
-          p_srcdi_rs(1,k,i,j_rs) = p_src_rs(k  ,i,j_rs)
-          p_srcdi_rs(2,k,i,j_rs) = p_src_rs(k+1,i,j_rs)
-          drhodt_srcdi_rs(1,k,i,j_rs) = drhodt(p_srcdi_rs(1,k   ,i,j_rs), &
-                                               t_srcdi_rs(1,k,it,i,j_rs), &
-                                               t_srcdi_rs(1,k,is,i,j_rs))
-          drhodt_srcdi_rs(2,k,i,j_rs) = drhodt(p_srcdi_rs(2,k   ,i,j_rs), &
-                                               t_srcdi_rs(2,k,it,i,j_rs), &
-                                               t_srcdi_rs(2,k,is,i,j_rs))
-          drhods_srcdi_rs(1,k,i,j_rs) = drhods(p_srcdi_rs(1,k   ,i,j_rs), &
-                                               t_srcdi_rs(1,k,it,i,j_rs), &
-                                               t_srcdi_rs(1,k,is,i,j_rs))
-          drhods_srcdi_rs(2,k,i,j_rs) = drhods(p_srcdi_rs(2,k   ,i,j_rs), &
-                                               t_srcdi_rs(2,k,it,i,j_rs), &
-                                               t_srcdi_rs(2,k,is,i,j_rs))
+        do k = 1, ksmx_js(i,js)
+          p_srcdi_js(1,k,i,js) = p_src_js(k  ,i,js)
+          p_srcdi_js(2,k,i,js) = p_src_js(k+1,i,js)
+          drhodt_srcdi_js(1,k,i,js) = drhodt(p_srcdi_js(1,k   ,i,js), &
+                                             t_srcdi_js(1,k,it,i,js), &
+                                             t_srcdi_js(1,k,is,i,js))
+          drhodt_srcdi_js(2,k,i,js) = drhodt(p_srcdi_js(2,k   ,i,js), &
+                                             t_srcdi_js(2,k,it,i,js), &
+                                             t_srcdi_js(2,k,is,i,js))
+          drhods_srcdi_js(1,k,i,js) = drhods(p_srcdi_js(1,k   ,i,js), &
+                                             t_srcdi_js(1,k,it,i,js), &
+                                             t_srcdi_js(1,k,is,i,js))
+          drhods_srcdi_js(2,k,i,js) = drhods(p_srcdi_js(2,k   ,i,js), &
+                                             t_srcdi_js(2,k,it,i,js), &
+                                             t_srcdi_js(2,k,is,i,js))
         enddo
 
-        flxconv_rs(:,:,i,j_rs) = 0._r8
+        flxconv_js(:,:,i,js) = 0._r8
 
       enddo
     enddo
@@ -912,13 +903,13 @@ contains
     do k = 1, kk
       km = k + mm
       do l = 1, isu(j)
-        do i = max(i_lb, ifu(j, l)), min(i_ub, ilu(j, l))
+        do i = max(ilb, ifu(j, l)), min(iub, ilu(j, l))
           utflld(i,j,km) = 0._r8
           usflld(i,j,km) = 0._r8
         enddo
       enddo
       do l = 1, isv(j)
-        do i = max(i_lb, ifv(j, l)), min(i_ub, ilv(j, l))
+        do i = max(ilb, ifv(j, l)), min(iub, ilv(j, l))
           vtflld(i,j,km) = 0._r8
           vsflld(i,j,km) = 0._r8
         enddo
@@ -927,20 +918,20 @@ contains
 
   end subroutine ndiff_prep_jslice
 
-  subroutine ndiff_uflx_jslice(ksmx_rs, tpc_src_rs, t_srcdi_rs, &
-                               p_dst_rs, kdmx_rs, p_srcdi_rs, &
-                               drhodt_srcdi_rs, drhods_srcdi_rs, &
-                               flxconv_rs, &
-                               ntr_loc, i_lb, i_ub, j, j_rs, mm, nn)
+  subroutine ndiff_uflx_jslice(ksmx_js, tpc_src_js, t_srcdi_js, &
+                               p_dst_js, kdmx_js, p_srcdi_js, &
+                               drhodt_srcdi_js, drhods_srcdi_js, &
+                               flxconv_js, &
+                               ntr_loc, ilb, iub, j, js, mm, nn)
 
-    integer, dimension(1-nbdy:,:), intent(in) :: ksmx_rs, kdmx_rs
+    integer, dimension(1-nbdy:,:), intent(in) :: ksmx_js, kdmx_js
     real(r8), dimension(:,:,:,1-nbdy:,:), target, intent(in) :: &
-         tpc_src_rs, t_srcdi_rs
-    real(r8), dimension(:,1-nbdy:,:), target, intent(in) :: p_dst_rs
+         tpc_src_js, t_srcdi_js
+    real(r8), dimension(:,1-nbdy:,:), target, intent(in) :: p_dst_js
     real(r8), dimension(:,:,1-nbdy:,:), target, intent(in) :: &
-         p_srcdi_rs, drhodt_srcdi_rs, drhods_srcdi_rs
-    real(r8), dimension(:,:,1-nbdy:,:), intent(inout) :: flxconv_rs
-    integer, intent(in) :: ntr_loc, i_lb, i_ub, j, j_rs, mm, nn
+         p_srcdi_js, drhodt_srcdi_js, drhods_srcdi_js
+    real(r8), dimension(:,:,1-nbdy:,:), intent(inout) :: flxconv_js
+    integer, intent(in) :: ntr_loc, ilb, iub, j, js, mm, nn
 
     real(r8), dimension(:,:,:), pointer :: &
          t_srcdi_m, tpc_src_m, t_srcdi_p, tpc_src_p
@@ -953,24 +944,24 @@ contains
     integer :: l, i, ksmx_m, ksmx_p, kdmx_m, kdmx_p
 
     do l = 1, isu(j)
-      do i = max(i_lb, ifu(j, l)), min(i_ub, ilu(j, l))
+      do i = max(ilb, ifu(j, l)), min(iub, ilu(j, l))
 
-        p_srcdi_m => p_srcdi_rs(:,:,i-1,j_rs)
-        p_srcdi_p => p_srcdi_rs(:,:,i  ,j_rs)
-        t_srcdi_m => t_srcdi_rs(:,:,:,i-1,j_rs)
-        t_srcdi_p => t_srcdi_rs(:,:,:,i  ,j_rs)
-        tpc_src_m => tpc_src_rs(:,:,:,i-1,j_rs)
-        tpc_src_p => tpc_src_rs(:,:,:,i  ,j_rs)
-        drhodt_srcdi_m => drhodt_srcdi_rs(:,:,i-1,j_rs)
-        drhodt_srcdi_p => drhodt_srcdi_rs(:,:,i  ,j_rs)
-        drhods_srcdi_m => drhods_srcdi_rs(:,:,i-1,j_rs)
-        drhods_srcdi_p => drhods_srcdi_rs(:,:,i  ,j_rs)
-        p_dst_m => p_dst_rs(:,i-1,j_rs)
-        p_dst_p => p_dst_rs(:,i  ,j_rs)
-        ksmx_m = ksmx_rs(i-1,j_rs)
-        ksmx_p = ksmx_rs(i  ,j_rs)
-        kdmx_m = kdmx_rs(i-1,j_rs)
-        kdmx_p = kdmx_rs(i  ,j_rs)
+        p_srcdi_m => p_srcdi_js(:,:,i-1,js)
+        p_srcdi_p => p_srcdi_js(:,:,i  ,js)
+        t_srcdi_m => t_srcdi_js(:,:,:,i-1,js)
+        t_srcdi_p => t_srcdi_js(:,:,:,i  ,js)
+        tpc_src_m => tpc_src_js(:,:,:,i-1,js)
+        tpc_src_p => tpc_src_js(:,:,:,i  ,js)
+        drhodt_srcdi_m => drhodt_srcdi_js(:,:,i-1,js)
+        drhodt_srcdi_p => drhodt_srcdi_js(:,:,i  ,js)
+        drhods_srcdi_m => drhods_srcdi_js(:,:,i-1,js)
+        drhods_srcdi_p => drhods_srcdi_js(:,:,i  ,js)
+        p_dst_m => p_dst_js(:,i-1,js)
+        p_dst_p => p_dst_js(:,i  ,js)
+        ksmx_m = ksmx_js(i-1,js)
+        ksmx_p = ksmx_js(i  ,js)
+        kdmx_m = kdmx_js(i-1,js)
+        kdmx_p = kdmx_js(i  ,js)
         cdiff = delt1*scuy(i,j)*scuxi(i,j)
         cnslp = alpha0*scuxi(i,j)/g
 
@@ -980,29 +971,29 @@ contains
                        p_srcdi_p, t_srcdi_p, tpc_src_p, &
                        drhodt_srcdi_p, drhods_srcdi_p, &
                        p_dst_p, ksmx_p, kdmx_p, &
-                       cdiff, cnslp, pu, flxconv_rs, &
+                       cdiff, cnslp, pu, flxconv_js, &
                        utflld, usflld, utflx, usflx, nslpx, &
-                       ntr_loc, i-1, j, i, j, j_rs, j_rs, mm, nn)
+                       ntr_loc, i-1, j, i, j, js, js, mm, nn)
 
       enddo
     enddo
 
   end subroutine ndiff_uflx_jslice
 
-  subroutine ndiff_vflx_jslice(ksmx_rs, tpc_src_rs, t_srcdi_rs, &
-                               p_dst_rs, kdmx_rs, p_srcdi_rs, &
-                               drhodt_srcdi_rs, drhods_srcdi_rs, &
-                               flxconv_rs, &
-                               ntr_loc, i_lb, i_ub, j, j_rs_m, j_rs_p, mm, nn)
+  subroutine ndiff_vflx_jslice(ksmx_js, tpc_src_js, t_srcdi_js, &
+                               p_dst_js, kdmx_js, p_srcdi_js, &
+                               drhodt_srcdi_js, drhods_srcdi_js, &
+                               flxconv_js, &
+                               ntr_loc, ilb, iub, j, js_m, js_p, mm, nn)
 
-    integer, dimension(1-nbdy:,:), intent(in) :: ksmx_rs, kdmx_rs
+    integer, dimension(1-nbdy:,:), intent(in) :: ksmx_js, kdmx_js
     real(r8), dimension(:,:,:,1-nbdy:,:), target, intent(in) :: &
-         tpc_src_rs, t_srcdi_rs
-    real(r8), dimension(:,1-nbdy:,:), target, intent(in) :: p_dst_rs
+         tpc_src_js, t_srcdi_js
+    real(r8), dimension(:,1-nbdy:,:), target, intent(in) :: p_dst_js
     real(r8), dimension(:,:,1-nbdy:,:), target, intent(in) :: &
-         p_srcdi_rs, drhodt_srcdi_rs, drhods_srcdi_rs
-    real(r8), dimension(:,:,1-nbdy:,:), intent(inout) :: flxconv_rs
-    integer, intent(in) :: ntr_loc, i_lb, i_ub, j, j_rs_m, j_rs_p, mm, nn
+         p_srcdi_js, drhodt_srcdi_js, drhods_srcdi_js
+    real(r8), dimension(:,:,1-nbdy:,:), intent(inout) :: flxconv_js
+    integer, intent(in) :: ntr_loc, ilb, iub, j, js_m, js_p, mm, nn
 
     real(r8), dimension(:,:,:), pointer :: &
          t_srcdi_m, tpc_src_m, t_srcdi_p, tpc_src_p
@@ -1015,24 +1006,24 @@ contains
     integer :: l, i, ksmx_m, ksmx_p, kdmx_m, kdmx_p
 
     do l = 1, isv(j)
-      do i = max(i_lb, ifv(j, l)), min(i_ub, ilv(j, l))
+      do i = max(ilb, ifv(j, l)), min(iub, ilv(j, l))
 
-        p_srcdi_m => p_srcdi_rs(:,:,i,j_rs_m)
-        p_srcdi_p => p_srcdi_rs(:,:,i,j_rs_p)
-        t_srcdi_m => t_srcdi_rs(:,:,:,i,j_rs_m)
-        t_srcdi_p => t_srcdi_rs(:,:,:,i,j_rs_p)
-        tpc_src_m => tpc_src_rs(:,:,:,i,j_rs_m)
-        tpc_src_p => tpc_src_rs(:,:,:,i,j_rs_p)
-        drhodt_srcdi_m => drhodt_srcdi_rs(:,:,i,j_rs_m)
-        drhodt_srcdi_p => drhodt_srcdi_rs(:,:,i,j_rs_p)
-        drhods_srcdi_m => drhods_srcdi_rs(:,:,i,j_rs_m)
-        drhods_srcdi_p => drhods_srcdi_rs(:,:,i,j_rs_p)
-        p_dst_m => p_dst_rs(:,i,j_rs_m)
-        p_dst_p => p_dst_rs(:,i,j_rs_p)
-        ksmx_m = ksmx_rs(i,j_rs_m)
-        ksmx_p = ksmx_rs(i,j_rs_p)
-        kdmx_m = kdmx_rs(i,j_rs_m)
-        kdmx_p = kdmx_rs(i,j_rs_p)
+        p_srcdi_m => p_srcdi_js(:,:,i,js_m)
+        p_srcdi_p => p_srcdi_js(:,:,i,js_p)
+        t_srcdi_m => t_srcdi_js(:,:,:,i,js_m)
+        t_srcdi_p => t_srcdi_js(:,:,:,i,js_p)
+        tpc_src_m => tpc_src_js(:,:,:,i,js_m)
+        tpc_src_p => tpc_src_js(:,:,:,i,js_p)
+        drhodt_srcdi_m => drhodt_srcdi_js(:,:,i,js_m)
+        drhodt_srcdi_p => drhodt_srcdi_js(:,:,i,js_p)
+        drhods_srcdi_m => drhods_srcdi_js(:,:,i,js_m)
+        drhods_srcdi_p => drhods_srcdi_js(:,:,i,js_p)
+        p_dst_m => p_dst_js(:,i,js_m)
+        p_dst_p => p_dst_js(:,i,js_p)
+        ksmx_m = ksmx_js(i,js_m)
+        ksmx_p = ksmx_js(i,js_p)
+        kdmx_m = kdmx_js(i,js_m)
+        kdmx_p = kdmx_js(i,js_p)
         cdiff = delt1*scvx(i,j)*scvyi(i,j)
         cnslp = alpha0*scvyi(i,j)/g
 
@@ -1042,33 +1033,33 @@ contains
                        p_srcdi_p, t_srcdi_p, tpc_src_p, &
                        drhodt_srcdi_p, drhods_srcdi_p, &
                        p_dst_p, ksmx_p, kdmx_p, &
-                       cdiff, cnslp, pv, flxconv_rs, &
+                       cdiff, cnslp, pv, flxconv_js, &
                        vtflld, vsflld, vtflx, vsflx, nslpy, &
-                       ntr_loc, i, j-1, i, j, j_rs_m, j_rs_p, mm, nn)
+                       ntr_loc, i, j-1, i, j, js_m, js_p, mm, nn)
 
       enddo
     enddo
 
   end subroutine ndiff_vflx_jslice
 
-  pure subroutine ndiff_update_trc_jslice(p_dst_rs, flxconv_rs, trc_rm, &
-                                          ntr_loc, i_lb, i_ub, j, j_rs)
+  pure subroutine ndiff_update_trc_jslice(p_dst_js, flxconv_js, trc_rm, &
+                                          ntr_loc, ilb, iub, j, js)
 
-    real(r8), dimension(:,1-nbdy:,:), intent(in) :: p_dst_rs
-    real(r8), dimension(:,:,1-nbdy:,:), intent(in) :: flxconv_rs
+    real(r8), dimension(:,1-nbdy:,:), intent(in) :: p_dst_js
+    real(r8), dimension(:,:,1-nbdy:,:), intent(in) :: flxconv_js
     real(r8), dimension(:,:,1-nbdy:), intent(inout) :: trc_rm
-    integer, intent(in) :: ntr_loc, i_lb, i_ub, j, j_rs
+    integer, intent(in) :: ntr_loc, ilb, iub, j, js
 
     real(r8) :: q
     integer :: k, l, i, nt
 
     do l = 1, isp(j)
-      do i = max(i_lb, ifp(j, l)), min(i_ub, ilp(j, l))
+      do i = max(ilb, ifp(j, l)), min(iub, ilp(j, l))
         do k = 1, kk
-          q = 1._r8/(scp2(i,j)*max( p_dst_rs(k+1,i,j_rs) &
-                                  - p_dst_rs(k  ,i,j_rs), dp_eps))
+          q = 1._r8/(scp2(i,j)*max( p_dst_js(k+1,i,js) &
+                                  - p_dst_js(k  ,i,js), dp_eps))
           do nt = 1, ntr_loc
-            trc_rm(k,nt,i) = trc_rm(k,nt,i) - q*flxconv_rs(k,nt,i,j_rs)
+            trc_rm(k,nt,i) = trc_rm(k,nt,i) - q*flxconv_js(k,nt,i,js)
           enddo
         enddo
       enddo

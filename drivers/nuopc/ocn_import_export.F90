@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2022 Mats Bentsen
+! Copyright (C) 2022-2024 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -37,7 +37,7 @@ module ocn_import_export
    use mod_forcing,    only: wavsrc_opt, wavsrc_extern, sprfac, prfac, &
                              flxco2, flxdms, flxbrf, flxn2o, flxnh3
    use mod_difest,     only: obldepth
-   use mod_vcoord,     only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid
+   use mod_vcoord,     only: vcoord_tag, vcoord_isopyc_bulkml
    use mod_cesm,       only: frzpot, mltpot, &
                              swa_da, nsf_da, hmlt_da, lip_da, sop_da, eva_da, &
                              rnf_da, rfi_da, fmltfz_da, sfl_da, ztx_da, mty_da, &
@@ -596,8 +596,8 @@ contains
       enddo
       !$omp end parallel do
 
-      select case (vcoord_type_tag)
-         case (isopyc_bulkml)
+      select case (vcoord_tag)
+         case (vcoord_isopyc_bulkml)
             q = baclin/onem
             !$omp parallel do private(l, i)
             do j = 1, jj
@@ -608,7 +608,7 @@ contains
                enddo
             enddo
             !$omp end parallel do
-         case (cntiso_hybrid)
+         case default
             !$omp parallel do private(l, i)
             do j = 1, jj
                do l = 1, isp(j)
@@ -618,12 +618,6 @@ contains
                enddo
             enddo
             !$omp end parallel do
-         case default
-            if (mnproc == 1.and. first_call) then
-               write(lp,*) subname//': unsupported vertical coordinate!'
-            end if
-            call xcstop(subname)
-            stop subname
       end select
 
       if (index_Faoo_fco2 > 0) then

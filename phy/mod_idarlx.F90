@@ -40,8 +40,7 @@ contains
 
     ! Local varaibles
     real, dimension(itdm,jtdm) :: tmp2d
-    integer :: i,j,k
-    integer :: nfu
+    integer :: nfu,i,j,k
 
     if (aptflx) then
       if (mnproc == 1) then

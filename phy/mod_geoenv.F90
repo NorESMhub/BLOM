@@ -57,9 +57,8 @@ contains
     real, dimension(cwmlen) :: cwmwth
     integer, dimension(cwmlen) :: cwmi,cwmj
     integer, dimension(3) :: start,count
-    integer :: i,j,k,status,ncid,dimid,varid,ios,ncwm,l
+    integer :: i,j,k,status,ncid,dimid,varid,nfu,ios,ncwm,l
     logical :: fexist
-    integer :: nfu
     real, parameter :: iL_mks2cgs = 1./L_mks2cgs
 
     namelist /cwmod/ cwmtag,cwmedg,cwmi,cwmj,cwmwth

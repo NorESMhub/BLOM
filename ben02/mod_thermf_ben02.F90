@@ -1,18 +1,18 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2002-2023 Mats Bentsen, Mehmet Ilicak
-
+! Copyright (C) 2002-2024 Mats Bentsen, Mehmet Ilicak
+!
 ! This file is part of BLOM.
-
+!
 ! BLOM is free software: you can redistribute it and/or modify it under the
 ! terms of the GNU Lesser General Public License as published by the Free
 ! Software Foundation, either version 3 of the License, or (at your option)
 ! any later version.
-
+!
 ! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
 ! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
 ! more details.
-
+!
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
@@ -25,7 +25,7 @@ module mod_thermf_ben02
                            nstep_in_day, baclin, &
                            xmi, l1mi, l2mi, l3mi, l4mi, l5mi
   use mod_xc
-  use mod_vcoord,    only: vcoord_type_tag, isopyc_bulkml
+  use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml
   use mod_grid,      only: scp2, plat, area
   use mod_state,     only: dp, temp, saln, p
   use mod_swtfrz,    only: swtfrz
@@ -468,7 +468,7 @@ contains
                  ricclm(i,j,l3mi),ricclm(i,j,l4mi), &
                  ricclm(i,j,l5mi),xmi)
             sstc = (1.-rice)*max(sstc,tice_f)+rice*tice_f
-            if (vcoord_type_tag == isopyc_bulkml) then
+            if (vcoord_tag == vcoord_isopyc_bulkml) then
               dpmxl = dp(i,j,1+nn)+dp(i,j,2+nn)
               hmxl = dpmxl/onem
               tmxl = (temp(i,j,1+nn)*dp(i,j,1+nn) &
@@ -526,7 +526,7 @@ contains
             sssc = intp1d(sssclm(i,j,l1mi),sssclm(i,j,l2mi), &
                  sssclm(i,j,l3mi),sssclm(i,j,l4mi), &
                  sssclm(i,j,l5mi),xmi)
-            if (vcoord_type_tag == isopyc_bulkml) then
+            if (vcoord_tag == vcoord_isopyc_bulkml) then
               dpmxl = dp(i,j,1+nn)+dp(i,j,2+nn)
               hmxl = dpmxl/onem
               smxl = (saln(i,j,1+nn)*dp(i,j,1+nn) &
@@ -737,7 +737,7 @@ contains
       call chksummsk(salrlx,ip,1,'salrlx')
       call chksummsk(iagem,ip,1,'iagem')
       call chksummsk(ustar,ip,1,'ustar')
-      if (vcoord_type_tag /= isopyc_bulkml) then
+      if (vcoord_tag /= vcoord_isopyc_bulkml) then
         call chksummsk(t_rs_nonloc, ip, kk+1, 't_rs_nonloc')
         call chksummsk(s_rs_nonloc, ip, kk+1, 's_rs_nonloc')
       end if

@@ -37,8 +37,7 @@ c
 #  include "mpif.h"
 #endif
 c
-      integer i
-      integer nfu
+      integer :: nfu, i
 c
 #ifdef MPI
       call mpi_init

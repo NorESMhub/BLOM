@@ -99,8 +99,8 @@ module mod_rdlim
                              diagfq_phy, diagmon_phy, diagann_phy, secdia, &
                              filefq_phy, filemon_phy, fileann_phy
   use mod_ben02,       only: atm_path, atm_path_len
-  use mod_vcoord,      only: vcoord_type_tag, isopyc_bulkml, &
-                             cntiso_hybrid, readnml_vcoord
+  use mod_vcoord,      only: vcoord_tag, vcoord_isopyc_bulkml, readnml_vcoord
+  use mod_ale_regrid_remap, only: readnml_ale_regrid_remap
   use mod_cesm,        only: runid_cesm, ocn_cpl_dt_cesm, nstep_in_cpl, &
                              smtfrc
   use mod_pointtest,   only: itest, jtest
@@ -124,8 +124,7 @@ contains
     type(date_type) :: date0_rest
     character(len = 256) :: nlfnm,runtyp,rstfnm
     logical :: fexist
-    integer :: m,n,idate,idate0,ios
-    integer :: nfu
+    integer :: m,n,idate,idate0,nfu,ios
 
     namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,runtyp, &
          grfile,icfile,pref,baclin,batrop, &
@@ -360,6 +359,9 @@ contains
     ! read vertical coordinate namelist variables
     call readnml_vcoord
 
+    ! read namelist variables associated with ALE regridding-remapping.
+    call readnml_ale_regrid_remap
+
     ! read diffusion namelist variables
     call readnml_diffusion
 
@@ -380,8 +382,8 @@ contains
 
       ! modify diaphy namelist variables based on dependency with other
       ! variables set in namelists
-      select case (vcoord_type_tag)
-        case (isopyc_bulkml)
+      select case (vcoord_tag)
+        case (vcoord_isopyc_bulkml)
           LYR_DIFVMO(1:nphy) = 0
           LYR_DIFVHO(1:nphy) = 0
           LYR_DIFVSO(1:nphy) = 0
@@ -404,7 +406,7 @@ contains
           LVL_DIFVMO(1:nphy) = 0
           LVL_DIFVHO(1:nphy) = 0
           LVL_DIFVSO(1:nphy) = 0
-        case (cntiso_hybrid)
+        case default
           H2D_IDKEDT(1:nphy) = 0
           H2D_MTKEUS(1:nphy) = 0
           H2D_MTKENI(1:nphy) = 0
@@ -414,10 +416,6 @@ contains
           H2D_MTKEKE(1:nphy) = 0
           LYR_DIFDIA(1:nphy) = 0
           LVL_DIFDIA(1:nphy) = 0
-        case default
-          write (lp,*) 'rdlim: unsupported vertical coordinate!'
-          call xcstop('(rdlim)')
-          stop '(rdlim)'
       end select
 
       if (trxday == 0.) then
@@ -434,7 +432,7 @@ contains
           H2D_USTOKES(1:nphy) = 0
           H2D_VSTOKES(1:nphy) = 0
         case (wavsrc_param)
-          if (vcoord_type_tag /= cntiso_hybrid) then
+          if (vcoord_tag == vcoord_isopyc_bulkml) then
             H2D_LAMULT(1:nphy) = 0
           end if
           H2D_LASL(1:nphy) = 0

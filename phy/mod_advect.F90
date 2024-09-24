@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2007-2020 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2007-2024 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -147,7 +147,7 @@ contains
                           vtflx(1-nbdy,1-nbdy,km), &
                           usflx(1-nbdy,1-nbdy,km), &
                           vsflx(1-nbdy,1-nbdy,km), &
-                          kn,trc)
+                          kn)
       end do
       !$omp end parallel do
 
@@ -198,7 +198,7 @@ contains
                           vtflx(1-nbdy,1-nbdy,km), &
                           usflx(1-nbdy,1-nbdy,km), &
                           vsflx(1-nbdy,1-nbdy,km), &
-                          kn,trc)
+                          kn)
      end do
      !$omp end parallel do
     else

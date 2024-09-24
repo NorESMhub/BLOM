@@ -658,11 +658,10 @@ contains
     real, dimension(0:atm_nwgt) :: r_wgt
     real :: piloc,min_d,d,r,l2
     integer :: atm_idm_t,atm_jdm_t,idm_t,jdm_t,atm_nwgt_t,nw_2,is,js,it, &
-         jt,iso,jso,m,n,i,j,iii,ism1,isp1,jsm1,jsp1,itm1,itp1,jtm1, &
-         jtp1
+               jt,iso,jso,m,n,i,j,iii,ism1,isp1,jsm1,jsp1,itm1,itp1,jtm1, &
+               jtp1,nfu
     logical :: dimok,exists
     character :: filename*120
-    integer :: nfu
 
     ! --- Get global coordinates of p-points.
     call xcaget(tmp2da,plat,1)
@@ -689,12 +688,12 @@ contains
 
       ! --- - Allocate memory for the atmospheric interpolation.
       allocate(atm_lon(atm_idm,atm_jdm), &
-           atm_lat(atm_idm,atm_jdm), &
-           atm_mask(atm_idm,atm_jdm), &
-           atm_topo(atm_idm,atm_jdm), &
-           atm_wgt(atm_nwgt,itdm,jtdm), &
-           atm_iwgt(atm_nwgt,itdm,jtdm), &
-           atm_jwgt(atm_nwgt,itdm,jtdm))
+               atm_lat(atm_idm,atm_jdm), &
+               atm_mask(atm_idm,atm_jdm), &
+               atm_topo(atm_idm,atm_jdm), &
+               atm_wgt(atm_nwgt,itdm,jtdm), &
+               atm_iwgt(atm_nwgt,itdm,jtdm), &
+               atm_jwgt(atm_nwgt,itdm,jtdm))
 
       ! --- - Read atmospheric lon/lat coordinates and land mask.
       filename = atm_path(1:atm_path_len)//'land.sfc.gauss.nc'
@@ -881,12 +880,12 @@ contains
 
     if (mnproc == 1) then
       deallocate(atm_lon, &
-           atm_lat, &
-           atm_mask, &
-           atm_topo, &
-           atm_wgt, &
-           atm_iwgt, &
-           atm_jwgt)
+                 atm_lat, &
+                 atm_mask, &
+                 atm_topo, &
+                 atm_wgt, &
+                 atm_iwgt, &
+                 atm_jwgt)
     end if
 
   end subroutine fnlzai
@@ -1936,8 +1935,7 @@ contains
     real, dimension(atm_idm,atm_jdm) :: atm_field
     real*4, dimension(atm_idm,atm_jdm) :: atm_field_r4
     real, dimension(itdm,jtdm) :: tmp2d
-    integer :: i,j,k
-    integer :: nfu
+    integer :: i,j,k,nfu
 
     if (mnproc == 1) then
       write (lp,*) 'reading atm. climatological ice concentration...'
@@ -1991,8 +1989,7 @@ contains
     real, dimension(itdm,jtdm) :: tmp2d
     real :: dx2,dy2
     integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: smtmsk
-    integer :: i,j,k,l
-    integer :: nfu
+    integer :: i,j,k,l,nfu
 
     if (mnproc == 1) then
       write (lp,*) &
@@ -2105,53 +2102,52 @@ contains
          sht_sum,fwf_fac,dangle,garea,le,albedo,fac,swa_ave,lwa_ave, &
          lht_ave,sht_ave,crnf,cswa,A_cgs2mks
     real*4 :: rw4
-    integer :: i,j,k,l,il,jl
+    integer :: i,j,k,l,il,jl,nfu
     integer*2 :: rn2,ri2,rj2
-    integer :: nfu
 
     A_cgs2mks = 1./(L_mks2cgs**2)
 
     ! --- Allocate memory for additional monthly forcing fields.
     allocate(taud  (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12), &
-         tauxd (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12), &
-         tauyd (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12), &
-         dswrfl(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12), &
-         nlwrfs(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12), &
-         shtflx(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12), &
-         lhtflx(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12), &
-         precip(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12), &
-         clouds(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12), &
-         slpres(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12), &
-         runoff(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12))
+             tauxd (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12), &
+             tauyd (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12), &
+             dswrfl(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12), &
+             nlwrfs(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12), &
+             shtflx(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12), &
+             lhtflx(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12), &
+             precip(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12), &
+             clouds(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12), &
+             slpres(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12), &
+             runoff(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12))
 
     ! --- Allocate memory for transfer coefficients, gustiness squared, and
     ! --- air density
     allocate(cd_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         ch_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         ce_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         wg2_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         cd_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         ch_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         ce_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         wg2_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         rhoa(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
+             ch_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             ce_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             wg2_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             cd_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             ch_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             ce_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             wg2_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             rhoa(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
 
     ! --- Allocate memory for accumulation variables
     allocate(tsi_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         tml_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         sml_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         alb_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         fice_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         tsi(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
+             tml_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             sml_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             alb_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             fice_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             tsi(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
 
     ! --- Allocate memory for derivative of non-solar heat flux by surface
     ! --- temperature, albedos and instantaneous runoff flux and runoff
     ! --- reservoar
     allocate(dfl(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         albw(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         alb(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         rnfins(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         rnfres(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
+             albw(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             alb(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             rnfins(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             rnfres(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
 
     ! --- number of iteration in the computation of transfer coefficients.
     tciter = 5
@@ -2171,8 +2167,8 @@ contains
     ! --- Allocate memory for temporary fields
     if (mnproc == 1) then
       allocate(atm_sktclm(atm_idm,atm_jdm,12), &
-           atm_field(atm_idm,atm_jdm), &
-           atm_field_r4(atm_idm,atm_jdm))
+               atm_field(atm_idm,atm_jdm), &
+               atm_field_r4(atm_idm,atm_jdm))
     end if
 
     ! --- Compute smoothing weights atm_ice_swgt and atm_rnf_swgt. For
@@ -2658,8 +2654,8 @@ contains
       ! --- - areas
 
       allocate(rnf_wgt  (atm_abdm,atm_idm,atm_jdm), &
-           rnf_ocdpi(atm_abdm,atm_idm,atm_jdm), &
-           rnf_ocdpj(atm_abdm,atm_idm,atm_jdm))
+               rnf_ocdpi(atm_abdm,atm_idm,atm_jdm), &
+               rnf_ocdpj(atm_abdm,atm_idm,atm_jdm))
 
       if (expcnf == 'single_column') then
         rnf_wgt = 0.
@@ -2752,8 +2748,8 @@ contains
     if (mnproc == 1) then
       close (unit = nfu)
       deallocate(rnf_wgt, &
-           rnf_ocdpi, &
-           rnf_ocdpj)
+                 rnf_ocdpi, &
+                 rnf_ocdpj)
     end if
 
     call xctilr(runoff, 1,12, nbdy,nbdy, halo_ps)
@@ -2761,8 +2757,8 @@ contains
     ! --- Deallocate memory used for interpolation of surface fields.
     if (mnproc == 1) then
       deallocate(atm_sktclm, &
-           atm_field, &
-           atm_field_r4)
+                 atm_field, &
+                 atm_field_r4)
     end if
     call fnlzai
 
@@ -2935,53 +2931,52 @@ contains
 
     real :: dx2,dy2
     real*4 :: rw4
-    integer :: errstat,i,j,k,l
+    integer :: errstat,i,j,k,l,nfu
     integer*2 :: rn2,ri2,rj2
-    integer :: nfu
 
     ! --- Allocate memory for daily forcing fields.
     allocate(taud  (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
-         tauxd (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
-         tauyd (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
-         dswrfl(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
-         nlwrfs(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
-         shtflx(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
-         lhtflx(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
-         precip(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
-         clouds(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
-         slpres(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
-         runoff(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
-         tmpsfc(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
-         ricec (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5))
+             tauxd (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
+             tauyd (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
+             dswrfl(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
+             nlwrfs(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
+             shtflx(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
+             lhtflx(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
+             precip(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
+             clouds(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
+             slpres(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
+             runoff(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
+             tmpsfc(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
+             ricec (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5))
 
     ! --- Allocate memory for transfer coefficients, gustiness squared, and
     ! --- air density
     allocate(cd_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         ch_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         ce_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         wg2_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         cd_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         ch_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         ce_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         wg2_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         rhoa(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
+             ch_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             ce_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             wg2_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             cd_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             ch_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             ce_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             wg2_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             rhoa(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
 
     ! --- Allocate memory for accumulation variables
     allocate(tsi_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         tml_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         sml_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         alb_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         fice_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         tsi(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
+             tml_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             sml_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             alb_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             fice_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             tsi(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
 
     ! --- Allocate memory for derivative of non-solar heat flux by surface
     ! --- temperature, albedos and instantaneous runoff flux and runoff
     ! --- reservoar
     allocate(dfl(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         albw(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         alb(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         rnfins(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
-         rnfres(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
+             albw(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             alb(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             rnfins(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), &
+             rnfres(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
 
     ! --- Number of iteration in the computation of transfer coefficients.
     tciter = 1
@@ -3067,8 +3062,8 @@ contains
       ! --- - areas
 
       allocate(rnf_wgt  (atm_abdm,atm_idm,atm_jdm), &
-           rnf_ocdpi(atm_abdm,atm_idm,atm_jdm), &
-           rnf_ocdpj(atm_abdm,atm_idm,atm_jdm))
+               rnf_ocdpi(atm_abdm,atm_idm,atm_jdm), &
+               rnf_ocdpj(atm_abdm,atm_idm,atm_jdm))
 
       open (newunit=nfu,file = 'runoffweights.uf', &
            form='unformatted',status='old',action = 'read')

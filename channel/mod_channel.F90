@@ -71,10 +71,9 @@ contains
       real(r8), dimension(itdm,jtdm) :: rtmp
       real(r8) :: sldepth,sfdepth,rdepth,cwidth,swidth,scxy, &
                   corio0, beta0, d_corru, r
-      integer :: i,j,l,ios
+      integer :: nfu,i,j,l,ios
       integer, dimension(:), allocatable :: seed
       logical :: fexist
-      integer :: nfu
 
       ! Read parameters from the namelist
       namelist /idlgeo/ sldepth,sfdepth,rdepth,acorru,wlcorru, &
@@ -217,9 +216,8 @@ contains
                              1 - nbdy:jdm + nbdy, kdm) :: dz
          real(r8), dimension(kdm) :: sigmr0, dz0
          real(r8) :: S0,sig0,sig0dz,sigdz,sigscl,dztop,dzmax,dzscl
-         integer i,j,k,l,ios
+         integer :: nfu,i,j,k,l,ios
          logical :: fexist
-         integer :: nfu
 
          namelist /idlini/ S0,sig0,sig0dz,sigdz,sigscl,dztop,dzmax,dzscl
 
@@ -334,9 +332,8 @@ contains
          intrinsic tanh
 
          real(r8) :: ztx0,mty0,sst0,sss0
-         integer :: i,j,l,k,ios
+         integer :: nfu,i,j,l,k,ios
          logical :: fexist
-         integer :: nfu
 
          namelist /idlfor/ ztx0,mty0,sst0,sss0
 
