@@ -21,8 +21,8 @@ module mo_read_rivin
   !*************************************************************************************************
   ! Routines for reading riverine nutrient and carbon input data
   !
-  ! Riverine carbon and nutrient input is activated through a logical switch 'do_rivinpt' read
-  ! from HAMOCC's bgcnml namelist. When coupled to NorESM, this is achieved by setting
+  ! Riverine carbon and nutrient input is activated through a logical switch 'do_rivinpt' read 
+  ! from HAMOCC's bgcnml namelist. When coupled to NorESM, this is achieved by setting 
   ! BLOM_RIVER_NUTRIENTS to TRUE in env_run.xml.
   !
   ! The model attempts to read nutrient fluxes from a NetCDF file
@@ -50,9 +50,8 @@ module mo_read_rivin
   !     data are seperated into two distinct modules
   !*************************************************************************************************
 
-  use dimensions,  only: idm,jdm
-  use mod_xc ,     only: nbdy
-  use mod_forcing, only: rivflx_stream ! here will holds input data as read from file
+  use dimensions, only: idm,jdm
+  use mod_xc ,    only: nbdy
 
   implicit none
   private
@@ -62,7 +61,9 @@ module mo_read_rivin
 
   ! File name (incl. full path) for input data, set through namelist in mo_hamocc_init
   character(len=256), public :: rivinfile = ''
+  real, allocatable,  public :: rivflx(:,:,:) ! holds input data as read from file
 
+  ! arrays for reading riverine inputs on the model grid
   real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DIN2d
   real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DIP2d
   real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DSI2d
@@ -73,19 +74,21 @@ module mo_read_rivin
 
 contains
 
-  subroutine ini_read_rivin(omask)
+  subroutine ini_read_rivin(kpie,kpje,omask)
     !***********************************************************************************************
     !  Initialise reading of riverine input data (GNEWS 2000)
     !***********************************************************************************************
 
-    use mod_xc,         only: mnproc,idm,jdm
+    use mod_xc,         only: mnproc
     use mod_dia,        only: iotype
     use mod_nctools,    only: ncfopn,ncread,ncfcls
     use mo_control_bgc, only: io_stdo_bgc,do_rivinpt
     use mo_param1_bgc,  only: nriv,irdin,irdip,irsi,iralk,iriron,irdoc,irdet
 
     ! Arguments
-    real, intent(in) :: omask(idm,jdm) ! ocean mask
+    integer,  intent(in) :: kpie             ! 1st dimension of model grid.
+    integer , intent(in) :: kpje             ! 2nd dimension of model grid.
+    real,     intent(in) :: omask(kpie,kpje) ! ocean mask
 
     ! local variables
     integer :: i,j,errstat,dummymask(2)
@@ -100,14 +103,14 @@ contains
     ! Allocate field to hold river fluxes
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable rivflx ...'
-      write(io_stdo_bgc,*)'First dimension    : ',idm
-      write(io_stdo_bgc,*)'Second dimension   : ',jdm
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
       write(io_stdo_bgc,*)'Third  dimension   : ',nriv
     endif
 
-    allocate (rivflx_stream(idm,jdm,nriv),stat=errstat)
+    allocate (rivflx(kpie,kpje,nriv),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory rivflx'
-    rivflx_stream(:,:,:) = 0.0
+    rivflx(:,:,:) = 0.0
 
     ! Return if riverine input is turned off
     if (.not. do_rivinpt) then
@@ -123,7 +126,6 @@ contains
       write(io_stdo_bgc,*) ''
       write(io_stdo_bgc,'(a)') 'ini_read_rivin: read riverine nutrients from ',trim(rivinfile)
     endif
-
     call ncfopn(trim(rivinfile),'r',' ',1,iotype)
     call ncread('DIN',riv_DIN2d,dummymask,0,0.)
     call ncread('DIP',riv_DIP2d,dummymask,0,0.)
@@ -134,16 +136,18 @@ contains
     call ncread('DET',riv_idet2d,dummymask,0,0.)
     call ncfcls
 
-    do j=1,jdm
-      do i=1,idm
+    do j=1,kpje
+      do i=1,kpie
         if (omask(i,j) > 0.5) then
-          rivflx_stream(i,j,irdin)  = riv_DIN2d(i,j)
-          rivflx_stream(i,j,irdip)  = riv_DIP2d(i,j)
-          rivflx_stream(i,j,irsi)   = riv_DSI2d(i,j)
-          rivflx_stream(i,j,iralk)  = riv_DIC2d(i,j)
-          rivflx_stream(i,j,iriron) = riv_DFe2d(i,j)
-          rivflx_stream(i,j,irdoc)  = riv_idoc2d(i,j)
-          rivflx_stream(i,j,irdet)  = riv_idet2d(i,j)
+
+          rivflx(i,j,irdin)  = riv_DIN2d(i,j)
+          rivflx(i,j,irdip)  = riv_DIP2d(i,j)
+          rivflx(i,j,irsi)   = riv_DSI2d(i,j)
+          rivflx(i,j,iralk)  = riv_DIC2d(i,j)
+          rivflx(i,j,iriron) = riv_DFe2d(i,j)
+          rivflx(i,j,irdoc)  = riv_idoc2d(i,j)
+          rivflx(i,j,irdet)  = riv_idet2d(i,j)
+
         endif
       enddo
     enddo

@@ -43,7 +43,7 @@ module mo_read_fedep
 
 contains
 
-  subroutine ini_read_fedep(omask)
+  subroutine ini_read_fedep(kpie,kpje,omask)
 
     !***********************************************************************************************
     ! Initialise the iron deposition module, read in the iron (dust) data set.
@@ -52,16 +52,18 @@ contains
     !***********************************************************************************************
 
     use netcdf,             only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
-    use mod_xc,             only: mnproc,xchalt,idm,jdm
+    use mod_xc,             only: mnproc,xchalt
     use mo_control_bgc,     only: io_stdo_bgc
     use mo_netcdf_bgcrw,    only: read_netcdf_var
 
     ! Arguments
-    real,    intent(in) :: omask(idm,jdm)  ! land/ocean mask (1=ocean)
+    integer, intent(in) :: kpie              ! 1st dimension of model grid.
+    integer, intent(in) :: kpje              ! 2nd dimension of model grid.
+    real,    intent(in) :: omask(kpie,kpje)  ! land/ocean mask (1=ocean)
 
     ! Local variables
-    integer :: i,j,l
-    integer :: ncid,ncstat,ncvarid,errstat
+    integer             :: i,j,l
+    integer             :: ncid,ncstat,ncvarid,errstat
 
     ! allocate field to hold iron deposition fluxes
     if (mnproc.eq.1) then
@@ -73,12 +75,12 @@ contains
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable dustflx ...'
-      write(io_stdo_bgc,*)'First dimension    : ',idm
-      write(io_stdo_bgc,*)'Second dimension   : ',jdm
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
       write(io_stdo_bgc,*)'Third dimension    :  12'
     endif
 
-    allocate (dustflx(idm,jdm,12),stat=errstat)
+    allocate (dustflx(kpie,kpje,12),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory dustflx'
     dustflx(:,:,:) = 0.0
 
@@ -110,9 +112,11 @@ contains
 
     ! set flux to zero over land
     do l=1,12
-      do j=1,jdm
-        do i=1,idm
+      do j=1,kpje
+        do i=1,kpie
+
           if(omask(i,j).lt.0.5) dustflx(i,j,l) = 0.0
+
         enddo
       enddo
     enddo
@@ -120,7 +124,7 @@ contains
   end subroutine ini_read_fedep
 
 
-  subroutine get_fedep(kplmon, dust)
+  subroutine get_fedep(kpie,kpje,kplmon,dust)
 
     !***********************************************************************************************
     ! Get iron (dust) deposition for current month
@@ -128,28 +132,12 @@ contains
     !  J.Schwinger            *NORCE Climate, Bergen*       2020-05-19
     !***********************************************************************************************
 
-    use mod_xc, only: idm, jdm, nbdy
-    use mod_output_forcing, only : output_forcing
-
+    integer, intent(in)  :: kpie             ! 1st dimension of model grid
+    integer, intent(in)  :: kpje             ! 2nd dimension of model grid
     integer, intent(in)  :: kplmon           ! current month.
-    real,    intent(out) :: dust(1-nbdy:idm+nbdy, 1-nbdy:jdm+nbdy) ! dust flux for current month
+    real,    intent(out) :: dust(kpie,kpje)  ! dust flux for current month
 
-    integer :: i,j
-    logical :: debug = .true.
-    logical :: first_time = .true.
-
-    do j = 1,jdm
-       do i = 1,idm
-          dust(i,j) = dustflx(i,j,kplmon)
-       end do
-    end do
-
-    if (debug) then
-       if (first_time) then
-          call output_forcing('fedep_orig.nc', 'fedep', dust)
-          first_time = .false.
-       end if
-    end if
+    dust = dustflx(:,:,kplmon)
 
   end subroutine get_fedep
 

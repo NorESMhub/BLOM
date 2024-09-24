@@ -55,7 +55,6 @@ module mod_swabs
   use mod_time,     only: xmi, l1mi, l2mi, l3mi, l4mi, l5mi
   use mod_checksum, only: csdiag, chksummsk
   use mod_intp1d,   only: intp1d
-  use mod_forcing,  only: use_stream_swa
   use netcdf
 
   implicit none
@@ -182,7 +181,7 @@ contains
       end do
       !$omp end parallel do
 
-    else if (swamth == 'chlorophyll' .and. .not. use_stream_swa) then
+    else if (swamth == 'chlorophyll') then
 
       ! Initialize functionality for chlorophyll concentration dependent
       ! shortwave radiation absorption.
