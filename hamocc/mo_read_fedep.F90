@@ -132,12 +132,34 @@ contains
     !  J.Schwinger            *NORCE Climate, Bergen*       2020-05-19
     !***********************************************************************************************
 
+    use mod_xc             , only: nbdy
+    use mod_output_forcing , only: output_forcing
+
     integer, intent(in)  :: kpie             ! 1st dimension of model grid
     integer, intent(in)  :: kpje             ! 2nd dimension of model grid
     integer, intent(in)  :: kplmon           ! current month.
     real,    intent(out) :: dust(kpie,kpje)  ! dust flux for current month
 
-    dust = dustflx(:,:,kplmon)
+    integer :: i,j
+    logical :: debug = .true.
+    logical :: first_time = .true.
+    real, allocatable :: dust_out(:,:)
+
+    dust(:,:) = dustflx(:,:,kplmon)
+
+    if (debug) then
+       if (first_time) then
+          allocate (dust_out(1-nbdy:kpie+nbdy, 1-nbdy:kpje+nbdy))
+          do j = 1,kpje
+             do i = 1,kpie
+                dust(i,j) = dustflx(i,j,kplmon)
+             end do
+          end do
+          call output_forcing('fedep_orig.nc', 'fedep', dust_out)
+          deallocate(dust_out)
+          first_time = .false.
+       end if
+    end if
 
   end subroutine get_fedep
 

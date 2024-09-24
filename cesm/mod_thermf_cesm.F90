@@ -38,7 +38,7 @@ module mod_thermf_cesm
                            sswflx, salflx, brnflx, salrlx, ustar, &
                            t_rs_nonloc, s_rs_nonloc, &
                            sss_stream, sst_stream, ice_stream, &
-                           use_stream_relaxation
+                           use_nuopc_relaxation
   use mod_cesm,      only: hmlt, frzpot, mltpot
   use mod_utility,   only: util1, util2, util3, util4
   use mod_checksum,  only: csdiag, chksummsk
@@ -200,7 +200,7 @@ contains
           ! If  trxday>0 , apply relaxation towards observed sst
           if (trxday > epsilt ) then
 
-            if (use_stream_relaxation) then
+            if (use_nuopc_relaxation) then
                sstc = sst_stream(i,j)
                rice = ice_stream(i,j)
                sstc = (1.-rice)*max(sstc,tice_f) + rice*tice_f
@@ -261,7 +261,7 @@ contains
 
           ! if  srxday>0 , apply relaxation towards observed sss
           if (srxday > epsilt ) then
-            if (use_stream_relaxation) then
+            if (use_nuopc_relaxation) then
                sssc = sss_stream(i,j)
             else
                sssc = intp1d(sssclm(i,j,l1mi),sssclm(i,j,l2mi), &

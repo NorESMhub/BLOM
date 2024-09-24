@@ -93,34 +93,35 @@ module mod_forcing
       sssclm          ! Sea-surface salinity [g kg-1].
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
-      sst_stream, &                 ! Sea-surface temperature [deg C] from stream data.
-      ice_stream, &                 ! Sea-ice concentration [] from stream data.
-      sss_stream                    ! Sea-surface salinity [g kg-1] from stream data.
-   logical :: use_stream_relaxation ! If true, use nuopc stream relaxation capability
+      sst_stream, &                ! Sea-surface temperature [deg C] from stream data.
+      ice_stream, &                ! Sea-ice concentration [] from stream data.
+      sss_stream                   ! Sea-surface salinity [g kg-1] from stream data.
+   logical :: use_nuopc_relaxation ! If true, use nuopc stream relaxation capability
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
-      swa_stream                    ! absorbed short wave radiation flux
-   logical :: use_stream_swa        ! If true, use nuopc stream swa capability
-
-   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
-        dust_stream                 ! iron dust deposition flux (hamocc)
-   logical :: use_stream_dust       ! If true, use nuopc stream dust capability (hamocc only)
-
-   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
-      chloro_stream                 ! chlorophyll concentration (hamocc)
-   logical :: use_stream_chloro     ! If true, use nuopc stream chlorophyll capability
-
-   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
-      oalk_stream                   ! alkalinization flux (hamocc)
-   logical :: use_stream_oalk       ! If true, use nuopc stream for ocean alkalinity capability
+      chloro_forcing            ! chlorophyll concentration (hamocc)
+   logical :: use_nuopc_chloro  ! If true, use nuopc stream chlorophyll capability
 
    real(r8), allocatable :: &
-        rivflx_stream(:,:,:)        ! riverine fluxes
-   logical :: use_stream_rivin      ! If true, use nuopc input for rivin fluxes
+        rivflx_forcing(:,:,:)   ! riverine fluxes
+   logical :: use_nuopc_rivin   ! If true, use nuopc input for rivin fluxes (hamocc only)
 
    real(r8), allocatable :: &
-        ndep_stream(:,:,:)          ! nitrogen deposition fluxes
-   logical :: use_stream_ndep       ! If true, use nuopc input for rivin fluxes
+        ndep_forcing(:,:,:)     ! nitrogen deposition fluxes
+   logical :: use_nuopc_ndep    ! If true, use nuopc input for rivin fluxes
+
+   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
+        dust_forcing            ! iron dust deposition flux (hamocc)
+   logical :: use_nuopc_dust    ! If true, use nuopc stream dust capability (hamocc only)
+
+   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
+      swaclim_forcing           ! absorbed short wave radiation flux
+   logical :: use_nuopc_swaclim ! If true, use nuopc stream swa capability (hamocc only)
+
+   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
+      oalk_forcing              ! alkalinization flux (hamocc)
+   logical :: use_nuopc_oalk    ! If true, use nuopc stream for ocean alkalinity capability
+
 
    ! Variables related to balancing the freshwater forcing budget.
    real(r8) :: &
@@ -206,9 +207,10 @@ module mod_forcing
              ustar, ustarb, ustar3, wstar3, buoyfl, t_sw_nonloc, t_rs_nonloc, &
              s_br_nonloc, s_rs_nonloc, inivar_forcing, fwbbal, &
              sss_stream, sst_stream, ice_stream, &
-             dust_stream, chloro_stream, swa_stream, ndep_stream, oalk_stream, rivflx_stream, &
-             use_stream_relaxation, use_stream_swa, use_stream_dust, use_stream_chloro, &
-             use_stream_oalk, use_stream_rivin, use_stream_ndep
+             dust_forcing, chloro_forcing, swaclim_forcing, &
+             ndep_forcing, oalk_forcing, rivflx_forcing, &
+             use_nuopc_relaxation, use_nuopc_swaclim, use_nuopc_dust, use_nuopc_chloro, &
+             use_nuopc_oalk, use_nuopc_rivin, use_nuopc_ndep
 
 contains
 

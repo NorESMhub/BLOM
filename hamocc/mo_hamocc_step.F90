@@ -35,8 +35,8 @@ contains
     use mod_state,      only: temp,saln
     use mod_forcing,    only: swa,slp,abswnd,atmco2,flxco2,flxdms,atmbrf,flxbrf, &
                               atmn2o,flxn2o,atmnh3,flxnh3,atmnhxdep,atmnoydep, &
-                              use_stream_dust, use_stream_oalk, use_stream_ndep, &
-                              dust_stream, ndep_stream, oalk_stream, rivflx_stream
+                              use_nuopc_dust, use_nuopc_oalk, use_nuopc_ndep, &
+                              dust_forcing, ndep_forcing, oalk_forcing, rivflx_forcing
     use mod_seaice,     only: ficem
     use mo_bgcmean,     only: nbgc,bgcwrt, diagfq_bgc,diagmon_bgc,diagann_bgc
     use mo_intfcblom,   only: bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask,blom2hamocc,hamocc2blom
@@ -72,19 +72,19 @@ contains
       end if
     enddo
 
-    if (.not. use_stream_dust) then
-       call get_fedep(date%month, dust_stream)
+    if (.not. use_nuopc_dust) then
+       call get_fedep(idm,jdm,date%month, dust_forcing)
     end if
 
-    if (.not. use_stream_ndep) then
-       if (.not. allocated(ndep_stream)) then
-          allocate(ndep_stream(1-nbdy:idm+nbdy, 1-nbdy:jdm+nbdy, nndep))
+    if (.not. use_nuopc_ndep) then
+       if (.not. allocated(ndep_forcing)) then
+          allocate(ndep_forcing(1-nbdy:idm+nbdy, 1-nbdy:jdm+nbdy, nndep))
        end if
-       call get_ndep(date%year, date%month, omask, ndep_stream, atmnhxdep, atmnoydep)
+       call get_ndep(date%year, date%month, omask, ndep_forcing, atmnhxdep, atmnoydep)
     end if
 
-    if (.not. use_stream_oalk) then
-       call get_oafx(date%year, date%month, omask, oalk_stream)
+    if (.not. use_nuopc_oalk) then
+       call get_oafx(date%year, date%month, omask, oalk_forcing)
     end if
 
     if (with_dmsph) then
@@ -94,7 +94,7 @@ contains
     call hamocc4bcm(idm, jdm, kdm, nbdy,                                  &
          date%year, date%month, date%day, ldtday, bgc_dx, bgc_dy, bgc_dp, &
          bgc_rho, plat, omask,                                            &
-         dust_stream, rivflx_stream, ndep_stream, oalk_stream,            &
+         dust_forcing, rivflx_forcing, ndep_forcing, oalk_forcing,        &
          pi_ph, swa, ficem, slp, abswnd,                                  &
          temp(1-nbdy,1-nbdy,1+nn), saln(1-nbdy,1-nbdy,1+nn),              &
          atmco2, flxco2, flxdms, atmbrf, flxbrf,                          &

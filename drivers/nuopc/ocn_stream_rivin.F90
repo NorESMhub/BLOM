@@ -37,7 +37,7 @@ module ocn_stream_rivin
    use shr_nl_mod        , only: shr_nl_find_group_name
    use nuopc_shr_methods , only: chkerr
    use mod_blom_pio      , only: pio_iosystem, pio_iotype, blom_pio_getdata
-   use mod_forcing       , only: rivflx_stream
+   use mod_forcing       , only: rivflx_forcing
    use mod_output_forcing, only: output_forcing
    use mo_param1_bgc     , only: nriv,irdin,irdip,irsi,iralk,iriron,irdoc,irdet
    use mo_intfcblom      , only : omask
@@ -146,9 +146,9 @@ contains
       endif
 
       ! allocate field to hold rivin fields
-      allocate (rivflx_stream(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nriv),stat=errstat)
+      allocate (rivflx_forcing(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nriv),stat=errstat)
       if(errstat /= 0) stop 'not enough memory rivflx allocation'
-      rivflx_stream(:,:,:) = 0.0
+      rivflx_forcing(:,:,:) = 0.0
 
       ! read riverine nutrient fluxes from file
       if (mnproc.eq.1) then
@@ -223,22 +223,22 @@ contains
          do j = 1, jjcpl
             do i = 1, ii
                if (ip(i,j) == 0) then
-                  rivflx_stream(i,j,index) = mval
+                  rivflx_forcing(i,j,index) = mval
                elseif (cplmsk(i,j) == 0) then
-                  rivflx_stream(i,j,index) = fval
+                  rivflx_forcing(i,j,index) = fval
                else
                   n = (j - 1)*ii + i
-                  rivflx_stream(i,j,index) = dataptr_model(n)
+                  rivflx_forcing(i,j,index) = dataptr_model(n)
                end if
                ! set flux to zero over land
                if (omask(i,j) < 0.5) then
-                  rivflx_stream(i,j,index) = 0.0
+                  rivflx_forcing(i,j,index) = 0.0
                end if
             end do
          end do
 
          output_filename = 'frivin_stream_'//trim(fldnames(nf))//'.nc'
-         call output_forcing(trim(output_filename), trim(fldnames(nf)), rivflx_stream(:,:,index))
+         call output_forcing(trim(output_filename), trim(fldnames(nf)), rivflx_forcing(:,:,index))
       end do
 
       call pio_closefile(pioid)

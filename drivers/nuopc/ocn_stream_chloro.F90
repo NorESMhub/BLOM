@@ -1,7 +1,9 @@
 module ocn_stream_chloro
 
    !-----------------------------------------------------------------------
-   ! Contains methods for reading in chlorophyll forcing file
+   ! Contains methods for reading in chlorophyll forcing file used in mod_swa.F90
+   ! This will replace the reading of chlorophyll if the namelist setting for
+   ! swamth = 'chlorophyll' in subroutine iniswa.
    !-----------------------------------------------------------------------
    !
    use ESMF              , only : ESMF_Clock, ESMF_Mesh, ESMF_Time, ESMF_ClockGet, ESMF_TimeGet

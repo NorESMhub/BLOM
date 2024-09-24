@@ -33,7 +33,7 @@ module mod_cesm
                              lamult, lasl, ustokes, vstokes, atmco2, atmbrf, &
                              flxdms, flxbrf, &
                              atmn2o, atmnh3, atmnhxdep, atmnoydep, &
-                             use_stream_relaxation, use_stream_swa
+                             use_nuopc_relaxation, use_nuopc_swaclim
    use mod_ben02,      only: initai, rdcsic, rdctsf, fnlzai
    use mod_rdcsss,     only: rdcsss
    use mod_idarlx,     only: idarlx
@@ -130,7 +130,7 @@ contains
    subroutine inifrc_cesm
 
       ! If not using NUOPC stream capability
-      if (.not. use_stream_relaxation) then
+      if (.not. use_nuopc_relaxation) then
          ! If SST restoring is requested prepare interpolation and
          ! read climatological sea-ice concentration and surface temperature.
          if (trxday > 0._r8) then

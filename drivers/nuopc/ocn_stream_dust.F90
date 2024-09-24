@@ -12,7 +12,7 @@ module ocn_stream_dust
    use shr_kind_mod      , only : r8 => shr_kind_r8, CL => shr_kind_cl, CS => shr_kind_cs
    use shr_log_mod       , only : errMsg => shr_log_errMsg
    use shr_sys_mod       , only : shr_sys_abort
-   use mod_forcing       , only : dust_stream
+   use mod_forcing       , only : dust_forcing
    use mo_intfcblom      , only : omask
    use mod_xc
 
@@ -173,7 +173,7 @@ contains
       end if
 
       ! allocate field to hold dust fields
-      dust_stream(:,:) = 0.0
+      dust_forcing(:,:) = 0.0
 
    end subroutine ocn_stream_dust_init
 
@@ -182,7 +182,7 @@ contains
 
       use dshr_strdata_mod   , only : shr_strdata_advance
       use dshr_methods_mod   , only : dshr_fldbun_getfldptr
-      use mod_forcing        , only : dust_stream
+      use mod_forcing        , only : dust_forcing
       use mod_checksum       , only : csdiag, chksummsk
       use mod_output_forcing , only : output_forcing
 
@@ -241,17 +241,17 @@ contains
       do j = 1, jjcpl
          do i = 1, ii
             if (ip(i,j) == 0) then
-               dust_stream(i,j) = mval
+               dust_forcing(i,j) = mval
             elseif (cplmsk(i,j) == 0) then
-               dust_stream(i,j) = fval
+               dust_forcing(i,j) = fval
             else
                n = (j - 1)*ii + i
-               ! need dust_stream in units of kg/m2/month not kg/m2/s which is in the file
-               dust_stream(i,j) = dataptr1(n)*seconds_per_month
+               ! need dust_forcing in units of kg/m2/month not kg/m2/s which is in the file
+               dust_forcing(i,j) = dataptr1(n)*seconds_per_month
             end if
             ! set flux to zero over land
             if (omask(i,j) < 0.5) then
-               dust_stream(i,j) = 0.0
+               dust_forcing(i,j) = 0.0
             end if
          end do
       end do
@@ -260,11 +260,11 @@ contains
          if (mnproc == 1) then
             write(lp,*) 'ocn_stream_dust_interp:'
          end if
-         call chksummsk(dust_stream,ip,1,'dust_stream')
+         call chksummsk(dust_forcing,ip,1,'dust_forcing')
       end if
 
       if (first_time) then
-         call output_forcing('fedep_stream.nc', 'fedep', dust_stream)
+         call output_forcing('fedep_stream.nc', 'fedep', dust_forcing)
          first_time = .false.
       end if
 

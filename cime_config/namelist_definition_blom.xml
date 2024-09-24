@@ -8674,10 +8674,10 @@
   </entry>
 
   <!-- =========================  -->
-  <!-- namelist group: stream_sss -->
+  <!-- namelist group: forcing fields using nuopc -->
   <!-- =========================  -->
 
-  <entry id="use_stream_relaxation">
+  <entry id="use_nuopc_relaxation">
     <type>logical</type>
     <category>limits</category>
     <group>limits</group>
@@ -8687,6 +8687,78 @@
     </values>
     <desc>if .true., use NUOPC stream relaxation capability</desc>
   </entry>
+
+  <entry id="use_nuopc_chloro">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.true.</value>
+    </values>
+    <desc>if .true., use NUOPC stream capability to obtain chlorophyll concentration</desc>
+  </entry>
+
+  <entry id="use_nuopc_ndep">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.false.</value>
+    </values>
+    <desc>if .true., use NUOPC to obtain NDEP (always imported to model) </desc>
+  </entry>
+
+  <entry id="use_nuopc_dust">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.false.</value>
+    </values>
+    <desc>if .true., use NUOPC stream dust capability</desc>
+  </entry>
+
+  <entry id="use_nuopc_rivin">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.false.</value>
+    </values>
+    <desc>if .true., use NUOPC stream ocean river nutrient  capability</desc>
+  </entry>
+
+  <entry id="use_nuopc_oalk">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.false.</value>
+    </values>
+    <desc>if .true., use NUOPC stream ocean alkalinity capability</desc>
+  </entry>
+
+  <entry id="use_nuopc_swa">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.false.</value>
+    </values>
+    <desc>if .true., use NUOPC stream swabs capability for bromoform </desc>
+  </entry>
+
+
+  <!-- =========================  -->
+  <!-- namelist group: stream_sss -->
+  <!-- =========================  -->
+
   <entry id="stream_sss_mesh_filename">
     <type>char</type>
     <category>stream_sss</category>
@@ -8827,17 +8899,6 @@
   <!-- namelist group: stream_swa -->
   <!-- =========================  -->
 
-  <entry id="use_stream_swa">
-    <type>logical</type>
-    <category>limits</category>
-    <group>limits</group>
-    <values>
-      <value>.false.</value>
-      <value comp_interface="nuopc">.false.</value>
-    </values>
-    <desc>if .true., use NUOPC stream swabs capability</desc>
-  </entry>
-
   <entry id="stream_swa_mesh_filename">
     <type>char</type>
     <category>stream_swa</category>
@@ -8906,17 +8967,6 @@
   <!-- =========================  -->
   <!-- namelist group: stream_dust -->
   <!-- =========================  -->
-
-  <entry id="use_stream_dust">
-    <type>logical</type>
-    <category>limits</category>
-    <group>limits</group>
-    <values>
-      <value>.false.</value>
-      <value comp_interface="nuopc">.false.</value>
-    </values>
-    <desc>if .true., use NUOPC stream dust capability</desc>
-  </entry>
 
   <entry id="stream_dust_mesh_filename">
     <type>char</type>
@@ -8987,17 +9037,6 @@
   <!-- namelist group: stream_oalk -->
   <!-- =========================  -->
 
-  <entry id="use_stream_oalk">
-    <type>logical</type>
-    <category>limits</category>
-    <group>limits</group>
-    <values>
-      <value>.false.</value>
-      <value comp_interface="nuopc">.false.</value>
-    </values>
-    <desc>if .true., use NUOPC stream ocean alkalinity capability</desc>
-  </entry>
-
   <entry id="stream_oalk_mesh_filename">
     <type>char</type>
     <category>stream_oalk</category>
@@ -9067,17 +9106,6 @@
   <!-- namelist group: stream_oalk -->
   <!-- =========================  -->
 
-  <entry id="use_stream_rivin">
-    <type>logical</type>
-    <category>limits</category>
-    <group>limits</group>
-    <values>
-      <value>.false.</value>
-      <value comp_interface="nuopc">.false.</value>
-    </values>
-    <desc>if .true., use NUOPC stream ocean river nutrient  capability</desc>
-  </entry>
-
   <entry id="stream_rivin_mesh_filename">
     <type>char</type>
     <category>stream_rivin</category>
@@ -9115,75 +9143,5 @@
       <value ocn_grid="tnx0.125v4">unset</value>
     </values>
   </entry>
-
-  <!-- =========================  -->
-  <!-- namelist group: stream_ndep -->
-  <!-- =========================  -->
-
-  <entry id="stream_ndep_mesh_filename">
-    <type>char</type>
-    <category>stream_ndep</category>
-    <group>stream_ndep</group>
-    <desc>stream mesh file</desc>
-    <values>
-      <value>$DIN_LOC_ROOT/atm/cam/sst/sst_HadOIBl_bc_1x1_clim_c101029_ESMFmesh_120520.nc</value>
-    </values>
-  </entry>
-  <entry id="stream_ndep_data_filename">
-    <type>char(10)</type>
-    <category>stream_ndep</category>
-    <group>stream_ndep</group>
-    <desc>
-      file name(s) containing nitrogen deposition data
-    </desc>
-    <values>
-      <value>$DIN_LOC_ROOT/lnd/clm2/ndepdata/fndep_clm_WACCM6_CMIP6piControl001_y21-50avg_1850monthly_0.95x1.25_c180802.nc</value>
-    </values>
-  </entry>
-  <entry id="stream_ndep_varname">
-    <type>char(2)</type>
-    <category>stream_ndep</category>
-    <group>stream_ndep</group>
-    <desc>
-      variable name on stream file
-    </desc>
-    <values>
-      <value>NDEP_NHx_month, NDEP_NOy_month</value>
-    </values>
-  </entry>
-  <entry id="stream_ndep_year_first">
-    <type>integer</type>
-    <category>stream_ndep</category>
-    <group>stream_ndep</group>
-    <desc>
-      First year in stream to use
-    </desc>
-    <values>
-      <value>1</value>
-    </values>
-  </entry>
-  <entry id="stream_ndep_year_last">
-    <type>integer</type>
-    <category>stream_ndep</category>
-    <group>stream_ndep</group>
-    <desc>
-      Last year in stream to use
-    </desc>
-    <values>
-      <value>1</value>
-    </values>
-  </entry>
-  <entry id="stream_ndep_year_align">
-    <type>integer</type>
-    <category>stream_ndep</category>
-    <group>stream_ndep</group>
-    <desc>
-      Align stream_year_first with this model year
-    </desc>
-    <values>
-      <value>1</value>
-    </values>
-  </entry>
-
 
 </entry_id_pg>
