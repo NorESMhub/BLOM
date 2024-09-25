@@ -50,7 +50,8 @@ module ocn_comp_nuopc
    use mod_cesm,          only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
    use mod_config,        only: inst_index, inst_name, inst_suffix
    use mod_time,          only: blom_time
-   use mod_forcing,       only: srxday, trxday
+   use mod_forcing,       only: srxday, trxday, use_nuopc_chloro, use_nuopc_swaclim
+   use mod_forcing,       only: use_nuopc_dust, use_nuopc_rivin
    use mod_swabs,         only: swamth, chlopt
    use mod_constants,     only: epsilt
    use mod_blom_init,     only: blom_init
@@ -234,17 +235,20 @@ contains
       ! Get data pointers for the fields to be imported.
       do n = 1, fldsToOcn_num
          if (fldsToOcn(n)%stdname == trim(flds_scalar_name)) cycle
-         call ESMF_StateGet(importState, trim(fldsToOcn(n)%stdname), &
-                            itemType, rc=rc)
+         call ESMF_StateGet(importState, trim(fldsToOcn(n)%stdname), itemType, rc=rc)
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
          if (itemType == ESMF_STATEITEM_NOTFOUND) then
             fldsToOcn(n)%dataptr => null()
          else
-            call ESMF_StateGet(importState, trim(fldsToOcn(n)%stdname), &
-                               field=field, rc=rc)
+            call ESMF_StateGet(importState, trim(fldsToOcn(n)%stdname), field=field, rc=rc)
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
-            call ESMF_FieldGet(field, farrayPtr=fldsToOcn(n)%dataptr, rc=rc)
-            if (ChkErr(rc, __LINE__, u_FILE_u)) return
+            if (fldsToOcn(n)%ungridded_lbound > 0 .and. fldsToOcn(n)%ungridded_ubound > 0) then
+               call ESMF_FieldGet(field, farrayPtr=fldsToOcn(n)%dataptr2d, rc=rc)
+               if (ChkErr(rc, __LINE__, u_FILE_u)) return
+            else
+               call ESMF_FieldGet(field, farrayPtr=fldsToOcn(n)%dataptr, rc=rc)
+               if (ChkErr(rc, __LINE__, u_FILE_u)) return
+            end if
          endif
       enddo
 
@@ -743,31 +747,39 @@ contains
       end if
 
       ! Initialize sdat for chlorophyll concentration if appropriate
-      if (swamth == 'chlorophyll') then
-         if (chlopt == 'climatology') then
-            call ocn_stream_chloro_init(Emesh, clock, rc)
-            if (ChkErr(rc, __LINE__, u_FILE_u)) return
-         else
-            if (mnproc == 1) then
-               write (lp,'(3a)') ' chlopt = ',trim(chlopt),' is unsupported!'
+      if (use_nuopc_chloro) then
+         if (swamth == 'chlorophyll') then
+            if (chlopt == 'climatology') then
+               call ocn_stream_chloro_init(Emesh, clock, rc)
+               if (ChkErr(rc, __LINE__, u_FILE_u)) return
+            else
+               if (mnproc == 1) then
+                  write (lp,'(3a)') ' chlopt = ',trim(chlopt),' is unsupported!'
+               end if
+               call xcstop('(iniswa)')
+               stop '(iniswa)'
             end if
-            call xcstop('(iniswa)')
-            stop '(iniswa)'
          end if
       end if
 
 #ifdef HAMOCC
       ! Initialize sdat for swa climatology if appropriate
-      call ocn_stream_swaclim_init(Emesh, clock, rc)
-      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      if (use_nuopc_swaclim) then
+         call ocn_stream_swaclim_init(Emesh, clock, rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      end if
 
       ! Initialize sdat for dust deposition climatology if appropriate
-      call ocn_stream_dust_init(Emesh, clock, rc)
-      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      if (use_nuopc_dust) then
+         call ocn_stream_dust_init(Emesh, clock, rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      end if
 
       ! Initialize time independent riverine nutrient input
-      call ocn_stream_rivin_init(Emesh, rc)
-      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      if (use_nuopc_rivin) then
+         call ocn_stream_rivin_init(Emesh, rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      end if
 #endif
 
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
@@ -933,19 +945,25 @@ contains
          end if
 
          ! Advance chlorophyll stream input if appropriate
-         if (swamth == 'chlorophyll' .and. chlopt == 'climatology') then
-            call ocn_stream_chloro_interp(clock, rc)
-            if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         if (use_nuopc_chloro) then
+            if (swamth == 'chlorophyll' .and. chlopt == 'climatology') then
+               call ocn_stream_chloro_interp(clock, rc)
+               if (ChkErr(rc, __LINE__, u_FILE_u)) return
+            end if
          end if
 
 #ifdef HAMOCC
          ! Advance swa stream input if appropriate
-         call ocn_stream_swaclim_interp(clock, rc)
-         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         if (use_nuopc_swaclim) then
+            call ocn_stream_swaclim_interp(clock, rc)
+            if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         end if
 
          ! Advance dust stream input if appropriate
-         call ocn_stream_dust_interp(clock, rc)
-         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         if (use_nuopc_dust) then
+            call ocn_stream_dust_interp(clock, rc)
+            if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         end if
 #endif
 
          ! Advance the model a time step.
