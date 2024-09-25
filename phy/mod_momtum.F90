@@ -30,7 +30,7 @@ module mod_momtum
                            onem, onemm
   use mod_time,      only: delt1, dlt
   use mod_xc
-  use mod_vcoord,    only: vcoord_type_tag, isopyc_bulkml
+  use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml
   use mod_grid,      only: scqx, scqy, scpx, scpy, scux, scuy, &
                            scvx, scvy, scp2, scu2, scv2, scq2i, scp2i, &
                            scuxi, scvyi, corioq
@@ -936,7 +936,7 @@ contains
 
       ! store wind forcing in -stress-
 
-      if (vcoord_type_tag == isopyc_bulkml) then
+      if (vcoord_tag == vcoord_isopyc_bulkml) then
         if (k == 1) then
           do j = 1,jj
             do l = 1,isu(j)
@@ -1099,7 +1099,7 @@ contains
 
       ! store wind forcing in -stress-
 
-      if (vcoord_type_tag == isopyc_bulkml) then
+      if (vcoord_tag == vcoord_isopyc_bulkml) then
         if (k == 1) then
           do j = 1,jj
             do l = 1,isv(j)

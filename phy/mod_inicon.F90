@@ -36,10 +36,10 @@ module mod_inicon
                            mnproc, lp, ii, jj, kk, isp, ifp, ilp, &
                            isu, ifu, ilu, isv, ifv, ilv, isq, ifq, ilq, &
                            i0, j0, ip, iu, iv, iq, halo_ps, nbdy
-  use mod_vcoord,    only: vcoord_type_tag, isopyc_bulkml, &
-                           cntiso_hybrid, sigmar, &
-                           cntiso_hybrid_regrid_direct_remap, &
-                           remap_velocity
+  use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml, &
+                           vcoord_cntiso_hybrid, sigref_spec, sigmar
+  use mod_ale_regrid_remap, only: regrid_method_tag, regrid_method_direct, &
+                           ale_regrid_remap
   use mod_grid,      only: scuy, scvx, scuyi, scvxi, depths, &
                            corioq
   use mod_state,     only: u, v, dp, dpu, dpv, temp, saln, sigma, p, pu, &
@@ -73,9 +73,6 @@ module mod_inicon
 
   ! Public routines
   public :: inicon
-
-  ! Private routines
-  private :: getpl, ictsz_file
 
 contains
 
@@ -139,7 +136,7 @@ contains
     real :: dsig,a0,a1,a2
     integer, dimension(3) :: start,count
     integer :: i,j,kdmic,k,l,status,ncid,dimid,varid,kb
-    real :: im_mks2cgs
+    real :: iM_mks2cgs
 
     iM_mks2cgs = 1.0 / M_mks2cgs
 
@@ -197,9 +194,10 @@ contains
         call xchalt('(ictsz_file)')
         stop '(ictsz_file)'
       end if
-      if (i /= itdm.or.j /= jtdm.or. &
-           (kdmic /= kdm.and.vcoord_type_tag /= cntiso_hybrid).or. &
-           (kdmic > kdm.and.vcoord_type_tag == cntiso_hybrid)) then
+      if (i /= itdm .or. j /= jtdm .or. &
+          (kdmic /= kdm .and. vcoord_tag == vcoord_isopyc_bulkml) .or. &
+          (kdmic >  kdm .and. vcoord_tag == vcoord_cntiso_hybrid .and. &
+           trim(sigref_spec) == 'inicon')) then
         write (lp,*) 'wrong dimensions in '//trim(icfile)
         call xchalt('(ictsz_file)')
         stop '(ictsz_file)'
@@ -216,28 +214,32 @@ contains
     count(3) = 1
 
     ! Read reference potential density
-    if (mnproc == 1) then
-      status = nf90_inq_varid(ncid,'sigma',varid)
-      if (status /= nf90_noerr) then
-        write(lp,'(2a)') ' nf90_inq_varid: sigma: ', &
-             nf90_strerror(status)
-        call xchalt('(ictsz_file)')
-        stop '(ictsz_file)'
-      end if
-    end if
-    do k = 1,kdmic
+    if ( vcoord_tag == vcoord_isopyc_bulkml .or. &
+        (vcoord_tag == vcoord_cntiso_hybrid .and. &
+         trim(sigref_spec) == 'inicon')) then
       if (mnproc == 1) then
-        start(3) = k
-        status = nf90_get_var(ncid,varid,tmp2d,start,count)
+        status = nf90_inq_varid(ncid,'sigma',varid)
         if (status /= nf90_noerr) then
-          write(lp,'(2a)') ' nf90_get_var: sigma: ', &
+          write(lp,'(2a)') ' nf90_inq_varid: sigma: ', &
                nf90_strerror(status)
           call xchalt('(ictsz_file)')
           stop '(ictsz_file)'
         end if
       end if
-      call xcaput(tmp2d,sigmar(1-nbdy,1-nbdy,k),1)
-    end do
+      do k = 1,kdmic
+        if (mnproc == 1) then
+          start(3) = k
+          status = nf90_get_var(ncid,varid,tmp2d,start,count)
+          if (status /= nf90_noerr) then
+            write(lp,'(2a)') ' nf90_get_var: sigma: ', &
+                 nf90_strerror(status)
+            call xchalt('(ictsz_file)')
+            stop '(ictsz_file)'
+          end if
+        end if
+        call xcaput(tmp2d,sigmar(1-nbdy,1-nbdy,k),1)
+      end do
+    end if
 
     ! Read potential temperature
     if (mnproc == 1) then
@@ -319,7 +321,8 @@ contains
       end if
     end if
 
-    if (vcoord_type_tag == cntiso_hybrid) then
+    if (vcoord_tag == vcoord_cntiso_hybrid .and. &
+        trim(sigref_spec) == 'inicon') then
       !$omp parallel do private(l,i,k,kb,dsig,a0,a1,a2)
       do j = 1,jj
         do l = 1,isp(j)
@@ -402,15 +405,23 @@ contains
           z(i,j,kk+1) = depths(i,j)*L_mks2cgs
         end do
       end do
-      do k = 1,kk
-        do l = 1,isp(j)
-          do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-            sigmar(i,j,k) = sigmar(i,j,k)*iM_mks2cgs
+    end do
+    !$omp end parallel do
+    if ( vcoord_tag == vcoord_isopyc_bulkml .or. &
+        (vcoord_tag == vcoord_cntiso_hybrid .and. &
+         trim(sigref_spec) == 'inicon')) then
+      !$omp parallel do private(k,l,i)
+      do j = 1,jj
+        do k = 1,kk
+          do l = 1,isp(j)
+            do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
+              sigmar(i,j,k) = sigmar(i,j,k)*iM_mks2cgs
+            end do
           end do
         end do
       end do
-    end do
-    !$omp end parallel do
+      !$omp end parallel do
+    end if
 
     ! compute layer interface geopotential
     !$omp parallel do private(k,l,i)
@@ -438,7 +449,7 @@ contains
 
     ! Local variables
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: tfrz
-    integer :: i,j,k,l
+    integer :: i,j,k,l,regrid_method_tag_orig
     real :: q,tsfac,dps
 
     ! ------------------------------------------------------------------
@@ -488,61 +499,53 @@ contains
     ! variables consistent.
     ! ------------------------------------------------------------------
 
-    select case (vcoord_type_tag)
+    select case (vcoord_tag)
 
-    case (isopyc_bulkml)
+      case (vcoord_isopyc_bulkml)
 
-      do k = 1,2
-        tfrz(1:ii,1:jj) = swtfrz(p(1:ii,1:jj,1),saln(1:ii,1:jj,k))
-        !$omp parallel do private(l,i)
-        do j = 1,jj
-          do l = 1,isp(j)
-            do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-              temp(i,j,k) = max(tfrz(i,j),temp(i,j,k))
-              sigma(i,j,k) = sig(temp(i,j,k),saln(i,j,k))
+        do k = 1,2
+          tfrz(1:ii,1:jj) = swtfrz(p(1:ii,1:jj,1),saln(1:ii,1:jj,k))
+          !$omp parallel do private(l,i)
+          do j = 1,jj
+            do l = 1,isp(j)
+              do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
+                temp(i,j,k) = max(tfrz(i,j),temp(i,j,k))
+                sigma(i,j,k) = sig(temp(i,j,k),saln(i,j,k))
+              end do
             end do
           end do
+          !$omp end parallel do
         end do
-        !$omp end parallel do
-      end do
-      do k = 3,kk
-        tfrz(1:ii,1:jj) = swtfrz(p(1:ii,1:jj,1),saln(1:ii,1:jj,k))
-        !$omp parallel do private(l,i)
-        do j = 1,jj
-          do l = 1,isp(j)
-            do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-              temp(i,j,k) = max(tfrz(i,j),temp(i,j,k))
-              saln(i,j,k) = sofsig(sigmar(i,j,k),temp(i,j,k))
-              sigma(i,j,k) = sig(temp(i,j,k),saln(i,j,k))
+        do k = 3,kk
+          tfrz(1:ii,1:jj) = swtfrz(p(1:ii,1:jj,1),saln(1:ii,1:jj,k))
+          !$omp parallel do private(l,i)
+          do j = 1,jj
+            do l = 1,isp(j)
+              do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
+                temp(i,j,k) = max(tfrz(i,j),temp(i,j,k))
+                saln(i,j,k) = sofsig(sigmar(i,j,k),temp(i,j,k))
+                sigma(i,j,k) = sig(temp(i,j,k),saln(i,j,k))
+              end do
             end do
           end do
+          !$omp end parallel do
         end do
-        !$omp end parallel do
-      end do
 
-    case (cntiso_hybrid)
+      case default
 
-      do k = 1,kk
-        tfrz(1:ii,1:jj) = swtfrz(p(1:ii,1:jj,1),saln(1:ii,1:jj,k))
-        !$omp parallel do private(l,i)
-        do j = 1,jj
-          do l = 1,isp(j)
-            do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-              temp(i,j,k) = max(tfrz(i,j),temp(i,j,k))
-              sigma(i,j,k) = sig(temp(i,j,k),saln(i,j,k))
+        do k = 1,kk
+          tfrz(1:ii,1:jj) = swtfrz(p(1:ii,1:jj,1),saln(1:ii,1:jj,k))
+          !$omp parallel do private(l,i)
+          do j = 1,jj
+            do l = 1,isp(j)
+              do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
+                temp(i,j,k) = max(tfrz(i,j),temp(i,j,k))
+                sigma(i,j,k) = sig(temp(i,j,k),saln(i,j,k))
+              end do
             end do
           end do
+          !$omp end parallel do
         end do
-        !$omp end parallel do
-      end do
-
-    case default
-
-      if (mnproc == 1) then
-        write (lp,*) 'inicon: unsupported vertical coordinate!'
-      end if
-      call xcstop('(inicon)')
-      stop '(inicon)'
 
     end select
 
@@ -662,9 +665,11 @@ contains
     end do
     !$omp end parallel do
 
-    if (vcoord_type_tag == cntiso_hybrid) then
-      call cntiso_hybrid_regrid_direct_remap(2,1,kk,0,kk+1,1)
-      call remap_velocity(2,1,kk,0,kk+1,1)
+    if (vcoord_tag /= vcoord_isopyc_bulkml) then
+      regrid_method_tag_orig = regrid_method_tag
+      regrid_method_tag = regrid_method_direct
+      call ale_regrid_remap(2,1,kk,0,kk+1,1)
+      regrid_method_tag = regrid_method_tag_orig
     end if
     call xctilr(temp, 1,kk, 1,1, halo_ps)
     call xctilr(saln, 1,kk, 1,1, halo_ps)

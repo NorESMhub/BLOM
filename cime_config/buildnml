@@ -263,6 +263,7 @@ def buildnml(case, caseroot, compname):
 
         if case.get_value("BLOM_VCOORD") == "cntiso_hybrid":
             groups.append('vcoord')
+            groups.append('ale_regrid_remap')
 
         if "ecosys" in case.get_value("BLOM_TRACER_MODULES"):
             groups.append("bgcnml")

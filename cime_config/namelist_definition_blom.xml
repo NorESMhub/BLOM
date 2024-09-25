@@ -903,127 +903,27 @@
     <values>
       <value>$BLOM_VCOORD</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Vertical coordinate type. Valid types: 'isopyc_bulkml', 'cntiso_hybrid', 'plevel'</desc>
   </entry>
 
-  <entry id="reconstruction_method">
+  <entry id="sigref_spec">
     <type>char</type>
     <category>vcoord</category>
     <group>vcoord</group>
     <values>
-      <value>ppm</value>
+      <value>'inicon'</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Reference potential density specification: Valid specs.: 'inicon', 'namelist'</desc>
   </entry>
 
-  <entry id="upper_bndr_ord">
-    <type>integer</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
-    <values>
-      <value>6</value>
-    </values>
-    <desc>add desc</desc>
-  </entry>
-
-  <entry id="lower_bndr_ord">
-    <type>integer</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
-    <values>
-      <value>4</value>
-    </values>
-    <desc>add desc</desc>
-  </entry>
-
-  <entry id="density_limiting">
+  <entry id="plevel_spec">
     <type>char</type>
     <category>vcoord</category>
     <group>vcoord</group>
     <values>
-      <value>monotonic</value>
+      <value>'inflation'</value>
     </values>
-    <desc>add desc</desc>
-  </entry>
-
-  <entry id="tracer_limiting">
-    <type>char</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
-    <values>
-      <value>non_oscillatory</value>
-    </values>
-    <desc>add desc</desc>
-  </entry>
-
-  <entry id="velocity_limiting">
-    <type>char</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
-    <values>
-      <value>non_oscillatory</value>
-    </values>
-    <desc>add desc</desc>
-  </entry>
-
-  <entry id="density_pc_upper_bndr">
-    <type>logical</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
-    <values>
-      <value>.false.</value>
-    </values>
-    <desc>add desc</desc>
-  </entry>
-
-  <entry id="density_pc_lower_bndr">
-    <type>logical</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
-    <values>
-      <value>.false.</value>
-    </values>
-    <desc>add desc</desc>
-  </entry>
-
-  <entry id="tracer_pc_upper_bndr">
-    <type>logical</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
-    <values>
-      <value>.true.</value>
-    </values>
-    <desc>add desc</desc>
-  </entry>
-
-  <entry id="tracer_pc_lower_bndr">
-    <type>logical</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
-    <values>
-      <value>.false.</value>
-    </values>
-    <desc>add desc</desc>
-  </entry>
-
-  <entry id="velocity_pc_upper_bndr">
-    <type>logical</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
-    <values>
-      <value>.true.</value>
-    </values>
-    <desc>add desc</desc>
-  </entry>
-
-  <entry id="velocity_pc_lower_bndr">
-    <type>logical</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
-    <values>
-      <value>.false.</value>
-    </values>
-    <desc>add desc</desc>
+    <desc>Pressure level specification: Valid specs.: 'inflation', 'namelist'</desc>
   </entry>
 
   <entry id="dpmin_surface">
@@ -1033,7 +933,7 @@
     <values>
       <value>2.5</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Minimum surface layer thickness (m)</desc>
   </entry>
 
   <entry id="dpmin_inflation_factor">
@@ -1043,43 +943,177 @@
     <values>
       <value>1.08</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Minimum layer thickness inflation factor</desc>
   </entry>
 
-  <entry id="dpmin_interior">
+  <entry id="sigref">
     <type>real</type>
     <category>vcoord</category>
     <group>vcoord</group>
     <values>
-      <value>.1</value>
+      <value>-1.,-1.</value>
+    </values>
+    <desc>Array of reference potential densities (kg/m3)</desc>
+  </entry>
+
+  <entry id="plevel">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>-1.,-1.</value>
+    </values>
+    <desc>Array of pressure levels (m)</desc>
+  </entry>
+
+  <!-- ========================= -->
+  <!-- namelist group: ale_regrid_remap -->
+  <!-- ========================= -->
+
+  <entry id="reconstruction_method">
+    <type>char</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>ppm</value>
     </values>
     <desc>add desc</desc>
   </entry>
 
-  <entry id="dktzu">
+  <entry id="upper_bndr_ord">
     <type>integer</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>6</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="lower_bndr_ord">
+    <type>integer</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
     <values>
       <value>4</value>
     </values>
     <desc>add desc</desc>
   </entry>
 
-  <entry id="dktzl">
-    <type>integer</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
+  <entry id="density_limiting">
+    <type>char</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
     <values>
-      <value>2</value>
+      <value>monotonic</value>
     </values>
     <desc>add desc</desc>
   </entry>
 
+  <entry id="tracer_limiting">
+    <type>char</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>non_oscillatory</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="velocity_limiting">
+    <type>char</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>non_oscillatory</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="density_pc_upper_bndr">
+    <type>logical</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="density_pc_lower_bndr">
+    <type>logical</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="tracer_pc_upper_bndr">
+    <type>logical</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>.true.</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="tracer_pc_lower_bndr">
+    <type>logical</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="velocity_pc_upper_bndr">
+    <type>logical</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>.true.</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="velocity_pc_lower_bndr">
+    <type>logical</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="dpmin_interior">
+    <type>real</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>.1</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="regrid_method">
+    <type>char</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>'nudge'</value>
+    </values>
+    <desc>Valid mehtods: 'nudge', 'direct'</desc>
+  </entry>
+
   <entry id="regrid_nudge_ts">
     <type>real</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
     <values>
       <value>86400.</value>
     </values>
@@ -1088,8 +1122,8 @@
 
   <entry id="stab_fac_limit">
     <type>real</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
     <values>
       <value>.75</value>
     </values>
@@ -1098,8 +1132,8 @@
 
   <entry id="smooth_diff_max">
     <type>real</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
     <values>
       <value>50000.</value>
       <value blom_unit="cgs">50000.e4</value>
@@ -1107,6 +1141,26 @@
       <value ocn_grid="tnx0.25v4"  blom_unit="cgs">40000.e4</value>
       <value ocn_grid="tnx0.125v4" blom_unit="mks">20000.</value>
       <value ocn_grid="tnx0.125v4" blom_unit="cgs">20000.e4</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="dktzu">
+    <type>integer</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>4</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="dktzl">
+    <type>integer</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>2</value>
     </values>
     <desc>add desc</desc>
   </entry>

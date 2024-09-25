@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2021-2022 Mats Bentsen
+! Copyright (C) 2021-2024 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -28,7 +28,7 @@ module mod_fuk95
   use mod_constants, only: g, rearth, rho0, pi, radian, epsilz, &
                            L_mks2cgs, R_mks2cgs
   use mod_xc
-  use mod_vcoord,    only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid, sigmar
+  use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml, sigmar
   use mod_grid,      only: qclon, qclat, pclon, pclat, uclon, uclat, vclon, vclat, &
                            scqx, scqy, scpx, scpy, scux, scuy, scvx, scvy, &
                            scq2, scp2, scu2, scv2, &
@@ -286,144 +286,136 @@ contains
     ! Set reference potential density, interface depths and layer salinity and
     ! temperature.
 
-    select case (vcoord_type_tag)
+    select case (vcoord_tag)
 
-    case (isopyc_bulkml)
+      case (vcoord_isopyc_bulkml)
 
-      ! For vertical coordinate featuring bulk surface mixed with
-      ! isopycnic layers below, set layer reference potential densities
-      ! and corresponding isopycnic layer structure. The bulk mixed layer
-      ! is set to the minimum mixed layer thickness.
+        ! For vertical coordinate featuring bulk surface mixed with
+        ! isopycnic layers below, set layer reference potential densities
+        ! and corresponding isopycnic layer structure. The bulk mixed layer
+        ! is set to the minimum mixed layer thickness.
 
-      drhojet = rhoc*f*u0*l0/(g*h1)
-      dsig = (drho + drhojet)/(kk - 4)
-      sigref(kk) = rhob - rho0
-      sigref(kk - 1) = rhoc + .5_r8*(drho + drhojet) - rho0
-      do k = kk - 2, 1, -1
-        sigref(k) = sigref(k + 1) - dsig
-      enddo
+        drhojet = rhoc*f*u0*l0/(g*h1)
+        dsig = (drho + drhojet)/(kk - 4)
+        sigref(kk) = rhob - rho0
+        sigref(kk - 1) = rhoc + .5_r8*(drho + drhojet) - rho0
+        do k = kk - 2, 1, -1
+          sigref(k) = sigref(k + 1) - dsig
+        enddo
 
-      !$omp parallel do private(k, l, i)
-      do j = 1, jj
-        do k = 1, kk
-          do l = 1, isp(j)
-            do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
-              sigmar(i, j, k) = sigref(k)
-              sigma(i, j, k) = sigref(k)
-              saln(i, j, k) = saln0
-              temp(i, j, k) = tofsig(sigma(i, j, k), saln(i, j, k))
+        !$omp parallel do private(k, l, i)
+        do j = 1, jj
+          do k = 1, kk
+            do l = 1, isp(j)
+              do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+                sigmar(i, j, k) = sigref(k)
+                sigma(i, j, k) = sigref(k)
+                saln(i, j, k) = saln0
+                temp(i, j, k) = tofsig(sigma(i, j, k), saln(i, j, k))
+              enddo
             enddo
           enddo
         enddo
-      enddo
-      !$omp end parallel do
+        !$omp end parallel do
 
-      !$omp parallel do private(k, l, i, x, sigm, sigi)
-      do j = 1, jj
-        do l = 1, isp(j)
-          do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
-            x = x_nudge(real(i, r8), real(j, r8))
-            z(i, j, 1) = 0._r8
-            z(i, j, 2) = .5_r8*mltmin*L_mks2cgs
-            z(i, j, 3) = mltmin*L_mks2cgs
-            z(i, j, kk    ) = h1
-            z(i, j, kk + 1) = h0
-            sigm = rhoc*(1._r8 + f*u0*x_psi(x)/(g*h1)) - rho0
-            sigma(i, j, 1) = sigm &
-                 + .5_r8*drho*(z(i, j, 2) + z(i, j, 1) - h1)/h1
-            sigma(i, j, 2) = sigm &
-                 + .5_r8*drho*(z(i, j, 3) + z(i, j, 2) - h1)/h1
-            temp(i, j, 1) = tofsig(sigma(i, j, 1), saln(i, j, 1))
-            temp(i, j, 2) = tofsig(sigma(i, j, 2), saln(i, j, 2))
-          enddo
-        enddo
-        do k = 4, kk - 1
+        !$omp parallel do private(k, l, i, x, sigm, sigi)
+        do j = 1, jj
           do l = 1, isp(j)
             do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
               x = x_nudge(real(i, r8), real(j, r8))
+              z(i, j, 1) = 0._r8
+              z(i, j, 2) = .5_r8*mltmin*L_mks2cgs
+              z(i, j, 3) = mltmin*L_mks2cgs
+              z(i, j, kk    ) = h1
+              z(i, j, kk + 1) = h0
               sigm = rhoc*(1._r8 + f*u0*x_psi(x)/(g*h1)) - rho0
-              sigi = .5_r8*(sigref(k - 1) + sigref(k))
-              z(i, j, k) = ((sigi - sigm)/drho + .5_r8)*h1
-              z(i, j, k) = min(z(i, j, kk) - mindz*(kk - k), &
-                   max(z(i, j, 3), z(i, j, k)))
+              sigma(i, j, 1) = sigm &
+                   + .5_r8*drho*(z(i, j, 2) + z(i, j, 1) - h1)/h1
+              sigma(i, j, 2) = sigm &
+                   + .5_r8*drho*(z(i, j, 3) + z(i, j, 2) - h1)/h1
+              temp(i, j, 1) = tofsig(sigma(i, j, 1), saln(i, j, 1))
+              temp(i, j, 2) = tofsig(sigma(i, j, 2), saln(i, j, 2))
+            enddo
+          enddo
+          do k = 4, kk - 1
+            do l = 1, isp(j)
+              do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+                x = x_nudge(real(i, r8), real(j, r8))
+                sigm = rhoc*(1._r8 + f*u0*x_psi(x)/(g*h1)) - rho0
+                sigi = .5_r8*(sigref(k - 1) + sigref(k))
+                z(i, j, k) = ((sigi - sigm)/drho + .5_r8)*h1
+                z(i, j, k) = min(z(i, j, kk) - mindz*(kk - k), &
+                     max(z(i, j, 3), z(i, j, k)))
+              enddo
             enddo
           enddo
         enddo
-      enddo
-      !$omp end parallel do
+        !$omp end parallel do
 
-    case (cntiso_hybrid)
+      case default
 
-      ! For hybrid vertical coordinate featuring pressure coordinates
-      ! towards the surface and continous isopycnal below, set layer
-      ! interface reference potential densities. Initially the lowest
-      ! model layer occupy everything below the active layer, while the
-      ! active layer is distributed equally among the remaining model
-      ! layers using constant z-level interfaces.
+        ! For hybrid vertical coordinate featuring pressure coordinates
+        ! towards the surface and continous isopycnal below, set layer
+        ! interface reference potential densities. Initially the lowest
+        ! model layer occupy everything below the active layer, while the
+        ! active layer is distributed equally among the remaining model
+        ! layers using constant z-level interfaces.
 
-      !           drhojet = rhoc*f*u0*l0/(g*h1)
-      !           dsig = (drho + drhojet)/(kk - 4)
-      !           sigref(kk) = .5_r8*(rhob + rhoc) + .25_r8*(drho + drhojet) - rho0
-      !           sigref(kk - 1) = rhoc + .5_r8*(drho + drhojet - dsig) - rho0
-      !           do k = kk - 2, 1, -1
-      !              sigref(k) = sigref(k + 1) - dsig
-      !           enddo
-      drhojet = rhoc*f*u0*l0/(g*h1)
-      dsig = (drho + drhojet)/(kk - 5)
-      sigref(kk - 2) = rhoc + .5_r8*(drho + drhojet - dsig) - rho0
-      do k = kk - 3, 1, -1
-        sigref(k) = sigref(k + 1) - dsig
-      enddo
-      sigref(kk    ) = rhob - rho0
-      sigref(kk - 1) = (2._r8*sigref(kk - 2) + sigref(kk))/3._r8
-      sigref(kk    ) = (sigref(kk - 2) + 2._r8*sigref(kk))/3._r8
+        !           drhojet = rhoc*f*u0*l0/(g*h1)
+        !           dsig = (drho + drhojet)/(kk - 4)
+        !           sigref(kk) = .5_r8*(rhob + rhoc) + .25_r8*(drho + drhojet) - rho0
+        !           sigref(kk - 1) = rhoc + .5_r8*(drho + drhojet - dsig) - rho0
+        !           do k = kk - 2, 1, -1
+        !              sigref(k) = sigref(k + 1) - dsig
+        !           enddo
+        drhojet = rhoc*f*u0*l0/(g*h1)
+        dsig = (drho + drhojet)/(kk - 5)
+        sigref(kk - 2) = rhoc + .5_r8*(drho + drhojet - dsig) - rho0
+        do k = kk - 3, 1, -1
+          sigref(k) = sigref(k + 1) - dsig
+        enddo
+        sigref(kk    ) = rhob - rho0
+        sigref(kk - 1) = (2._r8*sigref(kk - 2) + sigref(kk))/3._r8
+        sigref(kk    ) = (sigref(kk - 2) + 2._r8*sigref(kk))/3._r8
 
-      !$omp parallel do private(k, l, i)
-      do j = 1, jj
-        do k = 1, kk
+        !$omp parallel do private(k, l, i)
+        do j = 1, jj
+          do k = 1, kk
+            do l = 1, isp(j)
+              do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+                sigmar(i, j, k) = sigref(k)
+                saln(i, j, k) = saln0
+                z(i, j, k) = real(k - 1, r8)*h0/real(kk, r8)
+              enddo
+            enddo
+          enddo
           do l = 1, isp(j)
             do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
-              sigmar(i, j, k) = sigref(k)
-              saln(i, j, k) = saln0
-              z(i, j, k) = real(k - 1, r8)*h0/real(kk, r8)
+              z(i, j, kk + 1) = h0
             enddo
           enddo
         enddo
-        do l = 1, isp(j)
-          do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
-            z(i, j, kk + 1) = h0
-          enddo
-        enddo
-      enddo
-      !$omp end parallel do
+        !$omp end parallel do
 
-      s0 = rhob - rho0
-      !$omp parallel do private(k, l, i, x, s1)
-      do j = 1, jj
-        do k = 1, kk
-          do l = 1, isp(j)
-            do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
-              x = x_nudge(real(i, r8), real(j, r8))
-              s1 = rhoc*(1._r8 + f*u0*x_psi(x)/(g*h1)) - rho0 &
-                   + .5_r8*drho*(z(i, j, k + 1) + z(i, j, k) - h1)/h1
-              sigma(i, j, k) = &
-                   ( s1*max(0._r8, min(z(i, j, k + 1), h1) - z(i, j, k)) &
-                   + s0*max(0._r8, z(i, j, k + 1) - max(z(i, j, k), h1))) &
-                   /(z(i, j, k + 1) - z(i, j, k))
-              temp(i, j, k) = tofsig(sigma(i, j, k), saln(i, j, k))
+        s0 = rhob - rho0
+        !$omp parallel do private(k, l, i, x, s1)
+        do j = 1, jj
+          do k = 1, kk
+            do l = 1, isp(j)
+              do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+                x = x_nudge(real(i, r8), real(j, r8))
+                s1 = rhoc*(1._r8 + f*u0*x_psi(x)/(g*h1)) - rho0 &
+                     + .5_r8*drho*(z(i, j, k + 1) + z(i, j, k) - h1)/h1
+                sigma(i, j, k) = &
+                     ( s1*max(0._r8, min(z(i, j, k + 1), h1) - z(i, j, k)) &
+                     + s0*max(0._r8, z(i, j, k + 1) - max(z(i, j, k), h1))) &
+                     /(z(i, j, k + 1) - z(i, j, k))
+                temp(i, j, k) = tofsig(sigma(i, j, k), saln(i, j, k))
+              enddo
             enddo
           enddo
         enddo
-      enddo
-      !$omp end parallel do
-
-    case default
-
-      if (mnproc.eq.1) then
-        write (lp,*) 'ictsz_fuk95: unsupported vertical coordinate!'
-      endif
-      call xcstop('(ictsz_fuk95)')
-      stop '(ictsz_fuk95)'
+        !$omp end parallel do
 
     end select
 

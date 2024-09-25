@@ -26,7 +26,7 @@ module mod_cmnfld_routines
    use mod_types,     only: r8
    use mod_constants, only: g, alpha0, rho0, epsilp, onem, onecm, onemm
    use mod_xc
-   use mod_vcoord,    only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid
+   use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml
    use mod_grid,      only: scuxi, scvyi
    use mod_eos,       only: rho, p_alpha
    use mod_state,     only: dp, temp, saln, p, phi, kfpla
@@ -45,7 +45,7 @@ module mod_cmnfld_routines
 
    private
 
-   public :: cmnfld_bfsqi_cntiso_hybrid, cmnfld1, cmnfld2
+   public :: cmnfld_bfsqi_ale, cmnfld1, cmnfld2
 
    contains
 
@@ -228,7 +228,7 @@ module mod_cmnfld_routines
 
    end subroutine cmnfld_bfsqf_isopyc_bulkml
 
-   subroutine cmnfld_bfsqf_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
+   subroutine cmnfld_bfsqf_ale(m, n, mm, nn, k1m, k1n)
    ! ---------------------------------------------------------------------------
    ! Compute buoyancy frequency squared (BFSQ) on layer interfaces and
    ! representative of the layer itself. Also compute a filtered BFSQ on
@@ -346,16 +346,16 @@ module mod_cmnfld_routines
 
       if (csdiag) then
          if (mnproc == 1) then
-            write(lp,*) 'cmnfld_bfsqf_cntiso_hybrid:'
+            write(lp,*) 'cmnfld_bfsqf_ale:'
          endif
          call chksummsk(bfsqi, ip, kk + 1, 'bfsqi')
          call chksummsk(bfsql, ip, kk, 'bfsql')
          call chksummsk(bfsqf, ip, kk + 1, 'bfsqf')
       endif
 
-   end subroutine cmnfld_bfsqf_cntiso_hybrid
+   end subroutine cmnfld_bfsqf_ale
 
-   subroutine cmnfld_bfsqi_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
+   subroutine cmnfld_bfsqi_ale(m, n, mm, nn, k1m, k1n)
    ! ---------------------------------------------------------------------------
    ! Compute buoyancy frequency squared (BFSQ) on layer interfaces.
    ! ---------------------------------------------------------------------------
@@ -419,12 +419,12 @@ module mod_cmnfld_routines
 
       if (csdiag) then
          if (mnproc == 1) then
-            write(lp,*) 'cmnfld_bfsqi_cntiso_hybrid:'
+            write(lp,*) 'cmnfld_bfsqi_ale:'
          endif
          call chksummsk(bfsqi, ip, kk + 1, 'bfsqi')
       endif
 
-   end subroutine cmnfld_bfsqi_cntiso_hybrid
+   end subroutine cmnfld_bfsqi_ale
 
    subroutine cmnfld_nslope_isopyc_bulkml(m, n, mm, nn, k1m, k1n)
    ! ---------------------------------------------------------------------------
@@ -657,7 +657,7 @@ module mod_cmnfld_routines
 
    end subroutine cmnfld_nslope_isopyc_bulkml
 
-   subroutine cmnfld_nslope_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
+   subroutine cmnfld_nslope_ale(m, n, mm, nn, k1m, k1n)
    ! ---------------------------------------------------------------------------
    ! Estimate slope of local neutral surface.
    ! ---------------------------------------------------------------------------
@@ -806,7 +806,7 @@ module mod_cmnfld_routines
 
       if (csdiag) then
          if (mnproc == 1) then
-           write (lp,*) 'cmnfld_nslope_cntiso_hybrid:'
+           write (lp,*) 'cmnfld_nslope_ale:'
          endif
          call chksummsk(nslpx, iu, kk, 'nslpx')
          call chksummsk(nslpy, iv, kk, 'nslpy')
@@ -814,9 +814,9 @@ module mod_cmnfld_routines
          call chksummsk(nnslpy, iv, kk, 'nnslpy')
       endif
 
-   end subroutine cmnfld_nslope_cntiso_hybrid
+   end subroutine cmnfld_nslope_ale
 
-   subroutine cmnfld_nnslope_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
+   subroutine cmnfld_nnslope_ale(m, n, mm, nn, k1m, k1n)
    ! ---------------------------------------------------------------------------
    ! Compute neutral slope times buoyancy frequency, where the neutral slope is
    ! known.
@@ -880,13 +880,13 @@ module mod_cmnfld_routines
 
       if (csdiag) then
          if (mnproc == 1) then
-           write (lp,*) 'cmnfld_nnslope_cntiso_hybrid:'
+           write (lp,*) 'cmnfld_nnslope_ale:'
          endif
          call chksummsk(nnslpx, iu, kk, 'nnslpx')
          call chksummsk(nnslpy, iv, kk, 'nnslpy')
       endif
 
-   end subroutine cmnfld_nnslope_cntiso_hybrid
+   end subroutine cmnfld_nnslope_ale
 
    subroutine cmnfld_z(m, n, mm, nn, k1m, k1n)
    ! ---------------------------------------------------------------------------
@@ -1008,7 +1008,7 @@ module mod_cmnfld_routines
       ! Compute fields depending on selection of physics and diagnostics.
       ! ------------------------------------------------------------------------
 
-!     if (vcoord_type_tag == cntiso_hybrid .or. &
+!     if (vcoord_tag /= vcoord_isopyc_bulkml .or. &
 !         sum( ACC_MLTS  (1:nphy) + ACC_MLTSMN(1:nphy) &
 !            + ACC_MLTSMX(1:nphy) + ACC_MLTSSQ(1:nphy) &
 !            + ACC_T20D  (1:nphy) + &
@@ -1022,7 +1022,7 @@ module mod_cmnfld_routines
 
 !     endif
 
-!     if (vcoord_type_tag == cntiso_hybrid .or. &
+!     if (vcoord_tag /= vcoord_isopyc_bulkml .or. &
 !         sum( ACC_MLTS  (1:nphy) + ACC_MLTSMN(1:nphy) &
 !            + ACC_MLTSMX(1:nphy) + ACC_MLTSSQ(1:nphy)) /= 0) then
 
@@ -1054,7 +1054,7 @@ module mod_cmnfld_routines
 !     call xctilr(temp(1 - nbdy, 1 - nbdy, k1n), 1, kk, 3, 3, halo_ps)
 !     call xctilr(saln(1 - nbdy, 1 - nbdy, k1n), 1, kk, 3, 3, halo_ps)
 
-      if (vcoord_type_tag == isopyc_bulkml) then
+      if (vcoord_tag == vcoord_isopyc_bulkml) then
         !$omp parallel do private(l, i)
          do j = 1, jj
             do l = 1, isp(j)
@@ -1080,20 +1080,20 @@ module mod_cmnfld_routines
       ! Compute fields depending on selection of physics and diagnostics.
       ! ------------------------------------------------------------------------
 
-      !     if (vcoord_type_tag == cntiso_hybrid .or. &
+      !     if (vcoord_tag /= vcoord_isopyc_bulkml .or. &
       !         edritp == 'large scale' .or. eitmth == 'gm' .or. &
       !         sum(ACC_BFSQ(1:nphy)) /= 0) then
-      if (vcoord_type_tag == cntiso_hybrid .or. &
+      if (vcoord_tag /= vcoord_isopyc_bulkml .or. &
           edritp_opt == edritp_large_scale .or. eitmth_opt == eitmth_gm) then
 
          ! ---------------------------------------------------------------------
          ! Compute filtered buoyancy frequency squared.
          ! ---------------------------------------------------------------------
 
-         if (vcoord_type_tag == isopyc_bulkml) then
+         if (vcoord_tag == vcoord_isopyc_bulkml) then
             call cmnfld_bfsqf_isopyc_bulkml(m, n, mm, nn, k1m, k1n)
          else
-            call cmnfld_bfsqf_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
+            call cmnfld_bfsqf_ale(m, n, mm, nn, k1m, k1n)
          endif
 
       endif
@@ -1104,13 +1104,13 @@ module mod_cmnfld_routines
          ! Estimate slope of local neutral surface.
          ! ---------------------------------------------------------------------
 
-         if (vcoord_type_tag == isopyc_bulkml) then
+         if (vcoord_tag == vcoord_isopyc_bulkml) then
             call cmnfld_nslope_isopyc_bulkml(m, n, mm, nn, k1m, k1n)
          else
             if (ltedtp_opt == ltedtp_neutral) then
-               call cmnfld_nnslope_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
+               call cmnfld_nnslope_ale(m, n, mm, nn, k1m, k1n)
             else
-               call cmnfld_nslope_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
+               call cmnfld_nslope_ale(m, n, mm, nn, k1m, k1n)
             endif
          endif
 
