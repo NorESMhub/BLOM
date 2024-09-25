@@ -172,7 +172,7 @@ contains
   end subroutine ini_read_ndep
 
 
-  subroutine get_ndep(kplyear, kplmon, omask, ndep, patmnhxdep, patmnoydep)
+  subroutine get_ndep(idm, jdm, kplyear, kplmon, omask, ndep, patmnhxdep, patmnoydep)
 
     !***********************************************************************************************
     ! Read and return CMIP6 n-deposition data for a given month or use atmosphere input
@@ -180,7 +180,7 @@ contains
     ! S. Gao               *Gfi, Bergen*    19.08.2017
     !***********************************************************************************************
 
-    use mod_xc,             only: idm, jdm, nbdy, mnproc
+    use mod_xc,             only: nbdy, mnproc
     use netcdf,             only: nf90_open,nf90_close,nf90_nowrite
     use mo_control_bgc,     only: io_stdo_bgc,do_ndep,use_extNcycle, do_ndep_coupled
     use mo_netcdf_bgcrw,    only: read_netcdf_var
@@ -188,12 +188,15 @@ contains
     use mo_chemcon,         only: mw_nitrogen
 
     ! Arguments
-    integer, intent(in)  :: kplyear                                     ! current year.
-    integer, intent(in)  :: kplmon                                      ! current month.
-    real,    intent(in)  :: omask(idm,jdm)                              ! land/ocean mask (1=ocean)
-    real,    intent(out) :: ndep(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nndep) ! N-deposition field for current year and month
-    real,    intent(in)  :: patmnhxdep(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ! Atmospheric NHx deposition [kgN m-2 s-1]
-    real,    intent(in)  :: patmnoydep(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ! Atmospheric NOy deposition [kgN m-2 s-1]
+    integer, intent(in)  :: kpie              ! 1st dimension of model grid.
+    integer, intent(in)  :: kpje              ! 2nd dimension of model grid.
+    integer, intent(in)  :: kbnd              !
+    integer, intent(in)  :: kplyear           ! current year.
+    integer, intent(in)  :: kplmon            ! current month.
+    real,    intent(in)  :: omask(kpie,kpje)  ! land/ocean mask (1=ocean)
+    real,    intent(out) :: ndep(kpie,kpje,nndep) ! N-deposition field for current year and month
+    real,    intent(in)  :: patmnhxdep(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)   ! Atmospheric NHx deposition [kgN m-2 s-1]
+    real,    intent(in)  :: patmnoydep(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)   ! Atmospheric NOy deposition [kgN m-2 s-1]
 
     ! local variables
     integer  :: month_in_file, ncstat, ncid, i, j
