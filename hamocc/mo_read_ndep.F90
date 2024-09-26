@@ -172,7 +172,7 @@ contains
   end subroutine ini_read_ndep
 
 
-  subroutine get_ndep(idm, jdm, kplyear, kplmon, omask, ndep, patmnhxdep, patmnoydep)
+  subroutine get_ndep(kpie, kpje, kbnd, kplyear, kplmon, omask, ndep, patmnhxdep, patmnoydep)
 
     !***********************************************************************************************
     ! Read and return CMIP6 n-deposition data for a given month or use atmosphere input
@@ -215,8 +215,8 @@ contains
         ndep(:,:,:) = 0.
 
         !$omp parallel do private(i)
-        do j=1,jdm
-          do i=1,idm
+        do j=1,kpje
+          do i=1,kpie
             ! convert from kgN/m2/s to climatological input file units: kmolN/m2/yr
             if (patmnoydep(i,j) > 0.) then
               ndep(i,j,idepnoy) = patmnoydep(i,j)*fatmndep
@@ -252,8 +252,8 @@ contains
 
       !$omp parallel do private(i)
       ! 1 = NO3; 2 = NH4
-      do j=1,jdm
-        do i=1,idm
+      do j=1,kpje
+        do i=1,kpie
           if (use_extNcycle) then
             ndep(i,j,idepnoy) = noydepread(i,j)
             ndep(i,j,idepnhx) = nhxdepread(i,j)

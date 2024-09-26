@@ -80,7 +80,7 @@ contains
        if (.not. allocated(ndep_forcing)) then
           allocate(ndep_forcing(1-nbdy:idm+nbdy, 1-nbdy:jdm+nbdy, nndep))
        end if
-       call get_ndep(idm,jdm,nbdy,date%year,date%month,omask,ndep,atmnhxdep,atmnoydep)
+       call get_ndep(idm,jdm,nbdy,date%year,date%month,omask,ndep_forcing,atmnhxdep,atmnoydep)
     end if
 
     if (.not. use_nuopc_oalk) then
