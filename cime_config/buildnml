@@ -97,7 +97,6 @@ def buildnml(case, caseroot, compname):
     #--------------------------
 
     xml_fil = os.path.join(srcroot,"components","blom","cime_config","namelist_definition_blom.xml")
-    pg_blom = OcnInParamGen.from_namelist_xml(xml_fil)
 
     #------------------------
     # Loop over all instances:
@@ -115,6 +114,7 @@ def buildnml(case, caseroot, compname):
         # Remove old input data:
         #----------------------
 
+        pg_blom = OcnInParamGen.from_namelist_xml(xml_fil)
         if os.path.isfile(input_data_list):
             os.remove(input_data_list)
 
