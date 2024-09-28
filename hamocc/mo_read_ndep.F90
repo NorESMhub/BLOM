@@ -90,14 +90,14 @@ contains
 
     ! Return if N deposition is turned off
     if (.not. do_ndep) then
-      if (mnproc.eq.1) then
+      if (mnproc == 1) then
         write(io_stdo_bgc,*) ''
         write(io_stdo_bgc,*) 'ini_read_ndep: N deposition is not activated.'
       endif
       return
     endif
     if (do_ndep_coupled) then
-      if (mnproc.eq.1) then
+      if (mnproc == 1) then
         write(io_stdo_bgc,*) ''
         write(io_stdo_bgc,*) 'ini_read_ndep: N deposition in interactive mode.'
       endif
@@ -107,7 +107,7 @@ contains
     ! Initialise the module
     if (.not. lini) then
 
-      if (mnproc.eq.1) then
+      if (mnproc == 1) then
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'***************************************************'
         write(io_stdo_bgc,*)'iHAMOCC: Initialization of module mo_read_ndep:'
@@ -116,7 +116,7 @@ contains
 
       ! Check if nitrogen deposition file exists. If not, abort.
       inquire(file=ndepfile,exist=file_exists)
-      if (.not. file_exists .and. mnproc.eq.1) then
+      if (.not. file_exists .and. mnproc == 1) then
         write(io_stdo_bgc,*) ''
         write(io_stdo_bgc,*) 'ini_read_ndep: Cannot find N deposition file... '
         call xchalt('(ini_read_ndep)')
@@ -125,7 +125,7 @@ contains
 
       if (use_extNcycle) then
         ! Allocate field to hold N-deposition fluxes
-        if (mnproc.eq.1) then
+        if (mnproc == 1) then
           write(io_stdo_bgc,*)'Memory allocation for variable nhxdepread ...'
           write(io_stdo_bgc,*)'First dimension    : ',kpie
           write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -134,7 +134,7 @@ contains
         if(errstat.ne.0) stop 'not enough memory nhxdepread'
         nhxdepread(:,:) = 0.0
 
-        if (mnproc.eq.1) then
+        if (mnproc == 1) then
           write(io_stdo_bgc,*)'Memory allocation for variable noydepread ...'
           write(io_stdo_bgc,*)'First dimension    : ',kpie
           write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -144,7 +144,7 @@ contains
         noydepread(:,:) = 0.0
       else
         ! Allocate field to hold N-deposition fluxes
-        if (mnproc.eq.1) then
+        if (mnproc == 1) then
           write(io_stdo_bgc,*)'Memory allocation for variable ndepread ...'
           write(io_stdo_bgc,*)'First dimension    : ',kpie
           write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -160,7 +160,7 @@ contains
       call ncgeti('endyear',endyear)
       call ncfcls
 
-      if (mnproc.eq.1) then
+      if (mnproc == 1) then
         write(io_stdo_bgc,*) ''
         write(io_stdo_bgc,*) 'ini_read_ndep: Using N deposition file '//trim(ndepfile)
       endif
@@ -172,7 +172,7 @@ contains
   end subroutine ini_read_ndep
 
 
-  subroutine get_ndep(kpie,kpje,kbnd,kplyear,kplmon,omask,ndep,patmnhxdep,patmnoydep)
+  subroutine get_ndep(kpie, kpje, kbnd, kplyear, kplmon, omask, ndep, patmnhxdep, patmnoydep)
 
     !***********************************************************************************************
     ! Read and return CMIP6 n-deposition data for a given month or use atmosphere input
@@ -180,7 +180,7 @@ contains
     ! S. Gao               *Gfi, Bergen*    19.08.2017
     !***********************************************************************************************
 
-    use mod_xc,             only: mnproc
+    use mod_xc,             only: nbdy, mnproc
     use netcdf,             only: nf90_open,nf90_close,nf90_nowrite
     use mo_control_bgc,     only: io_stdo_bgc,do_ndep,use_extNcycle, do_ndep_coupled
     use mo_netcdf_bgcrw,    only: read_netcdf_var
@@ -198,7 +198,6 @@ contains
     real,    intent(in)  :: patmnhxdep(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)   ! Atmospheric NHx deposition [kgN m-2 s-1]
     real,    intent(in)  :: patmnoydep(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)   ! Atmospheric NOy deposition [kgN m-2 s-1]
 
-
     ! local variables
     integer  :: month_in_file, ncstat, ncid, i, j
     real     :: fatmndep
@@ -214,9 +213,10 @@ contains
         ! get N-deposition from atmosphere
         fatmndep = 365.*86400./mw_nitrogen
         ndep(:,:,:) = 0.
-        !$OMP PARALLEL DO PRIVATE(i)
-        do  j=1,kpje
-          do  i=1,kpie
+
+        !$omp parallel do private(i)
+        do j=1,kpje
+          do i=1,kpie
             ! convert from kgN/m2/s to climatological input file units: kmolN/m2/yr
             if (patmnoydep(i,j) > 0.) then
               ndep(i,j,idepnoy) = patmnoydep(i,j)*fatmndep
@@ -226,8 +226,8 @@ contains
             endif
           enddo
         enddo
-        !$OMP END PARALLEL DO
-        if (mnproc .eq. 1) then
+        !$omp end parallel do
+        if (mnproc  ==  1) then
           write (io_stdo_bgc,*) 'iHAMOCC: getting NOy and NHx deposition from atm'
         endif
 
@@ -236,7 +236,7 @@ contains
       ! read ndep data from file
       if (kplmon.ne.oldmonth) then
         month_in_file=(max(startyear,min(endyear,kplyear))-startyear)*12+kplmon
-        if (mnproc.eq.1) then
+        if (mnproc == 1) then
           write(io_stdo_bgc,*) 'Read N deposition month ',month_in_file,' from file ',trim(ndepfile)
         endif
         ncstat=nf90_open(trim(ndepfile),nf90_nowrite,ncid)
@@ -250,10 +250,10 @@ contains
         oldmonth=kplmon
       endif
 
-      !$OMP PARALLEL DO PRIVATE(i)
+      !$omp parallel do private(i)
       ! 1 = NO3; 2 = NH4
-      do  j=1,kpje
-        do  i=1,kpie
+      do j=1,kpje
+        do i=1,kpie
           if (use_extNcycle) then
             ndep(i,j,idepnoy) = noydepread(i,j)
             ndep(i,j,idepnhx) = nhxdepread(i,j)
@@ -262,9 +262,10 @@ contains
           endif
         enddo
       enddo
-      !$OMP END PARALLEL DO
+      !$omp end parallel do
 
     endif
+
   end subroutine get_ndep
 
 end module mo_read_ndep

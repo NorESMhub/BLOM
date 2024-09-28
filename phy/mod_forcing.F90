@@ -93,11 +93,35 @@ module mod_forcing
       sssclm          ! Sea-surface salinity [g kg-1].
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
-      sst_stream, &    ! Sea-surface temperature [deg C] from stream data.
-      ice_stream, &    ! Sea-ice concentration [] from stream data.
-      sss_stream       ! Sea-surface salinity [g kg-1] from stream data.
+      sst_stream, &                ! Sea-surface temperature [deg C] from stream data.
+      ice_stream, &                ! Sea-ice concentration [] from stream data.
+      sss_stream                   ! Sea-surface salinity [g kg-1] from stream data.
+   logical :: use_nuopc_relaxation ! If true, use nuopc stream relaxation capability
 
-   logical :: use_stream_relaxation ! If true, use nuopc stream relaxation capability
+   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
+      chloro_forcing            ! chlorophyll concentration (hamocc)
+   logical :: use_nuopc_chloro  ! If true, use nuopc stream chlorophyll capability
+
+   real(r8), allocatable :: &
+        rivflx_forcing(:,:,:)   ! riverine fluxes
+   logical :: use_nuopc_rivin   ! If true, use nuopc input for rivin fluxes (hamocc only)
+
+   real(r8), allocatable :: &
+        ndep_forcing(:,:,:)     ! nitrogen deposition fluxes
+   logical :: use_nuopc_ndep    ! If true, use nuopc input for rivin fluxes
+
+   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
+        dust_forcing            ! iron dust deposition flux (hamocc)
+   logical :: use_nuopc_dust    ! If true, use nuopc stream dust capability (hamocc only)
+
+   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
+      swaclim_forcing           ! absorbed short wave radiation flux
+   logical :: use_nuopc_swaclim ! If true, use nuopc stream swa capability (hamocc only)
+
+   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
+      oalk_forcing              ! alkalinization flux (hamocc)
+   logical :: use_nuopc_oalk    ! If true, use nuopc stream for ocean alkalinity capability
+
 
    ! Variables related to balancing the freshwater forcing budget.
    real(r8) :: &
@@ -182,7 +206,11 @@ module mod_forcing
              surflx, surrlx, sswflx, salflx, brnflx, salrlx, taux, tauy, &
              ustar, ustarb, ustar3, wstar3, buoyfl, t_sw_nonloc, t_rs_nonloc, &
              s_br_nonloc, s_rs_nonloc, inivar_forcing, fwbbal, &
-             sss_stream, sst_stream, ice_stream, use_stream_relaxation
+             sss_stream, sst_stream, ice_stream, &
+             dust_forcing, chloro_forcing, swaclim_forcing, &
+             ndep_forcing, oalk_forcing, rivflx_forcing, &
+             use_nuopc_relaxation, use_nuopc_swaclim, use_nuopc_dust, use_nuopc_chloro, &
+             use_nuopc_oalk, use_nuopc_rivin, use_nuopc_ndep
 
 contains
 
@@ -193,7 +221,7 @@ contains
 
       integer :: i, j, k, l
 
-   !$omp parallel do private(i)
+      !$omp parallel do private(i)
       do j = 1 - nbdy, jj + nbdy
          do i = 1 - nbdy, ii + nbdy
             eiacc(i, j) = spval
@@ -242,9 +270,9 @@ contains
             wstar3(i, j) = spval
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
-   !$omp parallel do private(k, i)
+      !$omp parallel do private(k, i)
       do j = 1 - nbdy, jj + nbdy
          do k = 1, kk + 1
             do i = 1 - nbdy, ii + nbdy
@@ -256,9 +284,9 @@ contains
             enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
-   !$omp parallel do private(l, i, k)
+      !$omp parallel do private(l, i, k)
       do j = 1, jj
          do l = 1, isp(j)
          do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
@@ -275,8 +303,9 @@ contains
            enddo
          enddo
       enddo
-   !$omp end parallel do
-   !$omp parallel do private(l, i)
+      !$omp end parallel do
+
+      !$omp parallel do private(l, i)
       do j = 1, jj
          do l = 1, isp(j)
          do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
@@ -293,9 +322,9 @@ contains
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
-   !$omp parallel do private(k, l, i)
+      !$omp parallel do private(k, l, i)
       do j = 1, jj
          do k = 1, kk + 1
             do l = 1, isp(j)
@@ -305,11 +334,11 @@ contains
             enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
       if (sprfac) then
          prfac = 1._r8
-      !$omp parallel do private(l, i)
+         !$omp parallel do private(l, i)
          do j = 1, jj
             do l = 1, isp(j)
             do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
@@ -318,7 +347,7 @@ contains
             enddo
             enddo
          enddo
-      !$omp end parallel do
+         !$omp end parallel do
       endif
 
    end subroutine inivar_forcing
@@ -341,7 +370,7 @@ contains
       ! sea-ice melting/freezing and the other is precipitation and runoff. The
       ! fresh water fluxes are weighted with the time step in case it varies
       ! during the accumulation period.
-   !$omp parallel do private(l, i)
+      !$omp parallel do private(l, i)
       do j = 1, jj
          do l = 1, isp(j)
          do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
@@ -352,7 +381,7 @@ contains
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
       ! Compute new correction factor at the end of a year and reset
       ! accumulation arrays.
@@ -360,7 +389,7 @@ contains
 
          ! Weight the accumulated fluxes with grid cell area and do global sums,
          ! but only including grid cells connected to the world ocean.
-      !$omp parallel do private(l, i)
+         !$omp parallel do private(l, i)
          do j = 1, jj
             do l = 1, isp(j)
             do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
@@ -369,7 +398,7 @@ contains
             enddo
             enddo
          enddo
-     !$omp end parallel do
+         !$omp end parallel do
          call xcsum(totei, eiacc, ipwocn)
          call xcsum(totpr, pracc, ipwocn)
 
@@ -382,7 +411,7 @@ contains
          endif
 
          ! Reset accumulation arrays.
-      !$omp parallel do private(l, i)
+         !$omp parallel do private(l, i)
          do j = 1, jj
             do l = 1, isp(j)
             do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
@@ -391,7 +420,7 @@ contains
             enddo
             enddo
          enddo
-      !$omp end parallel do
+         !$omp end parallel do
 
       endif
 

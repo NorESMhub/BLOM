@@ -38,6 +38,8 @@ contains
     use mod_time,       only: date,baclin
     use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,isp,ifp,ilp,mnproc,lp,xchalt
     use mod_grid,       only: plon,plat
+    use mod_forcing,    only: use_nuopc_swaclim, use_nuopc_rivin, use_nuopc_dust, use_nuopc_ndep, &
+                              use_nuopc_oalk
     use mod_tracers,    only: ntrbgc,ntr,itrbgc,trc
     use mo_control_bgc, only: bgc_namelist,get_bgc_namelist,do_ndep,do_rivinpt,do_oalk,            &
                               do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,                 &
@@ -105,7 +107,9 @@ contains
     !
     ! --- Read the HAMOCC BGCNML namelist and check the value of some variables.
     !
-    if(.not. allocated(bgc_namelist)) call get_bgc_namelist
+    if(.not. allocated(bgc_namelist)) then
+       call get_bgc_namelist
+    end if
     open (newunit=iounit, file=bgc_namelist, status='old', action='read')
     read (unit=iounit, nml=BGCNML)
     close (unit=iounit)
@@ -197,12 +201,20 @@ contains
     !
     ! --- Initialise reading of input data (dust, n-deposition, river, etc.)
     !
-    call ini_read_fedep(idm,jdm,omask)
-    call ini_read_ndep(idm,jdm)
-    call ini_read_rivin(idm,jdm,omask)
-    call ini_read_oafx(idm,jdm,bgc_dx,bgc_dy,plat,omask)
-    if (use_BROMO) then
-      call ini_swa_clim(idm,jdm,omask)
+    if (.not. use_nuopc_dust) then
+       call ini_read_fedep(idm,jdm,omask)
+    end if
+    if (.not. use_nuopc_ndep) then
+       call ini_read_ndep(idm,jdm)
+    end if
+    if (.not. use_nuopc_rivin) then
+       call ini_read_rivin(idm,jdm,omask)
+    end if
+    if (.not. use_nuopc_oalk) then
+       call ini_read_oafx(idm,jdm,bgc_dx,bgc_dy,plat,omask)
+    end if
+    if (.not. use_nuopc_swaclim .and. use_BROMO) then
+       call ini_swa_clim(idm,jdm,omask)
     endif
     call ini_pi_ph(idm,jdm,omask)
     !

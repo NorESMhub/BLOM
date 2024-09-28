@@ -636,17 +636,6 @@
     </desc>
   </entry>
 
-  <entry id="use_stream_relaxation">
-    <type>logical</type>
-    <category>limits</category>
-    <group>limits</group>
-    <values>
-      <value>.false.</value>
-      <value comp_interface="nuopc">.true.</value>
-    </values>
-    <desc>if .true., use NUOPC stream relaxation capability</desc>
-  </entry>
-
   <entry id="trxday">
     <type>real</type>
     <category>limits</category>
@@ -8739,6 +8728,88 @@
   </entry>
 
   <!-- =========================  -->
+  <!-- namelist group: forcing fields using nuopc -->
+  <!-- =========================  -->
+
+  <entry id="use_nuopc_relaxation">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.true.</value>
+    </values>
+    <desc>if .true., use NUOPC stream relaxation capability</desc>
+  </entry>
+
+  <entry id="use_nuopc_chloro">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.false.</value>
+    </values>
+    <desc>if .true., use NUOPC stream capability to obtain chlorophyll concentration</desc>
+  </entry>
+
+  <entry id="use_nuopc_ndep">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.false.</value>
+    </values>
+    <desc>if .true., use NUOPC to obtain NDEP (always imported to model) </desc>
+  </entry>
+
+  <entry id="use_nuopc_dust">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.false.</value>
+    </values>
+    <desc>if .true., use NUOPC stream dust capability</desc>
+  </entry>
+
+  <entry id="use_nuopc_rivin">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.false.</value>
+    </values>
+    <desc>if .true., use NUOPC stream ocean river nutrient  capability</desc>
+  </entry>
+
+  <entry id="use_nuopc_oalk">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.false.</value>
+    </values>
+    <desc>if .true., use NUOPC stream ocean alkalinity capability</desc>
+  </entry>
+
+  <entry id="use_nuopc_swaclim">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.false.</value>
+    </values>
+    <desc>if .true., use NUOPC stream swabs capability for bromoform </desc>
+  </entry>
+
+
+  <!-- =========================  -->
   <!-- namelist group: stream_sss -->
   <!-- =========================  -->
 
@@ -8875,6 +8946,257 @@
     </desc>
     <values>
       <value>1</value>
+    </values>
+  </entry>
+
+  <!-- =========================  -->
+  <!-- namelist group: stream_swa -->
+  <!-- =========================  -->
+
+  <entry id="stream_swaclim_mesh_filename">
+    <type>char</type>
+    <category>stream_swaclim</category>
+    <group>stream_swaclim</group>
+    <desc>stream mesh file</desc>
+    <values>
+      <value>$DIN_LOC_ROOT/share/meshes/tnx1v4_20170601_cdf5_ESMFmesh.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_swaclim_data_filename">
+    <type>char(10)</type>
+    <category>stream_swaclim</category>
+    <group>stream_swaclim</group>
+    <desc>
+      file name(s) containing swaclim climatology
+    </desc>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/blom/bndcon/Annual_clim_swa_tnx1v4_20210415.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_swaclim_varname">
+    <type>char</type>
+    <category>stream_swaclim</category>
+    <group>stream_swaclim</group>
+    <desc>
+      variable name on stream file
+    </desc>
+    <values>
+      <value>swa</value>
+    </values>
+  </entry>
+  <entry id="stream_swaclim_year_first">
+    <type>integer</type>
+    <category>stream_swaclim</category>
+    <group>stream_swaclim</group>
+    <desc>
+      First year in stream to use
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
+  <entry id="stream_swaclim_year_last">
+    <type>integer</type>
+    <category>stream_swaclim</category>
+    <group>stream_swaclim</group>
+    <desc>
+      Last year in stream to use
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
+  <entry id="stream_swaclim_year_align">
+    <type>integer</type>
+    <category>stream_swaclim</category>
+    <group>stream_swaclim</group>
+    <desc>
+      Align stream_year_first with this model year
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
+
+  <!-- =========================  -->
+  <!-- namelist group: stream_dust -->
+  <!-- =========================  -->
+
+  <entry id="stream_dust_mesh_filename">
+    <type>char</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>stream mesh file</desc>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_T42_ESMFmesh_cdf5.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_data_filename">
+    <type>char(10)</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>
+      file name(s) containing dust deposition data
+    </desc>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_T42.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_varname">
+    <type>char</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>
+      variable name on stream file
+    </desc>
+    <values>
+      <value>dustdep</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_year_first">
+    <type>integer</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>
+      First year in stream to use
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_year_last">
+    <type>integer</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>
+      Last year in stream to use
+    </desc>
+    <values>
+      <value>1850</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_year_align">
+    <type>integer</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>
+      Align stream_year_first with this model year
+    </desc>
+    <values>
+      <value>1850</value>
+    </values>
+  </entry>
+
+  <!-- =========================  -->
+  <!-- namelist group: stream_oalk -->
+  <!-- =========================  -->
+
+  <entry id="stream_oalk_mesh_filename">
+    <type>char</type>
+    <category>stream_oalk</category>
+    <group>stream_oalk</group>
+    <desc>stream mesh file</desc>
+    <values>
+      <value>''</value>
+    </values>
+  </entry>
+  <entry id="stream_oalk_data_filename">
+    <type>char(10)</type>
+    <category>stream_oalk</category>
+    <group>stream_oalk</group>
+    <desc>
+      file name(s) containing oalk deposition data
+    </desc>
+    <values>
+      <value>''</value>
+    </values>
+  </entry>
+  <entry id="stream_oalk_varname">
+    <type>char</type>
+    <category>stream_oalk</category>
+    <group>stream_oalk</group>
+    <desc>
+      variable name on stream file
+    </desc>
+    <values>
+      <value>''</value>
+    </values>
+  </entry>
+  <entry id="stream_oalk_year_first">
+    <type>integer</type>
+    <category>stream_oalk</category>
+    <group>stream_oalk</group>
+    <desc>
+      First year in stream to use
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
+  <entry id="stream_oalk_year_last">
+    <type>integer</type>
+    <category>stream_oalk</category>
+    <group>stream_oalk</group>
+    <desc>
+      Last year in stream to use
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
+  <entry id="stream_oalk_year_align">
+    <type>integer</type>
+    <category>stream_oalk</category>
+    <group>stream_oalk</group>
+    <desc>
+      Align stream_year_first with this model year
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
+
+  <!-- =========================  -->
+  <!-- namelist group: stream_rivin -->
+  <!-- =========================  -->
+
+  <entry id="stream_rivin_mesh_filename">
+    <type>char</type>
+    <category>stream_rivin</category>
+    <group>stream_rivin</group>
+    <desc>stream mesh file</desc>
+    <values>
+      <!-- for testing just assume input on a 1 degree blom grid -->
+      <!-- <value>$DIN_LOC_ROOT/share/meshes/tnx1v4_20170601_cdf5_ESMFmesh.nc</value> -->
+      <value>$DIN_LOC_ROOT/share/meshes/r05_nomask_c110308_ESMFmesh.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_rivin_data_filename">
+    <type>char(10)</type>
+    <category>stream_rivin</category>
+    <group>stream_rivin</group>
+    <desc>
+      file name(s) containing rivin deposition data
+    </desc>
+    <values>
+      <!-- for testing just assume input on a 1 degree blom grid -->
+      <!-- <value>$DIN_LOC_ROOT//ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx1v4_20170820.nc</value> -->
+      <value>$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000c70_r05_20240921.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_rivin_map_filename" is_inputdata="yes">
+    <type>char</type>
+    <category>stream_rivin</category>
+    <group>stream_rivin</group>
+    <desc>
+      map of stream resolution data to model resolution data
+    </desc>
+    <values>
+      <value ocn_grid="tnx2v1">unset</value>
+      <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/cpl/cpl6/map_r05_to_tnx1v4_e1000r300_170609.nc</value>
+      <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/cpl/cpl6/map_r05_to_tnx0.5v1_e300r100_20240702.nc</value>
+      <value ocn_grid="tnx0.25v4">unset</value>
+      <value ocn_grid="tnx0.125v4">unset</value>
     </values>
   </entry>
 

@@ -206,8 +206,7 @@ contains
           ztmp1(:,:)=0.0
           do j=1,kpje
             do i=1,kpie
-              if( omask(i,j).gt.0.5 .and. pglat(i,j)<cdrmip_latmax                                 &
-                                    .and. pglat(i,j)>cdrmip_latmin ) then
+              if( omask(i,j)>0.5 .and. pglat(i,j)<cdrmip_latmax .and. pglat(i,j)>cdrmip_latmin ) then
                 ztmp1(i,j)=ztmp1(i,j)+pdlxp(i,j)*pdlyp(i,j)
               endif
             enddo
@@ -231,11 +230,9 @@ contains
             write(io_stdo_bgc,*)' '
           endif
 
-
           do j=1,kpje
             do i=1,kpie
-              if( omask(i,j).gt.0.5 .and. pglat(i,j)<cdrmip_latmax                  &
-                                    .and. pglat(i,j)>cdrmip_latmin ) then
+              if( omask(i,j).gt.0.5 .and. pglat(i,j)<cdrmip_latmax .and. pglat(i,j)>cdrmip_latmin ) then
                 oalkflx(i,j) = avflx
               endif
             enddo
@@ -262,7 +259,7 @@ contains
   end subroutine ini_read_oafx
 
 
-  subroutine get_oafx(kpie,kpje,kplyear,kplmon,omask,oafx)
+  subroutine get_oafx(kplyear, kplmon, omask, oafx)
 
     !***********************************************************************************************
     ! Return ocean alkalinization flux.
@@ -270,22 +267,21 @@ contains
     ! J. Schwinger            *NORCE Climate, Bergen*     2021-11-15
     !***********************************************************************************************
 
-    use mod_xc,             only: xchalt,mnproc
+    use mod_xc,             only: xchalt,mnproc,idm,jdm,nbdy
     use netcdf,             only: nf90_open,nf90_close,nf90_nowrite
     use mo_control_bgc,     only: io_stdo_bgc,do_oalk
     use mod_time,           only: nday_of_year
     use mo_netcdf_bgcrw,    only: read_netcdf_var
 
     ! Arguments
-    integer, intent(in)  :: kpie               ! 1st dimension of model grid.
-    integer, intent(in)  :: kpje               ! 2nd dimension of model grid.
-    integer, intent(in)  :: kplyear            ! current year.
-    integer, intent(in)  :: kplmon             ! current month.
-    real,    intent(in)  :: omask(kpie,kpje)   ! land/ocean mask (1=ocean)
-    real,    intent(out) :: oafx(kpie,kpje)    ! alkalinization flux [kmol m-2 yr-1]
+    integer, intent(in)  :: kplyear                               ! current year.
+    integer, intent(in)  :: kplmon                                ! current month.
+    real,    intent(in)  :: omask(idm,jdm)                        ! land/ocean mask (1=ocean)
+    real,    intent(out) :: oafx(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ! alkalinization flux [kmol m-2 yr-1]
 
     ! local variables
     integer :: month_in_file,ncstat,ncid,current_day
+    integer :: i,j
 
     if (.not. do_oalk) then
       oafx(:,:) = 0.0
@@ -298,7 +294,11 @@ contains
       ! Scenarios of constant fluxes
       !--------------------------------
 
-      oafx(:,:) = oalkflx(:,:)
+      do j = 1,jdm
+         do i = 1,idm
+            oafx(i,j) = oalkflx(i,j)
+         end do
+      end do
 
     elseif(trim(oalkscen)=='ramp' ) then
 
@@ -309,13 +309,21 @@ contains
       if(kplyear.lt.ramp_start ) then
         oafx(:,:) = 0.0
       elseif(kplyear.ge.ramp_end ) then
-        oafx(:,:) = oalkflx(:,:)
+        do j = 1,jdm
+           do i = 1,idm
+              oafx(i,j) = oalkflx(i,j)
+           end do
+        end do
       else
         current_day = (kplyear-ramp_start)*365+nday_of_year
-        oafx(:,:) = oalkflx(:,:) * current_day / ((ramp_end-ramp_start)*365.)
+        do j = 1,jdm
+           do i = 1,idm
+              oafx(i,j) = oalkflx(i,j) * current_day / ((ramp_end-ramp_start)*365.)
+           end do
+        end do
       endif
 
-    elseif(trim(oalkscen)=='file' ) then
+    else if(trim(oalkscen)=='file' ) then
 
       !--------------------------------
       ! Scenario from OA file

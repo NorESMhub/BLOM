@@ -44,7 +44,10 @@ module mod_rdlim
                              wavsrc_param, wavsrc_extern, &
                              trxday, srxday, trxdpt, srxdpt, trxlim, &
                              srxlim, srxbal, sprfac, &
-                             srxlim, srxbal, sprfac, use_stream_relaxation
+                             srxlim, srxbal, sprfac, &
+                             use_nuopc_relaxation, use_nuopc_swaclim, &
+                             use_nuopc_chloro, use_nuopc_dust, use_nuopc_oalk, &
+                             use_nuopc_rivin, use_nuopc_ndep
   use mod_swabs,       only: swamth, jwtype, chlopt, ccfile
   use mod_diffusion,   only: readnml_diffusion
   use mod_eddtra,      only: mlrmth, ce, cl, tau_mlr, tau_growing_hbl, &
@@ -142,7 +145,9 @@ contains
          itest,jtest, &
          cnsvdi, &
          csdiag, &
-         rstfrq,rstfmt,rstcmp,iotype,use_stream_relaxation
+         rstfrq,rstfmt,rstcmp,iotype,&
+         use_nuopc_relaxation, use_nuopc_swaclim, use_nuopc_chloro, &
+         use_nuopc_dust, use_nuopc_oalk, use_nuopc_rivin, use_nuopc_ndep
 
     ! read limits namelist
 
@@ -246,7 +251,13 @@ contains
       write (lp,*) 'RSTFMT',RSTFMT
       write (lp,*) 'RSTCMP',RSTCMP
       write (lp,*) 'IOTYPE',IOTYPE
-      write (lp,*) 'USE_STREAM_RELAXATION',use_stream_relaxation
+      write (lp,*) 'USE_NUOPC_RELAXATION',use_nuopc_relaxation
+      write (lp,*) 'USE_NUOPC_CHLORO',use_nuopc_chloro
+      write (lp,*) 'USE_NUOPC_DUST',use_nuopc_dust
+      write (lp,*) 'USE_NUOPC_OALK',use_nuopc_oalk
+      write (lp,*) 'USE_NUOPC_RIVIN',use_nuopc_rivin
+      write (lp,*) 'USE_NUOPC_NDEP',use_nuopc_ndep
+      write (lp,*) 'USE_NUOPC_SWA',use_nuopc_swaclim
       write (lp,*)
 
     end if
@@ -329,7 +340,13 @@ contains
     call xcbcst(rstfmt)
     call xcbcst(rstcmp)
     call xcbcst(iotype)
-    call xcbcst(use_stream_relaxation)
+    call xcbcst(use_nuopc_relaxation)
+    call xcbcst(use_nuopc_chloro)
+    call xcbcst(use_nuopc_swaclim)
+    call xcbcst(use_nuopc_dust)
+    call xcbcst(use_nuopc_oalk)
+    call xcbcst(use_nuopc_rivin)
+    call xcbcst(use_nuopc_ndep)
 
     ! resolve options
     select case (trim(wavsrc))

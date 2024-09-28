@@ -50,24 +50,30 @@ module ocn_comp_nuopc
    use mod_cesm,          only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
    use mod_config,        only: inst_index, inst_name, inst_suffix
    use mod_time,          only: blom_time
-   use mod_forcing,       only: srxday, trxday
+   use mod_forcing,       only: srxday, trxday, use_nuopc_chloro, use_nuopc_swaclim
+   use mod_forcing,       only: use_nuopc_dust, use_nuopc_rivin
+   use mod_swabs,         only: swamth, chlopt
    use mod_constants,     only: epsilt
    use mod_blom_init,     only: blom_init
    use mod_blom_step,     only: blom_step
    use mod_fill_global,   only: fill_global
    use mod_restart,       only: restart_write
+   use mod_xc,            only: mnproc, xcstop
+   use mod_blom_pio,      only: blom_pio_init
    use ocn_stream_sss,    only: ocn_stream_sss_init, ocn_stream_sss_interp
    use ocn_stream_sst,    only: ocn_stream_sst_init, ocn_stream_sst_interp
+   use ocn_stream_chloro, only: ocn_stream_chloro_init, ocn_stream_chloro_interp
 #ifdef HAMOCC
    use mo_control_bgc,    only: use_BROMO
+   use ocn_stream_rivin,  only: ocn_stream_rivin_init
+   use ocn_stream_dust,   only: ocn_stream_dust_init, ocn_stream_dust_interp
+   use ocn_stream_swaclim,only: ocn_stream_swaclim_init, ocn_stream_swaclim_interp
 #endif
 
    implicit none
-
    private
 
-   integer, parameter :: cslen = 80  ! Short character string length.
-   integer, parameter :: cllen = 265 ! Long character string length.
+   integer, parameter :: cllen = 256 ! Long character string length.
    character(len=*), parameter :: modname = '(ocn_comp_nuopc)'
    character(len=*), parameter :: u_FILE_u = &
       __FILE__
@@ -229,17 +235,20 @@ contains
       ! Get data pointers for the fields to be imported.
       do n = 1, fldsToOcn_num
          if (fldsToOcn(n)%stdname == trim(flds_scalar_name)) cycle
-         call ESMF_StateGet(importState, trim(fldsToOcn(n)%stdname), &
-                            itemType, rc=rc)
+         call ESMF_StateGet(importState, trim(fldsToOcn(n)%stdname), itemType, rc=rc)
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
          if (itemType == ESMF_STATEITEM_NOTFOUND) then
             fldsToOcn(n)%dataptr => null()
          else
-            call ESMF_StateGet(importState, trim(fldsToOcn(n)%stdname), &
-                               field=field, rc=rc)
+            call ESMF_StateGet(importState, trim(fldsToOcn(n)%stdname), field=field, rc=rc)
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
-            call ESMF_FieldGet(field, farrayPtr=fldsToOcn(n)%dataptr, rc=rc)
-            if (ChkErr(rc, __LINE__, u_FILE_u)) return
+            if (fldsToOcn(n)%ungridded_lbound > 0 .and. fldsToOcn(n)%ungridded_ubound > 0) then
+               call ESMF_FieldGet(field, farrayPtr=fldsToOcn(n)%dataptr2d, rc=rc)
+               if (ChkErr(rc, __LINE__, u_FILE_u)) return
+            else
+               call ESMF_FieldGet(field, farrayPtr=fldsToOcn(n)%dataptr, rc=rc)
+               if (ChkErr(rc, __LINE__, u_FILE_u)) return
+            end if
          endif
       enddo
 
@@ -374,22 +383,11 @@ contains
       type(ESMF_VM) :: vm
       type(ESMF_TimeInterval) :: timeStep
       integer :: localPet, nthrds, shrlogunit, n
-      character(len=cslen) :: starttype, stdname
+      character(len=cllen) :: starttype, stdname
       character(len=cllen) :: msg, cvalue
       logical :: isPresent, isSet
       logical :: ocn2glc_coupling
       logical :: flds_co2a, flds_co2c, flds_dms, flds_brf
-      logical :: hamocc_defined
-#ifndef HAMOCC
-      logical :: use_BROMO
-#endif
-
-#ifdef HAMOCC
-      hamocc_defined = .true.
-#else
-      hamocc_defined = .false.
-      use_BROMO = .false.
-#endif
 
       ! Get debug flag.
       call NUOPC_CompAttributeGet(gcomp, name='dbug_flag', value=cvalue, &
@@ -544,14 +542,14 @@ contains
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
       if (isPresent .and. isSet) then
          read(cvalue,*) flds_dms
-         if (.not. hamocc_defined) then
-            ! if not defined HAMOCC and request to export dms, abort
-            if (flds_dms) then
-               write(lp,'(a)') subname//' cannot export dms with out HAMOCC defined'
-               call xchalt(subname)
-               stop subname
-            end if
+#ifndef HAMOCC
+         ! if not defined HAMOCC and request to export dms, abort
+         if (flds_dms) then
+            write(lp,'(a)') subname//' cannot export dms with out HAMOCC defined'
+            call xchalt(subname)
+            stop subname
          end if
+#endif
       else
          flds_dms = .false.
       end if
@@ -564,21 +562,21 @@ contains
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
       if (isPresent .and. isSet) then
          read(cvalue,*) flds_brf
-         if (hamocc_defined) then
-            ! make sure that use_BROMO is true if ask for bromoform to be sent to mediator
-            if (flds_brf .and. .not. use_BROMO) then
-               write(lp,'(a)') subname//' cannot export bromoform if use_BROMO is not true'
-               call xchalt(subname)
-               stop subname
-            end if
-         else
-            ! if not defined HAMOCC and request to export brf, abort
-            if (flds_brf) then
-               write(lp,'(a)') subname//' cannot export bromoform with out HAMOCC defined'
-               call xchalt(subname)
-               stop subname
-            end if
+#ifdef HAMOCC
+         ! make sure that use_BROMO is true if ask for bromoform to be sent to mediator
+         if (flds_brf .and. .not. use_BROMO) then
+            write(lp,'(a)') subname//' cannot export bromoform if use_BROMO is not true'
+            call xchalt(subname)
+            stop subname
          end if
+#else
+         ! if not defined HAMOCC and request to export brf, abort
+         if (flds_brf) then
+            write(lp,'(a)') subname//' cannot export bromoform with out HAMOCC defined'
+            call xchalt(subname)
+            stop subname
+         end if
+#endif
       end if
       write(msg,'(a,l1)') subname//': export brf ', flds_brf
       call blom_logwrite(msg)
@@ -733,6 +731,9 @@ contains
                            flds_scalar_name, flds_scalar_num, rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
 
+      ! Initialize pio subsystem
+      call blom_pio_init()
+
       ! Initialize sdat for relaxation to sss if appropriate
       if (srxday > epsilt) then
          call ocn_stream_sss_init(Emesh, clock, rc)
@@ -744,6 +745,42 @@ contains
          call ocn_stream_sst_init(Emesh, clock, rc)
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
       end if
+
+      ! Initialize sdat for chlorophyll concentration if appropriate
+      if (use_nuopc_chloro) then
+         if (swamth == 'chlorophyll') then
+            if (chlopt == 'climatology') then
+               call ocn_stream_chloro_init(Emesh, clock, rc)
+               if (ChkErr(rc, __LINE__, u_FILE_u)) return
+            else
+               if (mnproc == 1) then
+                  write (lp,'(3a)') ' chlopt = ',trim(chlopt),' is unsupported!'
+               end if
+               call xcstop('(iniswa)')
+               stop '(iniswa)'
+            end if
+         end if
+      end if
+
+#ifdef HAMOCC
+      ! Initialize sdat for swa climatology if appropriate
+      if (use_nuopc_swaclim) then
+         call ocn_stream_swaclim_init(Emesh, clock, rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      end if
+
+      ! Initialize sdat for dust deposition climatology if appropriate
+      if (use_nuopc_dust) then
+         call ocn_stream_dust_init(Emesh, clock, rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      end if
+
+      ! Initialize time independent riverine nutrient input
+      if (use_nuopc_rivin) then
+         call ocn_stream_rivin_init(Emesh, rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      end if
+#endif
 
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
 
@@ -906,6 +943,28 @@ contains
             call ocn_stream_sst_interp(clock, rc)
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
          end if
+
+         ! Advance chlorophyll stream input if appropriate
+         if (use_nuopc_chloro) then
+            if (swamth == 'chlorophyll' .and. chlopt == 'climatology') then
+               call ocn_stream_chloro_interp(clock, rc)
+               if (ChkErr(rc, __LINE__, u_FILE_u)) return
+            end if
+         end if
+
+#ifdef HAMOCC
+         ! Advance swa stream input if appropriate
+         if (use_nuopc_swaclim) then
+            call ocn_stream_swaclim_interp(clock, rc)
+            if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         end if
+
+         ! Advance dust stream input if appropriate
+         if (use_nuopc_dust) then
+            call ocn_stream_dust_interp(clock, rc)
+            if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         end if
+#endif
 
          ! Advance the model a time step.
          call blom_step
