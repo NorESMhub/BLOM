@@ -66,7 +66,6 @@ module ocn_comp_nuopc
 
    private
 
-   integer, parameter :: cslen = 80  ! Short character string length.
    integer, parameter :: cllen = 265 ! Long character string length.
    character(len=*), parameter :: modname = '(ocn_comp_nuopc)'
    character(len=*), parameter :: u_FILE_u = &
@@ -229,17 +228,20 @@ contains
       ! Get data pointers for the fields to be imported.
       do n = 1, fldsToOcn_num
          if (fldsToOcn(n)%stdname == trim(flds_scalar_name)) cycle
-         call ESMF_StateGet(importState, trim(fldsToOcn(n)%stdname), &
-                            itemType, rc=rc)
+         call ESMF_StateGet(importState, trim(fldsToOcn(n)%stdname), itemType, rc=rc)
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
          if (itemType == ESMF_STATEITEM_NOTFOUND) then
             fldsToOcn(n)%dataptr => null()
          else
-            call ESMF_StateGet(importState, trim(fldsToOcn(n)%stdname), &
-                               field=field, rc=rc)
+            call ESMF_StateGet(importState, trim(fldsToOcn(n)%stdname), field=field, rc=rc)
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
-            call ESMF_FieldGet(field, farrayPtr=fldsToOcn(n)%dataptr, rc=rc)
-            if (ChkErr(rc, __LINE__, u_FILE_u)) return
+            if (fldsToOcn(n)%ungridded_lbound > 0 .and. fldsToOcn(n)%ungridded_ubound > 0) then
+              call ESMF_FieldGet(field, farrayPtr=fldsToOcn(n)%dataptr2d, rc=rc)
+              if (ChkErr(rc, __LINE__, u_FILE_u)) return
+            else
+              call ESMF_FieldGet(field, farrayPtr=fldsToOcn(n)%dataptr, rc=rc)
+              if (ChkErr(rc, __LINE__, u_FILE_u)) return
+            end if
          endif
       enddo
 
@@ -275,14 +277,12 @@ contains
       ! Get data pointers for the fields to be exported.
       do n = 1, fldsFrOcn_num
          if (fldsFrOcn(n)%stdname == trim(flds_scalar_name)) cycle
-         call ESMF_StateGet(exportState, trim(fldsFrOcn(n)%stdname), &
-                            itemType, rc=rc)
+         call ESMF_StateGet(exportState, trim(fldsFrOcn(n)%stdname), itemType, rc=rc)
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
          if (itemType == ESMF_STATEITEM_NOTFOUND) then
             fldsFrOcn(n)%dataptr => null()
          else
-            call ESMF_StateGet(exportState, trim(fldsFrOcn(n)%stdname), &
-                               field=field, rc=rc)
+            call ESMF_StateGet(exportState, trim(fldsFrOcn(n)%stdname), field=field, rc=rc)
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
             if (fldsFrOcn(n)%ungridded_lbound > 0 .and. fldsFrOcn(n)%ungridded_ubound > 0) then
               call ESMF_FieldGet(field, farrayPtr=fldsFrOcn(n)%dataptr2d, rc=rc)
@@ -374,7 +374,7 @@ contains
       type(ESMF_VM) :: vm
       type(ESMF_TimeInterval) :: timeStep
       integer :: localPet, nthrds, shrlogunit, n
-      character(len=cslen) :: starttype, stdname
+      character(len=cllen) :: starttype, stdname
       character(len=cllen) :: msg, cvalue
       logical :: isPresent, isSet
       logical :: ocn2glc_coupling
