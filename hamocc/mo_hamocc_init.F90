@@ -38,6 +38,7 @@ contains
     use mod_time,       only: date,baclin
     use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,isp,ifp,ilp,mnproc,lp,xchalt
     use mod_grid,       only: plon,plat
+    use mod_forcing,    only: use_nuopc_ndep
     use mod_tracers,    only: ntrbgc,ntr,itrbgc,trc
     use mo_control_bgc, only: bgc_namelist,get_bgc_namelist,do_ndep,do_rivinpt,do_oalk,            &
                               do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,                 &
@@ -198,7 +199,9 @@ contains
     ! --- Initialise reading of input data (dust, n-deposition, river, etc.)
     !
     call ini_read_fedep(idm,jdm,omask)
-    call ini_read_ndep(idm,jdm)
+    if (.not. use_nuopc_ndep) then
+       call ini_read_ndep(idm,jdm)
+    end if
     call ini_read_rivin(idm,jdm,omask)
     call ini_read_oafx(idm,jdm,bgc_dx,bgc_dy,plat,omask)
     if (use_BROMO) then

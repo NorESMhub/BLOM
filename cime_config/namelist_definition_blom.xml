@@ -636,17 +636,6 @@
     </desc>
   </entry>
 
-  <entry id="use_stream_relaxation">
-    <type>logical</type>
-    <category>limits</category>
-    <group>limits</group>
-    <values>
-      <value>.false.</value>
-      <value comp_interface="nuopc">.true.</value>
-    </values>
-    <desc>if .true., use NUOPC stream relaxation capability</desc>
-  </entry>
-
   <entry id="trxday">
     <type>real</type>
     <category>limits</category>
@@ -8736,6 +8725,32 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>(ssster) [mol m-3]</desc>
+  </entry>
+
+  <!-- =========================  -->
+  <!-- namelist group: forcing fields using nuopc -->
+  <!-- =========================  -->
+
+  <entry id="use_stream_relaxation">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.true.</value>
+    </values>
+    <desc>if .true., use NUOPC stream relaxation capability</desc>
+  </entry>
+
+  <entry id="use_nuopc_ndep">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.true.</value>
+    </values>
+    <desc>if .true., use NUOPC to obtain NDEP (always imported to model) </desc>
   </entry>
 
   <!-- =========================  -->

@@ -96,8 +96,9 @@ module mod_forcing
       sst_stream, &    ! Sea-surface temperature [deg C] from stream data.
       ice_stream, &    ! Sea-ice concentration [] from stream data.
       sss_stream       ! Sea-surface salinity [g kg-1] from stream data.
-
    logical :: use_stream_relaxation ! If true, use nuopc stream relaxation capability
+
+   logical :: use_nuopc_ndep    ! If true, use nuopc input for rivin fluxes
 
    ! Variables related to balancing the freshwater forcing budget.
    real(r8) :: &
@@ -182,7 +183,8 @@ module mod_forcing
              surflx, surrlx, sswflx, salflx, brnflx, salrlx, taux, tauy, &
              ustar, ustarb, ustar3, wstar3, buoyfl, t_sw_nonloc, t_rs_nonloc, &
              s_br_nonloc, s_rs_nonloc, inivar_forcing, fwbbal, &
-             sss_stream, sst_stream, ice_stream, use_stream_relaxation
+             sss_stream, sst_stream, ice_stream, use_stream_relaxation, &
+             use_nuopc_ndep
 
 contains
 

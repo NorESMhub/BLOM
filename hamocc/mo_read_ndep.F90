@@ -181,6 +181,7 @@ contains
     !***********************************************************************************************
 
     use mod_xc,             only: mnproc
+    use mod_forcing,        only: use_nuopc_ndep
     use netcdf,             only: nf90_open,nf90_close,nf90_nowrite
     use mo_control_bgc,     only: io_stdo_bgc,do_ndep,use_extNcycle, do_ndep_coupled
     use mo_netcdf_bgcrw,    only: read_netcdf_var
@@ -209,7 +210,9 @@ contains
       return
     endif
 
-    if (use_extNcycle .and. do_ndep_coupled) then
+    ! Note - if use_nuopc_ndep - then nitrogen deposition is ALWAYS obtained from the
+    ! nuopc mediator
+    if (use_nuopc_ndep .or. (use_extNcycle .and. do_ndep_coupled)) then
 
         ! get N-deposition from atmosphere
         fatmndep = 365.*86400./mw_nitrogen
