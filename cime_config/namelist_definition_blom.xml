@@ -892,6 +892,26 @@
     <desc>0 = netcdf, 1 = pnetcdf</desc>
   </entry>
 
+  <entry id="use_diag">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>optionally turn on additional diagnostics</desc>
+  </entry>
+
+  <entry id="use_arctic">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.true.</value>
+    </values>
+    <desc>if region includes arctic ocean</desc>
+  </entry>
+
   <!-- ========================= -->
   <!-- namelist group: vcoord -->
   <!-- ========================= -->
@@ -6040,7 +6060,7 @@
       <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>AMELIST FOR DIAGNOSTIC iHAMOCC OUTPUT</desc>
+    <desc>namelist for diagnostic iHAMOCC output</desc>
   </entry>
 
   <entry id="flx_car0100">

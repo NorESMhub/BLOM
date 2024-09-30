@@ -889,8 +889,8 @@ contains
                ficem_da(i,j,l2ci) = fldlist(index_Si_ifrac)%dataptr(n)
 
                ! Nitrogen deposition [kg m-2 s-1].
-               atmnhxdep_da(i,j,l2ci) = fldlist(index_Faxa_ndep)%dataptr2d(n,1)*afac
-               atmnoydep_da(i,j,l2ci) = fldlist(index_Faxa_ndep)%dataptr2d(n,2)*afac
+               atmnhxdep_da(i,j,l2ci) = fldlist(index_Faxa_ndep)%dataptr2d(1,n)*afac
+               atmnoydep_da(i,j,l2ci) = fldlist(index_Faxa_ndep)%dataptr2d(2,n)*afac
             endif
 
          enddo

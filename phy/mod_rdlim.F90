@@ -28,7 +28,7 @@ module mod_rdlim
                              nstep2, nstep, lstep, nstep_in_day, time0, &
                              time, baclin, batrop, init_timevars, &
                              set_day_of_year, step_time
-  use mod_xc,          only: xcbcst, xchalt, xcstop, mnproc, lp
+  use mod_xc,          only: xcbcst, xchalt, xcstop, mnproc, lp, use_arctic
   use mod_grid,        only: grfile
   use mod_eos,         only: pref
   use mod_inicon,      only: icfile
@@ -107,6 +107,7 @@ module mod_rdlim
   use mod_budget,      only: cnsvdi
   use mod_checksum,    only: csdiag
   use mod_nctools,     only: ncfopn, ncgeti, ncgetr, ncfcls
+  use mod_ifdefs,      only: use_diag
 
   implicit none
   private
@@ -142,7 +143,8 @@ contains
          itest,jtest, &
          cnsvdi, &
          csdiag, &
-         rstfrq,rstfmt,rstcmp,iotype,use_stream_relaxation
+         rstfrq,rstfmt,rstcmp,iotype,use_stream_relaxation, &
+         use_diag, use_arctic
 
     ! read limits namelist
 
@@ -247,6 +249,8 @@ contains
       write (lp,*) 'RSTCMP',RSTCMP
       write (lp,*) 'IOTYPE',IOTYPE
       write (lp,*) 'USE_STREAM_RELAXATION',use_stream_relaxation
+      write (lp,*) 'USE_DIAG',use_diag
+      write (lp,*) 'USE_ARCTIC',use_arctic
       write (lp,*)
 
     end if
@@ -330,6 +334,8 @@ contains
     call xcbcst(rstcmp)
     call xcbcst(iotype)
     call xcbcst(use_stream_relaxation)
+    call xcbcst(use_diag)
+    call xcbcst(use_arctic)
 
     ! resolve options
     select case (trim(wavsrc))
