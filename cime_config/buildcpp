@@ -37,9 +37,9 @@ def create_dimmod(case):
     ocn_grid = case.get_value("OCN_GRID")
     blom_vcoord = case.get_value("BLOM_VCOORD")
     if case.get_value("NINST_OCN") > 1:
-        ntasks_ocn = case.get_value("NTASKS_OCN")
-    else:
         ntasks_ocn = case.get_value("NTASKS_PER_INST_OCN")
+    else:
+        ntasks_ocn = case.get_value("NTASKS_OCN")
     objroot = case.get_value("OBJROOT")
 
     gridconf_dir = os.path.join(comp_root_dir_ocn, "bld", ocn_grid)
