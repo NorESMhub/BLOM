@@ -144,7 +144,9 @@ module ocn_import_export
         index_Faxa_rain   = -1, &
         index_Sa_pslv     = -1, &
         index_Sa_co2diag  = -1, &
-        index_Sa_co2prog  = -1
+        index_Sa_co2prog  = -1, &
+        index_Forr_rofl_glc = -1, &
+        index_Forr_rofi_glc = -1
 
    ! Indices for export fields
    integer  :: &
@@ -239,8 +241,10 @@ contains
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Fioi_flxdst', index_Fioi_flxdst)
 
      ! From river:
-     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_rofl', index_Foxx_rofl)
-     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_rofi', index_Foxx_rofi)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_rofl'    , index_Foxx_rofl)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_rofi'    , index_Foxx_rofi)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Forr_rofl_glc', index_Forr_rofl_glc)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Forr_rofi_glc', index_Forr_rofi_glc)
 
      ! From fields computed in mediator:
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'So_duu10n'  , index_So_duu10n)
@@ -724,6 +728,7 @@ contains
       real(r8) :: afac, utmp, vtmp
       integer :: n, i, j, l
       integer :: index_co2
+      real(r8):: rofi_heat_flx, snow_heat_flx
 
       ! Update time level indices.
       if (l1ci == 1 .and. l2ci == 1) then
@@ -831,11 +836,17 @@ contains
                ! Evaporation, positive downwards [kg m-2 s-1].
                eva_da(i,j,l2ci) = fldlist(index_Foxx_evap)%dataptr(n)*afac
 
-               ! Liquid runoff, positive downwards [kg m-2 s-1].
+               ! Liquid runoff [kg m-2 s-1].
                rnf_da(i,j,l2ci) = fldlist(index_Foxx_rofl)%dataptr(n)*afac
+               if (index_Forr_rofl_glc > 0) then
+                  rnf_da(i,j,l2ci) = rnf_da(i,j,l2ci) + fldlist(index_Forr_rofl_glc)%dataptr(n)*afac
+               end if
 
-               ! Frozen runoff, positive downwards [kg m-2 s-1].
+               ! Frozen runoff [kg m-2 s-1].
                rfi_da(i,j,l2ci) = fldlist(index_Foxx_rofi)%dataptr(n)*afac
+               if (index_Forr_rofi_glc > 0) then
+                  rfi_da(i,j,l2ci) = rfi_da(i,j,l2ci) + fldlist(index_Forr_rofi_glc)%dataptr(n)*afac
+               end if
 
                ! Fresh water due to melting/freezing, positive downwards
                ! [kg m-2 s-1].
@@ -848,13 +859,18 @@ contains
                swa_da(i,j,l2ci) = fldlist(index_Foxx_swnet)%dataptr(n)*afac
 
                ! Non-solar heat flux, positive downwards [W m-2].
+               rofi_heat_flx = fldlist(index_Foxx_rofi)%dataptr(n)*SHR_CONST_LATICE
+               if (index_Forr_rofi_glc > 0) then
+                  rofi_heat_flx = rofi_heat_flx + fldlist(index_Forr_rofi_glc)%dataptr(n)*SHR_CONST_LATICE
+               end if
+               snow_heat_flx = fldlist(index_Faxa_snow)%dataptr(n)*SHR_CONST_LATICE
+
                nsf_da(i,j,l2ci) = ( fldlist(index_Foxx_lat)%dataptr(n) &
                                   + fldlist(index_Foxx_sen)%dataptr(n) &
                                   + fldlist(index_Foxx_lwup)%dataptr(n) &
                                   + fldlist(index_Faxa_lwdn)%dataptr(n) &
-                                  - ( fldlist(index_Faxa_snow)%dataptr(n) &
-                                    + fldlist(index_Foxx_rofi)%dataptr(n)) &
-                                    *SHR_CONST_LATICE)*afac
+                                  - (rofi_heat_flx + snow_heat_flx) &
+                                  ) * afac
 
                ! Heat flux due to melting, positive downwards [W m-2].
                hmlt_da(i,j,l2ci) = fldlist(index_Fioi_melth)%dataptr(n)*afac
