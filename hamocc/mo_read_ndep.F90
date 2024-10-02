@@ -202,6 +202,7 @@ contains
     ! local variables
     integer  :: month_in_file, ncstat, ncid, i, j
     real     :: fatmndep
+    logical  :: first_call = .true.
 
     ! if N-deposition is switched off set ndep to zero and return
     if (.not. do_ndep) then
@@ -211,14 +212,14 @@ contains
 
     ! If  use_nuopc_ndep, nitrogen deposition is ALWAYS obtained from the
     ! nuopc mediator
-    if ((use_nuopc_ndep) .or. (use_extNcycle .and. do_ndep_coupled)) then
+    if (use_extNcycle .and. do_ndep_coupled) then
 
         ! get N-deposition from atmosphere
         fatmndep = 365.*86400./mw_nitrogen
         ndep(:,:,:) = 0.
         !$omp parallel do private(i)
-        do  j=1,kpje
-          do  i=1,kpie
+        do j=1,kpje
+          do i=1,kpie
             ! convert from kgN/m2/s to climatological input file units: kmolN/m2/yr
             if (patmnoydep(i,j) > 0.) then
               ndep(i,j,idepnoy) = patmnoydep(i,j)*fatmndep
@@ -229,20 +230,24 @@ contains
           enddo
         enddo
         !$omp end parallel do
-        if (mnproc == 1) then
+        if (mnproc == 1 .and. first_call) then
           write (io_stdo_bgc,*) 'iHAMOCC: getting NOy and NHx deposition from atm'
         endif
 
-        if (use_nuopc_ndep .and. .not. use_extNcycle) then
-          ! Reduced and oxidized forms will all enter the NO3 pool
-          !$omp parallel do private(i)
-          do  j=1,kpje
-            do  i=1,kpie
-              ndep(i,j,idepnoy) = ndep(i,j,idepnoy) + ndep(i,j,idepnhx)
-            enddo
+    else if (use_nuopc_ndep) then
+
+        ! get N-deposition from atmosphere
+        fatmndep = 365.*86400./mw_nitrogen
+        ndep(:,:,:) = 0.
+        !$omp parallel do private(i)
+        do j=1,kpje
+          do i=1,kpie
+            ! convert from kgN/m2/s to climatological input file units: kmolN/m2/yr
+            ! reduced and oxidized forms will all enter the NO3 pool
+            ndep(i,j,idepnoy) = (patmnoydep(i,j)+patmnhxdep(i,j))*fatmndep
           enddo
-          !$omp end parallel do
-        end if
+        enddo
+        !$omp end parallel do
 
     else
 
@@ -278,6 +283,7 @@ contains
       !$omp end parallel do
 
     endif
+    first_call = .false.
   end subroutine get_ndep
 
 end module mo_read_ndep
