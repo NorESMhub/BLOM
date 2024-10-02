@@ -3841,8 +3841,8 @@
 
   <entry id="use_nuopc_ndep">
     <type>logical</type>
-    <category>bgcnml</category>
-    <group>bgcnml</group>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
     <values>
       <value>.false.</value>
       <value comp_interface="nuopc">.true.</value>

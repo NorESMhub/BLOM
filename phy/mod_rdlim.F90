@@ -161,7 +161,7 @@ contains
           open (newunit=nfu,file=nlfnm,status='old',action = 'read', &
                recl = 80)
         else
-          write (lp,*) 'rdlim: could not find namelist file!'
+          write (lp,*) 'rdlim: could not find namelist file! '//trim(nlfnm)
           call xchalt('(rdlim)')
           stop '(rdlim)'
         end if
