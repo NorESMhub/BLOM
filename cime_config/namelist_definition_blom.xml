@@ -3839,6 +3839,18 @@
    <desc>File name (incl. full path) for atmopheric N-deposition data</desc>
   </entry>
 
+  <entry id="use_nuopc_ndep">
+    <type>logical</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.true.</value>
+    </values>
+    <desc>if .true., use NUOPC to obtain NDEP (always imported to model) and ignore the
+    settings of do_ndep_coupled and ndepfile, whereas the setting of do_ndep is still used</desc>
+  </entry>
+
   <entry id="do_ndep_coupled" modify_via_xml="HAMOCC_ATMNDEPC">
     <type>logical</type>
     <category>bgcnml</category>
@@ -8760,17 +8772,6 @@
       <value comp_interface="nuopc">.true.</value>
     </values>
     <desc>if .true., use NUOPC stream relaxation capability</desc>
-  </entry>
-
-  <entry id="use_nuopc_ndep">
-    <type>logical</type>
-    <category>limits</category>
-    <group>limits</group>
-    <values>
-      <value>.false.</value>
-      <value comp_interface="nuopc">.true.</value>
-    </values>
-    <desc>if .true., use NUOPC to obtain NDEP (always imported to model) </desc>
   </entry>
 
   <!-- =========================  -->

@@ -181,9 +181,8 @@ contains
     !***********************************************************************************************
 
     use mod_xc,             only: mnproc
-    use mod_forcing,        only: use_nuopc_ndep
     use netcdf,             only: nf90_open,nf90_close,nf90_nowrite
-    use mo_control_bgc,     only: io_stdo_bgc, do_ndep, use_extNcycle, do_ndep_coupled
+    use mo_control_bgc,     only: io_stdo_bgc, do_ndep, use_extNcycle, do_ndep_coupled, use_nuopc_ndep
     use mo_netcdf_bgcrw,    only: read_netcdf_var
     use mo_param1_bgc,      only: nndep,idepnoy,idepnhx
     use mo_chemcon,         only: mw_nitrogen
