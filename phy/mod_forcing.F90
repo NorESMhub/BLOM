@@ -96,6 +96,7 @@ module mod_forcing
       sst_stream, &    ! Sea-surface temperature [deg C] from stream data.
       ice_stream, &    ! Sea-ice concentration [] from stream data.
       sss_stream       ! Sea-surface salinity [g kg-1] from stream data.
+
    logical :: use_stream_relaxation ! If true, use nuopc stream relaxation capability
 
    ! Variables related to balancing the freshwater forcing budget.
