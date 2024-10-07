@@ -43,6 +43,7 @@ module ocn_import_export
                              rnf_da, rfi_da, fmltfz_da, sfl_da, ztx_da, mty_da, &
                              ustarw_da, slp_da, abswnd_da, ficem_da, lamult_da, &
                              lasl_da, ustokes_da, vstokes_da, atmco2_da, &
+                             atmnhxdep_da, atmnoydep_da, &
                              l1ci, l2ci
    use mod_utility,    only: util1, util2
    use mod_checksum,   only: csdiag, chksummsk
@@ -142,6 +143,7 @@ module ocn_import_export
         index_Faxa_lwdn   = -1, &
         index_Faxa_snow   = -1, &
         index_Faxa_rain   = -1, &
+        index_Faxa_ndep   = -1, &
         index_Sa_pslv     = -1, &
         index_Sa_co2diag  = -1, &
         index_Sa_co2prog  = -1, &
@@ -269,6 +271,8 @@ contains
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_lwdn' , index_Faxa_lwdn)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_snow' , index_Faxa_snow)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_rain' , index_Faxa_rain)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_ndep' , index_Faxa_ndep, &
+          ungridded_lbound=1, ungridded_ubound=2)
      if (flds_co2a .or. flds_co2c) then
         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sa_co2diag' ,index_Sa_co2diag)
         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sa_co2prog', index_Sa_co2prog)
@@ -884,6 +888,9 @@ contains
                ! Ice fraction [].
                ficem_da(i,j,l2ci) = fldlist(index_Si_ifrac)%dataptr(n)
 
+               ! Nitrogen deposition [kg m-2 s-1].
+               atmnhxdep_da(i,j,l2ci) = fldlist(index_Faxa_ndep)%dataptr2d(1,n)*afac
+               atmnoydep_da(i,j,l2ci) = fldlist(index_Faxa_ndep)%dataptr2d(2,n)*afac
             endif
 
          enddo
@@ -901,6 +908,8 @@ contains
          call xctilr(swa_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
          call xctilr(nsf_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
          call xctilr(hmlt_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
+         call xctilr(atmnhxdep_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
+         call xctilr(atmnoydep_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
       endif
 
       call fill_global(mval, fval, halo_ps, slp_da(1-nbdy,1-nbdy,l2ci))
@@ -1034,6 +1043,8 @@ contains
          call chksummsk(abswnd_da(1-nbdy,1-nbdy,l2ci),ip,1,'abswnd')
          call chksummsk( ficem_da(1-nbdy,1-nbdy,l2ci),ip,1,'ficem')
          call chksummsk(atmco2_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmco2')
+         call chksummsk(atmnhxdep_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmnhxdep')
+         call chksummsk(atmnoydep_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmnoydep')
       endif
 
       if (first_call) then

@@ -121,23 +121,24 @@
     <valid_values>UNSET,1850,2000,hist,ssp119,ssp126,ssp245,ssp370,ssp434,ssp460,ssp534os,ssp585</valid_values>
     <default_value>1850</default_value>
     <values>
-      <value compset="HIST_CAM60%NORESM.*_BLOM%ECO"    >hist</value>
-      <value compset="20TR_DATM.*_BLOM%ECO"            >hist</value>
-      <value compset="2000_CAM60%NORESM.*_BLOM%ECO"    >2000</value>
-      <value compset="SSP119_CAM60%NORESM.*_BLOM%ECO"  >ssp119</value>
-      <value compset="SSP126_CAM60%NORESM.*_BLOM%ECO"  >ssp126</value>
-      <value compset="SSP245_CAM60%NORESM.*_BLOM%ECO"  >ssp245</value>
-      <value compset="SSP370_CAM60%NORESM.*_BLOM%ECO"  >ssp370</value>
-      <value compset="SSP370LOWNTCF_CAM60%NORESM.*_BLOM%ECO"      >ssp370</value>
-      <value compset="SSP370REFGHGLOWNTCF_CAM60%NORESM.*_BLOM%ECO">ssp370</value>
-      <value compset="SSP434_CAM60%NORESM.*_BLOM%ECO"  >ssp434</value>
-      <value compset="SSP460_CAM60%NORESM.*_BLOM%ECO"  >ssp460</value>
-      <value compset="SSP534_CAM60%NORESM.*_BLOM%ECO"  >ssp534os</value>
-      <value compset="SSP585_CAM60%NORESM.*_BLOM%ECO"  >ssp585</value>
+      <value compset="1850_.*_BLOM%ECO"   >1850</value>
+      <value compset="2000_.*_BLOM%ECO"   >2000</value>
+      <value compset="HIST_.*_BLOM%ECO"   >hist</value>
+      <value compset="20TR_.*_BLOM%ECO"   >hist</value>
+      <value compset="SSP119_.*_BLOM%ECO" >ssp119</value>
+      <value compset="SSP126_.*_BLOM%ECO" >ssp126</value>
+      <value compset="SSP245_.*_BLOM%ECO" >ssp245</value>
+      <value compset="SSP370_.*_BLOM%ECO" >ssp370</value>
+      <value compset="SSP434_.*_BLOM%ECO" >ssp434</value>
+      <value compset="SSP460_.*_BLOM%ECO" >ssp460</value>
+      <value compset="SSP534_.*_BLOM%ECO" >ssp534os</value>
+      <value compset="SSP585_.*_BLOM%ECO" >ssp585</value>
+      <value compset="SSP370.*_BLOM%ECO"  >ssp370</value>
      </values>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>Scenario for nitrogen deposition data. Requires module ecosys</desc>
+    <desc>Scenario for nitrogen deposition data. Requires module ecosys.
+    Not used when coupling with nuopc-cmeps</desc>
   </entry>
 
   <entry id="HAMOCC_EXTNCYCLE">
@@ -163,7 +164,8 @@
     </values>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>Nitrogen deposition coupled from atmosphere. Requires module ecosys and extncycle</desc>
+    <desc>Nitrogen deposition coupled from atmosphere. Requires module ecosys and extncycle.
+    Not used when coupling with nuopc-cmeps</desc>
   </entry>
 
   <entry id="HAMOCC_N2OC">

@@ -636,17 +636,6 @@
     </desc>
   </entry>
 
-  <entry id="use_stream_relaxation">
-    <type>logical</type>
-    <category>limits</category>
-    <group>limits</group>
-    <values>
-      <value>.false.</value>
-      <value comp_interface="nuopc">.true.</value>
-    </values>
-    <desc>if .true., use NUOPC stream relaxation capability</desc>
-  </entry>
-
   <entry id="trxday">
     <type>real</type>
     <category>limits</category>
@@ -901,6 +890,26 @@
       <value pio_typename_ocn="pnetcdf">1</value>
     </values>
     <desc>0 = netcdf, 1 = pnetcdf</desc>
+  </entry>
+
+  <entry id="use_diag">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>optionally turn on additional diagnostics</desc>
+  </entry>
+
+  <entry id="use_arctic">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.true.</value>
+    </values>
+    <desc>if region includes arctic ocean</desc>
   </entry>
 
   <!-- ========================= -->
@@ -3830,15 +3839,15 @@
    <desc>File name (incl. full path) for atmopheric N-deposition data</desc>
   </entry>
 
-  <entry id="do_ndep_coupled" modify_via_xml="HAMOCC_ATMNDEPC">
+  <entry id="use_nuopc_ndep">
     <type>logical</type>
-    <category>bgcnml</category>
-    <group>bgcnml</group>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
     <values>
       <value>.false.</value>
-      <value blom_n_deposition="yes" hamocc_atmndepc="yes" hamocc_extncycle="yes">.true.</value>
+      <value comp_interface="nuopc">.true.</value>
     </values>
-    <desc>Switch to couple nitrogen deposition. Requires do_ndep.</desc>
+    <desc>if .true., use NUOPC to obtain NDEP (always imported to model).</desc>
   </entry>
 
   <entry id="do_n2onh3_coupled" modify_via_xml="HAMOCC_N2OC">
@@ -6051,7 +6060,7 @@
       <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>AMELIST FOR DIAGNOSTIC iHAMOCC OUTPUT</desc>
+    <desc>namelist for diagnostic iHAMOCC output</desc>
   </entry>
 
   <entry id="flx_car0100">
@@ -8736,6 +8745,21 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>(ssster) [mol m-3]</desc>
+  </entry>
+
+  <!-- =========================  -->
+  <!-- namelist group: forcing fields using nuopc -->
+  <!-- =========================  -->
+
+  <entry id="use_stream_relaxation">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.true.</value>
+    </values>
+    <desc>if .true., use NUOPC stream relaxation capability</desc>
   </entry>
 
   <!-- =========================  -->
