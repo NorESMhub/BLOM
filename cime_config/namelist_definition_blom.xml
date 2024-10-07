@@ -3847,19 +3847,7 @@
       <value>.false.</value>
       <value comp_interface="nuopc">.true.</value>
     </values>
-    <desc>if .true., use NUOPC to obtain NDEP (always imported to model) and ignore the
-    settings of do_ndep_coupled and ndepfile, whereas the setting of do_ndep is still used</desc>
-  </entry>
-
-  <entry id="do_ndep_coupled" modify_via_xml="HAMOCC_ATMNDEPC">
-    <type>logical</type>
-    <category>bgcnml</category>
-    <group>bgcnml</group>
-    <values>
-      <value>.false.</value>
-      <value blom_n_deposition="yes" hamocc_atmndepc="yes" hamocc_extncycle="yes">.true.</value>
-    </values>
-    <desc>Switch to couple nitrogen deposition. Requires do_ndep.</desc>
+    <desc>if .true., use NUOPC to obtain NDEP (always imported to model).</desc>
   </entry>
 
   <entry id="do_n2onh3_coupled" modify_via_xml="HAMOCC_N2OC">

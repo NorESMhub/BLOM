@@ -75,7 +75,7 @@ contains
     !***********************************************************************************************
 
     use mod_xc,             only: mnproc,xchalt
-    use mo_control_bgc,     only: io_stdo_bgc,do_ndep,do_ndep_coupled,use_extNcycle
+    use mo_control_bgc,     only: io_stdo_bgc,do_ndep,use_extNcycle
     use mod_dia,            only: iotype
     use mod_nctools,        only: ncfopn,ncgeti,ncfcls
     use mo_netcdf_bgcrw,    only: read_netcdf_var
@@ -96,13 +96,6 @@ contains
       endif
       return
     endif
-    if (do_ndep_coupled) then
-      if (mnproc == 1) then
-        write(io_stdo_bgc,*) ''
-        write(io_stdo_bgc,*) 'ini_read_ndep: N deposition in interactive mode.'
-      endif
-      return
-    end if
 
     ! Initialise the module
     if (.not. lini) then
@@ -182,7 +175,7 @@ contains
 
     use mod_xc,             only: mnproc
     use netcdf,             only: nf90_open,nf90_close,nf90_nowrite
-    use mo_control_bgc,     only: io_stdo_bgc, do_ndep, use_extNcycle, do_ndep_coupled, use_nuopc_ndep
+    use mo_control_bgc,     only: io_stdo_bgc, do_ndep, use_extNcycle, use_nuopc_ndep
     use mo_netcdf_bgcrw,    only: read_netcdf_var
     use mo_param1_bgc,      only: nndep,idepnoy,idepnhx
     use mo_chemcon,         only: mw_nitrogen
@@ -210,17 +203,22 @@ contains
       return
     endif
 
-    ! If  use_nuopc_ndep, nitrogen deposition is ALWAYS obtained from the
-    ! nuopc mediator
-    if (use_extNcycle .and. do_ndep_coupled) then
+    if (use_nuopc_ndep) then
 
-        ! get N-deposition from atmosphere
-        fatmndep = 365.*86400./mw_nitrogen
-        ndep(:,:,:) = 0.
+      ! If  use_nuopc_ndep, nitrogen deposition is ALWAYS obtained from the
+      ! nuopc mediator
+      if (mnproc == 1 .and. first_call) then
+        write (io_stdo_bgc,*) 'iHAMOCC: getting NOy and NHx deposition from atm'
+      endif
+
+      ! convert from kgN/m2/s to climatological input file units: kmolN/m2/yr
+      fatmndep = 365.*86400./mw_nitrogen
+      ndep(:,:,:) = 0.
+
+      if (use_extNcycle) then
         !$omp parallel do private(i)
         do j=1,kpje
           do i=1,kpie
-            ! convert from kgN/m2/s to climatological input file units: kmolN/m2/yr
             if (patmnoydep(i,j) > 0.) then
               ndep(i,j,idepnoy) = patmnoydep(i,j)*fatmndep
             endif
@@ -230,24 +228,16 @@ contains
           enddo
         enddo
         !$omp end parallel do
-        if (mnproc == 1 .and. first_call) then
-          write (io_stdo_bgc,*) 'iHAMOCC: getting NOy and NHx deposition from atm'
-        endif
-
-    else if (use_nuopc_ndep) then
-
-        ! get N-deposition from atmosphere
-        fatmndep = 365.*86400./mw_nitrogen
-        ndep(:,:,:) = 0.
+      else
         !$omp parallel do private(i)
         do j=1,kpje
           do i=1,kpie
-            ! convert from kgN/m2/s to climatological input file units: kmolN/m2/yr
             ! reduced and oxidized forms will all enter the NO3 pool
             ndep(i,j,idepnoy) = (patmnoydep(i,j)+patmnhxdep(i,j))*fatmndep
           enddo
         enddo
         !$omp end parallel do
+      end if
 
     else
 
