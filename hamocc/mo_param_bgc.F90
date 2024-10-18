@@ -121,7 +121,8 @@ module mo_param_bgc
           & bkoxamox_sed,bkanh4nitr_sed,bkamoxn2o_sed,bkyamox_sed,               &
           & rano2nitr_sed,q10ano2nitr_sed,Trefano2nitr_sed,bkoxnitr_sed,         &
           & bkano2nitr_sed,n2omaxy_sed,n2oybeta_sed,NOB2AOAy_sed,bn2o_sed,       &
-          & mufn2o_sed,POM_remin_q10_sed, POM_remin_Tref_sed,bkox_drempoc_sed
+          & mufn2o_sed,POM_remin_q10_sed, POM_remin_Tref_sed,bkox_drempoc_sed,   &
+          & max_limiter
 
 
   !********************************************************************
@@ -152,6 +153,7 @@ module mo_param_bgc
   real, parameter :: c14_t_half = 5700.*365.      ! Half life of 14C [days]
 
   ! Extended nitrogen cycle
+  real, parameter :: max_limiter   = 0.9999          ! maximum in concentrations that can consumed at once
   real, parameter :: rc2n          = rcar/rnit       ! iHAMOCC C:N ratio
   real, parameter :: ro2utammo     = 140.            ! Oxygen utilization per mol detritus during ammonification
   real, parameter :: ro2nnit       = ro2utammo/rnit  !

@@ -56,8 +56,8 @@ module mo_extNsediment
                           & bkanh4nitr_sed,bkamoxn2o_sed,bkyamox_sed,rano2nitr_sed,q10ano2nitr_sed,&
                           & Trefano2nitr_sed,bkoxnitr_sed,bkano2nitr_sed,n2omaxy_sed,n2oybeta_sed, &
                           & NOB2AOAy_sed,bn2o_sed,mufn2o_sed,POM_remin_q10_sed, POM_remin_Tref_sed,&
-                          & bkox_drempoc_sed
-  use mo_control_bgc, only: io_stdo_bgc,dtb
+                          & bkox_drempoc_sed,max_limiter
+  use mo_control_bgc, only: io_stdo_bgc
   use mo_sedmnt,      only: powtra,sedlay,porsol,porwat
 
   implicit none
@@ -195,16 +195,17 @@ contains
 
           ! Account for potential earlier changes in DIC and alkalinity in finiding the minimum
           totd  = max(0.,                                                                          &
-                &   min(totd,                                                                      &
-                &       powtra(i,j,k,ipownh4)/(amoxfrac + fdetnitr*nitrfrac + eps),                & ! ammonium
-                &       (powtra(i,j,k,ipowaic) + ex_ddic(i,k))                                     &
+                &    min(totd,                                                                     &
+                &       max_limiter*powtra(i,j,k,ipownh4)/(amoxfrac + fdetnitr*nitrfrac + eps),    & ! ammonium
+                &       max_limiter*(powtra(i,j,k,ipowaic) + ex_ddic(i,k))                         &
                 &                                /(rc2n*(fdetamox*amoxfrac + fdetnitr*nitrfrac)    &
                 &                                  + eps),                                         & ! CO2
-                &       powtra(i,j,k,ipowaph)/(rnoi*(fdetamox*amoxfrac+fdetnitr*nitrfrac) + eps),  & ! PO4
-                &       powtra(i,j,k,ipowaox)                                                      &
+                &       max_limiter*powtra(i,j,k,ipowaph)                                          &
+                &                            /(rnoi*(fdetamox*amoxfrac+fdetnitr*nitrfrac) + eps),  & ! PO4
+                &       max_limiter*powtra(i,j,k,ipowaox)                                          &
                 &       /((1.5*fno2 + fn2o - ro2nnit*fdetamox)*amoxfrac                            &
                 &                          + (0.5 - ro2nnit*fdetnitr)*nitrfrac + eps),             & ! O2
-                &       (powtra(i,j,k,ipowaal) + ex_dalk(i,k))                                     &
+                &       max_limiter*(powtra(i,j,k,ipowaal) + ex_dalk(i,k))                         &
                 &       /((2.*fno2 + fn2o + rnm1*rnoi*fdetamox)*amoxfrac                           &
                 &                         + (rnm1*rnoi*fdetnitr)*nitrfrac + eps)))                   ! alkalinity
           amox  = amoxfrac*totd
@@ -260,7 +261,8 @@ contains
 
           ano3new   = powtra(i,j,k,ipowno3)/(1. + rano3denit_sed*Tdep*O2inhib*nutlim)
 
-          ano3denit = max(0.,min(powtra(i,j,k,ipowno3) - ano3new, sedlay(i,j,k,issso12)*rnoxp*s2w))
+          ano3denit = max(0.,min(powtra(i,j,k,ipowno3) - ano3new,                                  &
+                    &                      max_limiter*sedlay(i,j,k,issso12)*rnoxp*s2w))
 
           powtra(i,j,k,ipowno3) = powtra(i,j,k,ipowno3) - ano3denit
           powtra(i,j,k,ipowno2) = powtra(i,j,k,ipowno2) + ano3denit
@@ -307,11 +309,11 @@ contains
           ano2new  = powtra(i,j,k,ipowno2)/(1. + rano2anmx_sed*Tdep*O2inhib*nut1lim*nut2lim)
 
           ! Account for former changes in DIC and alkalinity
-          ano2anmx = max(0.,min(powtra(i,j,k,ipowno2) - ano2new,                                   &
-                                powtra(i,j,k,ipownh4)*rno2anmx*rnh4anmxi,                          &
-                                (powtra(i,j,k,ipowaic)+ex_ddic(i,k))*rno2anmx/rcar,                &
-                                powtra(i,j,k,ipowaph)*rno2anmx,                                    &
-                                (powtra(i,j,k,ipowaal)+ex_dalk(i,k))*rno2anmx/rnm1))
+          ano2anmx = max(0.,min(max_limiter*powtra(i,j,k,ipowno2) - ano2new,                       &
+                                max_limiter*powtra(i,j,k,ipownh4)*rno2anmx*rnh4anmxi,              &
+                                max_limiter*(powtra(i,j,k,ipowaic)+ex_ddic(i,k))*rno2anmx/rcar,    &
+                                max_limiter*powtra(i,j,k,ipowaph)*rno2anmx,                        &
+                                max_limiter*(powtra(i,j,k,ipowaal)+ex_dalk(i,k))*rno2anmx/rnm1))
 
           powtra(i,j,k,ipowno2) = powtra(i,j,k,ipowno2) - ano2anmx
           powtra(i,j,k,ipownh4) = powtra(i,j,k,ipownh4) - ano2anmx*rnh4anmx*rno2anmxi
@@ -398,7 +400,7 @@ contains
           fdetano2denit = rnoxpi*ano2denit/(potddet + eps)
           fdetan2odenit = rnoxpi*an2odenit/(potddet + eps)
           fdetdnra      = 1. - fdetano2denit - fdetan2odenit
-          potddet       = max(0.,min(potddet,powtra(i,j,k,issso12)*s2w))
+          potddet       = max(0.,min(potddet,max_limiter*sedlay(i,j,k,issso12)*s2w))
 
           ! change of NO2 and N2O in N units
           ano2denit     = fdetano2denit*rnoxp*potddet
