@@ -137,7 +137,7 @@ contains
     real :: wpocd,wcald,wopald,wdustd,dagg
     real :: wcal,wdust,wopal,wpoc
     real :: o2lim ! O2 limitation of ammonification (POC remin)
-    real, parameter :: tiny_num = 1e-25
+    real, parameter :: tiny_num = epsilon(1.)
     ! sedbypass
     real :: florca,flcaca,flsil
     ! cisonew

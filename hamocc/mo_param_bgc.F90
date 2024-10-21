@@ -153,7 +153,7 @@ module mo_param_bgc
   real, parameter :: c14_t_half = 5700.*365.      ! Half life of 14C [days]
 
   ! Extended nitrogen cycle
-  real, parameter :: max_limiter   = 0.9999          ! maximum in concentrations that can consumed at once
+  real, parameter :: max_limiter   = 0.9999          ! maximum in concentrations that can be consumed at once
   real, parameter :: rc2n          = rcar/rnit       ! iHAMOCC C:N ratio
   real, parameter :: ro2utammo     = 140.            ! Oxygen utilization per mol detritus during ammonification
   real, parameter :: ro2nnit       = ro2utammo/rnit  !
