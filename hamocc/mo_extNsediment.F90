@@ -91,7 +91,7 @@ module mo_extNsediment
              ised_remin_sulf    = 13, &
              n_seddiag          = 13
 
-  real :: eps    = 1.e-25
+  real :: eps    = epsilon(1.)
   real :: minlim = 1.e-9
 
 contains

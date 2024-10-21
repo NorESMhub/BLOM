@@ -72,7 +72,7 @@ module mo_extNwatercol
   ! public functions
   public :: nitrification,denit_NO3_to_NO2,anammox,denit_dnra,extN_inv_check
 
-  real :: eps    = 1.e-25
+  real :: eps    = epsilon(1.)
 
 contains
 

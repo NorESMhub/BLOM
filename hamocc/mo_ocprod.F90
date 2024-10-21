@@ -137,7 +137,6 @@ contains
     real :: wpocd,wcald,wopald,wdustd,dagg
     real :: wcal,wdust,wopal,wpoc
     real :: o2lim ! O2 limitation of ammonification (POC remin)
-    real, parameter :: tiny_num = epsilon(1.)
     ! sedbypass
     real :: florca,flcaca,flsil
     ! cisonew
@@ -334,7 +333,7 @@ contains
               nlim       = ano3up_inh*ocetra(i,j,k,iano3)/(ocetra(i,j,k,iano3) +  bkphyano3) + anh4lim
               grlim      = min(nutlim,nlim) ! growth limitation
 
-              nh4uptfrac = anh4lim/(nlim+tiny_num)
+              nh4uptfrac = anh4lim/(nlim+epsilon(1.))
               ! re-check avnut - can sum N avail exceed indiv. contrib?
               avanut     = max(0.,min(ocetra(i,j,k,iphosph), ocetra(i,j,k,iiron)/riron,                              &
                          &        rnoi*((1.-nh4uptfrac)*ocetra(i,j,k,iano3) + nh4uptfrac*ocetra(i,j,k,ianh4))))
