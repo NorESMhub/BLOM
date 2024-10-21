@@ -242,7 +242,8 @@ contains
     use mo_control_bgc, only: bgc_namelist,get_bgc_namelist, io_stdo_bgc
     use mo_control_bgc, only: use_BROMO,use_AGG,use_WLIN,use_natDIC,use_CFC,use_cisonew,           &
                               use_sedbypass,use_PBGC_OCNP_TIMESTEP,use_PBGC_CK_TIMESTEP,           &
-                              use_FB_BGC_OCE, use_BOXATM,use_extNcycle,use_pref_tracers,use_nuopc_ndep
+                              use_FB_BGC_OCE, use_BOXATM,use_extNcycle,use_pref_tracers,           &
+                              use_nuopc_ndep
     integer :: iounit
 
     namelist / config_bgc / use_BROMO,use_AGG,use_WLIN,use_natDIC,use_CFC,use_cisonew,             &
