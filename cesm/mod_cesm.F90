@@ -242,7 +242,7 @@ contains
       call ncdefvar('atmbrf_da', 'x y', ndouble, 8)
       call ncdefvar('atmn2o_da', 'x y', ndouble, 8)
       call ncdefvar('atmnh3_da', 'x y', ndouble, 8)
-      call ncdefvar('atmnoydep_da', 'x y', ndouble, 8)
+      call ncdefvar('atmnhxdep_da', 'x y', ndouble, 8)
       call ncdefvar('atmnoydep_da', 'x y', ndouble, 8)
       call ncdefvar('ztx_da', 'x y', ndouble, 8)
       call ncdefvar('mty_da', 'x y', ndouble, 8)
