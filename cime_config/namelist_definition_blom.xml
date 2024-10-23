@@ -4075,6 +4075,7 @@
     <group>config_bgc</group>
     <values>
       <value>.true.</value>
+      <value use_m4ago="yes">.false.</value>
     </values>
     <desc>Use POC sinking scheme with increasing sinking velocity with depth</desc>
   </entry>
@@ -4184,6 +4185,7 @@
     <group>config_bgc</group>
     <values>
       <value>.false.</value>
+      <value use_m4ago="yes">.false.</value>
     </values>
     <desc>Use aggregation scheme for sinking of particles</desc>
   </entry>
