@@ -232,15 +232,18 @@ contains
         !$omp parallel do private(i)
         do j=1,kpje
           do i=1,kpie
-            ! reduced and oxidized forms will all enter the NO3 pool
-            ndep(i,j,idepnoy) = (patmnoydep(i,j)+patmnhxdep(i,j))*fatmndep
+            if (patmnoydep(i,j) > 0. .and.  patmnhxdep(i,j) > 0.) then
+              ! reduced and oxidized forms all enter the NO3 pool
+              ndep(i,j,idepnoy) = (patmnoydep(i,j)+patmnhxdep(i,j))*fatmndep
+            endif
           enddo
         enddo
         !$omp end parallel do
       end if
 
     else
-
+      ! NOTE: No online coupling of the extended nitrogen cycling through MCT
+      !       - only input files are read!
       ! read ndep data from file
       if (kplmon /= oldmonth) then
         month_in_file=(max(startyear,min(endyear,kplyear))-startyear)*12+kplmon
