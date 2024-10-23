@@ -77,7 +77,7 @@ contains
                                 dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma,                     &
                                 fbro1,fbro2,atten_f,atten_c,atten_uv,atten_w,bkopal,bkphy,bkzoo,   &
                                 POM_remin_q10,POM_remin_Tref,opal_remin_q10,opal_remin_Tref,       &
-                                bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo
+                                bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo,max_limiter
     use mo_biomod,        only: bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,bsiflx_bot, &
                                 calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot, &
                                 carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,carflx_bot, &
@@ -333,14 +333,13 @@ contains
               nlim       = ano3up_inh*ocetra(i,j,k,iano3)/(ocetra(i,j,k,iano3) +  bkphyano3) + anh4lim
               grlim      = min(nutlim,nlim) ! growth limitation
 
-              nh4uptfrac = 1.
-              if(nlim .gt. 1.e-18) nh4uptfrac = anh4lim/nlim
+              nh4uptfrac = anh4lim/(nlim+epsilon(1.))
               ! re-check avnut - can sum N avail exceed indiv. contrib?
               avanut     = max(0.,min(ocetra(i,j,k,iphosph), ocetra(i,j,k,iiron)/riron,                              &
                          &        rnoi*((1.-nh4uptfrac)*ocetra(i,j,k,iano3) + nh4uptfrac*ocetra(i,j,k,ianh4))))
 
               xn         = avphy/(1. - pho*grlim)       ! phytoplankton growth
-              phosy      = max(0.,min(xn-avphy,avanut)) ! limit PP growth to available nutr.
+              phosy      = max(0.,min(xn-avphy,max_limiter*avanut)) ! limit PP growth to available nutr.
             else
               avanut = max(0.,min(ocetra(i,j,k,iphosph),rnoi*ocetra(i,j,k,iano3)))
               avanfe = max(0.,min(avanut,ocetra(i,j,k,iiron)/riron))
