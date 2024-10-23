@@ -1,3 +1,4 @@
+fs = import('fs') # import fs system module: https://mesonbuild.com/Fs-module.html
 sources += files('CVMix-src/src/shared/cvmix_background.F90',
 'CVMix-src/src/shared/cvmix_convection.F90', 
 'CVMix-src/src/shared/cvmix_ddiff.F90',
@@ -13,4 +14,7 @@ if get_option('ecosys')
    sources += files('M4AGO-sinking-scheme/src/mo_m4ago_core.f90',
                     'M4AGO-sinking-scheme/src/mo_m4ago_physics.f90',
        		    'M4AGO-sinking-scheme/src/mo_ihamocc4m4ago.f90')
+   if fs.exists('M4AGO-sinking-scheme/src/mo_m4ago_kind.F90')
+     sources += files('M4AGO-sinking-scheme/src/mo_m4ago_kind.F90')
+   endif
 endif
