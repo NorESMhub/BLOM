@@ -5296,7 +5296,7 @@
     <values>
       <value>0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>switch for compressed/uncompressed output</desc>
   </entry>
 
   <entry id="glb_ncformat@diabgc">
@@ -5308,7 +5308,7 @@
       <value pio_netcdf_format_ocn="64bit_offset">1,1,1</value>
       <value pio_netcdf_format_ocn="64bit_data">1,1,1</value>
     </values>
-    <desc>add desc</desc>
+    <desc>netcdf format (valid arguments are 0 for classic, 1 for 64-bit offset and 2 for netcdf4/hdf5 format)</desc>
   </entry>
 
   <entry id="glb_inventory">
