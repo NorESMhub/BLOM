@@ -54,7 +54,6 @@ module mo_control_bgc
   ! Variables set via namelist bgcnml
   logical           :: l_3Dvarsedpor          = .false. ! apply spatially variable sediment porosity
   logical           :: do_ndep                = .true.  ! apply n-deposition
-  logical           :: do_ndep_coupled        = .false. ! for coupled simulations, use field provided by atmosphere
   logical           :: do_n2onh3_coupled      = .false. ! for coupled simulations, use field provided by atmosphere
   logical           :: do_rivinpt             = .true.  ! apply riverine input
   logical           :: do_sedspinup           = .false. ! apply sediment spin-up
@@ -82,6 +81,7 @@ module mo_control_bgc
   logical           :: use_BOXATM             = .false.
   logical           :: use_sedbypass          = .false.
   logical           :: use_extNcycle          = .false.
+  logical           :: use_nuopc_ndep         = .false.
   logical           :: use_pref_tracers       = .true.
 
 contains

@@ -25,8 +25,6 @@ module mod_xc
   use dimensions, only: idm,jdm,kdm,itdm,jtdm,iqr,jqr,ijqr,&
                         ii_pe,jj_pe,i0_pe,j0_pe,nreg
   use mod_wtime,  only: wtime
-  use mod_ifdefs, only: use_TIMER, use_DEBUG_TIMER, use_DEBUG_TIMER_ALL, &
-                        use_DEBUG_ALL, use_ARCTIC
 
   implicit none
   public
@@ -170,6 +168,15 @@ module mod_xc
 
   real, private :: al(itdm,jdm),ala(itdm,jdm,jqr),at(idm*jdm),ata(idm*jdm,iqr)
 #endif
+
+  ! debug flags
+  logical :: use_DEBUG_TIMER     = .false.
+  logical :: use_DEBUG_TIMER_ALL = .false.
+  logical :: use_DEBUG_ALL       = .false.
+  logical :: use_TIMER           = .false.
+
+  ! other namelist flags
+  logical :: use_ARCTIC = .true.
 
 contains
 
