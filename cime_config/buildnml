@@ -83,7 +83,7 @@ def buildnml(case, caseroot, compname):
     hamocc_extncycle          = case.get_value("HAMOCC_EXTNCYCLE")
     hamocc_n2oc               = case.get_value("HAMOCC_N2OC")
     hamocc_atmndepc           = case.get_value("HAMOCC_ATMNDEPC")
-    hamocc_m4ago              = case.get_value("HAMOCC_M4AGO")
+    hamocc_sinking_scheme     = case.get_value("HAMOCC_SINKING_SCHEME")
     hamocc_sedbypass          = case.get_value("HAMOCC_SEDBYPASS")
     hamocc_sedspinup          = case.get_value("HAMOCC_SEDSPINUP")
     hamocc_sedspinup_yr_start = case.get_value("HAMOCC_SEDSPINUP_YR_START")
@@ -192,7 +192,6 @@ def buildnml(case, caseroot, compname):
         config["hamocc_extncycle"] = "yes" if hamocc_extncycle else "no"
         config["hamocc_n2oc"] = "yes" if hamocc_n2oc else "no"
         config["hamocc_atmndepc"] = "yes" if hamocc_atmndepc else "no"
-        config["hamocc_m4ago"] = "yes" if hamocc_m4ago else "no"
         config["hamocc_sedbypass"] = "yes" if hamocc_sedbypass else "no"
         config["hamocc_sedspinup"] = "yes" if hamocc_sedspinup else "no"
         config["hamocc_sedspinup_yr_start"] = hamocc_sedspinup_yr_start
@@ -201,9 +200,29 @@ def buildnml(case, caseroot, compname):
         config["is_test"] = "yes" if is_test else "no"
         config["comp_interface"] = comp_interface
 
-        # TODO: the following needs to have new ways to turn this to "yes"
-        config["use_agg"] = "no"
-        config["use_wlin"] = "yes"
+        # Set the sinking scheme in iHAMOCC 
+        # Note: the following part requires to have set options for no/yes 
+        # in the namelist_definition_blom.xml for the 'use_XXX' switches
+        if hamocc_sinking_scheme == 'WLIN': # current default
+           config['use_wlin']  = 'yes'
+           config['use_agg']   = 'no'
+           config['use_m4ago'] = 'no'
+        elif hamocc_sinking_scheme == 'M4AGO':
+           config['use_wlin']  = 'no'
+           config['use_agg']   = 'no'
+           config['use_m4ago'] = 'yes'
+        elif hamocc_sinking_scheme == 'AGG':
+           config['use_wlin']  = 'no'
+           config['use_agg']   = 'yes'
+           config['use_m4ago'] = 'no'
+        elif hamocc_sinking_scheme == 'CONST': 
+           # if all options are 'no' iHAMOCC falls back to constant sinking velocities
+           config['use_wlin']  = 'no'
+           config['use_agg']   = 'no'
+           config['use_m4ago'] = 'no'
+        else: # likely doesn't enter here due to previous cime checkings for available options
+           print('Unknown sinking scheme option in BLOM buildnml- exit now')
+           exit
 
         if is_test:
             testcase = case.get_value("TESTCASE")

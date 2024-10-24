@@ -572,6 +572,7 @@
 !   CARFLX****     - POC flux at **** metres depth [mol C m-2 s-1]
 !   BSIFLX****     - Biogenic silica flux at **** metres depth [mol Si m-2 s-1]
 !   CALFLX****     - Calcium carbonate flux at **** metres depth [mol C m-2 s-1]
+!   DUSTFLX****    - Dust flux at **** metres depth [g m-2 s-1]
 !   SEDIFFIC       - sediment - water-column diffusive flux of DIC [mol C m-2 s-1]
 !   SEDIFFAL       - sediment - water-column diffusive flux of alkalinity [mol m-2 s-1]
 !   SEDIFFPH       - sediment - water-column diffusive flux of phosphate [mol PO3 m-2 s-1]

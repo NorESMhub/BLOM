@@ -50,6 +50,8 @@ contains
                                 bsiflx2000,bsiflx4000,calflx_bot,calflx0100,calflx0500,            &
                                 calflx1000,calflx2000,calflx4000,carflx_bot,carflx0100,            &
                                 carflx0500,carflx1000,carflx2000,carflx4000,                       &
+                                dustflx_bot,dustflx0100,                                           &
+                                dustflx0500,dustflx1000,dustflx2000,dustflx4000,                   &
                                 expoca,expoor,exposi,intdms_bac,intdms_uv,intdmsprod,              &
                                 intdnit,intnfix,intphosy,phosy3d,                                  &
                                 int_chbr3_prod,int_chbr3_uv,asize3d,eps3d,wnumb,wmass,             &
@@ -63,6 +65,8 @@ contains
                                 jcalflx1000,jcalflx2000,jcalflx4000,                               &
                                 jcalflx_bot,jcarflx0100,jcarflx0500,                               &
                                 jcarflx1000,jcarflx2000,jcarflx4000,jcarflx_bot,                   &
+                                jdustflx0100,jdustflx0500,                                         &
+                                jdustflx1000,jdustflx2000,jdustflx4000,jdustflx_bot,               &
                                 jsediffic,jsediffal,jsediffph,jsediffox,                           &
                                 jburflxsso12,jburflxsssc12,jburflxssssil,jburflxssster,            &
                                 jsediffn2,jsediffno3,jsediffsi,jco2flux,                           &
@@ -335,21 +339,27 @@ contains
       call accsrf(jcarflx0100,carflx0100,omask,0)
       call accsrf(jbsiflx0100,bsiflx0100,omask,0)
       call accsrf(jcalflx0100,calflx0100,omask,0)
+      call accsrf(jdustflx0100,dustflx0100,omask,0)
       call accsrf(jcarflx0500,carflx0500,omask,0)
       call accsrf(jbsiflx0500,bsiflx0500,omask,0)
       call accsrf(jcalflx0500,calflx0500,omask,0)
+      call accsrf(jdustflx0500,dustflx0500,omask,0)
       call accsrf(jcarflx1000,carflx1000,omask,0)
       call accsrf(jbsiflx1000,bsiflx1000,omask,0)
       call accsrf(jcalflx1000,calflx1000,omask,0)
+      call accsrf(jdustflx1000,dustflx1000,omask,0)
       call accsrf(jcarflx2000,carflx2000,omask,0)
       call accsrf(jbsiflx2000,bsiflx2000,omask,0)
       call accsrf(jcalflx2000,calflx2000,omask,0)
+      call accsrf(jdustflx2000,dustflx2000,omask,0)
       call accsrf(jcarflx4000,carflx4000,omask,0)
       call accsrf(jbsiflx4000,bsiflx4000,omask,0)
       call accsrf(jcalflx4000,calflx4000,omask,0)
+      call accsrf(jdustflx4000,dustflx4000,omask,0)
       call accsrf(jcarflx_bot,carflx_bot,omask,0)
       call accsrf(jbsiflx_bot,bsiflx_bot,omask,0)
       call accsrf(jcalflx_bot,calflx_bot,omask,0)
+      call accsrf(jdustflx_bot,dustflx_bot,omask,0)
     endif
 
     if (.not. use_sedbypass) then
