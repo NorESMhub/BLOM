@@ -81,6 +81,8 @@ contains
     use mo_biomod,        only: bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,bsiflx_bot, &
                                 calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot, &
                                 carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,carflx_bot, &
+                                dustflx0100,dustflx0500,dustflx1000,dustflx2000,dustflx4000,       &
+                                dustflx_bot,                                                       &
                                 expoor,exposi,expoca,intdnit,intdms_bac,intdmsprod,intdms_uv,      &
                                 intphosy,int_chbr3_prod,int_chbr3_uv,                              &
                                 phosy3d,abs_oce,strahl,asize3d,wmass,wnumb,eps3d,phosy_NH4,        &
@@ -1188,6 +1190,16 @@ contains
                 wdust  = wdust_const
                 wdustd = wdust_const
                 dagg   = 0.0
+              else if (use_M4AGO) then
+                wpoc   = ws_agg(i,j,k)
+                wpocd  = ws_agg(i,j,kdonor)
+                wcal   = ws_agg(i,j,k)
+                wcald  = ws_agg(i,j,kdonor)
+                wopal  = ws_agg(i,j,k)
+                wopald = ws_agg(i,j,kdonor)
+                wdust  = ws_agg(i,j,k)
+                wdustd = ws_agg(i,j,kdonor)
+                dagg   = 0.0
               else
                 wpoc   = wpoc_const
                 wpocd  = wpoc_const
@@ -1199,17 +1211,6 @@ contains
                 wdustd = wdust_const
                 dagg   = 0.0
               endif
-              if (use_M4AGO) then ! superseding every other method
-                wpoc   = ws_agg(i,j,k)
-                wpocd  = ws_agg(i,j,kdonor)
-                wcal   = ws_agg(i,j,k)
-                wcald  = ws_agg(i,j,kdonor)
-                wopal  = ws_agg(i,j,k)
-                wopald = ws_agg(i,j,kdonor)
-                wdust  = ws_agg(i,j,k)
-                wdustd = ws_agg(i,j,kdonor)
-                dagg   = 0.0
-              endif
 
               if( k == 1 ) then
                 wpocd  = 0.0
@@ -1219,11 +1220,9 @@ contains
                 if (use_AGG) then
                   wnosd  = 0.0
                 else if (use_WLIN) then
-                  if (use_M4AGO) then
-                    wpoc = ws_agg(i,j,k)
-                  else
-                    wpoc = wmin
-                  endif
+                  wpoc = wmin
+                else if (use_M4AGO) then
+                  wpoc = ws_agg(i,j,k)
                 endif
               endif
 
@@ -1410,19 +1409,28 @@ contains
               wpoc  = wmass(i,j,k)
               wcal  = wmass(i,j,k)
               wopal = wmass(i,j,k)
+              wdust = dustsink
             else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
-            endif
-            if (use_M4AGO) then
+              wdust = wdust_const
+            else if (use_M4AGO) then
               wpoc   = ws_agg(i,j,k)
               wcal   = ws_agg(i,j,k)
               wopal  = ws_agg(i,j,k)
+              wdust  = ws_agg(i,j,k)
+            else
+              wpoc   = wpoc_const
+              wcal   = wcal_const
+              wopal  = wopal_const
+              wdust  = wdust_const
             endif
 
             if (use_AGG) then
               carflx0100(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
+              dustflx0100(i,j)= ocetra(i,j,k,ifdust)*wdust + ocetra(i,j,k,iadust)*wpoc
             else
               carflx0100(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
+              dustflx0100(i,j)= ocetra(i,j,k,ifdust)*wdust
             endif
             bsiflx0100(i,j) = ocetra(i,j,k,iopal)*wopal
             calflx0100(i,j) = ocetra(i,j,k,icalc)*wcal
@@ -1435,19 +1443,28 @@ contains
               wpoc  = wmass(i,j,k)
               wcal  = wmass(i,j,k)
               wopal = wmass(i,j,k)
+              wdust = dustsink
             else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
+              wdust = wdust_const
+            else if (use_M4AGO) then
+              wpoc   = ws_agg(i,j,k)
+              wcal   = ws_agg(i,j,k)
+              wopal  = ws_agg(i,j,k)
+              wdust  = ws_agg(i,j,k)
+            else
+              wpoc   = wpoc_const
+              wcal   = wcal_const
+              wopal  = wopal_const
+              wdust  = wdust_const
             endif
-           if (use_M4AGO) then
-                wpoc   = ws_agg(i,j,k)
-                wcal   = ws_agg(i,j,k)
-                wopal  = ws_agg(i,j,k)
-           endif
 
             if (use_AGG) then
               carflx0500(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
+              dustflx0500(i,j)= ocetra(i,j,k,ifdust)*wdust + ocetra(i,j,k,iadust)*wpoc
             else
               carflx0500(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
+              dustflx0500(i,j)= ocetra(i,j,k,ifdust)*wdust
             endif
             bsiflx0500(i,j) = ocetra(i,j,k,iopal)*wopal
             calflx0500(i,j) = ocetra(i,j,k,icalc)*wcal
@@ -1460,19 +1477,28 @@ contains
               wpoc  = wmass(i,j,k)
               wcal  = wmass(i,j,k)
               wopal = wmass(i,j,k)
+              wdust = dustsink
             else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
-            endif
-            if (use_M4AGO) then
+              wdust = wdust_const
+            else if (use_M4AGO) then
               wpoc   = ws_agg(i,j,k)
               wcal   = ws_agg(i,j,k)
               wopal  = ws_agg(i,j,k)
+              wdust  = ws_agg(i,j,k)
+            else
+              wpoc   = wpoc_const
+              wcal   = wcal_const
+              wopal  = wopal_const
+              wdust  = wdust_const
             endif
 
             if (use_AGG) then
               carflx1000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
+              dustflx1000(i,j)= ocetra(i,j,k,ifdust)*wdust + ocetra(i,j,k,iadust)*wpoc
             else
               carflx1000(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
+              dustflx1000(i,j)= ocetra(i,j,k,ifdust)*wdust
             endif
             bsiflx1000(i,j) = ocetra(i,j,k,iopal)*wopal
             calflx1000(i,j) = ocetra(i,j,k,icalc)*wcal
@@ -1485,19 +1511,28 @@ contains
               wpoc  = wmass(i,j,k)
               wcal  = wmass(i,j,k)
               wopal = wmass(i,j,k)
+              wdust = dustsink
             else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
-            endif
-            if (use_M4AGO) then
+              wdust = wdust_const
+            else if (use_M4AGO) then
               wpoc   = ws_agg(i,j,k)
               wcal   = ws_agg(i,j,k)
               wopal  = ws_agg(i,j,k)
+              wdust  = ws_agg(i,j,k)
+            else
+              wpoc   = wpoc_const
+              wcal   = wcal_const
+              wopal  = wopal_const
+              wdust  = wdust_const
             endif
 
             if (use_AGG) then
               carflx2000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
+              dustflx2000(i,j)= ocetra(i,j,k,ifdust)*wdust + ocetra(i,j,k,iadust)*wpoc
             else
               carflx2000(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
+              dustflx2000(i,j)= ocetra(i,j,k,ifdust)*wdust
             endif
             bsiflx2000(i,j) = ocetra(i,j,k,iopal)*wopal
             calflx2000(i,j) = ocetra(i,j,k,icalc)*wcal
@@ -1510,19 +1545,28 @@ contains
               wpoc  = wmass(i,j,k)
               wcal  = wmass(i,j,k)
               wopal = wmass(i,j,k)
+              wdust = dustsink
             else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
-            endif
-            if (use_M4AGO) then
+              wdust = wdust_const
+            else if (use_M4AGO) then
               wpoc   = ws_agg(i,j,k)
               wcal   = ws_agg(i,j,k)
               wopal  = ws_agg(i,j,k)
+              wdust  = ws_agg(i,j,k)
+            else
+              wpoc   = wpoc_const
+              wcal   = wcal_const
+              wopal  = wopal_const
+              wdust  = wdust_const
             endif
 
             if (use_AGG) then
               carflx4000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
+              dustflx4000(i,j)= ocetra(i,j,k,ifdust)*wdust + ocetra(i,j,k,iadust)*wpoc
             else
               carflx4000(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
+              dustflx4000(i,j)= ocetra(i,j,k,ifdust)*wdust
             endif
             bsiflx4000(i,j) = ocetra(i,j,k,iopal)*wopal
             calflx4000(i,j) = ocetra(i,j,k,icalc)*wcal
@@ -1532,6 +1576,7 @@ contains
           carflx_bot(i,j) = prorca(i,j)*rcar
           bsiflx_bot(i,j) = silpro(i,j)
           calflx_bot(i,j) = prcaca(i,j)
+          dustflx_bot(i,j)= produs(i,j)
 
         endif ! omask > 0.5
       enddo
