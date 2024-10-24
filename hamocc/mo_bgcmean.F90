@@ -877,7 +877,7 @@ CONTAINS
       jdustflx2000(n)=i_bsc_m2d*min(1,FLX_DUST2000(n))
       if (FLX_DUST4000(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jdustflx4000(n)=i_bsc_m2d*min(1,FLX_DUST4000(n))
-      if (FLX_CAL_BOT(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      if (FLX_DUST_BOT(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jdustflx_bot(n)=i_bsc_m2d*min(1,FLX_DUST_BOT(n))
 
       if (.not. use_sedbypass) then
