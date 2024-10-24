@@ -1,0 +1,25 @@
+########################################
+# Quick HOWTO on running BLOM on Betzy #
+########################################
+#
+# (1) create a case directory 
+mkdir ../../cases/BLOM_channel
+# (2) Copy the contents of the utils 
+#     folder to the case folder
+cp * ../../cases/BLOM_channel/
+#
+# (3) Move to the case folder and
+#     create the namelist.
+#     If needed, edit the user_nl_blom
+#     prior to running the limits_from_json.py.
+#     Note that the script assumes python3.
+cd ../../cases/BLOM_channel/
+module load Python/3.8.6-GCCcore-10.2.0
+python limits_from_json.py
+#
+# (4) Edit and run the run.sh_normal_betzy. 
+#     Usually the EXPID should match the RUNID 
+#     in the limits file. The run script will
+#     create a folder under /cluster/work and
+#     submit the blom exectutable.
+./run.sh_normal_betzy
