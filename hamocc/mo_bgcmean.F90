@@ -238,6 +238,8 @@ module mo_bgcmean
        & FLX_BSI2000       ,FLX_BSI4000       ,FLX_BSI_BOT       ,        &
        & FLX_CAL0100       ,FLX_CAL0500       ,FLX_CAL1000       ,        &
        & FLX_CAL2000       ,FLX_CAL4000       ,FLX_CAL_BOT       ,        &
+       & FLX_DUST0100      ,FLX_DUST0500      ,FLX_DUST1000      ,        &
+       & FLX_DUST2000      ,FLX_DUST4000      ,FLX_DUST_BOT      ,        &
        & FLX_SEDIFFIC      ,FLX_SEDIFFAL      ,FLX_SEDIFFPH      ,        &
        & FLX_SEDIFFOX      ,FLX_SEDIFFN2      ,FLX_SEDIFFNO3     ,        &
        & FLX_SEDIFFSI      ,FLX_SEDIFFNH4     ,FLX_SEDIFFN2O     ,        &
