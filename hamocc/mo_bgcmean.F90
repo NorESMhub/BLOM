@@ -123,6 +123,8 @@ module mo_bgcmean
        & FLX_BSI2000   =0    ,FLX_BSI4000   =0    ,FLX_BSI_BOT   =0    ,  &
        & FLX_CAL0100   =0    ,FLX_CAL0500   =0    ,FLX_CAL1000   =0    ,  &
        & FLX_CAL2000   =0    ,FLX_CAL4000   =0    ,FLX_CAL_BOT   =0    ,  &
+       & FLX_DUST0100  =0    ,FLX_DUST0500  =0    ,FLX_DUST1000  =0    ,  &
+       & FLX_DUST2000  =0    ,FLX_DUST4000  =0    ,FLX_DUST_BOT  =0    ,  &
        & FLX_SEDIFFIC  =0    ,FLX_SEDIFFAL  =0    ,FLX_SEDIFFPH  =0    ,  &
        & FLX_SEDIFFOX  =0    ,FLX_SEDIFFN2  =0    ,FLX_SEDIFFNO3 =0    ,  &
        & FLX_SEDIFFSI  =0    ,FLX_SEDIFFNH4 =0    ,FLX_SEDIFFN2O =0    ,  &
@@ -242,6 +244,8 @@ module mo_bgcmean
        & FLX_BSI2000       ,FLX_BSI4000       ,FLX_BSI_BOT       ,        &
        & FLX_CAL0100       ,FLX_CAL0500       ,FLX_CAL1000       ,        &
        & FLX_CAL2000       ,FLX_CAL4000       ,FLX_CAL_BOT       ,        &
+       & FLX_DUST0100      ,FLX_DUST0500      ,FLX_DUST1000      ,        &
+       & FLX_DUST2000      ,FLX_DUST4000      ,FLX_DUST_BOT      ,        &
        & FLX_SEDIFFIC      ,FLX_SEDIFFAL      ,FLX_SEDIFFPH      ,        &
        & FLX_SEDIFFOX      ,FLX_SEDIFFN2      ,FLX_SEDIFFNO3     ,        &
        & FLX_SEDIFFSI      ,FLX_SEDIFFNH4     ,FLX_SEDIFFN2O     ,        &
@@ -273,7 +277,7 @@ module mo_bgcmean
        & LYR_nitr_NH4_OM   ,LYR_nitr_NO2_OM   ,LYR_denit_NO3     ,        &
        & LYR_denit_NO2     ,LYR_denit_N2O     ,LYR_DNRA_NO2      ,        &
        & LYR_anmx_N2_prod  ,LYR_anmx_OM_prod  ,LYR_phosy_NH4     ,        &
-       & LYR_phosy_NO3     ,LYR_remin_aerob   ,LYR_remin_sulf    ,        & 
+       & LYR_phosy_NO3     ,LYR_remin_aerob   ,LYR_remin_sulf    ,        &
        & LYR_agg_ws        ,LYR_dynvis        ,LYR_agg_stick     ,        &
        & LYR_agg_stickf    ,LYR_agg_dmax      ,LYR_agg_avdp      ,        &
        & LYR_agg_avrhop    ,LYR_agg_avdC      ,LYR_agg_df        ,        &
@@ -303,11 +307,11 @@ module mo_bgcmean
        & LVL_nitr_NH4_OM   ,LVL_nitr_NO2_OM   ,LVL_denit_NO3     ,        &
        & LVL_denit_NO2     ,LVL_denit_N2O     ,LVL_DNRA_NO2      ,        &
        & LVL_anmx_N2_prod  ,LVL_anmx_OM_prod  ,LVL_phosy_NH4     ,        &
-       & LVL_phosy_NO3     ,LVL_remin_aerob   ,LVL_remin_sulf    ,        & 
+       & LVL_phosy_NO3     ,LVL_remin_aerob   ,LVL_remin_sulf    ,        &
        & LVL_agg_ws        ,LVL_dynvis        ,LVL_agg_stick     ,        &
        & LVL_agg_stickf    ,LVL_agg_dmax      ,LVL_agg_avdp      ,        &
        & LVL_agg_avrhop    ,LVL_agg_avdC      ,LVL_agg_df        ,        &
-       & LVL_agg_b         ,LVL_agg_Vrhof     ,LVL_agg_Vpor      ,        &        
+       & LVL_agg_b         ,LVL_agg_Vrhof     ,LVL_agg_Vpor      ,        &
        & SDM_POWAIC        ,SDM_POWAAL        ,SDM_POWAPH        ,        &
        & SDM_POWAOX        ,SDM_POWN2         ,SDM_POWNO3        ,        &
        & SDM_POWASI        ,SDM_SSSO12        ,SDM_SSSSIL        ,        &
@@ -416,7 +420,13 @@ module mo_bgcmean
        &          jcalflx1000= 0 ,                                        &
        &          jcalflx2000= 0 ,                                        &
        &          jcalflx4000= 0 ,                                        &
-       &          jcalflx_bot= 0
+       &          jcalflx_bot= 0 ,                                        &
+       &          jdustflx0100= 0 ,                                       &
+       &          jdustflx0500= 0 ,                                       &
+       &          jdustflx1000= 0 ,                                       &
+       &          jdustflx2000= 0 ,                                       &
+       &          jdustflx4000= 0 ,                                       &
+       &          jdustflx_bot= 0
 
   integer, dimension(nbgcmax) ::                                          &
        &          jsediffic  = 0 ,                                        &
@@ -865,6 +875,19 @@ CONTAINS
       jcalflx4000(n)=i_bsc_m2d*min(1,FLX_CAL4000(n))
       if (FLX_CAL_BOT(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jcalflx_bot(n)=i_bsc_m2d*min(1,FLX_CAL_BOT(n))
+      if (FLX_DUST0100(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jdustflx0100(n)=i_bsc_m2d*min(1,FLX_DUST0100(n))
+      if (FLX_DUST0500(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jdustflx0500(n)=i_bsc_m2d*min(1,FLX_DUST0500(n))
+      if (FLX_DUST1000(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jdustflx1000(n)=i_bsc_m2d*min(1,FLX_DUST1000(n))
+      if (FLX_DUST2000(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jdustflx2000(n)=i_bsc_m2d*min(1,FLX_DUST2000(n))
+      if (FLX_DUST4000(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jdustflx4000(n)=i_bsc_m2d*min(1,FLX_DUST4000(n))
+      if (FLX_DUST_BOT(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jdustflx_bot(n)=i_bsc_m2d*min(1,FLX_DUST_BOT(n))
+
       if (.not. use_sedbypass) then
         if (FLX_SEDIFFIC(n) > 0) i_bsc_m2d=i_bsc_m2d+1
         jsediffic(n)=i_bsc_m2d*min(1,FLX_SEDIFFIC(n))
@@ -957,7 +980,9 @@ CONTAINS
          jbsiflx0100+jbsiflx0500+jbsiflx1000+ &
          jbsiflx2000+jbsiflx4000+jbsiflx_bot+ &
          jcalflx0100+jcalflx0500+jcalflx1000+ &
-         jcalflx2000+jcalflx4000+jcalflx_bot  > 0)
+         jcalflx2000+jcalflx4000+jcalflx_bot+ &
+         jdustflx0100+jdustflx0500+jdustflx1000+ &
+         jdustflx2000+jdustflx4000+jdustflx_bot > 0)
 
     i_atm_m2d=i_bsc_m2d
     do n=1,nbgc

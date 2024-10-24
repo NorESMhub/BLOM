@@ -46,6 +46,8 @@ contains
                               flx_car2000,flx_car4000,flx_car_bot,                                 &
                               flx_bsi0100,flx_bsi0500,flx_bsi1000,                                 &
                               flx_bsi2000,flx_bsi4000,flx_bsi_bot,                                 &
+                              flx_dust0100,flx_dust0500,flx_dust1000,                              &
+                              flx_dust2000,flx_dust4000,flx_dust_bot,                              &
                               flx_sediffic,flx_sediffal,flx_sediffph,                              &
                               flx_sediffox,flx_sediffn2,flx_sediffno3,flx_sediffsi,                &
                               flx_bursso12,flx_bursssc12,flx_burssssil,                            &
@@ -61,6 +63,8 @@ contains
                               jcalflx2000,jcalflx4000,jcalflx_bot,                                 &
                               jcarflx0100,jcarflx0500,jcarflx1000,                                 &
                               jcarflx2000,jcarflx4000,jcarflx_bot,                                 &
+                              jdustflx0100,jdustflx0500,jdustflx1000,                              &
+                              jdustflx2000,jdustflx4000,jdustflx_bot,                              &
                               jco2fxd,jco2fxu,jco3,jdic,jdicsat,                                   &
                               jdms,jdms_bac,jdms_uv,jdmsflux,jdmsprod,                             &
                               jdoc,jdp,jeps,jexpoca,jexport,jexposi,jgrazer,                       &
@@ -418,6 +422,11 @@ contains
     call msksrf(jcalflx1000(iogrp),k1000)
     call msksrf(jcalflx2000(iogrp),k2000)
     call msksrf(jcalflx4000(iogrp),k4000)
+    call msksrf(jdustflx0100(iogrp),k0100)
+    call msksrf(jdustflx0500(iogrp),k0500)
+    call msksrf(jdustflx1000(iogrp),k1000)
+    call msksrf(jdustflx2000(iogrp),k2000)
+    call msksrf(jdustflx4000(iogrp),k4000)
 
     ! --- Mask sea floor in level data
     call msklvl(jlvlphyto(iogrp),depths)
@@ -580,6 +589,12 @@ contains
     call wrtsrf(jcalflx2000(iogrp),  FLX_CAL2000(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'calflx2000')
     call wrtsrf(jcalflx4000(iogrp),  FLX_CAL4000(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'calflx4000')
     call wrtsrf(jcalflx_bot(iogrp),  FLX_CAL_BOT(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'calflx_bot')
+    call wrtsrf(jdustflx0100(iogrp),  FLX_DUST0100(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'dustflx0100')
+    call wrtsrf(jdustflx0500(iogrp),  FLX_DUST0500(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'dustflx0500')
+    call wrtsrf(jdustflx1000(iogrp),  FLX_DUST1000(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'dustflx1000')
+    call wrtsrf(jdustflx2000(iogrp),  FLX_DUST2000(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'dustflx2000')
+    call wrtsrf(jdustflx4000(iogrp),  FLX_DUST4000(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'dustflx4000')
+    call wrtsrf(jdustflx_bot(iogrp),  FLX_DUST_BOT(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'dustflx_bot')
     if (.not. use_sedbypass) then
       call wrtsrf(jsediffic(iogrp),    FLX_SEDIFFIC(iogrp), rnacc*1e3/dtbgc,0.,cmpflg,'sedfdic')
       call wrtsrf(jsediffal(iogrp),    FLX_SEDIFFAL(iogrp), rnacc*1e3/dtbgc,0.,cmpflg,'sedfalk')
@@ -934,6 +949,12 @@ contains
     call inisrf(jcalflx2000(iogrp),0.)
     call inisrf(jcalflx4000(iogrp),0.)
     call inisrf(jcalflx_bot(iogrp),0.)
+    call inisrf(jdustflx0100(iogrp),0.)
+    call inisrf(jdustflx0500(iogrp),0.)
+    call inisrf(jdustflx1000(iogrp),0.)
+    call inisrf(jdustflx2000(iogrp),0.)
+    call inisrf(jdustflx4000(iogrp),0.)
+    call inisrf(jdustflx_bot(iogrp),0.)
     if (.not. use_sedbypass) then
       call inisrf(jsediffic(iogrp),0.)
       call inisrf(jsediffal(iogrp),0.)
@@ -1251,6 +1272,8 @@ contains
                               flx_bsi0100,flx_bsi0500,flx_bsi1000,flx_bsi2000,flx_bsi4000,         &
                               flx_bsi_bot,flx_cal0100,flx_cal0500,flx_cal1000,flx_cal2000,         &
                               flx_cal4000,flx_cal_bot,flx_sediffic,flx_sediffal,                   &
+                              flx_dust0100,flx_dust0500,flx_dust1000,flx_dust2000,flx_dust4000,    &
+                              flx_dust_bot,                                                        &
                               flx_sediffph,flx_sediffox,flx_sediffn2,flx_sediffno3,                &
                               flx_sediffsi,flx_bursso12,flx_bursssc12,flx_burssssil,flx_burssster, &
                               srf_n2ofx,srf_atmco2,lyr_dp,lyr_dic,                                 &
@@ -1475,6 +1498,19 @@ contains
          &   'CaCO3 flux at 4000m',' ','mol Ca m-2 s-1',0)
     call ncdefvar3d(FLX_CAL_BOT(iogrp),cmpflg,'p','calflx_bot',                 &
          &   'CaCO3 flux to sediment',' ','mol Ca m-2 s-1',0)
+    call ncdefvar3d(FLX_DUST0100(iogrp),cmpflg,'p','dustflx0100',               &
+         &   'Dust flux at 100m',' ','g m-2 s-1',0)
+    call ncdefvar3d(FLX_DUST0500(iogrp),cmpflg,'p','dustflx0500',               &
+         &   'Dust flux at 500m',' ','g m-2 s-1',0)
+    call ncdefvar3d(FLX_DUST1000(iogrp),cmpflg,'p','dustflx1000',               &
+         &   'Dust flux at 1000m',' ','g m-2 s-1',0)
+    call ncdefvar3d(FLX_DUST2000(iogrp),cmpflg,'p','dustflx2000',               &
+         &   'Dust flux at 2000m',' ','g m-2 s-1',0)
+    call ncdefvar3d(FLX_DUST4000(iogrp),cmpflg,'p','dustflx4000',               &
+         &   'Dust flux at 4000m',' ','g m-2 s-1',0)
+    call ncdefvar3d(FLX_DUST_BOT(iogrp),cmpflg,'p','dustflx_bot',               &
+         &   'Dust flux to sediment',' ','g m-2 s-1',0)
+
     call ncdefvar3d(SRF_N2OFX(iogrp),cmpflg,'p','n2oflux',                      &
          &   'N2O flux',' ','mol N2O m-2 s-1',0)
     if (.not. use_sedbypass) then
@@ -1486,7 +1522,7 @@ contains
            &   ' ','mol m-2 s-1',0)
       call ncdefvar3d(FLX_SEDIFFPH(iogrp),cmpflg,'p','sedfpho',                 &
            &   'diffusive phosphate flux to sediment (positive downwards)',     &
-           &   ' ','mol m-2 s-1',0)
+           &   ' ','mol P m-2 s-1',0)
       call ncdefvar3d(FLX_SEDIFFOX(iogrp),cmpflg,'p','sedfox',                  &
            &   'diffusive oxygen flux to sediment (positive downwards)',        &
            &   ' ','mol O2 m-2 s-1',0)
@@ -1646,7 +1682,7 @@ contains
     call ncdefvar3d(LYR_PREFPO4(iogrp),cmpflg,'p',                              &
          &   'p_po4','Preformed phosphorus',' ','mol P m-3',1)
     call ncdefvar3d(LYR_PREFSILICA(iogrp),cmpflg,'p',                           &
-       &   'p_silica','Preformed silica',' ','mol N m-3',1)
+         &   'p_silica','Preformed silica',' ','mol Si m-3',1)
     call ncdefvar3d(LYR_PREFALK(iogrp),cmpflg,'p',                              &
          &   'p_talk','Preformed alkalinity',' ','eq m-3',1)
     call ncdefvar3d(LYR_PREFDIC(iogrp),cmpflg,'p',                              &

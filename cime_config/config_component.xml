@@ -178,13 +178,14 @@
     <desc>N2O and NH3 fluxes coupled from atmosphere. Requires module ecosys and extncycle</desc>
   </entry>
 
-  <entry id="HAMOCC_M4AGO">
-    <type>logical</type>
-    <valid_values>TRUE,FALSE</valid_values>
-    <default_value>FALSE</default_value>
-    <group>run_component_blom</group>
-    <file>env_run.xml</file>
-    <desc>Set preprocessor option to activate the M4AGO sinking scheme. Requires module ecosys</desc>
+  <entry id="HAMOCC_SINKING_SCHEME">
+    <type>char</type>
+    <valid_values>WLIN,M4AGO,AGG,CONST</valid_values>
+    <default_value>WLIN</default_value>
+     <group>run_component_blom</group>
+     <file>env_run.xml</file>
+    <desc>Set namelist option to activate the M4AGO sinking scheme. Requires module ecosys</desc>
+    <desc>Namelist option to set sinking scheme. Requires module ecosys</desc>
   </entry>
 
   <entry id="HAMOCC_CISO">
