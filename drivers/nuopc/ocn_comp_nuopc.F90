@@ -414,7 +414,6 @@ contains
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
          read(cvalue,*) nthrds
       endif
-      !$    call omp_set_num_threads(nthrds)
 
       ! Reset shr logging to components log file.
       call set_component_logging(gcomp, localPet==0, lp, shrlogunit, rc)
