@@ -77,7 +77,8 @@ contains
                                 dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma,                     &
                                 fbro1,fbro2,atten_f,atten_c,atten_uv,atten_w,bkopal,bkphy,bkzoo,   &
                                 POM_remin_q10,POM_remin_Tref,opal_remin_q10,opal_remin_Tref,       &
-                                bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo,max_limiter
+                                bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo,max_limiter,         &
+                                O2thresh_aerob,O2thresh_hypoxic,NO3thresh_sulf
     use mo_biomod,        only: bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,bsiflx_bot, &
                                 calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot, &
                                 carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,carflx_bot, &
@@ -96,7 +97,7 @@ contains
     use mo_control_bgc,   only: dtb,io_stdo_bgc,with_dmsph,                                        &
                                 use_BROMO,use_AGG,use_PBGC_OCNP_TIMESTEP,use_FB_BGC_OCE,           &
                                 use_AGG,use_cisonew,use_natDIC, use_WLIN,use_sedbypass,use_M4AGO,  &
-                                use_extNcycle,lkwrbioz_off
+                                use_extNcycle,lkwrbioz_off,lTO2depremin
     use mo_vgrid,         only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000,kwrbioz,ptiestu
     use mo_vgrid,         only: kmle
     use mo_clim_swa,      only: swa_clim
@@ -657,26 +658,21 @@ contains
               ocetra(i,j,k,izoo14) = ocetra(i,j,k,izoo14)-sterzo14
             endif
 
-            if(ocetra(i,j,k,ioxygen) > 5.e-8) then
-              if (use_M4AGO) then
-                if (.not. use_extNcycle) then
-                  ! M4AGO comes with O2-lim
-                  o2lim  = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkox_drempoc)
-                  pocrem = o2lim*drempoc*POM_remin_q10**((ptho(i,j,k)-POM_remin_Tref)/10.)*ocetra(i,j,k,idet)
-                else
-                  ! nitrogen always accounts for O2-lim - see below
-                  pocrem = drempoc*POM_remin_q10**((ptho(i,j,k)-POM_remin_Tref)/10.)*ocetra(i,j,k,idet)
-                endif
+            if(ocetra(i,j,k,ioxygen) > O2thresh_aerob) then
+              if (lTO2depremin) then
+                ! Both, use_M4AGO and use_extNcycle switch lTO2depremin to true!
+                o2lim  = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkox_drempoc)
+                pocrem = drempoc*o2lim*POM_remin_q10**((ptho(i,j,k)-POM_remin_Tref)/10.)*ocetra(i,j,k,idet)
               else
                 pocrem = drempoc*ocetra(i,j,k,idet)
               endif
+
               if (.not. use_extNcycle) then
-                pocrem = min(pocrem,0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-                docrem = min( remido*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+                pocrem = min(pocrem,                    0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+                docrem = min(remido*ocetra(i,j,k,idoc), 0.33*ocetra(i,j,k,ioxygen)/ro2ut)
                 phyrem = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2ut)
               else
-                o2lim  = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkox_drempoc)
-                pocrem = min(o2lim*pocrem,              0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
+                pocrem = min(pocrem,                    0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
                 docrem = min(remido*ocetra(i,j,k,idoc), 0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
                 phyrem = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
               endif
@@ -815,7 +811,7 @@ contains
         do i = 1,kpie
           do k = merge(1,kwrbioz(i,j)+1,lkwrbioz_off),kpke
             if(omask(i,j) > 0.5) then
-              if(ocetra(i,j,k,ioxygen) < 5.e-7 .and. pddpo(i,j,k) > dp_min) then
+              if(ocetra(i,j,k,ioxygen) < O2thresh_hypoxic .and. pddpo(i,j,k) > dp_min) then
                 if (use_AGG) then
                   avmass = ocetra(i,j,k,iphy) + ocetra(i,j,k,idet)
                 endif
@@ -908,7 +904,7 @@ contains
       do i = 1,kpie
         do k = merge(1,kwrbioz(i,j)+1,lkwrbioz_off),kpke
           if(omask(i,j) > 0.5 .and. pddpo(i,j,k) > dp_min) then
-            if(ocetra(i,j,k,ioxygen) < 5.e-7 .and. ocetra(i,j,k,iano3) < 3.e-6) then
+            if(ocetra(i,j,k,ioxygen) < O2thresh_hypoxic .and. ocetra(i,j,k,iano3) < NO3thresh_sulf ) then
 
               if (use_AGG) then
                 avmass = ocetra(i,j,k,iphy)+ocetra(i,j,k,idet)

@@ -3882,6 +3882,16 @@
     <desc>Switch for primary production and remineralization throughout the whole water column</desc>
   </entry>
 
+  <entry id="lTO2depremin">
+    <type>logical</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>Switch for T- and O2-dependent remineralization of POM</desc>
+  </entry>
+
   <entry id="do_oalk">
     <type>logical</type>
     <category>bgcnml</category>
