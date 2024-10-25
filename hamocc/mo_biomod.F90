@@ -69,6 +69,12 @@ module mo_biomod
   real, dimension (:,:),   allocatable, public :: calflx2000
   real, dimension (:,:),   allocatable, public :: calflx4000
   real, dimension (:,:),   allocatable, public :: calflx_bot
+  real, dimension (:,:),   allocatable, public :: dustflx0100
+  real, dimension (:,:),   allocatable, public :: dustflx0500
+  real, dimension (:,:),   allocatable, public :: dustflx1000
+  real, dimension (:,:),   allocatable, public :: dustflx2000
+  real, dimension (:,:),   allocatable, public :: dustflx4000
+  real, dimension (:,:),   allocatable, public :: dustflx_bot
   real, dimension (:,:,:), allocatable, public :: phosy3d
 
   ! Variables for interactive phytoplanktion absorption (use_FB_BGC_OCE=.true.)
@@ -277,13 +283,33 @@ CONTAINS
     allocate (calflx2000(kpie,kpje),stat=errstat)
     allocate (calflx4000(kpie,kpje),stat=errstat)
     allocate (calflx_bot(kpie,kpje),stat=errstat)
-    if(errstat.ne.0) stop 'not enough memory bsiflx*'
+    if(errstat.ne.0) stop 'not enough memory calflx*'
     calflx0100(:,:) = 0.0
     calflx0500(:,:) = 0.0
     calflx1000(:,:) = 0.0
     calflx2000(:,:) = 0.0
     calflx4000(:,:) = 0.0
     calflx_bot(:,:) = 0.0
+
+    if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)'Memory allocation for variable dustflx* ...'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+    endif
+
+    allocate (dustflx0100(kpie,kpje),stat=errstat)
+    allocate (dustflx0500(kpie,kpje),stat=errstat)
+    allocate (dustflx1000(kpie,kpje),stat=errstat)
+    allocate (dustflx2000(kpie,kpje),stat=errstat)
+    allocate (dustflx4000(kpie,kpje),stat=errstat)
+    allocate (dustflx_bot(kpie,kpje),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory dustflx*'
+    dustflx0100(:,:) = 0.0
+    dustflx0500(:,:) = 0.0
+    dustflx1000(:,:) = 0.0
+    dustflx2000(:,:) = 0.0
+    dustflx4000(:,:) = 0.0
+    dustflx_bot(:,:) = 0.0
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable phosy3d ...'
