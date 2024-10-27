@@ -43,6 +43,11 @@ module mod_ifdefs
 #else
   logical :: use_MKS = .false.
 #endif
+#ifdef ARCTIC
+  logical :: use_ARCTIC = .true.
+#else
+  logical :: use_ARCTIC = .false.
+#endif
 
   ! Namelist input
   logical :: use_diag = .false.

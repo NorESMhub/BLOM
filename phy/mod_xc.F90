@@ -25,6 +25,7 @@ module mod_xc
   use dimensions, only: idm,jdm,kdm,itdm,jtdm,iqr,jqr,ijqr,&
                         ii_pe,jj_pe,i0_pe,j0_pe,nreg
   use mod_wtime,  only: wtime
+  use mod_ifdefs, only: use_arctic
 
   implicit none
   public
@@ -174,9 +175,6 @@ module mod_xc
   logical :: use_DEBUG_TIMER_ALL = .false.
   logical :: use_DEBUG_ALL       = .false.
   logical :: use_TIMER           = .false.
-
-  ! other namelist flags
-  logical :: use_ARCTIC = .true.
 
 contains
 
