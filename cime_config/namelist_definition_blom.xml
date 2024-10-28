@@ -4047,6 +4047,18 @@
     </desc>
   </entry>
 
+  <entry id="shelfsea_maskfile" is_inputdata="yes">
+    <type>char</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>''</value>
+    </values>
+    <desc>
+      File name (incl. full path) for shelfsea maskfile (1=shelf; 0=open ocean)
+    </desc>
+  </entry>
+
   <entry id="ocn_co2_type" modify_via_xml="OCN_CO2_TYPE">
     <type>char</type>
     <category>config_bgc</category>
@@ -4199,6 +4211,17 @@
       <value hamocc_pref_tracers="false">.false.</value>
     </values>
     <desc>activate the HAMOCC preformed tracers code</desc>
+  </entry>
+
+  <entry id="use_shelfsea_res_time" modify_via_xml="HAMOCC_SHELFSEA_RES_TIME">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+      <value hamocc_shelf_res_time="true">.false.</value>
+    </values>
+    <desc>activate the HAMOCC shelfsea water residence time code</desc>
   </entry>
 
   <!-- ========================= -->
@@ -6991,6 +7014,19 @@
     <desc>preformed DIC (p_dic) [mol C m-3]</desc>
   </entry>
 
+  <entry id="lyr_shelfage">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,4,4</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Shelfsea water residence time [d]</desc>
+  </entry>
+
+
   <entry id="lyr_dicsat">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -7969,6 +8005,18 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>preformed DIC (p_dic) [mol C m-3]</desc>
+  </entry>
+
+  <entry id="lvl_shelfage">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,4,4</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Shelfsea water residence time [d]</desc>
   </entry>
 
   <entry id="lvl_dicsat">

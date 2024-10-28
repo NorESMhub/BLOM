@@ -83,6 +83,7 @@ module mo_control_bgc
   logical           :: use_extNcycle          = .false.
   logical           :: use_nuopc_ndep         = .false.
   logical           :: use_pref_tracers       = .true.
+  logical           :: use_shelfsea_res_time  = .false.
 
 contains
 
