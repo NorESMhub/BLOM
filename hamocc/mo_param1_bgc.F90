@@ -382,7 +382,7 @@ contains
     endif
     if (use_shelfsea_res_time) then
       i_shelfage = 1
-      ishelfage  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref
+      ishelfage  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+1
     else
       i_shelfage = 0
       ishelfage  = -1
