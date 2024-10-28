@@ -84,6 +84,7 @@ def buildnml(case, caseroot, compname):
     hamocc_n2oc               = case.get_value("HAMOCC_N2OC")
     hamocc_atmndepc           = case.get_value("HAMOCC_ATMNDEPC")
     hamocc_sinking_scheme     = case.get_value("HAMOCC_SINKING_SCHEME")
+    hamocc_shelf_res_time     = case.get_value("HAMOCC_SHELF_RES_TIME")
     hamocc_sedbypass          = case.get_value("HAMOCC_SEDBYPASS")
     hamocc_sedspinup          = case.get_value("HAMOCC_SEDSPINUP")
     hamocc_sedspinup_yr_start = case.get_value("HAMOCC_SEDSPINUP_YR_START")
@@ -199,6 +200,7 @@ def buildnml(case, caseroot, compname):
         config["hamocc_sedspinup_ncycle"] = hamocc_sedspinup_ncycle
         config["is_test"] = "yes" if is_test else "no"
         config["comp_interface"] = comp_interface
+        config["hamocc_shelf_res_time"] = hamocc_shelf_res_time
 
         # Set the sinking scheme in iHAMOCC 
         # Note: the following part requires to have set options for no/yes 
