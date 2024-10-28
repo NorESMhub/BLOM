@@ -38,7 +38,7 @@ module mo_param_bgc
                             use_BOXATM,use_CFC,use_PBGC_CK_TIMESTEP,                               &
                             use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type,use_M4AGO,&
                             do_n2onh3_coupled,use_extNcycle,                                       &
-                            lkwrbioz_off
+                            lkwrbioz_off,use_shelfsea_res_time
   use mod_xc,         only: mnproc
 
   implicit none
@@ -837,6 +837,7 @@ contains
       call cinfo_add_entry('do_sedspinup',           do_sedspinup)
       call cinfo_add_entry('l_3Dvarsedpor',          l_3Dvarsedpor)
       call cinfo_add_entry('lkwrbioz_off',           lkwrbioz_off)
+      call cinfo_add_entry('use_shelfsea_res_time',  use_shelfsea_res_time)
       call cinfo_add_entry('use_M4AGO',              use_M4AGO)
       if (use_extNcycle) then
         call cinfo_add_entry('do_n2onh3_coupled',       do_n2onh3_coupled)

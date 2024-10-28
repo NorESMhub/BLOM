@@ -17,7 +17,7 @@ contains
     logical, intent(in) :: shelfmask(kpie,kpje)                      ! True: shelf, False: else
     real,    intent(in) :: omask(kpie,kpje)                          ! land-ocean mask
 
-    integer i,j,k
+    integer :: i,j,k
 
     !$OMP PARALLEL DO PRIVATE (i,j,k)
     do j=1,kpje
