@@ -902,16 +902,6 @@
     <desc>optionally turn on additional diagnostics</desc>
   </entry>
 
-  <entry id="use_arctic">
-    <type>logical</type>
-    <category>limits</category>
-    <group>limits</group>
-    <values>
-      <value>.true.</value>
-    </values>
-    <desc>if region includes arctic ocean</desc>
-  </entry>
-
   <!-- ========================= -->
   <!-- namelist group: vcoord -->
   <!-- ========================= -->
