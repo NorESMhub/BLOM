@@ -200,7 +200,7 @@ def buildnml(case, caseroot, compname):
         config["hamocc_sedspinup_ncycle"] = hamocc_sedspinup_ncycle
         config["is_test"] = "yes" if is_test else "no"
         config["comp_interface"] = comp_interface
-        config["hamocc_shelf_res_time"] = hamocc_shelf_res_time
+        config["hamocc_shelf_res_time"] = "yes" if hamocc_shelf_res_time else "no"
 
         # Set the sinking scheme in iHAMOCC 
         # Note: the following part requires to have set options for no/yes 

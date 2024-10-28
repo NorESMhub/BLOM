@@ -4219,7 +4219,7 @@
     <group>config_bgc</group>
     <values>
       <value>.false.</value>
-      <value hamocc_shelf_res_time="true">.true.</value>
+      <value hamocc_shelf_res_time="yes">.true.</value>
     </values>
     <desc>activate the HAMOCC shelfsea water residence time code</desc>
   </entry>
