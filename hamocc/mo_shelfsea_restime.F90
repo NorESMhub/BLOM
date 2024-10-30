@@ -20,13 +20,14 @@ contains
     integer :: i,j,k
 
     !$OMP PARALLEL DO PRIVATE (i,j,k)
-    do j=1,kpje
-      do i=1,kpie
-        do k=1,kpke
+    do k=1,kpke
+      do j=1,kpje
+        do i=1,kpie
           if (pddpo(i,j,k)>dp_min .and. omask(i,j)>0.5) then
             ! Note that in Liu et al. 2019, min function is written,
             ! but a gradual decrease in residence time off the shelf should requir max function
-            ocetra(i,j,k,ishelfage) = merge(ocetra(i,j,k,ishelfage) + dtb,max(0.,ocetra(i,j,k,ishelfage)-dtb),shelfmask(i,j))
+            ocetra(i,j,k,ishelfage) = merge(       ocetra(i,j,k,ishelfage) + dtb,                  &
+                                            max(0.,ocetra(i,j,k,ishelfage) - dtb), shelfmask(i,j) )
           endif
         enddo
       enddo

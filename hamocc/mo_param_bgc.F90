@@ -98,6 +98,7 @@ module mo_param_bgc
   public :: calcdens,opaldens,orgdens,claydens
   public :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma
   public :: POM_remin_q10,opal_remin_q10,POM_remin_Tref,opal_remin_Tref
+  public :: shelfbreak_depth
 
   ! extended nitrogen cycle
   public :: q10ano3denit,sc_ano3denit,Trefano3denit,rano3denit,bkano3denit,      &
@@ -463,6 +464,10 @@ module mo_param_bgc
   real, protected :: vsmall,safe,pupper,plower,zdis,nmldmin
   real, protected :: cellsink = 9999.
 
+  !********************************************************************
+  ! Shelfsea water residence time
+  !********************************************************************
+  real, protected :: shelfbreak_depth = 200. ! [m] shelf-break depth fall-back value, if no shelfseaa mask file provided
 
   !********************************************************************
   ! Sediment biogeochemistry
