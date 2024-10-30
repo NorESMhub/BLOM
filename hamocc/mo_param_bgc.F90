@@ -38,7 +38,7 @@ module mo_param_bgc
                             use_BOXATM,use_CFC,use_PBGC_CK_TIMESTEP,                               &
                             use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type,use_M4AGO,&
                             do_n2onh3_coupled,use_extNcycle,                                       &
-                            lkwrbioz_off
+                            lkwrbioz_off,lTO2depremin
   use mod_xc,         only: mnproc
 
   implicit none
@@ -98,6 +98,7 @@ module mo_param_bgc
   public :: calcdens,opaldens,orgdens,claydens
   public :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma
   public :: POM_remin_q10,opal_remin_q10,POM_remin_Tref,opal_remin_Tref
+  public :: O2thresh_aerob,O2thresh_hypoxic,NO3thresh_sulf
 
   ! extended nitrogen cycle
   public :: q10ano3denit,sc_ano3denit,Trefano3denit,rano3denit,bkano3denit,      &
@@ -276,6 +277,9 @@ module mo_param_bgc
   !********************************************************************
   ! Remineralization and dissolution parameters
   !********************************************************************
+  real, parameter :: O2thresh_aerob   = 5.e-8    ! Above O2thresh_aerob aerob remineralization takes place
+  real, parameter :: O2thresh_hypoxic = 5.e-7    ! Below O2thresh_hypoxic denitrification and sulfate reduction takes place (default model version)
+  real, parameter :: NO3thresh_sulf   = 3.e-6    ! Below NO3thresh_sulf 'sufate reduction' takes place
   real, protected :: remido     = 0.004           ! 1/d - remineralization rate (of DOM)
   ! deep sea remineralisation constants
   real, protected :: drempoc    = 0.025           ! 1/d Aerob remineralization rate detritus
@@ -615,7 +619,7 @@ contains
                          bkoxan2odenit_sed,bkan2odenit_sed,q10dnra_sed,          &
                          bkoxdnra_sed,bkdnra_sed,q10anh4nitr_sed,                &
                          bkoxamox_sed,bkanh4nitr_sed,q10ano2nitr_sed,            &
-                         bkoxnitr_sed,bkano2nitr_sed
+                         bkoxnitr_sed,bkano2nitr_sed,lTO2depremin
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)
@@ -656,7 +660,9 @@ contains
       bkanh4anmx_sed = bkano2anmx_sed * rnh4anmx/rno2anmx !Half-saturation constant for NH4 limitation of anammox (kmol/m3)
       mufn2o_sed     = 0.11/(50.*1e6*bkoxamox_sed)   !=6.61e-3  0.11/(50*1e6)=2.2e-9 - ~Santoro et al. 2011 with simple MM
       bn2o_sed       = 0.077/(50.*mufn2o_sed)        !=0.2331 - before set to 0.3 - base fraction entering N2O
+      lTO2depremin   = .true.
     endif
+    if (use_M4AGO) lTO2depremin = .true.
   end subroutine calc_param_biol
 
   !********************************************************************
@@ -837,6 +843,7 @@ contains
       call cinfo_add_entry('do_sedspinup',           do_sedspinup)
       call cinfo_add_entry('l_3Dvarsedpor',          l_3Dvarsedpor)
       call cinfo_add_entry('lkwrbioz_off',           lkwrbioz_off)
+      call cinfo_add_entry('lTO2depremin',           lTO2depremin)
       call cinfo_add_entry('use_M4AGO',              use_M4AGO)
       if (use_extNcycle) then
         call cinfo_add_entry('do_n2onh3_coupled',       do_n2onh3_coupled)
@@ -886,6 +893,9 @@ contains
       call pinfo_add_entry('wpoc_const',  wpoc_const*dtbinv)
       call pinfo_add_entry('wcal_const',  wcal_const*dtbinv)
       call pinfo_add_entry('wopal_const', wopal_const*dtbinv)
+      call pinfo_add_entry('O2thresh_aerob', O2thresh_aerob)
+      call pinfo_add_entry('O2thresh_hypoxic',O2thresh_hypoxic)
+      call pinfo_add_entry('NO3thresh_sulf',  NO3thresh_sulf)
       call pinfo_add_entry('drempoc',     drempoc*dtbinv)
       call pinfo_add_entry('dremopal',    dremopal*dtbinv)
       call pinfo_add_entry('dremn2o',     dremn2o*dtbinv)
