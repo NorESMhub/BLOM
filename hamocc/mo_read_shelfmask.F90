@@ -55,7 +55,6 @@ contains
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
     endif
     allocate(shelfmask(kpie,kpje),stat=errstat)
-    allocate(mask(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory shelfmask'
     shelfmask(:,:) = .false.
 
