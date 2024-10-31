@@ -619,7 +619,7 @@ contains
                          bkoxan2odenit_sed,bkan2odenit_sed,q10dnra_sed,          &
                          bkoxdnra_sed,bkdnra_sed,q10anh4nitr_sed,                &
                          bkoxamox_sed,bkanh4nitr_sed,q10ano2nitr_sed,            &
-                         bkoxnitr_sed,bkano2nitr_sed,lTO2depremin
+                         bkoxnitr_sed,bkano2nitr_sed
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)
