@@ -1,4 +1,35 @@
+! Copyright (C) 2021-2022  J. Schwinger
+!
+! This file is part of BLOM/iHAMOCC.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details.
+!
+! You should have received a copy of the GNU Lesser General Public License
+! along with BLOM. If not, see https://www.gnu.org/licenses/.
+
+
 module mo_read_shelfmask
+
+  !*************************************************************************************************
+  ! Routine to read and/or initialize an ocean shelf-sea mask either from netcdf file or from
+  ! internal bathymetry values, if use_shelfsea_res_time = .true.
+  !
+  ! If a file is read, it should hold real values with 1. for shelf-sea regions and 0 elsewhere
+  ! and the variable name is 'shelfmask'
+  !
+  ! The shelf-sea mask is currently used to calculate the shelf-sea water residence time
+  !
+  ! j.maerz *UiB, Bergen* 2024-10-31
+  !
+  !*************************************************************************************************
 
   implicit none
   private
@@ -19,16 +50,17 @@ contains
     use mo_param_bgc,   only: shelfbreak_depth
 
     !Arguments
-    integer, intent(in) :: kpie,kpje,kbnd
+    integer, intent(in) :: kpie                                     ! 1st dimension of model grid
+    integer, intent(in) :: kpje                                     ! 2nd dimension of model grid
+    integer, intent(in) :: kbnd                                     ! number of halo grid points
     real,    intent(in) :: pbath(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd) ! bathymetry fields - water depth [m]
     real,    intent(in) :: omask(kpie,kpje)                         ! land/ocean mask.
 
     ! Local variables
     logical :: file_exists=.false.
     integer :: i,j,errstat,dummymask(2)
-    real    :: mask(kpie,kpje)
+    real,allocatable  :: mask(:,:)
 
-    mask = 0.
 
     if (.not.use_shelfsea_res_time) then
       if (mnproc.eq.1) then
@@ -55,8 +87,10 @@ contains
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
     endif
     allocate(shelfmask(kpie,kpje),stat=errstat)
+    allocate(mask(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory shelfmask'
     shelfmask(:,:) = .false.
+    mask = 0.
 
     if (file_exists) then
       ! read shelf sea mask from file
@@ -81,6 +115,7 @@ contains
     endif
 
     !$OMP DO PARALLEL PRIVATE (i,j)
+    ! Eventually fill the logical shelfsea mask field
     do j = 1,kpje
       do i = 1,kpie
         if (1 == nint(mask(i,j))) then
@@ -93,6 +128,5 @@ contains
     !$OMP END PARALLEL DO
 
   end subroutine read_shelfmask
-
 
 end module mo_read_shelfmask
