@@ -45,13 +45,12 @@ contains
 
     use mod_xc,         only: mnproc,xchalt
     use mod_dia,        only: iotype
-    use mod_nctools,    only: ncfopn,ncread,ncfcls
     use mo_control_bgc, only: use_shelfsea_res_time,io_stdo_bgc
     use mo_param_bgc,   only: shelfbreak_depth
     use netcdf,         only: nf90_open,nf90_close,nf90_nowrite
     use mo_netcdf_bgcrw,only: read_netcdf_var
 
-    !Arguments
+    ! Arguments
     integer, intent(in) :: kpie                                     ! 1st dimension of model grid
     integer, intent(in) :: kpje                                     ! 2nd dimension of model grid
     integer, intent(in) :: kbnd                                     ! number of halo grid points
@@ -60,10 +59,10 @@ contains
 
     ! Local variables
     logical :: file_exists=.false.
-    integer :: i,j,errstat,dummymask(2),ncid,ncstat
+    integer :: i,j,errstat,ncid,ncstat
     real,allocatable  :: mask(:,:)
 
-
+    ! Check, if we are goiung to run with shelf-sea water residence time tracers
     if (.not.use_shelfsea_res_time) then
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*) ''
@@ -100,14 +99,9 @@ contains
         write(io_stdo_bgc,*) ''
         write(io_stdo_bgc,'(a)') 'read_shelfmask: read mask from ',trim(shelfsea_maskfile)
       endif
-
       ncstat=nf90_open(trim(shelfsea_maskfile),nf90_nowrite,ncid)
       call read_netcdf_var(ncid,'shelfmask',mask,1,1,0)
       ncstat=nf90_close(ncid)
-
-      !call ncfopn(trim(shelfsea_maskfile),'r',' ',1,iotype)
-      !call ncread('shelfmask',mask,dummymask,0,0.)
-      !call ncfcls
     else
       ! reconstruct shelf sea mask from internal bathymetry
       !$OMP DO PARALLEL PRIVATE (i,j)
