@@ -62,7 +62,7 @@ contains
     integer :: i,j,errstat,ncid,ncstat
     real,allocatable  :: mask(:,:)
 
-    ! Check, if we are goiung to run with shelf-sea water residence time tracers
+    ! Check, if we are going to run with shelf-sea water residence time tracers
     if (.not.use_shelfsea_res_time) then
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*) ''
