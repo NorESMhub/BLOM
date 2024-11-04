@@ -3872,7 +3872,7 @@
     <desc>Switch for primary production and remineralization throughout the whole water column</desc>
   </entry>
 
-  <entry id="lTO2depremin">
+  <entry id="lto2depremin">
     <type>logical</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
