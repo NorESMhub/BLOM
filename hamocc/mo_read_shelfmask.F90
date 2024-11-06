@@ -1,4 +1,4 @@
-! Copyright (C) 2021-2024  J. Schwinger
+! Copyright (C) 2021-2024  j. maerz
 !
 ! This file is part of BLOM/iHAMOCC.
 !
