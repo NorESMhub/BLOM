@@ -110,6 +110,10 @@ module mo_param1_bgc
   integer, protected :: ianh4
   integer, protected :: iano2
 
+  ! Indices for the age tracer for shelf water residence time
+  integer, protected :: i_shelfage
+  integer, protected :: ishelfage
+
   ! total number of advected tracers (set by allocate_tracers in mod_tracers.F90)
   integer :: nocetra
 
@@ -243,12 +247,14 @@ contains
     use mo_control_bgc, only: use_BROMO,use_AGG,use_WLIN,use_natDIC,use_CFC,use_cisonew,           &
                               use_sedbypass,use_PBGC_OCNP_TIMESTEP,use_PBGC_CK_TIMESTEP,           &
                               use_FB_BGC_OCE, use_BOXATM,use_extNcycle,use_pref_tracers,           &
-                              use_nuopc_ndep
+                              use_nuopc_ndep,use_shelfsea_res_time
+
     integer :: iounit
 
     namelist / config_bgc / use_BROMO,use_AGG,use_WLIN,use_natDIC,use_CFC,use_cisonew,             &
                             use_sedbypass,use_PBGC_OCNP_TIMESTEP,use_PBGC_CK_TIMESTEP,             &
-                            use_FB_BGC_OCE,use_BOXATM,use_extNcycle,use_pref_tracers,use_nuopc_ndep
+                            use_FB_BGC_OCE,use_BOXATM,use_extNcycle,use_pref_tracers,              &
+                            use_nuopc_ndep,use_shelfsea_res_time
 
     io_stdo_bgc = lp              !  standard out.
 
@@ -374,9 +380,16 @@ contains
       iprefdic    = -1
       iprefsilica = -1
     endif
+    if (use_shelfsea_res_time) then
+      i_shelfage = 1
+      ishelfage  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+1
+    else
+      i_shelfage = 0
+      ishelfage  = -1
+    endif
 
     ! total number of advected tracers
-    nocetra=i_base+i_iso+i_cfc+i_agg+i_nat_dic +i_bromo+i_extn+i_pref
+    nocetra=i_base+i_iso+i_cfc+i_agg+i_nat_dic +i_bromo+i_extn+i_pref+i_shelfage
 
     ! ATMOSPHERE
     i_base_atm=5

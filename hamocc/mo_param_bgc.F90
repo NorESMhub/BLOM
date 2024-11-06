@@ -38,7 +38,7 @@ module mo_param_bgc
                             use_BOXATM,use_CFC,use_PBGC_CK_TIMESTEP,                               &
                             use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type,use_M4AGO,&
                             do_n2onh3_coupled,use_extNcycle,                                       &
-                            lkwrbioz_off,lTO2depremin
+                            lkwrbioz_off,lTO2depremin,use_shelfsea_res_time
   use mod_xc,         only: mnproc
 
   implicit none
@@ -99,6 +99,7 @@ module mo_param_bgc
   public :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma
   public :: POM_remin_q10,opal_remin_q10,POM_remin_Tref,opal_remin_Tref
   public :: O2thresh_aerob,O2thresh_hypoxic,NO3thresh_sulf
+  public :: shelfbreak_depth
 
   ! extended nitrogen cycle
   public :: q10ano3denit,sc_ano3denit,Trefano3denit,rano3denit,bkano3denit,      &
@@ -467,6 +468,10 @@ module mo_param_bgc
   real, protected :: vsmall,safe,pupper,plower,zdis,nmldmin
   real, protected :: cellsink = 9999.
 
+  !********************************************************************
+  ! Shelfsea water residence time
+  !********************************************************************
+  real, protected :: shelfbreak_depth = 200. ! [m] shelf-break depth fall-back value, if no shelfseaa mask file provided
 
   !********************************************************************
   ! Sediment biogeochemistry
@@ -832,7 +837,7 @@ contains
       call cinfo_add_entry('use_extNcycle',          use_extNcycle)
       call cinfo_add_entry('use_PBGC_OCNP_TIMESTEP', use_PBGC_OCNP_TIMESTEP)
       call cinfo_add_entry('use_PBGC_CK_TIMESTEP',   use_PBGC_CK_TIMESTEP)
-      call cinfo_add_entry('use_FB_BGC_OCE BROMO',   use_FB_BGC_OCE)
+      call cinfo_add_entry('use_FB_BGC_OCE',         use_FB_BGC_OCE)
       call cinfo_add_entry('use_BOXATM',             use_BOXATM)
       call cinfo_add_entry('use_sedbypass',          use_sedbypass)
       write(io_stdo_bgc,*) '*   ocn_co2_type           = ',ocn_co2_type
@@ -844,6 +849,7 @@ contains
       call cinfo_add_entry('l_3Dvarsedpor',          l_3Dvarsedpor)
       call cinfo_add_entry('lkwrbioz_off',           lkwrbioz_off)
       call cinfo_add_entry('lTO2depremin',           lTO2depremin)
+      call cinfo_add_entry('use_shelfsea_res_time',  use_shelfsea_res_time)
       call cinfo_add_entry('use_M4AGO',              use_M4AGO)
       if (use_extNcycle) then
         call cinfo_add_entry('do_n2onh3_coupled',       do_n2onh3_coupled)

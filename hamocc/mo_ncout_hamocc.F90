@@ -35,7 +35,8 @@ contains
     use mod_grid,       only: depths,plat,plon
     use mod_dia,        only: diafnm,sigmar1,iotype,ddm,depthslev,depthslev_bnds
     use mo_control_bgc, only: dtbgc,use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO,              &
-                              use_sedbypass,use_BOXATM,use_M4AGO,use_extNcycle,use_pref_tracers
+                              use_sedbypass,use_BOXATM,use_M4AGO,use_extNcycle,use_pref_tracers,   &
+                              use_shelfsea_res_time
     use mo_vgrid,       only: k0100,k0500,k1000,k2000,k4000
     use mo_param1_bgc,  only: ks
     use mod_nctools,    only: ncwrt1,ncdims,nctime,ncfcls,ncfopn,ncdimc,ncputr,ncputi,ncwrtr
@@ -88,6 +89,7 @@ contains
                               jpco2,jxco2,jpco2_gex,jkwco2sol,jco2sol,                             &
                               jph,jphosph,jphosy,jphyto,jpoc,jprefalk,                             &
                               jprefdic,jprefo2,jprefpo4,jsilica,jprefsilica,                       &
+                              jshelfage,                                                           &
                               jsrfalkali,jsrfano3,jsrfdic,jsrfiron,                                &
                               jsrfoxygen,jsrfphosph,jsrfphyto,jsrfsilica,jsrfph,                   &
                               jwnos,jwphy,                                                         &
@@ -97,14 +99,14 @@ contains
                               lyr_opal,lyr_iron,lyr_phosy,lyr_co3,lyr_ph,                          &
                               lyr_omegaa,lyr_omegac,lyr_n2o,lyr_prefo2,                            &
                               lyr_o2sat,lyr_prefpo4,lyr_prefalk,lyr_prefsilica,                    &
-                              lyr_prefdic,lyr_dicsat,                                              &
+                              lyr_prefdic,lyr_dicsat,lyr_shelfage,                                 &
                               lvl_dic,lvl_alkali,                                                  &
                               lvl_phosph,lvl_oxygen,lvl_ano3,lvl_silica,                           &
                               lvl_doc,lvl_phyto,lvl_grazer,lvl_poc,                                &
                               lvl_calc,lvl_opal,lvl_iron,lvl_phosy,                                &
                               lvl_co3,lvl_ph,lvl_omegaa,lvl_omegac,                                &
                               lvl_n2o,lvl_prefo2,lvl_o2sat,lvl_prefpo4,lvl_prefsilica,             &
-                              lvl_prefalk,lvl_prefdic,lvl_dicsat,                                  &
+                              lvl_prefalk,lvl_prefdic,lvl_dicsat,lvl_shelfage,                     &
                               lvl_o2sat,srf_n2ofx,srf_pn2om,srf_atmco2,srf_kwco2,                  &
                               srf_kwco2sol,srf_co2sol,srf_fco2,                                    &
                               srf_pco2,srf_xco2,srf_pco2_gex,srf_dmsflux,srf_co2fxd,               &
@@ -141,7 +143,7 @@ contains
                               lvl_d14c,lvl_bigd14c,lvl_poc13,lvl_doc13,                            &
                               lvl_calc13,lvl_phyto13,lvl_grazer13,                                 &
                               jnatalkali,jnatdic,jnatcalc,jnatco3,jnatph,                          &
-                              jnatomegaa,jnatomegac,jlvlnatph,jlvlprefsilica,                      &
+                              jnatomegaa,jnatomegac,jlvlnatph,jlvlprefsilica,jlvlshelfage,         &
                               jsrfnatdic,jsrfnatalk,jsrfnatph,                                     &
                               jnatpco2,jnatco2fx,lyr_natco3,                                       &
                               lyr_natalkali,lyr_natdic,lyr_natph,lyr_natcalc,                      &
@@ -337,6 +339,9 @@ contains
       call finlyr(jprefalk(iogrp),jdp(iogrp))
       call finlyr(jprefdic(iogrp),jdp(iogrp))
     endif
+    if (use_shelfsea_res_time) then
+      call finlyr(jshelfage(iogrp),jdp(iogrp))
+    endif
     if (use_cisonew) then
       call finlyr(jdic13(iogrp),jdp(iogrp))
       call finlyr(jdic14(iogrp),jdp(iogrp))
@@ -458,6 +463,9 @@ contains
       call msklvl(jlvlprefsilica(iogrp),depths)
       call msklvl(jlvlprefalk(iogrp),depths)
       call msklvl(jlvlprefdic(iogrp),depths)
+    endif
+    if (use_shelfsea_res_time) then
+      call msklvl(jlvlshelfage(iogrp),depths)
     endif
     if (use_cisonew) then
       call msklvl(jlvldic13(iogrp),depths)
@@ -692,6 +700,9 @@ contains
       call wrtlyr(jprefalk(iogrp),     LYR_PREFALK(iogrp),  1e3,            0.,cmpflg,'p_talk')
       call wrtlyr(jprefdic(iogrp),     LYR_PREFDIC(iogrp),  1e3,            0.,cmpflg,'p_dic')
     endif
+    if (use_shelfsea_res_time) then
+      call wrtlyr(jshelfage(iogrp),     LYR_SHELFAGE(iogrp),  rnacc,        0.,cmpflg,'shelfage')
+    endif
     if (use_cisonew) then
       call wrtlyr(jdic13(iogrp),       LYR_DIC13(iogrp),    1.e3,           0.,cmpflg,'dissic13')
       call wrtlyr(jdic14(iogrp),       LYR_DIC14(iogrp),    1.e3*c14fac,    0.,cmpflg,'dissic14')
@@ -791,6 +802,9 @@ contains
       call wrtlvl(jlvlprefsilica(iogrp),LVL_PREFSILICA(iogrp), rnacc*1e3,   0.,cmpflg,'p_silicalvl')
       call wrtlvl(jlvlprefalk(iogrp),  LVL_PREFALK(iogrp),  rnacc*1e3,      0.,cmpflg,'p_talklvl')
       call wrtlvl(jlvlprefdic(iogrp),  LVL_PREFDIC(iogrp),  rnacc*1e3,      0.,cmpflg,'p_diclvl')
+    endif
+    if (use_shelfsea_res_time) then
+      call wrtlvl(jlvlshelfage(iogrp),  LVL_SHELFAGE(iogrp),  rnacc,      0.,cmpflg,'shelfagelvl')
     endif
     if (use_cisonew) then
       call wrtlvl(jlvldic13(iogrp),    LVL_DIC13(iogrp),    rnacc*1.e3,     0.,cmpflg,'dissic13lvl')
@@ -1057,6 +1071,9 @@ contains
       call inilyr(jprefalk(iogrp),0.)
       call inilyr(jprefdic(iogrp),0.)
     endif
+    if (use_shelfsea_res_time) then
+      call inilyr(jshelfage(iogrp),0.)
+    endif
     if (use_cisonew) then
       call inilyr(jdic13(iogrp),0.)
       call inilyr(jdic14(iogrp),0.)
@@ -1154,6 +1171,9 @@ contains
       call inilvl(jlvlprefsilica(iogrp),0.)
       call inilvl(jlvlprefalk(iogrp),0.)
       call inilvl(jlvlprefdic(iogrp),0.)
+    endif
+    if (use_shelfsea_res_time) then
+      call inilvl(jlvlshelfage(iogrp),0.)
     endif
     if (use_cisonew) then
       call inilvl(jlvldic13(iogrp),0.)
@@ -1274,7 +1294,9 @@ contains
 
     use mod_nctools,    only: ncdefvar,ncattr,ncfopn,ncdimc,ncdims,                                &
                               nctime,ncfcls,ncedef,ncdefvar3d,ndouble
-    use mo_control_bgc, only: use_M4AGO
+    use mo_control_bgc, only: use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO,                    &
+                              use_sedbypass,use_BOXATM,use_extNcycle,use_pref_tracers,use_M4AGO,   &
+                              use_shelfsea_res_time
     use mo_bgcmean,     only: srf_kwco2,srf_fco2,srf_pco2,srf_xco2,srf_pco2_gex,srf_dmsflux,       &
                               srf_co2fxd,srf_co2fxu,srf_kwco2sol,srf_co2sol,                       &
                               srf_oxflux,srf_niflux,srf_pn2om,srf_dms,srf_dmsprod,                 &
@@ -1295,7 +1317,7 @@ contains
                               lyr_phyto,lyr_grazer,lyr_poc,lyr_calc,lyr_opal,lyr_iron,             &
                               lyr_phosy,lyr_co3,lyr_ph,lyr_omegaa,lyr_omegac,lyr_n2o,              &
                               lyr_prefo2,lyr_o2sat,lyr_prefpo4,lyr_prefalk,lyr_prefdic,            &
-                              lyr_prefsilica,                                                      &
+                              lyr_prefsilica,lyr_shelfage,                                         &
                               lyr_dicsat,lvl_dic,lvl_alkali,lvl_phosph,lvl_oxygen,lvl_ano3,        &
                               lvl_silica,lvl_doc,lvl_phyto,lvl_grazer,lvl_poc,lvl_calc,            &
                               lvl_opal,lvl_iron,lvl_phosy,lvl_co3,lvl_ph,lvl_omegaa,               &
@@ -1321,7 +1343,7 @@ contains
                               sdm_powaic,sdm_powaal,sdm_powaph,sdm_powaox,                         &
                               sdm_pown2,sdm_powno3,sdm_powasi,sdm_ssso12,sdm_ssssil,               &
                               sdm_sssc12,sdm_ssster,bur_ssso12,bur_sssc12,bur_ssssil,bur_ssster,   &
-                              lvl_prefsilica,                                                      &
+                              lvl_prefsilica,lvl_shelfage,                                         &
                               lyr_agg_ws,lyr_dynvis,lyr_agg_stick,                                 &
                               lyr_agg_stickf,lyr_agg_dmax,lyr_agg_avdp,                            &
                               lyr_agg_avrhop,lyr_agg_avdC,lyr_agg_df,                              &
@@ -1370,8 +1392,6 @@ contains
                               SDM_anmx_N2_prod,SDM_anmx_OM_prod,SDM_remin_aerob,                   &
                               SDM_remin_sulf,jsediffnh4,jsediffn2o,jsediffno2,                     &
                               FLX_SEDIFFNH4,FLX_SEDIFFN2O,FLX_SEDIFFNO2
-    use mo_control_bgc, only: use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO,                    &
-                              use_sedbypass,use_BOXATM,use_extNcycle,use_pref_tracers
 
     ! Arguments
     integer   :: iogrp,cmpflg
@@ -1709,6 +1729,10 @@ contains
       call ncdefvar3d(LYR_PREFDIC(iogrp),cmpflg,'p',                            &
            &   'p_dic','Preformed DIC',' ','mol C m-3',1)
     endif
+    if (use_shelfsea_res_time) then
+      call ncdefvar3d(LYR_SHELFAGE(iogrp),cmpflg,'p',                           &
+           &   'shelfage','Residence time of shelf water',' ','d',1)
+    endif
     if (use_cisonew) then
       call ncdefvar3d(LYR_DIC13(iogrp),cmpflg,'p',                              &
            &   'dissic13','Dissolved C13',' ','mol 13C m-3',1)
@@ -1891,6 +1915,10 @@ contains
            &   'p_talklvl','Preformed alkalinity',' ','eq m-3',2)
       call ncdefvar3d(LVL_PREFDIC(iogrp),cmpflg,'p',                              &
            &   'p_diclvl','Preformed DIC',' ','mol C m-3',2)
+    endif
+    if (use_shelfsea_res_time) then
+      call ncdefvar3d(LVL_SHELFAGE(iogrp),cmpflg,'p',                           &
+           &   'shelfagelvl','Residence time of shelf water',' ','d',2)
     endif
     if (use_cisonew) then
       call ncdefvar3d(LVL_DIC13(iogrp),cmpflg,'p',                              &

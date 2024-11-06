@@ -82,10 +82,10 @@ CONTAINS
     use mo_carbch,          only: co2star,co3,hi,satoxy,ocetra,atm,nathi
     use mo_control_bgc,     only: io_stdo_bgc,ldtbgc,use_cisonew,use_AGG,                          &
                                   use_BOXATM,use_BROMO,use_CFC,use_natDIC,use_sedbypass,           &
-                                  use_extNcycle,use_pref_tracers
+                                  use_extNcycle,use_pref_tracers,use_shelfsea_res_time
     use mo_param1_bgc,      only: ialkali,ian2o,iano3,icalc,idet,idicsat,                          &
                                   idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,       &
-                                  iprefalk,iprefdic,iprefo2,iprefpo4,iprefsilica,                  &
+                                  iprefalk,iprefdic,iprefo2,iprefpo4,iprefsilica,ishelfage,        &
                                   isco212,isilica,izoo,nocetra,                                    &
                                   iadust,inos,iatmco2,iatmn2,iatmo2,ibromo,icfc11,icfc12,isf6,     &
                                   icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,       &
@@ -127,6 +127,7 @@ CONTAINS
     integer   :: restdtoce                         !  time step number from bgc ocean file
     integer   :: idate(5),i,j,k
     logical   :: lread_cfc,lread_nat,lread_iso,lread_atm,lread_bro,lread_extn,lread_prefsi
+    logical   :: lread_shelfage
     real      :: rco213,rco214,alpha14,beta13,beta14,d13C_atm,d14cat
     integer   :: ncid,ncstat,ncvarid
 
@@ -380,6 +381,23 @@ CONTAINS
         write(io_stdo_bgc,*) 'Initialising preformed tracer from scratch'
       endif
 
+      lread_shelfage=.true.
+      if(IOTYPE==0) then
+        if(mnproc==1) ncstat=nf90_inq_varid(ncid,'shelfage',ncvarid)
+        call xcbcst(ncstat)
+        if(ncstat.ne.nf90_noerr) lread_shelfage=.false.
+      else if(IOTYPE==1) then
+#ifdef PNETCDF
+        ncstat=nfmpi_inq_varid(ncid,'shelfage',ncvarid)
+        if(ncstat.ne.nf_noerr) lread_shelfage=.false.
+#endif
+      endif
+      if(mnproc==1 .and. .not. lread_shelfage) then
+        write(io_stdo_bgc,*) ' '
+        write(io_stdo_bgc,*) 'AUFR_BGC info: shelfage not in restart file '
+        write(io_stdo_bgc,*) 'Initialising shelfage from scratch'
+      endif
+
     !
     ! Read restart data : ocean aquateous tracer
     !
@@ -410,7 +428,9 @@ CONTAINS
         call read_netcdf_var(ncid,'prefsilica',locetra(1,1,1,iprefsilica),2*kpke,0,iotype)
       endif
     endif
-
+    if (use_shelfsea_res_time .and. lread_shelfage) then
+      call read_netcdf_var(ncid,'shelfage',locetra(1,1,1,ishelfage),2*kpke,0,iotype)
+    endif
     if (use_cisonew .and. lread_iso) then
       call read_netcdf_var(ncid,'sco213',locetra(1,1,1,isco213),2*kpke,0,iotype)
       call read_netcdf_var(ncid,'sco214',locetra(1,1,1,isco214),2*kpke,0,iotype)

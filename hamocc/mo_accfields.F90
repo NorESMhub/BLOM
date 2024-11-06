@@ -130,10 +130,10 @@ contains
                                 jsdm_denit_NO3,jsdm_denit_NO2,jsdm_denit_N2O,jsdm_DNRA_NO2,        &
                                 jsdm_anmx_N2_prod,jsdm_anmx_OM_prod,jsdm_remin_aerob,              &
                                 jsdm_remin_sulf,jsediffnh4,jsediffn2o,jsediffno2,jatmn2o,jatmnh3,  &
-                                jndepnhxfx
+                                jndepnhxfx,jshelfage,jlvlshelfage
     use mo_control_bgc,   only: io_stdo_bgc,dtb,use_BROMO,use_AGG,use_WLIN,use_natDIC,             &
                                 use_CFC,use_sedbypass,use_cisonew,use_BOXATM,use_M4AGO,            &
-                                use_extNcycle,use_pref_tracers
+                                use_extNcycle,use_pref_tracers,use_shelfsea_res_time
     use mo_param1_bgc,    only: ialkali,ian2o,iano3,iatmco2,iatmdms,iatmn2,iatmn2o,iatmo2,         &
                                 icalc,idet,idms,idicsat,idoc,iiron,iopal,                          &
                                 ioxygen,iphosph,iphy,iprefalk,iprefdic,                            &
@@ -146,7 +146,7 @@ contains
                                 ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,                           &
                                 ipown2,ipowno3,isssc12,issso12,issssil,issster,                    &
                                 issso12,isssc12,issssil,issster,iprefsilica,iatmnh3,ianh4,iano2,   &
-                                ipownh4,ipown2o,ipowno2
+                                ipownh4,ipown2o,ipowno2,ishelfage
     use mo_sedmnt,        only: powtra,sedlay,burial
     use mo_vgrid,         only: dp_min
     use mo_inventory_bgc, only: inventory_bgc
@@ -413,6 +413,9 @@ contains
       call acclyr(jprefalk,ocetra(1,1,1,iprefalk),pddpo,1)
       call acclyr(jprefdic,ocetra(1,1,1,iprefdic),pddpo,1)
     endif
+    if (use_shelfsea_res_time) then
+      call acclyr(jshelfage,ocetra(1,1,1,ishelfage),pddpo,1)
+    endif
     if (use_natDIC) then
       call acclyr(jnatalkali,ocetra(1,1,1,inatalkali),pddpo,1)
       call acclyr(jnatdic,ocetra(1,1,1,inatsco212),pddpo,1)
@@ -488,7 +491,7 @@ contains
          &  jlvlano3+jlvlalkali+jlvlsilica+jlvldic+jlvldoc+jlvlpoc+jlvlcalc+ &
          &  jlvlopal+jlvln2o+jlvlco3+jlvlph+jlvlomegaa+jlvlomegac+jlvlphosy+ &
          &  jlvlo2sat+jlvlprefo2+jlvlprefpo4+jlvlprefalk+jlvlprefdic+        &
-         &  jlvlprefsilica+                                                  &
+         &  jlvlprefsilica+jlvlshelfage+                                     &
          &  jlvldicsat+jlvlnatdic+jlvlnatalkali+jlvlnatcalc+jlvlnatco3+      &
          &  jlvlnatomegaa+jlvlnatomegac+jlvldic13+jlvldic14+jlvld13c+        &
          &  jlvld14c+jlvlbigd14c+jlvlpoc13+jlvldoc13+jlvlcalc13+jlvlphyto13+ &
@@ -531,6 +534,9 @@ contains
           call acclvl(jlvlprefsilica,ocetra(1,1,1,iprefsilica),k,ind1,ind2,wghts)
           call acclvl(jlvlprefalk,ocetra(1,1,1,iprefalk),k,ind1,ind2,wghts)
           call acclvl(jlvlprefdic,ocetra(1,1,1,iprefdic),k,ind1,ind2,wghts)
+        endif
+        if (use_shelfsea_res_time) then
+          call acclvl(jlvlshelfage,ocetra(1,1,1,ishelfage),k,ind1,ind2,wghts)
         endif
         if (use_natDIC) then
           call acclvl(jlvlnatdic,ocetra(1,1,1,inatsco212),k,ind1,ind2,wghts)

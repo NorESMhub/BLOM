@@ -48,6 +48,7 @@ contains
     use mo_hamocc4bcm,  only: hamocc4bcm
     use mo_trc_limitc,  only: trc_limitc
     use mo_param1_bgc,  only: nndep
+    use mo_read_shelfmask, only: shelfmask
 
     ! Arguments
     integer, intent(in) :: m,n,mm,nn,k1m,k1n
@@ -83,7 +84,7 @@ contains
          &          bgc_rho,plat,omask,dust,rivflx,ndep,oafx,pi_ph,swa,ficem,slp,abswnd,           &
          &          temp(1-nbdy,1-nbdy,1+nn),saln(1-nbdy,1-nbdy,1+nn),                             &
          &          atmco2,flxco2,flxdms,atmbrf,flxbrf,                                            &
-         &          atmn2o,flxn2o,atmnh3,flxnh3)
+         &          atmn2o,flxn2o,atmnh3,flxnh3,shelfmask)
 
     !
     ! --- accumulate fields and write output

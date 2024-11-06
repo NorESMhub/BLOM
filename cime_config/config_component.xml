@@ -198,6 +198,15 @@
     <desc>Set namelist option to activate the preformed tracer code. Requires module ecosys</desc>
   </entry>
 
+  <entry id="HAMOCC_SHELFSEA_RES_TIME">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Set namelist option to activate the shelfsea water residence time code. Requires module ecosys</desc>
+  </entry>
+
   <entry id="HAMOCC_CISO">
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>

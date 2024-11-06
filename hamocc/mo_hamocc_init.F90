@@ -37,7 +37,7 @@ contains
 
     use mod_time,       only: date,baclin
     use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,isp,ifp,ilp,mnproc,lp,xchalt
-    use mod_grid,       only: plon,plat
+    use mod_grid,       only: plon,plat,depths
     use mod_tracers,    only: ntrbgc,ntr,itrbgc,trc
     use mo_control_bgc, only: bgc_namelist,get_bgc_namelist,do_ndep,do_rivinpt,do_oalk,            &
                               do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,                 &
@@ -67,6 +67,7 @@ contains
     use mo_aufr_bgc,    only: aufr_bgc
     use mo_extNsediment,only: alloc_mem_extNsediment_diag
     use mo_ihamocc4m4ago, only: alloc_mem_m4ago,init_m4ago_nml_params, init_m4ago_params
+    use mo_read_shelfmask,only: ini_read_shelfmask,shelfsea_maskfile
 
 
     ! Arguments
@@ -82,7 +83,7 @@ contains
          &            do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,                         &
          &            inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c,swaclimfile,       &
          &            with_dmsph,pi_ph_file,l_3Dvarsedpor,sedporfile,ocn_co2_type,use_M4AGO,       &
-         &            do_n2onh3_coupled,lkwrbioz_off,lTO2depremin
+         &            do_n2onh3_coupled,lkwrbioz_off,lTO2depremin,shelfsea_maskfile
     !
     ! --- Set io units and some control parameters
     !
@@ -203,6 +204,7 @@ contains
        call ini_read_ndep(idm,jdm)
     end if
     call ini_read_rivin(idm,jdm,omask)
+    call ini_read_shelfmask(idm,jdm,nbdy,depths,omask)
     call ini_read_oafx(idm,jdm,bgc_dx,bgc_dy,plat,omask)
     if (use_BROMO) then
       call ini_swa_clim(idm,jdm,omask)

@@ -94,7 +94,8 @@ contains
     use mo_param_bgc,   only: fesoly,cellmass,fractdim,bifr13_ini,bifr14_ini,c14fac,re1312,re14to
     use mo_biomod,      only: abs_oce
     use mo_control_bgc, only: rmasks,use_FB_BGC_OCE,use_cisonew,use_AGG,use_CFC,use_natDIC,        &
-                              use_BROMO, use_sedbypass,use_extNcycle,use_pref_tracers
+                              use_BROMO, use_sedbypass,use_extNcycle,use_pref_tracers,             &
+                              use_shelfsea_res_time
     use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,     &
                               iiron,iopal,ioxygen,iphosph,iphy,iprefalk,iprefdic,iprefo2,iprefpo4, &
                               isco212,isilica,izoo,iadust,inos,ibromo,icfc11,icfc12,isf6,          &
@@ -102,7 +103,7 @@ contains
                               isco213,isco214,izoo13,izoo14,safediv,inatcalc,                      &
                               ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,      &
                               issso12,issssil,issster,ks,nsedtra,ipowc13,ipowc13,issso13,issso13,  &
-                              isssc13,ipowc14,isssc14,issso14,iprefsilica,iano2,ianh4
+                              isssc13,ipowc14,isssc14,issso14,iprefsilica,iano2,ianh4,ishelfage
     use mo_vgrid,       only: kmle,kbo
     use mo_carbch,      only: nathi,natco3
     use mo_sedmnt,      only: sedhpl,burial,powtra,sedlay
@@ -200,6 +201,9 @@ contains
               ocetra(i,j,k,iprefsilica) = 0.
               ocetra(i,j,k,iprefalk)    = 0.
               ocetra(i,j,k,iprefdic)    = 0.
+            endif
+            if (use_shelfsea_res_time) then
+              ocetra(i,j,k,ishelfage)   = 0.
             endif
             if (use_AGG) then
               ! calculate initial numbers from mass, to start with appropriate size distribution
