@@ -804,7 +804,7 @@ contains
       call wrtlvl(jlvlprefdic(iogrp),  LVL_PREFDIC(iogrp),  rnacc*1e3,      0.,cmpflg,'p_diclvl')
     endif
     if (use_shelfsea_res_time) then
-      call wrtlvl(jlvlshelfage(iogrp),  LVL_SHELFAGE(iogrp),  rnacc,      0.,cmpflg,'shelfage_lvl')
+      call wrtlvl(jlvlshelfage(iogrp),  LVL_SHELFAGE(iogrp),  rnacc,      0.,cmpflg,'shelfagelvl')
     endif
     if (use_cisonew) then
       call wrtlvl(jlvldic13(iogrp),    LVL_DIC13(iogrp),    rnacc*1.e3,     0.,cmpflg,'dissic13lvl')
@@ -1918,7 +1918,7 @@ contains
     endif
     if (use_shelfsea_res_time) then
       call ncdefvar3d(LVL_SHELFAGE(iogrp),cmpflg,'p',                           &
-           &   'shelfage_lvl','Residence time of shelf water',' ','d',2)
+           &   'shelfagelvl','Residence time of shelf water',' ','d',2)
     endif
     if (use_cisonew) then
       call ncdefvar3d(LVL_DIC13(iogrp),cmpflg,'p',                              &

@@ -67,7 +67,7 @@ contains
     use mo_aufr_bgc,    only: aufr_bgc
     use mo_extNsediment,only: alloc_mem_extNsediment_diag
     use mo_ihamocc4m4ago, only: alloc_mem_m4ago,init_m4ago_nml_params, init_m4ago_params
-    use mo_read_shelfmask,only: read_shelfmask,shelfsea_maskfile
+    use mo_read_shelfmask,only: ini_read_shelfmask,shelfsea_maskfile
 
 
     ! Arguments
@@ -204,7 +204,7 @@ contains
        call ini_read_ndep(idm,jdm)
     end if
     call ini_read_rivin(idm,jdm,omask)
-    call read_shelfmask(idm,jdm,nbdy,depths,omask)
+    call ini_read_shelfmask(idm,jdm,nbdy,depths,omask)
     call ini_read_oafx(idm,jdm,bgc_dx,bgc_dy,plat,omask)
     if (use_BROMO) then
       call ini_swa_clim(idm,jdm,omask)

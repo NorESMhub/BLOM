@@ -1,4 +1,4 @@
-! Copyright (C) 2021-2022  J. Schwinger
+! Copyright (C) 2021-2024  J. Schwinger
 !
 ! This file is part of BLOM/iHAMOCC.
 !
@@ -34,14 +34,14 @@ module mo_read_shelfmask
   implicit none
   private
 
-  public :: read_shelfmask
+  public :: ini_read_shelfmask
 
   character(len=512),               public :: shelfsea_maskfile =''
   logical, allocatable,  protected, public :: shelfmask(:,:)
 
 contains
 
-  subroutine read_shelfmask(kpie,kpje,kbnd,pbath,omask)
+  subroutine ini_read_shelfmask(kpie,kpje,kbnd,pbath,omask)
 
     use mod_xc,         only: mnproc,xchalt
     use mod_dia,        only: iotype
@@ -72,13 +72,14 @@ contains
       return
     endif
 
-    ! Check if shelfsea mask file exists. If not, abort.
+    ! Check if shelfsea mask file exists. If not, run in default mode.
     inquire(file=shelfsea_maskfile,exist=file_exists)
     if (.not. file_exists .and. mnproc.eq.1) then
       write(io_stdo_bgc,*) ''
-      write(io_stdo_bgc,*) '**********************************************************'
-      write(io_stdo_bgc,*) 'read_shelfmask: Cannot find shelf sea region mask file... '
-      write(io_stdo_bgc,*) '... using internal bathymetry data to reconstruct the mask'
+      write(io_stdo_bgc,*) '************************************************************'
+      write(io_stdo_bgc,*) 'read_shelfmask: Cannot find (shelf sea) region mask file.   '
+      write(io_stdo_bgc,*) 'Fallback to default ...                                     '
+      write(io_stdo_bgc,*) '... using internal bathymetry data to reconstruct the mask  '
     endif
 
     ! Allocate field to hold shelfsea mask
@@ -128,6 +129,6 @@ contains
     enddo
     !$OMP END PARALLEL DO
 
-  end subroutine read_shelfmask
+  end subroutine ini_read_shelfmask
 
 end module mo_read_shelfmask
