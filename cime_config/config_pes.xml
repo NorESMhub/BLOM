@@ -187,10 +187,10 @@
           <nthrds_cpl>1</nthrds_cpl>
         </nthrds>
         <rootpe>
-          <rootpe_atm>0</rootpe_atm>
-          <rootpe_lnd>0</rootpe_lnd>
-          <rootpe_rof>0</rootpe_rof>
-          <rootpe_ice>1</rootpe_ice>
+          <rootpe_atm>80</rootpe_atm>
+          <rootpe_lnd>80</rootpe_lnd>
+          <rootpe_rof>80</rootpe_rof>
+          <rootpe_ice>0</rootpe_ice>
           <rootpe_ocn>81</rootpe_ocn>
           <rootpe_glc>0</rootpe_glc>
           <rootpe_wav>0</rootpe_wav>
