@@ -74,6 +74,7 @@ module mod_ale_regrid_remap
    integer :: &
         upper_bndr_ord = 6, &
         lower_bndr_ord = 4, &
+        k_range_plevel = 1, &
         dktzu = 4, &
         dktzl = 2
 
@@ -494,8 +495,11 @@ contains
             ! Modify regridded interface pressures to ensure that a minimum
             ! layer thickness towards the surface is maintained. A smooth
             ! transition between modified and unmodified interfaces is sought.
-            dpt = plevel(2) - plevel(1)
-            do k = 2, ke
+            do k = 2, k_range_plevel
+               p_dst(k,i) = min(p_dst(kk+1,i), plevel(k) + p_src(1,i))
+            enddo
+            dpt = plevel(k_range_plevel+1) - plevel(k_range_plevel)
+            do k = k_range_plevel + 1, ke
                pmin = plevel(k) + p_src(1,i)
                dpt = max(p_dst(k+1,i) - p_dst(k,i), dpt, &
                          plevel(min(k,kk-1)+1) - plevel(min(k,kk-1)))
@@ -586,10 +590,29 @@ contains
             do k = 1, kk
                pmin(k) = min(plevel(k) + p_src(1,i), p_src(kk+1,i))
             enddo
-            p_dst(1,i) = pmin(1)
 
-            stab_fac(1,i) = 0._r8
+            ! Set non-dimensional nudging factor.
             nudge_fac = delt1/regrid_nudge_ts
+
+            ! Enforce or nudge towards minimum interface pressure for layer
+            ! interface indices 1 to k_range_plevel.
+            kl = 1
+            sig_pmin(1) = sig_srcdi(1,1)
+            p_dst(1,i) = pmin(1)
+            stab_fac(1,i) = 0._r8
+            do k = 2, k_range_plevel
+               do while (p_src(kl+1,i) < pmin(k))
+                  kl = kl + 1
+               enddo
+               sig_pmin(k) = ( (p_src(kl+1,i) - pmin(k))*sig_srcdi(1,kl) &
+                             + (pmin(k) - p_src(kl,i))*sig_srcdi(2,kl)) &
+                             /(p_src(kl+1,i) - p_src(kl,i))
+               p_dst(k,i) = p_src(k,i) + nudge_fac*(pmin(k) - p_src(k,i))
+               p_dst(k,i) = min(max(p_dst(k,i), pmin(k), &
+                                    p_dst(k-1,i) + dpmin_interior), &
+                                p_src(kk+1,i))
+               stab_fac(k,i) = 0._r8
+            enddo
 
             ! Find the index of the first interface with potential density at
             ! minimum interface pressure smaller than the reference potential
@@ -598,9 +621,7 @@ contains
             ! transition zone where interface reference potential densities are
             ! adjusted to achieve a more gradual change from pressure level to
             ! isopycnic interfaces.
-            sig_pmin(1) = sig_srcdi(1,1)
-            kt = 2
-            kl = 1
+            kt = k_range_plevel + 1
             do while (kt <= kdmx(i))
                do while (p_src(kl+1,i) < pmin(kt))
                   kl = kl + 1
@@ -609,7 +630,7 @@ contains
                               + (pmin(kt) - p_src(kl,i))*sig_srcdi(2,kl)) &
                               /(p_src(kl+1,i) - p_src(kl,i))
                if (sig_trg(kt) > sig_pmin(kt)) then
-                  ktzmin = max(3, kt - dktzu)
+                  ktzmin = max(k_range_plevel + 2, kt - dktzu)
                   ktzmax = min(kk - 1, kt + dktzl)
                   if (ktzmin < kt .and. ktzmax - ktzmin > 1) then
                      ! For a smooth transition in layer reference potential
@@ -971,8 +992,8 @@ contains
          density_pc_upper_bndr, density_pc_lower_bndr, &
          tracer_pc_upper_bndr, tracer_pc_lower_bndr, &
          velocity_pc_upper_bndr, velocity_pc_lower_bndr, dpmin_interior, &
-         regrid_method, regrid_nudge_ts, stab_fac_limit, smooth_diff_max, &
-         dktzu, dktzl
+         regrid_method, k_range_plevel, regrid_nudge_ts, stab_fac_limit, &
+         smooth_diff_max, dktzu, dktzl
 
       ! Return if ALE method is not required.
       if (vcoord_tag == vcoord_isopyc_bulkml) return
@@ -1020,6 +1041,7 @@ contains
          call xcbcst(velocity_pc_lower_bndr)
          call xcbcst(dpmin_interior)
          call xcbcst(regrid_method)
+         call xcbcst(k_range_plevel)
          call xcbcst(regrid_nudge_ts)
          call xcbcst(stab_fac_limit)
          call xcbcst(smooth_diff_max)
@@ -1042,6 +1064,7 @@ contains
          write (lp,*) '  velocity_pc_lower_bndr = ', velocity_pc_lower_bndr
          write (lp,*) '  dpmin_interior =         ', dpmin_interior
          write (lp,*) '  regrid_method =          ', trim(regrid_method)
+         write (lp,*) '  k_range_plevel =         ', k_range_plevel
          write (lp,*) '  regrid_nudge_ts =        ', regrid_nudge_ts
          write (lp,*) '  stab_fac_limit =         ', stab_fac_limit
          write (lp,*) '  smooth_diff_max =        ', smooth_diff_max
