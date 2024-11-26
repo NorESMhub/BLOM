@@ -1,2 +1,5 @@
 # Ignore build output directory created by Meson
 builddir/
+
+# Ignore byte-compiled files
+__pycache__/
