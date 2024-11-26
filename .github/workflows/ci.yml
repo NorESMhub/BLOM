@@ -11,14 +11,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]      # Testing with macos-latest currently not working
         mpi: [true, false]
         openmp: ['enabled', 'disabled']
         ecosys: [false]   # ecosys==true fails with gcc, disable for now but leave placeholder
         exclude:
-          # Do not build on macOS with MPI as that is having some dependency issues
-          - os: macos-latest
-            mpi: true
+          # # Do not build on macOS with MPI as that is having some dependency issues
+          # - os: macos-latest
+          #   mpi: true
+          # # Do not build on macOS with OpenMP. This cause an error as discussed in PR
+          # # https://github.com/NorESMhub/BLOM/pull/317#issuecomment-2191552330
+          # - os: macos-latest
+          #   openmp: 'enabled'
           # Run test (fuk95 executed with mpi=false) fails with ecosys
           - ecosys: true
             mpi: false
@@ -29,11 +33,11 @@ jobs:
           sudo apt install -y libnetcdff-dev mpi-default-dev ninja-build
         if: runner.os == 'Linux'
 
-      - name: Install dependencies - macOS
-        run: brew install netcdf-fortran open-mpi ninja
-        env:
-          HOMEBREW_NO_INSTALL_CLEANUP: 1
-        if: runner.os == 'macOS'
+      # - name: Install dependencies - macOS
+      #   run: brew install netcdf-fortran open-mpi ninja
+      #   env:
+      #     HOMEBREW_NO_INSTALL_CLEANUP: 1
+      #   if: runner.os == 'macOS'
 
       - name: Setup Python for newer version of Meson
         uses: actions/setup-python@v5
