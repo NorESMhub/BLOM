@@ -1120,6 +1120,16 @@
     <desc>Valid mehtods: 'nudge', 'direct'</desc>
   </entry>
 
+  <entry id="k_range_plevel">
+    <type>integer</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>4</value>
+    </values>
+    <desc>Interface index range from surface enforced to constant pressure levels</desc>
+  </entry>
+
   <entry id="regrid_nudge_ts">
     <type>real</type>
     <category>ale_regrid_remap</category>
