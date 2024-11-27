@@ -50,6 +50,8 @@ contains
                                 bsiflx2000,bsiflx4000,calflx_bot,calflx0100,calflx0500,            &
                                 calflx1000,calflx2000,calflx4000,carflx_bot,carflx0100,            &
                                 carflx0500,carflx1000,carflx2000,carflx4000,                       &
+                                dustflx_bot,dustflx0100,                                           &
+                                dustflx0500,dustflx1000,dustflx2000,dustflx4000,                   &
                                 expoca,expoor,exposi,intdms_bac,intdms_uv,intdmsprod,              &
                                 intdnit,intnfix,intphosy,phosy3d,                                  &
                                 int_chbr3_prod,int_chbr3_uv,asize3d,eps3d,wnumb,wmass,             &
@@ -63,6 +65,8 @@ contains
                                 jcalflx1000,jcalflx2000,jcalflx4000,                               &
                                 jcalflx_bot,jcarflx0100,jcarflx0500,                               &
                                 jcarflx1000,jcarflx2000,jcarflx4000,jcarflx_bot,                   &
+                                jdustflx0100,jdustflx0500,                                         &
+                                jdustflx1000,jdustflx2000,jdustflx4000,jdustflx_bot,               &
                                 jsediffic,jsediffal,jsediffph,jsediffox,                           &
                                 jburflxsso12,jburflxsssc12,jburflxssssil,jburflxssster,            &
                                 jsediffn2,jsediffno3,jsediffsi,jco2flux,                           &
@@ -126,9 +130,10 @@ contains
                                 jsdm_denit_NO3,jsdm_denit_NO2,jsdm_denit_N2O,jsdm_DNRA_NO2,        &
                                 jsdm_anmx_N2_prod,jsdm_anmx_OM_prod,jsdm_remin_aerob,              &
                                 jsdm_remin_sulf,jsediffnh4,jsediffn2o,jsediffno2,jatmn2o,jatmnh3,  &
-                                jndepnhxfx
+                                jndepnhxfx,jshelfage,jlvlshelfage
     use mo_control_bgc,   only: io_stdo_bgc,dtb,use_BROMO,use_AGG,use_WLIN,use_natDIC,             &
-                                use_CFC,use_sedbypass,use_cisonew,use_BOXATM,use_M4AGO,use_extNcycle
+                                use_CFC,use_sedbypass,use_cisonew,use_BOXATM,use_M4AGO,            &
+                                use_extNcycle,use_pref_tracers,use_shelfsea_res_time
     use mo_param1_bgc,    only: ialkali,ian2o,iano3,iatmco2,iatmdms,iatmn2,iatmn2o,iatmo2,         &
                                 icalc,idet,idms,idicsat,idoc,iiron,iopal,                          &
                                 ioxygen,iphosph,iphy,iprefalk,iprefdic,                            &
@@ -141,7 +146,7 @@ contains
                                 ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,                           &
                                 ipown2,ipowno3,isssc12,issso12,issssil,issster,                    &
                                 issso12,isssc12,issssil,issster,iprefsilica,iatmnh3,ianh4,iano2,   &
-                                ipownh4,ipown2o,ipowno2
+                                ipownh4,ipown2o,ipowno2,ishelfage
     use mo_sedmnt,        only: powtra,sedlay,burial
     use mo_vgrid,         only: dp_min
     use mo_inventory_bgc, only: inventory_bgc
@@ -336,21 +341,27 @@ contains
       call accsrf(jcarflx0100,carflx0100,omask,0)
       call accsrf(jbsiflx0100,bsiflx0100,omask,0)
       call accsrf(jcalflx0100,calflx0100,omask,0)
+      call accsrf(jdustflx0100,dustflx0100,omask,0)
       call accsrf(jcarflx0500,carflx0500,omask,0)
       call accsrf(jbsiflx0500,bsiflx0500,omask,0)
       call accsrf(jcalflx0500,calflx0500,omask,0)
+      call accsrf(jdustflx0500,dustflx0500,omask,0)
       call accsrf(jcarflx1000,carflx1000,omask,0)
       call accsrf(jbsiflx1000,bsiflx1000,omask,0)
       call accsrf(jcalflx1000,calflx1000,omask,0)
+      call accsrf(jdustflx1000,dustflx1000,omask,0)
       call accsrf(jcarflx2000,carflx2000,omask,0)
       call accsrf(jbsiflx2000,bsiflx2000,omask,0)
       call accsrf(jcalflx2000,calflx2000,omask,0)
+      call accsrf(jdustflx2000,dustflx2000,omask,0)
       call accsrf(jcarflx4000,carflx4000,omask,0)
       call accsrf(jbsiflx4000,bsiflx4000,omask,0)
       call accsrf(jcalflx4000,calflx4000,omask,0)
+      call accsrf(jdustflx4000,dustflx4000,omask,0)
       call accsrf(jcarflx_bot,carflx_bot,omask,0)
       call accsrf(jbsiflx_bot,bsiflx_bot,omask,0)
       call accsrf(jcalflx_bot,calflx_bot,omask,0)
+      call accsrf(jdustflx_bot,dustflx_bot,omask,0)
     endif
 
     if (.not. use_sedbypass) then
@@ -394,12 +405,17 @@ contains
     call acclyr(jomegac,OmegaC,pddpo,1)
     call acclyr(jphosy,phosy3d,pddpo,1)
     call acclyr(jo2sat,satoxy,pddpo,1)
-    call acclyr(jprefo2,ocetra(1,1,1,iprefo2),pddpo,1)
-    call acclyr(jprefpo4,ocetra(1,1,1,iprefpo4),pddpo,1)
-    call acclyr(jprefsilica,ocetra(1,1,1,iprefsilica),pddpo,1)
-    call acclyr(jprefalk,ocetra(1,1,1,iprefalk),pddpo,1)
-    call acclyr(jprefdic,ocetra(1,1,1,iprefdic),pddpo,1)
     call acclyr(jdicsat,ocetra(1,1,1,idicsat),pddpo,1)
+    if (use_pref_tracers) then
+      call acclyr(jprefo2,ocetra(1,1,1,iprefo2),pddpo,1)
+      call acclyr(jprefpo4,ocetra(1,1,1,iprefpo4),pddpo,1)
+      call acclyr(jprefsilica,ocetra(1,1,1,iprefsilica),pddpo,1)
+      call acclyr(jprefalk,ocetra(1,1,1,iprefalk),pddpo,1)
+      call acclyr(jprefdic,ocetra(1,1,1,iprefdic),pddpo,1)
+    endif
+    if (use_shelfsea_res_time) then
+      call acclyr(jshelfage,ocetra(1,1,1,ishelfage),pddpo,1)
+    endif
     if (use_natDIC) then
       call acclyr(jnatalkali,ocetra(1,1,1,inatalkali),pddpo,1)
       call acclyr(jnatdic,ocetra(1,1,1,inatsco212),pddpo,1)
@@ -475,7 +491,7 @@ contains
          &  jlvlano3+jlvlalkali+jlvlsilica+jlvldic+jlvldoc+jlvlpoc+jlvlcalc+ &
          &  jlvlopal+jlvln2o+jlvlco3+jlvlph+jlvlomegaa+jlvlomegac+jlvlphosy+ &
          &  jlvlo2sat+jlvlprefo2+jlvlprefpo4+jlvlprefalk+jlvlprefdic+        &
-         &  jlvlprefsilica+                                                  &
+         &  jlvlprefsilica+jlvlshelfage+                                     &
          &  jlvldicsat+jlvlnatdic+jlvlnatalkali+jlvlnatcalc+jlvlnatco3+      &
          &  jlvlnatomegaa+jlvlnatomegac+jlvldic13+jlvldic14+jlvld13c+        &
          &  jlvld14c+jlvlbigd14c+jlvlpoc13+jlvldoc13+jlvlcalc13+jlvlphyto13+ &
@@ -511,12 +527,17 @@ contains
         call acclvl(jlvlomegac,OmegaC,k,ind1,ind2,wghts)
         call acclvl(jlvlphosy,phosy3d,k,ind1,ind2,wghts)
         call acclvl(jlvlo2sat,satoxy,k,ind1,ind2,wghts)
-        call acclvl(jlvlprefo2,ocetra(1,1,1,iprefo2),k,ind1,ind2,wghts)
-        call acclvl(jlvlprefpo4,ocetra(1,1,1,iprefpo4),k,ind1,ind2,wghts)
-        call acclvl(jlvlprefsilica,ocetra(1,1,1,iprefsilica),k,ind1,ind2,wghts)
-        call acclvl(jlvlprefalk,ocetra(1,1,1,iprefalk),k,ind1,ind2,wghts)
-        call acclvl(jlvlprefdic,ocetra(1,1,1,iprefdic),k,ind1,ind2,wghts)
         call acclvl(jlvldicsat,ocetra(1,1,1,idicsat),k,ind1,ind2,wghts)
+        if (use_pref_tracers) then
+          call acclvl(jlvlprefo2,ocetra(1,1,1,iprefo2),k,ind1,ind2,wghts)
+          call acclvl(jlvlprefpo4,ocetra(1,1,1,iprefpo4),k,ind1,ind2,wghts)
+          call acclvl(jlvlprefsilica,ocetra(1,1,1,iprefsilica),k,ind1,ind2,wghts)
+          call acclvl(jlvlprefalk,ocetra(1,1,1,iprefalk),k,ind1,ind2,wghts)
+          call acclvl(jlvlprefdic,ocetra(1,1,1,iprefdic),k,ind1,ind2,wghts)
+        endif
+        if (use_shelfsea_res_time) then
+          call acclvl(jlvlshelfage,ocetra(1,1,1,ishelfage),k,ind1,ind2,wghts)
+        endif
         if (use_natDIC) then
           call acclvl(jlvlnatdic,ocetra(1,1,1,inatsco212),k,ind1,ind2,wghts)
           call acclvl(jlvlnatalkali,ocetra(1,1,1,inatalkali),k,ind1,ind2,wghts)

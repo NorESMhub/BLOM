@@ -33,7 +33,7 @@ module mod_tmsmt
                            lp, iu, iv, ip, isv, ifv, isv, ilv, nbdy
   use mod_types,     only: r8
   use mod_constants, only: epsilp, spval
-  use mod_vcoord,    only: vcoord_type_tag, isopyc_bulkml
+  use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml
   use mod_state,     only: dp, dpu, dpv, temp, saln, p, pb
   use mod_checksum,  only: csdiag, chksummsk
   use mod_tracers,   only: ntr, trc, trcold
@@ -332,7 +332,7 @@ contains
     end do
     !$omp end parallel do
 
-    if (vcoord_type_tag == isopyc_bulkml) then
+    if (vcoord_tag == vcoord_isopyc_bulkml) then
 
       call xctilr(dp(1-nbdy,1-nbdy,k1m), 1,kk, 3,3, halo_ps)
 

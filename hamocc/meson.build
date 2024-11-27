@@ -30,6 +30,8 @@ sources += files(
   'mo_read_ndep.F90',
   'mo_read_pi_ph.F90',
   'mo_read_rivin.F90',
+  'mo_read_shelfmask.F90',
+  'mo_shelfsea_restime.F90',
   'mo_read_oafx.F90',
   'mo_read_sedpor.F90',
   'mo_sedmnt.F90',

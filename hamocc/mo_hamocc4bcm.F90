@@ -28,7 +28,7 @@ contains
   subroutine hamocc4bcm(kpie,kpje,kpke,kbnd,kplyear,kplmon,kplday,kldtday,pdlxp,pdlyp,pddpo,prho,  &
                         pglat,omask, dust,rivin,ndep,oafx,pi_ph,pfswr,psicomo,ppao,pfu10,ptho,psao,&
                         patmco2,pflxco2,pflxdms,patmbromo,pflxbromo,                               &
-                        patmn2o,pflxn2o,patmnh3,pflxnh3)
+                        patmn2o,pflxn2o,patmnh3,pflxnh3,shelfmask)
 
     !***********************************************************************************************
     ! Main routine of iHAMOCC.
@@ -55,7 +55,8 @@ contains
                                 do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,               &
                                 use_BROMO, use_CFC, use_PBGC_CK_TIMESTEP,                          &
                                 use_BOXATM, use_sedbypass,ocn_co2_type,                            &
-                                do_n2onh3_coupled,use_extNcycle
+                                do_n2onh3_coupled,use_extNcycle,use_pref_tracers,                  &
+                                use_shelfsea_res_time
     use mo_param1_bgc,    only: iatmco2,iatmdms,nocetra,nriv,iatmbromo,nndep,iatmn2o,iatmnh3
     use mo_vgrid,         only: set_vgrid
     use mo_apply_fedep,   only: apply_fedep
@@ -72,6 +73,7 @@ contains
     use mo_ocprod,        only: ocprod
     use mo_carchm,        only: carchm
     use mo_chemcon,       only: mw_nh3,mw_n2o
+    use mo_shelfsea_restime,only: shelfsea_residence_time
 
     ! Arguments
     integer, intent(in)  :: kpie                                            ! 1st dimension of model grid.
@@ -108,6 +110,7 @@ contains
     real,    intent(out) :: pflxn2o(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! Nitrous oxide flux [kg N2O m-2 s-1].
     real,    intent(in)  :: patmnh3(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! atmospheric ammonia concentration [ppt] used in fully coupled mode
     real,    intent(out) :: pflxnh3(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! Ammonia flux [kg NH3 m-2 s-1].
+    logical, intent(in)  :: shelfmask(kpie,kpje)                            ! mask for shelf sea regions (1=shelf, 0 elsewhere)
 
     ! Local variables
     integer :: i,j,k,l
@@ -309,8 +312,15 @@ contains
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
 
-    ! update preformed tracers
-    call preftrc(kpie,kpje,omask)
+    if (use_pref_tracers) then
+      ! update preformed tracers
+      call preftrc(kpie,kpje,omask)
+    endif
+
+    if (use_shelfsea_res_time) then
+      ! Update shelf sea residence time tracer
+      call shelfsea_residence_time(kpie,kpje,kpke,pddpo,shelfmask,omask)
+    endif
 
     !--------------------------------------------------------------------
     !     Sediment module

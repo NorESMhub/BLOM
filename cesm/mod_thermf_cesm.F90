@@ -25,7 +25,7 @@ module mod_thermf_cesm
                            nday_of_year, baclin, &
                            xmi, l1mi, l2mi, l3mi, l4mi, l5mi
   use mod_xc
-  use mod_vcoord,    only: vcoord_type_tag, isopyc_bulkml
+  use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml
   use mod_grid,      only: scp2, area
   use mod_state,     only: dp, temp, saln, p
   use mod_swtfrz,    only: swtfrz
@@ -211,7 +211,7 @@ contains
                       ricclm(i,j,l3mi),ricclm(i,j,l4mi), ricclm(i,j,l5mi),xmi)
                sstc = (1.-rice)*max(sstc,tice_f)+rice*tice_f
             end if
-            if (vcoord_type_tag == isopyc_bulkml) then
+            if (vcoord_tag == vcoord_isopyc_bulkml) then
               dpmxl = dp(i,j,1+nn)+dp(i,j,2+nn)
               hmxl = dpmxl/onem
               tmxl = (temp(i,j,1+nn)*dp(i,j,1+nn) + temp(i,j,2+nn)*dp(i,j,2+nn))/dpmxl+t0deg
@@ -267,7 +267,7 @@ contains
                sssc = intp1d(sssclm(i,j,l1mi),sssclm(i,j,l2mi), &
                       sssclm(i,j,l3mi),sssclm(i,j,l4mi),sssclm(i,j,l5mi),xmi)
             end if
-            if (vcoord_type_tag == isopyc_bulkml) then
+            if (vcoord_tag == vcoord_isopyc_bulkml) then
               dpmxl = dp(i,j,1+nn)+dp(i,j,2+nn)
               hmxl = dpmxl/onem
               smxl = (saln(i,j,1+nn)*dp(i,j,1+nn) + saln(i,j,2+nn)*dp(i,j,2+nn))/dpmxl
@@ -427,7 +427,7 @@ contains
       call chksummsk(ustar,ip,1,'ustar')
       call chksummsk(frzpot,ip,1,'frzpot')
       call chksummsk(mltpot,ip,1,'mltpot')
-      if (vcoord_type_tag /= isopyc_bulkml) then
+      if (vcoord_tag /= vcoord_isopyc_bulkml) then
         call chksummsk(t_rs_nonloc, ip, kk+1, 't_rs_nonloc')
         call chksummsk(s_rs_nonloc, ip, kk+1, 's_rs_nonloc')
       end if

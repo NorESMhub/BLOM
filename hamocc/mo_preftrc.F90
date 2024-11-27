@@ -32,7 +32,7 @@ contains
     ! Preformed tracers are set to the value of their full counterparts in the mixed layer.
     !
     ! J. Tjiputra, J.Schwinger,    *BCCR, Bergen*   2015-01-23
-	!
+    !
     ! Modified
     ! J.Tjiputra,       *Uni Research, Bergen*   2018-04-12
     !  - added preformed DIC tracer
@@ -43,16 +43,16 @@ contains
     use mo_vgrid,      only: kmle
 
     ! Arguments
-    integer :: kpie ! 1st dimension of model grid.
-    integer :: kpje ! 2nd dimension of model grid.
-    real    :: omask(kpie,kpje)
+    integer, intent(in) :: kpie ! 1st dimension of model grid.
+    integer, intent(in) :: kpje ! 2nd dimension of model grid.
+    real,    intent(in) :: omask(kpie,kpje) ! land-ocean mask
 
     ! Local variables
     integer :: i,j
 
     do j=1,kpje
       do i=1,kpie
-        if (omask(i,j) .gt. 0.5 ) then
+        if (omask(i,j) > 0.5 ) then
           ocetra(i,j,1:kmle(i,j),iprefo2)  = ocetra(i,j,1:kmle(i,j),ioxygen)
           ocetra(i,j,1:kmle(i,j),iprefpo4) = ocetra(i,j,1:kmle(i,j),iphosph)
           ocetra(i,j,1:kmle(i,j),iprefsilica)= ocetra(i,j,1:kmle(i,j),isilica)

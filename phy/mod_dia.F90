@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2010-2023 Ingo Bethke, Mats Bentsen, Mehmet Ilicak,
+! Copyright (C) 2010-2024 Ingo Bethke, Mats Bentsen, Mehmet Ilicak,
 !                         Alok Kumar Gupta, Jörg Schwinger, Ping-Gin Chi,
 !                         Mariana Vertenstein
 !
@@ -35,11 +35,10 @@ module mod_dia
                            xceget, xctilr, xcsum, &
                            isp, ifp, ilp, isu, ifu, ilu, isv, ifv, ilv, &
                            isu, ifu, ilu, isv, ip, halo_ps, ipwocn, &
-                           iu, iv, nfu, ips, halo_qs, halo_uv, halo_vv
+                           iu, iv, ips, halo_qs, halo_uv, halo_vv
   use mod_nctools
   use netcdf,        only: nf90_fill_double
-  use mod_vcoord,    only: vcoord_type_tag, isopyc_bulkml, &
-                           cntiso_hybrid, sigmar
+  use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml, sigmar
   use mod_grid,      only: scp2, depths, area
   use mod_eos,       only: rho, p_alpha
   use mod_state,     only: u, v, dp, dpu, dpv, temp, saln, sigma, &
@@ -1154,8 +1153,8 @@ contains
     end if
 
     if (sum(acc_mld(1:nphy)+acc_maxmld(1:nphy)) /= 0) then
-      select case (vcoord_type_tag)
-        case (isopyc_bulkml)
+      select case (vcoord_tag)
+        case (vcoord_isopyc_bulkml)
           !$omp parallel do private(l,i)
           do j = 1,jj
             do l = 1,isp(j)
@@ -1165,7 +1164,7 @@ contains
             end do
           end do
           !$omp end parallel do
-        case (cntiso_hybrid)
+        case default
           !$omp parallel do private(l,i)
           do j = 1,jj
             do l = 1,isp(j)
@@ -1175,10 +1174,6 @@ contains
             end do
           end do
           !$omp end parallel do
-        case default
-          write (lp,*) 'diaacc: unsupported vertical coordinate!'
-          call xcstop('(diaacc)')
-          stop '(diaacc)'
       end select
     end if
 
@@ -1649,16 +1644,20 @@ contains
     ! isopycnal diffusivity [cm^2/s*g/cm/s^2]
     call acclyr(ACC_DIFISO,difiso,dp(1-nbdy,1-nbdy,k1m),1,'p')
 
-    ! vertical diffusivity (vcoord_type_tag == isopyc_bulkml) [cm^2/s*g/cm/s^2]
+    ! vertical diffusivity (vcoord == 'isopyc_bulkml')
+    ! [cm^2/s*g/cm/s^2]
     call acclyr(ACC_DIFDIA,difdia,dp(1-nbdy,1-nbdy,k1m),1,'p')
 
-    ! vertical momentum diffusivity (vcoord_type_tag == cntiso_hybrid) [cm^2/s*g/cm/s^2]
+    ! vertical momentum diffusivity (vcoord /= 'isopyc_bulkml')
+    ! [cm^2/s*g/cm/s^2]
     call accily(ACC_DIFVMO,Kvisc_m,dp(1-nbdy,1-nbdy,k1m),1,'p')
 
-    ! vertical heat diffusivity (vcoord_type_tag == cntiso_hybrid) [cm^2/s*g/cm/s^2]
+    ! vertical heat diffusivity (vcoord /= 'isopyc_bulkml')
+    ! [cm^2/s*g/cm/s^2]
     call accily(ACC_DIFVHO,Kdiff_t,dp(1-nbdy,1-nbdy,k1m),1,'p')
 
-    ! vertical salt diffusivity (vcoord_type_tag == cntiso_hybrid) [cm^2/s*g/cm/s^2]
+    ! vertical salt diffusivity (vcoord /= 'isopyc_bulkml')
+    ! [cm^2/s*g/cm/s^2]
     call accily(ACC_DIFVSO,Kdiff_s,dp(1-nbdy,1-nbdy,k1m),1,'p')
 
     ! absolute vorticity multiplied with potential density difference
@@ -1846,17 +1845,19 @@ contains
         ! isopycnal diffusivity [cm^2/s]
         call acclvl(ACC_DIFISOLVL,difiso,'p',k,ind1,ind2,wghts)
 
-        ! vertical diffusivity (vcoord_type_tag == isopyc_bulkml) [cm^2/s]
+        ! vertical diffusivity (vcoord == 'isopyc_bulkml') [cm^2/s]
         call acclvl(ACC_DIFDIALVL,difdia,'p',k,ind1,ind2,wghts)
 
-        ! vertical momentum diffusivity (vcoord_type_tag == cntiso_hybrid)
+        ! vertical momentum diffusivity (vcoord /= 'isopyc_bulkml')
         ! [cm^2/s]
         call accilv(ACC_DIFVMOLVL,Kvisc_m,'p',k,ind1,ind2,wghts)
 
-        ! vertical heat diffusivity (vcoord_type_tag == cntiso_hybrid) [cm^2/s]
+        ! vertical heat diffusivity (vcoord /= 'isopyc_bulkml')
+        ! [cm^2/s]
         call accilv(ACC_DIFVHOLVL,Kdiff_t,'p',k,ind1,ind2,wghts)
 
-        ! vertical salt diffusivity (vcoord_type_tag == cntiso_hybrid) [cm^2/s]
+        ! vertical salt diffusivity (vcoord /= 'isopyc_bulkml')
+        ! [cm^2/s]
         call accilv(ACC_DIFVSOLVL,Kdiff_s,'p',k,ind1,ind2,wghts)
 
         ! potential vorticity [s m-2]
@@ -3354,8 +3355,7 @@ contains
     integer :: iogrp
 
     ! Local variables
-    integer       :: n,i,j,k,s,l
-    integer       :: iostatus
+    integer       :: nfu,iostatus,n,i,j,k,s,l
     integer, save :: nsi(max_sec)
     integer, save :: isi(max_sec,sdm)
     integer, save :: jsi(max_sec,sdm)
@@ -3376,7 +3376,7 @@ contains
     if (iniflg) then
       if (mnproc == 1) then
         equat_sec = -1
-        open(nfu,file=sec_sifile,status = 'old')
+        open(newunit=nfu,file=sec_sifile,status = 'old')
         sec_num = 0
         do
           read(nfu,'(a120)',iostat = iostatus) char120
@@ -3503,7 +3503,7 @@ contains
     integer, intent(in) :: iogrp
 
     ! Local variables
-    integer :: ncid,dimid,varid,i,j,k,l,m,n,o,s,ocn_nreg,iostatus
+    integer :: ncid,dimid,varid,i,j,k,l,m,n,o,s,ocn_nreg,nfu,iostatus
     integer :: istat,iind1,jind1,uflg1,vflg1,nind1
     integer :: nfld,ACC_UIND,ACC_VIND,nind(ldm),iind(sdm,ldm),jind(sdm,ldm)
     integer :: kmxl(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy)
@@ -3540,7 +3540,7 @@ contains
         call ncerro(nf90_close(ncid))
 
         ! Read section file metra_index.dat
-        open(nfu,file=mer_mifile,status = 'old')
+        open(newunit=nfu,file=mer_mifile,status = 'old')
         lmax = 0
         do l = 1,ldm
           c20 = ' '

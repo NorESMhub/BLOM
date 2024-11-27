@@ -28,7 +28,7 @@ module mod_restart
    use mod_time,           only: date0, date, nday1, nstep0, nstep1, nstep, time, time0, &
                                  nstep_in_day, nday_of_year, calendar
    use mod_xc
-   use mod_vcoord,         only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid, sigmar
+   use mod_vcoord,         only: vcoord_tag, vcoord_isopyc_bulkml, sigmar
    use mod_inicon,         only: icfile
    use mod_state,          only: u, v, dp, dpu, dpv, temp, saln, sigma, uflx, vflx, &
                                  utflx, vtflx, usflx, vsflx, phi, ubflxs, vbflxs, &
@@ -92,7 +92,9 @@ module mod_restart
                                  usflld, utflsm, usflld, utflld, umfltd, usflld, &
                                  vmflsm, vsfltd, vtflld, vsflsm, vtfltd, &
                                  vsflld, vtflsm, vsflld, vtflld, vmfltd, vsflld
-   use mod_eddtra,         only: hbl_tf, wpup_tf, hml_tf1, hml_tf
+   use mod_eddtra,         only: tau_growing_hbl, tau_decaying_hbl, &
+                                 tau_growing_hml, tau_decaying_hml, &
+                                 hbl_tf, wpup_tf, hml_tf1, hml_tf
    use mod_cesm,           only: frzpot, mltpot, swa_da, nsf_da, hmlt_da, lip_da, &
                                  sop_da, eva_da, rnf_da, rfi_da, fmltfz_da, sfl_da, &
                                  ztx_da, mty_da, ustarw_da, slp_da, abswnd_da, &
@@ -338,7 +340,7 @@ contains
       call defwrtfld('ficem', trim(c5p)//' time', &
                       ficem, ip, defmode)
 
-      if (vcoord_type_tag == isopyc_bulkml) then
+      if (vcoord_tag == vcoord_isopyc_bulkml) then
          call defwrtfld('buoyfl', trim(c5p)//' time', &
                          buoyfl, ip, defmode)
          call defwrtfld('uml', trim(c5u)//' k4 time', &
@@ -351,7 +353,7 @@ contains
                          vmlres, ivv, defmode)
       endif
 
-      if (vcoord_type_tag == cntiso_hybrid) then
+      if (vcoord_tag /= vcoord_isopyc_bulkml) then
          call defwrtfld('dpu', trim(c5u)//' kk2 time', &
                          dpu, iu, defmode)
          call defwrtfld('dpv', trim(c5v)//' kk2 time', &
@@ -382,14 +384,18 @@ contains
                          vsflsm, ivv, defmode)
          call defwrtfld('wstar3', trim(c5p)//' time', &
                          wstar3, ip, defmode)
-         call defwrtfld('hbl_tf', trim(c5p)//' time', &
-                         hbl_tf, ip, defmode)
-         call defwrtfld('wpup_tf', trim(c5p)//' time', &
-                         wpup_tf, ip, defmode)
-         call defwrtfld('hml_tf1', trim(c5p)//' time', &
-                         hml_tf1, ip, defmode)
-         call defwrtfld('hml_tf', trim(c5p)//' time', &
-                         hml_tf, ip, defmode)
+         if (tau_growing_hbl > 0._r8 .or. tau_decaying_hbl > 0._r8) then
+            call defwrtfld('hbl_tf', trim(c5p)//' time', &
+                            hbl_tf, ip, defmode)
+            call defwrtfld('wpup_tf', trim(c5p)//' time', &
+                            wpup_tf, ip, defmode)
+            call defwrtfld('hml_tf1', trim(c5p)//' time', &
+                            hml_tf1, ip, defmode)
+         endif
+         if (tau_growing_hml > 0._r8 .or. tau_decaying_hml > 0._r8) then
+            call defwrtfld('hml_tf', trim(c5p)//' time', &
+                            hml_tf, ip, defmode)
+         endif
       endif
 
       if (sprfac) then
@@ -1031,7 +1037,7 @@ contains
    ! Write model state to restart files.
    ! ---------------------------------------------------------------------------
 
-      integer :: i, j, n
+      integer :: nfu, i, j, n
       character(len = 256), dimension(4) :: rstdate_str
       character(len = 256) :: rstfnm, fnm
       character(len = 2) :: c2
@@ -1058,7 +1064,7 @@ contains
                  trim(runid), '_restphy_', &
                  mod(nint(min(nstep/rstfrq, time)) - 1, 3) + 1, '.nc'
            endif
-           open(unit = nfu, file = 'rstdate.txt')
+           open(newunit = nfu, file = 'rstdate.txt')
            i = 1
  300       read(nfu, '(a)', end = 301) rstdate_str(i)
            i = i + 1
@@ -1070,12 +1076,12 @@ contains
               ', integration day ', nint(time)
            if (mnproc == 1) then
               if (i == 1) then
-                 open(unit = nfu, file = 'rstdate.txt')
+                 open(newunit = nfu, file = 'rstdate.txt')
                  write(nfu, '(a)') rstdate_str(1)(1:len_trim(runid) + 54)
                  close(unit = nfu)
               elseif (rstdate_str(max(1, i - 2)) /= rstdate_str(i) .and. &
                       rstdate_str(i - 1       ) /= rstdate_str(i)) then
-                 open(unit = nfu, file = 'rstdate.txt')
+                 open(newunit = nfu, file = 'rstdate.txt')
                  do j = max(1, i - 2), i
                     write(nfu, '(a)') rstdate_str(j)(1:len_trim(runid) + 54)
                  enddo
@@ -1259,7 +1265,7 @@ contains
       if (expcnf == 'cesm' .or. expcnf == 'channel') then
          ! Write restart filename to rpointer.ocn.
          if (mnproc == 1) then
-            open(unit = nfu, file = 'rpointer.ocn'//trim(inst_suffix))
+            open(newunit = nfu, file = 'rpointer.ocn'//trim(inst_suffix))
             write(nfu, '(a)') rstfnm
             close(unit = nfu)
          endif
@@ -1273,7 +1279,7 @@ contains
    ! ---------------------------------------------------------------------------
 
       type(date_type) :: date_rest
-      integer errstat, dndiff, i, j, l, n
+      integer :: nfu, errstat, dndiff, i, j, l, n
       character(len = 256) :: rstfnm, fnm
       character(len = 2) :: c2
       real(r8) :: pb_max, phi_min, rho_restart
@@ -1309,7 +1315,7 @@ contains
          call xcbcst(file_exist)
          if (file_exist) then
             if (mnproc == 1) then
-               open(unit = nfu, file = 'rpointer.ocn'//trim(inst_suffix))
+               open(newunit = nfu, file = 'rpointer.ocn'//trim(inst_suffix))
                read(nfu, '(a)') rstfnm
                close(unit = nfu)
             endif
@@ -1537,7 +1543,7 @@ contains
       call readfld('kfpla', no_unitconv, rkfpla, ip)
       call readfld('ficem', no_unitconv, ficem, ip)
 
-      if (vcoord_type_tag == isopyc_bulkml) then
+      if (vcoord_tag == vcoord_isopyc_bulkml) then
          call readfld('buoyfl', l2_unitconv, buoyfl, ip)
          call readfld('uml', l_unitconv, uml, iuu, required = .false.)
          call readfld('vml', l_unitconv, vml, ivv, required = .false.)
@@ -1545,7 +1551,7 @@ contains
          call readfld('vmlres', l_unitconv, vmlres, ivv, required = .false.)
       endif
 
-      if (vcoord_type_tag == cntiso_hybrid) then
+      if (vcoord_tag /= vcoord_isopyc_bulkml) then
          call readfld('dpu', p_unitconv, dpu, iu)
          call readfld('dpv', p_unitconv, dpv, iv)
          call readfld('difiso', l2_unitconv, difiso, ip)
@@ -1560,11 +1566,11 @@ contains
          call readfld('vmflsm', lm_unitconv, vmflsm, ivv)
          call readfld('vtflsm', lm_unitconv, vtflsm, ivv)
          call readfld('vsflsm', lm_unitconv, vsflsm, ivv)
-         call readfld('wstar3', l3_unitconv, wstar3, ip)
-         call readfld('hbl_tf', l_unitconv, hbl_tf, ip)
-         call readfld('wpup_tf', l2_unitconv, wpup_tf, ip)
-         call readfld('hml_tf1', l_unitconv, hml_tf1, ip)
-         call readfld('hml_tf', l_unitconv, hml_tf, ip)
+         call readfld('wstar3', l3_unitconv, wstar3, ip, required = .false.)
+         call readfld('hbl_tf', l_unitconv, hbl_tf, ip, required = .false.)
+         call readfld('wpup_tf', l2_unitconv, wpup_tf, ip, required = .false.)
+         call readfld('hml_tf1', l_unitconv, hml_tf1, ip, required = .false.)
+         call readfld('hml_tf', l_unitconv, hml_tf, ip, required = .false.)
       endif
 
       if (sprfac) then

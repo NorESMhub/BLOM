@@ -83,7 +83,8 @@ def buildnml(case, caseroot, compname):
     hamocc_extncycle          = case.get_value("HAMOCC_EXTNCYCLE")
     hamocc_n2oc               = case.get_value("HAMOCC_N2OC")
     hamocc_atmndepc           = case.get_value("HAMOCC_ATMNDEPC")
-    hamocc_m4ago              = case.get_value("HAMOCC_M4AGO")
+    hamocc_sinking_scheme     = case.get_value("HAMOCC_SINKING_SCHEME")
+    hamocc_shelf_res_time     = case.get_value("HAMOCC_SHELFSEA_RES_TIME")
     hamocc_sedbypass          = case.get_value("HAMOCC_SEDBYPASS")
     hamocc_sedspinup          = case.get_value("HAMOCC_SEDSPINUP")
     hamocc_sedspinup_yr_start = case.get_value("HAMOCC_SEDSPINUP_YR_START")
@@ -192,7 +193,6 @@ def buildnml(case, caseroot, compname):
         config["hamocc_extncycle"] = "yes" if hamocc_extncycle else "no"
         config["hamocc_n2oc"] = "yes" if hamocc_n2oc else "no"
         config["hamocc_atmndepc"] = "yes" if hamocc_atmndepc else "no"
-        config["hamocc_m4ago"] = "yes" if hamocc_m4ago else "no"
         config["hamocc_sedbypass"] = "yes" if hamocc_sedbypass else "no"
         config["hamocc_sedspinup"] = "yes" if hamocc_sedspinup else "no"
         config["hamocc_sedspinup_yr_start"] = hamocc_sedspinup_yr_start
@@ -200,10 +200,31 @@ def buildnml(case, caseroot, compname):
         config["hamocc_sedspinup_ncycle"] = hamocc_sedspinup_ncycle
         config["is_test"] = "yes" if is_test else "no"
         config["comp_interface"] = comp_interface
+        config["hamocc_shelf_res_time"] = "yes" if hamocc_shelf_res_time else "no"
 
-        # TODO: the following needs to have new ways to turn this to "yes"
-        config["use_agg"] = "no"
-        config["use_wlin"] = "yes"
+        # Set the sinking scheme in iHAMOCC 
+        # Note: the following part requires to have set options for no/yes 
+        # in the namelist_definition_blom.xml for the 'use_XXX' switches
+        if hamocc_sinking_scheme == 'WLIN': # current default
+           config['use_wlin']  = 'yes'
+           config['use_agg']   = 'no'
+           config['use_m4ago'] = 'no'
+        elif hamocc_sinking_scheme == 'M4AGO':
+           config['use_wlin']  = 'no'
+           config['use_agg']   = 'no'
+           config['use_m4ago'] = 'yes'
+        elif hamocc_sinking_scheme == 'AGG':
+           config['use_wlin']  = 'no'
+           config['use_agg']   = 'yes'
+           config['use_m4ago'] = 'no'
+        elif hamocc_sinking_scheme == 'CONST': 
+           # if all options are 'no' iHAMOCC falls back to constant sinking velocities
+           config['use_wlin']  = 'no'
+           config['use_agg']   = 'no'
+           config['use_m4ago'] = 'no'
+        else: # likely doesn't enter here due to previous cime checkings for available options
+           print('Unknown sinking scheme option in BLOM buildnml- exit now')
+           exit
 
         if is_test:
             testcase = case.get_value("TESTCASE")
@@ -262,6 +283,7 @@ def buildnml(case, caseroot, compname):
 
         if case.get_value("BLOM_VCOORD") == "cntiso_hybrid":
             groups.append('vcoord')
+            groups.append('ale_regrid_remap')
 
         if "ecosys" in case.get_value("BLOM_TRACER_MODULES"):
             groups.append("bgcnml")
@@ -321,21 +343,6 @@ def buildnml(case, caseroot, compname):
                 else:
                     fwrite.write(line)
     shutil.move(namelist_file_temp, namelist_file)
-
-    # change xml variable settings if appropriate
-    # Note - this does not change the blom namelist - it changes xml variables that are then
-    # used by cmeps to change attributes that are sent to the atm
-    # TODO: add n2o_emis and nh3_emis logic
-    if comp_interface == "nuopc":
-        if "ecosys" in case.get_value("BLOM_TRACER_MODULES"):
-            dms_emis = case.get_value("DMS_EMIS_OCN")
-            if dms_emis is not None:
-                case.set_value('DMS_EMIS_OCN','TRUE')
-                print ("   ***Setting DMS_EMIS_OCN to TRUE***")
-            brf_emis = pg_blom.get_value('use_bromo')
-            if brf_emis == ".true.":
-                case.set_value('BRF_EMIS_OCN','TRUE')
-                print ("   ***Setting BRF_EMIS_OCN to TRUE***")
 
 ###############################################################################
 def _main_func():

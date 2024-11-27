@@ -77,10 +77,13 @@ contains
                                 dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma,                     &
                                 fbro1,fbro2,atten_f,atten_c,atten_uv,atten_w,bkopal,bkphy,bkzoo,   &
                                 POM_remin_q10,POM_remin_Tref,opal_remin_q10,opal_remin_Tref,       &
-                                bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo
+                                bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo,max_limiter,         &
+                                O2thresh_aerob,O2thresh_hypoxic,NO3thresh_sulf
     use mo_biomod,        only: bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,bsiflx_bot, &
                                 calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot, &
                                 carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,carflx_bot, &
+                                dustflx0100,dustflx0500,dustflx1000,dustflx2000,dustflx4000,       &
+                                dustflx_bot,                                                       &
                                 expoor,exposi,expoca,intdnit,intdms_bac,intdmsprod,intdms_uv,      &
                                 intphosy,int_chbr3_prod,int_chbr3_uv,                              &
                                 phosy3d,abs_oce,strahl,asize3d,wmass,wnumb,eps3d,phosy_NH4,        &
@@ -94,7 +97,7 @@ contains
     use mo_control_bgc,   only: dtb,io_stdo_bgc,with_dmsph,                                        &
                                 use_BROMO,use_AGG,use_PBGC_OCNP_TIMESTEP,use_FB_BGC_OCE,           &
                                 use_AGG,use_cisonew,use_natDIC, use_WLIN,use_sedbypass,use_M4AGO,  &
-                                use_extNcycle,lkwrbioz_off
+                                use_extNcycle,lkwrbioz_off,lTO2depremin
     use mo_vgrid,         only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000,kwrbioz,ptiestu
     use mo_vgrid,         only: kmle
     use mo_clim_swa,      only: swa_clim
@@ -333,14 +336,13 @@ contains
               nlim       = ano3up_inh*ocetra(i,j,k,iano3)/(ocetra(i,j,k,iano3) +  bkphyano3) + anh4lim
               grlim      = min(nutlim,nlim) ! growth limitation
 
-              nh4uptfrac = 1.
-              if(nlim .gt. 1.e-18) nh4uptfrac = anh4lim/nlim
+              nh4uptfrac = anh4lim/(nlim+epsilon(1.))
               ! re-check avnut - can sum N avail exceed indiv. contrib?
               avanut     = max(0.,min(ocetra(i,j,k,iphosph), ocetra(i,j,k,iiron)/riron,                              &
                          &        rnoi*((1.-nh4uptfrac)*ocetra(i,j,k,iano3) + nh4uptfrac*ocetra(i,j,k,ianh4))))
 
               xn         = avphy/(1. - pho*grlim)       ! phytoplankton growth
-              phosy      = max(0.,min(xn-avphy,avanut)) ! limit PP growth to available nutr.
+              phosy      = max(0.,min(xn-avphy,max_limiter*avanut)) ! limit PP growth to available nutr.
             else
               avanut = max(0.,min(ocetra(i,j,k,iphosph),rnoi*ocetra(i,j,k,iano3)))
               avanfe = max(0.,min(avanut,ocetra(i,j,k,iiron)/riron))
@@ -656,26 +658,21 @@ contains
               ocetra(i,j,k,izoo14) = ocetra(i,j,k,izoo14)-sterzo14
             endif
 
-            if(ocetra(i,j,k,ioxygen) > 5.e-8) then
-              if (use_M4AGO) then
-                if (.not. use_extNcycle) then
-                  ! M4AGO comes with O2-lim
-                  o2lim  = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkox_drempoc)
-                  pocrem = o2lim*drempoc*POM_remin_q10**((ptho(i,j,k)-POM_remin_Tref)/10.)*ocetra(i,j,k,idet)
-                else
-                  ! nitrogen always accounts for O2-lim - see below
-                  pocrem = drempoc*POM_remin_q10**((ptho(i,j,k)-POM_remin_Tref)/10.)*ocetra(i,j,k,idet)
-                endif
+            if(ocetra(i,j,k,ioxygen) > O2thresh_aerob) then
+              if (lTO2depremin) then
+                ! Both, use_M4AGO and use_extNcycle switch lTO2depremin to true!
+                o2lim  = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkox_drempoc)
+                pocrem = drempoc*o2lim*POM_remin_q10**((ptho(i,j,k)-POM_remin_Tref)/10.)*ocetra(i,j,k,idet)
               else
                 pocrem = drempoc*ocetra(i,j,k,idet)
               endif
+
               if (.not. use_extNcycle) then
-                pocrem = min(pocrem,0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-                docrem = min( remido*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+                pocrem = min(pocrem,                    0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+                docrem = min(remido*ocetra(i,j,k,idoc), 0.33*ocetra(i,j,k,ioxygen)/ro2ut)
                 phyrem = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2ut)
               else
-                o2lim  = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkox_drempoc)
-                pocrem = min(o2lim*pocrem,              0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
+                pocrem = min(pocrem,                    0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
                 docrem = min(remido*ocetra(i,j,k,idoc), 0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
                 phyrem = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
               endif
@@ -814,7 +811,7 @@ contains
         do i = 1,kpie
           do k = merge(1,kwrbioz(i,j)+1,lkwrbioz_off),kpke
             if(omask(i,j) > 0.5) then
-              if(ocetra(i,j,k,ioxygen) < 5.e-7 .and. pddpo(i,j,k) > dp_min) then
+              if(ocetra(i,j,k,ioxygen) < O2thresh_hypoxic .and. pddpo(i,j,k) > dp_min) then
                 if (use_AGG) then
                   avmass = ocetra(i,j,k,iphy) + ocetra(i,j,k,idet)
                 endif
@@ -907,7 +904,7 @@ contains
       do i = 1,kpie
         do k = merge(1,kwrbioz(i,j)+1,lkwrbioz_off),kpke
           if(omask(i,j) > 0.5 .and. pddpo(i,j,k) > dp_min) then
-            if(ocetra(i,j,k,ioxygen) < 5.e-7 .and. ocetra(i,j,k,iano3) < 3.e-6) then
+            if(ocetra(i,j,k,ioxygen) < O2thresh_hypoxic .and. ocetra(i,j,k,iano3) < NO3thresh_sulf ) then
 
               if (use_AGG) then
                 avmass = ocetra(i,j,k,iphy)+ocetra(i,j,k,idet)
@@ -1189,6 +1186,16 @@ contains
                 wdust  = wdust_const
                 wdustd = wdust_const
                 dagg   = 0.0
+              else if (use_M4AGO) then
+                wpoc   = ws_agg(i,j,k)
+                wpocd  = ws_agg(i,j,kdonor)
+                wcal   = ws_agg(i,j,k)
+                wcald  = ws_agg(i,j,kdonor)
+                wopal  = ws_agg(i,j,k)
+                wopald = ws_agg(i,j,kdonor)
+                wdust  = ws_agg(i,j,k)
+                wdustd = ws_agg(i,j,kdonor)
+                dagg   = 0.0
               else
                 wpoc   = wpoc_const
                 wpocd  = wpoc_const
@@ -1200,17 +1207,6 @@ contains
                 wdustd = wdust_const
                 dagg   = 0.0
               endif
-              if (use_M4AGO) then ! superseding every other method
-                wpoc   = ws_agg(i,j,k)
-                wpocd  = ws_agg(i,j,kdonor)
-                wcal   = ws_agg(i,j,k)
-                wcald  = ws_agg(i,j,kdonor)
-                wopal  = ws_agg(i,j,k)
-                wopald = ws_agg(i,j,kdonor)
-                wdust  = ws_agg(i,j,k)
-                wdustd = ws_agg(i,j,kdonor)
-                dagg   = 0.0
-              endif
 
               if( k == 1 ) then
                 wpocd  = 0.0
@@ -1220,11 +1216,9 @@ contains
                 if (use_AGG) then
                   wnosd  = 0.0
                 else if (use_WLIN) then
-                  if (use_M4AGO) then
-                    wpoc = ws_agg(i,j,k)
-                  else
-                    wpoc = wmin
-                  endif
+                  wpoc = wmin
+                else if (use_M4AGO) then
+                  wpoc = ws_agg(i,j,k)
                 endif
               endif
 
@@ -1411,19 +1405,28 @@ contains
               wpoc  = wmass(i,j,k)
               wcal  = wmass(i,j,k)
               wopal = wmass(i,j,k)
+              wdust = dustsink
             else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
-            endif
-            if (use_M4AGO) then
+              wdust = wdust_const
+            else if (use_M4AGO) then
               wpoc   = ws_agg(i,j,k)
               wcal   = ws_agg(i,j,k)
               wopal  = ws_agg(i,j,k)
+              wdust  = ws_agg(i,j,k)
+            else
+              wpoc   = wpoc_const
+              wcal   = wcal_const
+              wopal  = wopal_const
+              wdust  = wdust_const
             endif
 
             if (use_AGG) then
               carflx0100(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
+              dustflx0100(i,j)= ocetra(i,j,k,ifdust)*wdust + ocetra(i,j,k,iadust)*wpoc
             else
               carflx0100(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
+              dustflx0100(i,j)= ocetra(i,j,k,ifdust)*wdust
             endif
             bsiflx0100(i,j) = ocetra(i,j,k,iopal)*wopal
             calflx0100(i,j) = ocetra(i,j,k,icalc)*wcal
@@ -1436,19 +1439,28 @@ contains
               wpoc  = wmass(i,j,k)
               wcal  = wmass(i,j,k)
               wopal = wmass(i,j,k)
+              wdust = dustsink
             else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
+              wdust = wdust_const
+            else if (use_M4AGO) then
+              wpoc   = ws_agg(i,j,k)
+              wcal   = ws_agg(i,j,k)
+              wopal  = ws_agg(i,j,k)
+              wdust  = ws_agg(i,j,k)
+            else
+              wpoc   = wpoc_const
+              wcal   = wcal_const
+              wopal  = wopal_const
+              wdust  = wdust_const
             endif
-           if (use_M4AGO) then
-                wpoc   = ws_agg(i,j,k)
-                wcal   = ws_agg(i,j,k)
-                wopal  = ws_agg(i,j,k)
-           endif
 
             if (use_AGG) then
               carflx0500(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
+              dustflx0500(i,j)= ocetra(i,j,k,ifdust)*wdust + ocetra(i,j,k,iadust)*wpoc
             else
               carflx0500(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
+              dustflx0500(i,j)= ocetra(i,j,k,ifdust)*wdust
             endif
             bsiflx0500(i,j) = ocetra(i,j,k,iopal)*wopal
             calflx0500(i,j) = ocetra(i,j,k,icalc)*wcal
@@ -1461,19 +1473,28 @@ contains
               wpoc  = wmass(i,j,k)
               wcal  = wmass(i,j,k)
               wopal = wmass(i,j,k)
+              wdust = dustsink
             else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
-            endif
-            if (use_M4AGO) then
+              wdust = wdust_const
+            else if (use_M4AGO) then
               wpoc   = ws_agg(i,j,k)
               wcal   = ws_agg(i,j,k)
               wopal  = ws_agg(i,j,k)
+              wdust  = ws_agg(i,j,k)
+            else
+              wpoc   = wpoc_const
+              wcal   = wcal_const
+              wopal  = wopal_const
+              wdust  = wdust_const
             endif
 
             if (use_AGG) then
               carflx1000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
+              dustflx1000(i,j)= ocetra(i,j,k,ifdust)*wdust + ocetra(i,j,k,iadust)*wpoc
             else
               carflx1000(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
+              dustflx1000(i,j)= ocetra(i,j,k,ifdust)*wdust
             endif
             bsiflx1000(i,j) = ocetra(i,j,k,iopal)*wopal
             calflx1000(i,j) = ocetra(i,j,k,icalc)*wcal
@@ -1486,19 +1507,28 @@ contains
               wpoc  = wmass(i,j,k)
               wcal  = wmass(i,j,k)
               wopal = wmass(i,j,k)
+              wdust = dustsink
             else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
-            endif
-            if (use_M4AGO) then
+              wdust = wdust_const
+            else if (use_M4AGO) then
               wpoc   = ws_agg(i,j,k)
               wcal   = ws_agg(i,j,k)
               wopal  = ws_agg(i,j,k)
+              wdust  = ws_agg(i,j,k)
+            else
+              wpoc   = wpoc_const
+              wcal   = wcal_const
+              wopal  = wopal_const
+              wdust  = wdust_const
             endif
 
             if (use_AGG) then
               carflx2000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
+              dustflx2000(i,j)= ocetra(i,j,k,ifdust)*wdust + ocetra(i,j,k,iadust)*wpoc
             else
               carflx2000(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
+              dustflx2000(i,j)= ocetra(i,j,k,ifdust)*wdust
             endif
             bsiflx2000(i,j) = ocetra(i,j,k,iopal)*wopal
             calflx2000(i,j) = ocetra(i,j,k,icalc)*wcal
@@ -1511,19 +1541,28 @@ contains
               wpoc  = wmass(i,j,k)
               wcal  = wmass(i,j,k)
               wopal = wmass(i,j,k)
+              wdust = dustsink
             else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
-            endif
-            if (use_M4AGO) then
+              wdust = wdust_const
+            else if (use_M4AGO) then
               wpoc   = ws_agg(i,j,k)
               wcal   = ws_agg(i,j,k)
               wopal  = ws_agg(i,j,k)
+              wdust  = ws_agg(i,j,k)
+            else
+              wpoc   = wpoc_const
+              wcal   = wcal_const
+              wopal  = wopal_const
+              wdust  = wdust_const
             endif
 
             if (use_AGG) then
               carflx4000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
+              dustflx4000(i,j)= ocetra(i,j,k,ifdust)*wdust + ocetra(i,j,k,iadust)*wpoc
             else
               carflx4000(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
+              dustflx4000(i,j)= ocetra(i,j,k,ifdust)*wdust
             endif
             bsiflx4000(i,j) = ocetra(i,j,k,iopal)*wopal
             calflx4000(i,j) = ocetra(i,j,k,icalc)*wcal
@@ -1533,6 +1572,7 @@ contains
           carflx_bot(i,j) = prorca(i,j)*rcar
           bsiflx_bot(i,j) = silpro(i,j)
           calflx_bot(i,j) = prcaca(i,j)
+          dustflx_bot(i,j)= produs(i,j)
 
         endif ! omask > 0.5
       enddo

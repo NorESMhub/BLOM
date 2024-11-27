@@ -37,8 +37,8 @@ module mo_param_bgc
                             do_ndep,do_oalk,do_rivinpt,do_sedspinup,l_3Dvarsedpor,                 &
                             use_BOXATM,use_CFC,use_PBGC_CK_TIMESTEP,                               &
                             use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type,use_M4AGO,&
-                            leuphotic_cya,do_ndep_coupled,do_n2onh3_coupled,use_extNcycle,         &
-                            lkwrbioz_off
+                            do_n2onh3_coupled,use_extNcycle,                                       &
+                            lkwrbioz_off,lTO2depremin,use_shelfsea_res_time
   use mod_xc,         only: mnproc
 
   implicit none
@@ -98,6 +98,8 @@ module mo_param_bgc
   public :: calcdens,opaldens,orgdens,claydens
   public :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma
   public :: POM_remin_q10,opal_remin_q10,POM_remin_Tref,opal_remin_Tref
+  public :: O2thresh_aerob,O2thresh_hypoxic,NO3thresh_sulf
+  public :: shelfbreak_depth
 
   ! extended nitrogen cycle
   public :: q10ano3denit,sc_ano3denit,Trefano3denit,rano3denit,bkano3denit,      &
@@ -121,7 +123,8 @@ module mo_param_bgc
           & bkoxamox_sed,bkanh4nitr_sed,bkamoxn2o_sed,bkyamox_sed,               &
           & rano2nitr_sed,q10ano2nitr_sed,Trefano2nitr_sed,bkoxnitr_sed,         &
           & bkano2nitr_sed,n2omaxy_sed,n2oybeta_sed,NOB2AOAy_sed,bn2o_sed,       &
-          & mufn2o_sed,POM_remin_q10_sed, POM_remin_Tref_sed,bkox_drempoc_sed
+          & mufn2o_sed,POM_remin_q10_sed, POM_remin_Tref_sed,bkox_drempoc_sed,   &
+          & max_limiter
 
 
   !********************************************************************
@@ -152,6 +155,7 @@ module mo_param_bgc
   real, parameter :: c14_t_half = 5700.*365.      ! Half life of 14C [days]
 
   ! Extended nitrogen cycle
+  real, parameter :: max_limiter   = 0.9999          ! maximum in concentrations that can be consumed at once
   real, parameter :: rc2n          = rcar/rnit       ! iHAMOCC C:N ratio
   real, parameter :: ro2utammo     = 140.            ! Oxygen utilization per mol detritus during ammonification
   real, parameter :: ro2nnit       = ro2utammo/rnit  !
@@ -274,6 +278,9 @@ module mo_param_bgc
   !********************************************************************
   ! Remineralization and dissolution parameters
   !********************************************************************
+  real, parameter :: O2thresh_aerob   = 5.e-8    ! Above O2thresh_aerob aerob remineralization takes place
+  real, parameter :: O2thresh_hypoxic = 5.e-7    ! Below O2thresh_hypoxic denitrification and sulfate reduction takes place (default model version)
+  real, parameter :: NO3thresh_sulf   = 3.e-6    ! Below NO3thresh_sulf 'sufate reduction' takes place
   real, protected :: remido     = 0.004           ! 1/d - remineralization rate (of DOM)
   ! deep sea remineralisation constants
   real, protected :: drempoc    = 0.025           ! 1/d Aerob remineralization rate detritus
@@ -461,6 +468,10 @@ module mo_param_bgc
   real, protected :: vsmall,safe,pupper,plower,zdis,nmldmin
   real, protected :: cellsink = 9999.
 
+  !********************************************************************
+  ! Shelfsea water residence time
+  !********************************************************************
+  real, protected :: shelfbreak_depth = 200. ! [m] shelf-break depth fall-back value, if no shelfseaa mask file provided
 
   !********************************************************************
   ! Sediment biogeochemistry
@@ -654,7 +665,9 @@ contains
       bkanh4anmx_sed = bkano2anmx_sed * rnh4anmx/rno2anmx !Half-saturation constant for NH4 limitation of anammox (kmol/m3)
       mufn2o_sed     = 0.11/(50.*1e6*bkoxamox_sed)   !=6.61e-3  0.11/(50*1e6)=2.2e-9 - ~Santoro et al. 2011 with simple MM
       bn2o_sed       = 0.077/(50.*mufn2o_sed)        !=0.2331 - before set to 0.3 - base fraction entering N2O
+      lTO2depremin   = .true.
     endif
+    if (use_M4AGO) lTO2depremin = .true.
   end subroutine calc_param_biol
 
   !********************************************************************
@@ -824,7 +837,7 @@ contains
       call cinfo_add_entry('use_extNcycle',          use_extNcycle)
       call cinfo_add_entry('use_PBGC_OCNP_TIMESTEP', use_PBGC_OCNP_TIMESTEP)
       call cinfo_add_entry('use_PBGC_CK_TIMESTEP',   use_PBGC_CK_TIMESTEP)
-      call cinfo_add_entry('use_FB_BGC_OCE BROMO',   use_FB_BGC_OCE)
+      call cinfo_add_entry('use_FB_BGC_OCE',         use_FB_BGC_OCE)
       call cinfo_add_entry('use_BOXATM',             use_BOXATM)
       call cinfo_add_entry('use_sedbypass',          use_sedbypass)
       write(io_stdo_bgc,*) '*   ocn_co2_type           = ',ocn_co2_type
@@ -834,11 +847,11 @@ contains
       call cinfo_add_entry('with_dmsph',             with_dmsph)
       call cinfo_add_entry('do_sedspinup',           do_sedspinup)
       call cinfo_add_entry('l_3Dvarsedpor',          l_3Dvarsedpor)
-      call cinfo_add_entry('leuphotic_cya',          leuphotic_cya)
       call cinfo_add_entry('lkwrbioz_off',           lkwrbioz_off)
+      call cinfo_add_entry('lTO2depremin',           lTO2depremin)
+      call cinfo_add_entry('use_shelfsea_res_time',  use_shelfsea_res_time)
       call cinfo_add_entry('use_M4AGO',              use_M4AGO)
       if (use_extNcycle) then
-        call cinfo_add_entry('do_ndep_coupled',        do_ndep_coupled)
         call cinfo_add_entry('do_n2onh3_coupled',       do_n2onh3_coupled)
       endif
       write(io_stdo_bgc,*) '* '
@@ -886,6 +899,9 @@ contains
       call pinfo_add_entry('wpoc_const',  wpoc_const*dtbinv)
       call pinfo_add_entry('wcal_const',  wcal_const*dtbinv)
       call pinfo_add_entry('wopal_const', wopal_const*dtbinv)
+      call pinfo_add_entry('O2thresh_aerob', O2thresh_aerob)
+      call pinfo_add_entry('O2thresh_hypoxic',O2thresh_hypoxic)
+      call pinfo_add_entry('NO3thresh_sulf',  NO3thresh_sulf)
       call pinfo_add_entry('drempoc',     drempoc*dtbinv)
       call pinfo_add_entry('dremopal',    dremopal*dtbinv)
       call pinfo_add_entry('dremn2o',     dremn2o*dtbinv)

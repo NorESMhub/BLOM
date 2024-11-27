@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2006-2021 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
+! Copyright (C) 2006-2024 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
 
 ! This file is part of BLOM.
 
@@ -28,7 +28,7 @@ module mod_temmin
   use dimensions,    only: idm,jdm, kdm
   use mod_types,     only: r8
   use mod_config,    only: expcnf
-  use mod_vcoord,    only: vcoord_type_tag, isopyc_bulkml, sigmar
+  use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml, sigmar
   use mod_xc,        only: xcstop, ii, jj, kk, isp, ifp, ilp, lp, &
                            mnproc, nbdy
   use mod_eos,       only: ap11, ap12, ap13, ap14, ap15, ap16, &
@@ -57,7 +57,7 @@ contains
     integer :: i,j,k,l
     real :: salfrz,a,b,c
 
-    if     (vcoord_type_tag /= isopyc_bulkml .or. &
+    if     (vcoord_tag /= vcoord_isopyc_bulkml .or. &
          expcnf == 'cesm' .or. expcnf == 'single_column') then
 
       ! Set temmin to a constant freezing temperature for all layers
@@ -74,7 +74,7 @@ contains
       !$omp end parallel do
 
     else if (expcnf == 'ben02clim'.or.expcnf == 'ben02syn'.or. &
-         expcnf == 'fuk95'.or.expcnf == 'channel') then
+             expcnf == 'fuk95'.or.expcnf == 'channel') then
 
       ! Let temmin be the freezing temperature of a given potential
       ! density. This can be achieved by using potential density given

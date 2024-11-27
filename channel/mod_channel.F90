@@ -40,41 +40,41 @@ module mod_channel
    use mod_ben02, only: ntda, alb, albw, dfl
    use mod_forcing, only: surflx, surrlx, sswflx, salflx, brnflx, salrlx, &
                           taux, tauy, ustarw, slp, swa, atmco2, nsf, mty, &
-                          ztx, hmltfz, eva, lip, sop, rnf, rfi, & 
+                          ztx, hmltfz, eva, lip, sop, rnf, rfi, &
                           fmltfz, sfl, abswnd, flxco2, flxdms, sstclm, sssclm
    !use mod_mxlayr, only: mltmin
    use mod_state, only:  temp, saln, sigma, phi
    use mod_checksum, only: csdiag, chksummsk
-   
+
    implicit none
-   
+
    private
-   
+
    public :: geoenv_channel, inifrc_channel, ictsz_channel
-   
+
 contains
-   
+
    ! ---------------------------------------------------------------------------
    ! Public procedures.
    ! ---------------------------------------------------------------------------
-   
+
    subroutine geoenv_channel
    ! ---------------------------------------------------------------------------
    ! Define bathymetry, grid specification and Coriolis parameter for the
    ! channel configuration
    ! ---------------------------------------------------------------------------
       intrinsic random_seed, random_number, tanh, sin
- 
+
       integer, parameter :: ncorru=10
       real(r8), dimension(ncorru) :: acorru, wlcorru
       real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: r0
       real(r8), dimension(itdm,jtdm) :: rtmp
       real(r8) :: sldepth,sfdepth,rdepth,cwidth,swidth,scxy, &
                   corio0, beta0, d_corru, r
-      integer :: i,j,l,ios
+      integer :: nfu,i,j,l,ios
       integer, dimension(:), allocatable :: seed
       logical :: fexist
-      
+
       ! Read parameters from the namelist
       namelist /idlgeo/ sldepth,sfdepth,rdepth,acorru,wlcorru, &
                         cwidth,swidth,scxy,corio0,beta0
@@ -82,17 +82,17 @@ contains
       wlcorru(:)=0._r8
       inquire(file='limits', exist=fexist)
       if (fexist) then
-         open (unit=nfu,file='limits',status='old',action='read')
+         open (newunit=nfu,file='limits',status='old',action='read')
       else
          write (lp,*) 'geoenv_channel: could not find namelist file!'
          call xchalt('(geoenv_channel)')
          stop '(geoenv_channel)'
       endif
-      
+
       read (unit=nfu,nml=idlgeo,iostat=ios)
       close (unit=nfu)
       ! Done reading
-      
+
       ! broadcast the namelist variables
       call xcbcst(sldepth)
       call xcbcst(sfdepth)
@@ -160,13 +160,13 @@ contains
                cosang=1._r8
                sinang=0._r8
                ! initialize depth to 0
-               depths(i,j)=0._r8               
+               depths(i,j)=0._r8
             enddo
          enddo
       !$omp end parallel do
-      
+
       ! Set the bottom topography to be a tanh function.
-      ! The resulting slope will have the same shape independent of the 
+      ! The resulting slope will have the same shape independent of the
       ! grid size (no interpolation done though).
       !$omp parallel do private(i,r,l,d_corru)
          do j=1,jj
@@ -205,9 +205,9 @@ contains
             endif
          enddo
       !$omp end parallel do
-      
+
       end subroutine geoenv_channel
-      
+
       subroutine ictsz_channel
       ! define layer temperature and salinity, and geopotential at layer interfaces.
          real(r8), dimension(1 - nbdy:idm + nbdy, &
@@ -216,20 +216,20 @@ contains
                              1 - nbdy:jdm + nbdy, kdm) :: dz
          real(r8), dimension(kdm) :: sigmr0, dz0
          real(r8) :: S0,sig0,sig0dz,sigdz,sigscl,dztop,dzmax,dzscl
-         integer i,j,k,l,ios
+         integer :: nfu,i,j,k,l,ios
          logical :: fexist
-         
+
          namelist /idlini/ S0,sig0,sig0dz,sigdz,sigscl,dztop,dzmax,dzscl
-         
+
          if (mnproc.eq.1) then
             write (lp,'(1a)') ' idealized initial conditions'
             call flush(lp)
          endif
-         
-         ! 
+
+         !
          inquire(file='limits',exist=fexist)
          if (fexist) then
-            open (unit=nfu,file='limits',status='old',action='read')
+            open (newunit=nfu,file='limits',status='old',action='read')
          else
             write (lp,*) 'ictsz_channel: could not find namelist file!'
             call xchalt('(ictsz_channel)')
@@ -319,28 +319,28 @@ contains
             enddo
          enddo
       !$omp end parallel do
-      
+
       end subroutine ictsz_channel
-     
+
       subroutine inifrc_channel
       ! ---------------------------------------------------
       ! Define forcing - This could be used as a getfrc
       ! function as well if time varying forcing is desired
       ! (time dependency would need to be added).
       ! ---------------------------------------------------
-      
+
          intrinsic tanh
-         
+
          real(r8) :: ztx0,mty0,sst0,sss0
-         integer i,j,l,k,ios
+         integer :: nfu,i,j,l,k,ios
          logical :: fexist
-         
+
          namelist /idlfor/ ztx0,mty0,sst0,sss0
-         
+
          ! --- READ NAMELIST FILE
          inquire(file='limits',exist=fexist)
          if (fexist) then
-            open (unit=nfu,file='limits',status='old',action='read')
+            open (newunit=nfu,file='limits',status='old',action='read')
          else
             write (lp,*) 'inifrc_channel: could not find namelist file!'
             call xchalt('(inifrc_channel)')
@@ -372,7 +372,7 @@ contains
                  !alb(i,j)    = 0._r8    ! albedo
                  eva(i,j)    = 0._r8    ! evaporation
                  lip(i,j)    = 0._r8    ! liquid precip
-                 sop(i,j)    = 0._r8    ! solid precip 
+                 sop(i,j)    = 0._r8    ! solid precip
                  rnf(i,j)    = 0._r8    ! runoff
                  rfi(i,j)    = 0._r8    ! runoff ice
                  fmltfz(i,j) = 0._r8    ! fresh water flux due to melting/freezing
@@ -384,8 +384,8 @@ contains
                  !
                  ! -------------------------------------------------
                  ! SST and SSS climatologies are set here (to values
-                 ! defined in the namelist), but their usage is controlled 
-                 ! by namelist timescales that are 0. by default. 
+                 ! defined in the namelist), but their usage is controlled
+                 ! by namelist timescales that are 0. by default.
                  ! -------------------------------------------------
                  !
                  do k=1,12
@@ -406,18 +406,18 @@ contains
               enddo
             enddo
       !$omp end parallel do
-      
-      
+
+
       end subroutine inifrc_channel
-      
+
       subroutine icaux_channel
-      ! This is mostly an empty subroutine, 
+      ! This is mostly an empty subroutine,
       ! but could be used to setup sea ice
-      
+
          ntda=0
-      
+
       end subroutine icaux_channel
-      
+
       subroutine sfcstr_channel(m,n,mm,nn,k1m,k1n)
       !
       ! -----------------------------------------------------------------
@@ -454,5 +454,5 @@ contains
       endif
       !
       end subroutine sfcstr_channel
-      
+
 end module mod_channel

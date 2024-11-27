@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2022 Mats Bentsen
+! Copyright (C) 2022-2024 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -17,7 +17,7 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-module mod_nuopc_methods
+module ocn_import_export
 ! ------------------------------------------------------------------------------
 ! This module contains routines operating on BLOM data structures needed by the
 ! NUOPC cap.
@@ -37,12 +37,13 @@ module mod_nuopc_methods
    use mod_forcing,    only: wavsrc_opt, wavsrc_extern, sprfac, prfac, &
                              flxco2, flxdms, flxbrf, flxn2o, flxnh3
    use mod_difest,     only: obldepth
-   use mod_vcoord,     only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid
+   use mod_vcoord,     only: vcoord_tag, vcoord_isopyc_bulkml
    use mod_cesm,       only: frzpot, mltpot, &
                              swa_da, nsf_da, hmlt_da, lip_da, sop_da, eva_da, &
                              rnf_da, rfi_da, fmltfz_da, sfl_da, ztx_da, mty_da, &
                              ustarw_da, slp_da, abswnd_da, ficem_da, lamult_da, &
                              lasl_da, ustokes_da, vstokes_da, atmco2_da, &
+                             atmnhxdep_da, atmnoydep_da, &
                              l1ci, l2ci
    use mod_utility,    only: util1, util2
    use mod_checksum,   only: csdiag, chksummsk
@@ -142,9 +143,12 @@ module mod_nuopc_methods
         index_Faxa_lwdn   = -1, &
         index_Faxa_snow   = -1, &
         index_Faxa_rain   = -1, &
+        index_Faxa_ndep   = -1, &
         index_Sa_pslv     = -1, &
         index_Sa_co2diag  = -1, &
-        index_Sa_co2prog  = -1
+        index_Sa_co2prog  = -1, &
+        index_Forr_rofl_glc = -1, &
+        index_Forr_rofi_glc = -1
 
    ! Indices for export fields
    integer  :: &
@@ -239,8 +243,10 @@ contains
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Fioi_flxdst', index_Fioi_flxdst)
 
      ! From river:
-     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_rofl', index_Foxx_rofl)
-     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_rofi', index_Foxx_rofi)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_rofl'    , index_Foxx_rofl)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_rofi'    , index_Foxx_rofi)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Forr_rofl_glc', index_Forr_rofl_glc)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Forr_rofi_glc', index_Forr_rofi_glc)
 
      ! From fields computed in mediator:
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'So_duu10n'  , index_So_duu10n)
@@ -265,6 +271,8 @@ contains
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_lwdn' , index_Faxa_lwdn)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_snow' , index_Faxa_snow)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_rain' , index_Faxa_rain)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_ndep' , index_Faxa_ndep, &
+          ungridded_lbound=1, ungridded_ubound=2)
      if (flds_co2a .or. flds_co2c) then
         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sa_co2diag' ,index_Sa_co2diag)
         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sa_co2prog', index_Sa_co2prog)
@@ -273,7 +281,7 @@ contains
    end subroutine blom_advertise_imports
 
    subroutine blom_advertise_exports(flds_scalar_name, fldsFrOcn_num, fldsFrOcn, &
-        ocn2glc_coupling)
+        ocn2glc_coupling, flds_dms, flds_brf)
      ! -------------------------------------------------------------------
      ! Determine fldsToOcn for export fields
      ! -------------------------------------------------------------------
@@ -282,6 +290,8 @@ contains
      integer            , intent(inout) :: fldsFrOcn_num
      type(fldlist_type) , intent(inout) :: fldsFrOcn(:)
      logical            , intent(in)    :: ocn2glc_coupling
+     logical            , intent(in)    :: flds_dms
+     logical            , intent(in)    :: flds_brf
 
      ! Local variables
      integer :: index_scalar
@@ -299,12 +309,14 @@ contains
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Fioo_q'        , index_Fioo_q)
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fco2_ocn' , index_Faoo_fco2)
 #ifdef HAMOCC
-     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fdms_ocn' , index_Faoo_fdms)
-     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fn2o_ocn' , index_Faoo_fn2o)
-     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fnh3_ocn' , index_Faoo_fnh3)
-     if (use_BROMO) then
+     if (flds_dms) then
+        call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fdms_ocn', index_Faoo_fdms)
+     end if
+     if (flds_brf) then
         call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fbrf_ocn', index_Faoo_fbrf)
      end if
+     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fn2o_ocn' , index_Faoo_fn2o)
+     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fnh3_ocn' , index_Faoo_fnh3)
 #endif
      if (ocn2glc_coupling) then
         call fldList_add(fldsFrOcn_num, fldsFrOcn, 'So_t_depth', index_So_t_depth, &
@@ -592,8 +604,8 @@ contains
       enddo
       !$omp end parallel do
 
-      select case (vcoord_type_tag)
-         case (isopyc_bulkml)
+      select case (vcoord_tag)
+         case (vcoord_isopyc_bulkml)
             q = baclin/onem
             !$omp parallel do private(l, i)
             do j = 1, jj
@@ -604,7 +616,7 @@ contains
                enddo
             enddo
             !$omp end parallel do
-         case (cntiso_hybrid)
+         case default
             !$omp parallel do private(l, i)
             do j = 1, jj
                do l = 1, isp(j)
@@ -614,12 +626,6 @@ contains
                enddo
             enddo
             !$omp end parallel do
-         case default
-            if (mnproc == 1.and. first_call) then
-               write(lp,*) subname//': unsupported vertical coordinate!'
-            end if
-            call xcstop(subname)
-            stop subname
       end select
 
       if (index_Faoo_fco2 > 0) then
@@ -726,6 +732,7 @@ contains
       real(r8) :: afac, utmp, vtmp
       integer :: n, i, j, l
       integer :: index_co2
+      real(r8):: rofi_heat_flx, snow_heat_flx
 
       ! Update time level indices.
       if (l1ci == 1 .and. l2ci == 1) then
@@ -833,11 +840,17 @@ contains
                ! Evaporation, positive downwards [kg m-2 s-1].
                eva_da(i,j,l2ci) = fldlist(index_Foxx_evap)%dataptr(n)*afac
 
-               ! Liquid runoff, positive downwards [kg m-2 s-1].
+               ! Liquid runoff [kg m-2 s-1].
                rnf_da(i,j,l2ci) = fldlist(index_Foxx_rofl)%dataptr(n)*afac
+               if (index_Forr_rofl_glc > 0) then
+                  rnf_da(i,j,l2ci) = rnf_da(i,j,l2ci) + fldlist(index_Forr_rofl_glc)%dataptr(n)*afac
+               end if
 
-               ! Frozen runoff, positive downwards [kg m-2 s-1].
+               ! Frozen runoff [kg m-2 s-1].
                rfi_da(i,j,l2ci) = fldlist(index_Foxx_rofi)%dataptr(n)*afac
+               if (index_Forr_rofi_glc > 0) then
+                  rfi_da(i,j,l2ci) = rfi_da(i,j,l2ci) + fldlist(index_Forr_rofi_glc)%dataptr(n)*afac
+               end if
 
                ! Fresh water due to melting/freezing, positive downwards
                ! [kg m-2 s-1].
@@ -850,13 +863,18 @@ contains
                swa_da(i,j,l2ci) = fldlist(index_Foxx_swnet)%dataptr(n)*afac
 
                ! Non-solar heat flux, positive downwards [W m-2].
+               rofi_heat_flx = fldlist(index_Foxx_rofi)%dataptr(n)*SHR_CONST_LATICE
+               if (index_Forr_rofi_glc > 0) then
+                  rofi_heat_flx = rofi_heat_flx + fldlist(index_Forr_rofi_glc)%dataptr(n)*SHR_CONST_LATICE
+               end if
+               snow_heat_flx = fldlist(index_Faxa_snow)%dataptr(n)*SHR_CONST_LATICE
+
                nsf_da(i,j,l2ci) = ( fldlist(index_Foxx_lat)%dataptr(n) &
                                   + fldlist(index_Foxx_sen)%dataptr(n) &
                                   + fldlist(index_Foxx_lwup)%dataptr(n) &
                                   + fldlist(index_Faxa_lwdn)%dataptr(n) &
-                                  - ( fldlist(index_Faxa_snow)%dataptr(n) &
-                                    + fldlist(index_Foxx_rofi)%dataptr(n)) &
-                                    *SHR_CONST_LATICE)*afac
+                                  - (rofi_heat_flx + snow_heat_flx) &
+                                  ) * afac
 
                ! Heat flux due to melting, positive downwards [W m-2].
                hmlt_da(i,j,l2ci) = fldlist(index_Fioi_melth)%dataptr(n)*afac
@@ -870,6 +888,9 @@ contains
                ! Ice fraction [].
                ficem_da(i,j,l2ci) = fldlist(index_Si_ifrac)%dataptr(n)
 
+               ! Nitrogen deposition [kg m-2 s-1].
+               atmnhxdep_da(i,j,l2ci) = fldlist(index_Faxa_ndep)%dataptr2d(1,n)*afac
+               atmnoydep_da(i,j,l2ci) = fldlist(index_Faxa_ndep)%dataptr2d(2,n)*afac
             endif
 
          enddo
@@ -887,6 +908,8 @@ contains
          call xctilr(swa_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
          call xctilr(nsf_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
          call xctilr(hmlt_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
+         call xctilr(atmnhxdep_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
+         call xctilr(atmnoydep_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
       endif
 
       call fill_global(mval, fval, halo_ps, slp_da(1-nbdy,1-nbdy,l2ci))
@@ -1020,6 +1043,8 @@ contains
          call chksummsk(abswnd_da(1-nbdy,1-nbdy,l2ci),ip,1,'abswnd')
          call chksummsk( ficem_da(1-nbdy,1-nbdy,l2ci),ip,1,'ficem')
          call chksummsk(atmco2_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmco2')
+         call chksummsk(atmnhxdep_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmnhxdep')
+         call chksummsk(atmnoydep_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmnoydep')
       endif
 
       if (first_call) then
@@ -1238,4 +1263,4 @@ contains
 
    end subroutine blom_exportflds
 
-end module mod_nuopc_methods
+end module ocn_import_export

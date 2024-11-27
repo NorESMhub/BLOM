@@ -23,7 +23,7 @@ module mod_geoenv
   use mod_config,    only: inst_suffix
   use mod_constants, only: rearth, pi, radian, L_mks2cgs
   use mod_xc,        only: xchalt, xcaput, xcbcst, itdm, jtdm, &
-                           lp, nbdy, nfu, i0, ii, j0, jj,  mnproc
+                           lp, nbdy, i0, ii, j0, jj,  mnproc
   use mod_diffusion, only: rhsctp, tbfile
   use mod_grid,      only: grfile, qclon, qclat, pclon, pclat, uclon, &
                            uclat, vclon, vclat, scqx, scqy, scpx, scpy, &
@@ -57,7 +57,7 @@ contains
     real, dimension(cwmlen) :: cwmwth
     integer, dimension(cwmlen) :: cwmi,cwmj
     integer, dimension(3) :: start,count
-    integer :: i,j,k,status,ncid,dimid,varid,ios,ncwm,l
+    integer :: i,j,k,status,ncid,dimid,varid,nfu,ios,ncwm,l
     logical :: fexist
     real, parameter :: iL_mks2cgs = 1./L_mks2cgs
 
@@ -781,12 +781,12 @@ contains
       nlfnm = 'ocn_in'//trim(inst_suffix)
       inquire(file=nlfnm,exist = fexist)
       if (fexist) then
-        open (unit=nfu,file=nlfnm,status='old',action = 'read')
+        open (newunit=nfu,file=nlfnm,status='old',action = 'read')
       else
         nlfnm = 'limits'//trim(inst_suffix)
         inquire(file=nlfnm,exist = fexist)
         if (fexist) then
-          open (unit=nfu,file=nlfnm,status='old',action = 'read')
+          open (newunit=nfu,file=nlfnm,status='old',action = 'read')
         else
           write (lp,*) 'geoenv_file: could not find namelist file!'
           call xchalt('(geoenv_file)')

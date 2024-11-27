@@ -28,8 +28,7 @@ module mod_rdlim
                              nstep2, nstep, lstep, nstep_in_day, time0, &
                              time, baclin, batrop, init_timevars, &
                              set_day_of_year, step_time
-  use mod_xc,          only: xcbcst, xchalt, xcstop, mnproc, &
-                             nfu, lp
+  use mod_xc,          only: xcbcst, xchalt, xcstop, mnproc, lp
   use mod_grid,        only: grfile
   use mod_eos,         only: pref
   use mod_inicon,      only: icfile
@@ -100,14 +99,15 @@ module mod_rdlim
                              diagfq_phy, diagmon_phy, diagann_phy, secdia, &
                              filefq_phy, filemon_phy, fileann_phy
   use mod_ben02,       only: atm_path, atm_path_len
-  use mod_vcoord,      only: vcoord_type_tag, isopyc_bulkml, &
-                             cntiso_hybrid, readnml_vcoord
+  use mod_vcoord,      only: vcoord_tag, vcoord_isopyc_bulkml, readnml_vcoord
+  use mod_ale_regrid_remap, only: readnml_ale_regrid_remap
   use mod_cesm,        only: runid_cesm, ocn_cpl_dt_cesm, nstep_in_cpl, &
                              smtfrc
   use mod_pointtest,   only: itest, jtest
   use mod_budget,      only: cnsvdi
   use mod_checksum,    only: csdiag
   use mod_nctools,     only: ncfopn, ncgeti, ncgetr, ncfcls
+  use mod_ifdefs,      only: use_diag
 
   implicit none
   private
@@ -125,7 +125,7 @@ contains
     type(date_type) :: date0_rest
     character(len = 256) :: nlfnm,runtyp,rstfnm
     logical :: fexist
-    integer :: m,n,idate,idate0,ios
+    integer :: m,n,idate,idate0,nfu,ios
 
     namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,runtyp, &
          grfile,icfile,pref,baclin,batrop, &
@@ -143,7 +143,8 @@ contains
          itest,jtest, &
          cnsvdi, &
          csdiag, &
-         rstfrq,rstfmt,rstcmp,iotype,use_stream_relaxation
+         rstfrq,rstfmt,rstcmp,iotype,use_stream_relaxation, &
+         use_diag
 
     ! read limits namelist
 
@@ -152,15 +153,15 @@ contains
       nlfnm = 'ocn_in'//trim(inst_suffix)
       inquire(file=nlfnm,exist = fexist)
       if (fexist) then
-        open (unit=nfu,file=nlfnm,status='old',action='read',recl = 80)
+        open (newunit=nfu,file=nlfnm,status='old',action='read',recl = 80)
       else
         nlfnm = 'limits'//trim(inst_suffix)
         inquire(file=nlfnm,exist = fexist)
         if (fexist) then
-          open (unit=nfu,file=nlfnm,status='old',action = 'read', &
+          open (newunit=nfu,file=nlfnm,status='old',action = 'read', &
                recl = 80)
         else
-          write (lp,*) 'rdlim: could not find namelist file!'
+          write (lp,*) 'rdlim: could not find namelist file! '//trim(nlfnm)
           call xchalt('(rdlim)')
           stop '(rdlim)'
         end if
@@ -248,6 +249,7 @@ contains
       write (lp,*) 'RSTCMP',RSTCMP
       write (lp,*) 'IOTYPE',IOTYPE
       write (lp,*) 'USE_STREAM_RELAXATION',use_stream_relaxation
+      write (lp,*) 'USE_DIAG',use_diag
       write (lp,*)
 
     end if
@@ -331,6 +333,7 @@ contains
     call xcbcst(rstcmp)
     call xcbcst(iotype)
     call xcbcst(use_stream_relaxation)
+    call xcbcst(use_diag)
 
     ! resolve options
     select case (trim(wavsrc))
@@ -360,6 +363,9 @@ contains
     ! read vertical coordinate namelist variables
     call readnml_vcoord
 
+    ! read namelist variables associated with ALE regridding-remapping.
+    call readnml_ale_regrid_remap
+
     ! read diffusion namelist variables
     call readnml_diffusion
 
@@ -368,7 +374,7 @@ contains
     if (mnproc == 1) then
 
       GLB_AVEPERIO(:) = -999
-      open (unit=nfu,file=nlfnm,status='old',action='read',recl = 80)
+      open (newunit=nfu,file=nlfnm,status='old',action='read',recl = 80)
       read (unit=nfu,nml=DIAPHY,iostat = ios)
       close (unit = nfu)
 
@@ -380,8 +386,8 @@ contains
 
       ! modify diaphy namelist variables based on dependency with other
       ! variables set in namelists
-      select case (vcoord_type_tag)
-        case (isopyc_bulkml)
+      select case (vcoord_tag)
+        case (vcoord_isopyc_bulkml)
           LYR_DIFVMO(1:nphy) = 0
           LYR_DIFVHO(1:nphy) = 0
           LYR_DIFVSO(1:nphy) = 0
@@ -404,7 +410,7 @@ contains
           LVL_DIFVMO(1:nphy) = 0
           LVL_DIFVHO(1:nphy) = 0
           LVL_DIFVSO(1:nphy) = 0
-        case (cntiso_hybrid)
+        case default
           H2D_IDKEDT(1:nphy) = 0
           H2D_MTKEUS(1:nphy) = 0
           H2D_MTKENI(1:nphy) = 0
@@ -414,10 +420,6 @@ contains
           H2D_MTKEKE(1:nphy) = 0
           LYR_DIFDIA(1:nphy) = 0
           LVL_DIFDIA(1:nphy) = 0
-        case default
-          write (lp,*) 'rdlim: unsupported vertical coordinate!'
-          call xcstop('(rdlim)')
-          stop '(rdlim)'
       end select
 
       if (trxday == 0.) then
@@ -434,7 +436,7 @@ contains
           H2D_USTOKES(1:nphy) = 0
           H2D_VSTOKES(1:nphy) = 0
         case (wavsrc_param)
-          if (vcoord_type_tag /= cntiso_hybrid) then
+          if (vcoord_tag == vcoord_isopyc_bulkml) then
             H2D_LAMULT(1:nphy) = 0
           end if
           H2D_LASL(1:nphy) = 0
@@ -819,7 +821,7 @@ contains
 
       if (mnproc == 1) then
 
-        open (unit=nfu,file=nlfnm,status='old',action='read',recl = 80)
+        open (newunit=nfu,file=nlfnm,status='old',action='read',recl = 80)
         read (unit=nfu,nml=MERDIA,iostat = ios)
         close (unit = nfu)
         if (ios /= 0) then
@@ -873,7 +875,7 @@ contains
 
       if (mnproc == 1) then
 
-        open (unit=nfu,file=nlfnm,status='old',action='read',recl = 80)
+        open (newunit=nfu,file=nlfnm,status='old',action='read',recl = 80)
         read (unit=nfu,nml=SECDIA,iostat = ios)
         close (unit = nfu)
         if (ios /= 0) then
@@ -971,7 +973,7 @@ contains
           stop '(rdlim)'
         end if
         if (mnproc == 1) then
-          open (unit=nfu,file = 'rpointer.ocn'//trim(inst_suffix))
+          open (newunit=nfu,file = 'rpointer.ocn'//trim(inst_suffix))
           read (nfu,'(a)') rstfnm
           close (unit = nfu)
           inquire(file=rstfnm,exist = fexist)

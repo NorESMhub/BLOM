@@ -38,41 +38,18 @@ module mod_ifdefs
 #else
   logical :: use_IDLAGE = .false.
 #endif
-#ifdef TIMER
-  logical :: use_TIMER = .true.
+#ifdef MKS
+  logical :: use_MKS = .true.
 #else
-  logical :: use_TIMER = .false.
-#endif
-#ifdef DEBUG_TIMER
-  logical :: use_DEBUG_TIMER = .true.
-#else
-  logical :: use_DEBUG_TIMER = .false.
-#endif
-#ifdef DEBUG_TIMER_ALL
-  logical :: use_DEBUG_TIMER_ALL = .true.
-#else
-  logical :: use_DEBUG_TIMER_ALL = .false.
-#endif
-#ifdef DEBUG_ALL
-  logical :: use_DEBUG_ALL = .true.
-#else
-  logical :: use_DEBUG_ALL = .false.
+  logical :: use_MKS = .false.
 #endif
 #ifdef ARCTIC
   logical :: use_ARCTIC = .true.
 #else
   logical :: use_ARCTIC = .false.
 #endif
-#ifdef MKS
-  logical :: use_MKS = .true.
-#else
-  logical :: use_MKS = .false.
-#endif
-#ifdef DIAG
-  logical :: use_DIAG = .true.
-#else
-  logical :: use_DIAG = .false.
-#endif
 
+  ! Namelist input
+  logical :: use_diag = .false.
 
 end module mod_ifdefs

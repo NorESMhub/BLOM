@@ -195,7 +195,7 @@ contains
 
       ! Local variables
       character(len = 80) :: nml_fname
-      integer :: ios
+      integer :: nfu, ios
       logical :: fexist
 
       namelist /diffusion/ &
@@ -208,12 +208,13 @@ contains
          nml_fname = 'ocn_in'//trim(inst_suffix)
          inquire(file = nml_fname, exist = fexist)
          if (fexist) then
-            open (unit = nfu, file = nml_fname, status = 'old', action = 'read')
+            open (newunit = nfu, file = nml_fname, status = 'old', &
+                 action = 'read')
          else
             nml_fname = 'limits'//trim(inst_suffix)
             inquire(file = nml_fname, exist = fexist)
             if (fexist) then
-               open (unit = nfu, file = nml_fname, status = 'old', &
+               open (newunit = nfu, file = nml_fname, status = 'old', &
                      action = 'read')
             else
                write (lp,*) 'readnml_diffusion: could not find namelist file!'

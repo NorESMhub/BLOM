@@ -31,6 +31,8 @@ c
       use mod_blom_step, only: blom_step
 c
       implicit none
+
+      integer :: nfu
 c
 c --- initialize the model
       call blom_init
@@ -45,7 +47,7 @@ c --- write check sum of layer thickness
       call chksummsk(dp(1-nbdy,1-nbdy,1+mod(nstep2,2)*kk),ip,kk,'dp')
 c
       if (mnproc.eq.1) then
-        open (unit=nfu,file='run.status',status='unknown')
+        open (newunit=nfu,file='run.status',status='unknown')
         write (nfu,*) 'success'
         close (unit=nfu)
       endif

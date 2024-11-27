@@ -37,14 +37,14 @@ c
 #  include "mpif.h"
 #endif
 c
-      integer i
+      integer :: nfu, i
 c
 #ifdef MPI
       call mpi_init
       mpicom_external=mpi_comm_world
 #endif
 c
-      open (unit=nfu,file='ocn_in',status='old',action='read')
+      open (newunit=nfu,file='ocn_in',status='old',action='read')
       read (nfu,'(i6)') i
       read (nfu,*)
       read (nfu,*)
@@ -71,7 +71,7 @@ c --- write check sum of layer thickness
       call chksummsk(dp(1-nbdy,1-nbdy,1+mod(nstep2,2)*kk),ip,1,'dp')
 c
       if (mnproc.eq.1) then
-        open (unit=nfu,file='run.status',status='unknown')
+        open (newunit=nfu,file='run.status',status='unknown')
         write (nfu,*) 'success'
         close (unit=nfu)
       endif

@@ -636,17 +636,6 @@
     </desc>
   </entry>
 
-  <entry id="use_stream_relaxation">
-    <type>logical</type>
-    <category>limits</category>
-    <group>limits</group>
-    <values>
-      <value>.false.</value>
-      <value comp_interface="nuopc">.true.</value>
-    </values>
-    <desc>if .true., use NUOPC stream relaxation capability</desc>
-  </entry>
-
   <entry id="trxday">
     <type>real</type>
     <category>limits</category>
@@ -903,6 +892,16 @@
     <desc>0 = netcdf, 1 = pnetcdf</desc>
   </entry>
 
+  <entry id="use_diag">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>optionally turn on additional diagnostics</desc>
+  </entry>
+
   <!-- ========================= -->
   <!-- namelist group: vcoord -->
   <!-- ========================= -->
@@ -914,127 +913,27 @@
     <values>
       <value>$BLOM_VCOORD</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Vertical coordinate type. Valid types: 'isopyc_bulkml', 'cntiso_hybrid', 'plevel'</desc>
   </entry>
 
-  <entry id="reconstruction_method">
+  <entry id="sigref_spec">
     <type>char</type>
     <category>vcoord</category>
     <group>vcoord</group>
     <values>
-      <value>ppm</value>
+      <value>'inicon'</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Reference potential density specification: Valid specs.: 'inicon', 'namelist'</desc>
   </entry>
 
-  <entry id="upper_bndr_ord">
-    <type>integer</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
-    <values>
-      <value>6</value>
-    </values>
-    <desc>add desc</desc>
-  </entry>
-
-  <entry id="lower_bndr_ord">
-    <type>integer</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
-    <values>
-      <value>4</value>
-    </values>
-    <desc>add desc</desc>
-  </entry>
-
-  <entry id="density_limiting">
+  <entry id="plevel_spec">
     <type>char</type>
     <category>vcoord</category>
     <group>vcoord</group>
     <values>
-      <value>monotonic</value>
+      <value>'inflation'</value>
     </values>
-    <desc>add desc</desc>
-  </entry>
-
-  <entry id="tracer_limiting">
-    <type>char</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
-    <values>
-      <value>non_oscillatory</value>
-    </values>
-    <desc>add desc</desc>
-  </entry>
-
-  <entry id="velocity_limiting">
-    <type>char</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
-    <values>
-      <value>non_oscillatory</value>
-    </values>
-    <desc>add desc</desc>
-  </entry>
-
-  <entry id="density_pc_upper_bndr">
-    <type>logical</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
-    <values>
-      <value>.false.</value>
-    </values>
-    <desc>add desc</desc>
-  </entry>
-
-  <entry id="density_pc_lower_bndr">
-    <type>logical</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
-    <values>
-      <value>.false.</value>
-    </values>
-    <desc>add desc</desc>
-  </entry>
-
-  <entry id="tracer_pc_upper_bndr">
-    <type>logical</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
-    <values>
-      <value>.true.</value>
-    </values>
-    <desc>add desc</desc>
-  </entry>
-
-  <entry id="tracer_pc_lower_bndr">
-    <type>logical</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
-    <values>
-      <value>.false.</value>
-    </values>
-    <desc>add desc</desc>
-  </entry>
-
-  <entry id="velocity_pc_upper_bndr">
-    <type>logical</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
-    <values>
-      <value>.true.</value>
-    </values>
-    <desc>add desc</desc>
-  </entry>
-
-  <entry id="velocity_pc_lower_bndr">
-    <type>logical</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
-    <values>
-      <value>.false.</value>
-    </values>
-    <desc>add desc</desc>
+    <desc>Pressure level specification: Valid specs.: 'inflation', 'namelist'</desc>
   </entry>
 
   <entry id="dpmin_surface">
@@ -1044,7 +943,7 @@
     <values>
       <value>2.5</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Minimum surface layer thickness (m)</desc>
   </entry>
 
   <entry id="dpmin_inflation_factor">
@@ -1054,35 +953,234 @@
     <values>
       <value>1.08</value>
     </values>
+    <desc>Minimum layer thickness inflation factor</desc>
+  </entry>
+
+  <entry id="sigref">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>-1.,-1.</value>
+    </values>
+    <desc>Array of reference potential densities (kg/m3)</desc>
+  </entry>
+
+  <entry id="plevel">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>-1.,-1.</value>
+    </values>
+    <desc>Array of pressure levels (m)</desc>
+  </entry>
+
+  <!-- ========================= -->
+  <!-- namelist group: ale_regrid_remap -->
+  <!-- ========================= -->
+
+  <entry id="reconstruction_method">
+    <type>char</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>ppm</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="upper_bndr_ord">
+    <type>integer</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>6</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="lower_bndr_ord">
+    <type>integer</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>4</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="density_limiting">
+    <type>char</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>monotonic</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="tracer_limiting">
+    <type>char</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>non_oscillatory</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="velocity_limiting">
+    <type>char</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>non_oscillatory</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="density_pc_upper_bndr">
+    <type>logical</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="density_pc_lower_bndr">
+    <type>logical</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="tracer_pc_upper_bndr">
+    <type>logical</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>.true.</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="tracer_pc_lower_bndr">
+    <type>logical</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="velocity_pc_upper_bndr">
+    <type>logical</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>.true.</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="velocity_pc_lower_bndr">
+    <type>logical</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>.false.</value>
+    </values>
     <desc>add desc</desc>
   </entry>
 
   <entry id="dpmin_interior">
     <type>real</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
     <values>
       <value>.1</value>
     </values>
     <desc>add desc</desc>
   </entry>
 
+  <entry id="regrid_method">
+    <type>char</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>'nudge'</value>
+    </values>
+    <desc>Valid mehtods: 'nudge', 'direct'</desc>
+  </entry>
+
+  <entry id="k_range_plevel">
+    <type>integer</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>4</value>
+    </values>
+    <desc>Interface index range from surface enforced to constant pressure levels</desc>
+  </entry>
+
+  <entry id="regrid_nudge_ts">
+    <type>real</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>86400.</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="stab_fac_limit">
+    <type>real</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>.75</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="smooth_diff_max">
+    <type>real</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>50000.</value>
+      <value blom_unit="cgs">50000.e4</value>
+      <value ocn_grid="tnx0.25v4"  blom_unit="mks">40000.</value>
+      <value ocn_grid="tnx0.25v4"  blom_unit="cgs">40000.e4</value>
+      <value ocn_grid="tnx0.125v4" blom_unit="mks">20000.</value>
+      <value ocn_grid="tnx0.125v4" blom_unit="cgs">20000.e4</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
   <entry id="dktzu">
     <type>integer</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
     <values>
-      <value>0</value>
+      <value>4</value>
     </values>
     <desc>add desc</desc>
   </entry>
 
   <entry id="dktzl">
     <type>integer</type>
-    <category>vcoord</category>
-    <group>vcoord</group>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
     <values>
-      <value>0</value>
+      <value>2</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3741,15 +3839,15 @@
    <desc>File name (incl. full path) for atmopheric N-deposition data</desc>
   </entry>
 
-  <entry id="do_ndep_coupled" modify_via_xml="HAMOCC_ATMNDEPC">
+  <entry id="use_nuopc_ndep">
     <type>logical</type>
-    <category>bgcnml</category>
-    <group>bgcnml</group>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
     <values>
       <value>.false.</value>
-      <value blom_n_deposition="yes" hamocc_atmndepc="yes" hamocc_extncycle="yes">.true.</value>
+      <value comp_interface="nuopc">.true.</value>
     </values>
-    <desc>Switch to couple nitrogen deposition. Requires do_ndep.</desc>
+    <desc>if .true., use NUOPC to obtain NDEP (always imported to model).</desc>
   </entry>
 
   <entry id="do_n2onh3_coupled" modify_via_xml="HAMOCC_N2OC">
@@ -3763,25 +3861,15 @@
     <desc>Switch to couple N2O and NH3 fluxes</desc>
   </entry>
 
-  <entry id="use_m4ago" modify_via_xml="HAMOCC_M4AGO">
+  <entry id="use_m4ago">
     <type>logical</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
       <value>.false.</value>
-      <value hamocc_m4ago="yes">.true.</value>
+      <value use_m4ago="yes">.true.</value>
     </values>
     <desc>Switch for M4AGO settling scheme</desc>
-  </entry>
-
-  <entry id="leuphotic_cya">
-    <type>logical</type>
-    <category>bgcnml</category>
-    <group>bgcnml</group>
-    <values>
-      <value>.false.</value>
-    </values>
-    <desc>Switch for cyano-bluefix in euphotic zone only</desc>
   </entry>
 
   <entry id="lkwrbioz_off">
@@ -3792,6 +3880,16 @@
       <value>.false.</value>
     </values>
     <desc>Switch for primary production and remineralization throughout the whole water column</desc>
+  </entry>
+
+  <entry id="lto2depremin">
+    <type>logical</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>Switch for T- and O2-dependent remineralization of POM</desc>
   </entry>
 
   <entry id="do_oalk">
@@ -3954,7 +4052,7 @@
     <values>
       <value>.false.</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Switch to use variable sediment porosity</desc>
   </entry>
 
   <entry id="sedporfile" is_inputdata="yes">
@@ -3966,6 +4064,18 @@
     </values>
     <desc>
       File name (incl. full path) for sediment porosity
+    </desc>
+  </entry>
+
+  <entry id="shelfsea_maskfile" is_inputdata="yes">
+    <type>char</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>''</value>
+    </values>
+    <desc>
+      File name (incl. full path) for shelfsea maskfile (1=shelf; 0=open ocean)
     </desc>
   </entry>
 
@@ -3987,6 +4097,7 @@
     <group>config_bgc</group>
     <values>
       <value>.true.</value>
+      <value use_wlin="no">.false.</value>
     </values>
     <desc>Use POC sinking scheme with increasing sinking velocity with depth</desc>
   </entry>
@@ -4096,6 +4207,7 @@
     <group>config_bgc</group>
     <values>
       <value>.false.</value>
+      <value use_agg="yes">.true.</value>
     </values>
     <desc>Use aggregation scheme for sinking of particles</desc>
   </entry>
@@ -4107,7 +4219,29 @@
     <values>
       <value>.false.</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Activate interactive phytoplankton absorption</desc>
+  </entry>
+
+  <entry id="use_pref_tracers" modify_via_xml="HAMOCC_PREF_TRACERS">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.true.</value>
+      <value hamocc_pref_tracers="false">.false.</value>
+    </values>
+    <desc>activate the HAMOCC preformed tracers code</desc>
+  </entry>
+
+  <entry id="use_shelfsea_res_time" modify_via_xml="HAMOCC_SHELFSEA_RES_TIME">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+      <value hamocc_shelf_res_time="yes">.true.</value>
+    </values>
+    <desc>activate the HAMOCC shelfsea water residence time code</desc>
   </entry>
 
   <!-- ========================= -->
@@ -5163,7 +5297,7 @@
     <values>
       <value>'hbgcd','hbgcm','hbgcy'</value>
     </values>
-    <desc>add desc</desc>
+    <desc>File name extension for BGC output frequencies</desc>
   </entry>
 
   <entry id="glb_aveperio@diabgc">
@@ -5173,7 +5307,7 @@
     <values>
       <value>1,30,365</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Averaging period for BGC diagnostic output</desc>
   </entry>
 
   <entry id="glb_filefreq@diabgc">
@@ -5185,7 +5319,7 @@
       <value is_test="yes">1,30,365</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Frequency for writing the BGC output</desc>
   </entry>
 
   <entry id="glb_compflag@diabgc">
@@ -5195,7 +5329,7 @@
     <values>
       <value>0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>switch for compressed/uncompressed output</desc>
   </entry>
 
   <entry id="glb_ncformat@diabgc">
@@ -5207,7 +5341,7 @@
       <value pio_netcdf_format_ocn="64bit_offset">1,1,1</value>
       <value pio_netcdf_format_ocn="64bit_data">1,1,1</value>
     </values>
-    <desc>add desc</desc>
+    <desc>netcdf format (valid arguments are 0 for classic, 1 for 64-bit offset and 2 for netcdf4/hdf5 format)</desc>
   </entry>
 
   <entry id="glb_inventory">
@@ -5217,7 +5351,7 @@
     <values>
       <value>0,1,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Writing the BGC inventory files at BGC frequencies</desc>
   </entry>
 
   <entry id="srf_phosph">
@@ -5313,7 +5447,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Surface silicate concentration [mol Si m-3]</desc>
   </entry>
 
   <entry id="srf_dic">
@@ -5853,7 +5987,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Surface bromoform concentration [mol CHBr3 m-3]</desc>
   </entry>
 
   <entry id="srf_bromofx">
@@ -5865,7 +5999,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Surface bromoform flux [mol CHBr3 -m2 s-1]</desc>
   </entry>
 
   <entry id="int_bromopro">
@@ -5877,7 +6011,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Integrated bromoform production [mol CHBr3 m-2 s-1]</desc>
   </entry>
 
   <entry id="int_bromouv">
@@ -5889,7 +6023,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Integrated bromoform loss to photolysis [mol CHBr m-2 s-1]</desc>
   </entry>
 
   <entry id="int_phosy">
@@ -5961,7 +6095,7 @@
       <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>AMELIST FOR DIAGNOSTIC iHAMOCC OUTPUT</desc>
+    <desc>namelist for diagnostic iHAMOCC output</desc>
   </entry>
 
   <entry id="flx_car0100">
@@ -5973,7 +6107,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Gravitational POC flux at 100m [mol C m-2 s-1]</desc>
   </entry>
 
   <entry id="flx_car0500">
@@ -5985,7 +6119,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Gravitational POC flux at 500m [mol C m-2 s-1]</desc>
   </entry>
 
   <entry id="flx_car1000">
@@ -5997,7 +6131,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Gravitational POC flux at 1000m [mol C m-2 s-1]</desc>
   </entry>
 
   <entry id="flx_car2000">
@@ -6009,7 +6143,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Gravitational POC flux at 2000m [mol C m-2 s-1]</desc>
   </entry>
 
   <entry id="flx_car4000">
@@ -6021,7 +6155,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Gravitational POC flux at 4000m [mol C m-2 s-1]</desc>
   </entry>
 
   <entry id="flx_car_bot">
@@ -6033,7 +6167,79 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Gravitational POC flux to the sediment [mol C m-2 s-1]</desc>
+  </entry>
+
+  <entry id="flx_dust0100">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Gravitational dust fluxes at 100m</desc>
+  </entry>
+
+  <entry id="flx_dust0500">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Gravitational dust fluxes at 500m</desc>
+  </entry>
+
+  <entry id="flx_dust1000">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Gravitational dust fluxes at 1000m</desc>
+  </entry>
+
+  <entry id="flx_dust2000">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Gravitational dust fluxes at 2000m</desc>
+  </entry>
+
+  <entry id="flx_dust4000">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Gravitational dust fluxes at 4000m</desc>
+  </entry>
+
+  <entry id="flx_dust_bot">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Gravitational dust fluxes to sediment</desc>
   </entry>
 
   <entry id="flx_bsi0100">
@@ -6045,7 +6251,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Gravitational opal flux at 100m [mol Si m-2 s-1]</desc>
   </entry>
 
   <entry id="flx_bsi0500">
@@ -6057,7 +6263,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Gravitational opal flux at 500m [mol Si m-2 s-1]</desc>
   </entry>
 
   <entry id="flx_bsi1000">
@@ -6069,7 +6275,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Gravitational opal flux at 1000m [mol Si m-2 s-1]</desc>
   </entry>
 
   <entry id="flx_bsi2000">
@@ -6081,7 +6287,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Gravitational opal flux at 2000m [mol Si m-2 s-1]</desc>
   </entry>
 
   <entry id="flx_bsi4000">
@@ -6093,7 +6299,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Gravitational opal flux at 4000m [mol Si m-2 s-1]</desc>
   </entry>
 
   <entry id="flx_bsi_bot">
@@ -6105,7 +6311,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Gravitational opal flux to the sediment [mol Si m-2 s-1]</desc>
   </entry>
 
   <entry id="flx_cal0100">
@@ -6117,7 +6323,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Gravitational CaCO3 flux at 100m [mol Ca m-2 s-1]</desc>
   </entry>
 
   <entry id="flx_cal0500">
@@ -6129,7 +6335,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Gravitational CaCO3 flux at 500m [mol Ca m-2 s-1]</desc>
   </entry>
 
   <entry id="flx_cal1000">
@@ -6141,7 +6347,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Gravitational CaCO3 flux at 1000m [mol Ca m-2 s-1]</desc>
   </entry>
 
   <entry id="flx_cal2000">
@@ -6153,7 +6359,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Gravitational CaCO3 flux at 2000m [mol Ca m-2 s-1]</desc>
   </entry>
 
   <entry id="flx_cal4000">
@@ -6165,7 +6371,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Gravitational CaCO3 flux at 4000m [mol Ca m-2 s-1]</desc>
   </entry>
 
   <entry id="flx_cal_bot">
@@ -6177,7 +6383,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Gravitational CaCO3 flux to the sediment [mol Ca m-2 s-1]</desc>
   </entry>
 
   <entry id="lyr_phyto">
@@ -6189,7 +6395,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Phytoplankton [mol P m-3]</desc>
   </entry>
 
   <entry id="lyr_grazer">
@@ -6201,7 +6407,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Zooplankton [mol P m-3]</desc>
   </entry>
 
   <entry id="lyr_doc">
@@ -6213,7 +6419,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Dissolved organic carbon [mol P m-3]</desc>
   </entry>
 
   <entry id="lyr_phosy">
@@ -6225,7 +6431,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Primary production [mol C m-3]</desc>
   </entry>
 
   <entry id="lyr_phosph">
@@ -6273,7 +6479,7 @@
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Nitrate concentration [mol NO3 m-3]</desc>
   </entry>
 
   <entry id="lyr_ano2">
@@ -6633,7 +6839,7 @@
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Alkalinity [eq m-3]</desc>
   </entry>
 
   <entry id="lyr_silica">
@@ -6645,7 +6851,7 @@
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Silicate [mol Si m-3]</desc>
   </entry>
 
   <entry id="lyr_dic">
@@ -6657,7 +6863,7 @@
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Dissolved inorganic carbon [mol C m-3]</desc>
   </entry>
 
   <entry id="lyr_poc">
@@ -6669,7 +6875,7 @@
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Detritus [mol P m-3]</desc>
   </entry>
 
   <entry id="lyr_calc">
@@ -6729,7 +6935,7 @@
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>pH [-log10([H+])]</desc>
   </entry>
 
   <entry id="lyr_omegac">
@@ -6789,7 +6995,7 @@
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Preformed phosphorus [mol P m-3]</desc>
   </entry>
 
   <entry id="lyr_prefsilica">
@@ -6801,7 +7007,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>Pre-formed silica [mol m-3]</desc>
+    <desc>Pre-formed silica [mol Si m-3]</desc>
   </entry>
 
   <entry id="lyr_prefalk">
@@ -6827,6 +7033,19 @@
     </values>
     <desc>preformed DIC (p_dic) [mol C m-3]</desc>
   </entry>
+
+  <entry id="lyr_shelfage">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,4,4</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Shelfsea water residence time [d]</desc>
+  </entry>
+
 
   <entry id="lyr_dicsat">
     <type>integer(3)</type>
@@ -7147,7 +7366,7 @@
     <values>
       <value>0,0,2</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Bromoform [mol CHBr3 m-3]</desc>
   </entry>
 
   <entry id="lyr_dp@diabgc">
@@ -7159,7 +7378,7 @@
       <value is_test="yes">0,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Layer thickness [m]</desc>
   </entry>
 
   <entry id="lvl_phyto">
@@ -7711,7 +7930,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>pH [-log10(H+)]</desc>
   </entry>
 
   <entry id="lvl_omegac">
@@ -7806,6 +8025,18 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>preformed DIC (p_dic) [mol C m-3]</desc>
+  </entry>
+
+  <entry id="lvl_shelfage">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,4,4</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Shelfsea water residence time [d]</desc>
   </entry>
 
   <entry id="lvl_dicsat">
@@ -8105,7 +8336,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Bromoform [mol CHBr3 m-3]</desc>
   </entry>
 
   <entry id="flx_sediffic">
@@ -8117,7 +8348,7 @@
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Diffusive DIC flux to sediment (positive downward) [mol C m-2 s-1]</desc>
   </entry>
 
   <entry id="flx_sediffal">
@@ -8129,7 +8360,7 @@
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Diffusive alkalinity flux to sediment (positive downward) [mol eq m-2 s-1]</desc>
   </entry>
 
   <entry id="flx_sediffph">
@@ -8141,7 +8372,7 @@
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Diffusive phosphate flux to sediment (positive downward) [mol P m-2 s-1]</desc>
   </entry>
 
   <entry id="flx_sediffox">
@@ -8646,6 +8877,21 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>(ssster) [mol m-3]</desc>
+  </entry>
+
+  <!-- =========================  -->
+  <!-- namelist group: forcing fields using nuopc -->
+  <!-- =========================  -->
+
+  <entry id="use_stream_relaxation">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.true.</value>
+    </values>
+    <desc>if .true., use NUOPC stream relaxation capability</desc>
   </entry>
 
   <!-- =========================  -->

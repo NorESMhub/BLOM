@@ -48,7 +48,6 @@ module mo_extNwatercol
   !****************************************************************
   use mo_vgrid,       only: dp_min
   use mod_xc,         only: mnproc
-  use mo_control_bgc, only: dtb
   use mo_param1_bgc,  only: ialkali,ianh4,iano2,ian2o,iano3,idet,igasnit,iiron,ioxygen,iphosph,    &
                           & isco212
   use mo_carbch,      only: ocetra
@@ -63,7 +62,7 @@ module mo_extNwatercol
                           & n2oybeta,NOB2AOAy,bn2o,mufn2o,                                         &
                           & rc2n,ro2nnit,rnoxp,rnoxpi,rno2anmx,rno2anmxi,rnh4anmx,                 &
                           & rnh4anmxi,rno2dnra,rno2dnrai,rnh4dnra,rnh4dnrai,rnm1,                  &
-                          &  bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo
+                          & bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo,max_limiter
   use mo_biomod,      only: nitr_NH4,nitr_NO2,nitr_N2O_prod,nitr_NH4_OM,nitr_NO2_OM,denit_NO3,     &
                           & denit_NO2,denit_N2O,DNRA_NO2,anmx_N2_prod,anmx_OM_prod
   implicit none
@@ -73,8 +72,7 @@ module mo_extNwatercol
   ! public functions
   public :: nitrification,denit_NO3_to_NO2,anammox,denit_dnra,extN_inv_check
 
-  real :: eps    = 1.e-25
-  real :: minlim = 1.e-9
+  real :: eps    = epsilon(1.)
 
 contains
 
@@ -164,15 +162,17 @@ contains
 
             totd = max(0.,                                                                         &
                  &   min(totd,                                                                     &
-                 &       ocetra(i,j,k,ianh4)/(amoxfrac + fdetnitr*nitrfrac + eps),                 & ! ammonium
-                 &       ocetra(i,j,k,isco212)/(rc2n*(fdetamox*amoxfrac + fdetnitr*nitrfrac) +eps),& ! CO2
-                 &       ocetra(i,j,k,iphosph)/(rnoi*(fdetamox*amoxfrac + fdetnitr*nitrfrac) +eps),& ! PO4
-                 &       ocetra(i,j,k,iiron)/(riron*rnoi*(fdetamox*amoxfrac + fdetnitr*nitrfrac)   &
-                 &                            + eps),                                              & ! Fe
-                 &       ocetra(i,j,k,ioxygen)                                                     &
+                 &       max_limiter*ocetra(i,j,k,ianh4)/(amoxfrac + fdetnitr*nitrfrac + eps),     & ! ammonium
+                 &       max_limiter*ocetra(i,j,k,isco212)/                                        &
+                 &                             (rc2n*(fdetamox*amoxfrac + fdetnitr*nitrfrac) +eps),& ! CO2
+                 &       max_limiter*ocetra(i,j,k,iphosph)/                                        &
+                 &                             (rnoi*(fdetamox*amoxfrac + fdetnitr*nitrfrac) +eps),& ! PO4
+                 &       max_limiter*ocetra(i,j,k,iiron)/                                          &
+                 &              (riron*rnoi*(fdetamox*amoxfrac + fdetnitr*nitrfrac) + eps),        & ! Fe
+                 &       max_limiter*ocetra(i,j,k,ioxygen)                                         &
                  &       /((1.5*fno2 + fn2o - ro2nnit*fdetamox)*amoxfrac                           &
                                             + (0.5 - ro2nnit*fdetnitr)*nitrfrac + eps),            & ! O2
-                 &       ocetra(i,j,k,ialkali)                                                     &
+                 &       max_limiter*ocetra(i,j,k,ialkali)                                         &
                  &       /((2.*fno2 + fn2o + rnm1*rnoi*fdetamox)*amoxfrac                          &
                  &                         + (rnm1*rnoi*fdetnitr)*nitrfrac + eps)))                  ! alkalinity
             amox = amoxfrac*totd
@@ -229,10 +229,11 @@ contains
             Tdep      = q10ano3denit**((temp-Trefano3denit)/10.)
             O2inhib   = 1. - tanh(sc_ano3denit*ocetra(i,j,k,ioxygen))
             nutlim    = ocetra(i,j,k,iano3)/(ocetra(i,j,k,iano3) + bkano3denit)
- 
+
             ano3new   = ocetra(i,j,k,iano3)/(1. + rano3denit*Tdep*O2inhib*nutlim)
 
-            ano3denit = max(0.,min(ocetra(i,j,k,iano3) - ano3new, ocetra(i,j,k,idet)*rnoxp))
+            ano3denit = max(0.,min(ocetra(i,j,k,iano3) - ano3new,                                  &
+                                   max_limiter*ocetra(i,j,k,idet)*rnoxp))
 
             ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)   - ano3denit
             ocetra(i,j,k,iano2)   = ocetra(i,j,k,iano2)   + ano3denit
@@ -284,11 +285,11 @@ contains
             ano2new  = ocetra(i,j,k,iano2)/(1. + rano2anmx*Tdep*O2inhib*nut1lim*nut2lim)
 
             ano2anmx = max(0.,min(ocetra(i,j,k,iano2) - ano2new,                                   &
-                                  ocetra(i,j,k,ianh4)*rno2anmx*rnh4anmxi,                          &
-                                  ocetra(i,j,k,isco212)*rno2anmx/rcar,                             &
-                                  ocetra(i,j,k,iphosph)*rno2anmx,                                  &
-                                  ocetra(i,j,k,iiron)*rno2anmx/riron,                              &
-                                  ocetra(i,j,k,ialkali)*rno2anmx/rnm1))
+                                  max_limiter*ocetra(i,j,k,ianh4)*rno2anmx*rnh4anmxi,              &
+                                  max_limiter*ocetra(i,j,k,isco212)*rno2anmx/rcar,                 &
+                                  max_limiter*ocetra(i,j,k,iphosph)*rno2anmx,                      &
+                                  max_limiter*ocetra(i,j,k,iiron)*rno2anmx/riron,                  &
+                                  max_limiter*ocetra(i,j,k,ialkali)*rno2anmx/rnm1))
 
             ocetra(i,j,k,iano2)   = ocetra(i,j,k,iano2)   - ano2anmx
             ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   - ano2anmx*rnh4anmx*rno2anmxi
@@ -387,7 +388,7 @@ contains
             fdetano2denit = rnoxpi*ano2denit/(potddet + eps)
             fdetan2odenit = rnoxpi*an2odenit/(potddet + eps)
             fdetdnra      = 1. - fdetano2denit - fdetan2odenit
-            potddet       = max(0.,min(potddet,ocetra(i,j,k,idet)))
+            potddet       = max(0.,min(potddet,max_limiter*ocetra(i,j,k,idet)))
 
             ! change of NO2 and N2O in N units
             ano2denit     = fdetano2denit*rnoxp*potddet
@@ -426,7 +427,7 @@ contains
 !==================================================================================================================================
   subroutine extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
     use mo_inventory_bgc, only: inventory_bgc
-    use mo_control_bgc,   only: io_stdo_bgc,dtb,use_PBGC_OCNP_TIMESTEP
+    use mo_control_bgc,   only: io_stdo_bgc,use_PBGC_OCNP_TIMESTEP
 
     implicit none
     ! provide inventory calculation for extended nitrogen cycle

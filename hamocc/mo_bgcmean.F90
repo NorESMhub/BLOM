@@ -49,7 +49,7 @@ module mo_bgcmean
   use netcdf,         only: nf90_fill_double
   use mo_param1_bgc,  only: ks
   use mo_control_bgc, only: use_sedbypass,use_cisonew,use_CFC,use_natDIC,use_BROMO,use_BOXATM,     &
-                            use_AGG,use_M4AGO,use_extNcycle
+                            use_AGG,use_M4AGO,use_extNcycle,use_pref_tracers,use_shelfsea_res_time
 
   implicit none
 
@@ -121,6 +121,8 @@ module mo_bgcmean
        & FLX_BSI2000   =0    ,FLX_BSI4000   =0    ,FLX_BSI_BOT   =0    ,  &
        & FLX_CAL0100   =0    ,FLX_CAL0500   =0    ,FLX_CAL1000   =0    ,  &
        & FLX_CAL2000   =0    ,FLX_CAL4000   =0    ,FLX_CAL_BOT   =0    ,  &
+       & FLX_DUST0100  =0    ,FLX_DUST0500  =0    ,FLX_DUST1000  =0    ,  &
+       & FLX_DUST2000  =0    ,FLX_DUST4000  =0    ,FLX_DUST_BOT  =0    ,  &
        & FLX_SEDIFFIC  =0    ,FLX_SEDIFFAL  =0    ,FLX_SEDIFFPH  =0    ,  &
        & FLX_SEDIFFOX  =0    ,FLX_SEDIFFN2  =0    ,FLX_SEDIFFNO3 =0    ,  &
        & FLX_SEDIFFSI  =0    ,FLX_SEDIFFNH4 =0    ,FLX_SEDIFFN2O =0    ,  &
@@ -138,7 +140,7 @@ module mo_bgcmean
        & LYR_EPS       =0    ,LYR_ASIZE     =0    ,LYR_N2O       =0    ,  &
        & LYR_PREFO2    =0    ,LYR_O2SAT     =0    ,LYR_PREFPO4   =0    ,  &
        & LYR_PREFALK   =0    ,LYR_PREFDIC   =0    ,LYR_DICSAT    =0    ,  &
-       & LYR_PREFSILICA=0    ,                                            &
+       & LYR_PREFSILICA=0    ,LYR_SHELFAGE  =0    ,                       &
        & LYR_CFC11     =0    ,LYR_CFC12     =0    ,LYR_SF6       =0    ,  &
        & LYR_NATDIC    =0    ,LYR_NATALKALI =0    ,LYR_NATCALC   =0    ,  &
        & LYR_NATPH     =0    ,LYR_NATOMEGAA =0    ,LYR_NATOMEGAC =0    ,  &
@@ -170,7 +172,7 @@ module mo_bgcmean
        & LVL_ASIZE     =0    ,LVL_N2O       =0    ,LVL_PREFO2    =0    ,  &
        & LVL_O2SAT     =0    ,LVL_PREFPO4   =0    ,LVL_PREFALK   =0    ,  &
        & LVL_PREFDIC   =0    ,LVL_DICSAT    =0    ,                       &
-       & LVL_PREFSILICA=0    ,                                            &
+       & LVL_PREFSILICA=0    ,LVL_SHELFAGE  =0    ,                       &
        & LVL_CFC11     =0    ,LVL_CFC12     =0    ,LVL_SF6       =0    ,  &
        & LVL_NATDIC    =0    ,LVL_NATALKALI =0    ,LVL_NATCALC   =0    ,  &
        & LVL_NATPH     =0    ,LVL_NATOMEGAA =0    ,LVL_NATOMEGAC =0    ,  &
@@ -184,7 +186,7 @@ module mo_bgcmean
        & LVL_nitr_NH4_OM =0  ,LVL_nitr_NO2_OM =0  ,LVL_denit_NO3     =0,  &
        & LVL_denit_NO2 = 0   ,LVL_denit_N2O = 0   ,LVL_DNRA_NO2      =0,  &
        & LVL_anmx_N2_prod=0  ,LVL_anmx_OM_prod=0  ,LVL_phosy_NH4     =0,  &
-       & LVL_phosy_NO3 = 0   ,LVL_remin_aerob =0  ,LVL_remin_sulf    =0,  & 
+       & LVL_phosy_NO3 = 0   ,LVL_remin_aerob =0  ,LVL_remin_sulf    =0,  &
        ! M4AGO LVL
        & LVL_agg_ws    =0    ,LVL_dynvis    =0    ,LVL_agg_stick =0    ,  &
        & LVL_agg_stickf=0    ,LVL_agg_dmax  =0    ,LVL_agg_avdp  =0    ,  &
@@ -209,7 +211,7 @@ module mo_bgcmean
   character(len=10), dimension(nbgcmax) :: glb_fnametag
   namelist /diabgc/                                                       &
        & SRF_KWCO2         ,SRF_FCO2          ,SRF_PCO2          ,        &
-       & SRF_XCO2          ,SRF_PCO2_GEX      ,                           & 
+       & SRF_XCO2          ,SRF_PCO2_GEX      ,                           &
        & SRF_DMSFLUX       ,SRF_KWCO2SOL      ,SRF_CO2SOL        ,        &
        & SRF_CO2FXD        ,SRF_CO2FXU        ,SRF_CO213FXD      ,        &
        & SRF_CO213FXU      ,SRF_CO214FXD      ,SRF_CO214FXU      ,        &
@@ -236,6 +238,8 @@ module mo_bgcmean
        & FLX_BSI2000       ,FLX_BSI4000       ,FLX_BSI_BOT       ,        &
        & FLX_CAL0100       ,FLX_CAL0500       ,FLX_CAL1000       ,        &
        & FLX_CAL2000       ,FLX_CAL4000       ,FLX_CAL_BOT       ,        &
+       & FLX_DUST0100      ,FLX_DUST0500      ,FLX_DUST1000      ,        &
+       & FLX_DUST2000      ,FLX_DUST4000      ,FLX_DUST_BOT      ,        &
        & FLX_SEDIFFIC      ,FLX_SEDIFFAL      ,FLX_SEDIFFPH      ,        &
        & FLX_SEDIFFOX      ,FLX_SEDIFFN2      ,FLX_SEDIFFNO3     ,        &
        & FLX_SEDIFFSI      ,FLX_SEDIFFNH4     ,FLX_SEDIFFN2O     ,        &
@@ -253,7 +257,7 @@ module mo_bgcmean
        & LYR_EPS           ,LYR_ASIZE         ,LYR_N2O           ,        &
        & LYR_PREFO2        ,LYR_O2SAT         ,LYR_PREFPO4       ,        &
        & LYR_PREFALK       ,LYR_PREFDIC       ,LYR_DICSAT        ,        &
-       & LYR_PREFSILICA    ,                                              &
+       & LYR_PREFSILICA    ,LYR_SHELFAGE      ,                           &
        & LYR_CFC11         ,LYR_CFC12         ,LYR_SF6           ,        &
        & LYR_NATDIC        ,LYR_NATALKALI     ,LYR_NATCALC       ,        &
        & LYR_NATPH         ,LYR_NATOMEGAA     ,LYR_NATOMEGAC     ,        &
@@ -266,7 +270,7 @@ module mo_bgcmean
        & LYR_nitr_NH4_OM   ,LYR_nitr_NO2_OM   ,LYR_denit_NO3     ,        &
        & LYR_denit_NO2     ,LYR_denit_N2O     ,LYR_DNRA_NO2      ,        &
        & LYR_anmx_N2_prod  ,LYR_anmx_OM_prod  ,LYR_phosy_NH4     ,        &
-       & LYR_phosy_NO3     ,LYR_remin_aerob   ,LYR_remin_sulf    ,        & 
+       & LYR_phosy_NO3     ,LYR_remin_aerob   ,LYR_remin_sulf    ,        &
        & LYR_agg_ws        ,LYR_dynvis        ,LYR_agg_stick     ,        &
        & LYR_agg_stickf    ,LYR_agg_dmax      ,LYR_agg_avdp      ,        &
        & LYR_agg_avrhop    ,LYR_agg_avdC      ,LYR_agg_df        ,        &
@@ -282,6 +286,7 @@ module mo_bgcmean
        & LVL_ASIZE         ,LVL_N2O           ,LVL_PREFO2        ,        &
        & LVL_O2SAT         ,LVL_PREFPO4       ,LVL_PREFALK       ,        &
        & LVL_PREFDIC       ,LVL_DICSAT        ,LVL_PREFSILICA    ,        &
+       & LVL_SHELFAGE      ,                                              &
        & LVL_CFC11         ,LVL_CFC12         ,LVL_SF6           ,        &
        & LVL_NATDIC        ,LVL_NATALKALI     ,LVL_NATCALC       ,        &
        & LVL_NATPH         ,LVL_NATOMEGAA     ,LVL_NATOMEGAC     ,        &
@@ -294,11 +299,11 @@ module mo_bgcmean
        & LVL_nitr_NH4_OM   ,LVL_nitr_NO2_OM   ,LVL_denit_NO3     ,        &
        & LVL_denit_NO2     ,LVL_denit_N2O     ,LVL_DNRA_NO2      ,        &
        & LVL_anmx_N2_prod  ,LVL_anmx_OM_prod  ,LVL_phosy_NH4     ,        &
-       & LVL_phosy_NO3     ,LVL_remin_aerob   ,LVL_remin_sulf    ,        & 
+       & LVL_phosy_NO3     ,LVL_remin_aerob   ,LVL_remin_sulf    ,        &
        & LVL_agg_ws        ,LVL_dynvis        ,LVL_agg_stick     ,        &
        & LVL_agg_stickf    ,LVL_agg_dmax      ,LVL_agg_avdp      ,        &
        & LVL_agg_avrhop    ,LVL_agg_avdC      ,LVL_agg_df        ,        &
-       & LVL_agg_b         ,LVL_agg_Vrhof     ,LVL_agg_Vpor      ,        &        
+       & LVL_agg_b         ,LVL_agg_Vrhof     ,LVL_agg_Vpor      ,        &
        & SDM_POWAIC        ,SDM_POWAAL        ,SDM_POWAPH        ,        &
        & SDM_POWAOX        ,SDM_POWN2         ,SDM_POWNO3        ,        &
        & SDM_POWASI        ,SDM_SSSO12        ,SDM_SSSSIL        ,        &
@@ -408,7 +413,13 @@ module mo_bgcmean
        &          jcalflx1000= 0 ,                                        &
        &          jcalflx2000= 0 ,                                        &
        &          jcalflx4000= 0 ,                                        &
-       &          jcalflx_bot= 0
+       &          jcalflx_bot= 0 ,                                        &
+       &          jdustflx0100= 0 ,                                       &
+       &          jdustflx0500= 0 ,                                       &
+       &          jdustflx1000= 0 ,                                       &
+       &          jdustflx2000= 0 ,                                       &
+       &          jdustflx4000= 0 ,                                       &
+       &          jdustflx_bot= 0
 
   integer, dimension(nbgcmax) ::                                          &
        &          jsediffic  = 0 ,                                        &
@@ -490,6 +501,7 @@ module mo_bgcmean
        &          jprefsilica= 0 ,                                        &
        &          jprefalk   = 0 ,                                        &
        &          jprefdic   = 0 ,                                        &
+       &          jshelfage  = 0 ,                                        &
        &          jdicsat    = 0 ,                                        &
        &          jcfc11     = 0 ,                                        &
        &          jcfc12     = 0 ,                                        &
@@ -519,6 +531,7 @@ module mo_bgcmean
        &          jlvlprefsilica= 0 ,                                     &
        &          jlvlprefalk= 0 ,                                        &
        &          jlvlprefdic= 0 ,                                        &
+       &          jlvlshelfage= 0 ,                                       &
        &          jlvldicsat = 0 ,                                        &
        &          jlvlcfc11  = 0 ,                                        &
        &          jlvlcfc12  = 0 ,                                        &
@@ -595,7 +608,7 @@ module mo_bgcmean
        &          jphosy_NH4         = 0 ,                                &
        &          jphosy_NO3         = 0 ,                                &
        &          jremin_aerob       = 0 ,                                &
-       &          jremin_sulf        = 0 ,                                & 
+       &          jremin_sulf        = 0 ,                                &
        &          jagg_ws            = 0 ,                                &
        &          jdynvis            = 0 ,                                &
        &          jagg_stick         = 0 ,                                &
@@ -607,9 +620,9 @@ module mo_bgcmean
        &          jagg_df            = 0 ,                                &
        &          jagg_b             = 0 ,                                &
        &          jagg_Vrhof         = 0 ,                                &
-       &          jagg_Vpor          = 0 ,                                &        
+       &          jagg_Vpor          = 0 ,                                &
        &          jlvlanh4   = 0 ,                                        &
-       &          jlvlano2   = 0 ,                                        &  
+       &          jlvlano2   = 0 ,                                        &
        &          jlvl_nitr_NH4      = 0 ,                                &
        &          jlvl_nitr_NO2      = 0 ,                                &
        &          jlvl_nitr_N2O_prod = 0 ,                                &
@@ -859,6 +872,19 @@ CONTAINS
       jcalflx4000(n)=i_bsc_m2d*min(1,FLX_CAL4000(n))
       if (FLX_CAL_BOT(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jcalflx_bot(n)=i_bsc_m2d*min(1,FLX_CAL_BOT(n))
+      if (FLX_DUST0100(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jdustflx0100(n)=i_bsc_m2d*min(1,FLX_DUST0100(n))
+      if (FLX_DUST0500(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jdustflx0500(n)=i_bsc_m2d*min(1,FLX_DUST0500(n))
+      if (FLX_DUST1000(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jdustflx1000(n)=i_bsc_m2d*min(1,FLX_DUST1000(n))
+      if (FLX_DUST2000(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jdustflx2000(n)=i_bsc_m2d*min(1,FLX_DUST2000(n))
+      if (FLX_DUST4000(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jdustflx4000(n)=i_bsc_m2d*min(1,FLX_DUST4000(n))
+      if (FLX_DUST_BOT(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jdustflx_bot(n)=i_bsc_m2d*min(1,FLX_DUST_BOT(n))
+
       if (.not. use_sedbypass) then
         if (FLX_SEDIFFIC(n) > 0) i_bsc_m2d=i_bsc_m2d+1
         jsediffic(n)=i_bsc_m2d*min(1,FLX_SEDIFFIC(n))
@@ -951,7 +977,9 @@ CONTAINS
          jbsiflx0100+jbsiflx0500+jbsiflx1000+ &
          jbsiflx2000+jbsiflx4000+jbsiflx_bot+ &
          jcalflx0100+jcalflx0500+jcalflx1000+ &
-         jcalflx2000+jcalflx4000+jcalflx_bot  > 0)
+         jcalflx2000+jcalflx4000+jcalflx_bot+ &
+         jdustflx0100+jdustflx0500+jdustflx1000+ &
+         jdustflx2000+jdustflx4000+jdustflx_bot > 0)
 
     i_atm_m2d=i_bsc_m2d
     do n=1,nbgc
@@ -1029,18 +1057,24 @@ CONTAINS
       jprefo2(n)=i_bsc_m3d*min(1,LYR_PREFO2(n))
       if (LYR_O2SAT(n) > 0) i_bsc_m3d=i_bsc_m3d+1
       jo2sat(n)=i_bsc_m3d*min(1,LYR_O2SAT(n))
-      if (LYR_PREFPO4(n) > 0) i_bsc_m3d=i_bsc_m3d+1
-      jprefpo4(n)=i_bsc_m3d*min(1,LYR_PREFPO4(n))
-      if (LYR_PREFSILICA(n) > 0) i_bsc_m3d=i_bsc_m3d+1
-      jprefsilica(n)=i_bsc_m3d*min(1,LYR_PREFSILICA(n))
-      if (LYR_PREFALK(n) > 0) i_bsc_m3d=i_bsc_m3d+1
-      jprefalk(n)=i_bsc_m3d*min(1,LYR_PREFALK(n))
-      if (LYR_PREFDIC(n) > 0) i_bsc_m3d=i_bsc_m3d+1
-      jprefdic(n)=i_bsc_m3d*min(1,LYR_PREFDIC(n))
       if (LYR_DICSAT(n) > 0) i_bsc_m3d=i_bsc_m3d+1
       jdicsat(n)=i_bsc_m3d*min(1,LYR_DICSAT(n))
       if (LYR_DP(n) > 0) i_bsc_m3d=i_bsc_m3d+1
       jdp(n)=i_bsc_m3d*min(1,LYR_DP(n))
+      if (use_pref_tracers) then
+        if (LYR_PREFPO4(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jprefpo4(n)=i_bsc_m3d*min(1,LYR_PREFPO4(n))
+        if (LYR_PREFSILICA(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jprefsilica(n)=i_bsc_m3d*min(1,LYR_PREFSILICA(n))
+        if (LYR_PREFALK(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jprefalk(n)=i_bsc_m3d*min(1,LYR_PREFALK(n))
+        if (LYR_PREFDIC(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jprefdic(n)=i_bsc_m3d*min(1,LYR_PREFDIC(n))
+      endif
+      if (use_shelfsea_res_time) then
+        if (LYR_SHELFAGE(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jshelfage(n)=i_bsc_m3d*min(1,LYR_SHELFAGE(n))
+      endif
       if (use_CFC) then
         if (LYR_CFC11(n) > 0) i_bsc_m3d=i_bsc_m3d+1
         jcfc11(n)=i_bsc_m3d*min(1,LYR_CFC11(n))
@@ -1208,16 +1242,22 @@ CONTAINS
       jlvlprefo2(n)=ilvl_bsc_m3d*min(1,LVL_PREFO2(n))
       if (LVL_O2SAT(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
       jlvlo2sat(n)=ilvl_bsc_m3d*min(1,LVL_O2SAT(n))
-      if (LVL_PREFPO4(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
-      jlvlprefpo4(n)=ilvl_bsc_m3d*min(1,LVL_PREFPO4(n))
-      if (LVL_PREFSILICA(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
-      jlvlprefsilica(n)=ilvl_bsc_m3d*min(1,LVL_PREFSILICA(n))
-      if (LVL_PREFALK(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
-      jlvlprefalk(n)=ilvl_bsc_m3d*min(1,LVL_PREFALK(n))
-      if (LVL_PREFDIC(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
-      jlvlprefdic(n)=ilvl_bsc_m3d*min(1,LVL_PREFDIC(n))
       if (LVL_DICSAT(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
       jlvldicsat(n)=ilvl_bsc_m3d*min(1,LVL_DICSAT(n))
+      if (use_pref_tracers) then
+        if (LVL_PREFPO4(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlprefpo4(n)=ilvl_bsc_m3d*min(1,LVL_PREFPO4(n))
+        if (LVL_PREFSILICA(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlprefsilica(n)=ilvl_bsc_m3d*min(1,LVL_PREFSILICA(n))
+        if (LVL_PREFALK(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlprefalk(n)=ilvl_bsc_m3d*min(1,LVL_PREFALK(n))
+        if (LVL_PREFDIC(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlprefdic(n)=ilvl_bsc_m3d*min(1,LVL_PREFDIC(n))
+      endif
+      if (use_shelfsea_res_time) then
+        if (LVL_SHELFAGE(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlshelfage(n)=ilvl_bsc_m3d*min(1,LVL_SHELFAGE(n))
+      endif
       if (use_CFC) then
         if (LVL_CFC11(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlcfc11(n)=ilvl_bsc_m3d*min(1,LVL_CFC11(n))

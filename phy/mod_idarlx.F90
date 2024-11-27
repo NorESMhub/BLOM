@@ -20,7 +20,7 @@
 module mod_idarlx
 
   use dimensions,  only: itdm, jtdm
-  use mod_xc,      only: xchalt, xcaput, xctilr, mnproc, nfu, lp, nbdy, &
+  use mod_xc,      only: xchalt, xcaput, xctilr, mnproc, lp, nbdy, &
                          ii, jj, halo_ps
   use mod_forcing, only: tflxap, sflxap, tflxdi, sflxdi, nflxdi, &
                          aptflx, apsflx, ditflx, disflx
@@ -40,11 +40,11 @@ contains
 
     ! Local varaibles
     real, dimension(itdm,jtdm) :: tmp2d
-    integer :: i,j,k
+    integer :: nfu,i,j,k
 
     if (aptflx) then
       if (mnproc == 1) then
-        open (unit=nfu,file='tflxdi.uf',form = 'unformatted')
+        open (newunit=nfu,file='tflxdi.uf',form = 'unformatted')
         read (nfu) i,j
         if (i /= itdm.or.j /= jtdm) then
           write (lp,*) 'wrong dimensions in tflxdi.uf'
@@ -65,7 +65,7 @@ contains
     end if
     if (apsflx) then
       if (mnproc == 1) then
-        open (unit=nfu,file='sflxdi.uf',form = 'unformatted')
+        open (newunit=nfu,file='sflxdi.uf',form = 'unformatted')
         read (nfu) i,j
         if (i /= itdm.or.j /= jtdm) then
           write (lp,*) 'wrong dimensions in sflxdi.uf'

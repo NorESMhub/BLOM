@@ -22,7 +22,7 @@ module mod_iniphy
 
   use mod_config,      only: expcnf
   use mod_xc,          only: lp, mnproc, xcstop
-  use mod_vcoord,      only: vcoord_type_tag, cntiso_hybrid
+  use mod_vcoord,      only: vcoord_tag, vcoord_isopyc_bulkml
   use mod_tidaldissip, only: read_tidaldissip
   use mod_difest,      only: init_difest
   use mod_eddtra,      only: init_eddtra
@@ -55,7 +55,7 @@ contains
       stop '(iniphy)'
     end if
 
-    if (vcoord_type_tag == cntiso_hybrid) then
+    if (vcoord_tag /= vcoord_isopyc_bulkml) then
       call init_difest
     end if
 

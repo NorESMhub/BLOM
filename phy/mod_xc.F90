@@ -25,8 +25,7 @@ module mod_xc
   use dimensions, only: idm,jdm,kdm,itdm,jtdm,iqr,jqr,ijqr,&
                         ii_pe,jj_pe,i0_pe,j0_pe,nreg
   use mod_wtime,  only: wtime
-  use mod_ifdefs, only: use_TIMER, use_DEBUG_TIMER, use_DEBUG_TIMER_ALL, &
-                        use_DEBUG_ALL, use_ARCTIC
+  use mod_ifdefs, only: use_arctic
 
   implicit none
   public
@@ -90,9 +89,8 @@ module mod_xc
   integer, dimension (1-nbdy:idm+nbdy) :: jsu
   integer, dimension (1-nbdy:idm+nbdy) :: jsv
 
-  ! line printer unit (stdout) and file unit with default values 6 and
-  ! 12, respectively
-  integer :: lp=6, nfu = 12
+  ! line printer unit (stdout) with default values 6
+  integer :: lp=6
 
   ! tile dimensions and tile numbers (counting from 1), see xcspmd
   integer, public :: ipr, jpr, ijpr, mproc, nproc, mnproc
@@ -171,6 +169,12 @@ module mod_xc
 
   real, private :: al(itdm,jdm),ala(itdm,jdm,jqr),at(idm*jdm),ata(idm*jdm,iqr)
 #endif
+
+  ! debug flags
+  logical :: use_DEBUG_TIMER     = .false.
+  logical :: use_DEBUG_TIMER_ALL = .false.
+  logical :: use_DEBUG_ALL       = .false.
+  logical :: use_TIMER           = .false.
 
 contains
 

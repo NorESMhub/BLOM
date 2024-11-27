@@ -19,12 +19,45 @@
 
 module mod_blom_init
 
+  use dimensions,          only: itdm, nreg
+  use mod_config,          only: expcnf
+  use mod_time,            only: date, nday1, nday2, nstep1, nstep2, nstep, delt1, &
+                                 time0, baclin
+  use mod_timing,          only: init_timing, get_time
+  use mod_xc,              only: xcspmd, xcbcst, xctilr, mnproc, nproc, &
+                                 lp, ii, jj, kk, isp, ifp, isu, ifu, ilp, isv, ifv, &
+                                 ilu, ilv, jpr, i0, nbdy, &
+                                 halo_ps, halo_us, halo_vs, halo_uv, halo_vv, halo_qs
+  use mod_pointtest,       only: init_ptest
+  use mod_inicon,          only: icfile
+  use mod_state,           only: dp, dpu, dpv, uflx, vflx, p, pu, pv, phi
+  use mod_barotp,          only: pvtrop
+  use mod_pgforc,          only: pgfxm, pgfym, xixp, xixm, xiyp, xiym
+  use mod_niw,             only: uml, vml, umlres, vmlres
+  use mod_eos,             only: inieos
+  use mod_swabs,           only: iniswa
+  use mod_tmsmt,           only: initms
+  use mod_dia,             only: diaini, diasg1
+  use mod_inicon,          only: inicon
+  use mod_budget,          only: budget_init
+  use mod_cmnfld_routines, only: cmnfld1
+  use mod_tke,             only: initke
+  use mod_rdlim,           only: rdlim
+  use mod_inifrc,          only: inifrc
+  use mod_inivar,          only: inivar
+  use mod_vcoord,          only: vcoord_tag, vcoord_isopyc_bulkml, sigmar
+  use mod_ale_regrid_remap, only: init_ale_regrid_remap
+  use mod_inigeo,          only: inigeo
+  use mod_iniphy,          only: iniphy
+  use mod_restart,         only: restart_read
+  use mod_ifdefs,          only: use_TRC, use_TKE
+  use mod_tracers_update,  only: initrc
+  use netcdf
+
   implicit none
   private
 
   public :: blom_init
-
-  private :: numerical_bounds
 
 contains
 
@@ -32,41 +65,6 @@ contains
   ! ------------------------------------------------------------------
   ! initialize the model
   ! ------------------------------------------------------------------
-
-    use dimensions,          only: itdm, nreg
-    use mod_config,          only: expcnf
-    use mod_time,            only: date, nday1, nday2, nstep1, nstep2, nstep, delt1, &
-                                   time0, baclin
-    use mod_timing,          only: init_timing, get_time
-    use mod_xc,              only: xcspmd, xcbcst, xctilr, mnproc, nproc, &
-                                   lp, ii, jj, kk, isp, ifp, isu, ifu, ilp, isv, ifv, &
-                                   ilu, ilv, jpr, i0, nbdy, &
-                                   halo_ps, halo_us, halo_vs, halo_uv, halo_vv, halo_qs
-    use mod_pointtest,       only: init_ptest
-    use mod_inicon,          only: icfile
-    use mod_state,           only: dp, dpu, dpv, uflx, vflx, p, pu, pv, phi
-    use mod_barotp,          only: pvtrop
-    use mod_pgforc,          only: pgfxm, pgfym, xixp, xixm, xiyp, xiym
-    use mod_niw,             only: uml, vml, umlres, vmlres
-    use mod_eos,             only: inieos
-    use mod_swabs,           only: iniswa
-    use mod_ndiff,           only: ndiff_init
-    use mod_tmsmt,           only: initms
-    use mod_dia,             only: diaini, diasg1
-    use mod_inicon,          only: inicon
-    use mod_budget,          only: budget_init
-    use mod_cmnfld_routines, only: cmnfld1
-    use mod_tke,             only: initke
-    use mod_rdlim,           only: rdlim
-    use mod_inifrc,          only: inifrc
-    use mod_inivar,          only: inivar
-    use mod_vcoord,          only: vcoord_type_tag, isopyc_bulkml, sigmar
-    use mod_inigeo,          only: inigeo
-    use mod_iniphy,          only: iniphy
-    use mod_restart,         only: restart_read
-    use mod_ifdefs,          only: use_TRC, use_TKE
-    use mod_tracers_update,  only: initrc
-    use netcdf
 
     ! Local variables
     integer :: istat,ncid,varid,i,j,k,l,m,n,mm,nn,k1m,k1n,mt,mmt,kn,km
@@ -124,6 +122,12 @@ contains
     call inivar
 
     ! ------------------------------------------------------------------
+    ! Initialize ALE regridding and remapping
+    ! ------------------------------------------------------------------
+
+    call init_ale_regrid_remap
+
+    ! ------------------------------------------------------------------
     ! Set various numerical bounds
     ! ------------------------------------------------------------------
 
@@ -160,12 +164,6 @@ contains
     if (use_TRC .and. use_TKE) then
       call initke
     end if
-
-    ! ------------------------------------------------------------------
-    ! Initialize neutral diffusion
-    ! ------------------------------------------------------------------
-
-    call ndiff_init
 
     ! ------------------------------------------------------------------
     ! Initialize diagnostic accumulation fields
@@ -249,7 +247,7 @@ contains
 
     call xctilr(dp, 1,2*kk, 3,3, halo_ps)
 
-    if (vcoord_type_tag == isopyc_bulkml) then
+    if (vcoord_tag == vcoord_isopyc_bulkml) then
 
       do mt = n,3-n,3-2*n
         mmt = (mt-1)*kk
@@ -340,6 +338,7 @@ contains
     ! update some halos
     ! ------------------------------------------------------------------
 
+    call xctilr(sigmar, 1,kk, 2,2, halo_ps)
     call xctilr(uflx, 1,2*kk, 1,1, halo_uv)
     call xctilr(vflx, 1,2*kk, 1,1, halo_vv)
     call xctilr(phi(1-nbdy,1-nbdy,kk+1), 1,1, 2,2, halo_ps)
@@ -350,8 +349,7 @@ contains
     call xctilr(pgfym, 1,2, 1,2, halo_vv)
     call xctilr(xiyp, 1,2, 1,2, halo_vs)
     call xctilr(xiym, 1,2, 1,2, halo_vs)
-    call xctilr(sigmar, 1,kk, 1,1, halo_ps)
-    if (vcoord_type_tag == isopyc_bulkml) then
+    if (vcoord_tag == vcoord_isopyc_bulkml) then
        call xctilr(uml, 1,4, 1,0, halo_uv)
        call xctilr(vml, 1,4, 0,1, halo_vv)
        call xctilr(umlres, 1,2, 1,0, halo_uv)

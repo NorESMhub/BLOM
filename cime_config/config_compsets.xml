@@ -78,7 +78,7 @@
 
   <compset>
     <alias>NOIIAJRA</alias>
-    <lname>2000_DATM%JRA_SLND_CICE_BLOM_DROF%JRA_SGLC_SWAV</lname>
+    <lname>2000_DATM%JRA-1p4-2018_SLND_CICE_BLOM_DROF%JRA-1p4-2018_SGLC_SWAV</lname>
   </compset>
   <compset>
     <!-- not valid for noresm2.5 -->
@@ -88,23 +88,49 @@
 
   <compset>
     <alias>NOIIAJRAOC</alias>
-    <lname>2000_DATM%JRA_SLND_CICE_BLOM%ECO_DROF%JRA_SGLC_SWAV</lname>
+    <lname>2000_DATM%JRA-1p4-2018_SLND_CICE_BLOM%ECO_DROF%JRA-1p4-2018_SGLC_SWAV</lname>
   </compset>
   <compset>
     <!-- not valid for noresm2.5 -->
-    <alias>NOIIAJRAOC</alias>
+    <alias>N2NOIIAJRAOC</alias>
     <lname>2000_DATM%JRA_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%JRA_SGLC_SWAV</lname>
   </compset>
 
   <compset>
+    <alias>NOIIAJRAOC1850</alias>
+    <lname>1850_DATM%JRA-1p4-2018_SLND_CICE_BLOM%ECO_DROF%JRA-1p4-2018_SGLC_SWAV</lname>
+  </compset>
+  <compset>
+    <!-- not valid for noresm2.5 -->
+    <alias>N2NOIIAJRAOC1850</alias>
+    <lname>1850_DATM%JRA_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%JRA_SGLC_SWAV</lname>
+  </compset>
+
+  <compset>
     <alias>NOIIAJRAOC20TR</alias>
-    <lname>20TR_DATM%JRA_SLND_CICE_BLOM%ECO_DROF%JRA_SGLC_SWAV</lname>
+    <lname>20TR_DATM%JRA-1p4-2018_SLND_CICE_BLOM%ECO_DROF%JRA-1p4-2018_SGLC_SWAV</lname>
   </compset>
   <compset>
     <!-- not valid for noresm2.5 -->
     <alias>N2NOIIAJRAOC20TR</alias>
     <lname>20TR_DATM%JRA_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%JRA_SGLC_SWAV</lname>
   </compset>
+
+
+  <!-- JRA repeat year forcing - no prognostic wave -->
+  
+  <compset>
+    <alias>NOINYJRARYF1961OC</alias>
+    <lname>1850_DATM%JRARYF1961_SLND_CICE_BLOM%ECO_DROF%JRARYF1961_SGLC_SWAV</lname>
+  </compset>
+  <compset>
+    <!-- not valid for noresm2.5 -->
+    <alias>N2NOINYJRARYF1961OC</alias>
+    <lname>1850_DATM%JRARYF1961_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%JRARYF_SGLC_SWAV</lname>
+  </compset>
+   
+  
+  <!-- CPLHIST forcing - no prognostic wave -->
 
   <compset>
     <alias>NOICPLHISTOC</alias>
@@ -116,6 +142,8 @@
       <values match="last">
         <value  compset="20TR_DATM%IAF_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%IAF_SGLC_SWAV">1700-01-01</value>
         <value  compset="20TR_DATM%JRA_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%JRA_SGLC_SWAV">1653-01-01</value>
+        <value  compset="20TR_DATM%IAF_SLND_CICE_BLOM%ECO_DROF%IAF_SGLC_SWAV">1700-01-01</value>
+        <value  compset="20TR_DATM%JRA-1p4-2018_SLND_CICE_BLOM%ECO_DROF%JRA-1p4-2018_SGLC_SWAV">1653-01-01</value>
       </values>
     </entry>
   </entries>

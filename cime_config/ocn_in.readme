@@ -173,7 +173,7 @@
 ! CWMI     : Array of grid cell i-indices (i)
 ! CWMJ     : Array of grid cell j-indices (i)
 ! CWMWTH   : Array of modified grid cell widths (m) (f)
-! 
+!
 !===========================================================================
 ! NAMELIST FOR MERIDIONAL OVERTURNING AND FLUX DIAGNOSTICS
 !
@@ -188,7 +188,7 @@
 !              for each region (i)
 ! MER_MINLAT : Minimum latitude to be considered for each region (f)
 ! MER_MAXLAT : Maximum latitude to be considered for each region (f)
-! 
+!
 !===========================================================================
 ! NAMELIST FOR SECTION TRANSPORT DIAGNOSTICS
 !
@@ -196,7 +196,7 @@
 !
 ! SEC_SIFILE : Name of file containing section specification for section
 !              transport computation (a)
-! 
+!
 !===========================================================================
 ! IO-NAMELIST FOR DIAGNOSTIC OUTPUT
 !
@@ -230,10 +230,10 @@
 !   MSC_     - miscellanous, non-gridded fields
 !
 ! Global parameters:
-!   FNAMETAG - tag used in file name (c10) 
-!   AVEPERIO - average period in days (i) 
-!   FILEFREQ - how often to start a new file in days (i) 
-!   COMPFLAG - switch for compressed/uncompressed output (i) 
+!   FNAMETAG - tag used in file name (c10)
+!   AVEPERIO - average period in days (i)
+!   FILEFREQ - how often to start a new file in days (i)
+!   COMPFLAG - switch for compressed/uncompressed output (i)
 !   NCFORMAT - netcdf format (valid arguments are 0 for classic,
 !              1 for 64-bit offset and 2 for netcdf4/hdf5 format)
 !
@@ -380,13 +380,12 @@
 !
 ! ATM_CO2     : Atmospheric CO2 concentration [ppmv]
 ! FEDEPFILE   : File name (incl. full path) for iron (dust) deposition data
-! SWACLIMFILE : File name (incl. full path) for swa climatology field (needed 
+! SWACLIMFILE : File name (incl. full path) for swa climatology field (needed
 !                if bromoform scheme is activated)
 ! DO_RIVINPT  : Logical switch to activate riverine input
 ! RIVINFILE   : File name (incl. full path) for riverine input data
 ! DO_NDEP     : Logical switch to activate N-deposition
-! DO_NDEP_COUPLED: Logical to apply N-deposition fluxes received from the atmosphere (true=atm, false=clim), requires DO_NDEP=TRUE
-! NDEPFILE    : File name (incl. full path) for atmopheric N-deposition data
+! NDEPFILE    : File name (incl. full path) for atmopheric N-deposition data (not used for coupling to cmeps)
 ! DO_N2ONH3_COUPLED: Logical switch for interactive coupling of N2O and NH3 fluxes (true=atm, false=fix atmospheric value)
 ! DO_SEDSPINUP: Logical switch to activate sediment spin-up
 ! SEDSPIN_YR_S: Start year for sediment spinup
@@ -398,21 +397,21 @@
 ! PI_PH_FILE  : File name (incl. full path) for surface PI pH input data.
 ! use_M4AGO     : Switch for M4AGO settling scheme
 ! LEUPHOTIC_CYA : Switch to perform bluefix (cyanobacteria) only in the euphotic zone
-! L_3DVARSEDPOR : Logical switch to enable lon-lat-depth variable sediment porosity (as opposed to default: only depth) 
+! L_3DVARSEDPOR : Logical switch to enable lon-lat-depth variable sediment porosity (as opposed to default: only depth)
 ! SEDPORFILE  : File name (incl. full path) for sediment porosity
 !
 !===========================================================================
 ! NAMELIST BGCPARAMS FOR iHAMOCC-BGC PARAMETERS (DEVELOPERS ONLY)
-! 
+!
 ! CONTENTS: EMPTY BY DEFAULT
 !           FOR ADJUSTABLE PARAMETERS, SEE CODE
-! 
+!
 !===========================================================================
 ! NAMELIST BGCOAFX FOR ALKALINIZATION SCENARIO
 !
 ! CONTENTS:
 !
-! OALKSCEN      : Name of alkalinization scenario ('const', 'ramp', or 'file') 
+! OALKSCEN      : Name of alkalinization scenario ('const', 'ramp', or 'file')
 ! OALKFILE      : Full path of the input file for the alkalinization scenario 'file'
 ! ADDALK        : Pmol alkalinity/yr added in 'const' or 'ramp' scenarios
 ! CDRMIP_LATMAX : Max latitude where alkalinity is added in 'const' or 'ramp' scenarios
@@ -434,10 +433,10 @@
 !   BUR_     - 2d fields of sediment burial
 !
 ! Global parameters:
-!   FNAMETAG - tag used in file name (c10) 
-!   AVEPERIO - average period in days (i) 
-!   FILEFREQ - how often to start a new file in days (i) 
-!   COMPFLAG - switch for compressed/uncompressed output (i) 
+!   FNAMETAG - tag used in file name (c10)
+!   AVEPERIO - average period in days (i)
+!   FILEFREQ - how often to start a new file in days (i)
+!   COMPFLAG - switch for compressed/uncompressed output (i)
 !   NCFORMAT - netcdf format (valid arguments are 0 for classic,
 !              1 for 64-bit offset and 2 for netcdf4/hdf5 format)
 !   INVENTORY- how often to write an inventory of tracers to ocean
@@ -487,7 +486,7 @@
 !   PHOSY          - Primary production (pp) [mol C m-3 s-1]
 !   CO3            - Carbonate ions (co3) [mol C m-3]
 !   N2O            - Nitrous oxide concentration [mol N2O m-3]
-!   NITR_NH4       - nitrification rate on NH4 [mol NH4 m-3 s-1] - extended N cycle only   
+!   NITR_NH4       - nitrification rate on NH4 [mol NH4 m-3 s-1] - extended N cycle only
 !   NITR_NO2       - nitrification rate on NO2 [mol NO2 m-3 s-1] - extended N cycle only
 !   NITR_N2O_PROD  - N2O production rate during nitrification on NH4 [mol N2O m-3 s-1] - ext. N cycle only
 !   NITR_NH4_OM    - detritus production during nitrification on NH4 [mol P m-3 s-1] - ext. N cycle only
@@ -498,9 +497,9 @@
 !   DNRA_NO2       - DNRA on NO2 [mol NO2 m-3 s-1] - ext. N cycle only
 !   ANMX_N2_PROD   - anammox N2 production [mol N2 m-3 s-1] - ext. N cycle only
 !   ANMX_OM_PROD   - anammox detritus production [mol P m-3 s-1] - ext. N cycle only
-!   PHOSY_NH4      - PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only 
-!   PHOSY_NO3      - PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only 
-!   REMIN_AEROB    - aerob remineralization rate (sev. sources) [mol NH4 m-3 s-1] - ext. N cycle only 
+!   PHOSY_NH4      - PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only
+!   PHOSY_NO3      - PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only
+!   REMIN_AEROB    - aerob remineralization rate (sev. sources) [mol NH4 m-3 s-1] - ext. N cycle only
 !   REMIN_SULF     - sulfate-based remin rate on det [mol P m-3 s-1] - ext. N cycle only
 !   AGG_WS         - M4AGO aggregate mean settling velocity [m/d]
 !   DYNVIS         - molecular dynamic viscosity of sea water [kg m-1 s-1]
@@ -549,8 +548,8 @@
 !   PCO2M          - Surface PCO2 under moist air assumption [uatm]
 !   KWCO2          - Piston velocity (kwco2)  [m s-1]
 !   KWCO2KHM       - Piston velocity times solubility (kwco2*kh; moist air) [m s-1 mol kg-1 uatm-1]
-!   CO2KH          - CO2 solubility under dry air assumption (khd) [mol kg-1 atm-1] 
-!   CO2KHM         - CO2 solubility under moist air assumption (kh) [mol kg-1 atm-1] 
+!   CO2KH          - CO2 solubility under dry air assumption (khd) [mol kg-1 atm-1]
+!   CO2KHM         - CO2 solubility under moist air assumption (kh) [mol kg-1 atm-1]
 !   CO2FXD         - Downward CO2 flux (co2fxd) [kg C m-2 s-1]
 !   CO2FXU         - Upward CO2 flux (co2fxu) [kg C m-2 s-1]
 !   NIFLUX         - Nitrogen flux (fgn2) [mol N2 m-2 s-1]
@@ -594,6 +593,7 @@
 !   CARFLX****     - POC flux at **** metres depth [mol C m-2 s-1]
 !   BSIFLX****     - Biogenic silica flux at **** metres depth [mol Si m-2 s-1]
 !   CALFLX****     - Calcium carbonate flux at **** metres depth [mol C m-2 s-1]
+!   DUSTFLX****    - Dust flux at **** metres depth [g m-2 s-1]
 !   SEDIFFIC       - sediment - water-column diffusive flux of DIC [mol C m-2 s-1]
 !   SEDIFFAL       - sediment - water-column diffusive flux of alkalinity [mol m-2 s-1]
 !   SEDIFFPH       - sediment - water-column diffusive flux of phosphate [mol PO3 m-2 s-1]
@@ -608,7 +608,7 @@
 !   BURSSSC12      - burial fluxes of calcium carbonate [mol Ca m-2 s-1]
 !   BURSSSSIL      - burial fluxes of silicate [mol Si m-2 s-1]
 !   BURSSSTER      - burial fluxes of clay [g m-2 s-1]
-!   
+!
 ! Sediment fields (SDM)
 !   POWAIC         - (powdic) [mol C m-3]
 !   POWAAL         - (powalk) [eq m-3]
@@ -620,7 +620,7 @@
 !   POWNH4         - (pownh4) [mol NH4 m-3] - extended N cycle only
 !   POWN2O         - (pown2o) [mol N2O m-3] - extended N cycle only
 !   POWNO2         - (powno2) [mol NO2 m-3] - extended N cycle only
-!   NITR_NH4       - nitrification rate on NH4 [mol NH4 m-3 s-1] - extended N cycle only   
+!   NITR_NH4       - nitrification rate on NH4 [mol NH4 m-3 s-1] - extended N cycle only
 !   NITR_NO2       - nitrification rate on NO2 [mol NO2 m-3 s-1] - extended N cycle only
 !   NITR_N2O_PROD  - N2O production rate during nitrification on NH4 [mol N2O m-3 s-1] - ext. N cycle only
 !   NITR_NH4_OM    - detritus production during nitrification on NH4 [mol P m-3 s-1] - ext. N cycle only
@@ -631,9 +631,9 @@
 !   DNRA_NO2       - DNRA on NO2 [mol NO2 m-3 s-1] - ext. N cycle only
 !   ANMX_N2_PROD   - anammox N2 production [mol N2 m-3 s-1] - ext. N cycle only
 !   ANMX_OM_PROD   - anammox detritus production [mol P m-3 s-1] - ext. N cycle only
-!   PHOSY_NH4      - PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only 
-!   PHOSY_NO3      - PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only 
-!   REMIN_AEROB    - aerob remineralization rate (sev. sources) [mol NH4 m-3 s-1] - ext. N cycle only 
+!   PHOSY_NH4      - PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only
+!   PHOSY_NO3      - PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only
+!   REMIN_AEROB    - aerob remineralization rate (sev. sources) [mol NH4 m-3 s-1] - ext. N cycle only
 !   REMIN_SULF     - sulfate-based remin rate on det [mol P m-3 s-1] - ext. N cycle only
 !   SSSO12         - (ssso12) [mol m-3]
 !   SSSSIL         - (ssssil) [mol Si m-3]

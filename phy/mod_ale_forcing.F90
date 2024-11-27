@@ -17,7 +17,11 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-module mod_cntiso_hybrid_forcing
+module mod_ale_forcing
+! ------------------------------------------------------------------------------
+! This module contains procedures for computing penetration factors and buoyancy
+! flux at model layer interfaces when the ALE method is used.
+! ------------------------------------------------------------------------------
 
   use mod_types,     only: r8
   use mod_constants, only: g, spcifh, alpha0, onem, onecm, onemu, L_mks2cgs
@@ -33,15 +37,15 @@ module mod_cntiso_hybrid_forcing
   implicit none
   private
 
-  public :: cntiso_hybrid_forcing
+  public :: ale_forcing
 
 contains
 
-  subroutine cntiso_hybrid_forcing(m, n, mm, nn, k1m, k1n)
-  ! ------------------------------------------------------------------------------
-  ! Compute penetration factors for shortwave and brine flux and compute interface
-  ! buoyancy flux.
-  ! ------------------------------------------------------------------------------
+  subroutine ale_forcing(m, n, mm, nn, k1m, k1n)
+  ! ----------------------------------------------------------------------------
+  ! Compute penetration factors for shortwave and brine flux and compute
+  ! interface buoyancy flux.
+  ! ----------------------------------------------------------------------------
 
     ! Arguments
     integer, intent(in) :: m, n, mm, nn, k1m, k1n
@@ -61,9 +65,9 @@ contains
     cpi = 1._r8/spcifh      ! Multiplicative inverse of specific heat capacity.
     gaa = g*alpha0*alpha0
 
-    ! ---------------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
     ! Compute shortwave flux penetration factors.
-    ! ---------------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
 
     ! Maximum pressure of shortwave absorption.
     pmax = swamxd*onem
@@ -89,8 +93,9 @@ contains
             if (p(i,j,k+1) > pmax) exit
           enddo
 
-          ! Modify penetration factors so that fluxes destined to penetrate below
-          ! the lowest model layer are evenly absorbed in the water column.
+          ! Modify penetration factors so that fluxes destined to penetrate
+          ! below the lowest model layer are evenly absorbed in the water
+          ! column.
           pmaxi = 1._r8/min(pmax, p(i,j,kmax+1))
           nlbot = t_sw_nonloc(i,j,kmax+1)
           do k = kmax+1, kk+1
@@ -110,9 +115,9 @@ contains
     enddo
     !$omp end parallel do
 
-    ! ---------------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
     ! Compute brine flux penetration factors.
-    ! ---------------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
 
     !$omp parallel do private(l, i, lei, pmax, kmax, k, kn, q, q3, pmaxi, nlbot)
     do j = 1, jj
@@ -139,8 +144,9 @@ contains
             if (p(i,j,k+1) > pmax) exit
           enddo
 
-          ! Modify penetration factors so that fluxes destined to penetrate below
-          ! the lowest model layer are evenly absorbed in the water column.
+          ! Modify penetration factors so that fluxes destined to penetrate
+          ! below the lowest model layer are evenly absorbed in the water
+          ! column.
           pmaxi = 1._r8/min(pmax, p(i,j,kmax+1))
           nlbot = s_br_nonloc(i,j,kmax+1)
           do k = kmax+1, kk+1
@@ -160,9 +166,9 @@ contains
     enddo
     !$omp end parallel do
 
-    ! ---------------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
     ! Compute buoyancy flux.
-    ! ---------------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
 
     !$omp parallel do private(l, i, dsgdt, dsgds, hf, hfsw, hfns, sf, sfbr, sfnb, k)
     do j = 1, jj
@@ -199,13 +205,13 @@ contains
 
     if (csdiag) then
       if (mnproc == 1) then
-        write (lp,*) 'cntiso_hybrid_forcing:'
+        write (lp,*) 'ale_forcing:'
       endif
       call chksummsk(t_sw_nonloc, ip, kk+1, 't_sw_nonloc')
       call chksummsk(s_br_nonloc, ip, kk+1, 's_br_nonloc')
       call chksummsk(buoyfl, ip, kk+1, 'buoyfl')
     endif
 
-  end subroutine cntiso_hybrid_forcing
+  end subroutine ale_forcing
 
-end module mod_cntiso_hybrid_forcing
+end module mod_ale_forcing
