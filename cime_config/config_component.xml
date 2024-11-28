@@ -40,6 +40,7 @@
     <default_value>oneeq advection</default_value>
     <values>
       <value compset="_BLOM%HYB">null</value>
+      <value compset="_BLOM%LVL">null</value>
     </values>
     <group>build_component_blom</group>
     <file>env_build.xml</file>
@@ -75,10 +76,11 @@
 
   <entry id="BLOM_VCOORD">
     <type>char</type>
-    <valid_values>isopyc_bulkml,cntiso_hybrid</valid_values>
+    <valid_values>isopyc_bulkml,cntiso_hybrid,plevel</valid_values>
     <default_value>isopyc_bulkml</default_value>
     <values>
       <value compset="_BLOM%HYB">cntiso_hybrid</value>
+      <value compset="_BLOM%LVL">plevel</value>
     </values>
     <group>build_component_blom</group>
     <file>env_build.xml</file>
@@ -91,6 +93,7 @@
     <default_value>53</default_value>
     <values>
       <value compset="_BLOM%HYB">56</value>
+      <value compset="_BLOM%LVL">56</value>
     </values>
     <group>build_component_blom</group>
     <file>env_build.xml</file>

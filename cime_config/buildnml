@@ -95,7 +95,7 @@ def buildnml(case, caseroot, compname):
 
     blom_vcoord = case.get_value("BLOM_VCOORD")
     turbclo = case.get_value("BLOM_TURBULENT_CLOSURE")
-    expect(blom_vcoord != "cntiso_hybrid" or turbclo == "null",
+    expect(blom_vcoord == "isopyc_bulkml" or turbclo == "null",
            f"BLOM_VCOORD == {blom_vcoord} and BLOM_TURBULENT_CLOSURE == {turbclo} is not a valid combination")
 
     #--------------------------
@@ -281,7 +281,7 @@ def buildnml(case, caseroot, compname):
 
         groups.append('cwmod')
 
-        if case.get_value("BLOM_VCOORD") == "cntiso_hybrid":
+        if case.get_value("BLOM_VCOORD") != "isopyc_bulkml":
             groups.append('vcoord')
             groups.append('ale_regrid_remap')
 

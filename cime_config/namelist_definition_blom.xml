@@ -372,6 +372,7 @@
     <values>
       <value>uc</value>
       <value blom_vcoord="cntiso_hybrid">dluc</value>
+      <value blom_vcoord="plevel"       >dluc</value>
     </values>
     <desc>Baroclinic mass flux correction method. Valid methods:</desc>
   </entry>
@@ -676,6 +677,7 @@
       <value>1.</value>
       <value blom_coupling="partial" blom_vcoord="isopyc_bulkml">1.</value>
       <value blom_coupling="partial" blom_vcoord="cntiso_hybrid">10.</value>
+      <value blom_coupling="partial" blom_vcoord="plevel"       >10.</value>
     </values>
     <desc>Maximum mixed layer depth for e-folding SSS relaxation (m) (f)</desc>
   </entry>
@@ -952,6 +954,8 @@
     <group>vcoord</group>
     <values>
       <value>1.08</value>
+      <value blom_vcoord="cntiso_hybrid">1.08</value>
+      <value blom_vcoord="plevel"       >1.105</value>
     </values>
     <desc>Minimum layer thickness inflation factor</desc>
   </entry>
