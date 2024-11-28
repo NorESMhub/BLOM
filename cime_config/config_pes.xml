@@ -88,7 +88,7 @@
   <!-- GRID: T62_tn14 : start !-->
   <grid name="a%T62.+oi%tnx1v4">
     <mach name="any">
-      <pes pesize="XS" compset="_DATM.*_BLOM%ECO">
+      <pes pesize="XS" compset="_DATM.*_BLOM.*%ECO">
         <comment>Very small pe-layout on 128 pes in total</comment>
         <ntasks>
           <ntasks_atm>4</ntasks_atm>
@@ -164,7 +164,7 @@
 
   <grid name="a%T62.+oi%tnx1v4">
     <mach name="any">
-      <pes pesize="M" compset="_DATM.*_BLOM%ECO">
+      <pes pesize="M" compset="_DATM.*_BLOM.*%ECO">
         <comment>none</comment>
         <ntasks>
           <ntasks_atm>1</ntasks_atm>
@@ -204,7 +204,7 @@
   <!-- GRID: TL319_tn14 : start !-->
   <grid name="a%TL319.+oi%tnx1v4">
     <mach name="any">
-      <pes pesize="XS" compset="_DATM.*_BLOM%ECO">
+      <pes pesize="XS" compset="_DATM.*_BLOM.*%ECO">
         <comment>Very small pe-layout on 128 pes in total</comment>
         <ntasks>
           <ntasks_atm>4</ntasks_atm>
@@ -399,7 +399,7 @@
 
   <grid name="a%TL319.+oi%tnx0.5v1">
     <mach name="any">
-      <pes pesize="M" compset="_DATM.*_BLOM%ECO">
+      <pes pesize="M" compset="_DATM.*_BLOM.*%ECO">
         <comment>none</comment>
         <ntasks>
           <ntasks_atm>256</ntasks_atm>
@@ -553,7 +553,7 @@
 
   <grid name="a%T62.+oi%tnx0.25v4">
     <mach name="any">
-      <pes pesize="any" compset="_DATM.*_BLOM%ECO">
+      <pes pesize="any" compset="_DATM.*_BLOM.*%ECO">
         <comment>none</comment>
         <ntasks>
           <ntasks_atm>16</ntasks_atm>
@@ -636,7 +636,7 @@
   <!-- GRID: T62_tn21 !-->
   <grid name="a%T62.+oi%tnx2v1">
     <mach name="any">
-      <pes pesize="XS" compset="_DATM.*_BLOM%ECO">
+      <pes pesize="XS" compset="_DATM.*_BLOM.*%ECO">
         <comment>Very small and efficent pe-layout on 128 pes in total</comment>
         <ntasks>
           <ntasks_atm>1</ntasks_atm>
@@ -674,7 +674,7 @@
 
   <grid name="a%T62.+oi%tnx2v1">
     <mach name="any">
-      <pes pesize="S" compset="_DATM.*_BLOM%ECO">
+      <pes pesize="S" compset="_DATM.*_BLOM.*%ECO">
         <comment>Small pe-layout with 219 pes in total</comment>
         <ntasks>
           <ntasks_atm>1</ntasks_atm>
@@ -750,7 +750,7 @@
 
   <grid name="a%T62.+oi%tnx2v1">
     <mach name="any">
-      <pes pesize="M" compset="_DATM.*_BLOM%ECO">
+      <pes pesize="M" compset="_DATM.*_BLOM.*%ECO">
         <comment>Medium sized pe-layout with 384 pes in total</comment>
         <ntasks>
           <ntasks_atm>18</ntasks_atm>
@@ -788,7 +788,7 @@
 
   <grid name="a%T62.+oi%tnx2v1">
     <mach name="any">
-      <pes pesize="L" compset="_DATM.*_BLOM%ECO">
+      <pes pesize="L" compset="_DATM.*_BLOM.*%ECO">
         <comment>Large pe-layout with 512 pes in total</comment>
         <ntasks>
           <ntasks_atm>1</ntasks_atm>

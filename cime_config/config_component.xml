@@ -18,7 +18,7 @@
     <valid_values>iage,iage ecosys</valid_values>
     <default_value>iage</default_value>
     <values>
-      <value compset="_BLOM%ECO">iage ecosys</value>
+      <value compset="_BLOM.*%ECO">iage ecosys</value>
     </values>
     <group>build_component_blom</group>
     <file>env_build.xml</file>
@@ -38,6 +38,10 @@
     <type>char</type>
     <valid_values></valid_values>
     <default_value>oneeq advection</default_value>
+    <values>
+      <value compset="_BLOM%HYB">null</value>
+      <value compset="_BLOM%LVL">null</value>
+    </values>
     <group>build_component_blom</group>
     <file>env_build.xml</file>
     <desc>Optional turbulent closure.  Valid values one of: twoeq oneeq. Additional values: advection isodif</desc>
@@ -57,11 +61,11 @@
     <valid_values>constant,prognostic,diagnostic</valid_values>
     <default_value>constant</default_value>
     <values>
-      <value compset="_BLOM%ECO"           >constant</value>
-      <value compset="_BLOM%ECO.*_BGC%BPRP">prognostic</value>
-      <value compset="_BLOM%ECO.*_BGC%BDRD">diagnostic</value>
-      <value compset="_DATM%CPLHIST.*_BLOM%ECO">diagnostic</value>
-      <value compset="20TR_DATM%IAF.*_BLOM%ECO">diagnostic</value>
+      <value compset="_BLOM.*%ECO"           >constant</value>
+      <value compset="_BLOM.*%ECO.*_BGC%BPRP">prognostic</value>
+      <value compset="_BLOM.*%ECO.*_BGC%BDRD">diagnostic</value>
+      <value compset="_DATM%CPLHIST.*_BLOM.*%ECO">diagnostic</value>
+      <value compset="20TR_DATM%IAF.*_BLOM.*%ECO">diagnostic</value>
     </values>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
@@ -72,11 +76,28 @@
 
   <entry id="BLOM_VCOORD">
     <type>char</type>
-    <valid_values>isopyc_bulkml,cntiso_hybrid</valid_values>
+    <valid_values>isopyc_bulkml,cntiso_hybrid,plevel</valid_values>
     <default_value>isopyc_bulkml</default_value>
+    <values>
+      <value compset="_BLOM%HYB">cntiso_hybrid</value>
+      <value compset="_BLOM%LVL">plevel</value>
+    </values>
     <group>build_component_blom</group>
     <file>env_build.xml</file>
     <desc>Vertical coordinate type of BLOM</desc>
+  </entry>
+
+  <entry id="BLOM_KDM">
+    <type>integer</type>
+    <valid_values/>
+    <default_value>53</default_value>
+    <values>
+      <value compset="_BLOM%HYB">56</value>
+      <value compset="_BLOM%LVL">56</value>
+    </values>
+    <group>build_component_blom</group>
+    <file>env_build.xml</file>
+    <desc>Vertical dimension of BLOM</desc>
   </entry>
 
   <entry id="BLOM_COUPLING">
@@ -121,19 +142,19 @@
     <valid_values>UNSET,1850,2000,hist,ssp119,ssp126,ssp245,ssp370,ssp434,ssp460,ssp534os,ssp585</valid_values>
     <default_value>1850</default_value>
     <values>
-      <value compset="1850_.*_BLOM%ECO"   >1850</value>
-      <value compset="2000_.*_BLOM%ECO"   >2000</value>
-      <value compset="HIST_.*_BLOM%ECO"   >hist</value>
-      <value compset="20TR_.*_BLOM%ECO"   >hist</value>
-      <value compset="SSP119_.*_BLOM%ECO" >ssp119</value>
-      <value compset="SSP126_.*_BLOM%ECO" >ssp126</value>
-      <value compset="SSP245_.*_BLOM%ECO" >ssp245</value>
-      <value compset="SSP370_.*_BLOM%ECO" >ssp370</value>
-      <value compset="SSP434_.*_BLOM%ECO" >ssp434</value>
-      <value compset="SSP460_.*_BLOM%ECO" >ssp460</value>
-      <value compset="SSP534_.*_BLOM%ECO" >ssp534os</value>
-      <value compset="SSP585_.*_BLOM%ECO" >ssp585</value>
-      <value compset="SSP370.*_BLOM%ECO"  >ssp370</value>
+      <value compset="1850_.*_BLOM.*%ECO"   >1850</value>
+      <value compset="2000_.*_BLOM.*%ECO"   >2000</value>
+      <value compset="HIST_.*_BLOM.*%ECO"   >hist</value>
+      <value compset="20TR_.*_BLOM.*%ECO"   >hist</value>
+      <value compset="SSP119_.*_BLOM.*%ECO" >ssp119</value>
+      <value compset="SSP126_.*_BLOM.*%ECO" >ssp126</value>
+      <value compset="SSP245_.*_BLOM.*%ECO" >ssp245</value>
+      <value compset="SSP370_.*_BLOM.*%ECO" >ssp370</value>
+      <value compset="SSP434_.*_BLOM.*%ECO" >ssp434</value>
+      <value compset="SSP460_.*_BLOM.*%ECO" >ssp460</value>
+      <value compset="SSP534_.*_BLOM.*%ECO" >ssp534os</value>
+      <value compset="SSP585_.*_BLOM.*%ECO" >ssp585</value>
+      <value compset="SSP370.*_BLOM.*%ECO"  >ssp370</value>
      </values>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
@@ -266,8 +287,8 @@
   </entry>
 
   <description>
-    <desc compset="_BLOM"    >BLOM default:</desc>
-    <desc compset="_BLOM%ECO">BLOM/Ecosystem:</desc>
+    <desc compset="_BLOM"      >BLOM default:</desc>
+    <desc compset="_BLOM.*%ECO">BLOM/Ecosystem:</desc>
   </description>
 
   <help>

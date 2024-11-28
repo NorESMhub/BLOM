@@ -36,20 +36,14 @@ def create_dimmod(case):
     comp_root_dir_ocn = case.get_value("COMP_ROOT_DIR_OCN")
     ocn_grid = case.get_value("OCN_GRID")
     blom_vcoord = case.get_value("BLOM_VCOORD")
+    blom_kdm = case.get_value("BLOM_KDM")
     ntasks_ocn = case.get_value("NTASKS_OCN")
     objroot = case.get_value("OBJROOT")
 
     gridconf_dir = os.path.join(comp_root_dir_ocn, "bld", ocn_grid)
-    kdm_file = os.path.join(gridconf_dir, "kdm." + blom_vcoord)
     blom_dimensions_script = os.path.join(comp_root_dir_ocn, "bld", "blom_dimensions")
 
-    try:
-        with open(kdm_file, "r") as kdm_file_obj:
-            kdm = kdm_file_obj.read().strip()
-    except:
-        expect(False, "Failed to read kdm from file {}".format(kdm_file))
-
-    cmd = "{} -n {} -k {} -d {}".format(blom_dimensions_script, ntasks_ocn, kdm, gridconf_dir)
+    cmd = "{} -n {} -k {} -d {}".format(blom_dimensions_script, ntasks_ocn, blom_kdm, gridconf_dir)
     rc, out, err = run_cmd(cmd, from_dir=blomconf_dir)
     expect(rc == 0, "Command %s failed rc=%d\nout=%s\nerr=%s" % (cmd, rc, out, err))
 
@@ -95,10 +89,10 @@ def buildcpp(case):
     if ocn_grid in ["gx1v5", "gx1v6", "tnx1v1", "tnx1v3", "tnx1v4", "tnx0.5v1", "tnx0.25v1", "tnx0.25v3", "tnx0.25v4", "tnx0.125v4"]:
         blom_cppdefs = blom_cppdefs + " -DLEVITUS2X"
 
-    if turbclo or tracers:
+    if turbclo != "null" or tracers:
         blom_cppdefs = blom_cppdefs + " -DTRC"
 
-    if turbclo:
+    if turbclo != "null":
         twoeq = False
         oneeq = False
         for option in turbclo.split():
