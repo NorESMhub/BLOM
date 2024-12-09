@@ -71,11 +71,10 @@ contains
     real    :: aerob13(kpie,ks),anaerob13(kpie,ks),sulf13(kpie,ks) ! cisonew
     real    :: aerob14(kpie,ks),anaerob14(kpie,ks),sulf14(kpie,ks) ! cisonew
     real    :: dissot, undsa, posol
-    real    :: umfa, denit, saln, rrho, alk, c, sit, pt
+    real    :: umfa, denit, rrho, alk, c, sit, pt
     real    :: K1, K2, Kb, Kw, Ks1, Kf, Ksi, K1p, K2p, K3p
     real    :: ah1, ac, cu, cb, cc, satlev
     real    :: ratc13, ratc14, rato13, rato14, poso13, poso14
-    integer, parameter :: niter = 5 ! number of iterations for carchm_solve
 
     ! Set array for saving diffusive sediment-water-column fluxes to zero
     !********************************************************************
@@ -90,7 +89,7 @@ contains
     !$OMP& PRIVATE(sedb1,sediso,solrat,powcar,aerob,anaerob,                &
     !$OMP&         ex_dalk,ex_ddic,ex_disso_poc,                            &
     !$OMP&         dissot,undsa,posol,                                      &
-    !$OMP&         umfa,denit,saln,rrho,alk,c,sit,pt,                       &
+    !$OMP&         umfa,denit,rrho,alk,c,sit,pt,                            &
     !$OMP&         K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,                      &
     !$OMP&         ah1,ac,cu,cb,cc,satlev,                                  &
     !$OMP&         ratc13,ratc14,rato13,rato14,poso13,poso14,               &
@@ -404,12 +403,11 @@ contains
 
       ! Compute new powcar, carbonate ion concentration in the sediment
       ! from changed alkalinity (nitrate production during remineralisation)
-      ! and DIC gain. Iterate 5 times. This changes pH (sedhpl) of sediment.
+      ! and DIC gain.
 
       do k = 1, ks
         do i = 1, kpie
           if(omask(i,j) > 0.5) then
-            saln= min( 40., max( 0., psao(i,j,kbo(i,j))))
             rrho= prho(i,j,kbo(i,j))
             if (use_extNcycle) then
               alk = (powtra(i,j,k,ipowaal) - (sulf(i,k)+aerob(i,k))*(rnit+1.) + ex_dalk(i,k))  / rrho
@@ -432,7 +430,7 @@ contains
             K2p = keqb( 9,i,j)
             K3p = keqb(10,i,j)
 
-            call carchm_solve(saln,c,alk,sit,pt,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,ah1,ac,niter)
+            call carchm_solve(psao(i,j,kbo(i,j)),c,alk,sit,pt,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,ah1,ac)
 
             cu = ( 2. * c - ac ) / ( 2. + K1 / ah1 )
             cb = K1 * cu / ah1
