@@ -25,9 +25,21 @@ module mo_carchm
   public  :: carchm
   public  :: carchm_solve
 
-  private :: carchm_kequi
-  private :: carchm_solve_dicsat
+  ! Maximum numnber of iterations for carbon chemistry solver
+  integer, parameter :: niter=20
 
+  ! Accuracy for test of convergence in carbon chemistry solver
+  real, parameter :: eps=5.e-5
+
+  ! Avoid division by zero
+  real, parameter :: eps_safe = epsilon(1.)
+  
+  ! Minimum and maximum SST/SSS set for carbon chemistry and gas exchange calculations
+  real, parameter :: temp_min = -1.0
+  real, parameter :: temp_max = 40.0
+  real, parameter :: saln_min =  5.0
+  real, parameter :: saln_max = 40.0
+  
 contains
 
   subroutine carchm(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,prho,pglat,omask,psicomo,ppao,pfu10,     &
@@ -85,7 +97,7 @@ contains
                               iatmnco2,inatalkali,inatcalc,inatsco212,                             &
                               ks,issso14,isssc14,ipowc14,                                          &
                               iatmbromo,ibromo,iatmnh3,ianh4
-    use mo_param_bgc,   only: c14dec,atm_co2_nat,atm_n2o
+    use mo_param_bgc,   only: srfdic_min,c14dec,atm_co2_nat,atm_n2o
     use mo_vgrid,       only: dp_min,kmle,kbo,ptiestu
     use mo_carbch,      only: atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,                 &
                               atm_sf6_nh,atm_sf6_sh,                                               &
@@ -111,7 +123,6 @@ contains
     real,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)      ! salinity [psu].
 
     ! Local variables
-    integer, parameter :: niter=20
     integer :: i,j,k,l,js
     real    :: supsat, undsa, dissol
     real    :: rpp0,fluxd,fluxu
@@ -139,8 +150,8 @@ contains
     real    :: flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub ! BROMO
     ! extNcycle
     real    :: flx_nh3,sch_nh3_a,sch_nh3_w,kw_nh3,ka_nh3,atnh3,diff_nh3_a,diff_nh3_w,mu_air,mu_w,p_dbar,rho_air
-    real    :: h_nh3,hstar_nh3,pKa_nh3,eps_safe,Kh_nh3,cD_wind,u_star
-    eps_safe = epsilon(1.)
+    real    :: h_nh3,hstar_nh3,pKa_nh3,Kh_nh3,cD_wind,u_star
+    
 
     ! set variables for diagnostic output to zero
     atmflx (:,:,:)=0.
@@ -172,46 +183,42 @@ contains
       natomegaC(:,:,:)=0.
     endif
     if (use_extNcycle) then
-       pnh3       (:,:)=0.
+      pnh3       (:,:)=0.
     endif
 
     ! -----------------------------------------------------------------
     ! Solve CO2 system
     ! -----------------------------------------------------------------
     !$OMP PARALLEL DO PRIVATE(t,t2,t3,t4,tk,tk100,s,rs,prb,Kh0,K1,K2                &
-    !$OMP  ,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,Kspa,tc,ta,sit,pt,ah1,ac              &
-    !$OMP  ,cu,cb,cc,cu_sat,Bvir,delta,fc,pH2O,rpp0,scco2,scdms,sco2,oxy,ani,anisa  &
-    !$OMP  ,Xconvxa ,kwco2,kwdms,kwo2,atco2,ato2,atn2,atn2o,fluxd,fluxu,oxflux      &
-    !$OMP  ,tc_sat,niflux,n2oflux,dmsflux,omega,supsat,undsa,dissol                 &
-    !$OMP  ,sch_11,sch_12,sch_sf,kw_11,kw_12,kw_sf,a_11,a_12,a_sf,flx11             &
-    !$OMP  ,flx12,flxsf,atm_cfc11,atm_cfc12,atm_sf6,fact                            &
-    !$OMP  ,natcu,natcu_sat,natcb,natcc,natfluxd,natfluxu,natomega                  &
-    !$OMP  ,natsupsat,natundsa,natdissol                                            &
-    !$OMP  ,atco213,atco214,rco213,rco214,frac_aqg                                  &
-    !$OMP  ,frac_dicg,flux13d,flux13u,flux14d,flux14u,dissol13,dissol14,cu13,cu14   &
-    !$OMP  ,cu_sat13,cu_sat14,flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub   &
+    !$OMP ,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,Kspa,tc,ta,sit,pt,ah1,ac               &
+    !$OMP ,cu,cb,cc,cu_sat,Bvir,delta,fc,pH2O,rpp0,scco2,scdms,sco2,oxy,ani,anisa   &
+    !$OMP ,Xconvxa ,kwco2,kwdms,kwo2,atco2,ato2,atn2,atn2o,fluxd,fluxu,oxflux       &
+    !$OMP ,tc_sat,niflux,n2oflux,dmsflux,omega,supsat,undsa,dissol                  &
+    !$OMP ,sch_11,sch_12,sch_sf,kw_11,kw_12,kw_sf,a_11,a_12,a_sf,flx11              &
+    !$OMP ,flx12,flxsf,atm_cfc11,atm_cfc12,atm_sf6,fact                             &
+    !$OMP ,natcu,natcu_sat,natcb,natcc,natfluxd,natfluxu,natomega                   &
+    !$OMP ,natsupsat,natundsa,natdissol,atco213,atco214,rco213,rco214,frac_aqg      &
+    !$OMP ,frac_dicg,flux13d,flux13u,flux14d,flux14u,dissol13,dissol14,cu13,cu14    &
+    !$OMP ,cu_sat13,cu_sat14,flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub    &
     !$OMP ,flx_nh3,sch_nh3_a,sch_nh3_w,kw_nh3,ka_nh3,atnh3                          &
     !$OMP ,diff_nh3_a,diff_nh3_w,mu_air,mu_w,p_dbar,rho_air,h_nh3                   &
-    !$OMP ,hstar_nh3,pKa_nh3,eps_safe,Kh_nh3,cD_wind,u_star                         &
-    !$OMP  ,k,j,i,rrho,scn2,scn2o,kwn2,kwn2o)
+    !$OMP ,hstar_nh3,pKa_nh3,Kh_nh3,cD_wind,u_star,k,j,i,rrho,scn2,scn2o,kwn2,kwn2o)
     do k=1,kpke
       do j=1,kpje
         do i=1,kpie
 
-          if (omask(i,j).gt.0.5.and.pddpo(i,j,k) > dp_min) then
+          if (omask(i,j) > 0.5 .and. pddpo(i,j,k) > dp_min) then
 
             ! Carbon chemistry: Calculate equilibrium constants and solve for [H+] and
             ! carbonate alkalinity (ac)
-            t    = min(40.,max(-3.,ptho(i,j,k)))
-            t2   = t**2
-            t3   = t**3
-            t4   = t**4
+            t    = min(temp_max,max(temp_min,ptho(i,j,k)))
+            s    = min(saln_max,max(saln_min,psao(i,j,k)))
             tk   = t + tzero
             tk100= tk/100.0
-            s    = min(40.,max( 25.,psao(i,j,k)))
+            
             rrho = prho(i,j,k)                   ! seawater density [g/cm3]
             prb  = ptiestu(i,j,k)*98060*1.027e-6 ! pressure in unit bars, 98060 = onem
-
+            
             tc   = ocetra(i,j,k,isco212) / rrho  ! convert to mol/kg
             ta   = ocetra(i,j,k,ialkali) / rrho
             sit  = ocetra(i,j,k,isilica) / rrho
@@ -220,11 +227,9 @@ contains
 
             call CARCHM_KEQUI(t,s,prb,Kh0,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,Kspc,Kspa)
 
-            call CARCHM_SOLVE(s,tc,ta,sit,pt,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,ah1,ac,niter)
+            call CARCHM_SOLVE(s,tc,ta,sit,pt,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,ah1,ac)
 
-            if(ah1.gt.0.) then
-              hi(i,j,k)=max(1.e-20,ah1)
-            endif
+            hi(i,j,k)=ah1
 
             ! Determine CO2*, HCO3- and CO3-- concentrations (in mol/kg soln)
             cu = ( 2. * tc - ac ) / ( 2. + K1 / ah1 )
@@ -240,11 +245,9 @@ contains
               ta   = ocetra(i,j,k,inatalkali) / rrho
               ah1  = nathi(i,j,k)
 
-              call CARCHM_SOLVE(s,tc,ta,sit,pt,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,ah1,ac,niter)
+              call CARCHM_SOLVE(psao(i,j,k),tc,ta,sit,pt,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,ah1,ac)
 
-              if(ah1.gt.0.) then
-                nathi(i,j,k)=max(1.e-20,ah1)
-              endif
+              nathi(i,j,k)=ah1
 
               ! Determine natural CO2*, HCO3- and CO3-- concentrations (in mol/kg soln)
               natcu = ( 2. * tc - ac ) / ( 2. + K1 / ah1 )
@@ -254,8 +257,8 @@ contains
               natco3(i,j,k) = natcc * rrho
             endif
 
-            ! solubility of O2 (Weiss, R.F. 1970, Deep-Sea Res., 17, 721-735) for moist air
-            ! at 1 atm; multiplication with oxyco converts to kmol/m^3/atm
+            ! solubility of O2 (Weiss, R.F. 1970, Deep-Sea Res., 17, 721-735) for moist air at
+            ! 1 atm; multiplication with oxyco converts to kmol/m^3/atm, temp=[-1,40], saln=[0,40]
             oxy=ox0+ox1/tk100+ox2*alog(tk100)+ox3*tk100+s*(ox4+ox5*tk100+ox6*tk100**2)
             satoxy(i,j,k)=exp(oxy)*oxyco
 
@@ -264,8 +267,11 @@ contains
               ! -----------------------------------------------------------------
               ! Calculate Schmidt numbers, solubilities, and piston velocities
               ! -----------------------------------------------------------------
+              t2 = t**2
+              t3 = t**3
+              t4 = t**4
               
-              ! Schmidt numbers according to Wanninkhof (2014), Table 1
+              ! Schmidt numbers according to Wanninkhof (2014), Table 1, for temp=[-2,40]
               scco2 = 2116.8 - 136.25*t + 4.7353*t2 - 0.092307*t3 + 0.0007555 *t4
               sco2  = 1920.4 - 135.6 *t + 5.2122*t2 - 0.10939 *t3 + 0.00093777*t4
               scn2  = 2304.8 - 162.75*t + 6.2557*t2 - 0.13129 *t3 + 0.0011255 *t4
@@ -278,7 +284,7 @@ contains
               endif
               if (use_BROMO) then
                 ! Stemmler et al. (2015; Biogeosciences) Eq. (9); Quack and Wallace
-                ! (2003; GBC)
+                ! (2003; GBC), temp=[-1,30]
                 sch_bromo = 4662.8 - 319.45*t + 9.9012*t2 - 0.1159*t3
               endif
               if (use_extNcycle) then
@@ -300,12 +306,12 @@ contains
  
                 ! diffusion coeff in air (m2/s) Fuller 1966 / Johnson 2010
                 ! division by pressure: ppao [Pa]; in Fuller, p is a factor for denominator [atm]
-                diff_nh3_a =  1e-7 * (t+273.15)**1.75 * M_nh3 / (ppao(i,j)/101325.0)
+                diff_nh3_a =  1e-7 * tk**1.75 * M_nh3 / (ppao(i,j)/101325.0)
 
                 ! Johnson 2010 - (34) cm2/s -> m2/s (1e-8*1e-4=1e-12)
                 ! closer to fit for Li & Gregory of: 9.874e-6*exp(2.644e-2*t)
                 ! mu_w*1000: kg/(m s) -> cPoise as in Eq.(34) of Johnson 2010
-                diff_nh3_w = 1.25e-12*(t+273.15)**1.52 *(mu_w*1000.)**(9.58/Vb_nh3 -1.12)*(Vb_nh3**(-0.19) - 0.292)
+                diff_nh3_w = 1.25e-12*tk**1.52 *(mu_w*1000.)**(9.58/Vb_nh3 -1.12)*(Vb_nh3**(-0.19) - 0.292)
 
                 ! Schmidt number air phase
                 sch_nh3_a  = mu_air /(diff_nh3_a * rho_air)
@@ -314,18 +320,18 @@ contains
               endif
               
               ! solubility of N2 (Weiss, R.F. 1970, Deep-Sea Res., 17, 721-735) for moist air
-              ! at 1 atm; multiplication with oxyco converts to kmol/m^3/atm
+              ! at 1 atm; multiplication with oxyco converts to kmol/m^3/atm, temp=[-1,40], saln=[0,40]
               ani=an0+an1/tk100+an2*alog(tk100)+an3*tk100+s*(an4+an5*tk100+an6*tk100**2)
               anisa=exp(ani)*oxyco
 
               ! solubility of laughing gas  (Weiss and Price 1980, Marine Chemistry, 8, 347-359)
-              ! for moist air at 1 atm in kmol/m^3/atm
+              ! for moist air at 1 atm in kmol/m^3/atm, temp=[-1,40], saln=[0,40] 
               rs=al1+al2/tk100+al3*log(tk100)+al4*tk100**2+s*(bl1+bl2*tk100+bl3*tk100**2)
               satn2o(i,j)=exp(rs)
 
               if (use_CFC) then
                 ! solubility of cfc11,12 (mol/(l*atm)) (Warner and Weiss 1985) and
-                ! sf6 from eq. 6 of Bullister et al. (2002)
+                ! sf6 from eq. 6 of Bullister et al. (2002), temp=[-1,40], saln=[0,40] 
                 ! These are the alpha in (1b) of the ocmpic2 howto
                 a_11 = exp(-229.9261 + 319.6552*(100/tk) + 119.4471*log(tk100)       &
                      &     -1.39165*(tk100)**2 + s*(-0.142382 + 0.091459*(tk100)     &
@@ -342,11 +348,12 @@ contains
               endif
               if (use_BROMO) then
                 !Henry's law constant [dimensionless] for Bromoform from Quack and Wallace (2003; GBC)
+                ! temp=[0,20]
                 a_bromo = exp(13.16 - 4973*(1/tk))
               endif
               if (use_extNcycle) then
                 !Henry number for NH3 (Paulot et al. 2015, )
-                h_nh3 =  (17.93*(t+273.15)/273.15 * exp(4092./(t+273.15) - 9.7))**(-1)
+                h_nh3 =  (17.93*tk/tzero * exp(4092./tk - 9.7))**(-1)
                 ! Dissociation constant (Paulot et al. 2015, Bell 2007/2008)
                 pKa_nh3 = 10.0423 - 3.15536e-2*t + 3.071e-3*s
                 ! effective gas-over-liquid Henry constant (Paulot et al. 2015)
@@ -413,11 +420,12 @@ contains
               rpp0  = ppao(i,j)/101325.0
 
               ! calculate correction for non-ideality of CO2 (fugacity coefficient, Weiss and Price 1980)
-              Bvir  = -1636.75 + 12.0408*tk -0.0327957*tk**2 + 0.0000316528*tk**3
-              delta = 57.7-0.118*tk
+              Bvir  = -1636.75 + 12.0408*tk -0.0327957*tk**2 + 0.0000316528*tk**3   ! temp=[-12,47]
+              delta = 57.7-0.118*tk                                                 ! temp=[0,40]
               fc    = exp( rpp0*(Bvir + 2.0*delta)/(82.057*tk) )
 
               ! calculate water vapor pressure [atm] as function of temperature and salinity (Weiss and Price 1980)
+              ! temp=[0,40], saln=[0,40]
               pH2O  = exp(24.4543 - 67.4509*(100.0/tk) - 4.8489*log(tk/100.0) - 0.000544*s)
 
               ! Calculate the CO2 concentration in equilibrium with atmospheric x' (atco2=mole fraction of CO2 in dry air [ppm])
@@ -426,18 +434,18 @@ contains
               fluxd = cu_sat*kwco2*dtbgc*rrho ! cu_sat and cu are in mol/kg. Multiply by rrho (g/cm^3) 
               fluxu = cu    *kwco2*dtbgc*rrho ! to get fluxes in kmol/m^2
 
-              ! Set limit for CO2 outgassing to avoid negative DIC concentration, set minimum DIC concentration to 1e-5 kmol/m3
-              fluxu = min(fluxu,fluxd-(1e-5 - ocetra(i,j,k,isco212))*pddpo(i,j,1))
+              ! Set limit for CO2 outgassing to avoid negative DIC concentration
+              fluxu = min(fluxu,fluxd-(srfdic_min - ocetra(i,j,k,isco212))*pddpo(i,j,1))
 
               if (use_natDIC) then
                 natcu_sat = Kh0*atm_co2_nat*1e-6*(rpp0-pH2O)*fc
                 natfluxd  = natcu_sat*kwco2*dtbgc*rrho
                 natfluxu  = natcu    *kwco2*dtbgc*rrho
-                natfluxu  = min(natfluxu,natfluxd-(1e-5 - ocetra(i,j,k,inatsco212))*pddpo(i,j,1))
+                natfluxu  = min(natfluxu,natfluxd-(srfdic_min - ocetra(i,j,k,inatsco212))*pddpo(i,j,1))
               endif
 
               ! Calculate saturation DIC concentration in mixed layer
-              call carchm_solve_DICsat(s,cu_sat,ta,sit,pt,Kh0,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,tc_sat,niter)
+              call carchm_solve_DICsat(s,cu_sat,ta,sit,pt,Kh0,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,tc_sat)
               ocetra(i,j,1:kmle(i,j),idicsat) = tc_sat * rrho ! convert mol/kg to kmlo/m^3
 
               if (use_cisonew ) then
@@ -451,8 +459,8 @@ contains
                 cu_sat14 = Kh0*atco214*1.e-6*(rpp0-pH2O)*fc
 
                 ! fractionation factors for 13C during air-sea gas exchange (Zhang et al. 1995, Orr et al. 2017)
-                frac_k    = 0.99912                                 !Constant kinetic fractionation
-                frac_aqg  = (0.0049*t - 1.31)/1000. + 1.  !Gas dissolution fractionation
+                frac_k    = 0.99912                                 ! Constant kinetic fractionation
+                frac_aqg  = (0.0049*t - 1.31)/1000. + 1.            ! Gas dissolution fractionation
                 frac_dicg = (0.0144*t*(cc/(cc+cu+cb)) - 0.107*t + 10.53)/1000. + 1. !DIC to CO2 frac
                 flux13d   = cu_sat13*kwco2*dtbgc*rrho*frac_aqg*frac_k
                 flux13u   = cu13    *kwco2*dtbgc*rrho*frac_aqg*frac_k/frac_dicg
@@ -536,7 +544,7 @@ contains
                 ocetra(i,j,1,ianh4) = ocetra(i,j,1,ianh4) + flx_nh3/pddpo(i,j,1)
 
                 ! pNH3 in natm
-                pnh3(i,j) =  hstar_nh3*ocetra(i,j,1,ianh4)  * 8.20573660809596e-5 * (t+273.15) * 1e12
+                pnh3(i,j) =  hstar_nh3*ocetra(i,j,1,ianh4)  * 8.20573660809596e-5 * tk * 1e12
               endif
 
               ! -----------------------------------------------------------------
@@ -715,11 +723,6 @@ contains
 
     !***********************************************************************************************
     ! Calculate equilibrium constants for the carbonate system
-    !
-    ! J. Schwinger,    *BCCR, Bergen*    09.02.16
-    !
-    ! J.Schwinger,      *Uni Research, Bergen*   2018-04-12
-    ! - added output Khd (CO2 solubility w.r.t. dry air) and Kspa
     !***********************************************************************************************
 
     use mo_chemcon, only: tzero,rgas,bor1,bor2,salchl,ac1,ac2,ac3,ac4,bc1,bc2,bc3,ad1,ad2,ad3,     &
@@ -746,12 +749,14 @@ contains
     ! Local varibles
     integer                :: js
     real                   :: tk,tk100,invtk,dlogtk
-    real                   :: s,is,is2,sqrtis,s15,s2,sqrts,scl
+    real                   :: t,s,is,is2,sqrtis,s15,s2,sqrts,scl
+    real                   :: pK01,pK02
     real                   :: nKhwe74,deltav,deltak,zprb,zprb2
     real                   :: lnkpok0(11)
 
-    s = max(25.,saln)
-    tk = temp + tzero
+    t = min(temp_max,max(temp_min,temp))
+    s = min(saln_max,max(saln_min,saln))
+    tk = t + tzero
     tk100 = tk/100.0
     invtk = 1.0 / tk
     dlogtk = log(tk)
@@ -765,20 +770,24 @@ contains
 
     ! Kh0 = [CO2]/ fCO2 (fCO2 = fugacity of CO2 in air)
     ! Weiss (1974), note this does not include a correction for the effect of moist air at 
-    ! air-sea interface [mol/kg/atm]
+    ! air-sea interface [mol/kg/atm], temp=[-1,45], saln=[0,45]
     nKhwe74 = ad1+ad2/tk100+ad3*log(tk100)+s*(bd1+bd2*tk100+bd3*tk100**2)
     Kh0     = exp( nKhwe74 )
     ! K1 = [H][HCO3]/[H2CO3]   ; K2 = [H][CO3]/[HCO3]
-    ! Millero p.664 (1995) using Mehrbach et al. data on seawater scale
-    K1 = 10**( -1.0 * ( 3670.7 * invtk - 62.008 + 9.7944 * dlogtk - 0.0118 * s + 0.000116 * s2 ) )
-    K2 = 10**( -1.0 * ( 1394.7 * invtk + 4.777 - 0.0184 * s + 0.000118 * s2 ) )
+    ! Waters et al. (2014) on total pH scale, temp=[0,45], saln=[0,45]
+    pK01 = -126.34048 + 6320.813*invtk + 19.568224*dlogtk
+    pK02 =  -90.18333 + 5143.692*invtk + 14.613358*dlogtk
+    K1 = 10**( -1.0*(pK01 + 13.568513*sqrts + 0.031645  *s - 5.3834e-5*s2 - 539.2304*sqrts*invtk - &
+         &      5.635  *s*invtk - 2.0901396*sqrts*dlogtk) )
+    K2 = 10**( -1.0*(pK02 + 21.389248*sqrts + 0.12452358*s - 3.7447e-4*s2 - 787.3736*sqrts*invtk - &
+         &     19.84233*s*invtk - 3.3773006*sqrts*dlogtk) )
     ! Kb = [H][BO2]/[HBO2] !
-    ! Millero p.669 (1995) using data from Dickson (1990)
+    ! Millero p.669 (1995) using data from Dickson (1990), temp=[0,45], saln=[5,45]
     Kb = exp( ( -8966.90 - 2890.53  * sqrts - 77.942  * s + 1.728 * s15 - 0.0996 * s2 ) * invtk +  &
          &    ( 148.0248 + 137.1942 * sqrts + 1.62142 * s ) +                                      &
          &    ( -24.4344 - 25.085   * sqrts - 0.2474  * s ) * dlogtk + 0.053105 * sqrts * tk )
     ! K1p = [H][H2PO4]/[H3PO4] ; K2p = [H][HPO4]/[H2PO4] ; K3p = [H][PO4]/[HPO4]
-    ! DOE(1994) eq 7.2.20 with footnote using data from Millero (1974)
+    ! DOE(1994) eq 7.2.20 with footnote using data from Millero (1974), temp=[5,30], saln=[5,40]
     K1p = exp( -4576.752 * invtk + 115.525 - 18.453 * dlogtk + ( -106.736 * invtk + 0.69171 ) *    &
          &     sqrts + ( -0.65643 * invtk - 0.01844 ) * s )
     K2p = exp( -8814.715 * invtk + 172.0883 - 27.927 * dlogtk + ( -160.340 * invtk + 1.3566 ) *    &
@@ -791,37 +800,38 @@ contains
          & + ( 188.74 * invtk - 1.5998) * is + ( -12.1652 * invtk + 0.07871) * is2 +               &
          &     log(1.0-0.001005*s))
     ! Kw = [H][OH]
-    ! Millero p.670 (1995) using composite data
+    ! Millero p.670 (1995) using composite data, temp=[0,45], saln=[0,45]
     Kw = exp( -13847.26 * invtk + 148.9652 - 23.6521 * dlogtk + ( 118.67 * invtk - 5.977 +         &
          &     1.0495 * dlogtk ) * sqrts - 0.01615 * s)
     ! Ks = [H][SO4]/[HSO4]
-    ! Dickson (1990, J. chem. Thermodynamics 22, 113)
+    ! Dickson (1990, J. chem. Thermodynamics 22, 113), temp=[0,45], saln=[5,45]
     Ks1 = exp( -4276.1 * invtk + 141.328 - 23.093 * dlogtk + ( -13856. * invtk + 324.57 - 47.986 * &
          &     dlogtk ) * sqrtis + ( 35474. * invtk - 771.54 + 114.723 * dlogtk ) * is - 2698. *   &
          &     invtk * is**1.5 + 1776. * invtk * is2 + log(1.0 - 0.001005 * s ) )
     ! Kf = [H][F]/[HF]
-    ! Dickson and Riley (1979) -- change pH scale to total
+    ! Dickson and Riley (1979) -- change pH scale to total, temp=[0,45], saln=[0,45]
     Kf = exp( 1590.2 * invtk - 12.641 + 1.525 * sqrtis + log( 1.0 - 0.001005 * s ) + log( 1.0 + (  &
          &    0.1400 / 96.062 ) * scl / Ks1 ) )
     ! Kspc (calcite)
     ! apparent solubility product of calcite : Kspc = [Ca2+]T [CO32-]T
     ! where $[]_T$ refers to the equilibrium total (free + complexed) ion concentration.
-    !          Mucci 1983 mol/kg-soln
+    !          Mucci 1983 mol/kg-soln, temp=[0,40], saln=[5,35]
     Kspc = 10**( -171.9065 - 0.077993 * tk + 2839.319 / tk + 71.595 * log10( tk ) + ( - 0.77712 +  &
          &       0.0028426 * tk + 178.34 / tk ) * sqrts - 0.07711 * s + 0.0041249 * s15 );
     ! Kspa (aragonite)
     ! apparent solubility product of aragonite : Kspa = [Ca2+]T [CO32-]T
     ! where $[]_T$ refers to the equilibrium total (free + complexed) ion concentration.
-    !          Mucci 1983 mol/kg-soln
+    !          Mucci 1983 mol/kg-soln, temp=[0,40], saln=[5,35]
     Kspa = 10**( -171.945 - 0.077993 * tk + 2903.293 / tk  + 71.595 * log10( tk ) + ( -0.068393 +  &
          &       0.0017276 * tk + 88.135 / tk ) * sqrts - 0.10018 * s + 0.0059415 * s15 );
 
 
     !---------------------- Pressure effect on Ks (Millero, 95) --------------------
     ! index: K1 1, K2 2, Kb 3, Kw 4, Ks 5, Kf 6, Kspc 7, Kspa 8, K1p 9, K2p 10, K3p 11
+    ! The fit below is valid for saln=35
     do js = 1,11
-      deltav      = a0(js) + a1(js) * temp + a2(js) * temp * temp
-      deltak      = b0(js) + b1(js) * temp + b2(js) * temp * temp
+      deltav      = a0(js) + a1(js) * t + a2(js) * t * t
+      deltak      = b0(js) + b1(js) * t + b2(js) * t * t
       zprb        = prb / ( rgas * tk )
       zprb2       = prb * zprb
       lnkpok0(js) = - ( deltav * zprb + 0.5 * deltak * zprb2 )
@@ -842,12 +852,10 @@ contains
   end subroutine carchm_kequi
 
 
-  subroutine carchm_solve(saln,tc,ta,sit,pt,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,ah1,ac,niter)
+  subroutine carchm_solve(saln,tc,ta,sit,pt,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,ah1,ac)
 
     !***********************************************************************************************
     ! Solve carbon chemistry.
-    !
-    ! J. Schwinger,    *BCCR, Bergen*    09.02.16
     !***********************************************************************************************
 
     use mo_chemcon, only: bor1,bor2,salchl
@@ -870,10 +878,6 @@ contains
     real,    intent(in)    :: K3p   ! equilibrium constant K3p = [H][PO4]/[HPO4].
     real,    intent(inout) :: ah1   ! hydrogen ion concentration.
     real,    intent(out)   :: ac    ! carbonate alkalinity.
-    integer, intent(in)    :: niter ! maximum number of iteration
-
-    ! Parameters to set accuracy of iteration
-    real,  parameter     :: eps=5.e-5
 
     ! Local variables
     integer :: jit
@@ -883,7 +887,8 @@ contains
     ! Calculate concentrations for borate, sulfate, and fluoride; see Dickson, A.G.,
     ! Sabine, C.L. and Christian, J.R. (Eds.) 2007. Guide to best practices
     ! for ocean CO2 measurements. PICES Special Publication 3, chapter 5 p. 10
-    s = max(25.,saln)
+
+    s = min(saln_max,max(saln_min,saln))
     scl = s * salchl
     borat = bor1 * scl * bor2      ! Uppstrom (1974)
     sti = 0.14 * scl / 96.062      ! Morris & Riley (1966)
@@ -901,9 +906,11 @@ contains
       ah2o = sqrt( ( tc - ac )**2 + 4. * ( ac * K2 / K1 ) * ( 2. * tc - ac ) )
       ah2  = 0.5 * K1 / ac *( ( tc - ac ) + ah2o )
       erel = ( ah2 - ah1 ) / ah2
-      if (abs( erel ).ge.eps) then
-        ah1 = ah2
+      if (abs( erel ) >= eps) then
+        ! make sure [H+] stays between pH 5 and 11
+        ah1 = max(1.0e-11,min(ah2,1.0e-5))
       else
+        ah1 = max(1.0e-11,min(ah2,1.0e-5))
         exit iflag
       endif
     enddo iflag
@@ -911,7 +918,7 @@ contains
   end subroutine carchm_solve
 
 
-  subroutine carchm_solve_dicsat(saln,co2_sat,ta,sit,pt,Kh0,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,tc_sat,niter)
+  subroutine carchm_solve_dicsat(saln,co2_sat,ta,sit,pt,Kh0,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,tc_sat)
 
     !***********************************************************************************************
     ! Solve DICsat from TALK and h2co3_sat (saturation concentration of dissolved CO2).
@@ -938,10 +945,6 @@ contains
     real,    intent(in)  :: K2p     ! equilibrium constant K2p = [H][HPO4]/[H2PO4].
     real,    intent(in)  :: K3p     ! equilibrium constant K3p = [H][PO4]/[HPO4].
     real,    intent(out) :: tc_sat  ! saturated total DIC concentration [mol/kg].
-    integer, intent(in)  :: niter   ! maximum number of iteration
-
-    ! Parameters to set accuracy of iteration
-    real, parameter :: eps=5.e-5
 
     ! Local varibles
     integer :: jit
@@ -952,7 +955,8 @@ contains
     ! Calculate concentrations for borate, sulfate, and fluoride; see Dickson, A.G.,
     ! Sabine, C.L. and Christian, J.R. (Eds.) 2007. Guide to best practices
     ! for ocean CO2 measurements. PICES Special Publication 3, chapter 5 p. 10
-    s = max(25.,saln)
+
+    s = min(saln_max,max(saln_min,saln))
     scl = s * salchl
     borat = bor1 * scl * bor2      ! Uppstrom (1974)
     sti = 0.14 * scl / 96.062      ! Morris & Riley (1966)
@@ -971,9 +975,11 @@ contains
       ah2o = sqrt((K1*co2_sat)**2 + 4.*ac*2.*K1*k2*co2_sat)
       ah2  = (K1*co2_sat + ah2o)/(2.*ac)
       erel = ( ah2 - ah1 ) / ah2
-      if (abs( erel ).ge.eps) then
-        ah1 = ah2
+      if (abs( erel ) >= eps) then
+        ! make sure [H+] stays between pH 5 and 11
+        ah1 = max(1.0e-11,min(ah2,1.0e-5))
       else
+        ah1 = max(1.0e-11,min(ah2,1.0e-5))
         exit iflag
       endif
     enddo iflag

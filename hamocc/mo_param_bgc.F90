@@ -81,7 +81,7 @@ module mo_param_bgc
   ! Other module variables
   public :: ro2ut,rcar,rnit,rnoi,riron,rdnit0,rdnit1,rdnit2,rdn2o1,rdn2o2
   public :: atm_n2,atm_o2,atm_co2_nat,atm_bromo,re1312,atm_n2o,atm_nh3
-  public :: re14to,prei13,prei14,ctochl
+  public :: srfdic_min,re14to,prei13,prei14,ctochl
   public :: atten_w,atten_c,atten_uv,atten_f
   public :: perc_diron,fesoly,phytomi,pi_alpha
   public :: dyphy,tf2,tf1,tf0,tff,bifr13_ini,bifr14_ini,c14_t_half
@@ -153,6 +153,9 @@ module mo_param_bgc
 
   ! Decay parameter for C14, HalfLive = 5700 years
   real, parameter :: c14_t_half = 5700.*365.      ! Half life of 14C [days]
+  
+  ! Minimum surface DIC concentration for gas-exchange parameterization
+  real, parameter :: srfdic_min = 1.0e-5          ! kmol C m-3
 
   ! Extended nitrogen cycle
   real, parameter :: max_limiter   = 0.9999          ! maximum in concentrations that can be consumed at once
