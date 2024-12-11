@@ -40,6 +40,12 @@ module mo_carchm
   real, parameter :: saln_min =  5.0
   real, parameter :: saln_max = 40.0
   
+  ! Minimum and maximum H+ concentrations allowed in the iterative carbon chemistry solver
+  ! The values set below (corresponding to pH 5 and 11) should never be reached in any resonable 
+  ! oceanographic context
+  real, parameter :: ah_min = 1.0e-11
+  real, parameter :: ah_max = 1.0e-5
+  
 contains
 
   subroutine carchm(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,prho,pglat,omask,psicomo,ppao,pfu10,     &
@@ -245,7 +251,7 @@ contains
               ta   = ocetra(i,j,k,inatalkali) / rrho
               ah1  = nathi(i,j,k)
 
-              call CARCHM_SOLVE(psao(i,j,k),tc,ta,sit,pt,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,ah1,ac)
+              call CARCHM_SOLVE(s,tc,ta,sit,pt,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,ah1,ac)
 
               nathi(i,j,k)=ah1
 
@@ -768,6 +774,10 @@ contains
     sqrts  = sqrt(s)
     scl    = s * salchl
 
+    ! Note: temperature and salinity ranges given in comments indicate the valid range of the
+    !       fit. This is usually taken to be the range for which measurements have been available.
+
+
     ! Kh0 = [CO2]/ fCO2 (fCO2 = fugacity of CO2 in air)
     ! Weiss (1974), note this does not include a correction for the effect of moist air at 
     ! air-sea interface [mol/kg/atm], temp=[-1,45], saln=[0,45]
@@ -907,10 +917,10 @@ contains
       ah2  = 0.5 * K1 / ac *( ( tc - ac ) + ah2o )
       erel = ( ah2 - ah1 ) / ah2
       if (abs( erel ) >= eps) then
-        ! make sure [H+] stays between pH 5 and 11
-        ah1 = max(1.0e-11,min(ah2,1.0e-5))
+        ! make sure [H+] stays between ah_min and ah_max
+        ah1 = max(ah_min,min(ah2,ah_max))
       else
-        ah1 = max(1.0e-11,min(ah2,1.0e-5))
+        ah1 = max(ah_min,min(ah2,ah_max))
         exit iflag
       endif
     enddo iflag
@@ -976,10 +986,10 @@ contains
       ah2  = (K1*co2_sat + ah2o)/(2.*ac)
       erel = ( ah2 - ah1 ) / ah2
       if (abs( erel ) >= eps) then
-        ! make sure [H+] stays between pH 5 and 11
-        ah1 = max(1.0e-11,min(ah2,1.0e-5))
+        ! make sure [H+] stays between ah_min and ah_max
+        ah1 = max(ah_min,min(ah2,ah_max))
       else
-        ah1 = max(1.0e-11,min(ah2,1.0e-5))
+        ah1 = max(ah_min,min(ah2,ah_max))
         exit iflag
       endif
     enddo iflag
