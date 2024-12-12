@@ -675,7 +675,7 @@ contains
                                nf90_put_att, nf90_put_var, nf90_unlimited, nf90_write
       use mod_types,     only: r8
       use mod_config,    only: expcnf, runid, inst_suffix
-      use mod_time,      only: date0, time0, date, time, nstep, nday_of_year,nstep_in_day
+      use mod_time,      only: date0, time0, date, time, nstep, nday_of_year,nstep_in_day,calendar
       use mo_bgcmean,    only: filefq_bgc, fileann_bgc, filemon_bgc,glb_fnametag
       use mo_param1_bgc, only: idicsat,idms,ifdust,iiron,iprefalk,iprefdic,iprefo2,iprefpo4,       &
                                iadust,inos,ibromo,icfc11,icfc12,isf6,icalc13,icalc14,idet13,       &
@@ -827,7 +827,7 @@ contains
         !--- Define global attributes
         call nccheck(NF90_PUT_ATT(ncid,NF90_GLOBAL,'title','Global inventory for marine bgc') )
         call nccheck(NF90_PUT_ATT(ncid,NF90_GLOBAL,'history','Global inventory for marine bgc') )
-        call nccheck(NF90_PUT_ATT(ncid,NF90_GLOBAL,'date', timeunits) )
+        !call nccheck(NF90_PUT_ATT(ncid,NF90_GLOBAL,'date', timeunits) )
 
         !--- Define dimensions
         if (.not. use_sedbypass) then
@@ -845,7 +845,10 @@ contains
 
         !--- Define variables : time
         call nccheck( NF90_DEF_VAR(ncid, 'time', NF90_DOUBLE, time_dimid,time_varid) )
-        call nccheck( NF90_PUT_ATT(ncid, time_varid, 'units', 'days') )
+        call nccheck( NF90_PUT_ATT(ncid, time_varid, 'units', timeunits) )
+        call nccheck( NF90_PUT_ATT(ncid, time_varid, 'calendar', calendar) )
+        call nccheck( NF90_PUT_ATT(ncid, time_varid, 'long_name', 'time') )
+
 
         if (.not. use_sedbypass) then
           !--- aqueous sediment tracers
