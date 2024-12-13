@@ -43,6 +43,11 @@
     <alias>NOINYOC</alias>
     <lname>1850_DATM%NYF_SLND_CICE_BLOM%HYB%ECO_DROF%NYF_SGLC_SWAV</lname>
   </compset>
+  <compset>
+    <!-- not valid for noresm2.5 -->
+    <alias>N2NOINYOC</alias>
+    <lname>1850_DATM%NYF_SLND_CICE_BLOM%ECO_DROF%NYF_SGLC_SWAV</lname>
+  </compset>
 
   <compset>
     <alias>NOIIA</alias>
