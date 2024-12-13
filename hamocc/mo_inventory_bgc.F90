@@ -827,7 +827,6 @@ contains
         !--- Define global attributes
         call nccheck(NF90_PUT_ATT(ncid,NF90_GLOBAL,'title','Global inventory for marine bgc') )
         call nccheck(NF90_PUT_ATT(ncid,NF90_GLOBAL,'history','Global inventory for marine bgc') )
-        !call nccheck(NF90_PUT_ATT(ncid,NF90_GLOBAL,'date', timeunits) )
 
         !--- Define dimensions
         if (.not. use_sedbypass) then
