@@ -25,7 +25,7 @@ module mo_carchm
   public  :: carchm
   public  :: carchm_solve
 
-  ! Maximum numnber of iterations for carbon chemistry solver
+  ! Maximum number of iterations for carbon chemistry solver
   integer, parameter :: niter=20
 
   ! Accuracy for test of convergence in carbon chemistry solver
@@ -223,7 +223,7 @@ contains
             tk100= tk/100.0
             
             rrho = prho(i,j,k)                   ! seawater density [g/cm3]
-            prb  = ptiestu(i,j,k)*98060*1.027e-6 ! pressure in unit bars, 98060 = onem
+            prb  = ptiestu(i,j,k)*98060.0*1.027e-6 ! pressure in unit bars, 98060 = onem
             
             tc   = ocetra(i,j,k,isco212) / rrho  ! convert to mol/kg
             ta   = ocetra(i,j,k,ialkali) / rrho
@@ -268,7 +268,7 @@ contains
             oxy=ox0+ox1/tk100+ox2*alog(tk100)+ox3*tk100+s*(ox4+ox5*tk100+ox6*tk100**2)
             satoxy(i,j,k)=exp(oxy)*oxyco
 
-            if (k.eq.1) then
+            if (k==1) then
 
               ! -----------------------------------------------------------------
               ! Calculate Schmidt numbers, solubilities, and piston velocities
@@ -302,7 +302,7 @@ contains
 
                 ! molecular viscosity of sea water
                 ! (Matthaeus 1972, Richards 1998,assuming salinity s in per mille = ~PSU)
-                p_dbar =  ppao(i,j)*1e-4  ! sea level pressure (Pa *1e-5 -> bar *10-> dbar
+                p_dbar =  ppao(i,j)*1.0e-4  ! sea level pressure (Pa *1e-5 -> bar *10-> dbar
                 mu_w   = 1.79e-2 - 6.1299e-4 * t + 1.4467e-5 * t2 - 1.6826e-7 * t3          &
                        & - 1.8266e-7 * p_dbar + 9.8972e-12 * p_dbar*p_dbar + 2.4727e-5 * s  &
                        & + s * (4.8429e-7 * t - 4.7172e-8 * t2 + 7.5986e-10 * t3)           &
@@ -312,7 +312,7 @@ contains
  
                 ! diffusion coeff in air (m2/s) Fuller 1966 / Johnson 2010
                 ! division by pressure: ppao [Pa]; in Fuller, p is a factor for denominator [atm]
-                diff_nh3_a =  1e-7 * tk**1.75 * M_nh3 / (ppao(i,j)/101325.0)
+                diff_nh3_a =  1.0e-7 * tk**1.75 * M_nh3 / (ppao(i,j)/101325.0)
 
                 ! Johnson 2010 - (34) cm2/s -> m2/s (1e-8*1e-4=1e-12)
                 ! closer to fit for Li & Gregory of: 9.874e-6*exp(2.644e-2*t)
@@ -348,14 +348,14 @@ contains
                 a_sf = exp(-80.0343  + 117.232 *(100/tk) +  29.5817*log(tk100)       &
                      &     +s*(0.033518-0.0373942*(tk100)+0.00774862*(tk100)**2))
                 ! conversion from mol/(l * atm) to kmol/(m3 * pptv)
-                a_11 = 1e-12 * a_11
-                a_12 = 1e-12 * a_12
-                a_sf = 1e-12 * a_sf
+                a_11 = 1.0e-12 * a_11
+                a_12 = 1.0e-12 * a_12
+                a_sf = 1.0e-12 * a_sf
               endif
               if (use_BROMO) then
                 !Henry's law constant [dimensionless] for Bromoform from Quack and Wallace (2003; GBC)
                 ! temp=[0,20]
-                a_bromo = exp(13.16 - 4973*(1/tk))
+                a_bromo = exp(13.16 - 4973.0*(1.0/tk))
               endif
               if (use_extNcycle) then
                 !Henry number for NH3 (Paulot et al. 2015, )
@@ -391,7 +391,7 @@ contains
                 ! wind drag coeff (-)
                 cD_wind = (u_star / (pfu10(i,j) + eps_safe))**2.
                 ! gas transfer velocity on gas phase side (m/s)
-                ka_nh3  = 1e-3 + u_star/ (13.3*sch_nh3_a + (eps_safe + cD_wind)**(-0.5) - 5. + log(sch_nh3_a)/(2.*kappa))
+                ka_nh3  = 1.0e-3 + u_star/ (13.3*sch_nh3_a + (eps_safe + cD_wind)**(-0.5) - 5. + log(sch_nh3_a)/(2.*kappa))
                 ! gas transfer velocity on liquid phase side (m/s) Nightingale 2000b - 3600*100: cm/h -> m/s
                 kw_nh3  =  (0.24*pfu10(i,j)**2 + 0.061*pfu10(i,j))*sqrt(600./sch_nh3_w)/360000.
 
@@ -435,7 +435,7 @@ contains
               pH2O  = exp(24.4543 - 67.4509*(100.0/tk) - 4.8489*log(tk/100.0) - 0.000544*s)
 
               ! Calculate the CO2 concentration in equilibrium with atmospheric x' (atco2=mole fraction of CO2 in dry air [ppm])
-              cu_sat = Kh0*atco2*1e-6*(rpp0-pH2O)*fc
+              cu_sat = Kh0*atco2*1.0e-6*(rpp0-pH2O)*fc
 
               fluxd = cu_sat*kwco2*dtbgc*rrho ! cu_sat and cu are in mol/kg. Multiply by rrho (g/cm^3) 
               fluxu = cu    *kwco2*dtbgc*rrho ! to get fluxes in kmol/m^2
@@ -444,7 +444,7 @@ contains
               fluxu = min(fluxu,fluxd-(srfdic_min - ocetra(i,j,k,isco212))*pddpo(i,j,1))
 
               if (use_natDIC) then
-                natcu_sat = Kh0*atm_co2_nat*1e-6*(rpp0-pH2O)*fc
+                natcu_sat = Kh0*atm_co2_nat*1.0e-6*(rpp0-pH2O)*fc
                 natfluxd  = natcu_sat*kwco2*dtbgc*rrho
                 natfluxu  = natcu    *kwco2*dtbgc*rrho
                 natfluxu  = min(natfluxu,natfluxd-(srfdic_min - ocetra(i,j,k,inatsco212))*pddpo(i,j,1))
@@ -461,8 +461,8 @@ contains
 
                 cu13     = cu * rco213 ! concentration of dissolved CO213
                 cu14     = cu * rco214 ! concentration of dissolved CO214
-                cu_sat13 = Kh0*atco213*1.e-6*(rpp0-pH2O)*fc
-                cu_sat14 = Kh0*atco214*1.e-6*(rpp0-pH2O)*fc
+                cu_sat13 = Kh0*atco213*1.0e-6*(rpp0-pH2O)*fc
+                cu_sat14 = Kh0*atco214*1.0e-6*(rpp0-pH2O)*fc
 
                 ! fractionation factors for 13C during air-sea gas exchange (Zhang et al. 1995, Orr et al. 2017)
                 frac_k    = 0.99912                                 ! Constant kinetic fractionation
@@ -485,15 +485,15 @@ contains
               endif
 
               ! Surface flux of oxygen
-              oxflux=kwo2*dtbgc*(ocetra(i,j,1,ioxygen)-satoxy(i,j,1)*(ato2/196800)*rpp0)
+              oxflux=kwo2*dtbgc*(ocetra(i,j,1,ioxygen)-satoxy(i,j,1)*(ato2/196800.0)*rpp0)
               ocetra(i,j,1,ioxygen)=ocetra(i,j,1,ioxygen)-oxflux/pddpo(i,j,1)
               ! Surface flux of gaseous nitrogen (same piston velocity as for O2)
-              niflux=kwn2*dtbgc*(ocetra(i,j,1,igasnit)-anisa*(atn2/802000)*rpp0)
+              niflux=kwn2*dtbgc*(ocetra(i,j,1,igasnit)-anisa*(atn2/802000.0)*rpp0)
               ocetra(i,j,1,igasnit)=ocetra(i,j,1,igasnit)-niflux/pddpo(i,j,1)
               ! Surface flux of laughing gas (same piston velocity as for O2 and N2)
-              n2oflux=kwn2o*dtbgc*(ocetra(i,j,1,ian2o)-satn2o(i,j)*atn2o*1e-12*rpp0)
+              n2oflux=kwn2o*dtbgc*(ocetra(i,j,1,ian2o)-satn2o(i,j)*atn2o*1.0e-12*rpp0)
               ! pN2O under moist air assumption at normal pressure
-              pn2om(i,j) = 1e9 * ocetra(i,j,1,ian2o)/satn2o(i,j)
+              pn2om(i,j) = 1.0e9 * ocetra(i,j,1,ian2o)/satn2o(i,j)
               ocetra(i,j,1,ian2o)=ocetra(i,j,1,ian2o)-n2oflux/pddpo(i,j,1)
               if (use_CFC) then
                 ! Surface fluxes for CFC: eqn. (1a) in ocmip2 howto doc(hyc)
@@ -504,19 +504,19 @@ contains
                 !      unit of [cfc11_atm(i,j)*ppair/p0] should be in [pptv]
                 !      unit of [flx11-12] is in [kmol / m2]
 
-                if (pglat(i,j).GE.10) then
+                if (pglat(i,j) >= 10.0) then
                   atm_cfc11=atm_cfc11_nh
                   atm_cfc12=atm_cfc12_nh
                   atm_sf6=atm_sf6_nh
-                else if (pglat(i,j) <= -10) then
+                else if (pglat(i,j) <= -10.0) then
                   atm_cfc11=atm_cfc11_sh
                   atm_cfc12=atm_cfc12_sh
                   atm_sf6=atm_sf6_sh
                 else
-                  fact=(pglat(i,j)-(-10))/20.
-                  atm_cfc11=fact*atm_cfc11_nh+(1-fact)*atm_cfc11_sh
-                  atm_cfc12=fact*atm_cfc12_nh+(1-fact)*atm_cfc12_sh
-                  atm_sf6=fact*atm_sf6_nh+(1-fact)*atm_sf6_sh
+                  fact=(pglat(i,j)-(-10.0))/20.0
+                  atm_cfc11=fact*atm_cfc11_nh+(1.0-fact)*atm_cfc11_sh
+                  atm_cfc12=fact*atm_cfc12_nh+(1.0-fact)*atm_cfc12_sh
+                  atm_sf6  =fact*atm_sf6_nh  +(1.0-fact)*atm_sf6_sh
                 endif
 
                 ! Surface flux of cfc11, cfc12, and sf6
@@ -541,16 +541,16 @@ contains
                 !  [ppp]     to [mol L-1]  by multiplying with pressure[bar]/(SST[K]*R[L bar K-1 mol-1]); R=0,083
                 !  [mol L-1] to [kmol m-3] by multiplying with 1
 
-                flx_bromo = kw_bromo*dtbgc*(atbrf/a_bromo*1e-12*ppao(i,j)*1e-5/(tk*0.083) - ocetra(i,j,1,ibromo))
+                flx_bromo = kw_bromo*dtbgc*(atbrf/a_bromo*1.0e-12*ppao(i,j)*1.0e-5/(tk*0.083) - ocetra(i,j,1,ibromo))
                 ocetra(i,j,1,ibromo) = ocetra(i,j,1,ibromo) + flx_bromo/pddpo(i,j,1)
               endif
               if (use_extNcycle) then
                 ! surface flux NH3 - currently assumed atNH3 in pptv
-                flx_nh3 =  Kh_nh3*dtbgc*(atnh3*1e-12*ppao(i,j)*1e-5/(tk*0.08314510) - hstar_nh3*ocetra(i,j,1,ianh4))
+                flx_nh3 =  Kh_nh3*dtbgc*(atnh3*1.0e-12*ppao(i,j)*1.0e-5/(tk*0.08314510) - hstar_nh3*ocetra(i,j,1,ianh4))
                 ocetra(i,j,1,ianh4) = ocetra(i,j,1,ianh4) + flx_nh3/pddpo(i,j,1)
 
                 ! pNH3 in natm
-                pnh3(i,j) =  hstar_nh3*ocetra(i,j,1,ianh4)  * 8.20573660809596e-5 * tk * 1e12
+                pnh3(i,j) =  hstar_nh3*ocetra(i,j,1,ianh4)  * 8.20573660809596e-5 * tk * 1.0e12
               endif
 
               ! -----------------------------------------------------------------
@@ -593,18 +593,18 @@ contains
               endif
 
               ! Save pCO2-related diagnostics for output
-              fco2(i,j)     = cu * 1.e6 / Kh0        ! Equilibrium CO2 fugacity at the air sea interface [micro atm]
+              fco2(i,j)     = cu * 1.0e6 / Kh0       ! Equilibrium CO2 fugacity at the air sea interface [micro atm]
               pco2(i,j)     = fco2(i,j)/fc           ! Equilibrium CO2 partial pressure at the air sea interface [micro atm]
               xco2(i,j)     = pco2(i,j)/(rpp0-pH2O)  ! Equilibrium CO2 dry air mixing raio [ppm]
               pco2_gex(i,j) = atco2*(rpp0-pH2O)      ! Actual CO2 partial pressure at the air sea interface [micro atm]
               if (use_natDIC) then
-                natpco2(i,j) = natcu * 1.e6 / Kh0 / fc
+                natpco2(i,j) = natcu * 1.0e6 / Kh0 / fc
               endif
 
               ! Save product of piston velocity and solubility for output
-              kwco2sol(i,j) = kwco2*Kh0*1e-6 ! m/s mol/kg/muatm
-              kwco2a(i,j)   = kwco2          ! m/s (incl. ice fraction!)
-              co2sol(i,j)   = Kh0*1e-6       ! mol/kg/uatm
+              kwco2sol(i,j) = kwco2*Kh0*1.0e-6 ! m/s mol/kg/muatm
+              kwco2a(i,j)   = kwco2            ! m/s (incl. ice fraction!)
+              co2sol(i,j)   = Kh0*1.0e-6       ! mol/kg/uatm
 
             endif ! k==1
 
@@ -617,28 +617,28 @@ contains
               ! Degradation to hydrolysis (Eq. 2-4 of Stemmler et al., 2015)
               ! A1=1.23e17 mol min-1 => 2.05e12 kmol sec-1
               Kb1=2.05e12*exp(-1.073e5/(8.314*tk))*dtbgc
-              ocetra(i,j,k,ibromo)=ocetra(i,j,k,ibromo)*(1.-(Kb1*Kw/ah1))
+              ocetra(i,j,k,ibromo)=ocetra(i,j,k,ibromo)*(1.0-(Kb1*Kw/ah1))
               ! Degradation to halogen substitution (Eq. 5-6 of Stemmler et al., 2015)
-              lsub=7.33e-10*exp(1.250713e4*(1/298.-1/tk))*dtbgc
-              ocetra(i,j,k,ibromo)=ocetra(i,j,k,ibromo)*(1.-lsub)
+              lsub=7.33e-10*exp(1.250713e4*(1.0/298.-1.0/tk))*dtbgc
+              ocetra(i,j,k,ibromo)=ocetra(i,j,k,ibromo)*(1.0-lsub)
             endif
 
             ! Determine Omega Calcite/Aragonite and dissolution of caco3 based on OmegaC:
             !   omegaC=([CO3]*[Ca])/([CO3]sat*[Ca]sat)
             !   Following Sarmiento and Gruber book, assumed that [Ca]=[Ca]sat
             !   Thus, [CO3]sat=[CO3]/OmegaC.
-            omega = ( calcon * s / 35. ) * cc
+            omega = ( calcon * s / 35.0 ) * cc
             OmegaA(i,j,k) = omega / Kspa
             OmegaC(i,j,k) = omega / Kspc
             supsat=co3(i,j,k)-co3(i,j,k)/OmegaC(i,j,k)
-            undsa=max(0.,-supsat)
+            undsa=max(0.0,-supsat)
             dissol=min(undsa,0.05*ocetra(i,j,k,icalc))
             if (use_natDIC) then
-              natomega = ( calcon * s / 35. ) * natcc
+              natomega = ( calcon * s / 35.0 ) * natcc
               natOmegaA(i,j,k) = natomega / Kspa
               natOmegaC(i,j,k) = natomega / Kspc
               natsupsat=natco3(i,j,k)-natco3(i,j,k)/natOmegaC(i,j,k)
-              natundsa=max(0.,-natsupsat)
+              natundsa=max(0.0,-natsupsat)
               natdissol=min(natundsa,0.05*ocetra(i,j,k,inatcalc))
             endif
             if (use_cisonew) then
@@ -713,7 +713,7 @@ contains
       !$OMP PARALLEL DO PRIVATE(i)
       do j=1,kpje
         do i=1,kpie
-          if(omask(i,j).gt.0.5) then
+          if(omask(i,j) > 0.5) then
             burial(i,j,issso14) = burial(i,j,issso14)*c14dec
             burial(i,j,isssc14) = burial(i,j,isssc14)*c14dec
           endif
