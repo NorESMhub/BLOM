@@ -30,6 +30,7 @@ jobs:
       - name: Install dependencies - Ubuntu
         run: |
           sudo apt update
+          sudo apt upgrade -y
           sudo apt install -y libnetcdff-dev mpi-default-dev ninja-build
         if: runner.os == 'Linux'
 
