@@ -43,6 +43,11 @@
     <alias>NOINYOC</alias>
     <lname>1850_DATM%NYF_SLND_CICE_BLOM%HYB%ECO_DROF%NYF_SGLC_SWAV</lname>
   </compset>
+  <compset>
+    <!-- not valid for noresm2.5 -->
+    <alias>N2NOINYOC</alias>
+    <lname>1850_DATM%NYF_SLND_CICE_BLOM%ECO_DROF%NYF_SGLC_SWAV</lname>
+  </compset>
 
   <compset>
     <alias>NOIIA</alias>
@@ -103,7 +108,7 @@
   <compset>
     <!-- not valid for noresm2.5 -->
     <alias>N2NOIIAJRAOC1850</alias>
-    <lname>1850_DATM%JRA_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%JRA_SGLC_SWAV</lname>
+    <lname>1850_DATM%JRA_SLND_CICE_BLOM%ECO_DROF%JRA_SGLC_SWAV</lname>
   </compset>
 
   <compset>
@@ -126,7 +131,7 @@
   <compset>
     <!-- not valid for noresm2.5 -->
     <alias>N2NOINYJRARYF1961OC</alias>
-    <lname>1850_DATM%JRARYF1961_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%JRARYF_SGLC_SWAV</lname>
+    <lname>1850_DATM%JRARYF1961_SLND_CICE_BLOM%ECO_DROF%JRARYF1961_SGLC_SWAV</lname>
   </compset>
    
   

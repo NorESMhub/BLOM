@@ -62,6 +62,18 @@ contains
     integer :: i,j,errstat,ncid,ncstat
     real,allocatable  :: mask(:,:)
 
+    ! Always allocate field to hold shelfsea mask
+    if(mnproc.eq.1) then
+      write(io_stdo_bgc,*)'Memory allocation for variable shelfmask ...'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+    endif
+    allocate(shelfmask(kpie,kpje),stat=errstat)
+    allocate(mask(kpie,kpje),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory shelfmask'
+    shelfmask(:,:) = .false.
+    mask = 0.
+
     ! Check, if we are going to run with shelf-sea water residence time tracers
     if (.not.use_shelfsea_res_time) then
       if (mnproc.eq.1) then
@@ -81,18 +93,6 @@ contains
       write(io_stdo_bgc,*) 'Fallback to default ...                                     '
       write(io_stdo_bgc,*) '... using internal bathymetry data to reconstruct the mask  '
     endif
-
-    ! Allocate field to hold shelfsea mask
-    if(mnproc.eq.1) then
-      write(io_stdo_bgc,*)'Memory allocation for variable shelfmask ...'
-      write(io_stdo_bgc,*)'First dimension    : ',kpie
-      write(io_stdo_bgc,*)'Second dimension   : ',kpje
-    endif
-    allocate(shelfmask(kpie,kpje),stat=errstat)
-    allocate(mask(kpie,kpje),stat=errstat)
-    if(errstat.ne.0) stop 'not enough memory shelfmask'
-    shelfmask(:,:) = .false.
-    mask = 0.
 
     if (file_exists) then
       ! read shelf sea mask from file
