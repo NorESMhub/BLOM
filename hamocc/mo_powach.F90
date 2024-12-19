@@ -329,10 +329,9 @@ contains
 
       ! Calculate nitrate reduction under anaerobic conditions explicitely
       !*******************************************************************
+      ! Denitrification rate constant of POP (disso) [1/sec]*dtbgc
+      denit = sed_denit
       if (.not. use_extNcycle) then
-        ! Denitrification rate constant of POP (disso) [1/sec]*dtbgc
-        denit = sed_denit
-
         ! Store flux in array anaerob, for later computation of DIC and alkalinity.
         do k = 1, ks
           do i = 1, kpie
