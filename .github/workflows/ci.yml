@@ -11,7 +11,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]      # Testing with macos-latest currently not working
+        #os: [ubuntu-latest]      # Testing with macos-latest currently not working
+        os: [ubuntu-22.04]      # Testing with macos-latest currently not working
         mpi: [true, false]
         openmp: ['enabled', 'disabled']
         ecosys: [false]   # ecosys==true fails with gcc, disable for now but leave placeholder
