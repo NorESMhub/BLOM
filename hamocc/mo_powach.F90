@@ -32,7 +32,7 @@ contains
     ! Modified: S.Legutke,   *MPI-MaD, HH*    10.04.01
     !***********************************************************************************************
 
-    use mo_control_bgc, only: dtbgc,use_cisonew,use_extNcycle
+    use mo_control_bgc, only: dtbgc,use_cisonew,use_extNcycle,lTO2depremin
     use mo_param1_bgc,  only: ioxygen,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,      &
                               isilica,isssc12,issso12,issssil,issster,ks,ipowc13,ipowc14,isssc13,  &
                               isssc14,issso13,issso14,safediv,ipownh4
@@ -216,16 +216,17 @@ contains
         if(omask(i,j) > 0.5) then
           undsa = powtra(i,j,1,ipowaox)
           sedb1(i,0) = bolay(i,j) * ocetra(i,j,kbo(i,j),ioxygen)
+          ex_disso_poc=merge(dissot*powtra(i,j,1,ipowaox)/(powtra(i,j,1,ipowaox)+bkox_drempoc_sed) & ! oxygen limitation
+                         &       *POM_remin_q10_sed**((ptho(i,j,kbo(i,j))-POM_remin_Tref_sed)/10.) & ! T-dep
+                         &   ,dissot,lTO2depremin)
           if ( .not.  use_extNcycle) then
             solrat(i,1) = ( sedlay(i,j,1,issso12) + prorca(i,j)                                    &
                         &  / (porsol(i,j,1) * seddw(1)) )                                          &
-                        &   * ro2ut * dissot / (1. + dissot * undsa)                               &
+                        &   * ro2ut * ex_disso_poc / (1. + ex_disso_poc * undsa)                   &
                         &   * porsol(i,j,1) / porwat(i,j,1)
           else
             ! extended nitrogen cycle - 140mol O2/mol POP O2-consumption
             ! O2 and T-dep
-            ex_disso_poc = dissot*powtra(i,j,1,ipowaox)/(powtra(i,j,1,ipowaox) + bkox_drempoc_sed) & ! oxygen limitation
-                         &       *POM_remin_q10_sed**((ptho(i,j,kbo(i,j))-POM_remin_Tref_sed)/10.)   ! T-dep
             solrat(i,1) = ( sedlay(i,j,1,issso12) + prorca(i,j)                                    &
                         & / (porsol(i,j,1) * seddw(1)) )                                           &
                         & * ro2utammo * ex_disso_poc / (1. + ex_disso_poc * undsa)                 &
@@ -243,13 +244,14 @@ contains
           if(omask(i,j) > 0.5) then
             undsa = powtra(i,j,k,ipowaox)
             sedb1(i,k) = seddw(k) * porwat(i,j,k) * powtra(i,j,k,ipowaox)
+            ex_disso_poc=merge(dissot*powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox)+bkox_drempoc_sed) & ! oxygen limitation
+                         &       *POM_remin_q10_sed**((ptho(i,j,kbo(i,j))-POM_remin_Tref_sed)/10.) & ! T-dep
+                         &   ,dissot,lTO2depremin)
             if ( .not. use_extNcycle) then
-              if (k > 1) solrat(i,k) = sedlay(i,j,k,issso12) * ro2ut * dissot                      &
-                                     & / (1. + dissot*undsa) * porsol(i,j,k) / porwat(i,j,k)
+              if (k > 1) solrat(i,k) = sedlay(i,j,k,issso12) * ro2ut * ex_disso_poc                &
+                                     & / (1. + ex_disso_poc*undsa) * porsol(i,j,k) / porwat(i,j,k)
             else
               ! extended nitrogen cycle - 140mol O2/mol POP O2-consumption
-              ex_disso_poc = dissot*powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox)+bkox_drempoc_sed) & ! oxygen limitation
-                           &       *POM_remin_q10_sed**((ptho(i,j,kbo(i,j))-POM_remin_Tref_sed)/10.)   ! T-dep
               if (k > 1) solrat(i,k) = sedlay(i,j,k,issso12) * ro2utammo * ex_disso_poc            &
                                      & /(1. + ex_disso_poc*undsa) * porsol(i,j,k) / porwat(i,j,k)
             endif
@@ -288,11 +290,12 @@ contains
         do i = 1, kpie
           if(omask(i,j) > 0.5) then
             umfa = porsol(i,j,k) / porwat(i,j,k)
+            ex_disso_poc=merge(dissot*powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox)+bkox_drempoc_sed) & ! oxygen limitation
+                         &       *POM_remin_q10_sed**((ptho(i,j,kbo(i,j))-POM_remin_Tref_sed)/10.) & ! T-dep
+                         &   ,dissot,lTO2depremin)
             if (.not. use_extNcycle) then
-              solrat(i,k) = sedlay(i,j,k,issso12) * dissot/(1. + dissot*sediso(i,k))
+              solrat(i,k) = sedlay(i,j,k,issso12) * ex_disso_poc/(1. + ex_disso_poc*sediso(i,k))
             else
-              ex_disso_poc = dissot * powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox) + bkox_drempoc_sed) & ! oxygen limitation
-                           &        * POM_remin_q10_sed**((ptho(i,j,kbo(i,j))-POM_remin_Tref_sed)/10.)   ! T-dep
               solrat(i,k) = sedlay(i,j,k,issso12) * ex_disso_poc/(1. + ex_disso_poc*sediso(i,k))
             endif
             posol = sediso(i,k)*solrat(i,k)
@@ -326,10 +329,9 @@ contains
 
       ! Calculate nitrate reduction under anaerobic conditions explicitely
       !*******************************************************************
+      ! Denitrification rate constant of POP (disso) [1/sec]*dtbgc
+      denit = sed_denit
       if (.not. use_extNcycle) then
-        ! Denitrification rate constant of POP (disso) [1/sec]*dtbgc
-        denit = sed_denit
-
         ! Store flux in array anaerob, for later computation of DIC and alkalinity.
         do k = 1, ks
           do i = 1, kpie
