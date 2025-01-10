@@ -17,4 +17,13 @@ if get_option('ecosys')
    if fs.exists('M4AGO-sinking-scheme/src/mo_m4ago_kind.F90')
      sources += files('M4AGO-sinking-scheme/src/mo_m4ago_kind.F90')
    endif
+   if fs.exists('M4AGO-sinking-scheme/src/mo_m4ago_control.f90')
+     sources += files('M4AGO-sinking-scheme/src/mo_m4ago_control.f90')
+   endif
+   if fs.exists('M4AGO-sinking-scheme/src/mo_m4ago_params.f90')
+     sources += files('M4AGO-sinking-scheme/src/mo_m4ago_params.f90')
+   endif
+   if fs.exists('M4AGO-sinking-scheme/src/mo_m4ago_types.f90')
+     sources += files('M4AGO-sinking-scheme/src/mo_m4ago_types.f90')
+   endif
 endif
