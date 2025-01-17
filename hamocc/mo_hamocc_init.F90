@@ -46,7 +46,7 @@ contains
                               do_ndep_coupled,leuphotic_cya,do_n2onh3_coupled,                     &
                               ocn_co2_type, use_sedbypass, use_BOXATM, use_BROMO,use_extNcycle
     use mo_param1_bgc,  only: ks,init_por2octra_mapping
-    use mo_param_bgc,   only: ini_parambgc
+    use mo_param_bgc,   only: ini_parambgc,claydens,calcdens,calcwei,opaldens,opalwei,ropal
     use mo_carbch,      only: alloc_mem_carbch,ocetra,atm,atm_co2
     use mo_biomod,      only: alloc_mem_biomod
     use mo_sedmnt,      only: alloc_mem_sedmnt,sedlay,powtra,burial,ini_sedmnt
@@ -65,7 +65,8 @@ contains
     use mo_ini_fields,  only: ini_fields_ocean,ini_fields_atm
     use mo_aufr_bgc,    only: aufr_bgc
     use mo_extNsediment,only: alloc_mem_extNsediment_diag
-    use mo_ihamocc4m4ago, only: alloc_mem_m4ago,init_m4ago_nml_params, init_m4ago_params
+    use mo_ihamocc4m4ago, only: alloc_mem_m4ago
+    use mo_m4ago_HAMOCCinit,only: init_m4ago_nml_params, init_m4ago_derived_params
 
 
     ! Arguments
@@ -180,8 +181,8 @@ contains
     !
     call ini_parambgc(idm,jdm)
     if (use_M4AGO) then
-      call init_m4ago_nml_params
-      call init_m4ago_params
+      call init_m4ago_nml_params(claydens,calcdens,calcwei,opaldens,opalwei)
+      call init_m4ago_derived_params(ropal)
     endif
 
     ! --- Initialize atmospheric fields with (updated) parameter values
