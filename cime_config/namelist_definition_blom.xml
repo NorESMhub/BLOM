@@ -337,6 +337,7 @@
     <group>limits</group>
     <values>
       <value>5.e-5</value>
+      <value ocn_grid="tnx2v1"    >.75e-4</value>
       <value ocn_grid="tnx1v4" ocn_ncpl="24">.75e-4</value>
       <value ocn_grid="tnx0.5v1"  >.75e-4</value>
       <value ocn_grid="tnx0.25v4" >.75e-4</value>
@@ -403,6 +404,7 @@
     <group>limits</group>
     <values>
       <value>.06</value>
+      <value ocn_grid="tnx2v1"    blom_vcoord="isopyc_bulkml"              >.5</value>
       <value ocn_grid="tnx1v4"    blom_vcoord="isopyc_bulkml" ocn_ncpl="24">.5</value>
       <value ocn_grid="tnx0.5v1"  blom_vcoord="isopyc_bulkml" ocn_ncpl="24">.5</value>
       <value ocn_grid="tnx0.25v4" blom_vcoord="isopyc_bulkml">1.0</value>
