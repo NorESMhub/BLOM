@@ -406,7 +406,7 @@ contains
          &    6,'mol/kg',24,'Dissolved organic carbon',rmissing,17,io_stdo_bgc)
 
     call NETCDF_DEF_VARDB(ncid,3,'poc',3,ncdimst,ncvarid,                                          &
-         &    6,'mol/kg',25,'Particulate organic carbon',rmissing,18,io_stdo_bgc)
+         &    6,'mol/kg',26,'Particulate organic carbon',rmissing,18,io_stdo_bgc)
 
     call NETCDF_DEF_VARDB(ncid,5,'phyto',3,ncdimst,ncvarid,                                        &
          &    7,'molP/kg',27,'Phytoplankton concentration',rmissing,19,io_stdo_bgc)
