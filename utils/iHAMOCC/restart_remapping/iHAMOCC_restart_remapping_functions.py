@@ -66,7 +66,10 @@ def auto_detect_grid(ds):
     grid = 'tnx1'
   elif sx == 720 and sy == 641:
     grid = 'tnx0.5'
+  elif sx == 1440 and sy == 1153:
+    grid = 'tnx0.25' 
   else:
+    # Currently unclear, which grid version refers to 0.125...  
     print('Grid undefined with lon, lat dimensions: '+str(sx)+' x ' +str(sy))
     print('Please update the data - exit now.')
     exit()
@@ -144,6 +147,22 @@ def grid_specs(grid,comp):
                                  'vdim':['depth2']
                                 },
                       },
+                'tnx0.25':{'gridfile':os.path.join(gridbasepath,'grid_tnx0.25v4_20170622.nc'),
+                      'grid':   {'lat':'plat','lon':'plon'},
+                      'blom':   {'lat':'lat',
+                                 'lon':'lon',
+                                 'latdim':'y',
+                                 'londim':'x',
+                                 'vdim': ['kk2'],
+                                }, 
+                       'hamocc':{'lat':'lat',
+                                 'lon':'lon',
+                                 'latdim':'lat',
+                                 'londim':'lon',
+                                 'vdim':['depth2']
+                                },
+                      },
+
 
                }
 
