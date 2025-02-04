@@ -64,6 +64,8 @@ def auto_detect_grid(ds):
     grid = 'tnx2'
   elif sx == 360 and sy == 385:
     grid = 'tnx1'
+  elif sx == 720 and sy == 641:
+    grid = 'tnx0.5'
   else:
     print('Grid undefined with lon, lat dimensions: '+str(sx)+' x ' +str(sy))
     print('Please update the data - exit now.')
@@ -127,6 +129,22 @@ def grid_specs(grid,comp):
                                  'vdim':['depth2']
                                 },
                       },
+               'tnx0.5':{'gridfile':os.path.join(gridbasepath,'grid_tnx0.5v1_20240702.nc'),
+                      'grid':   {'lat':'plat','lon':'plon'},
+                      'blom':   {'lat':'lat',
+                                 'lon':'lon',
+                                 'latdim':'y',
+                                 'londim':'x',
+                                 'vdim': ['kk2'],
+                                }, 
+                       'hamocc':{'lat':'lat',
+                                 'lon':'lon',
+                                 'latdim':'lat',
+                                 'londim':'lon',
+                                 'vdim':['depth2']
+                                },
+                      },
+
                }
 
   return grid_des[grid]['gridfile'],grid_des[grid]['grid']['lon'],grid_des[grid]['grid']['lat'],   \
@@ -183,6 +201,9 @@ def _ufunc_1dvertical_interpolation_na(ds,depth_orig,depth_interp):
 
 # --------------------------------------------------------------------------------------------------
 def xr_vertical_nan_fill(ds,v,mask,levels='dp',depth='depth',maskname='pmask'):
+  '''
+  UN-USED - now using  _ufunc_1dvertical_interpolation_na instead
+  '''
   print('Vertical NaN filling via linear interpolation for ' + v + ' ... (could be speeded up via apply_ufunc usage)')
   da = ds[v].copy()
   co = ds[depth].values.astype('int')
