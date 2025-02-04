@@ -28,7 +28,7 @@
       <option name="comment">test restart/resubmit with isopycnic coordinates, hamocc and JRA forcing</option>
     </options>
   </test>
-  <test name="ERP_Ld3" grid="T62_tn14" compset="NOINY">
+  <test name="ERP_Ld3_P256" grid="T62_tn14" compset="NOINY">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
     </machines>
