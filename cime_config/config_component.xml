@@ -213,7 +213,7 @@
   <entry id="HAMOCC_OUTPUT">
     <type>char</type>
     <valid_values>small,medium,large</valid_values>
-    <default_value>large</default_value>
+    <default_value>medium</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
     <desc>Namelist option to set iHAMOCC output option. Requires module ecosys</desc>
