@@ -67,7 +67,11 @@ def auto_detect_grid(ds):
   elif sx == 720 and sy == 641:
     grid = 'tnx0.5'
   elif sx == 1440 and sy == 1153:
-    grid = 'tnx0.25' 
+    grid = 'tnx0.25'
+  elif sx == 2880 and sy == 2165:
+    grid = 'tnx0.125_20200722'
+  elif sx == 2880 and sy == 2161:
+    grid = 'tnx0.125_20221013'
   else:
     # Currently unclear, which grid version refers to 0.125...  
     print('Grid undefined with lon, lat dimensions: '+str(sx)+' x ' +str(sy))
@@ -162,8 +166,36 @@ def grid_specs(grid,comp):
                                  'vdim':['depth2']
                                 },
                       },
-
-
+                'tnx0.125_20221013':{'gridfile':os.path.join(gridbasepath,'grid_tnx0.125v4_20221013.nc'),
+                      'grid':   {'lat':'plat','lon':'plon'},
+                      'blom':   {'lat':'lat',
+                                 'lon':'lon',
+                                 'latdim':'y',
+                                 'londim':'x',
+                                 'vdim': ['kk2'],
+                                }, 
+                       'hamocc':{'lat':'lat',
+                                 'lon':'lon',
+                                 'latdim':'lat',
+                                 'londim':'lon',
+                                 'vdim':['depth2']
+                                },
+                      },
+                'tnx0.125_20200722':{'gridfile':os.path.join(gridbasepath,'grid_tnx0.125v4_20200722.nc'),
+                      'grid':   {'lat':'plat','lon':'plon'},
+                      'blom':   {'lat':'lat',
+                                 'lon':'lon',
+                                 'latdim':'y',
+                                 'londim':'x',
+                                 'vdim': ['kk2'],
+                                }, 
+                       'hamocc':{'lat':'lat',
+                                 'lon':'lon',
+                                 'latdim':'lat',
+                                 'londim':'lon',
+                                 'vdim':['depth2']
+                                },
+                      },
                }
 
   return grid_des[grid]['gridfile'],grid_des[grid]['grid']['lon'],grid_des[grid]['grid']['lat'],   \

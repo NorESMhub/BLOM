@@ -145,8 +145,10 @@ def main():
 
   # Define new restart file name:
   out_new_restart_file = 'new_restart-HAMOCC_'+fine_grid_name+'_'+InterpCase+'.nc'
- 
-  # Open gridfiles 
+   
+  # Check gridfile existence and open gridfiles 
+  check_file_existence(coarse_gridfile)
+  check_file_existence(fine_gridfile)
   grid_coarse      = xr.open_dataset(coarse_gridfile)
   grid_fine        = xr.open_dataset(fine_gridfile)
 
