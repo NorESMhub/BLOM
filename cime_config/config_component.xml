@@ -210,7 +210,7 @@
     <desc>Namelist option to set sinking scheme. Requires module ecosys</desc>
   </entry>
 
-  <entry id="HAMOCC_OUTPUT">
+  <entry id="HAMOCC_OUTPUT_SIZE">
     <type>char</type>
     <valid_values>small,medium,large</valid_values>
     <default_value>medium</default_value>
