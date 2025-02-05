@@ -776,7 +776,7 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>none</value>
+      <value>param</value>
     </values>
     <desc>Source of wave fields. Valid source: 'none', 'param', 'extern' (a)</desc>
   </entry>
@@ -1447,7 +1447,7 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>none</value>
+      <value>vr12-ma</value>
     </values>
     <desc>Type of CVMix Langmuir turbulence parameterization. Valid</desc>
   </entry>
