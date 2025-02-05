@@ -1374,9 +1374,10 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>1.2</value>
+      <value>0.7</value>
+      <value blom_vcoord="isopyc_bulkml">1.2</value>
     </values>
-    <desc>Critical gradient richardson number for shear driven</desc>
+    <desc>Critical gradient Richardson number for shear driven vertical mixing</desc>
   </entry>
 
   <entry id="bdmtyp">
