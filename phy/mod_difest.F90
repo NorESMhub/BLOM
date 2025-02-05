@@ -932,13 +932,14 @@ contains
 
     integer :: m,n,mm,nn,k1m,k1n
 
-    real, dimension(kdm+1) :: rig_i
+    real, dimension(kdm+1) :: rig_i, rig_i_prev, bvfsq_i_prev
     integer :: i,j,k,l,kn
     real :: q
 
     type(CVMix_tidal_params_type)   :: CVMix_tidal_params
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm+1) :: z_int
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: z_mid
+    real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: rig_lf, bfsqi_lf
     real, dimension(kdm+1) :: depth_int
     real, dimension(kdm+1) :: Kv_col, Kd_col ! background visc/diff
     real, dimension(kdm+1) :: Kv_shr, Kd_shr ! shear driven visc/diff
@@ -971,7 +972,7 @@ contains
     real :: Simmons_coeff, zBottomMinusOffset
     real :: bl1, bl2, bl3, bl4
     real :: ws, ww, we, wn, wc
-    integer :: ki, ksfc, ktmp, kobl, kn1
+    integer :: ki, ksfc, ktmp, kobl, kn1, n_iter
 
     surf_layer_ext = 0.1
     bl1 = 8e-5
@@ -993,6 +994,33 @@ contains
             dh = max(dh, 1e-10) ! Limit increment  dh>=min_thicknes
             z_mid(i,j,k) = z_int(i,j,k) - 0.5 * dh
             z_int(i,j,k+1) = z_int(i,j,k) - dh
+          end do
+        end do
+      end do
+    end do
+
+    call xctilr(rig, 1,kk, 1,1, halo_ps)
+
+    do k = 1,kk
+      kn = k+nn
+      do j = 1,jj
+        do l = 1,isp(j)
+          do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
+            ws = .125*ip(i  ,j-1)*min(onem,dp(i  ,j-1,kn))/onem
+            ww = .125*ip(i-1,j  )*min(onem,dp(i-1,j  ,kn))/onem
+            we = .125*ip(i+1,j  )*min(onem,dp(i+1,j  ,kn))/onem
+            wn = .125*ip(i  ,j+1)*min(onem,dp(i  ,j+1,kn))/onem
+            wc = 1. - (ws + ww + we + wn)
+            rig_lf(i,j,k) =   ws*rig(i  ,j-1,k) &
+                            + ww*rig(i-1,j  ,k) &
+                            + wc*rig(i  ,j  ,k) &
+                            + we*rig(i+1,j  ,k) &
+                            + wn*rig(i  ,j+1,k)
+            bfsqi_lf(i,j,k) =   ws*bfsqi(i  ,j-1,k) &
+                              + ww*bfsqi(i-1,j  ,k) &
+                              + wc*bfsqi(i  ,j  ,k) &
+                              + we*bfsqi(i+1,j  ,k) &
+                              + wn*bfsqi(i  ,j+1,k)
           end do
         end do
       end do
@@ -1074,10 +1102,10 @@ contains
 
             ! XXX: Temporary de-scaling of N2_int(i,:) into a
             ! temporary variable
-            bvf_i(k) = sqrt( max( bfsqi(i,j,k), 0.) )
+            bvfsq_i(k) = bfsqi_lf(i,j,k)
 
             ! Local gradient Richardson number
-            rig_i(k) = rig(i,j,k)
+            rig_i(k) = rig_lf(i,j,k)
 
             surfBuoyFlux2(k) = ( buoyfl(i,j,k+1) &
                  - buoyfl(i,j,1  )) * A_cgs2mks
@@ -1088,7 +1116,17 @@ contains
 
           ! bottom values for the Ri and N
           rig_i(kk+1) = rig_i(kk)
-          bvf_i(kk+1) = sqrt( max( bfsqi(i,j,kk+1), 0.) )
+          bvfsq_i(kk+1) = bvfsq_i(kk)
+
+          do n_iter = 1, 1 !n_smooth_ri
+            rig_i_prev(:) = rig_i(:)
+            bvfsq_i_prev(:) = bvfsq_i(:)
+            do k = 2, kk
+               rig_i(k) = .5_r8*rig_i_prev(k) + .25*(rig_i_prev(k-1) + rig_i_prev(k+1))
+               bvfsq_i(k) = .5_r8*bvfsq_i_prev(k) + .25*(bvfsq_i_prev(k-1) + bvfsq_i_prev(k+1))
+            enddo
+          enddo
+          bvf_i(:) = sqrt( max( bvfsq_i(:), 0.) )
 
           !- turbulent velocity scales w_s and w_m computed at the cell
           !- centers.
@@ -1229,7 +1267,7 @@ contains
 
             ! XXX: Temporary de-scaling of N2_int(i,:) into a
             ! temporary variable
-            bvfsq_i(k) = bfsqi(i,j,k)
+            bvfsq_i(k) = bfsqi_lf(i,j,k)
             bvf_i(k) = sqrt( max( bvfsq_i(k), 0.) )
             ! Accumulate Brunt-Vaisala frequency in a region near the
             ! bottom
@@ -1240,7 +1278,7 @@ contains
             end if
 
             ! Local gradient Richardson number
-            rig_i(k) = rig(i,j,k)
+            rig_i(k) = rig_lf(i,j,k)
 
           end do  ! k
 
@@ -1249,6 +1287,15 @@ contains
           ! bottom values for the Ri and N2
           rig_i(kk+1) = rig_i(kk)
           bvfsq_i(kk+1) = bfsqi(i,j,kk+1)
+
+          do n_iter = 1, 1 !n_smooth_ri
+            rig_i_prev(:) = rig_i(:)
+            bvfsq_i_prev(:) = bvfsq_i(:)
+            do k = 2, kk
+               rig_i(k) = .5_r8*rig_i_prev(k) + .25*(rig_i_prev(k-1) + rig_i_prev(k+1))
+               bvfsq_i(k) = .5_r8*bvfsq_i_prev(k) + .25*(bvfsq_i_prev(k-1) + bvfsq_i_prev(k+1))
+            enddo
+          enddo
 
           ! gets index of the level and interface above hbl
           hOBL(i,j) = CVMix_kpp_compute_kOBL_depth(iFaceHeight(:), &
