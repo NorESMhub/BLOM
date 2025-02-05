@@ -1118,13 +1118,11 @@ contains
           rig_i(kk+1) = rig_i(kk)
           bvfsq_i(kk+1) = bvfsq_i(kk)
 
-          do n_iter = 1, 1 !n_smooth_ri
-            rig_i_prev(:) = rig_i(:)
-            bvfsq_i_prev(:) = bvfsq_i(:)
-            do k = 2, kk
-               rig_i(k) = .5_r8*rig_i_prev(k) + .25*(rig_i_prev(k-1) + rig_i_prev(k+1))
-               bvfsq_i(k) = .5_r8*bvfsq_i_prev(k) + .25*(bvfsq_i_prev(k-1) + bvfsq_i_prev(k+1))
-            enddo
+          rig_i_prev(:) = rig_i(:)
+          bvfsq_i_prev(:) = bvfsq_i(:)
+          do k = 2, kk
+             rig_i(k) = .5_r8*rig_i_prev(k) + .25*(rig_i_prev(k-1) + rig_i_prev(k+1))
+             bvfsq_i(k) = .5_r8*bvfsq_i_prev(k) + .25*(bvfsq_i_prev(k-1) + bvfsq_i_prev(k+1))
           enddo
           bvf_i(:) = sqrt( max( bvfsq_i(:), 0.) )
 
@@ -1288,13 +1286,11 @@ contains
           rig_i(kk+1) = rig_i(kk)
           bvfsq_i(kk+1) = bfsqi(i,j,kk+1)
 
-          do n_iter = 1, 1 !n_smooth_ri
-            rig_i_prev(:) = rig_i(:)
-            bvfsq_i_prev(:) = bvfsq_i(:)
-            do k = 2, kk
-               rig_i(k) = .5_r8*rig_i_prev(k) + .25*(rig_i_prev(k-1) + rig_i_prev(k+1))
-               bvfsq_i(k) = .5_r8*bvfsq_i_prev(k) + .25*(bvfsq_i_prev(k-1) + bvfsq_i_prev(k+1))
-            enddo
+          rig_i_prev(:) = rig_i(:)
+          bvfsq_i_prev(:) = bvfsq_i(:)
+          do k = 2, kk
+             rig_i(k) = .5_r8*rig_i_prev(k) + .25*(rig_i_prev(k-1) + rig_i_prev(k+1))
+             bvfsq_i(k) = .5_r8*bvfsq_i_prev(k) + .25*(bvfsq_i_prev(k-1) + bvfsq_i_prev(k+1))
           enddo
 
           ! gets index of the level and interface above hbl
