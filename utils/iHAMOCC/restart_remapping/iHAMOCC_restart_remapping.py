@@ -348,17 +348,13 @@ def main():
           elif 'depth' in ds_coarse_hamocc[v].dims:
             print('!!!! depth: Requires time step check !!!!!')
             if diag_tstep == tstep:
-              # Tested to remove issues with strange values, but did not work out
-              # other approach needed to interpolate the data beforehand 
-              #tmp_coarse = 'tmp-'+v+'_tstep-'+str(tstep)+'_coarse_3dinterp.nc'
-              #ds_coarse_hamocc[v].to_dataset().to_netcdf(tmp_coarse)
-              #tmpfiles.append(tmp_coarse)
-              #print('cdo -intlevelx3d,'+plevels_coarse_adjusted_file+' -setrtomiss,-99999,1e-8 -selvar,'+v +' '+tmp_coarse+' '+plevels_coarse_adjusted_file+' out.nc')
-              #extpol = cdo.intlevelx3d(plevels_coarse_adjusted_file,input='-setrtomiss,-99999,1e-8 -selvar,'+v +' '+tmp_coarse+' '+plevels_coarse_adjusted_file,returnXArray=v)
-             
               # Prepare tmp variable for vertical NaN-interpolation 
               # - fill range -inf to 1e-8 (currently smallest value for diagnostic vars)
-              dstmp = xr.where(ds_coarse_hamocc[v]>1e-8,ds_coarse_hamocc[v],np.NaN).to_dataset()
+              if v == 'hi':
+                minval=0.
+              else:
+                minval=1e-8
+              dstmp = xr.where(ds_coarse_hamocc[v]>minval,ds_coarse_hamocc[v],np.NaN).to_dataset()
               tmp_p = plevels_coarse  + coarse_peps['p_eps']
               tmp_p = rename_restart_dimensions(tmp_p,                                         \
                                      bgc_londim=coarse_hamocc_londim,phy_londim=coarse_blom_londim,\
@@ -385,7 +381,6 @@ def main():
               dstmp.lat.attrs['units'] = ds_coarse_hamocc.lat.attrs['units']
               dstmp[v].attrs['units']  = ds_coarse_hamocc[v].attrs['units']
               dstmp[v].attrs['long_name']  = ds_coarse_hamocc[v].attrs['long_name']
-              
               # Interpolate BGC data to finer grid
               #lev_interp = level_interp(ds_coarse_hamocc[v].to_dataset(),\
               lev_interp = level_interp(dstmp,\
