@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2009-2024 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin,
+! Copyright (C) 2009-2025 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin,
 !                         Mariana Vertenstein
 !
 ! This file is part of BLOM.
