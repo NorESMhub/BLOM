@@ -3831,13 +3831,18 @@
     <group>bgcnml</group>
     <values>
       <value>''</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_CMIP6_tnx2v1_20180321.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_CMIP6_tnx2v1_20200826.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx2v1_20190702.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_CMIP6_tnx1v4_20171106.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_CMIP6_tnx1v4_20200826.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx1v4_20180613.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="ssp"  ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_201501-210012-${BLOM_NDEP_SCENARIO}_tnx1v4_20191112.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_1850_CMIP6_tnx2v1_20250207.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_2000_CMIP6_tnx2v1_20250207.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_185001-201412_tnx2v1_20250702.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="ssp"  ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_201501-210012-${BLOM_NDEP_SCENARIO}_tnx2v1_20250207.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_1850_CMIP6_tnx1v4_20250207.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_2000_CMIP6_tnx1v4_20250207.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_185001-201412_tnx1v4_20250207.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="ssp"  ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_201501-210012-${BLOM_NDEP_SCENARIO}_tnx1v4_20250207.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_1850_CMIP6_tnx0.5v1_20250207.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_2000_CMIP6_tnx0.5v1_20250207.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_185001-201412_tnx0.5v1_20250207.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="ssp"  ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_201501-210012-${BLOM_NDEP_SCENARIO}_tnx0.5v1_20250207.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_CMIP6_tnx0.25v4_20190912.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_CMIP6_tnx0.25v4_20200826.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx0.25v4_20190705.nc</value>
