@@ -35,6 +35,8 @@
 !            'enscon' (Sadourny (1975) enstrophy conserving), 'enecon'
 !            (Sadourny (1975) energy conserving), 'enedis' (Sadourny
 !            (1975) energy conserving with some dissipation) (a)
+! PGFMTH   : Pressure gradient force method. Valid options:
+!            'geopotential', 'dynamic enthalpy' (a)
 ! BMCMTH   : Baroclinic mass flux correction method. Valid methods:
 !            'uc' (upstream column), 'dluc' (depth limited upstream
 !            column) (a)
