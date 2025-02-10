@@ -3771,6 +3771,7 @@
       <value>''</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx2v1_20130506.nc</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx1v4_20171107.nc</value>
+      <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.5v1_20250210.nc</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.25v4_20181004.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.125v4_20221013.nc</value>
     </values>
