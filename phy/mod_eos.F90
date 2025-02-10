@@ -574,8 +574,7 @@ contains
 
    pure real(r8) function dalpds(p, th, s)
    ! ---------------------------------------------------------------------------
-   ! Derivative of specific volume with respect to potential temperature
-   ! [cm3 g-1 K-1].
+   ! Derivative of specific volume with respect to salinity [cm3 kg g-2].
    ! ---------------------------------------------------------------------------
 
       real(r8), intent(in) :: &
