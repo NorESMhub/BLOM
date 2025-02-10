@@ -6,7 +6,7 @@ module load CDO/2.0.6-gompi-2022a
 basename="ndeposition"
 version=$(date '+%Y%m%d')
 declare -a TPS=("pi" "HIST" "SSP119" "SSP126" "SSP245" "SSP370" "SSP434" "SSP460" "SSP534os" "SSP585")
-declare -a GRIDS=("tnx2v1" "tnx1v4" "tnx0.5v1" "tnx0.25v4" "tnx0.125v4)
+declare -a GRIDS=("tnx2v1" "tnx1v4" "tnx0.5v1" "tnx0.25v4" "tnx0.125v4")
 
 #declare -a TPS=("SSP585")
 #declare -a GRIDS=("tnx0.5")
@@ -170,7 +170,8 @@ do
     #   kg -> kmol: 1/14.
     #   c: 2252571.4285714286
     # The last option is closest to the currently provided deposition file for iHAMOCC
-    
+    # Not considering leap years is correct, since the input4MIPs files are on a 365-day calendar
+ 
     year=365.
     day=86400.
     molweightN=14. # CAM: 14.00674
