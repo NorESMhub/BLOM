@@ -184,14 +184,14 @@ contains
     real     :: fatmndep
     logical  :: first_call = .true.
 
-    ! if N-deposition is switched off set ndep to zero and return
+    ndep(:,:,:) = 0.0
+
     if (.not. do_ndep) then
-      ndep(:,:,:) = 0.0
+      ! if N-deposition is switched off return
       return
     endif
 
     if (use_nuopc_ndep) then
-
       ! If  use_nuopc_ndep, nitrogen deposition is ALWAYS obtained from the
       ! nuopc mediator
       if (mnproc == 1 .and. first_call) then
@@ -200,7 +200,6 @@ contains
 
       ! convert from kgN/m2/s to climatological input file units: kmolN/m2/yr
       fatmndep = 365.*86400./mw_nitrogen
-      ndep(:,:,:) = 0.
 
       if (use_extNcycle) then
         !$omp parallel do private(i)
