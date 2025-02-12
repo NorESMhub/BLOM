@@ -1,6 +1,6 @@
 ! ------------------------------------------------------------------------------
 ! Copyright (C) 2005 HYCOM Consortium and contributors
-! Copyright (C) 2006-2024 Lars Inge Enstad, Mats Bentsen, Alok Kumar Gupta,
+! Copyright (C) 2006-2025 Lars Inge Enstad, Mats Bentsen, Alok Kumar Gupta,
 !                         Mariana Vertenstein
 !
 ! This file is part of BLOM.
@@ -2197,7 +2197,7 @@ contains
   end subroutine xcsync
 
   !-----------------------------------------------------------------------
-  subroutine xctilr(a,l1,ld,mh,nh,itype)
+  recursive subroutine xctilr(a,l1,ld,mh,nh,itype)
      integer, intent(in)    :: l1,ld,mh,nh,itype
      real,    intent(inout) :: a(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ld)
 

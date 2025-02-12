@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2006-2024 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
+! Copyright (C) 2006-2025 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
 !                         Ingo Bethke, Jerry Tjiputra, Ping-Gin Chiu,
 !                         Aleksi Nummelin, Jörg Schwinger, Mariana Vertenstein, !                         Joeran Maerz
 !
@@ -39,7 +39,7 @@ module mod_restart
    use mod_temmin,         only: settemmin
    use mod_nctools,        only: nccomp, ncwrtr, ncdefvar, ndouble, ncinqv, ncinqa, &
                                  ncread, ncfopn, ncgetr, ncfopn, ncgeti, ncgetr, ncfcls, &
-                                 ncputi, ncputr, ncdims, ncdimc, ncedef
+                                 ncputi, ncputr, ncdims, ncdimc, ncedef, ncdimlen
    use mod_dia,            only: rstfrq, iotype, rstfmt, rstcmp, rstmon, &
                                  ddm, depthslev, phyh2d, phylyr, phylvl, &
                                  nphy, nacc_phy, &
@@ -83,7 +83,7 @@ module mod_restart
    use mod_forcing,        only: ditflx, disflx, sprfac, tflxdi, sflxdi, nflxdi, &
                                  prfac, eiacc, pracc, flxco2, flxdms, flxbrf, &
                                  flxn2o,flxnh3, &
-                                 ustarb, wstar3, buoyfl, ustar
+                                 ustarb, wstar3, salt_corr, trc_corr, buoyfl, ustar
    use mod_niw,            only: uml, vml, umlres, vmlres
    use mod_difest,         only: OBLdepth
    use mod_diffusion,      only: difiso, Kvisc_m, Kdiff_t, Kdiff_s, &
@@ -107,7 +107,7 @@ module mod_restart
    use mod_thdysi,         only: tsrfm, ticem
    use mod_seaice,         only: ficem, hicem, hsnwm, iagem
    use mod_tmsmt,          only: dpold
-   use mod_tracers,        only: itrtke, itrgls, itriag, trc
+   use mod_tracers,        only: ntr, itrtke, itrgls, itriag, trc
    use mod_tke,            only: L_scale
 #ifdef HAMOCC
    use mo_control_bgc,     only: use_BROMO, use_extNcycle
@@ -339,6 +339,12 @@ contains
                       rkfpla, ip, defmode)
       call defwrtfld('ficem', trim(c5p)//' time', &
                       ficem, ip, defmode)
+      call defwrtfld('salt_corr', trim(c5p)//' time', &
+                      salt_corr, ip, defmode)
+      if (use_TRC) then
+         call defwrtfld('trc_corr', trim(c5p)//' ntr time', &
+                         trc_corr, ip, defmode)
+      endif
 
       if (vcoord_tag == vcoord_isopyc_bulkml) then
          call defwrtfld('buoyfl', trim(c5p)//' time', &
@@ -1019,7 +1025,7 @@ contains
                            trim(vnm)//' from restart file!'
             call xcstop('(readfld)')
                    stop '(readfld)'
-         else
+         elseif (mnproc == 1) then
             write(lp,*) 'readfld: field '//trim(vnm)// &
                         ' is not read from restart file.'
          endif
@@ -1136,6 +1142,7 @@ contains
       call ncdims('kk', kk)
       call ncdims('kkp1', kk + 1)
       call ncdims('kk2', 2*kk)
+      call ncdims('ntr', ntr)
       call ncdims('plev', ddm)
       call ncputr('plev', depthslev)
       call ncdims('time', 1)
@@ -1279,7 +1286,7 @@ contains
    ! ---------------------------------------------------------------------------
 
       type(date_type) :: date_rest
-      integer :: nfu, errstat, dndiff, i, j, l, n
+      integer :: nfu, errstat, dndiff, ntr_file, i, j, l, n
       character(len = 256) :: rstfnm, fnm
       character(len = 2) :: c2
       real(r8) :: pb_max, phi_min, rho_restart
@@ -1542,6 +1549,18 @@ contains
       call readfld('ustar', l_unitconv, ustar, ip)
       call readfld('kfpla', no_unitconv, rkfpla, ip)
       call readfld('ficem', no_unitconv, ficem, ip)
+      call readfld('salt_corr', no_unitconv, salt_corr, ip, required = .false.)
+      if (use_TRC) then
+         ntr_file = ncdimlen('ntr')
+         if (ntr_file == ntr) then
+            call readfld('trc_corr', no_unitconv, trc_corr, ip, &
+                         required = .false., fld_read = fld_read)
+         endif
+         if (mnproc == 1 .and. (ntr_file /= ntr .or. .not.fld_read)) then
+            write(lp,*) 'restart_read: warning: trc_corr is not read from '// &
+                        'and will be initialized to zero.'
+         endif
+      endif
 
       if (vcoord_tag == vcoord_isopyc_bulkml) then
          call readfld('buoyfl', l2_unitconv, buoyfl, ip)

@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2004-2024 Ingo Bethke, Mats Bentsen, Alok Kumar Gupta
+! Copyright (C) 2004-2025 Ingo Bethke, Mats Bentsen, Alok Kumar Gupta
 !                         Mariana Vertenstein
 !
 ! This file is part of BLOM.
@@ -68,7 +68,10 @@ module mod_nctools
 
   !    ncerro        - displays error massage
   !    ncsevl        - evaluates strings with deliminators ' ',':' and '-'
-  !    ncinqv        - inquires if variable exits
+  !    ncinqa        - inquires if attribute exists
+  !    ncinqv        - inquires if variable exists
+  !    ncdimlen      - return length of dimension (zero if dimension does not
+  !                    exist).
 
   ! Revision history:
   !    may2008       - switched from F77-API to F90-API
@@ -2989,6 +2992,43 @@ contains
     end if
 
   end function ncinqv
+
+  integer function ncdimlen(dnm)
+    ! ----------------------------------------------------------------------
+    ! --- Description:
+    !       Return length of dimension (zero if dimension does not exist).
+    ! --- Arguments:
+    !       char(*)      dnm    (in)  -  variable name
+    !       integer ncdimlen   (out)  -  return value
+    ! ----------------------------------------------------------------------
+
+    ! Arguments
+    character(len=*), intent(in) :: dnm
+
+    integer :: dimid
+
+    if(io_type  ==  1) then
+#ifdef PNETCDF
+      status = nfmpi_inq_dimid(ncid,trim(dnm),dimid)
+      if (status /= nf_noerr) then
+        ncdimlen = 0
+      else
+        call ncerro(nfmpi_inq_dimlen(ncid,dimid,ncdimlen))
+      end if
+#endif
+    else if(io_type  ==  0) then
+      if(mnproc  ==  1) then
+        status = nf90_inq_dimid(ncid,trim(dnm),dimid)
+        if (status /= nf90_noerr) then
+          ncdimlen = 0
+        else
+          call ncerro(nf90_inquire_dimension(ncid,dimid,len = ncdimlen))
+        end if
+      end if
+      call xcbcst(ncdimlen)
+    end if
+
+  end function ncdimlen
 
   subroutine ncdefvar(vnm,dims,itype,iatt)
 

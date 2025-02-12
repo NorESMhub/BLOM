@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2009-2024 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
+! Copyright (C) 2009-2025 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -41,7 +41,7 @@ module mod_mxlayr
                            p, pu, pv, kfpla
   use mod_swabs,     only: swbgal, swbgfc, swamxd
   use mod_forcing,   only: surflx, surrlx, sswflx, &
-                           salflx, brnflx, salrlx, &
+                           salflx, brnflx, salrlx, salt_corr, trc_corr, &
                            ustar, ustar3, buoyfl
   use mod_eddtra,    only: ce, lfmin, tau_mlr
   use mod_niw,       only: niwgf, niwbf, idkedt
@@ -1224,7 +1224,8 @@ contains
           do k = 1,kk
             kn = k+nn
             temp(i,j,kn) = ttem(k)
-            saln(i,j,kn) = ssal(k)
+            salt_corr(i,j) = salt_corr(i,j) - min(0._r8, ssal(k))*delp(k)/g
+            saln(i,j,kn) = max(0._r8, ssal(k))
             sigma(i,j,kn) = dens(k)
             dp(i,j,kn) = delp(k)
             if (use_TRC) then
@@ -1241,7 +1242,9 @@ contains
                     end if
                   end if
                 end if
-                trc(i,j,kn,nt) = ttrc(nt,k)
+                trc_corr(i,j,nt) = trc_corr(i,j,nt) &
+                                 - min(0._r8, ttrc(nt,k))*delp(k)/g
+                trc(i,j,kn,nt) = max(0._r8, ttrc(nt,k))
               end do
             end if
           end do
