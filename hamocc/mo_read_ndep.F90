@@ -57,7 +57,6 @@ module mo_read_ndep
   public :: ndepfile
 
   character(len=512)  :: ndepfile=''
-  real,  allocatable  :: ndepread(:,:)
   real,  allocatable  :: noydepread(:,:)
   real,  allocatable  :: nhxdepread(:,:)
   integer             :: startyear,endyear
@@ -116,36 +115,24 @@ contains
         stop '(ini_read_ndep)'
       endif
 
-      if (use_extNcycle) then
-        ! Allocate field to hold N-deposition fluxes
-        if (mnproc == 1) then
-          write(io_stdo_bgc,*)'Memory allocation for variable nhxdepread ...'
-          write(io_stdo_bgc,*)'First dimension    : ',kpie
-          write(io_stdo_bgc,*)'Second dimension   : ',kpje
-        endif
-        allocate (nhxdepread(kpie,kpje),stat=errstat)
-        if(errstat /= 0) stop 'not enough memory nhxdepread'
-        nhxdepread(:,:) = 0.0
-
-        if (mnproc == 1) then
-          write(io_stdo_bgc,*)'Memory allocation for variable noydepread ...'
-          write(io_stdo_bgc,*)'First dimension    : ',kpie
-          write(io_stdo_bgc,*)'Second dimension   : ',kpje
-        endif
-        allocate (noydepread(kpie,kpje),stat=errstat)
-        if(errstat /= 0) stop 'not enough memory noydepread'
-        noydepread(:,:) = 0.0
-      else
-        ! Allocate field to hold N-deposition fluxes
-        if (mnproc == 1) then
-          write(io_stdo_bgc,*)'Memory allocation for variable ndepread ...'
-          write(io_stdo_bgc,*)'First dimension    : ',kpie
-          write(io_stdo_bgc,*)'Second dimension   : ',kpje
-        endif
-        allocate (ndepread(kpie,kpje),stat=errstat)
-        if(errstat /= 0) stop 'not enough memory ndep'
-        ndepread(:,:) = 0.0
+      ! Allocate field to hold N-deposition fluxes
+      if (mnproc == 1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable nhxdepread ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
       endif
+      allocate (nhxdepread(kpie,kpje),stat=errstat)
+      if(errstat /= 0) stop 'not enough memory nhxdepread'
+      nhxdepread(:,:) = 0.0
+
+      if (mnproc == 1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable noydepread ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      endif
+      allocate (noydepread(kpie,kpje),stat=errstat)
+      if(errstat /= 0) stop 'not enough memory noydepread'
+      noydepread(:,:) = 0.0
 
       ! read start and end year of n-deposition file
       call ncfopn(trim(ndepfile),'r',' ',1,iotype)
@@ -197,14 +184,14 @@ contains
     real     :: fatmndep
     logical  :: first_call = .true.
 
-    ! if N-deposition is switched off set ndep to zero and return
+    ndep(:,:,:) = 0.0
+
     if (.not. do_ndep) then
-      ndep(:,:,:) = 0.0
+      ! if N-deposition is switched off return
       return
     endif
 
     if (use_nuopc_ndep) then
-
       ! If  use_nuopc_ndep, nitrogen deposition is ALWAYS obtained from the
       ! nuopc mediator
       if (mnproc == 1 .and. first_call) then
@@ -213,7 +200,6 @@ contains
 
       ! convert from kgN/m2/s to climatological input file units: kmolN/m2/yr
       fatmndep = 365.*86400./mw_nitrogen
-      ndep(:,:,:) = 0.
 
       if (use_extNcycle) then
         !$omp parallel do private(i)
@@ -251,12 +237,8 @@ contains
           write(io_stdo_bgc,*) 'Read N deposition month ',month_in_file,' from file ',trim(ndepfile)
         endif
         ncstat=nf90_open(trim(ndepfile),nf90_nowrite,ncid)
-        if (use_extNcycle) then
-          call read_netcdf_var(ncid,'nhxdep',nhxdepread,1,month_in_file,0)
-          call read_netcdf_var(ncid,'noydep',noydepread,1,month_in_file,0)
-        else
-          call read_netcdf_var(ncid,'ndep',ndepread,1,month_in_file,0)
-        endif
+        call read_netcdf_var(ncid,'nhxdep',nhxdepread,1,month_in_file,0)
+        call read_netcdf_var(ncid,'noydep',noydepread,1,month_in_file,0)
         ncstat=nf90_close(ncid)
         oldmonth=kplmon
       endif
@@ -269,7 +251,7 @@ contains
             ndep(i,j,idepnoy) = noydepread(i,j)
             ndep(i,j,idepnhx) = nhxdepread(i,j)
           else
-            ndep(i,j,idepnoy) = ndepread(i,j)
+            ndep(i,j,idepnoy) = noydepread(i,j) + nhxdepread(i,j)
           endif
         enddo
       enddo
