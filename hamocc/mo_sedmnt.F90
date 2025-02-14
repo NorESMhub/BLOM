@@ -31,7 +31,7 @@ module mo_sedmnt
 
   use mod_xc,         only: mnproc
   use mo_param1_bgc,  only: ks,ksp,nsedtra,npowtra
-  use mo_control_bgc, only: io_stdo_bgc,use_sedbypass,use_cisonew
+  use mo_control_bgc, only: io_stdo_bgc,use_sedbypass,use_cisonew,use_sediment_quality
 
   implicit none
   private
@@ -58,6 +58,7 @@ module mo_sedmnt
 
   real, dimension (:,:),     allocatable, public :: silpro
   real, dimension (:,:),     allocatable, public :: prorca
+  real, dimension (:,:),     allocatable, public :: prorca_mavg
   real, dimension (:,:),     allocatable, public :: pror13
   real, dimension (:,:),     allocatable, public :: prca13
   real, dimension (:,:),     allocatable, public :: pror14
@@ -144,7 +145,7 @@ CONTAINS
     integer :: i,j,k
 
     ! this initialization can be done via reading a porosity map
-    ! porwat is the poroisty at the (pressure point) center of the grid cell
+    ! porwat is the porosity at the (pressure point) center of the grid cell
     if (l_3Dvarsedpor)then
       ! lon-lat variable sediment porosity from input file
       do k=1,ks
@@ -256,6 +257,17 @@ CONTAINS
       allocate (pror14(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory pror14'
       pror14(:,:) = 0.0
+    endif
+
+    if (use_sediment_quality) then
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable prorca_mavg ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      endif
+      allocate (prorca_mavg(kpie,kpje),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory prorca_mavg'
+      prorca_mavg(:,:) = 0.0
     endif
 
     if (mnproc.eq.1) then
