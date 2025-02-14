@@ -45,12 +45,12 @@ contains
                               ldtrunbgc,ndtdaybgc,with_dmsph,l_3Dvarsedpor,use_M4AGO,              &
                               lkwrbioz_off,do_n2onh3_coupled,                                      &
                               ocn_co2_type, use_sedbypass, use_BOXATM, use_BROMO,use_extNcycle,    &
-                              use_nuopc_ndep,lTO2depremin
+                              use_nuopc_ndep,lTO2depremin,use_sediment_quality
     use mo_param1_bgc,  only: ks,init_por2octra_mapping
     use mo_param_bgc,   only: ini_parambgc,claydens,calcdens,calcwei,opaldens,opalwei,ropal
     use mo_carbch,      only: alloc_mem_carbch,ocetra,atm,atm_co2
     use mo_biomod,      only: alloc_mem_biomod
-    use mo_sedmnt,      only: alloc_mem_sedmnt,sedlay,powtra,burial,ini_sedmnt
+    use mo_sedmnt,      only: alloc_mem_sedmnt,sedlay,powtra,burial,ini_sedmnt,prorca_mavg
     use mo_vgrid,       only: alloc_mem_vgrid,set_vgrid
     use mo_bgcmean,     only: alloc_mem_bgcmean
     use mo_read_rivin,  only: ini_read_rivin,rivinfile
@@ -62,7 +62,7 @@ contains
     use mo_clim_swa,    only: ini_swa_clim,swaclimfile
     use mo_Gdata_read,  only: inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c
     use mo_intfcblom,   only: alloc_mem_intfcblom,nphys,bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask,        &
-                              sedlay2,powtra2,burial2,blom2hamocc,atm2
+                              sedlay2,powtra2,burial2,blom2hamocc,atm2,prorca_mavg2
     use mo_ini_fields,  only: ini_fields_ocean,ini_fields_atm
     use mo_aufr_bgc,    only: aufr_bgc
     use mo_extNsediment,only: alloc_mem_extNsediment_diag
@@ -230,6 +230,10 @@ contains
         powtra2(:,:,ks+1:2*ks,:) = powtra(:,:,:,:)
         burial2(:,:,1,:)         = burial(:,:,:)
         burial2(:,:,2,:)         = burial(:,:,:)
+        if (use_sediment_quality) then
+          prorca_mavg2(:,:,1)       = prorca_mavg(:,:)
+          prorca_mavg2(:,:,2)       = prorca_mavg(:,:)
+        endif
       endif
       if (use_BOXATM) then
         atm2(:,:,1,:)            = atm(:,:,:)
