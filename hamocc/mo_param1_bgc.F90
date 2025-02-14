@@ -488,6 +488,9 @@ contains
       isssc13 = -1
       isssc14 = -1
     endif
+
+    !NOTE: The age tracer currently always needs to be the last sedlay tracer
+    !      - otherwise issues in mo_sedshi.F90!
     if (use_sediment_quality) then
       i_sed_age   = 1
       issso12_age = i_sed_base + i_sed_cisonew +1
