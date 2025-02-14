@@ -30,7 +30,7 @@ module mo_param1_bgc
   use mo_control_bgc, only: use_BROMO, use_AGG, use_WLIN, use_natDIC, use_CFC,                     &
                             use_cisonew, use_PBGC_OCNP_TIMESTEP, use_PBGC_CK_TIMESTEP,             &
                             use_FB_BGC_OCE, use_BOXATM, use_sedbypass, use_extNcycle,              &
-                            use_pref_tracers
+                            use_pref_tracers,use_sediment_quality
   implicit none
   public
 
@@ -189,7 +189,11 @@ module mo_param1_bgc
   integer, protected :: issso14
   integer, protected :: isssc13
   integer, protected :: isssc14
-  integer, protected :: nsedtra
+
+  ! Indice for POC age
+  integer, protected :: i_sed_age
+  integer, protected :: issso12_age
+  integer, protected :: nsedtra ! total number of solid sediment tracers
 
   ! Indices for tracers in sediment pore water
   integer, protected :: i_pow_base
@@ -484,7 +488,14 @@ contains
       isssc13 = -1
       isssc14 = -1
     endif
-    nsedtra = i_sed_base + i_sed_cisonew
+    if (use_sediment_quality) then
+      i_sed_age   = 1
+      issso12_age = i_sed_base + i_sed_cisonew +1
+    else
+      i_sed_age   = 0
+      issso12_age = -1
+    endif
+    nsedtra = i_sed_base + i_sed_cisonew + i_sed_age
 
     ! sediment pore water components
     i_pow_base =7
