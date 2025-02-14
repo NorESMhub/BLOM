@@ -32,17 +32,17 @@ contains
     ! Modified: S.Legutke,   *MPI-MaD, HH*    10.04.01
     !***********************************************************************************************
 
-    use mo_control_bgc, only: dtbgc,use_cisonew,use_extNcycle,lTO2depremin
+    use mo_control_bgc, only: dtbgc,use_cisonew,use_extNcycle,lTO2depremin,use_sediment_quality
     use mo_param1_bgc,  only: ioxygen,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,      &
                               isilica,isssc12,issso12,issssil,issster,ks,ipowc13,ipowc14,isssc13,  &
-                              isssc14,issso13,issso14,safediv,ipownh4
+                              isssc14,issso13,issso14,safediv,ipownh4,issso12_age
     use mo_carbch,      only: co3,keqb,ocetra,sedfluxo
     use mo_chemcon,     only: calcon
     use mo_param_bgc,   only: rnit,rcar,rdnit1,rdnit2,ro2ut,disso_sil,silsat,disso_poc,sed_denit,  &
-                            & disso_caco3,ro2utammo,                                               &
+                            & disso_caco3,ro2utammo,sed_alpha_poc,                                 &
                             & POM_remin_q10_sed,POM_remin_Tref_sed,bkox_drempoc_sed
     use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,seddw,sedhpl,sedlay,       &
-                              silpro,pror13,pror14,prca13,prca14
+                              silpro,pror13,pror14,prca13,prca14,prorca_mavg
     use mo_vgrid,       only: kbo,bolay
     use mo_powadi,      only: powadi
     use mo_carchm,      only: carchm_solve
@@ -199,6 +199,26 @@ contains
           endif
         enddo
       enddo
+
+      ! Pre-calculate sediment POC age and prorca-moving average
+      ! to enable sediment quality-POC remineralization in sediment according to
+      ! Pika et al. 2023: Regional and global patterns of apparent organic matter
+      !                   reactivity in marine sediments. Global Biogeochemical Cycles 37,
+      !                   https://doi.org/10.1029/2022GB007636
+      if (use_sediment_quality) then
+        do i = 1, kpie
+          if (omask(i,j) > 0.5 ) then
+            ! update moving average TOC flux to bottom - units of prorca? - re-check
+            prorca_mavg(i,j) = sed_alpha_poc * prorca(i,j) + (1.-sed_alpha_poc)*prorca_mavg(i,j)
+            do k = 1, ks
+              sedlay(i,j,k,issso12_age) = sedlay(i,j,k,issso12_age) + dtbgc ! needs to be in years!!!!
+
+              ! DOU + prorca_mavg(i,j)/0.77 ! re-check 0.77 units of DOU: mmol/m2/d! - unit conversion!
+              ! disso_poc = 0.151/(2.48*10**(1.293 - 0.9822*log10(DOU)) + sedlay(i,j,k,issso12_age))
+            enddo
+          endif
+        enddo
+      endif
 
       ! Calculate oxygen-POC cycle and simultaneous oxygen diffusion
       !*************************************************************
