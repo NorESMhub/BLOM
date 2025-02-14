@@ -100,6 +100,7 @@ module mo_param_bgc
   public :: POM_remin_q10,opal_remin_q10,POM_remin_Tref,opal_remin_Tref
   public :: O2thresh_aerob,O2thresh_hypoxic,NO3thresh_sulf
   public :: shelfbreak_depth
+  public :: sed_alpha_poc
 
   ! extended nitrogen cycle
   public :: q10ano3denit,sc_ano3denit,Trefano3denit,rano3denit,bkano3denit,      &
@@ -153,7 +154,7 @@ module mo_param_bgc
 
   ! Decay parameter for C14, HalfLive = 5700 years
   real, parameter :: c14_t_half = 5700.*365.      ! Half life of 14C [days]
-  
+
   ! Minimum surface DIC concentration for gas-exchange parameterization
   real, parameter :: srfdic_min = 1.0e-5          ! kmol C m-3
 
@@ -487,6 +488,7 @@ module mo_param_bgc
   real, protected :: disso_sil   = 3.e-8          ! 1/(kmol Si(OH)4/m3 s) Dissolution rate constant of opal
   real, protected :: disso_caco3 = 1.e-7          ! 1/(kmol CO3--/m3 s) Dissolution rate constant of CaCO3
   real, protected :: sed_denit   = 0.01/86400.    ! 1/s Denitrification rate constant of POP
+  real, protected :: sed_alpha_poc = 1./90.       ! 1/d 1/decay time for sediment moving average
 
   !********************************************************************
   ! Densities etc. for SEDIMENT SHIFTING
