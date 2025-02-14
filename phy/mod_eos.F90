@@ -97,7 +97,8 @@ module mod_eos
              atf, btf, ctf, &
              inieos, rho, alp, sig, sig0, &
              drhodt, dsigdt, dsigdt0, drhods, dsigds, dsigds0, &
-             tofsig, sofsig, p_alpha, p_p_alpha, delphi
+             tofsig, sofsig, p_alpha, p_p_alpha, delphi, &
+             dalpdt, dalpds, dynh_derivatives
 
 contains
 
@@ -428,7 +429,7 @@ contains
       b2 = b21 + b22*th + b23*s
 
       ! The analytic solution of the integral is
-      !    p_alpha = ( b2*(p2 - p1)
+      !    p_alpha = ( b2*(p2 - p1) &
       !              + (a2 - a1*b2/b1)*log((a1 + b1*p2)/(a1 + b1*p1)))/b1
       ! A truncated series expansion of the integral is used that provides
       ! better computational efficiency and accuarcy for most relevant
@@ -547,5 +548,171 @@ contains
       alp2 = (a2 + b2*p2)/(a1 + b1*p2)
 
    end subroutine delphi
+
+   pure real(r8) function dalpdt(p, th, s)
+   ! ---------------------------------------------------------------------------
+   ! Derivative of specific volume with respect to potential temperature
+   ! [cm3 g-1 K-1].
+   ! ---------------------------------------------------------------------------
+
+      real(r8), intent(in) :: &
+         p,    & ! Pressure [g cm-1 s-2].
+         th,   & ! Potental temperature [deg C].
+         s       ! Salinity [g kg-1].
+
+      real(r8) :: r1, r2i
+
+      r1 = a21 + (a22 + a24*th + a25*s)*th + (a23 + a26*s)*s &
+         + (b21 + b22*th + b23*s)*p
+      r2i = 1._r8/( a11 + (a12 + a14*th + a15*s)*th + (a13 + a16*s)*s &
+                  + (b11 + b12*th + b13*s)*p)
+
+      dalpdt = ( a22 + 2._r8*a24*th + a25*s + b22*p &
+               - (a12 + 2._r8*a14*th + a15*s + b12*p)*r1*r2i)*r2i
+
+   end function dalpdt
+
+   pure real(r8) function dalpds(p, th, s)
+   ! ---------------------------------------------------------------------------
+   ! Derivative of specific volume with respect to salinity [cm3 kg g-2].
+   ! ---------------------------------------------------------------------------
+
+      real(r8), intent(in) :: &
+         p,    & ! Pressure [g cm-1 s-2].
+         th,   & ! Potental temperature [deg C].
+         s       ! Salinity [g kg-1].
+
+      real(r8) :: r1, r2i
+
+      r1 = a21 + (a22 + a24*th + a25*s)*th + (a23 + a26*s)*s &
+         + (b21 + b22*th + b23*s)*p
+      r2i = 1._r8/( a11 + (a12 + a14*th + a15*s)*th + (a13 + a16*s)*s &
+                  + (b11 + b12*th + b13*s)*p)
+
+      dalpds = ( a23 + a25*th + 2._r8*a26*s + b23*p &
+               - (a13 + a15*th + 2._r8*a16*s + b13*p)*r1*r2i)*r2i
+
+   end function dalpds
+
+   subroutine dynh_derivatives(p0, p1, p2, th, s, dynh_th, dynh_s)
+   ! ---------------------------------------------------------------------------
+   ! Derivatives with respect to potential temperature and salinity of dynamic
+   ! enthalphy. The derivatives are the average between pressures p1 and p2,
+   ! with potential temperature and salinity held constant.
+   ! ---------------------------------------------------------------------------
+
+      real(r8), intent(in) :: &
+         p0,   & ! Dynamic enthalphy reference pressure [g cm-1 s-2].
+         p1,   & ! Lower pressure bound [g cm-1 s-2].
+         p2,   & ! Upper pressure bound [g cm-1 s-2].
+         th,   & ! Potential temperature [deg C].
+         s       ! Salinity [g kg-1].
+
+      real(r8), intent(out) :: &
+         dynh_th, & ! Derivative of dynamic enthalpy with respect to potential
+                    ! temperature.
+         dynh_s     ! Derivative of dynamic enthalpy with respect to salinity.
+
+      real(r8), parameter :: &
+         r1_2   = 1._r8/2._r8,  &
+         r1_3   = 1._r8/3._r8,  &
+         r1_4   = 1._r8/4._r8,  &
+         r1_5   = 1._r8/5._r8,  &
+         r1_6   = 1._r8/6._r8,  &
+         r1_7   = 1._r8/7._r8,  &
+         r1_8   = 1._r8/8._r8,  &
+         r1_9   = 1._r8/9._r8,  &
+         r1_10  = 1._r8/10._r8, &
+         r1_11  = 1._r8/11._r8
+
+      real(r8) :: b1i, a1, a2, b2, a1_th, a2_th, b2_th, a1_s, a2_s, b2_s, &
+                  pm1, pp1, pm0, pp0, t1, t0, q1, q0, qq1, qq0, &
+                  f, c1, c2, c3
+
+      b1i = 1._r8/(b11 + b12*th + b13*s)
+      a1 = (a11 + (a12 + a14*th + a15*s)*th + (a13 + a16*s)*s)*b1i
+      a2 = (a21 + (a22 + a24*th + a25*s)*th + (a23 + a26*s)*s)*b1i
+      b2 = (b21 + b22*th + b23*s)*b1i
+
+      a1_th = (a12 + 2._r8*a14*th + a15*s - a1*b12)*b1i
+      a2_th = (a22 + 2._r8*a24*th + a25*s - a2*b12)*b1i
+      b2_th = (b22 - b2*b12)*b1i
+
+      a1_s = (a13 + a15*th + 2._r8*a16*s - a1*b13)*b1i
+      a2_s = (a23 + a25*th + 2._r8*a26*s - a2*b13)*b1i
+      b2_s = (b23 - b2*b13)*b1i
+
+      ! The analytic solution to the derivatives are:
+      ! 
+      !    dynh_th = &
+      !       ( (a2_th - a1*b2_th - a1_th*b2) &
+      !         *( (a1 + p2)*log((a1 + p2)/(a1 + p0)) &
+      !          - (a1 + p1)*log((a1 + p1)/(a1 + p0))) &
+      !       + a1_th*(b2*a1 - a2)*log((a1 + p1)/(a1 + p2)))/(p2 - p1) &
+      !     + (b2*(2._r8*a1 + p0) - a2)*a1_th/(a1 + p0) &
+      !     + ((a1 + .5_r8*(p1 + p2) - p0)*b2_th - a2_th)
+      !
+      !    dynh_s  = &
+      !       ( (a2_s - a1*b2_s - a1_s*b2) &
+      !         *( (a1 + p2)*log((a1 + p2)/(a1 + p0)) &
+      !          - (a1 + p1)*log((a1 + p1)/(a1 + p0))) &
+      !       + a1_s*(b2*a1 - a2)*log((a1 + p1)/(a1 + p2)))/(p2 - p1) &
+      !     + (b2*(2._r8*a1 + p0) - a2)*a1_s/(a1 + p0) &
+      !     + ((a1 + .5_r8*(p1 + p2) - p0)*b2_s - a2_s)
+      !
+      ! A truncated series expansion of the expressions are used that provides
+      ! better computational efficiency and accuarcy for most relevant
+      ! parameters.
+
+      pm1 = r1_2*(p2 + p1)
+      pp1 = r1_2*(p2 - p1)
+      pm0 = r1_2*(pm1 + p0)
+      pp0 = r1_2*(pm1 - p0)
+
+      t1 = 1._r8/(a1 + pm1)
+      t0 = 1._r8/(a1 + pm0)
+      q1 = pp1*t1
+      q0 = pp0*t0
+      qq1 = q1*q1
+      qq0 = q0*q0
+
+      f = (a2 - a1*b2)*a1_th
+      c1 = a2_th - a1*b2_th - b2*a1_th
+      c2 = f*t1
+      c3 = f*t0
+
+      dynh_th = 2._r8*( pp0*b2_th &
+                      + ((((( (r1_11*c1 - c3) *qq0 &
+                            + (r1_9 *c1 - c3))*qq0 &
+                            + (r1_7 *c1 - c3))*qq0 &
+                            + (r1_5 *c1 - c3))*qq0 &
+                            + (r1_3 *c1 - c3))*qq0 &
+                            + (      c1 - c3))*q0) &
+               - (((( r1_11*(r1_10*c1 - c2) *qq1 &
+                    + r1_9 *(r1_8 *c1 - c2))*qq1 &
+                    + r1_7 *(r1_6 *c1 - c2))*qq1 &
+                    + r1_5 *(r1_4 *c1 - c2))*qq1 &
+                    + r1_3 *(r1_2 *c1 - c2))*qq1
+
+
+      f = (a2 - a1*b2)*a1_s
+      c1 = a2_s - a1*b2_s - b2*a1_s
+      c2 = f*t1
+      c3 = f*t0
+
+      dynh_s  = 2._r8*( pp0*b2_s &
+                      + ((((( (r1_11*c1 - c3) *qq0 &
+                            + (r1_9 *c1 - c3))*qq0 &
+                            + (r1_7 *c1 - c3))*qq0 &
+                            + (r1_5 *c1 - c3))*qq0 &
+                            + (r1_3 *c1 - c3))*qq0 &
+                            + (      c1 - c3))*q0) &
+               - (((( r1_11*(r1_10*c1 - c2) *qq1 &
+                    + r1_9 *(r1_8 *c1 - c2))*qq1 &
+                    + r1_7 *(r1_6 *c1 - c2))*qq1 &
+                    + r1_5 *(r1_4 *c1 - c2))*qq1 &
+                    + r1_3 *(r1_2 *c1 - c2))*qq1
+
+   end subroutine dynh_derivatives
 
 end module mod_eos

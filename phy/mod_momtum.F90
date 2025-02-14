@@ -37,7 +37,7 @@ module mod_momtum
   use mod_state,     only: u, v, dp, dpu, dpv, p, pu, pv, ub, vb, &
                            pbu, pbv, ubflxs_p, vbflxs_p, &
                            pbu_p, pbv_p, ubcors_p, vbcors_p
-  use mod_pgforc,    only: wpgf, pgfx, pgfy, pgfxo, pgfyo
+  use mod_pgforc,    only: wpgf, pgfx, pgfy, pgfx_o, pgfy_o
   use mod_tmsmt,     only: wuv1, wuv2, dpuold, dpvold
   use mod_diffusion, only: difmxp, difmxq, difwgt, &
                            mu_nonloc, mv_nonloc
@@ -983,7 +983,7 @@ contains
             botstr = -utotn(i,j)*q/(1.+delt1*q)
 
             ! time averaged pressure gradient term
-            pgf = (1.-2.*wpgf)*pgfx(i,j,km) + wpgf*(pgfxo(i,j,k)+pgfx(i,j,kn))
+            pgf = (1.-2.*wpgf)*pgfx(i,j,km) + wpgf*(pgfx_o(i,j,k)+pgfx(i,j,kn))
 
             ! time smoothing of -u- field  (part 1)
             u(i,j,km) = u(i,j,km)*(wuv1*dpu(i,j,km)+onemm) &
@@ -1146,7 +1146,7 @@ contains
             botstr = -vtotn(i,j)*q/(1.+delt1*q)
 
             ! time averaged pressure gradient term
-            pgf = (1.-2.*wpgf)*pgfy(i,j,km) + wpgf*(pgfyo(i,j,k)+pgfy(i,j,kn))
+            pgf = (1.-2.*wpgf)*pgfy(i,j,km) + wpgf*(pgfy_o(i,j,k)+pgfy(i,j,kn))
 
             ! time smoothing of -v- field  (part 1)
             v(i,j,km) = v(i,j,km)*(wuv1*dpv(i,j,km)+onemm) &
