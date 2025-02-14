@@ -1821,7 +1821,7 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos(nbgcmax)       ! position in buffer
-    real,    intent(in) :: fld(idm,jdm,ddm)   ! input data used for accumulation
+    real,    intent(in) :: fld(idm,jdm,kdm)   ! input data used for accumulation
     integer, intent(in) :: k                  ! layer index of fld
     integer, intent(in) :: ind1(idm,jdm)      ! index field for first accumulated level
     integer, intent(in) :: ind2(idm,jdm)      ! index field for last accumulated level
