@@ -1,0 +1,534 @@
+!----------------------------------------------------------------------------------
+! Users should add all user specific namelist changes below in the form of 
+!   namelist_var = new_namelist_value 
+!
+! NOTE: that it does not matter what namelist group the namelist_var belongs to
+! EXCEPT for when a variable appears in more than one namelist
+! There are a few history variables that have the same name in both diaphy and diabgc
+! For those variables an @diaphy or @diabgc  to be appendend for the namelist_var
+!
+!  GLB_FNAMETAG@diaphy
+!  GLB_AVEPERIO@diaphy
+!  GLB_FILEFREQ@diaphy
+!  GLB_COMPFLAG@diaphy
+!  GLB_NCFORMAT@diaphy
+!  LYR_DP@diaphy">
+!  GLB_FNAMETAG@diabgc
+!  GLB_AVEPERIO@diabgc
+!  GLB_FILEFREQ@diabgc
+!  GLB_COMPFLAG@diabgc
+!  GLB_NCFORMAT@diabgc
+!  LYR_DP@diabgc">
+!
+! For example: 
+! GLB_FNAMETAG@diaphy = 'hd','hd','hd'
+! 
+! NOTE: the array sections for MER_REGFLG must be entered as 
+!   MER_REGFLG1 - sets MER_REGFLG(1,:)
+!   MER_REGFLG2 - sets MER_REGFLG(2,:)
+!   MER_REGFLG3 - sets MER_REGFLG(3,:)
+!   MER_REGFLG4 - sets MER_REGFLG(4,:)
+
+! To see a full documentation of the namelist variables - see $RUNDIR/ocn_in.readme
+!----------------------------------------------------------------------------------
+
+  GLB_FNAMETAG@diaphy = 'hm','hy'
+  GLB_AVEPERIO@diaphy = 30, 365
+  GLB_FILEFREQ@diaphy = 30, 365
+  GLB_COMPFLAG@diaphy =  0,   0
+  GLB_NCFORMAT@diaphy =  1,   1
+  H2D_ABSWND   =  4,   4
+  H2D_ALB      =  0,   0
+  H2D_BTMSTR   =  4,   4
+  H2D_BRNFLX   =  4,   4
+  H2D_BRNPD    =  4,   4
+  H2D_DFL      =  0,   0
+  H2D_EVA      =  4,   4
+  H2D_FICE     =  4,   4
+  H2D_FMLTFZ   =  4,   4
+  H2D_HICE     =  0,   0
+  H2D_HMLTFZ   =  4,   4
+  H2D_HSNW     =  0,   0
+  H2D_IAGE     =  0,   0
+  H2D_IDKEDT   =  4,   4
+  H2D_LAMULT   =  4,   4
+  H2D_LASL     =  4,   4
+  H2D_LIP      =  4,   4
+  H2D_MAXMLD   =  4,   4
+  H2D_MLD      =  4,   4
+  H2D_MLTS     =  4,   4
+  H2D_MLTSMN   =  4,   4
+  H2D_MLTSMX   =  4,   4
+  H2D_MLTSSQ   =  4,   4
+  H2D_MTKEUS   =  4,   4
+  H2D_MTKENI   =  4,   4
+  H2D_MTKEBF   =  4,   4
+  H2D_MTKERS   =  4,   4
+  H2D_MTKEPE   =  4,   4
+  H2D_MTKEKE   =  4,   4
+  H2D_MTY      =  4,   4
+  H2D_NSF      =  4,   4
+  H2D_PBOT     =  4,   4
+  H2D_PSRF     =  4,   4
+  H2D_RFIFLX   =  4,   4
+  H2D_RNFFLX   =  4,   4
+  H2D_SALFLX   =  4,   4
+  H2D_SALRLX   =  4,   4
+  H2D_SBOT     =  4,   4
+  H2D_SEALV    =  4,   4
+  H2D_SLVSQ    =  4,   4
+  H2D_SFL      =  4,   4
+  H2D_SOP      =  4,   4
+  H2D_SIGMX    =  4,   4
+  H2D_SSS      =  4,   4
+  H2D_SSSSQ    =  4,   4
+  H2D_SST      =  4,   4
+  H2D_SSTSQ    =  4,   4
+  H2D_SURFLX   =  4,   4
+  H2D_SURRLX   =  4,   4
+  H2D_SWA      =  4,   4
+  H2D_T20D     =  4,   4
+  H2D_TAUX     =  4,   4
+  H2D_TAUY     =  4,   4
+  H2D_TBOT     =  4,   4
+  H2D_TICE     =  0,   0
+  H2D_TSRF     =  4,   4
+  H2D_UB       =  4,   4
+  H2D_UICE     =  0,   0
+  H2D_USTAR    =  4,   4
+  H2D_USTAR3   =  4,   4
+  H2D_USTOKES  =  0,   0
+  H2D_VB       =  4,   4
+  H2D_VICE     =  0,   0
+  H2D_VSTOKES  =  0,   0
+  H2D_ZTX      =  4,   4
+  
+! All layer-output disabled
+
+  LYR_BFSQ     =  0,   0
+  LYR_DIFDIA   =  0,   0
+  LYR_DIFINT   =  0,   0
+  LYR_DIFISO   =  0,   0
+  LYR_DIFVHO   =  0,   0
+  LYR_DIFVMO   =  0,   0
+  LYR_DIFVSO   =  0,   0
+  LYR_DP@diaphy=  4,   4
+  LYR_DZ       =  0,   0
+  LYR_SALN     =  0,   0
+  LYR_TEMP     =  0,   0
+  LYR_TRC      =  0,   0
+  LYR_UFLX     =  0,   0
+  LYR_UTFLX    =  0,   0
+  LYR_USFLX    =  0,   0
+  LYR_UMFLSM   =  0,   0
+  LYR_UMFLTD   =  0,   0
+  LYR_USFLSM   =  0,   0
+  LYR_UTFLTD   =  0,   0
+  LYR_UTFLLD   =  0,   0
+  LYR_UTFLSM   =  0,   0
+  LYR_USFLTD   =  0,   0
+  LYR_USFLLD   =  0,   0
+  LYR_UVEL     =  0,   0
+  LYR_VFLX     =  0,   0
+  LYR_VTFLX    =  0,   0
+  LYR_VSFLX    =  0,   0
+  LYR_VMFLSM   =  0,   0
+  LYR_VMFLTD   =  0,   0
+  LYR_VTFLTD   =  0,   0
+  LYR_VTFLLD   =  0,   0
+  LYR_VSFLSM   =  0,   0
+  LYR_VSFLTD   =  0,   0
+  LYR_VSFLLD   =  0,   0
+  LYR_VTFLSM   =  0,   0
+  LYR_VVEL     =  0,   0
+  LYR_WFLX     =  0,   0
+  LYR_WFLX2    =  0,   0
+  LYR_PV       =  0,   0
+  LYR_TKE      =  0,   0
+  LYR_GLS_PSI  =  0,   0
+  LYR_IDLAGE   =  0,   0
+
+! Only temperature and salinity are written monthly
+
+  LVL_BFSQ     =  0,   4
+  LVL_DIFDIA   =  0,   0
+  LVL_DIFINT   =  0,   0
+  LVL_DIFISO   =  0,   0
+  LVL_DIFVHO   =  0,   0
+  LVL_DIFVMO   =  0,   0
+  LVL_DIFVSO   =  0,   0
+  LVL_DZ       =  4,   4
+  LVL_SALN     =  4,   4
+  LVL_TEMP     =  4,   4
+  LVL_TRC      =  0,   0
+  LVL_UFLX     =  0,   4
+  LVL_UTFLX    =  0,   4
+  LVL_USFLX    =  0,   4
+  LVL_UMFLSM   =  0,   0
+  LVL_UMFLTD   =  0,   0
+  LVL_USFLSM   =  0,   0
+  LVL_UTFLTD   =  0,   0
+  LVL_UTFLLD   =  0,   0
+  LVL_UTFLSM   =  0,   0
+  LVL_USFLTD   =  0,   0
+  LVL_USFLLD   =  0,   0
+  LVL_UVEL     =  0,   4
+  LVL_VFLX     =  0,   4
+  LVL_VTFLX    =  0,   4
+  LVL_VSFLX    =  0,   4
+  LVL_VMFLSM   =  0,   0
+  LVL_VMFLTD   =  0,   0
+  LVL_VSFLSM   =  0,   0
+  LVL_VTFLSM   =  0,   0
+  LVL_VTFLTD   =  0,   0
+  LVL_VTFLLD   =  0,   0
+  LVL_VSFLTD   =  0,   0
+  LVL_VSFLLD   =  0,   0
+  LVL_VVEL     =  0,   4
+  LVL_WFLX     =  0,   4
+  LVL_WFLX2    =  0,   0
+  LVL_PV       =  0,   4
+  LVL_TKE      =  0,   4
+  LVL_GLS_PSI  =  0,   0
+  LVL_IDLAGE   =  0,   4
+  
+  MSC_MHFSM    =  4,   4
+  MSC_MMFLXL   =  4,   4
+  MSC_MMFLXD   =  4,   4
+  MSC_MMFSMD   =  4,   4
+  MSC_MMFSML   =  4,   4
+  MSC_MMFTDL   =  4,   4
+  MSC_MMFTDD   =  4,   4
+  MSC_MHFLX    =  4,   4
+  MSC_MHFTD    =  4,   4
+  MSC_MHFLD    =  4,   4
+  MSC_MSFLX    =  4,   4
+  MSC_MSFSM    =  4,   4
+  MSC_MSFTD    =  4,   4
+  MSC_MSFLD    =  4,   4
+  MSC_VOLTR    =  4,   4
+  MSC_MASSGS   =  4,   4
+  MSC_VOLGS    =  4,   4
+  MSC_SALNGA   =  4,   4
+  MSC_TEMPGA   =  4,   4
+  MSC_SSSGA    =  4,   4
+  MSC_SSTGA    =  4,   4
+
+! -----------------------------------------------
+! iHAMOCC ouput fields
+! -----------------------------------------------
+
+  GLB_FNAMETAG@diabgc  = 'hbgcm','hbgcy'
+  GLB_AVEPERIO@diabgc  = 30,365
+  GLB_FILEFREQ@diabgc  = 30,365
+  GLB_COMPFLAG@diabgc  = 0, 0
+  GLB_NCFORMAT@diabgc  = 1, 1
+  GLB_INVENTORY        = 1, 0
+
+! All 2D-fields monthly and annually (exept sediment fields only annually)
+
+  SRF_PHOSPH        = 2, 2
+  SRF_OXYGEN        = 2, 2
+  SRF_IRON          = 2, 2
+  SRF_ANH3FX        = 2, 2
+  SRF_ANH4          = 2, 2
+  SRF_ANO2          = 2, 2
+  SRF_ANO3          = 2, 2
+  SRF_ALKALI        = 2, 2
+  SRF_SILICA        = 2, 2
+  SRF_DIC           = 2, 2
+  SRF_PHYTO         = 2, 2
+  SRF_EXPORT        = 2, 2
+  SRF_EXPOSI        = 2, 2
+  SRF_EXPOCA        = 2, 2
+  SRF_KWCO2         = 2, 2
+  SRF_KWCO2SOL      = 2, 2
+  SRF_FCO2          = 2, 2
+  SRF_PCO2          = 2, 2
+  SRF_XCO2          = 2, 2
+  SRF_PCO2_GEX      = 2, 2
+  SRF_PN2OM         = 2, 2
+  SRF_PNH3          = 2, 2
+  SRF_PH            = 2, 2
+  SRF_CO2SOL        = 2, 2
+  SRF_CO2FXD        = 2, 2
+  SRF_CO2FXU        = 2, 2
+  SRF_OXFLUX        = 2, 2
+  SRF_NIFLUX        = 2, 2
+  SRF_N2OFX         = 2, 2
+  SRF_DMSFLUX       = 2, 2
+  SRF_DMS           = 2, 2
+  SRF_DMSPROD       = 2, 2
+  SRF_DMS_BAC       = 2, 2
+  SRF_DMS_UV        = 2, 2
+  SRF_ATMBROMO      = 2, 2
+  SRF_ATMCO2        = 2, 2
+  SRF_ATMO2         = 2, 2
+  SRF_ATMN2         = 2, 2
+  SRF_ATMNH3        = 2, 2
+  SRF_ATMN2O        = 2, 2
+  SRF_NATDIC        = 2, 2
+  SRF_NATALKALI     = 2, 2
+  SRF_NATPCO2       = 2, 2
+  SRF_NATCO2FX      = 2, 2
+  SRF_NATPH         = 2, 2
+  SRF_CO213FXD      = 2, 2
+  SRF_CO213FXU      = 2, 2
+  SRF_CO214FXD      = 2, 2
+  SRF_CO214FXU      = 2, 2
+  SRF_CFC11         = 2, 2
+  SRF_CFC12         = 2, 2
+  SRF_SF6           = 2, 2
+  SRF_BROMO         = 2, 2
+  SRF_BROMOFX       = 2, 2
+  INT_PHOSY         = 2, 2
+  INT_NFIX          = 2, 2
+  INT_DNIT          = 2, 2
+  INT_BROMOPRO      = 2, 2
+  INT_BROMOUV       = 2, 2
+  FLX_CAR0100       = 2, 2
+  FLX_CAR0500       = 2, 2
+  FLX_CAR1000       = 2, 2
+  FLX_CAR2000       = 2, 2
+  FLX_CAR4000       = 2, 2
+  FLX_CAR_BOT       = 2, 2
+  FLX_BSI0100       = 2, 2
+  FLX_BSI0500       = 2, 2
+  FLX_BSI1000       = 2, 2
+  FLX_BSI2000       = 2, 2
+  FLX_BSI4000       = 2, 2
+  FLX_BSI_BOT       = 2, 2
+  FLX_CAL0100       = 2, 2
+  FLX_CAL0500       = 2, 2
+  FLX_CAL1000       = 2, 2
+  FLX_CAL2000       = 2, 2
+  FLX_CAL4000       = 2, 2
+  FLX_CAL_BOT       = 2, 2
+  FLX_DUST0100      = 2, 2
+  FLX_DUST0500      = 2, 2
+  FLX_DUST1000      = 2, 2
+  FLX_DUST2000      = 2, 2
+  FLX_DUST4000      = 2, 2
+  FLX_DUST_BOT      = 2, 2
+  FLX_NDEPNHX       = 2, 2
+  FLX_NDEPNOY       = 2, 2
+  FLX_OALK          = 0, 0
+  FLX_SEDIFFAL      = 0, 2
+  FLX_SEDIFFIC      = 0, 2
+  FLX_SEDIFFN2      = 0, 2
+  FLX_SEDIFFN2O     = 0, 2
+  FLX_SEDIFFNH4     = 0, 2
+  FLX_SEDIFFNO2     = 0, 2
+  FLX_SEDIFFNO3     = 0, 2
+  FLX_SEDIFFOX      = 0, 2
+  FLX_SEDIFFPH      = 0, 2
+  FLX_SEDIFFSI      = 0, 2
+  FLX_BURSSO12      = 0, 2
+  FLX_BURSSSC12     = 0, 2
+  FLX_BURSSSSIL     = 0, 2
+  FLX_BURSSSTER     = 0, 2
+
+! All layer-output disabled for reduced outpu setting
+
+  LYR_AGG_AVDC      = 0, 0
+  LYR_AGG_AVDP      = 0, 0
+  LYR_AGG_AVRHOP    = 0, 0
+  LYR_AGG_B         = 0, 0
+  LYR_AGG_DF        = 0, 0
+  LYR_AGG_DMAX      = 0, 0
+  LYR_AGG_STICK     = 0, 0
+  LYR_AGG_STICKF    = 0, 0
+  LYR_AGG_VPOR      = 0, 0
+  LYR_AGG_VRHOF     = 0, 0
+  LYR_AGG_WS        = 0, 0
+  LYR_ANH4          = 0, 0
+  LYR_ANMX_N2_PROD  = 0, 0
+  LYR_ANMX_OM_PROD  = 0, 0
+  LYR_ANO2          = 0, 0
+  LYR_ANO3          = 0, 0
+  LYR_DENIT_N2O     = 0, 0
+  LYR_DENIT_NO2     = 0, 0
+  LYR_DENIT_NO3     = 0, 0
+  LYR_DNRA_NO2      = 0, 0
+  LYR_DYNVIS        = 0, 0
+  LYR_NITR_N2O_PROD = 0, 0
+  LYR_NITR_NH4      = 0, 0
+  LYR_NITR_NH4_OM   = 0, 0
+  LYR_NITR_NO2      = 0, 0
+  LYR_NITR_NO2_OM   = 0, 0
+  LYR_PHOSY_NH4     = 0, 0
+  LYR_PHOSY_NO3     = 0, 0
+  LYR_REMIN_AEROB   = 0, 0
+  LYR_REMIN_SULF    = 0, 0
+  LYR_PHYTO         = 0, 0
+  LYR_GRAZER        = 0, 0
+  LYR_DOC           = 0, 0
+  LYR_PHOSY         = 0, 0
+  LYR_PHOSPH        = 0, 0
+  LYR_OXYGEN        = 0, 0
+  LYR_IRON          = 0, 0
+  LYR_ALKALI        = 0, 0
+  LYR_SILICA        = 0, 0
+  LYR_DIC           = 0, 0
+  LYR_POC           = 0, 0
+  LYR_CALC          = 0, 0
+  LYR_OPAL          = 0, 0
+  LYR_CO3           = 0, 0
+  LYR_N2O           = 0, 0
+  LYR_PH            = 0, 0
+  LYR_OMEGAC        = 0, 0
+  LYR_OMEGAA        = 0, 0
+  LYR_PREFO2        = 0, 0
+  LYR_O2SAT         = 0, 0
+  LYR_PREFPO4       = 0, 0
+  LYR_PREFALK       = 0, 0
+  LYR_PREFDIC       = 0, 0
+  LYR_PREFSILICA    = 0, 0
+  LYR_DICSAT        = 0, 0
+  LYR_NATDIC        = 0, 0
+  LYR_NATALKALI     = 0, 0
+  LYR_NATCO3        = 0, 0
+  LYR_NATCALC       = 0, 0
+  LYR_NATPH         = 0, 0
+  LYR_NATOMEGAC     = 0, 0
+  LYR_NATOMEGAA     = 0, 0
+  LYR_DIC13         = 0, 0
+  LYR_DIC14         = 0, 0
+  LYR_D13C          = 0, 0
+  LYR_D14C          = 0, 0
+  LYR_BIGD14C       = 0, 0
+  LYR_POC13         = 0, 0
+  LYR_DOC13         = 0, 0
+  LYR_CALC13        = 0, 0
+  LYR_PHYTO13       = 0, 0
+  LYR_GRAZER13      = 0, 0
+  LYR_CFC11         = 0, 0
+  LYR_CFC12         = 0, 0
+  LYR_SF6           = 0, 0
+  LYR_NOS           = 0, 0
+  LYR_WPHY          = 0, 0
+  LYR_WNOS          = 0, 0
+  LYR_EPS           = 0, 0
+  LYR_ASIZE         = 0, 0
+  LYR_BROMO         = 0, 0
+  LYR_SHELFAGE      = 0, 0
+  LYR_DP@diabgc     = 0, 0
+
+! Save level-fields only annually
+
+  LVL_AGG_AVDC      = 0, 0
+  LVL_AGG_AVDP      = 0, 0
+  LVL_AGG_AVRHOP    = 0, 0
+  LVL_AGG_B         = 0, 0
+  LVL_AGG_DF        = 0, 0
+  LVL_AGG_DMAX      = 0, 0
+  LVL_AGG_STICK     = 0, 0
+  LVL_AGG_STICKF    = 0, 0
+  LVL_AGG_VPOR      = 0, 0
+  LVL_AGG_VRHOF     = 0, 0
+  LVL_AGG_WS        = 0, 0
+  LVL_PHYTO         = 0, 2
+  LVL_GRAZER        = 0, 2
+  LVL_DOC           = 0, 2
+  LVL_PHOSY         = 0, 2
+  LVL_PHOSY_NH4     = 0, 0
+  LVL_PHOSY_NO3     = 0, 0
+  LVL_PHOSPH        = 0, 2
+  LVL_OXYGEN        = 0, 4
+  LVL_IRON          = 0, 2
+  LVL_ALKALI        = 0, 2
+  LVL_ANH4          = 0, 2
+  LVL_ANMX_N2_PROD  = 0, 0
+  LVL_ANMX_OM_PROD  = 0, 0
+  LVL_ANO2          = 0, 2
+  LVL_ANO3          = 0, 2
+  LVL_SILICA        = 0, 2
+  LVL_DIC           = 0, 2
+  LVL_POC           = 0, 2
+  LVL_CALC          = 0, 2
+  LVL_OPAL          = 0, 2
+  LVL_CO3           = 0, 2
+  LVL_N2O           = 0, 2
+  LVL_PH            = 0, 2
+  LVL_OMEGAC        = 0, 2
+  LVL_OMEGAA        = 0, 2
+  LVL_PREFO2        = 0, 4
+  LVL_O2SAT         = 0, 4
+  LVL_PREFPO4       = 0, 2
+  LVL_PREFALK       = 0, 2
+  LVL_PREFDIC       = 0, 2
+  LVL_PREFSILICA    = 0, 2
+  LVL_REMIN_AEROB   = 0, 2
+  LVL_REMIN_SULF    = 0, 2
+  LVL_DICSAT        = 0, 2
+  LVL_NATDIC        = 0, 0
+  LVL_NATALKALI     = 0, 0
+  LVL_NATCO3        = 0, 0
+  LVL_NATCALC       = 0, 0
+  LVL_NATPH         = 0, 0
+  LVL_NATOMEGAC     = 0, 0
+  LVL_NATOMEGAA     = 0, 0
+  LVL_DIC13         = 0, 0
+  LVL_DIC14         = 0, 0
+  LVL_D13C          = 0, 0
+  LVL_DENIT_N2O     = 0, 0
+  LVL_DENIT_NO2     = 0, 0
+  LVL_DENIT_NO3     = 0, 0
+  LVL_DNRA_NO2      = 0, 0
+  LVL_DYNVIS        = 0, 0
+  LVL_POC13         = 0, 0
+  LVL_DOC13         = 0, 0
+  LVL_CALC13        = 0, 0
+  LVL_PHYTO13       = 0, 0
+  LVL_GRAZER13      = 0, 0
+  LVL_CFC11         = 0, 0
+  LVL_CFC12         = 0, 0
+  LVL_SF6           = 0, 0
+  LVL_NOS           = 0, 0
+  LVL_NITR_N2O_PROD = 0, 0
+  LVL_NITR_NH4      = 0, 0
+  LVL_NITR_NH4_OM   = 0, 0
+  LVL_NITR_NO2      = 0, 0
+  LVL_NITR_NO2_OM   = 0, 0
+  LVL_WPHY          = 0, 0
+  LVL_WNOS          = 0, 0
+  LVL_EPS           = 0, 0
+  LVL_ASIZE         = 0, 0
+  LVL_BROMO         = 0, 0
+  LVL_SHELFAGE      = 0, 0
+
+
+! Sediment fields, written annualy
+ 
+  SDM_ANMX_N2_PROD  = 0, 2
+  SDM_ANMX_OM_PROD  = 0, 2
+  SDM_DENIT_N2O     = 0, 2
+  SDM_DENIT_NO2     = 0, 2
+  SDM_DENIT_NO3     = 0, 2
+  SDM_DNRA_NO2      = 0, 2
+  SDM_NITR_N2O_PROD = 0, 2
+  SDM_NITR_NH4      = 0, 2
+  SDM_NITR_NH4_OM   = 0, 2
+  SDM_NITR_NO2      = 0, 2
+  SDM_NITR_NO2_OM   = 0, 2
+  SDM_POWN2O        = 0, 2
+  SDM_POWNH4        = 0, 2
+  SDM_POWNO2        = 0, 2
+  SDM_POWNO3        = 0, 2
+  SDM_REMIN_AEROB   = 0, 2
+  SDM_REMIN_SULF    = 0, 2
+  SDM_POWAIC        = 0, 2
+  SDM_POWAAL        = 0, 2
+  SDM_POWAPH        = 0, 2
+  SDM_POWAOX        = 0, 2
+  SDM_POWN2         = 0, 2
+  SDM_POWASI        = 0, 2
+  SDM_SSSO12        = 0, 2
+  SDM_SSSSIL        = 0, 2
+  SDM_SSSC12        = 0, 2
+  SDM_SSSTER        = 0, 2
+  BUR_SSSO12        = 0, 2
+  BUR_SSSSIL        = 0, 2
+  BUR_SSSC12        = 0, 2
+  BUR_SSSTER        = 0, 2
+
