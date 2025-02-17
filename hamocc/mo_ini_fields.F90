@@ -296,7 +296,7 @@ contains
                 sedlay(i,j,k,isssc14)=sedlay(i,j,k,isssc12)*rco214
               endif
               if (use_sediment_quality) then
-                sedlay(i,j,k,issso12_age)=1.
+                sedlay(i,j,k,issso12_age)=0.
               endif
             else
               powtra(i,j,k,ipowno3)=rmasks

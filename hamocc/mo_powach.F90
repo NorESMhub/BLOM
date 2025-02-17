@@ -75,6 +75,7 @@ contains
     real    :: K1, K2, Kb, Kw, Ks1, Kf, Ksi, K1p, K2p, K3p
     real    :: ah1, ac, cu, cb, cc, satlev
     real    :: ratc13, ratc14, rato13, rato14, poso13, poso14
+    real    :: eps=epsilon(1.)
 
     ! Set array for saving diffusive sediment-water-column fluxes to zero
     !********************************************************************
@@ -210,11 +211,16 @@ contains
           if (omask(i,j) > 0.5 ) then
             ! update moving average TOC flux to bottom - units of prorca? - re-check
             prorca_mavg(i,j) = sed_alpha_poc * prorca(i,j) + (1.-sed_alpha_poc)*prorca_mavg(i,j)
-            do k = 1, ks
-              sedlay(i,j,k,issso12_age) = sedlay(i,j,k,issso12_age) + dtbgc ! needs to be in years!!!!
 
-              ! DOU + prorca_mavg(i,j)/0.77 ! re-check 0.77 units of DOU: mmol/m2/d! - unit conversion!
+            ! update surface age due to fresh POC sedimentation flux
+            sedlay(i,j,1,issso12_age) = sedlay(i,j,1,issso12) * sedlay(i,j,1,issso12_age)          &
+                          & / ((prorca(i,j)/(porsol(i,j,1)*seddw(1))) + sedlay(i,j,1,issso12) + eps)
+            do k = 1, ks
+              sedlay(i,j,k,issso12_age) = sedlay(i,j,k,issso12_age) + dtbgc/31104000. ! needs to be in years!!!!
+
+              ! DOU + prorca_mavg(i,j)/0.77 ! re-check 0.77 units of DOU: mmol/m2/d! - unit conversion!  rcar/ro2ut or rcar/ro2utammo
               ! disso_poc = 0.151/(2.48*10**(1.293 - 0.9822*log10(DOU)) + sedlay(i,j,k,issso12_age))
+              ! at surface: prorca freshens sediment-POC age tracer
             enddo
           endif
         enddo
