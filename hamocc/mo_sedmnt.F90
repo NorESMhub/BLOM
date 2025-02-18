@@ -67,6 +67,11 @@ module mo_sedmnt
   real, dimension (:,:),     allocatable, public :: produs
   real, dimension (:,:,:),   allocatable, public :: burial
 
+  ! values for sediment quality-driven remineralization
+  real, dimension(:,:,:),    allocatable, public :: sed_reactivity_a
+  real, dimension(:,:,:),    allocatable, public :: sed_reactivity_k
+  real, dimension(:,:,:),    allocatable, public :: sed_applied_reminrate
+
   real, protected, public :: calfa, oplfa, orgfa, clafa
 
 CONTAINS
@@ -268,6 +273,37 @@ CONTAINS
       allocate (prorca_mavg(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory prorca_mavg'
       prorca_mavg(:,:) = 0.0
+
+
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable sed_reactivity_a ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+        write(io_stdo_bgc,*)'Third dimension    : ',ks
+      endif
+      allocate (sed_reactivity_a(kpie,kpje,ks),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory sed_reactivity_a'
+      sed_reactivity_a(:,:,:) = 0.0
+
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable sed_reactivity_k ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+        write(io_stdo_bgc,*)'Third dimension    : ',ks
+      endif
+      allocate (sed_reactivity_k(kpie,kpje,ks),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory sed_reactivity_k'
+      sed_reactivity_k(:,:,:) = 0.0
+
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable sed_applied_reminrate ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+        write(io_stdo_bgc,*)'Third dimension    : ',ks
+      endif
+      allocate (sed_applied_reminrate(kpie,kpje,ks),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory sed_applied_reminrate'
+      sed_applied_reminrate(:,:,:) = 0.0
     endif
 
     if (mnproc.eq.1) then
