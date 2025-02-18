@@ -2167,7 +2167,7 @@ contains
       if (use_sediment_quality) then
         call ncdefvar3d(sdm_qual_a(iogrp),cmpflg,'p',                           &
              &  'quala_sdm','Sediment POC reactivity a',' ',                    &
-             &  'yr-1',3)
+             &  'yr',3)
         call ncdefvar3d(sdm_qual_k(iogrp),cmpflg,'p',                           &
              &  'qualk_sdm','Sediment POC reactivity k',' ',                    &
              &  '1/(kmol O2/m3 s)',3)
