@@ -90,6 +90,7 @@ def buildnml(case, caseroot, compname):
     hamocc_sedspinup_yr_start = case.get_value("HAMOCC_SEDSPINUP_YR_START")
     hamocc_sedspinup_yr_end   = case.get_value("HAMOCC_SEDSPINUP_YR_END")
     hamocc_sedspinup_ncycle   = case.get_value("HAMOCC_SEDSPINUP_NCYCLE")
+    hamocc_sediment_quality   = case.get_value("HAMOCC_SEDIMENT_QUALITY")
     is_test                   = case.get_value("TEST")
     comp_interface            = case.get_value("COMP_INTERFACE")
 
@@ -198,6 +199,7 @@ def buildnml(case, caseroot, compname):
         config["hamocc_sedspinup_yr_start"] = hamocc_sedspinup_yr_start
         config["hamocc_sedspinup_yr_end"] = hamocc_sedspinup_yr_end
         config["hamocc_sedspinup_ncycle"] = hamocc_sedspinup_ncycle
+        config["hamocc_sediment_quality"] = "yes" if hamocc_sediment_quality else "no"
         config["is_test"] = "yes" if is_test else "no"
         config["comp_interface"] = comp_interface
         config["hamocc_shelf_res_time"] = "yes" if hamocc_shelf_res_time else "no"

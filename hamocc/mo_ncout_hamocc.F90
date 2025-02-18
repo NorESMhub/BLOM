@@ -36,7 +36,7 @@ contains
     use mod_dia,        only: diafnm,sigmar1,iotype,ddm,depthslev,depthslev_bnds
     use mo_control_bgc, only: dtbgc,use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO,              &
                               use_sedbypass,use_BOXATM,use_M4AGO,use_extNcycle,use_pref_tracers,   &
-                              use_shelfsea_res_time
+                              use_shelfsea_res_time,use_sediment_quality
     use mo_vgrid,       only: k0100,k0500,k1000,k2000,k4000
     use mo_param1_bgc,  only: ks
     use mod_nctools,    only: ncwrt1,ncdims,nctime,ncfcls,ncfopn,ncdimc,ncputr,ncputi,ncwrtr
@@ -215,7 +215,10 @@ contains
                               SDM_denit_NO2,SDM_denit_N2O,SDM_DNRA_NO2,                            &
                               SDM_anmx_N2_prod,SDM_anmx_OM_prod,SDM_remin_aerob,                   &
                               SDM_remin_sulf,jsediffnh4,jsediffn2o,jsediffno2,                     &
-                              FLX_SEDIFFNH4,FLX_SEDIFFN2O,FLX_SEDIFFNO2
+                              FLX_SEDIFFNH4,FLX_SEDIFFN2O,FLX_SEDIFFNO2,                           &
+                              jsdm_qual_a,jsdm_qual_k,jsdm_qual_app,jsdm_ssso12_age,               &
+                              jsed_mavg_prorca,                                                    &
+                              SDM_qual_a,SDM_qual_k,SDM_qual_app,SDM_ssso12_age,SDM_MAVG_prorca
     use mo_param_bgc,   only: c14fac,param4nc,nentries,controls4nc,centries
 
     ! Arguments
@@ -625,6 +628,9 @@ contains
         call wrtsrf(jsediffn2o(iogrp),   FLX_SEDIFFN2O(iogrp),rnacc*1e3/dtbgc,0.,cmpflg,'sedfn2o')
         call wrtsrf(jsediffno2(iogrp),   FLX_SEDIFFNO2(iogrp),rnacc*1e3/dtbgc,0.,cmpflg,'sedfno2')
       endif
+      if (use_sediment_quality) then
+        call wrtsrf(jsed_mavg_prorca(iogrp),SDM_MAVG_prorca(iogrp),rnacc,0.,cmpflg,'sedmavgprorca')
+      endif
     endif
     if (use_cisonew) then
       call wrtsrf(jco213fxd(iogrp),    SRF_CO213FXD(iogrp), rnacc*12./dtbgc,0.,cmpflg,'co213fxd')
@@ -912,7 +918,13 @@ contains
         call wrtsdm(jsdm_anmx_N2_prod(iogrp), sdm_anmx_N2_prod(iogrp), rnacc*1e3/dtbgc,0.,cmpflg,'anmx_n2sdm')
         call wrtsdm(jsdm_anmx_OM_prod(iogrp), sdm_anmx_OM_prod(iogrp), rnacc*1e3/dtbgc,0.,cmpflg,'anmx_omsdm')
         call wrtsdm(jsdm_remin_aerob(iogrp),  sdm_remin_aerob(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'reminasdm')
-        call wrtsdm(jsdm_remin_sulf(iogrp),   sdm_remin_sulf(iogrp),   rnacc*1e3/dtbgc,0.,cmpflg,'reminssdm') 
+        call wrtsdm(jsdm_remin_sulf(iogrp),   sdm_remin_sulf(iogrp),   rnacc*1e3/dtbgc,0.,cmpflg,'reminssdm')
+      endif
+      if (use_sediment_quality) then
+        call wrtsdm(jsdm_qual_a(iogrp),     sdm_qual_a(iogrp),     rnacc,0.,cmpflg,'quala_sdm')
+        call wrtsdm(jsdm_qual_k(iogrp),     sdm_qual_k(iogrp),     rnacc/dtbgc,0.,cmpflg,'qualk_sdm')
+        call wrtsdm(jsdm_qual_app(iogrp),   sdm_qual_app(iogrp),   rnacc/dtbgc,0.,cmpflg,'qualapp_sdm')
+        call wrtsdm(jsdm_ssso12_age(iogrp), sdm_ssso12_age(iogrp), rnacc,0.,cmpflg,'ssso12_age_sdm')
       endif
     endif
 
@@ -991,6 +1003,9 @@ contains
       call inisrf(jburflxsssc12(iogrp),0.)
       call inisrf(jburflxssssil(iogrp),0.)
       call inisrf(jburflxssster(iogrp),0.)
+      if (use_sediment_quality) then
+        call inisrf(jsed_mavg_prorca(iogrp),0.)
+      endif
     endif
     if (use_cisonew) then
       call inisrf(jco213fxd(iogrp),0.)
@@ -1281,6 +1296,12 @@ contains
         call inisdm(jsdm_remin_aerob(iogrp),0.)
         call inisdm(jsdm_remin_sulf(iogrp),0.)
       endif
+      if (use_sediment_quality) then
+        call inisdm(jsdm_qual_a(iogrp),0.)
+        call inisdm(jsdm_qual_k(iogrp),0.)
+        call inisdm(jsdm_qual_app(iogrp),0.)
+        call inisdm(jsdm_ssso12_age(iogrp),0.)
+      endif
     endif
     nacc_bgc(iogrp)=0
 
@@ -1296,7 +1317,7 @@ contains
                               nctime,ncfcls,ncedef,ncdefvar3d,ndouble
     use mo_control_bgc, only: use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO,                    &
                               use_sedbypass,use_BOXATM,use_extNcycle,use_pref_tracers,use_M4AGO,   &
-                              use_shelfsea_res_time
+                              use_shelfsea_res_time,use_sediment_quality
     use mo_bgcmean,     only: srf_kwco2,srf_fco2,srf_pco2,srf_xco2,srf_pco2_gex,srf_dmsflux,       &
                               srf_co2fxd,srf_co2fxu,srf_kwco2sol,srf_co2sol,                       &
                               srf_oxflux,srf_niflux,srf_pn2om,srf_dms,srf_dmsprod,                 &
@@ -1391,7 +1412,11 @@ contains
                               SDM_denit_NO2,SDM_denit_N2O,SDM_DNRA_NO2,                            &
                               SDM_anmx_N2_prod,SDM_anmx_OM_prod,SDM_remin_aerob,                   &
                               SDM_remin_sulf,jsediffnh4,jsediffn2o,jsediffno2,                     &
-                              FLX_SEDIFFNH4,FLX_SEDIFFN2O,FLX_SEDIFFNO2
+                              FLX_SEDIFFNH4,FLX_SEDIFFN2O,FLX_SEDIFFNO2,                           &
+                              jsdm_qual_a,jsdm_qual_k,jsdm_qual_app,jsdm_ssso12_age,               &
+                              jsed_mavg_prorca,                                                    &
+                              SDM_qual_a,SDM_qual_k,SDM_qual_app,SDM_ssso12_age,SDM_MAVG_prorca
+
 
     ! Arguments
     integer   :: iogrp,cmpflg
@@ -1595,6 +1620,11 @@ contains
         call ncdefvar3d(FLX_SEDIFFNO2(iogrp),cmpflg,'p','sedfno2',              &
              &   'diffusive nitrite flux to sediment (positive downwards)',     &
              &   ' ','mol NO2 m-2 s-1',0)
+      endif
+      if (use_sediment_quality) then
+        call ncdefvar3d(SDM_MAVG_PRORCA(iogrp),cmpflg,'p','sedmavgprorca',      &
+             &   'moving average of POC sedimentation flux',                    &
+             &   ' ','mmol P m-2 d-1',0)
       endif
     endif
     if (use_cisonew) then
@@ -2133,6 +2163,21 @@ contains
         call ncdefvar3d(sdm_remin_sulf(iogrp),cmpflg,'p',                       &
              &  'reminssdm','Sulfate remineralization rate sediment',' ',       &
              &  'mol P m-3 s-1',3)
+      endif
+      if (use_sediment_quality) then
+        call ncdefvar3d(sdm_qual_a(iogrp),cmpflg,'p',                           &
+             &  'quala_sdm','Sediment POC reactivity a',' ',                    &
+             &  'yr-1',3)
+        call ncdefvar3d(sdm_qual_k(iogrp),cmpflg,'p',                           &
+             &  'qualk_sdm','Sediment POC reactivity k',' ',                    &
+             &  '1/(kmol O2/m3 s)',3)
+        call ncdefvar3d(sdm_qual_app(iogrp),cmpflg,'p',                         &
+             &  'qualapp_sdm','Sediment POC applied reactivity',' ',            &
+             &  '1/(kmol O2/m3 s)',3)
+        call ncdefvar3d(sdm_ssso12_age(iogrp),cmpflg,'p',                       &
+             &  'ssso12_age_sdm','Sediment POC age',' ',                        &
+             &  'yr',3)
+
       endif
     endif
 

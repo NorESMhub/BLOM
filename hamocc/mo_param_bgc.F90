@@ -38,7 +38,7 @@ module mo_param_bgc
                             use_BOXATM,use_CFC,use_PBGC_CK_TIMESTEP,                               &
                             use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type,use_M4AGO,&
                             do_n2onh3_coupled,use_extNcycle,                                       &
-                            lkwrbioz_off,lTO2depremin,use_shelfsea_res_time
+                            lkwrbioz_off,lTO2depremin,use_shelfsea_res_time,use_sediment_quality
   use mod_xc,         only: mnproc
 
   implicit none
@@ -855,6 +855,7 @@ contains
       call cinfo_add_entry('lkwrbioz_off',           lkwrbioz_off)
       call cinfo_add_entry('lTO2depremin',           lTO2depremin)
       call cinfo_add_entry('use_shelfsea_res_time',  use_shelfsea_res_time)
+      call cinfo_add_entry('use_sediment_quality',   use_sediment_quality)
       call cinfo_add_entry('use_M4AGO',              use_M4AGO)
       if (use_extNcycle) then
         call cinfo_add_entry('do_n2onh3_coupled',       do_n2onh3_coupled)
@@ -1010,6 +1011,9 @@ contains
       call pinfo_add_entry('opaldens',    opaldens)
       call pinfo_add_entry('calcdens',    calcdens)
       call pinfo_add_entry('claydens',    claydens)
+      if (use_sediment_quality) then
+        call pinfo_add_entry('sed_alpha_poc',    sed_alpha_poc)
+      endif
     endif
     if (use_extNcycle) then
       write(io_stdo_bgc,*) '*********************************************************'

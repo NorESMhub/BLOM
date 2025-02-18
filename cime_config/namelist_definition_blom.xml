@@ -4256,6 +4256,18 @@
     <desc>activate the HAMOCC shelfsea water residence time code</desc>
   </entry>
 
+  <entry id="use_sediment_quality" modify_via_xml="HAMOCC_SEDIMENT_QUALITY">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+      <value hamocc_sediment_quality="yes">.true.</value>
+    </values>
+    <desc>activate the HAMOCC sediment quality-based remineralization code</desc>
+  </entry>
+
+
   <!-- ========================= -->
   <!-- namelist group: bgcoafx -->
   <!-- These options can be activated by expert users via user namelist. -->
@@ -8841,6 +8853,66 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>(ssster) [mol m-3]</desc>
+  </entry>
+
+  <entry id="sdm_qual_a">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Sediment reactivity a [yr]</desc>
+  </entry>
+
+  <entry id="sdm_qual_k">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Sediment reactivity k [1/(kmol O2/m3 s)]</desc>
+  </entry>
+
+  <entry id="sdm_qual_app">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Sediment reactivity applied [1/(kmol O2/m3 s)]</desc>
+  </entry>
+
+  <entry id="sdm_ssso12_age">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Sediment POC age [yr]</desc>
+  </entry>
+
+  <entry id="sdm_mavg_prorca">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Moving-average sedimentation flux [mmol P m-2 d-1)]</desc>
   </entry>
 
   <entry id="bur_ssso12">
