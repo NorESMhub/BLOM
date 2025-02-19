@@ -233,9 +233,9 @@ contains
     integer                       :: ncstat
     integer                       :: ncvarid
     integer, allocatable          :: start(:),count(:)
-    real,    allocatable          :: arr_g1(:,:,:)
     real,    allocatable          :: arr_l(:,:,:)
 #ifdef PNETCDF
+    real,    allocatable          :: arr_g1(:,:,:)
     integer (kind=MPI_OFFSET_KIND), allocatable :: istart(:),icount(:)
 #endif
 
@@ -308,7 +308,7 @@ contains
           ! endif
         endif
       enddo
-      deallocate(start,count)
+      deallocate(start,count,arr_l)
 
     else if (IOTYPE==1) then
 
@@ -378,7 +378,7 @@ contains
       !   stop '(write_pnetcdf_var)'
       ! endif
 
-      deallocate(istart,icount,arr_g1)
+      deallocate(istart,icount,arr_l,arr_g1)
 #endif
 
     end if
@@ -525,6 +525,8 @@ contains
     else
       call xchalt('(read_pnetcdf_var) WRONG IOTYPE')
     endif
+
+    deallocate(arr_l)
 
   end subroutine read_netcdf_var
  
