@@ -59,6 +59,7 @@ contains
     use mo_read_oafx,   only: ini_read_oafx
     use mo_read_pi_ph,  only: ini_pi_ph,pi_ph_file
     use mo_read_sedpor, only: read_sedpor,sedporfile
+    use mo_read_sedqual,only: read_sedqual,sedqualfile
     use mo_clim_swa,    only: ini_swa_clim,swaclimfile
     use mo_Gdata_read,  only: inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c
     use mo_intfcblom,   only: alloc_mem_intfcblom,nphys,bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask,        &
@@ -78,13 +79,15 @@ contains
     ! Local variables
     integer :: i,j,k,l,nt
     integer :: iounit
-    real    :: sed_por(idm,jdm,ks) = 0.
+    real    :: sed_por(idm,jdm,ks)         = 0.
+    real    :: sed_POCage_init(idm,jdm,ks) = 0.
+    real    :: prorca_mavg_init(idm,jdm)   = 0.
 
     namelist /bgcnml/ atm_co2,fedepfile,do_rivinpt,rivinfile,do_ndep,ndepfile,do_oalk,             &
          &            do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,                         &
          &            inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c,swaclimfile,       &
          &            with_dmsph,pi_ph_file,l_3Dvarsedpor,sedporfile,ocn_co2_type,use_M4AGO,       &
-         &            do_n2onh3_coupled,lkwrbioz_off,lTO2depremin,shelfsea_maskfile
+         &            do_n2onh3_coupled,lkwrbioz_off,lTO2depremin,shelfsea_maskfile,sedqualfile
     !
     ! --- Set io units and some control parameters
     !
@@ -194,9 +197,12 @@ contains
     call ini_fields_ocean(read_rest,idm,jdm,kdm,nbdy,bgc_dp,bgc_rho,omask,plon,plat)
 
     ! --- Initialize sediment layering
-    !     First, read the porosity and potentially apply it in ini_sedimnt
+    !     First, read the porosity and potentially apply it in ini_sedmnt
     call read_sedpor(idm,jdm,ks,omask,sed_por)
-    call ini_sedmnt(idm,jdm,kdm,omask,sed_por)
+    !     Second, read the sediment POC age and climatological prorca and pot. apply it in ini_sedmnt
+    call read_sedqual(idm,jdm,ks,omask,sed_POCage_init,prorca_mavg_init)
+    call ini_sedmnt(idm,jdm,omask,sed_por,sed_POCage_init,prorca_mavg_init)
+
     !
     ! --- Initialise reading of input data (dust, n-deposition, river, etc.)
     !

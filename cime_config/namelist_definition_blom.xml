@@ -4079,6 +4079,18 @@
     </desc>
   </entry>
 
+  <entry id="sedqualfile" is_inputdata="yes">
+    <type>char</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>''</value>
+    </values>
+    <desc>
+      File name (incl. full path) for sediment quality initialization (holding sediment POC age, moving prorca)
+    </desc>
+  </entry>
+
   <entry id="shelfsea_maskfile" is_inputdata="yes">
     <type>char</type>
     <category>bgcnml</category>
