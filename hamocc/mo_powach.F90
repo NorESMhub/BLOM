@@ -222,8 +222,8 @@ contains
               sedlay(i,j,k,issso12_age) = sedlay(i,j,k,issso12_age) + dtbgc/31104000. ! [years]
               avgDOU                    = prorca_mavg(i,j)*ro2ut                      ! mean DOU flux [mmol/m2/d] (NOTE: thus far oxidation to NO3 assumed)
               sed_reactivity_a(i,j,k)   = 2.48 * 10**(1.293 - 0.9822*log10(avgDOU))   ! Eq.(12) in Pika et al. 2023 * correction factor 2.48 = a (sed reactivity)
-              ! Calculating overall reactivity k [1/year] -> [1/(kmol O2/m3 dt)] using 100mumol O2/m3 as reference for now
-              sed_reactivity_k(i,j,k)   = 0.151/(sed_reactivity_a(i,j,k) + sedlay(i,j,k,issso12_age))*dtbgc/31104000./1e-4
+              ! Calculating overall reactivity k [1/year] -> [1/(kmol O2/m3 dt)] using 1mumol O2/m3 as reference for now
+              sed_reactivity_k(i,j,k)   = 0.151/(sed_reactivity_a(i,j,k) + sedlay(i,j,k,issso12_age))*dtbgc/31104000./1e-6
             enddo
           endif
         enddo
