@@ -363,7 +363,17 @@
     <values>
       <value>enscon</value>
     </values>
-    <desc>Momentum equation discretization method. Valid methods:</desc>
+    <desc>Momentum equation discretization method. Valid methods: 'enscon', 'enecon', 'enedis'</desc>
+  </entry>
+
+  <entry id="pgfmth">
+    <type>char</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>geopotential</value>
+    </values>
+    <desc>Pressure gradient force method. Valid options: 'geopotential', 'dynamic enthalpy'</desc>
   </entry>
 
   <entry id="bmcmth">
