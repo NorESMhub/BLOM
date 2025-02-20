@@ -185,30 +185,39 @@ contains
     real :: ano3up_inh,nutlim,anh4lim,nlim,grlim,nh4uptfrac
 
     ! set variables for diagnostic output to zero
-    expoor    (:,:) = 0.
-    expoca    (:,:) = 0.
-    exposi    (:,:) = 0.
-    carflx0100(:,:) = 0.
-    carflx0500(:,:) = 0.
-    carflx1000(:,:) = 0.
-    carflx2000(:,:) = 0.
-    carflx4000(:,:) = 0.
-    bsiflx0100(:,:) = 0.
-    bsiflx0500(:,:) = 0.
-    bsiflx1000(:,:) = 0.
-    bsiflx2000(:,:) = 0.
-    bsiflx4000(:,:) = 0.
-    calflx0100(:,:) = 0.
-    calflx0500(:,:) = 0.
-    calflx1000(:,:) = 0.
-    calflx2000(:,:) = 0.
-    calflx4000(:,:) = 0.
-    intdnit   (:,:) = 0.
-    intphosy  (:,:) = 0.
-    intdmsprod(:,:) = 0.
-    intdms_bac(:,:) = 0.
-    intdms_uv (:,:) = 0.
-    phosy3d (:,:,:) = 0.
+    expoor     (:,:) = 0.
+    expoca     (:,:) = 0.
+    exposi     (:,:) = 0.
+    carflx0100 (:,:) = 0.
+    carflx0500 (:,:) = 0.
+    carflx1000 (:,:) = 0.
+    carflx2000 (:,:) = 0.
+    carflx4000 (:,:) = 0.
+    carflx_bot (:,:) = 0.
+    bsiflx0100 (:,:) = 0.
+    bsiflx0500 (:,:) = 0.
+    bsiflx1000 (:,:) = 0.
+    bsiflx2000 (:,:) = 0.
+    bsiflx4000 (:,:) = 0.
+    bsiflx_bot (:,:) = 0.
+    calflx0100 (:,:) = 0.
+    calflx0500 (:,:) = 0.
+    calflx1000 (:,:) = 0.
+    calflx2000 (:,:) = 0.
+    calflx4000 (:,:) = 0.
+    calflx_bot (:,:) = 0.
+    dustflx0100(:,:) = 0.
+    dustflx0500(:,:) = 0.
+    dustflx1000(:,:) = 0.
+    dustflx2000(:,:) = 0.
+    dustflx4000(:,:) = 0.
+    dustflx_bot(:,:) = 0.
+    intdnit    (:,:) = 0.
+    intphosy   (:,:) = 0.
+    intdmsprod (:,:) = 0.
+    intdms_bac (:,:) = 0.
+    intdms_uv  (:,:) = 0.
+    phosy3d  (:,:,:) = 0.
 
     if (use_BROMO) then
       int_chbr3_uv  (:,:) = 0.
