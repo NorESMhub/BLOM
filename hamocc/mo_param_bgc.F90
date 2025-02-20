@@ -100,7 +100,7 @@ module mo_param_bgc
   public :: POM_remin_q10,opal_remin_q10,POM_remin_Tref,opal_remin_Tref
   public :: O2thresh_aerob,O2thresh_hypoxic,NO3thresh_sulf
   public :: shelfbreak_depth
-  public :: sed_alpha_poc
+  public :: sed_alpha_poc,sed_qual_sc
 
   ! extended nitrogen cycle
   public :: q10ano3denit,sc_ano3denit,Trefano3denit,rano3denit,bkano3denit,      &
@@ -488,8 +488,8 @@ module mo_param_bgc
   real, protected :: disso_sil   = 3.e-8          ! 1/(kmol Si(OH)4/m3 s) Dissolution rate constant of opal
   real, protected :: disso_caco3 = 1.e-7          ! 1/(kmol CO3--/m3 s) Dissolution rate constant of CaCO3
   real, protected :: sed_denit   = 0.01/86400.    ! 1/s Denitrification rate constant of POP
-  real, protected :: sed_alpha_poc = 1./90.       ! 1/d 1/decay time for sediment moving average
-
+  real, protected :: sed_alpha_poc = 1./90.       ! 1/d 1/decay time for sediment moving average - assuming ~3 month memory here
+  real, protected :: sed_qual_sc = 1.             ! scaling factor for sediment quality-based remineralization
   !********************************************************************
   ! Densities etc. for SEDIMENT SHIFTING
   !********************************************************************
@@ -629,7 +629,7 @@ contains
                          bkoxan2odenit_sed,bkan2odenit_sed,q10dnra_sed,          &
                          bkoxdnra_sed,bkdnra_sed,q10anh4nitr_sed,                &
                          bkoxamox_sed,bkanh4nitr_sed,q10ano2nitr_sed,            &
-                         bkoxnitr_sed,bkano2nitr_sed
+                         bkoxnitr_sed,bkano2nitr_sed,sed_alpha_poc,sed_qual_sc
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)
@@ -1013,6 +1013,7 @@ contains
       call pinfo_add_entry('claydens',    claydens)
       if (use_sediment_quality) then
         call pinfo_add_entry('sed_alpha_poc',    sed_alpha_poc)
+        call pinfo_add_entry('sed_qual_sc',      sed_qual_sc)
       endif
     endif
     if (use_extNcycle) then
