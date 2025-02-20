@@ -26,7 +26,8 @@ module mo_aufr_bgc
 
 CONTAINS
 
-  subroutine aufr_bgc(kpie,kpje,kpke,ntr,ntrbgc,itrbgc,trc,kplyear,kplmon,kplday,omask,rstfnm)
+  subroutine aufr_bgc(kpie,kpje,kpke,ntr,ntrbgc,itrbgc,trc,kplyear,kplmon,kplday,omask,rstfnm,     &
+                     & sed_POCage,prorca_mavg)
 
     !***********************************************************************************************
     ! Reads marine bgc restart data.
@@ -118,6 +119,8 @@ CONTAINS
     integer,          intent(in)    :: kplday                                            ! day   in ocean restart date
     real,             intent(in)    :: omask(kpie,kpje)                                  ! land/ocean mask
     character(len=*), intent(in)    :: rstfnm                                            ! restart file name-informations
+    real,             intent(in)    :: sed_POCage(kpie,kpje,ks)                          ! sediment POC age
+    real,             intent(in)    :: prorca_mavg(kpie,kpje)                            ! moving average prorca
 
     ! Local variables
     real, allocatable :: locetra(:,:,:,:)          ! local array for reading
@@ -673,6 +676,26 @@ CONTAINS
 
       endif  ! .not. use_sedbypass
     endif ! use_cisonew .and. .not. lread_iso
+
+    if (.not. use_sedbypass) then
+      if (use_sediment_quality .and. .not. lread_sedqual) then
+        ! if (hybrid) restart, but age and mavgs should be started with filled values, if provided
+        do j=1,kpje
+          do i=1,kpie
+            if (omask(i,j) > 0.) then
+              burial2(i,j,1,issso12_age)      = sed_POCage(i,j,ks)
+              burial2(i,j,2,issso12_age)      = sed_POCage(i,j,ks)
+              prorca_mavg2(i,j,1)             = prorca_mavg(i,j)
+              prorca_mavg2(i,j,2)             = prorca_mavg(i,j)
+              do k=1,ks
+                sedlay2(i,j,k,issso12_age)    = sed_POCage(i,j,k)
+                sedlay2(i,j,ks+k,issso12_age) = sed_POCage(i,j,k)
+              enddo
+            endif
+          enddo
+        enddo
+      endif
+    endif
 
     ! return tracer fields to ocean model (both timelevels); No unit
     ! conversion here, since tracers in the restart file are in

@@ -225,7 +225,7 @@ contains
     !
     if (read_rest.eq.1) then
       call AUFR_BGC(idm,jdm,kdm,ntr,ntrbgc,itrbgc,trc,                           &
-           &   date%year,date%month,date%day,omask,rstfnm_hamocc)
+           &   date%year,date%month,date%day,omask,rstfnm_hamocc,sed_POCage_init,prorca_mavg_init)
     else
       trc(1:idm,1:jdm,1    :kdm,  itrbgc:itrbgc+ntrbgc-1) = ocetra(:,:,:,:)
       trc(1:idm,1:jdm,kdm+1:2*kdm,itrbgc:itrbgc+ntrbgc-1) = ocetra(:,:,:,:)
