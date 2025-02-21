@@ -152,7 +152,7 @@ contains
             no2fdetamox = NOB2AOAy*n2omaxy*2.*(1. + n2oybeta)*ocetra(i,j,k,ioxygen)*bkyamox        &
                         & /(ocetra(i,j,k,ioxygen)**2 + 2.*ocetra(i,j,k,ioxygen)*bkyamox + bkyamox**2)
 
-            fdetnitr = no2fdetamox/(no2fno2 + no2fn2o)   ! yield to energy usage ratio for NO2 -> ratio equals 16:x
+            fdetnitr = no2fdetamox/(no2fno2 + no2fn2o + eps)   ! yield to energy usage ratio for NO2 -> ratio equals 16:x
 
 
           ! limitation of the two processes through available nutrients, etc.
@@ -217,7 +217,7 @@ contains
     integer :: i,j,k
     real    :: Tdep,O2inhib,nutlim,ano3new,ano3denit,temp
 
-    ! Sett output-related field to zero
+    ! Set output-related field to zero
     denit_NO3  = 0.
 
     !$OMP PARALLEL DO PRIVATE(i,k,Tdep,O2inhib,nutlim,ano3new,ano3denit,temp)

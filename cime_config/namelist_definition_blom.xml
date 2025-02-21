@@ -363,7 +363,17 @@
     <values>
       <value>enscon</value>
     </values>
-    <desc>Momentum equation discretization method. Valid methods:</desc>
+    <desc>Momentum equation discretization method. Valid methods: 'enscon', 'enecon', 'enedis'</desc>
+  </entry>
+
+  <entry id="pgfmth">
+    <type>char</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>geopotential</value>
+    </values>
+    <desc>Pressure gradient force method. Valid options: 'geopotential', 'dynamic enthalpy'</desc>
   </entry>
 
   <entry id="bmcmth">
@@ -3771,6 +3781,7 @@
       <value>''</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx2v1_20130506.nc</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx1v4_20171107.nc</value>
+      <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.5v1_20250210.nc</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.25v4_20181004.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.125v4_20221013.nc</value>
     </values>
@@ -3807,6 +3818,7 @@
       <value>''</value>
       <value blom_river_nutrients="yes" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx2v1_20170915.nc</value>
       <value blom_river_nutrients="yes" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx1v4_20170820.nc</value>
+      <value blom_river_nutrients="yes" ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000c00_tnx0.5v1_20250220.nc</value>
       <value blom_river_nutrients="yes" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx0.25v4_20170821.nc</value>
       <value blom_river_nutrients="yes" ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx0.125v4_20221013.nc</value>
     </values>

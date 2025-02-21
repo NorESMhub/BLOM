@@ -37,6 +37,7 @@ module mod_rdlim
   use mod_momtum,      only: mdv2hi, mdv2lo, mdv4hi, mdv4lo, mdc2hi, &
                              mdc2lo, vsc2hi, vsc2lo, vsc4hi, vsc4lo, &
                              cbar, cb, mommth
+  use mod_pgforc,      only: pgfmth
   use mod_barotp,      only: cwbdts, cwbdls
   use mod_forcing,     only: aptflx, apsflx, ditflx, disflx, &
                              scfile, &
@@ -131,7 +132,7 @@ contains
          grfile,icfile,pref,baclin,batrop, &
          mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo, &
          vsc2hi,vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls, &
-         mommth,bmcmth,rmpmth, &
+         mommth,pgfmth,bmcmth,rmpmth, &
          mlrmth,ce,cl,tau_mlr,tau_growing_hbl,tau_decaying_hbl, &
          tau_growing_hml,tau_decaying_hml,lfmin,mstar,nstar,wpup_min, &
          mlrttp,rm0,rm5,tdfile,niwgf,niwbf,niwlf, &
@@ -199,6 +200,7 @@ contains
       write (lp,*) 'CWBDTS',CWBDTS
       write (lp,*) 'CWBDLS',CWBDLS
       write (lp,*) 'MOMMTH ',trim(MOMMTH)
+      write (lp,*) 'PGFMTH ',trim(PGFMTH)
       write (lp,*) 'BMCMTH ',trim(BMCMTH)
       write (lp,*) 'RMPMTH ',trim(RMPMTH)
       write (lp,*) 'MLRMTH ',trim(MLRMTH)
@@ -283,6 +285,7 @@ contains
     call xcbcst(cwbdts)
     call xcbcst(cwbdls)
     call xcbcst(mommth)
+    call xcbcst(pgfmth)
     call xcbcst(bmcmth)
     call xcbcst(rmpmth)
     call xcbcst(mlrmth)
