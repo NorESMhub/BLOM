@@ -3818,6 +3818,7 @@
       <value>''</value>
       <value blom_river_nutrients="yes" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx2v1_20170915.nc</value>
       <value blom_river_nutrients="yes" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx1v4_20170820.nc</value>
+      <value blom_river_nutrients="yes" ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000c00_tnx0.5v1_20250220.nc</value>
       <value blom_river_nutrients="yes" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx0.25v4_20170821.nc</value>
       <value blom_river_nutrients="yes" ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx0.125v4_20221013.nc</value>
     </values>
