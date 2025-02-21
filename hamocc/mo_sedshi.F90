@@ -79,7 +79,7 @@ contains
       !$OMP PARALLEL DO PRIVATE(i,sedlo)
       do j=1,kpje
         do i=1,kpie
-          if(omask(i,j).gt.0.5) then
+          if(omask(i,j) > 0.5) then
             !ka          if(bolay(i,j).gt.0.) then
             sedlo  = rcar*orgfa*sedlay(i,j,k,issso12) &
                  & +      calfa*sedlay(i,j,k,isssc12) &
@@ -97,7 +97,7 @@ contains
         !$OMP PARALLEL DO PRIVATE(i,uebers)
         do j=1,kpje
           do i=1,kpie
-            if(omask(i,j).gt.0.5) then
+            if(omask(i,j) > 0.5) then
               !ka          if(bolay(i,j).gt.0.) then
               uebers=wsed(i,j)*sedlay(i,j,k,iv)
               if (use_sediment_quality .and. iv == issso12) then
@@ -128,7 +128,7 @@ contains
     !$OMP PARALLEL DO PRIVATE(i,sedlo)
     do j=1,kpje
       do i=1,kpie
-        if(omask(i,j).gt.0.5) then
+        if(omask(i,j) > 0.5) then
           !ka          if(bolay(i,j).gt.0.) then
           sedlo  = rcar*orgfa*sedlay(i,j,ks,issso12)  &
                & +      calfa*sedlay(i,j,ks,isssc12)  &
@@ -144,7 +144,7 @@ contains
       !$OMP PARALLEL DO PRIVATE(i,uebers)
       do j=1,kpje
         do i=1,kpie
-          if(omask(i,j).gt.0.5) then
+          if(omask(i,j) > 0.5) then
             !ka          if(bolay(i,j).gt.0.) then
             uebers=wsed(i,j)*sedlay(i,j,ks,iv)
             if (use_sediment_quality .and. iv == issso12) then
@@ -186,7 +186,7 @@ contains
       !$OMP PARALLEL DO PRIVATE(i,sedlo)
       do j=1,kpje
         do i=1,kpie
-          if(omask(i,j).gt.0.5) then
+          if(omask(i,j) > 0.5) then
             !ka        if(bolay(i,j).gt.0.) then
             sedlo  = rcar*orgfa*sedlay(i,j,k,issso12)  &
                  & +      calfa*sedlay(i,j,k,isssc12)  &
@@ -235,7 +235,8 @@ contains
           frac = porsol(i,j,ks)*seddw(ks)
 
           if (use_sediment_quality) then
-            burial(i,j,issso12_age)    = burial(i,j,issso12_age)+dtbgc/31104000.
+            ! Update burial POC age [yrs]
+            burial(i,j,issso12_age)    = burial(i,j,issso12_age) + dtbgc/31104000.
             sedlay(i,j,ks,issso12_age) = (refill*burial(i,j,issso12)/frac * burial(i,j,issso12_age)&
                                        &    + sedlay(i,j,ks,issso12)*sedlay(i,j,ks,issso12_age))   &
                                        & /(refill*burial(i,j,issso12)/frac + sedlay(i,j,ks,issso12)+eps)
@@ -280,7 +281,7 @@ contains
       !$OMP PARALLEL DO PRIVATE(i,sedlo)
       do j=1,kpje
         do i=1,kpie
-          if(omask(i,j).gt.0.5) then
+          if(omask(i,j) > 0.5) then
             !ka        if(bolay(i,j).gt.0.) then
             sedlo  = rcar*orgfa*sedlay(i,j,k,issso12)  &
                  & +      calfa*sedlay(i,j,k,isssc12)  &
