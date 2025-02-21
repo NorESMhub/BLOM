@@ -316,8 +316,11 @@ contains
       allocate(istart(ndims))
       allocate(icount(ndims))
       allocate(arr_l(ii,jj,klev))
+      allocate(arr_g1(itdm,jj,klev))
 
       arr_l=0.0
+      arr_g1=0.0
+
       if (klev.gt.1.or.time.gt.0) then
         if (klev.gt.1.and.time.gt.0) then
           istart(3)=1
@@ -353,8 +356,6 @@ contains
         enddo
       enddo
 
-      allocate(arr_g1(itdm,jj,klev))
-      arr_g1=0.0
       call xcgetrow(arr_g1, arr_l, klev)
 
       ncstat=nfmpi_inq_varid(ncid,desc,ncvarid)
