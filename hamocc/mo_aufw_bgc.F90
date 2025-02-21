@@ -76,9 +76,9 @@ contains
     use mo_carbch,      only: co2star,co3,hi,satoxy,nathi
     use mo_control_bgc, only: io_stdo_bgc,ldtbgc,rmasks,rmasko,use_cisonew,use_AGG,use_BOXATM,     &
                               use_BROMO,use_CFC,use_natDIC,use_sedbypass,use_extNcycle,            &
-                              use_pref_tracers,use_shelfsea_res_time
+                              use_pref_tracers,use_shelfsea_res_time,use_sediment_quality
     use mo_sedmnt,      only: sedhpl
-    use mo_intfcblom,   only: sedlay2,powtra2,burial2,atm2
+    use mo_intfcblom,   only: sedlay2,powtra2,burial2,atm2,prorca_mavg2
     use mo_param1_bgc,  only: ialkali, ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,    &
                               iiron,iopal,ioxygen,iphosph,iphy,iprefalk,iprefdic,iprefo2,iprefpo4, &
                               isco212,isilica,izoo,ks,nocetra,iadust, inos,iatmco2,iatmn2,iatmo2,  &
@@ -87,7 +87,7 @@ contains
                               isssc13,isssc14,ipowc13,ipowc14,iatmnco2,iatmc13,iatmc14,inatalkali, &
                               inatcalc,inatsco212,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,  &
                               ipowno3,isssc12,issso12,issssil,issster,iprefsilica,ianh4,iano2,     &
-                              ipownh4,ipown2o,ipowno2,ishelfage
+                              ipownh4,ipown2o,ipowno2,ishelfage,issso12_age
     use mo_netcdf_bgcrw,only: write_netcdf_var,netcdf_def_vardb
 #ifdef PNETCDF
     use mod_xc,         only: mpicomm
@@ -637,6 +637,13 @@ contains
         call NETCDF_DEF_VARDB(ncid,6,'powno2',3,ncdimst,ncvarid,                                   &
              &    9,'kmol/m**3',33,'Sediment pore water nitrite (NO2)',rmissing,79,io_stdo_bgc)
       endif
+      if (use_sediment_quality) then
+        call NETCDF_DEF_VARDB(ncid,10,'ssso12_age',3,ncdimst,ncvarid,                              &
+           &    2,'yr',39,'Sediment accumulated organic carbon age',rmissing,70,io_stdo_bgc)
+        call NETCDF_DEF_VARDB(ncid,11,'prorca_mavg',3,ncdimst,ncvarid,                             &
+           &    11,'kmol/m**2/d',51,'Moving average of organic carbon sedimentation flux',rmissing,&
+           &    70,io_stdo_bgc)
+      endif
 
       if((mnproc==1 .and. IOTYPE==0) .OR. IOTYPE==1) then
         ncdimst(1) = nclonid
@@ -682,6 +689,11 @@ contains
 
         call NETCDF_DEF_VARDB(ncid,8,'bur_c14',3,ncdimst,ncvarid,                                  &
              &    9,'kmol/m**2',23,'Burial layer of Ca14CO3',rmissing,97,io_stdo_bgc)
+      endif
+
+      if (use_sediment_quality) then
+        call NETCDF_DEF_VARDB(ncid,11,'bur_o12_age',3,ncdimst,ncvarid,                             &
+             &    2,'yr',34,'Burial layer of organic carbon age',rmissing,97,io_stdo_bgc)
       endif
 
     endif ! not sedbypass
@@ -861,6 +873,11 @@ contains
         call write_netcdf_var(ncid,'pownh4',powtra2(1,1,1,ipownh4),2*ks,0)
         call write_netcdf_var(ncid,'pown2o',powtra2(1,1,1,ipown2o),2*ks,0)
         call write_netcdf_var(ncid,'powno2',powtra2(1,1,1,ipowno2),2*ks,0)
+      endif
+      if (use_sediment_quality) then
+        call write_netcdf_var(ncid,'ssso12_age',sedlay2(1,1,1,issso12_age),2*ks,0)
+        call write_netcdf_var(ncid,'bur_o12_age',burial2(1,1,1,issso12_age),2,0)
+        call write_netcdf_var(ncid,'prorca_mavg',prorca_mavg2(1,1,1),2,0)
       endif
     endif
     !

@@ -18,13 +18,13 @@
 module mo_read_sedpor
 
   !*************************************************************************************************
-  ! Routine for reading sediment porosity from netcdf file L_SED_POR must be set to true in nml 
+  ! Routine for reading sediment porosity from netcdf file L_SED_POR must be set to true in nml
   ! to activate lon-lat variable sediment porosity.
   !
   ! The model attempts to read lon-lat-sediment depth variable porosity
   ! from the input file 'SEDPORFILE' (incl. full path)
   !
-  ! sed_por holds then the porosity that can be applied later via mo_apply_sedpor
+  ! sed_por holds then the porosity that can be applied later in mo_sedmnt (ini_sedmnt_por)
   !*************************************************************************************************
 
   implicit none

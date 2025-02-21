@@ -26,7 +26,7 @@ module mo_intfcblom
   !  J.Schwinger,        *NORCE Climate, Bergen*    2020-05-19
   !*************************************************************************************************
 
-  use mo_control_bgc, only: use_sedbypass,use_BOXATM
+  use mo_control_bgc, only: use_sedbypass,use_BOXATM,use_sediment_quality
 
   implicit none
   private
@@ -57,6 +57,7 @@ module mo_intfcblom
   real, allocatable, public :: sedlay2(:,:,:,:)
   real, allocatable, public :: powtra2(:,:,:,:)
   real, allocatable, public :: burial2(:,:,:,:)
+  real, allocatable, public :: prorca_mavg2(:,:,:)
 
   ! Two time level copy of prognostic atmosphere field used if BOXATM is activated
   real, allocatable, public :: atm2(:,:,:,:)
@@ -129,6 +130,18 @@ contains
     omask(:,:) = 0.0
 
     if (.not. use_sedbypass) then
+      if(use_sediment_quality) then
+        if (mnproc.eq.1) then
+          write(io_stdo_bgc,*)'Memory allocation for variable prorca_mavg2 ...'
+          write(io_stdo_bgc,*)'First dimension    : ',kpie
+          write(io_stdo_bgc,*)'Second dimension   : ',kpje
+          write(io_stdo_bgc,*)'Third dimension    : ',2
+        endif
+        allocate (prorca_mavg2(kpie,kpje,2),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory prorca_mavg2'
+        prorca_mavg2(:,:,:) = 0.0
+      endif
+
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable sedlay2 ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
@@ -206,7 +219,7 @@ contains
     use mod_tracers,   only: ntrbgc,itrbgc,trc
     use mo_param1_bgc, only: ks,nsedtra,npowtra,natm
     use mo_carbch,     only: ocetra,atm
-    use mo_sedmnt,     only: sedlay,powtra,sedhpl,burial
+    use mo_sedmnt,     only: sedlay,powtra,sedhpl,burial,prorca_mavg
     use mo_vgrid,      only: kmle, kmle_static
 
     ! Arguments
@@ -348,6 +361,17 @@ contains
       enddo
       !$OMP END PARALLEL DO
 
+      if (use_sediment_quality) then
+        !$OMP PARALLEL DO PRIVATE(l,i)
+        do j=1,jj
+          do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              prorca_mavg(i,j)   = prorca_mavg2(i,j,n)
+            enddo
+          enddo
+        enddo
+        !$OMP END PARALLEL DO
+      endif
     endif
 
     ! --- ------------------------------------------------------------------
@@ -397,7 +421,7 @@ contains
     use mod_tmsmt,     only: wts1, wts2
     use mo_carbch,     only: ocetra,atm
     use mo_param1_bgc, only: ks,nsedtra,npowtra,natm
-    use mo_sedmnt,     only: sedlay,powtra,sedhpl,burial
+    use mo_sedmnt,     only: sedlay,powtra,sedhpl,burial,prorca_mavg
 
     ! Arguments
     integer, intent(in) :: m,n,mm,nn
@@ -462,6 +486,20 @@ contains
       enddo
       !$OMP END PARALLEL DO
 
+      if (use_sediment_quality) then
+        !$OMP PARALLEL DO PRIVATE(l,i)
+        do j=1,jj
+          do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))              ! time smoothing (analog to tmsmt2.F)
+               prorca_mavg2(i,j,m) = wts1*prorca_mavg2(i,j,m)       &
+                                   + wts2*prorca_mavg2(i,j,n)       &
+                                   + wts2*prorca_mavg(i,j)
+            enddo
+          enddo
+        enddo
+        !$OMP END PARALLEL DO
+      endif
+
       !$OMP PARALLEL DO PRIVATE(k,kn,l,i)
       do k=1,ks
         kn=k+nns
@@ -485,6 +523,18 @@ contains
         enddo
       enddo
       !$OMP END PARALLEL DO
+
+      if (use_sediment_quality) then
+        !$OMP PARALLEL DO PRIVATE(l,i)
+        do j=1,jj
+          do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                 prorca_mavg2(i,j,n)  = prorca_mavg(i,j)
+            enddo
+          enddo
+        enddo
+        !$OMP END PARALLEL DO
+      endif
 
     endif ! .not. use_sedbypass
 

@@ -38,7 +38,7 @@ module mo_param_bgc
                             use_BOXATM,use_CFC,use_PBGC_CK_TIMESTEP,                               &
                             use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type,use_M4AGO,&
                             do_n2onh3_coupled,use_extNcycle,                                       &
-                            lkwrbioz_off,lTO2depremin,use_shelfsea_res_time
+                            lkwrbioz_off,lTO2depremin,use_shelfsea_res_time,use_sediment_quality
   use mod_xc,         only: mnproc
 
   implicit none
@@ -100,6 +100,7 @@ module mo_param_bgc
   public :: POM_remin_q10,opal_remin_q10,POM_remin_Tref,opal_remin_Tref
   public :: O2thresh_aerob,O2thresh_hypoxic,NO3thresh_sulf
   public :: shelfbreak_depth
+  public :: sed_alpha_poc,sed_qual_sc
 
   ! extended nitrogen cycle
   public :: q10ano3denit,sc_ano3denit,Trefano3denit,rano3denit,bkano3denit,      &
@@ -153,7 +154,7 @@ module mo_param_bgc
 
   ! Decay parameter for C14, HalfLive = 5700 years
   real, parameter :: c14_t_half = 5700.*365.      ! Half life of 14C [days]
-  
+
   ! Minimum surface DIC concentration for gas-exchange parameterization
   real, parameter :: srfdic_min = 1.0e-5          ! kmol C m-3
 
@@ -487,7 +488,8 @@ module mo_param_bgc
   real, protected :: disso_sil   = 3.e-8          ! 1/(kmol Si(OH)4/m3 s) Dissolution rate constant of opal
   real, protected :: disso_caco3 = 1.e-7          ! 1/(kmol CO3--/m3 s) Dissolution rate constant of CaCO3
   real, protected :: sed_denit   = 0.01/86400.    ! 1/s Denitrification rate constant of POP
-
+  real, protected :: sed_alpha_poc = 1./90.       ! 1/d 1/decay time for sediment moving average - assuming ~3 month memory here
+  real, protected :: sed_qual_sc = 1.             ! scaling factor for sediment quality-based remineralization
   !********************************************************************
   ! Densities etc. for SEDIMENT SHIFTING
   !********************************************************************
@@ -627,7 +629,7 @@ contains
                          bkoxan2odenit_sed,bkan2odenit_sed,q10dnra_sed,          &
                          bkoxdnra_sed,bkdnra_sed,q10anh4nitr_sed,                &
                          bkoxamox_sed,bkanh4nitr_sed,q10ano2nitr_sed,            &
-                         bkoxnitr_sed,bkano2nitr_sed
+                         bkoxnitr_sed,bkano2nitr_sed,sed_alpha_poc,sed_qual_sc
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)
@@ -853,6 +855,7 @@ contains
       call cinfo_add_entry('lkwrbioz_off',           lkwrbioz_off)
       call cinfo_add_entry('lTO2depremin',           lTO2depremin)
       call cinfo_add_entry('use_shelfsea_res_time',  use_shelfsea_res_time)
+      call cinfo_add_entry('use_sediment_quality',   use_sediment_quality)
       call cinfo_add_entry('use_M4AGO',              use_M4AGO)
       if (use_extNcycle) then
         call cinfo_add_entry('do_n2onh3_coupled',       do_n2onh3_coupled)
@@ -1008,6 +1011,10 @@ contains
       call pinfo_add_entry('opaldens',    opaldens)
       call pinfo_add_entry('calcdens',    calcdens)
       call pinfo_add_entry('claydens',    claydens)
+      if (use_sediment_quality) then
+        call pinfo_add_entry('sed_alpha_poc',    sed_alpha_poc)
+        call pinfo_add_entry('sed_qual_sc',      sed_qual_sc)
+      endif
     endif
     if (use_extNcycle) then
       write(io_stdo_bgc,*) '*********************************************************'

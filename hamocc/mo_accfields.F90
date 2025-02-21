@@ -130,10 +130,13 @@ contains
                                 jsdm_denit_NO3,jsdm_denit_NO2,jsdm_denit_N2O,jsdm_DNRA_NO2,        &
                                 jsdm_anmx_N2_prod,jsdm_anmx_OM_prod,jsdm_remin_aerob,              &
                                 jsdm_remin_sulf,jsediffnh4,jsediffn2o,jsediffno2,jatmn2o,jatmnh3,  &
-                                jndepnhxfx,jshelfage,jlvlshelfage
+                                jndepnhxfx,jshelfage,jlvlshelfage,                                 &
+                                jsed_mavg_prorca,jsdm_remin_sulf,jsdm_qual_a,jsdm_qual_k,          &
+                                jsdm_qual_app,jsdm_ssso12_age
     use mo_control_bgc,   only: io_stdo_bgc,dtb,use_BROMO,use_AGG,use_WLIN,use_natDIC,             &
                                 use_CFC,use_sedbypass,use_cisonew,use_BOXATM,use_M4AGO,            &
-                                use_extNcycle,use_pref_tracers,use_shelfsea_res_time
+                                use_extNcycle,use_pref_tracers,use_shelfsea_res_time,              &
+                                use_sediment_quality
     use mo_param1_bgc,    only: ialkali,ian2o,iano3,iatmco2,iatmdms,iatmn2,iatmn2o,iatmo2,         &
                                 icalc,idet,idms,idicsat,idoc,iiron,iopal,                          &
                                 ioxygen,iphosph,iphy,iprefalk,iprefdic,                            &
@@ -146,8 +149,9 @@ contains
                                 ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,                           &
                                 ipown2,ipowno3,isssc12,issso12,issssil,issster,                    &
                                 issso12,isssc12,issssil,issster,iprefsilica,iatmnh3,ianh4,iano2,   &
-                                ipownh4,ipown2o,ipowno2,ishelfage
-    use mo_sedmnt,        only: powtra,sedlay,burial
+                                ipownh4,ipown2o,ipowno2,ishelfage,issso12_age
+    use mo_sedmnt,        only: powtra,sedlay,burial,prorca_mavg,sed_reactivity_a,                 &
+                                sed_reactivity_k,sed_applied_reminrate
     use mo_vgrid,         only: dp_min
     use mo_inventory_bgc, only: inventory_bgc
     use mo_ncwrt_bgc    , only: ncwrt_bgc
@@ -381,6 +385,9 @@ contains
         call accsrf(jsediffnh4,sedfluxo(1,1,ipownh4),omask,0)
         call accsrf(jsediffn2o,sedfluxo(1,1,ipown2o),omask,0)
         call accsrf(jsediffno2,sedfluxo(1,1,ipowno2),omask,0)
+      endif
+      if (use_sediment_quality) then
+        call accsrf(jsed_mavg_prorca,prorca_mavg(1,1),omask,0)
       endif
     endif
     ! Accumulate layer diagnostics
@@ -647,6 +654,12 @@ contains
         call accsdm(jsdm_anmx_OM_prod  ,extNsed_diagnostics(1,1,1,ised_anmx_OM_prod))
         call accsdm(jsdm_remin_aerob   ,extNsed_diagnostics(1,1,1,ised_remin_aerob))
         call accsdm(jsdm_remin_sulf    ,extNsed_diagnostics(1,1,1,ised_remin_sulf))
+      endif
+      if (use_sediment_quality) then
+        call accsdm(jsdm_ssso12_age, sedlay(1,1,1,issso12_age))
+        call accsdm(jsdm_qual_a,     sed_reactivity_a(1,1,1))
+        call accsdm(jsdm_qual_k,     sed_reactivity_k(1,1,1))
+        call accsdm(jsdm_qual_app,   sed_applied_reminrate(1,1,1))
       endif
     endif
 

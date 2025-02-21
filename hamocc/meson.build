@@ -34,6 +34,7 @@ sources += files(
   'mo_shelfsea_restime.F90',
   'mo_read_oafx.F90',
   'mo_read_sedpor.F90',
+  'mo_read_sedqual.F90',
   'mo_sedmnt.F90',
   'mo_vgrid.F90',
   'mo_ncout_hamocc.F90',

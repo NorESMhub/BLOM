@@ -31,7 +31,7 @@ module mo_sedmnt
 
   use mod_xc,         only: mnproc
   use mo_param1_bgc,  only: ks,ksp,nsedtra,npowtra
-  use mo_control_bgc, only: io_stdo_bgc,use_sedbypass,use_cisonew
+  use mo_control_bgc, only: io_stdo_bgc,use_sedbypass,use_cisonew,use_sediment_quality
 
   implicit none
   private
@@ -58,6 +58,7 @@ module mo_sedmnt
 
   real, dimension (:,:),     allocatable, public :: silpro
   real, dimension (:,:),     allocatable, public :: prorca
+  real, dimension (:,:),     allocatable, public :: prorca_mavg
   real, dimension (:,:),     allocatable, public :: pror13
   real, dimension (:,:),     allocatable, public :: prca13
   real, dimension (:,:),     allocatable, public :: pror14
@@ -66,19 +67,26 @@ module mo_sedmnt
   real, dimension (:,:),     allocatable, public :: produs
   real, dimension (:,:,:),   allocatable, public :: burial
 
+  ! values for sediment quality-driven remineralization
+  real, dimension(:,:,:),    allocatable, public :: sed_reactivity_a
+  real, dimension(:,:,:),    allocatable, public :: sed_reactivity_k
+  real, dimension(:,:,:),    allocatable, public :: sed_applied_reminrate
+
   real, protected, public :: calfa, oplfa, orgfa, clafa
 
 CONTAINS
 
-  subroutine ini_sedmnt(kpie,kpje,kpke,omask,sed_por)
+  subroutine ini_sedmnt(kpie,kpje,omask,sed_por,sed_POCage_init,prorca_mavg_init)
     !***********************************************************************************************
 
     use mo_param_bgc, only: claydens,calcwei,calcdens,opalwei,opaldens,orgwei,orgdens,sedict
 
     ! Arguments
-    integer, intent(in) :: kpie,kpje,kpke
+    integer, intent(in) :: kpie,kpje
     real,    intent(in) :: omask(kpie,kpje)
     real,    intent(in) :: sed_por(kpie,kpje,ks)
+    real,    intent(in) :: sed_POCage_init(kpie,kpje,ks)
+    real,    intent(in) :: prorca_mavg_init(kpie,kpje)
 
     ! Local variables
     integer :: k
@@ -120,12 +128,16 @@ CONTAINS
     if (.not. use_sedbypass) then
       ! 2d and 3d fields are not allocated in case of sedbypass
       ! so only initialize them if we are using the sediment
-      call ini_sedmnt_por(kpie,kpje,kpke,omask,sed_por)
+      call ini_sedmnt_por(kpie,kpje,omask,sed_por)
+      if (use_sediment_quality) then
+        call ini_sed_qual(kpie,kpje,omask,sed_POCage_init,prorca_mavg_init)
+      endif
     endif
+
 
   end subroutine ini_sedmnt
 
-  subroutine ini_sedmnt_por(kpie,kpje,kpke,omask,sed_por)
+  subroutine ini_sedmnt_por(kpie,kpje,omask,sed_por)
     !***********************************************************************************************
     ! Initialization of:
     ! - 3D porosity field (cell center and cell boundaries)
@@ -136,7 +148,7 @@ CONTAINS
     use mo_param_bgc,   only: sedict
 
     ! Arguments
-    integer, intent(in) :: kpie,kpje,kpke
+    integer, intent(in) :: kpie,kpje
     real,    intent(in) :: omask(kpie,kpje)
     real,    intent(in) :: sed_por(kpie,kpje,ks)
 
@@ -144,7 +156,7 @@ CONTAINS
     integer :: i,j,k
 
     ! this initialization can be done via reading a porosity map
-    ! porwat is the poroisty at the (pressure point) center of the grid cell
+    ! porwat is the porosity at the (pressure point) center of the grid cell
     if (l_3Dvarsedpor)then
       ! lon-lat variable sediment porosity from input file
       do k=1,ks
@@ -214,6 +226,43 @@ CONTAINS
 
   end subroutine ini_sedmnt_por
 
+  subroutine ini_sed_qual(kpie,kpje,omask,sed_POCage_init,prorca_mavg_init)
+    !-----------------------------------------------------------------------------------------------
+    ! Initialize moving average prorca and sediment POC age
+    ! use burial age equiv. to oldest sed layer
+    !-----------------------------------------------------------------------------------------------
+    use mo_param1_bgc,   only: issso12_age
+
+    implicit none
+    ! Arguments
+    integer, intent(in) :: kpie,kpje
+    real,    intent(in) :: omask(kpie,kpje)
+    real,    intent(in) :: sed_POCage_init(kpie,kpje,ks)
+    real,    intent(in) :: prorca_mavg_init(kpie,kpje)
+
+    ! Local variables
+    integer :: i,j,k
+
+    if (mnproc == 1) then
+      write(io_stdo_bgc,*)  ' '
+      write(io_stdo_bgc,*)  'Initializing sediment quality: age and moving average prorca'
+      write(io_stdo_bgc,*)  ' '
+    endif
+
+    do i = 1,kpie
+      do j = 1,kpje
+          ! Units: prorca_mavg_init expected to be in [kmol P m-2 s-1]
+          !        - needs to be converted to [mmol P m-2 d-1]
+          prorca_mavg(i,j)        = prorca_mavg_init(i,j)*1.0e6/86400.
+          burial(i,j,issso12_age) = sed_POCage_init(i,j,ks)
+        do k = 1,ks
+          sedlay(i,j,k,issso12_age) = sed_POCage_init(i,j,k)
+        enddo
+      enddo
+    enddo
+
+  end subroutine ini_sed_qual
+
   subroutine alloc_mem_sedmnt(kpie,kpje)
     !***********************************************************************************************
     !  Allocate variables in this module
@@ -256,6 +305,48 @@ CONTAINS
       allocate (pror14(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory pror14'
       pror14(:,:) = 0.0
+    endif
+
+    if (use_sediment_quality) then
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable prorca_mavg ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      endif
+      allocate (prorca_mavg(kpie,kpje),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory prorca_mavg'
+      prorca_mavg(:,:) = 0.0
+
+
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable sed_reactivity_a ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+        write(io_stdo_bgc,*)'Third dimension    : ',ks
+      endif
+      allocate (sed_reactivity_a(kpie,kpje,ks),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory sed_reactivity_a'
+      sed_reactivity_a(:,:,:) = 0.0
+
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable sed_reactivity_k ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+        write(io_stdo_bgc,*)'Third dimension    : ',ks
+      endif
+      allocate (sed_reactivity_k(kpie,kpje,ks),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory sed_reactivity_k'
+      sed_reactivity_k(:,:,:) = 0.0
+
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable sed_applied_reminrate ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+        write(io_stdo_bgc,*)'Third dimension    : ',ks
+      endif
+      allocate (sed_applied_reminrate(kpie,kpje,ks),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory sed_applied_reminrate'
+      sed_applied_reminrate(:,:,:) = 0.0
     endif
 
     if (mnproc.eq.1) then
