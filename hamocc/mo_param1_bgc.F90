@@ -194,6 +194,7 @@ module mo_param1_bgc
   integer, protected :: i_sed_age
   integer, protected :: issso12_age
   integer, protected :: nsedtra ! total number of solid sediment tracers
+  integer, protected :: nsedtra_woage ! total number of solid sediment tracers without age tracer
 
   ! Indices for tracers in sediment pore water
   integer, protected :: i_pow_base
@@ -498,7 +499,8 @@ contains
       i_sed_age   = 0
       issso12_age = -1
     endif
-    nsedtra = i_sed_base + i_sed_cisonew + i_sed_age
+    nsedtra_woage = i_sed_base + i_sed_cisonew ! needed in mo_sedshi.F90
+    nsedtra       = nsedtra_woage + i_sed_age
 
     ! sediment pore water components
     i_pow_base =7

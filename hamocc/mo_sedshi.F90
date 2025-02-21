@@ -43,7 +43,7 @@ contains
     use mo_sedmnt,      only: burial,calfa,clafa,oplfa,orgfa,porsol,sedlay,seddw,solfu
     use mo_param_bgc,   only: rcar
     use mo_param1_bgc,  only: isssc12,issssil,issso12,issster,ks,nsedtra,isssc13,isssc14,          &
-                              issso13,issso14,issso12_age
+                              issso13,issso14,issso12_age,nsedtra_woage
     use mo_carbch,      only: sedfluxb
     use mo_control_bgc, only: use_cisonew,use_sediment_quality,dtbgc
 
@@ -54,7 +54,6 @@ contains
 
     ! Local variables
     integer :: i,j,k,l,iv
-    integer :: nage
     real    :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)
     real    :: wsed(kpie,kpje), fulsed(kpie,kpje)
     real    :: sedlo,uebers,seddef,spresent,buried
@@ -62,10 +61,6 @@ contains
     real    :: eps=epsilon(1.)
 
     sedfluxb(:,:,:) = 0.
-    nage = 0
-    if (use_sediment_quality) then
-      nage = 1
-    endif
 
     ! DOWNWARD SHIFTING
     ! shift solid sediment sediment downwards, if layer is full, i.e., if
@@ -93,7 +88,7 @@ contains
       !$OMP END PARALLEL DO
 
       ! filling downward  (accumulation)
-      do iv=1,nsedtra-nage
+      do iv=1,nsedtra_woage
         !$OMP PARALLEL DO PRIVATE(i,uebers)
         do j=1,kpje
           do i=1,kpie
@@ -140,7 +135,7 @@ contains
     enddo !end j-loop
     !$OMP END PARALLEL DO
 
-    do iv=1,nsedtra-nage
+    do iv=1,nsedtra_woage
       !$OMP PARALLEL DO PRIVATE(i,uebers)
       do j=1,kpje
         do i=1,kpie
@@ -293,7 +288,7 @@ contains
       enddo !end j-loop
       !$OMP END PARALLEL DO
 
-      do iv=1,nsedtra-nage
+      do iv=1,nsedtra_woage
         !$OMP PARALLEL DO PRIVATE(i,uebers,frac)
         do j=1,kpje
           do i=1,kpie
