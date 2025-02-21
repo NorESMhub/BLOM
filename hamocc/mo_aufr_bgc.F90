@@ -26,8 +26,7 @@ module mo_aufr_bgc
 
 CONTAINS
 
-  subroutine aufr_bgc(kpie,kpje,kpke,ntr,ntrbgc,itrbgc,trc,kplyear,kplmon,kplday,omask,rstfnm,     &
-                     & sed_POCage,prorca_mavg)
+  subroutine aufr_bgc(kpie,kpje,kpke,ntr,ntrbgc,itrbgc,trc,kplyear,kplmon,kplday,omask,rstfnm)
 
     !***********************************************************************************************
     ! Reads marine bgc restart data.
@@ -98,7 +97,7 @@ CONTAINS
                                   isssc12,issso12,issssil,issster,ks,ianh4,iano2,ipownh4,ipown2o,  &
                                   ipowno2,issso12_age
     use mo_vgrid,           only: kbo
-    use mo_sedmnt,          only: sedhpl
+    use mo_sedmnt,          only: sedhpl,prorca_mavg,burial,sedlay
     use mo_intfcblom,       only: sedlay2,powtra2,burial2,atm2,prorca_mavg2
     use mo_param_bgc,       only: bifr13_ini,bifr14_ini,c14fac,re1312,re14to,prei13,prei14
     use mo_netcdf_bgcrw,    only: read_netcdf_var
@@ -119,8 +118,6 @@ CONTAINS
     integer,          intent(in)    :: kplday                                            ! day   in ocean restart date
     real,             intent(in)    :: omask(kpie,kpje)                                  ! land/ocean mask
     character(len=*), intent(in)    :: rstfnm                                            ! restart file name-informations
-    real,             intent(in)    :: sed_POCage(kpie,kpje,ks)                          ! sediment POC age
-    real,             intent(in)    :: prorca_mavg(kpie,kpje)                            ! moving average prorca
 
     ! Local variables
     real, allocatable :: locetra(:,:,:,:)          ! local array for reading
@@ -683,13 +680,13 @@ CONTAINS
         do j=1,kpje
           do i=1,kpie
             if (omask(i,j) > 0.) then
-              burial2(i,j,1,issso12_age)      = sed_POCage(i,j,ks)
-              burial2(i,j,2,issso12_age)      = sed_POCage(i,j,ks)
+              burial2(i,j,1,issso12_age)      = burial(i,j,issso12_age)
+              burial2(i,j,2,issso12_age)      = burial(i,j,issso12_age)
               prorca_mavg2(i,j,1)             = prorca_mavg(i,j)
               prorca_mavg2(i,j,2)             = prorca_mavg(i,j)
               do k=1,ks
-                sedlay2(i,j,k,issso12_age)    = sed_POCage(i,j,k)
-                sedlay2(i,j,ks+k,issso12_age) = sed_POCage(i,j,k)
+                sedlay2(i,j,k,issso12_age)    = sedlay(i,j,k,issso12_age)
+                sedlay2(i,j,ks+k,issso12_age) = sedlay(i,j,k,issso12_age)
               enddo
             endif
           enddo
