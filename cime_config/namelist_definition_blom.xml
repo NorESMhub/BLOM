@@ -3870,7 +3870,7 @@
     <values>
       <value>.false.</value>
       <value comp_interface="nuopc">.true.</value>
-      <value "hamocc_atmndepc"="yes">.true.</value>
+      <value hamocc_atmndepc="yes">.true.</value>
     </values>
     <desc>if .true., use MCT coupler fields from CAM or NUOPC to obtain NDEP (always imported to model).</desc>
   </entry>
