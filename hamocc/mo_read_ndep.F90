@@ -162,7 +162,7 @@ contains
 
     use mod_xc,             only: mnproc
     use netcdf,             only: nf90_open,nf90_close,nf90_nowrite
-    use mo_control_bgc,     only: io_stdo_bgc, do_ndep, use_extNcycle, use_nuopc_ndep
+    use mo_control_bgc,     only: io_stdo_bgc, do_ndep, use_extNcycle, use_coupler_ndep
     use mo_netcdf_bgcrw,    only: read_netcdf_var
     use mo_param1_bgc,      only: nndep,idepnoy,idepnhx
     use mo_chemcon,         only: mw_nitrogen
@@ -191,9 +191,9 @@ contains
       return
     endif
 
-    if (use_nuopc_ndep) then
-      ! If  use_nuopc_ndep, nitrogen deposition is ALWAYS obtained from the
-      ! nuopc mediator
+    if (use_coupler_ndep) then
+      ! If  use_coupler_ndep, nitrogen deposition is ALWAYS obtained from the
+      ! mct coupler or nuopc mediator (CAM or CDEPS)
       if (mnproc == 1 .and. first_call) then
         write (io_stdo_bgc,*) 'iHAMOCC: getting NOy and NHx deposition from atm'
       endif
