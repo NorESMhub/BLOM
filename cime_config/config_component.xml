@@ -228,6 +228,16 @@
     <desc>Set namelist option to activate the shelfsea water residence time code. Requires module ecosys</desc>
   </entry>
 
+  <entry id="HAMOCC_SEDIMENT_QUALITY">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Set namelist option to activate the sediment quality-based remineralization code. Requires module ecosys</desc>
+  </entry>
+
+
   <entry id="HAMOCC_CISO">
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
