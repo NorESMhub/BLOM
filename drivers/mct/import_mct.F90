@@ -369,108 +369,108 @@ subroutine import_mct(x2o_o, lsize, perm, jjcpl)
     if (mnproc.eq.1) then
       write (lp,*) 'import_mct: prog. atmospheric nitrous oxide not read'
     endif
+  endif
 
-    if (index_x2o_Sa_nh3prog > 0) then
-      n = 0
-      do j = 1, jjcpl
-        do i = 1, ii
-          n = n + 1
-          if     (ip(i,j) == 0) then
-            atmnh3_da(i,j,l2ci) = mval
-          elseif (cplmsk(i,j) == 0) then
-            atmnh3_da(i,j,l2ci) = fval
-          else
-            ! Atmospheric nitrous oxide concentration [ppt]
-            atmnh3_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Sa_nh3prog,n)
-          endif
-        enddo
+  if (index_x2o_Sa_nh3prog > 0) then
+    n = 0
+    do j = 1, jjcpl
+      do i = 1, ii
+        n = n + 1
+        if     (ip(i,j) == 0) then
+          atmnh3_da(i,j,l2ci) = mval
+        elseif (cplmsk(i,j) == 0) then
+          atmnh3_da(i,j,l2ci) = fval
+        else
+          ! Atmospheric nitrous oxide concentration [ppt]
+          atmnh3_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Sa_nh3prog,n)
+        endif
       enddo
-      call fill_global(mval, fval, halo_ps, atmnh3_da(1-nbdy,1-nbdy,l2ci))
-      if (mnproc.eq.1) then
-        write (lp,*) 'import_mct: prog. atmospheric ammonia read'
-      end if
-    else
-      do j = 1, jj
-        do i = 1, ii
-          if (ip(i,j) == 0) then
-            atmnh3_da(i,j,l2ci) = mval
-          else
-            atmnh3_da(i,j,l2ci) = -1
-          endif
-        enddo
-      enddo
-      if (mnproc.eq.1) then
-        write (lp,*) 'import_mct: prog. atmospheric ammonia not read'
-      endif
+    enddo
+    call fill_global(mval, fval, halo_ps, atmnh3_da(1-nbdy,1-nbdy,l2ci))
+    if (mnproc.eq.1) then
+      write (lp,*) 'import_mct: prog. atmospheric ammonia read'
     end if
+  else
+    do j = 1, jj
+      do i = 1, ii
+        if (ip(i,j) == 0) then
+          atmnh3_da(i,j,l2ci) = mval
+        else
+          atmnh3_da(i,j,l2ci) = -1
+        endif
+      enddo
+    enddo
+    if (mnproc.eq.1) then
+      write (lp,*) 'import_mct: prog. atmospheric ammonia not read'
+    endif
+  end if
 
-    if (index_x2o_Faxa_nhx > 0) then
-      n = 0
-      do j = 1, jjcpl
-        do i = 1, ii
-          n = n + 1
-          if     (ip(i,j) == 0) then
-            atmnhxdep_da(i,j,l2ci) = mval
-          elseif (cplmsk(i,j) == 0) then
-            atmnhxdep_da(i,j,l2ci) = fval
-          else
-            ! Atmospheric nhx deposition [kgN/m2/sec]
-            atmnhxdep_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Faxa_nhx,n)
-          endif
-        enddo
+  if (index_x2o_Faxa_nhx > 0) then
+    n = 0
+    do j = 1, jjcpl
+      do i = 1, ii
+        n = n + 1
+        if     (ip(i,j) == 0) then
+          atmnhxdep_da(i,j,l2ci) = mval
+        elseif (cplmsk(i,j) == 0) then
+          atmnhxdep_da(i,j,l2ci) = fval
+        else
+          ! Atmospheric nhx deposition [kgN/m2/sec]
+          atmnhxdep_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Faxa_nhx,n)
+        endif
       enddo
-      call fill_global(mval, fval, halo_ps, atmnhxdep_da(1-nbdy,1-nbdy,l2ci))
-      if (mnproc.eq.1) then
-        write (lp,*) 'import_mct: atmospheric nhx deposition read'
-      end if
-    else
-      do j = 1, jj
-        do i = 1, ii
-          if (ip(i,j) == 0) then
-            atmnhxdep_da(i,j,l2ci) = mval
-          else
-            atmnhxdep_da(i,j,l2ci) = -1
-          endif
-        enddo
-      enddo
-      if (mnproc.eq.1) then
-        write (lp,*) 'import_mct: atmospheric nhx deposition not read'
-      endif
+    enddo
+    call fill_global(mval, fval, halo_ps, atmnhxdep_da(1-nbdy,1-nbdy,l2ci))
+    if (mnproc.eq.1) then
+      write (lp,*) 'import_mct: atmospheric nhx deposition read'
     end if
+  else
+    do j = 1, jj
+      do i = 1, ii
+        if (ip(i,j) == 0) then
+          atmnhxdep_da(i,j,l2ci) = mval
+        else
+          atmnhxdep_da(i,j,l2ci) = -1
+        endif
+      enddo
+    enddo
+    if (mnproc.eq.1) then
+      write (lp,*) 'import_mct: atmospheric nhx deposition not read'
+    endif
+  end if
 
-    if (index_x2o_Faxa_noy > 0) then
-      n = 0
-      do j = 1, jjcpl
-        do i = 1, ii
-          n = n + 1
-          if     (ip(i,j) == 0) then
-            atmnoydep_da(i,j,l2ci) = mval
-          elseif (cplmsk(i,j) == 0) then
-            atmnoydep_da(i,j,l2ci) = fval
-          else
-            ! Atmospheric noy deposition [kgN/m2/sec]
-            atmnoydep_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Faxa_noy,n)
-          endif
-        enddo
+  if (index_x2o_Faxa_noy > 0) then
+    n = 0
+    do j = 1, jjcpl
+      do i = 1, ii
+        n = n + 1
+        if     (ip(i,j) == 0) then
+          atmnoydep_da(i,j,l2ci) = mval
+        elseif (cplmsk(i,j) == 0) then
+          atmnoydep_da(i,j,l2ci) = fval
+        else
+          ! Atmospheric noy deposition [kgN/m2/sec]
+          atmnoydep_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Faxa_noy,n)
+        endif
       enddo
-      call fill_global(mval, fval, halo_ps, atmnoydep_da(1-nbdy,1-nbdy,l2ci))
-      if (mnproc.eq.1) then
-        write (lp,*) 'import_mct: atmospheric noy deposition read'
-      end if
-    else
-      do j = 1, jj
-        do i = 1, ii
-          if (ip(i,j) == 0) then
-            atmnoydep_da(i,j,l2ci) = mval
-          else
-            atmnoydep_da(i,j,l2ci) = -1
-          endif
-        enddo
-      enddo
-      if (mnproc.eq.1) then
-        write (lp,*) 'import_mct: atmospheric noy deposition not read'
-      endif
+    enddo
+    call fill_global(mval, fval, halo_ps, atmnoydep_da(1-nbdy,1-nbdy,l2ci))
+    if (mnproc.eq.1) then
+      write (lp,*) 'import_mct: atmospheric noy deposition read'
     end if
+  else
+    do j = 1, jj
+      do i = 1, ii
+        if (ip(i,j) == 0) then
+          atmnoydep_da(i,j,l2ci) = mval
+        else
+          atmnoydep_da(i,j,l2ci) = -1
+        endif
+      enddo
+    enddo
+    if (mnproc.eq.1) then
+      write (lp,*) 'import_mct: atmospheric noy deposition not read'
+    endif
   end if
 
   if (csdiag) then
