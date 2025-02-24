@@ -45,7 +45,7 @@ contains
                               ldtrunbgc,ndtdaybgc,with_dmsph,l_3Dvarsedpor,use_M4AGO,              &
                               lkwrbioz_off,do_n2onh3_coupled,                                      &
                               ocn_co2_type, use_sedbypass, use_BOXATM, use_BROMO,use_extNcycle,    &
-                              use_nuopc_ndep,lTO2depremin,use_sediment_quality
+                              use_coupler_ndep,lTO2depremin,use_sediment_quality
     use mo_param1_bgc,  only: ks,init_por2octra_mapping
     use mo_param_bgc,   only: ini_parambgc,claydens,calcdens,calcwei,opaldens,opalwei,ropal
     use mo_carbch,      only: alloc_mem_carbch,ocetra,atm,atm_co2
@@ -207,7 +207,7 @@ contains
     ! --- Initialise reading of input data (dust, n-deposition, river, etc.)
     !
     call ini_read_fedep(idm,jdm,omask)
-    if (.not. use_nuopc_ndep) then
+    if (.not. use_coupler_ndep) then
        call ini_read_ndep(idm,jdm)
     end if
     call ini_read_rivin(idm,jdm,omask)
