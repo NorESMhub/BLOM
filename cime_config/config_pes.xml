@@ -405,7 +405,7 @@
           <ntasks_atm>256</ntasks_atm>
           <ntasks_rof>256</ntasks_rof>
           <ntasks_ice>256</ntasks_ice>
-          <ntasks_ocn>1269</ntasks_ocn>
+          <ntasks_ocn>1270</ntasks_ocn>
           <ntasks_cpl>256</ntasks_cpl>
           <ntasks_lnd>256</ntasks_lnd>
           <ntasks_glc>256</ntasks_glc>
