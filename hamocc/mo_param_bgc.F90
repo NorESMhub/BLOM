@@ -38,7 +38,8 @@ module mo_param_bgc
                             use_BOXATM,use_CFC,use_PBGC_CK_TIMESTEP,                               &
                             use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type,use_M4AGO,&
                             do_n2onh3_coupled,use_extNcycle,                                       &
-                            lkwrbioz_off,lTO2depremin,use_shelfsea_res_time,use_sediment_quality
+                            lkwrbioz_off,lTO2depremin,use_shelfsea_res_time,use_sediment_quality,  &
+                            use_pref_tracers,use_coupler_ndep
   use mod_xc,         only: mnproc
 
   implicit none
@@ -857,6 +858,8 @@ contains
       call cinfo_add_entry('use_shelfsea_res_time',  use_shelfsea_res_time)
       call cinfo_add_entry('use_sediment_quality',   use_sediment_quality)
       call cinfo_add_entry('use_M4AGO',              use_M4AGO)
+      call cinfo_add_entry('use_pref_tracers',       use_pref_tracers)
+      call cinfo_add_entry('use_coupler_ndep',       use_coupler_ndep)
       if (use_extNcycle) then
         call cinfo_add_entry('do_n2onh3_coupled',       do_n2onh3_coupled)
       endif
