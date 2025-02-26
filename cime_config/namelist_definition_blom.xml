@@ -3863,15 +3863,16 @@
    <desc>File name (incl. full path) for atmopheric N-deposition data</desc>
   </entry>
 
-  <entry id="use_nuopc_ndep">
+  <entry id="use_coupler_ndep" modify_via_xml="HAMOCC_ATMNDEPC">
     <type>logical</type>
     <category>config_bgc</category>
     <group>config_bgc</group>
     <values>
       <value>.false.</value>
       <value comp_interface="nuopc">.true.</value>
+      <value hamocc_atmndepc="yes">.true.</value>
     </values>
-    <desc>if .true., use NUOPC to obtain NDEP (always imported to model).</desc>
+    <desc>if .true., use MCT coupler fields from CAM or NUOPC to obtain NDEP (always imported to model).</desc>
   </entry>
 
   <entry id="do_n2onh3_coupled" modify_via_xml="HAMOCC_N2OC">
