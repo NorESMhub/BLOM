@@ -358,7 +358,7 @@
 
   <!-- Configurations for the 1/2 degree tripolar (tnx0.5) grid  !-->
 
-  <!-- GRID: TL319_tn14 : start !-->
+  <!-- GRID: TL319_tn05 : start !-->
   <grid name="a%TL319.+oi%tnx0.5v1">
     <mach name="any">
       <pes pesize="M" compset="any">
@@ -434,6 +434,7 @@
       </pes>
     </mach>
   </grid>
+  <!-- GRID: TL319_tn05 : end !-->
 
   <!-- Configurations for the 1/4 degree tripolar (tnx0.25) grid  !-->
 
