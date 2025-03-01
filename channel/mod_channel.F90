@@ -26,7 +26,7 @@ module mod_channel
 ! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
-   use mod_constants, only: g, rearth, pi, radian
+   use mod_constants, only: grav, rearth, pi, radian
    use mod_xc
    use mod_vcoord, only: sigmar
    use mod_grid, only: qclon, qclat, pclon, pclat, uclon, uclat, vclon, vclat, &
@@ -313,7 +313,7 @@ contains
             do k = 1, kk + 1
                do l = 1, isp(j)
                   do i = max(1, ifp(j, l)),min(ii, ilp(j, l))
-                     phi(i, j, k) = - g*z(i, j, k)
+                     phi(i, j, k) = - grav*z(i, j, k)
                   enddo
                enddo
             enddo

@@ -26,7 +26,7 @@ module mod_momtum
   ! ------------------------------------------------------------------
 
   use mod_types,     only: r8
-  use mod_constants, only: g, alpha0, epsilp, epsilpl, spval, &
+  use mod_constants, only: grav, alpha0, epsilp, epsilpl, spval, &
                            onem, onemm
   use mod_time,      only: delt1, dlt
   use mod_xc
@@ -304,7 +304,7 @@ contains
                /max(epsilpl,pbv(i,j+1,n)*scvx(i,j+1)))*tsfac+util2(i,j)/thkbop
           ubbl = .5*sqrt(ubot*ubot+vbot*vbot)
           q = cb*(ubbl+cbar)
-          drag(i,j) = q*g/(alpha0*thkbop)
+          drag(i,j) = q*grav/(alpha0*thkbop)
           ustarb(i,j) = sqrt(q*ubbl)
         end do
 
@@ -941,7 +941,7 @@ contains
           do j = 1,jj
             do l = 1,isu(j)
               do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
-                stress(i,j) = -2.*taux(i,j)*g*scux(i,j)/(p(i,j,2)+p(i-1,j,2))
+                stress(i,j) = -2.*taux(i,j)*grav*scux(i,j)/(p(i,j,2)+p(i-1,j,2))
               end do
             end do
           end do
@@ -959,7 +959,7 @@ contains
           do l = 1,isu(j)
             do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
               stress(i,j) = -(mu_nonloc(i,j,k)-mu_nonloc(i,j,k+1)) &
-                            *taux(i,j)*g*scux(i,j)/max(onemm,dpu(i,j,km))
+                            *taux(i,j)*grav*scux(i,j)/max(onemm,dpu(i,j,km))
             end do
           end do
         end do
@@ -1104,7 +1104,7 @@ contains
           do j = 1,jj
             do l = 1,isv(j)
               do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
-                stress(i,j) = -2.*tauy(i,j)*g*scvy(i,j)/(p(i,j,2)+p(i,j-1,2))
+                stress(i,j) = -2.*tauy(i,j)*grav*scvy(i,j)/(p(i,j,2)+p(i,j-1,2))
               end do
             end do
           end do
@@ -1122,7 +1122,7 @@ contains
           do l = 1,isv(j)
             do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
               stress(i,j) = -(mv_nonloc(i,j,k)-mv_nonloc(i,j,k+1)) &
-                   *tauy(i,j)*g*scvy(i,j)/max(onemm,dpv(i,j,km))
+                   *tauy(i,j)*grav*scvy(i,j)/max(onemm,dpv(i,j,km))
             end do
           end do
         end do

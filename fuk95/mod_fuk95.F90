@@ -25,7 +25,7 @@ module mod_fuk95
   ! ------------------------------------------------------------------------------
 
   use mod_types,     only: r8
-  use mod_constants, only: g, rearth, rho0, pi, radian, epsilz, &
+  use mod_constants, only: grav, rearth, rho0, pi, radian, epsilz, &
                            L_mks2cgs, R_mks2cgs
   use mod_xc
   use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml, sigmar
@@ -295,7 +295,7 @@ contains
         ! and corresponding isopycnic layer structure. The bulk mixed layer
         ! is set to the minimum mixed layer thickness.
 
-        drhojet = rhoc*f*u0*l0/(g*h1)
+        drhojet = rhoc*f*u0*l0/(grav*h1)
         dsig = (drho + drhojet)/(kk - 4)
         sigref(kk) = rhob - rho0
         sigref(kk - 1) = rhoc + .5_r8*(drho + drhojet) - rho0
@@ -328,7 +328,7 @@ contains
               z(i, j, 3) = mltmin*L_mks2cgs
               z(i, j, kk    ) = h1
               z(i, j, kk + 1) = h0
-              sigm = rhoc*(1._r8 + f*u0*x_psi(x)/(g*h1)) - rho0
+              sigm = rhoc*(1._r8 + f*u0*x_psi(x)/(grav*h1)) - rho0
               sigma(i, j, 1) = sigm &
                    + .5_r8*drho*(z(i, j, 2) + z(i, j, 1) - h1)/h1
               sigma(i, j, 2) = sigm &
@@ -341,7 +341,7 @@ contains
             do l = 1, isp(j)
               do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
                 x = x_nudge(real(i, r8), real(j, r8))
-                sigm = rhoc*(1._r8 + f*u0*x_psi(x)/(g*h1)) - rho0
+                sigm = rhoc*(1._r8 + f*u0*x_psi(x)/(grav*h1)) - rho0
                 sigi = .5_r8*(sigref(k - 1) + sigref(k))
                 z(i, j, k) = ((sigi - sigm)/drho + .5_r8)*h1
                 z(i, j, k) = min(z(i, j, kk) - mindz*(kk - k), &
@@ -361,14 +361,14 @@ contains
         ! active layer is distributed equally among the remaining model
         ! layers using constant z-level interfaces.
 
-        !           drhojet = rhoc*f*u0*l0/(g*h1)
+        !           drhojet = rhoc*f*u0*l0/(grav*h1)
         !           dsig = (drho + drhojet)/(kk - 4)
         !           sigref(kk) = .5_r8*(rhob + rhoc) + .25_r8*(drho + drhojet) - rho0
         !           sigref(kk - 1) = rhoc + .5_r8*(drho + drhojet - dsig) - rho0
         !           do k = kk - 2, 1, -1
         !              sigref(k) = sigref(k + 1) - dsig
         !           enddo
-        drhojet = rhoc*f*u0*l0/(g*h1)
+        drhojet = rhoc*f*u0*l0/(grav*h1)
         dsig = (drho + drhojet)/(kk - 5)
         sigref(kk - 2) = rhoc + .5_r8*(drho + drhojet - dsig) - rho0
         do k = kk - 3, 1, -1
@@ -404,7 +404,7 @@ contains
             do l = 1, isp(j)
               do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
                 x = x_nudge(real(i, r8), real(j, r8))
-                s1 = rhoc*(1._r8 + f*u0*x_psi(x)/(g*h1)) - rho0 &
+                s1 = rhoc*(1._r8 + f*u0*x_psi(x)/(grav*h1)) - rho0 &
                      + .5_r8*drho*(z(i, j, k + 1) + z(i, j, k) - h1)/h1
                 sigma(i, j, k) = &
                      ( s1*max(0._r8, min(z(i, j, k + 1), h1) - z(i, j, k)) &
@@ -450,7 +450,7 @@ contains
       do k = 1, kk + 1
         do l = 1, isp(j)
           do i = max(1, ifp(j, l)),min(ii, ilp(j, l))
-            phi(i, j, k) = - g*z(i, j, k)
+            phi(i, j, k) = - grav*z(i, j, k)
           enddo
         enddo
       enddo

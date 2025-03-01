@@ -23,7 +23,7 @@ module mod_niw
 ! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
-   use mod_constants, only: g, alpha0, pi, spval
+   use mod_constants, only: grav, alpha0, pi, spval
    use mod_time, only: delt1, dlt
    use mod_grid, only: scuy, scvx, coriop
    use mod_xc
@@ -222,7 +222,7 @@ contains
                                + ( util2(i, j    )*iv(i, j    ) &
                                  + util2(i, j + 1)*iv(i, j + 1)) &
                                 /max(1, iv(i, j) + iv(i, j + 1))) &
-                           *alpha0/(2._r8*g*delt1)
+                           *alpha0/(2._r8*grav*delt1)
          enddo
          enddo
       enddo

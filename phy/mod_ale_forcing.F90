@@ -24,7 +24,7 @@ module mod_ale_forcing
 ! ------------------------------------------------------------------------------
 
   use mod_types,     only: r8
-  use mod_constants, only: g, spcifh, alpha0, onem, onecm, onemu, L_mks2cgs
+  use mod_constants, only: grav, spcifh, alpha0, onem, onecm, onemu, L_mks2cgs
   use mod_xc
   use mod_eos,       only: dsigdt0, dsigds0
   use mod_state,     only: dp, temp, saln, p
@@ -63,7 +63,7 @@ contains
 
     ! Set some constants:
     cpi = 1._r8/spcifh      ! Multiplicative inverse of specific heat capacity.
-    gaa = g*alpha0*alpha0
+    gaa = grav*alpha0*alpha0
 
     ! --------------------------------------------------------------------------
     ! Compute shortwave flux penetration factors.

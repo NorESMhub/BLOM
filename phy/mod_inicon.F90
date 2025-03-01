@@ -29,7 +29,7 @@ module mod_inicon
   use dimensions,    only: idm, jdm, kdm, itdm, jtdm
   use mod_types,     only: r8
   use mod_config,    only: expcnf
-  use mod_constants, only: g, epsilp, onem, &
+  use mod_constants, only: grav, epsilp, onem, &
                            L_mks2cgs, M_mks2cgs, P_mks2cgs
   use mod_time,      only: nstep, delt1, dlt
   use mod_xc,        only: xchalt, xcbcst, xcaput, xcstop, xctilr, &
@@ -429,7 +429,7 @@ contains
       do k = 1,kk+1
         do l = 1,isp(j)
           do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-            phi(i,j,k) = -g*z(i,j,k)
+            phi(i,j,k) = -grav*z(i,j,k)
           end do
         end do
       end do

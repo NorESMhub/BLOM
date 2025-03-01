@@ -21,7 +21,7 @@
 module mod_difest
 
   use mod_types,             only: r8
-  use mod_constants,         only: g, alpha0, pi, epsilp, spval, onem, &
+  use mod_constants,         only: grav, alpha0, pi, epsilp, spval, onem, &
                                    onecm, L_mks2cgs, M_mks2cgs, R_mks2cgs
   use mod_time,              only: delt1, dlt
   use mod_xc
@@ -314,7 +314,7 @@ contains
     call CVMix_put(CVMix_glb_params,'Prandtl',1.0)
     call CVMix_put(CVMix_glb_params,'FreshWaterDensity',1000.0)
     call CVMix_put(CVMix_glb_params,'SaltWaterDensity',1025.0)
-    call CVMix_put(CVMix_glb_params,'Gravity',g*iL_mks2cgs)
+    call CVMix_put(CVMix_glb_params,'Gravity',grav*iL_mks2cgs)
     call cvmix_init_shear(mix_scheme = 'KPP', &
          KPP_nu_zero = nus0*A_cgs2mks, &
          KPP_Ri_zero = ri0, &
@@ -721,7 +721,7 @@ contains
                    /max(1,msku(i,j,k)+msku(i+1,j,k)) &
                    +(mskv(i,j,k)*dv2(i,j,k)+mskv(i,j+1,k)*dv2(i,j+1,k)) &
                    /max(1,mskv(i,j,k)+mskv(i,j+1,k))
-              dz = .5*(dp(i,j,kn-1)+dp(i,j,kn))*alpha0/g
+              dz = .5*(dp(i,j,kn-1)+dp(i,j,kn))*alpha0/grav
               rig(i,j,k) = max(0.,bfsqi(i,j,k)*dz*dz) &
                           /max(1.e-13*A_mks2cgs,q)
             else
@@ -1159,7 +1159,7 @@ contains
           ! Calculate Bulk Richardson number from eq (21) of LMD94
           BulkRi_1d(:) = CVmix_kpp_compute_bulk_Richardson(       &
                zt_cntr = cellHeight(:),                           & ! Depth of cell  center [m]
-               delta_buoy_cntr = g*alpha0*deltaRho(:)*iL_mks2cgs, & ! Bulk buoyancy difference, Br-B(z) [m s-2]
+               delta_buoy_cntr = grav*alpha0*deltaRho(:)*iL_mks2cgs, & ! Bulk buoyancy difference, Br-B(z) [m s-2]
                delta_Vsqr_cntr = deltaU2(:),                      & ! Square of resolved velocity difference [m2 s-2]
                Vt_sqr_cntr = VT2(:),                              & ! Unresolved shear [m2 s-2]
                ws_cntr = Ws_1d(:),                                & ! Turbulent velocity scale profile [m s-1]
@@ -2643,7 +2643,7 @@ contains
                  kmax(i,j)-kfil(i,j) >= 1) then
 
               ! Brunt-Vaisala frequency squared
-              bvfsq(i,k) = g*g*max(drhomn,drhol(i,j,k)) &
+              bvfsq(i,k) = grav*grav*max(drhomn,drhol(i,j,k)) &
                    /max(epsilp,dp(i,j,kn))
 
               ! Brunt-Vaisala frequency
@@ -2652,9 +2652,9 @@ contains
               if (use_TRC .and. use_TKE) then
                 if (dp(i,j,kn) > dpbmin) then
                   Buoy(i,j,k) = -difdia(i,j,k)*bvfsq(i,k)
-                  h = max(onem,dp(i,j,kn))*alpha0/g
-                  !               h=max(onem*1e-8,dp(i,j,kn))*alpha0/g
-                  !               h=max(onemm,dp(i,j,kn))*alpha0/g
+                  h = max(onem,dp(i,j,kn))*alpha0/grav
+                  !               h=max(onem*1e-8,dp(i,j,kn))*alpha0/grav
+                  !               h=max(onemm,dp(i,j,kn))*alpha0/grav
                   Shear2(i,j,k) = max(1.e-13*A_mks2cgs,du2l(i,j,k))/(h*h)
                   Prod(i,j,k) = difdia(i,j,k)*Pr_t*Shear2(i,j,k)
                 else
@@ -2914,7 +2914,7 @@ contains
                   vsf = (exp(p(i,j,k+1)/q)-exp(p(i,j,k)/q)) &
                        /(dp(i,j,kn)*(exp(p(i,j,kk+1)/q)-1.))
                 end if
-                nut = g*tdmq*dmxeff*twedon(i,j)*bvfbot(i)*vsf/bvfsq(i,k)
+                nut = grav*tdmq*dmxeff*twedon(i,j)*bvfbot(i)*vsf/bvfsq(i,k)
               else
                 nut = 0.
               end if
@@ -2999,7 +2999,7 @@ contains
                       -exp((p(i,j,3)-p(i,j,k+1))/q)) &
                      /(dp(i,j,kn)*(1.-exp((p(i,j,3)-p(i,j,kk+1))/q)))
               end if
-              nusm = g*niwgf*(1.-niwbf)*niwlf*dmxeff*idkedt(i,j)*vsf &
+              nusm = grav*niwgf*(1.-niwbf)*niwlf*dmxeff*idkedt(i,j)*vsf &
                    /(alpha0*bvfsq(i,max(k,kfil(i,j))))
               difdia(i,j,k) = difdia(i,j,k)+nusm
             end if

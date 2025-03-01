@@ -112,7 +112,7 @@ module mod_restart
 #ifdef HAMOCC
    use mo_control_bgc,     only: use_BROMO, use_extNcycle
 #endif
-   use mod_ifdefs,         only: use_TRC, use_TKE, use_IDLAGE, use_MKS
+   use mod_ifdefs,         only: use_TRC, use_TKE, use_IDLAGE
    use mod_idlage,         only: idlage_init
    use mod_tracers_update, only: restart_trcwt, restart_trcrd
 
@@ -1454,41 +1454,23 @@ contains
       rho_restart = - pb_max/phi_min
 
       if (rho_restart > 1.e2_r8) then
-         if (.not. use_MKS) then
-            if (mnproc == 1) &
-                 write(lp,*) 'restart_read: restart variables will be converted '// &
-                             'from MKS to CGS units.'
-            l_unitconv    = 1.e2_r8
-            m_unitconv    = 1.e3_r8
-            p_unitconv    = 1.e1_r8
-            r_unitconv    = 1.e-3_r8
-            l2_unitconv   = 1.e4_r8
-            l3_unitconv   = 1.e6_r8
-            lm_unitconv   = 1.e5_r8
-            l2m2_unitconv = 1.e10_r8
-            pi_unitconv   = 1.e-1_r8
-            ri_unitconv   = 1.e3_r8
-            l2i_unitconv  = 1.e-4_r8
-            ml2i_unitconv = 1.e-1_r8
-         end if
+         print*,'Mehmet, this is not necessary!'
       else
-         if (use_MKS) then
-            if (mnproc == 1) &
-                 write(lp,*) 'restart_read: restart variables will be converted '// &
-                             'from CGS to MKS units.'
-            l_unitconv    = 1.e-2_r8
-            m_unitconv    = 1.e-3_r8
-            p_unitconv    = 1.e-1_r8
-            r_unitconv    = 1.e3_r8
-            l2_unitconv   = 1.e-4_r8
-            l3_unitconv   = 1.e-6_r8
-            lm_unitconv   = 1.e-5_r8
-            l2m2_unitconv = 1.e-10_r8
-            pi_unitconv   = 1.e1_r8
-            ri_unitconv   = 1.e-3_r8
-            l2i_unitconv  = 1.e4_r8
-            ml2i_unitconv = 1.e1_r8
-         end if
+         if (mnproc == 1) &
+              write(lp,*) 'restart_read: restart variables will be converted '// &
+                          'from CGS to MKS units.'
+         l_unitconv    = 1.e-2_r8
+         m_unitconv    = 1.e-3_r8
+         p_unitconv    = 1.e-1_r8
+         r_unitconv    = 1.e3_r8
+         l2_unitconv   = 1.e-4_r8
+         l3_unitconv   = 1.e-6_r8
+         lm_unitconv   = 1.e-5_r8
+         l2m2_unitconv = 1.e-10_r8
+         pi_unitconv   = 1.e1_r8
+         ri_unitconv   = 1.e-3_r8
+         l2i_unitconv  = 1.e4_r8
+         ml2i_unitconv = 1.e1_r8
       endif
 
       call readfld('u', l_unitconv, u, iuu)

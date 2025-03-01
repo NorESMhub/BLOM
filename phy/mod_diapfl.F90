@@ -20,7 +20,7 @@
 module mod_diapfl
 
   use dimensions,    only: idm, jdm, kdm
-  use mod_constants, only: g, alpha0, spval, epsilp, onem, L_mks2cgs
+  use mod_constants, only: grav, alpha0, spval, epsilp, onem, L_mks2cgs
   use mod_time,      only: delt1
   use mod_xc,        only: xchalt, xctilr, ii, jj, kk, isp, ifp, ilp, &
                            i0, j0, lp, isu, ifu, ilu, isv, ifv, ilv, &
@@ -89,7 +89,7 @@ contains
     parameter(dsgmnr=.1,fcmxr=.25,dsgcr0=.25,dfeps=1.e-12,gbbl=.2,kappa=.4,ustmin=.0001*L_mks2cgs)
 
     ! Constant in the diffusion equation
-    c = g*g*delt1/(alpha0*alpha0)
+    c = grav*grav*delt1/(alpha0*alpha0)
 
     !! Technical note: 2024-06-27
     !! This openMP code block breaks github CI test using macos-lates with
@@ -201,8 +201,8 @@ contains
                 k = kmax-1
                 nubbl = gbbl*ustarb(i,j)**3 &
                         *exp(-(delp(k+1)+.5*delp(k))*abs(coriop(i,j)) &
-                              *alpha0/(kappa*max(ustmin,ustarb(i,j))*g)) &
-                       /(alpha0*g*(sigr(k+1)-sigr(k)))
+                              *alpha0/(kappa*max(ustmin,ustarb(i,j))*grav)) &
+                       /(alpha0*grav*(sigr(k+1)-sigr(k)))
                 nu(k) = max(nu(k),nubbl)
                 difdia(i,j,k) = nu(k)
               end if
@@ -319,7 +319,7 @@ contains
                        i+i0,j+j0
                   open (10,file='diapfl.uf',form = 'unformatted')
                   write (10) kk,kfpl
-                  write (10) g,alpha0,epsilp,onem,delt1,dsgmnr,q,q
+                  write (10) grav,alpha0,epsilp,onem,delt1,dsgmnr,q,q
                   write (10) ttem0,ssal0,delp0,dens0,sigr0,nu0
                   close (10)
                   call xchalt('(diapfl)')
@@ -522,7 +522,7 @@ contains
                        i+i0,j+j0,maxdf,dflim
                   open (10,file='diapfl.uf',form = 'unformatted')
                   write (10) kk,kfpl
-                  write (10) g,alpha0,epsilp,onem,delt1,dsgmnr,q,q
+                  write (10) grav,alpha0,epsilp,onem,delt1,dsgmnr,q,q
                   write (10) ttem0,ssal0,delp0,dens0,sigr0,nu0
                   close (10)
                   call xchalt('(diapfl)')

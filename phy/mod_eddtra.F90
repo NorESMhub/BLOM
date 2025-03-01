@@ -24,7 +24,7 @@ module mod_eddtra
 ! ------------------------------------------------------------------------------
 
    use mod_types,     only: r8
-   use mod_constants, only: g, alpha0, rho0, epsilp, spval, &
+   use mod_constants, only: grav, alpha0, rho0, epsilp, spval, &
                             onem, onecm, onemm, &
                             L_mks2cgs
    use mod_time,      only: delt1
@@ -296,7 +296,7 @@ contains
             enddo
 
             ! Eddy transport to mass flux conversion factor.
-            et2mf = - g*rho0*delt1*scuy(i,j)
+            et2mf = - grav*rho0*delt1*scuy(i,j)
 
             ! Index of last layer containing mass at either of the scalar points
             ! adjacent to the velocity point.
@@ -665,7 +665,7 @@ contains
             enddo
 
             ! Eddy transport to mass flux conversion factor.
-            et2mf = - g*rho0*delt1*scvx(i,j)
+            et2mf = - grav*rho0*delt1*scvx(i,j)
 
             ! Index of last layer containing mass at either of the scalar points
             ! adjacent to the velocity point.
@@ -1151,7 +1151,7 @@ contains
 
          ! Compute components of submesoscale eddy transport [cm2 s-1].
          if (mlrmth_opt == mlrmth_bod23) then
-            csm = g*alpha0*ce/cl
+            csm = grav*alpha0*ce/cl
             !$omp parallel do private(l, i, hbl, hml, absf, wpup, drho)
             do j = -1, jj+2
                do l = 1, isu(j)
@@ -1182,7 +1182,7 @@ contains
             !$omp end parallel do
          else
             rtau = 1._r8/tau_mlr
-            csm = g*alpha0*ce
+            csm = grav*alpha0*ce
             !$omp parallel do private(l, i, hml, f, absfi, lfi, drho)
             do j = -1, jj+2
                do l = 1, isu(j)
@@ -1258,7 +1258,7 @@ contains
             mfleps = eps*epsilp*scu2(i,j)
 
             ! Eddy transport to mass flux conversion factor.
-            et2mf = - g*rho0*delt1*scuy(i,j)
+            et2mf = - grav*rho0*delt1*scuy(i,j)
 
             ! Get interface pressures and find index of last layer containing
             ! mass at either of the scalar points adjacent to the velocity point
@@ -1528,7 +1528,7 @@ contains
             mfleps = eps*epsilp*scv2(i,j)
 
             ! Eddy transport to mass flux conversion factor.
-            et2mf = - g*rho0*delt1*scvx(i,j)
+            et2mf = - grav*rho0*delt1*scvx(i,j)
 
             ! Get interface pressures and find index of last layer containing
             ! mass at either of the scalar points adjacent to the velocity point

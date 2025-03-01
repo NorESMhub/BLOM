@@ -28,7 +28,7 @@ module mod_pgforc
                            isp, ifp, ilp, isu, ifu, ilu, isv, ifv, ilv, &
                            halo_ps, mnproc, lp, ip, iu, iv, xcstop
   use mod_types,     only: r8
-  use mod_constants, only: g, epsilp, onemm, spval
+  use mod_constants, only: grav, epsilp, onemm, spval
   use mod_state,     only: dp, dpu, dpv, temp, saln, p, pu, pv, phi, &
                            pb_p, pbu_p, pbv_p, sealv
   use mod_eos,       only: pref, alp, p_alpha, delphi, dalpdt, dalpds, &
@@ -610,7 +610,7 @@ contains
 
       do l = 1, isp(j)
         do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
-          sealv(i,j) = phi(i,j,1)/g
+          sealv(i,j) = phi(i,j,1)/grav
         end do
       end do
 

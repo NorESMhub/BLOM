@@ -19,7 +19,7 @@
 
 module mod_thermf_cesm
 
-  use mod_constants, only: g, spcifh, t0deg, alpha0, epsilt, onem, &
+  use mod_constants, only: grav, spcifh, t0deg, alpha0, epsilt, onem, &
                            g2kg, kg2g, L_mks2cgs, M_mks2cgs
   use mod_time,      only: nstep, nstep_in_day, nday_in_year, &
                            nday_of_year, baclin, &
@@ -146,9 +146,9 @@ contains
           ! heated. Note the freezing potential is multiplied by 1/2 due to the
           ! leap-frog time stepping. The melting potential uses time averaged
           ! quantities since it is not accumulated.
-          frzpot(i,j) = max(0.,tice_f-totl)*spcifh*dpotl/(2.*g)*(L_mks2cgs**2)
+          frzpot(i,j) = max(0.,tice_f-totl)*spcifh*dpotl/(2.*grav)*(L_mks2cgs**2)
           mltpot(i,j) = min(0.,tfrzm(i,j)-.5*(temp(i,j,k1m)+temp(i,j,k1n))) &
-                        *spcifh*.5*(dp(i,j,k1m)+dp(i,j,k1n))/g*(L_mks2cgs**2)
+                        *spcifh*.5*(dp(i,j,k1m)+dp(i,j,k1n))/grav*(L_mks2cgs**2)
 
           ! Heat flux due to melting/freezing [W m-2] (positive downwards)
           hmltfz(i,j) = hmlt(i,j)+frzpot(i,j)/baclin

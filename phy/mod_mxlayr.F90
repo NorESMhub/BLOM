@@ -26,7 +26,7 @@ module mod_mxlayr
 
   use dimensions,    only: idm, jdm, kdm
   use mod_types,     only: r8
-  use mod_constants, only: g, spcifh, alpha0, epsilp, spval, onem, &
+  use mod_constants, only: grav, spcifh, alpha0, epsilp, spval, onem, &
                            tencm, onecm, onemm, onemu, &
                            L_mks2cgs, R_mks2cgs
   use mod_time,      only: delt1
@@ -236,7 +236,7 @@ contains
                  +temp(i,j,2+nn)*dp(i,j,2+nn))*q
           smxl = (saln(i,j,1+nn)*dp(i,j,1+nn) &
                  +saln(i,j,2+nn)*dp(i,j,2+nn))*q
-          util1(i,j) = g*alpha0*sig0(tmxl,smxl)
+          util1(i,j) = grav*alpha0*sig0(tmxl,smxl)
         end do
       end do
     end do
@@ -345,13 +345,13 @@ contains
           smxl = (ssal(1)*delp(1)+ssal(2)*delp(2))*q
           alfa = -alpha0*dsigdt0(tmxl,smxl)
           beta = alpha0*dsigds0(tmxl,smxl)
-          bfltot = g*alpha0*(alfa*surflx(i,j)/spcifh &
+          bfltot = grav*alpha0*(alfa*surflx(i,j)/spcifh &
                             -beta*(salflx(i,j)-brnflx(i,j)))
           buoyfl(i,j,1) = bfltot
-          bflpsw = g*alpha0*alfa*swbgfc(i,j)*sswflx(i,j)/spcifh
+          bflpsw = grav*alpha0*alfa*swbgfc(i,j)*sswflx(i,j)/spcifh
 
           pmxl = pres(3)
-          q = alpha0/g
+          q = alpha0/grav
           lui = abs(coriop(i,j))*q/(kappa*max(ustmin,ustar(i,j)))
           lei = 1./(onem*swbgal(i,j))
           cus = rm0*ustar3(i,j)
@@ -536,11 +536,11 @@ contains
               if (kfpl > kmax) then
                 if (dpfsl > onemu) then
                   bpmldp = min(bpmndp,dpfsl+delp(2))
-                  q = brnflx(i,j)*delt1*g/bpmldp
+                  q = brnflx(i,j)*delt1*grav/bpmldp
                   ssal(2) = ssal(2)-q*max(0.,bpmldp-dpfsl)/delp(2)
                   sfsl = sfsl-q*min(dpfsl,bpmldp)/dpfsl
                 else
-                  ssal(2) = ssal(2)-brnflx(i,j)*delt1*g/delp(2)
+                  ssal(2) = ssal(2)-brnflx(i,j)*delt1*grav/delp(2)
                 end if
               else
                 pup = pres(3)
@@ -605,16 +605,16 @@ contains
                 if (bdpsum <= epsilp) then
                   if (dpfsl > onemu) then
                     bpmldp = min(bpmndp,dpfsl+delp(2))
-                    q = brnflx(i,j)*delt1*g/bpmldp
+                    q = brnflx(i,j)*delt1*grav/bpmldp
                     ssal(2) = ssal(2)-q*max(0.,bpmldp-dpfsl)/delp(2)
                     sfsl = sfsl-q*min(dpfsl,bpmldp)/dpfsl
                   else
-                    ssal(2) = ssal(2)-brnflx(i,j)*delt1*g/delp(2)
+                    ssal(2) = ssal(2)-brnflx(i,j)*delt1*grav/delp(2)
                   end if
                 else
                   if (bdpsum < bpmndp) then
                     bpmldp = min(bpmndp,bdpsum+dpfsl+delp(2))
-                    q = brnflx(i,j)*delt1*g/bpmldp
+                    q = brnflx(i,j)*delt1*grav/bpmldp
                     ssal(2) = ssal(2) &
                          -q*max(0.,bpmldp-bdpsum-dpfsl)/delp(2)
                     if (dpfsl > onemu) then
@@ -624,7 +624,7 @@ contains
                       bpc = q*(bdpsum+dpfsl)/bcwsum
                     end if
                   else
-                    bpc = brnflx(i,j)*delt1*g/bcwsum
+                    bpc = brnflx(i,j)*delt1*grav/bcwsum
                   end if
                   do k = kfpl,kfmax
                     ssal(k) = ssal(k)-bpc*bc(k)
@@ -637,19 +637,19 @@ contains
             pswbas = swbgfc(i,j)*exp(-lei*delp(1))
             pswup = pswbas
             pswlo = swbgfc(i,j)*exp(-lei*min(pradd,pmxl))
-            q = delt1*g/delp(2)
+            q = delt1*grav/delp(2)
             ttem(2) = ttem(2)-(pswup-pswlo)*sswflx(i,j)*q/spcifh
             pswup = pswlo
             pswlo = swbgfc(i,j)*exp(-lei*min(pradd,pres(3)))
             if (dpfsl > onemu) then
-              tfsl = tfsl-(pswup-pswlo)*sswflx(i,j)*delt1*g/(spcifh*dpfsl)
+              tfsl = tfsl-(pswup-pswlo)*sswflx(i,j)*delt1*grav/(spcifh*dpfsl)
               pswup = pswlo
             end if
             k = kfpl
             do while (k < kmax)
               if (delp(k) > onemu) then
                 pswlo = swbgfc(i,j)*exp(-lei*min(pradd,pres(k+1)))
-                ttem(k) = ttem(k)-(pswup-pswlo)*sswflx(i,j)*delt1*g/(spcifh*delp(k))
+                ttem(k) = ttem(k)-(pswup-pswlo)*sswflx(i,j)*delt1*grav/(spcifh*delp(k))
                 pswup = pswlo
                 kfmax = max(kfmax,k)
               end if
@@ -658,7 +658,7 @@ contains
             end do
 
             ! Apply heat and salt forcing to top layer
-            q = delt1*g/delp(1)
+            q = delt1*grav/delp(1)
             ttem(1) = ttem(1) &
                  -(surflx(i,j)-(pswbas-pswup)*sswflx(i,j) &
                  +surrlx(i,j))*q/spcifh
@@ -893,11 +893,11 @@ contains
                          -p_p_alpha(pres(k),pres(1),tmxl0,smxl0) &
                          -(pres(1)-pres(k)) &
                          *p_alpha(pmxl,pres(k),ttem(k),ssal(k))) &
-                         *alpha0/(delt1*g)
+                         *alpha0/(delt1*grav)
                     dke = dke0 &
                          +.5*rm5*(pres(k)-pres(1))*(pmxl-pres(k)) &
                          *((uk-um)**2+(vk-vm)**2)*alpha0 &
-                         /((pmxl-pres(1))*delt1*g)
+                         /((pmxl-pres(1))*delt1*grav)
                     rm1 = exp(-lui*pmxl)
                     q = lei*pmxl
                     rm3 = exp(-q)
@@ -1012,11 +1012,11 @@ contains
                          -p_p_alpha(pmxl,pres(k),ttem(k),ssal(k)) &
                          -p_p_alpha(pres(k),pres(1),tmxl0,smxl0) &
                          -(pres(1)-pres(k)) &
-                         *p_alpha(pmxl,pres(k),ttem(k),ssal(k)))*alpha0/(delt1*g)
+                         *p_alpha(pmxl,pres(k),ttem(k),ssal(k)))*alpha0/(delt1*grav)
                     dpe0 = dpe
                     dke = dke0 &
                          +.5*rm5*(pres(k)-pres(1))*(pmxl-pres(k)) &
-                         *((uk-um)**2+(vk-vm)**2)*alpha0/((pmxl-pres(1))*delt1*g)
+                         *((uk-um)**2+(vk-vm)**2)*alpha0/((pmxl-pres(1))*delt1*grav)
                     dke0 = dke
                     tmxl0 = tmxl
                     smxl0 = smxl
@@ -1086,7 +1086,7 @@ contains
             pbrnda(i,j) = 0.
             if (brnflx(i,j) < 0.) then
               if (kfpl > kmax) then
-                ssal(2) = ssal(2)-brnflx(i,j)*delt1*g/delp(2)
+                ssal(2) = ssal(2)-brnflx(i,j)*delt1*grav/delp(2)
               else
                 pup = pres(3)
                 drhup = 0.
@@ -1148,15 +1148,15 @@ contains
                 end if
                 kfmax = k
                 if (bdpsum <= epsilp) then
-                  ssal(2) = ssal(2)-brnflx(i,j)*delt1*g/delp(2)
+                  ssal(2) = ssal(2)-brnflx(i,j)*delt1*grav/delp(2)
                 else
                   if (bdpsum < bpmndp) then
                     bpmldp = min(bpmndp,bdpsum+delp(2))
-                    q = brnflx(i,j)*delt1*g/bpmldp
+                    q = brnflx(i,j)*delt1*grav/bpmldp
                     ssal(2) = ssal(2)-q*(bpmldp-bdpsum)/delp(2)
                     bpc = q*bdpsum/bcwsum
                   else
-                    bpc = brnflx(i,j)*delt1*g/bcwsum
+                    bpc = brnflx(i,j)*delt1*grav/bcwsum
                   end if
                   do k = kfpl,kfmax
                     ssal(k) = ssal(k)-bpc*bc(k)
@@ -1169,14 +1169,14 @@ contains
             pswbas = swbgfc(i,j)*exp(-lei*delp(1))
             pswup = pswbas
             pswlo = swbgfc(i,j)*exp(-lei*min(pradd,pres(3)))
-            q = delt1*g/delp(2)
+            q = delt1*grav/delp(2)
             ttem(2) = ttem(2)-(pswup-pswlo)*sswflx(i,j)*q/spcifh
             pswup = pswlo
             k = kfpl
             do while (k < kmax)
               if (delp(k) > onemu) then
                 pswlo = swbgfc(i,j)*exp(-lei*min(pradd,pres(k+1)))
-                ttem(k) = ttem(k)-(pswup-pswlo)*sswflx(i,j)*delt1*g/(spcifh*delp(k))
+                ttem(k) = ttem(k)-(pswup-pswlo)*sswflx(i,j)*delt1*grav/(spcifh*delp(k))
                 pswup = pswlo
                 kfmax = max(kfmax,k)
               end if
@@ -1185,7 +1185,7 @@ contains
             end do
 
             ! Apply heat and salt forcing to top layer
-            q = delt1*g/delp(1)
+            q = delt1*grav/delp(1)
             ttem(1) = ttem(1) &
                  -(surflx(i,j)-(pswbas-pswup)*sswflx(i,j)+surrlx(i,j))*q/spcifh
             ssal(1) = ssal(1) - (salflx(i,j)-brnflx(i,j) + salrlx(i,j))*q
@@ -1224,7 +1224,7 @@ contains
           do k = 1,kk
             kn = k+nn
             temp(i,j,kn) = ttem(k)
-            salt_corr(i,j) = salt_corr(i,j) - min(0._r8, ssal(k))*delp(k)/g
+            salt_corr(i,j) = salt_corr(i,j) - min(0._r8, ssal(k))*delp(k)/grav
             saln(i,j,kn) = max(0._r8, ssal(k))
             sigma(i,j,kn) = dens(k)
             dp(i,j,kn) = delp(k)
@@ -1243,7 +1243,7 @@ contains
                   end if
                 end if
                 trc_corr(i,j,nt) = trc_corr(i,j,nt) &
-                                 - min(0._r8, ttrc(nt,k))*delp(k)/g
+                                 - min(0._r8, ttrc(nt,k))*delp(k)/grav
                 trc(i,j,kn,nt) = max(0._r8, ttrc(nt,k))
               end do
             end if
