@@ -180,17 +180,10 @@ module mod_ben02
        atm_cswa_era          ! short-wave radiation adjustment factor
                              ! (NCEP)
 
-#ifdef MKS
   data atm_ice_csmt_ncep,atm_rnf_csmt_ncep /2.e10,1.e9/, &
        atm_crnf_ncep,atm_cswa_ncep /0.82073,0.88340/, &
        atm_ice_csmt_era,atm_rnf_csmt_era /0.0,1.e9/, &
        atm_crnf_era,atm_cswa_era /0.7234,0.9721/
-#else
-  data atm_ice_csmt_ncep,atm_rnf_csmt_ncep /2.e14,1.e13/, &
-       atm_crnf_ncep,atm_cswa_ncep /0.82073,0.88340/, &
-       atm_ice_csmt_era,atm_rnf_csmt_era /0.0,1.e13/, &
-       atm_crnf_era,atm_cswa_era /0.7234,0.9721/
-#endif
 
   real :: &
        zu, &                ! measurement height of wind [m]
