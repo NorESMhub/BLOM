@@ -24,7 +24,6 @@ module mod_single_column
   ! ----------------------------------------------------------------------
 
   use mod_types,     only: r8
-  use mod_constants, only: L_mks2cgs
   use mod_xc
   use mod_vcoord,    only: sigmar
   use mod_grid,      only: qclon, qclat, pclon, pclat, uclon, uclat, vclon, vclat, &
@@ -68,13 +67,13 @@ contains
     uclat = 0._r8
     vclon = 0._r8
     vclat = 0._r8
-    scqx = 11000.0_r8*L_mks2cgs
-    scqy = 11000.0_r8*L_mks2cgs
-    scpx = 11000.0_r8*L_mks2cgs
-    scpy = 11000.0_r8*L_mks2cgs
-    scux = 11000.0_r8*L_mks2cgs
-    scuy = 11000.0_r8*L_mks2cgs
-    scvx = 11000.0_r8*L_mks2cgs
+    scqx = 11000.0_r8
+    scqy = 11000.0_r8
+    scpx = 11000.0_r8
+    scpy = 11000.0_r8
+    scux = 11000.0_r8
+    scuy = 11000.0_r8
+    scvx = 11000.0_r8
     scvy = scuy
     scq2 = scqx*scqy
     scp2 = scpx*scpy

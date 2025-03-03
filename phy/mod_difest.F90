@@ -22,7 +22,7 @@ module mod_difest
 
   use mod_types,             only: r8
   use mod_constants,         only: grav, alpha0, pi, epsilp, spval, onem, &
-                                   onecm, L_mks2cgs, M_mks2cgs, R_mks2cgs
+                                   onecm
   use mod_time,              only: delt1, dlt
   use mod_xc
   use mod_vcoord,            only: sigmar
@@ -107,13 +107,6 @@ module mod_difest
   !      type(CVMix_kpp_params_type), pointer :: CVmix_kpp_params_in
   !      type(CVMix_kpp_params_type) ::  CVmix_kpp_params_in
 
-  real, parameter :: &
-       iL_mks2cgs = 1./L_mks2cgs, &
-       iM_mks2cgs = 1./M_mks2cgs, &
-       A_mks2cgs  = L_mks2cgs**2, &
-       A_cgs2mks  = 1./(L_mks2cgs*L_mks2cgs), &
-       V_mks2cgs  = L_mks2cgs**3
-
   ! parameters:
   !   iidtyp - type of interface and isopycnal diffusivities. If
   !            iidtyp=1 the diffusivities are diffusive velocities
@@ -181,14 +174,14 @@ module mod_difest
   integer , parameter :: iwdflg=1
   integer , parameter :: dptmin = onem
   real    , parameter ::  dpbmin=onecm
-  real    , parameter :: drhomn = 6.e-3*R_mks2cgs
-  real    , parameter :: thkdff=5.e-3*L_mks2cgs
-  real    , parameter :: temdff = 3.5e-3*L_mks2cgs
-  real    , parameter :: nu0 = 1.e-5*A_mks2cgs
-  real    , parameter :: nus0 = 5.e-3*A_mks2cgs
-  real    , parameter :: nug0 = 2.5e-1*A_mks2cgs
-  real    , parameter :: drho0 = 6.e-3*R_mks2cgs
-  real    , parameter :: nuls0=5.e-2*A_mks2cgs
+  real    , parameter :: drhomn = 6.e-3
+  real    , parameter :: thkdff=5.e-3
+  real    , parameter :: temdff = 3.5e-3
+  real    , parameter :: nu0 = 1.e-5
+  real    , parameter :: nus0 = 5.e-3
+  real    , parameter :: nug0 = 2.5e-1
+  real    , parameter :: drho0 = 6.e-3
+  real    , parameter :: nuls0=5.e-2
   real    , parameter :: iwdfac = .06
   real    , parameter :: dmxeff=.2
   real    , parameter :: tdmq=1./3.
@@ -200,19 +193,19 @@ module mod_difest
   real    , parameter :: niwls=300.*onem
   real    , parameter :: cori30 = 7.2722e-5
   real    , parameter :: bvf0=5.24e-3
-  real    , parameter :: nubmin = 1.e-6*A_mks2cgs
+  real    , parameter :: nubmin = 1.e-6
   real    , parameter :: dpgc=300.*onem
   real    , parameter :: dpgrav=100.*onem
   real    , parameter :: dpdiav = 100.*onem
   real    , parameter :: dpddav=10.*onem
   real    , parameter :: dpnbav=250.*onem
-  real    , parameter :: ustmin = .001*L_mks2cgs
+  real    , parameter :: ustmin = .001
   real    , parameter :: kappa=.4
-  real    , parameter :: bfeps=1.e-16*A_mks2cgs
+  real    , parameter :: bfeps=1.e-16
   real    , parameter :: sleps=.1
   real    , parameter :: zetas = -1.
-  real    , parameter :: cpsemin=-0.2*L_mks2cgs
-  real    , parameter :: urmsemin = 0.05*L_mks2cgs
+  real    , parameter :: cpsemin=-0.2
+  real    , parameter :: urmsemin = 0.05
   real    , parameter :: as=-28.86
   real    , parameter :: cs=98.96
   real    , parameter :: minOBLdepth = 1.0
@@ -306,17 +299,17 @@ contains
     !- convection routine based on N2 not rho
     !- if lBruntVaisala is TRUE, otherwise based on rho
     !- convert nuls0 to m2/s
-    call CVMix_init_conv(convect_diff = 20.0*nuls0*A_cgs2mks, &
-         convect_visc = 20.0*nuls0*A_cgs2mks, &
+    call CVMix_init_conv(convect_diff = 20.0*nuls0, &
+         convect_visc = 20.0*nuls0, &
          lBruntVaisala = .true., &
          BVsqr_convect = 0.0)
     call CVMix_put(CVMix_glb_params,'max_nlev',kk)
     call CVMix_put(CVMix_glb_params,'Prandtl',1.0)
     call CVMix_put(CVMix_glb_params,'FreshWaterDensity',1000.0)
     call CVMix_put(CVMix_glb_params,'SaltWaterDensity',1025.0)
-    call CVMix_put(CVMix_glb_params,'Gravity',grav*iL_mks2cgs)
+    call CVMix_put(CVMix_glb_params,'Gravity',grav)
     call cvmix_init_shear(mix_scheme = 'KPP', &
-         KPP_nu_zero = nus0*A_cgs2mks, &
+         KPP_nu_zero = nus0, &
          KPP_Ri_zero = ri0, &
          KPP_exp = 3.0)
     !  CVmix_kpp_params_in => CVmix_kpp_params_user
@@ -579,7 +572,7 @@ contains
               else if (k < kmax(i,j)) then
                 q = max(0.,rho(p(i,j,k+1),temp(i,j,kn+1),saln(i,j,kn+1)) &
                           -rho(p(i,j,k+1),temp(i,j,kn  ),saln(i,j,kn  )))
-                drhol(i,j,k) = 2.*tup(i)*q/max(1.e-11*R_mks2cgs,tup(i)+q)
+                drhol(i,j,k) = 2.*tup(i)*q/max(1.e-11,tup(i)+q)
                 tup(i) = q
               else
                 drhol(i,j,k) = tup(i)
@@ -596,7 +589,7 @@ contains
               ! Local gradient Richardson number.
               rig(i,j,k) = alpha0*alpha0 &
                    *max(drhomn,drhol(i,j,k))*dp(i,j,kn) &
-                   /max(1.e-13*A_mks2cgs,du2l(i,j,k))
+                   /max(1.e-13,du2l(i,j,k))
 
             end if
           end do
@@ -723,7 +716,7 @@ contains
                    /max(1,mskv(i,j,k)+mskv(i,j+1,k))
               dz = .5*(dp(i,j,kn-1)+dp(i,j,kn))*alpha0/grav
               rig(i,j,k) = max(0.,bfsqi(i,j,k)*dz*dz) &
-                          /max(1.e-13*A_mks2cgs,q)
+                          /max(1.e-13,q)
             else
               rig(i,j,k) = rig(i,j,k-1)
             end if
@@ -1042,9 +1035,9 @@ contains
 
           iFaceHeight(1) = z_int(i,j,1)
           ! convert cm/s to m/s
-          surfFricVel = ustar(i,j) * iL_mks2cgs
+          surfFricVel = ustar(i,j)
           ! convert cm2/s3 to m2/s3
-          surfBuoyFlux = (buoyfl(i,j,2) - buoyfl(i,j,1)) * A_cgs2mks
+          surfBuoyFlux = (buoyfl(i,j,2) - buoyfl(i,j,1))
           do k = 1,kk
             kn = k + nn
             kn1 = max(nn+1,kn-1)
@@ -1108,11 +1101,11 @@ contains
             rig_i(k) = rig_lf(i,j,k)
 
             surfBuoyFlux2(k) = ( buoyfl(i,j,k+1) &
-                 - buoyfl(i,j,1  )) * A_cgs2mks
+                 - buoyfl(i,j,1  ))
 
           end do  ! k
           ! convert cm2/s2 to m2/s2
-          deltaU2 = deltaU2*A_cgs2mks
+          deltaU2 = deltaU2
 
           ! bottom values for the Ri and N
           rig_i(kk+1) = rig_i(kk)
@@ -1159,7 +1152,7 @@ contains
           ! Calculate Bulk Richardson number from eq (21) of LMD94
           BulkRi_1d(:) = CVmix_kpp_compute_bulk_Richardson(       &
                zt_cntr = cellHeight(:),                           & ! Depth of cell  center [m]
-               delta_buoy_cntr = grav*alpha0*deltaRho(:)*iL_mks2cgs, & ! Bulk buoyancy difference, Br-B(z) [m s-2]
+               delta_buoy_cntr = grav*alpha0*deltaRho(:),         & ! Bulk buoyancy difference, Br-B(z) [m s-2]
                delta_Vsqr_cntr = deltaU2(:),                      & ! Square of resolved velocity difference [m2 s-2]
                Vt_sqr_cntr = VT2(:),                              & ! Unresolved shear [m2 s-2]
                ws_cntr = Ws_1d(:),                                & ! Turbulent velocity scale profile [m s-1]
@@ -1247,14 +1240,14 @@ contains
           Kt_kpp(:) = 0.0
           Ks_kpp(:) = 0.0
           do k = 1,kk+1
-            Kv_kpp(k) = Kvisc_m(i,j,k)*A_cgs2mks
-            Kt_kpp(k) = Kdiff_t(i,j,k)*A_cgs2mks
-            Ks_kpp(k) = Kdiff_s(i,j,k)*A_cgs2mks
+            Kv_kpp(k) = Kvisc_m(i,j,k)
+            Kt_kpp(k) = Kdiff_t(i,j,k)
+            Ks_kpp(k) = Kdiff_s(i,j,k)
           end do
           iFaceHeight(1) = z_int(i,j,1)
           ! convert cm/s to m/s
           depth_int(1) = -iFaceHeight(1)
-          surfFricVel = ustar(i,j) * iL_mks2cgs
+          surfFricVel = ustar(i,j)
           ! convert cm2/s3 to m2/s3
 
           do k = 1,kk
@@ -1308,8 +1301,8 @@ contains
           else if (bdmtyp == 2) then
             ! Type 2: Background diffusivity is a constant
             ! convert cm2/s2 to m2/s2
-            Kv_col(:) = bdmc2*A_cgs2mks
-            Kd_col(:) = bdmc2*A_cgs2mks
+            Kv_col(:) = bdmc2
+            Kd_col(:) = bdmc2
           else
             Kv_col(:) = 0.
             Kd_col(:) = 0.
@@ -1335,7 +1328,7 @@ contains
                  efficiency=dmxeff, local_mixing_frac = tdmq)
 
             call CVMix_compute_Simmons_invariant(nlev = kk, &
-                 energy_flux = twedon(i,j)*bvfbot*iM_mks2cgs, &
+                 energy_flux = twedon(i,j)*bvfbot, &
                  rho = CVMix_glb_params%FreshWaterDensity, &
                  SimmonsCoeff = Simmons_coeff, &
                  VertDep = vert_dep(:), &
@@ -1385,7 +1378,7 @@ contains
 
           ! Buoyancy flux acting on the OBL
           surfBuoyFlux = ( buoyfl(i,j,kOBL+1) &
-               - buoyfl(i,j,1  )) * A_cgs2mks
+               - buoyfl(i,j,1  ))
 
           ! Compute KPP using CVMix
           call CVMix_coeffs_kpp(&
@@ -1410,9 +1403,9 @@ contains
 
           !- ccc -------
           ! convert m2/s to cm2/s
-          Kv_kpp = Kv_kpp*A_mks2cgs
-          Kt_kpp = Kt_kpp*A_mks2cgs
-          Ks_kpp = Ks_kpp*A_mks2cgs
+          Kv_kpp = Kv_kpp
+          Kt_kpp = Kt_kpp
+          Ks_kpp = Ks_kpp
           Kv_kpp = max(nubmin,Kv_kpp)
           Kt_kpp = max(nubmin,Kt_kpp)
           Ks_kpp = max(nubmin,Ks_kpp)
@@ -1427,7 +1420,7 @@ contains
           end do
 
           ! Compute convective velocity cubed [cm3 s-3].
-          wstar3(i,j) = max(0.,-surfBuoyFlux)*OBLdepth(i,j)*V_mks2cgs
+          wstar3(i,j) = max(0.,-surfBuoyFlux)*OBLdepth(i,j)
 
         end do
       end do
@@ -1520,7 +1513,7 @@ contains
         do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
           kfil(i,j) = kk+1
           do k = kk,2,-1
-            if (p(i,j,k) > mlts(i,j)*(onem*il_mks2cgs)) kfil(i,j) = k
+            if (p(i,j,k) > mlts(i,j)*(onem)) kfil(i,j) = k
           end do
         end do
       end do
@@ -1773,7 +1766,7 @@ contains
                    kmax(i,j)-kfil(i,j) >= 1) then
 
                 ! Planetary Rhines scale.
-                rhisc = egr(i,k)/max(1.e-22*iL_mks2cgs,betafp(i,j))
+                rhisc = egr(i,k)/max(1.e-22,betafp(i,j))
 
                 if (edanis.or.rhsctp) then
 
@@ -1785,12 +1778,12 @@ contains
                        /max(epsilp,dpv(i,j,kn)+dpv(i,j+1,kn))
 
                   ! Current speed.
-                  speed = max(1.e-22*iL_mks2cgs,sqrt(ubc*ubc+vbc*vbc))
+                  speed = max(1.e-22,sqrt(ubc*ubc+vbc*vbc))
 
                   if (rhsctp) then
 
                     ! Topographic Rhines scale.
-                    rhisct = egr(i,k)/max(1.e-22*iL_mks2cgs,betatp(i,j))
+                    rhisct = egr(i,k)/max(1.e-22,betatp(i,j))
 
                     ! Mask rhsctp if flow is not along bottom topography
                     !  1) option 1 with cosine to power of 10 will be >10
@@ -1833,7 +1826,7 @@ contains
                 dfints(i) = dfints(i)+difint(i,j,k)*q
 
                 if (edanis) then
-                  anisok(i,k) = 1./(1.+(speed/max(1.e-22*iL_mks2cgs,&
+                  anisok(i,k) = 1./(1.+(speed/max(1.e-22,&
                                                   egr(i,k)*els))**2)
                   anisos(i) = anisos(i)+anisok(i,k)*q
                 end if
@@ -1887,12 +1880,12 @@ contains
               ! Rhines scale using vertically averaged Eady growth rate.
 
               ! Planetary Rhines scale.
-              rhisc = egrs(i)/max(1.e-22*iL_mks2cgs,betafp(i,j))
+              rhisc = egrs(i)/max(1.e-22,betafp(i,j))
 
               if (rhsctp) then
 
                 ! Topographic Rhines scale.
-                rhisct = egrs(i)/max(1.e-22*iL_mks2cgs,betatp(i,j))
+                rhisct = egrs(i)/max(1.e-22,betatp(i,j))
                 rhisc = min(rhisc,rhiscf*rhisct)
 
               end if
@@ -1936,9 +1929,9 @@ contains
 
               else if (edanis) then
                 anisos(i) = anisos(i)/dps(i)
-                speed = max(1.e-22*iL_mks2cgs, &
+                speed = max(1.e-22, &
                             sqrt(umls(i)*umls(i)+vmls(i)*vmls(i)))
-                esfac = 1./(1.+(speed/max(1.e-22*iL_mks2cgs, &
+                esfac = 1./(1.+(speed/max(1.e-22, &
                                           egrs(i)*els))**2)
               else
                 esfac = 1.
@@ -2314,7 +2307,7 @@ contains
                    kmax(i,j)-kfil(i,j) >= 1) then
 
                 ! Planetary Rhines scale.
-                rhisc = egr(i,k)/max(1.e-22*iL_mks2cgs,betafp(i,j))
+                rhisc = egr(i,k)/max(1.e-22,betafp(i,j))
 
                 if (edanis.or.rhsctp) then
 
@@ -2326,12 +2319,12 @@ contains
                        /max(epsilp,dpv(i,j,kn)+dpv(i,j+1,kn))
 
                   ! Current speed.
-                  speed = max(1.e-22*iL_mks2cgs,sqrt(ubc*ubc+vbc*vbc))
+                  speed = max(1.e-22,sqrt(ubc*ubc+vbc*vbc))
 
                   if (rhsctp) then
 
                     !- -------- Topographic Rhines scale.
-                    rhisct = egr(i,k)/max(1.e-22*iL_mks2cgs,betatp(i,j))
+                    rhisct = egr(i,k)/max(1.e-22,betatp(i,j))
 
                     !- --- ---- Mask rhsctp if flow is not along bottom topography
                     !                   1) option 1 with cosine to power of 10 will be >10
@@ -2374,7 +2367,7 @@ contains
                 dfints(i) = dfints(i)+difint(i,j,k)*q
 
                 if (edanis) then
-                  anisok(i,k) = 1./(1.+(speed/max(1.e-22*iL_mks2cgs, &
+                  anisok(i,k) = 1./(1.+(speed/max(1.e-22, &
                                                   egr(i,k)*els))**2)
                   anisos(i) = anisos(i)+anisok(i,k)*q
                 end if
@@ -2400,12 +2393,12 @@ contains
               ! Rhines scale using vertically averaged Eady growth rate.
 
               ! Planetary Rhines scale.
-              rhisc = egrs(i)/max(1.e-22*iL_mks2cgs,betafp(i,j))
+              rhisc = egrs(i)/max(1.e-22,betafp(i,j))
 
               if (rhsctp) then
 
                 ! Topographic Rhines scale.
-                rhisct = egrs(i)/max(1.e-22*iL_mks2cgs,betatp(i,j))
+                rhisct = egrs(i)/max(1.e-22,betatp(i,j))
                 rhisc = min(rhisc,rhiscf*rhisct)
 
               end if
@@ -2474,8 +2467,8 @@ contains
 
                 if (edanis) then
                   anisos(i) = anisos(i)/dps(i)
-                  speed = max(1.e-22*iL_mks2cgs,sqrt(ubc*ubc+vbc*vbc))
-                  esfac = 1./(1.+(speed/max(1.e-22*iL_mks2cgs, egrs(i)*els))**2)
+                  speed = max(1.e-22,sqrt(ubc*ubc+vbc*vbc))
+                  esfac = 1./(1.+(speed/max(1.e-22, egrs(i)*els))**2)
                 else
 
                   ! Zonal mixed layer velocity minus eddy phase speed.
@@ -2655,7 +2648,7 @@ contains
                   h = max(onem,dp(i,j,kn))*alpha0/grav
                   !               h=max(onem*1e-8,dp(i,j,kn))*alpha0/grav
                   !               h=max(onemm,dp(i,j,kn))*alpha0/grav
-                  Shear2(i,j,k) = max(1.e-13*A_mks2cgs,du2l(i,j,k))/(h*h)
+                  Shear2(i,j,k) = max(1.e-13,du2l(i,j,k))/(h*h)
                   Prod(i,j,k) = difdia(i,j,k)*Pr_t*Shear2(i,j,k)
                 else
                   Buoy(i,j,k) = 0.
@@ -2837,7 +2830,7 @@ contains
                     trc(i,j,kn,itrgls) = max(gls_psi_min, &
                          (gls_cmu0**(gls_p-2.*gls_m)) &
                          *(ust**(2.*gls_m)) &
-                         *(kappa*L_mks2cgs)**gls_n)
+                         *(kappa)**gls_n)
                   end if
                 end if
 
@@ -3019,7 +3012,7 @@ contains
                                     -buoyfl(i,j,1)))
 
           ! Mixed layer thickness
-          h = (p(i,j,3)-p(i,j,1))/(onem*iL_mks2cgs)
+          h = (p(i,j,3)-p(i,j,1))/(onem)
 
           ! Dimensionless vertical coordinate in the boundary layer
           sg = (p(i,j,2)-p(i,j,1))/(p(i,j,3)-p(i,j,1))

@@ -20,7 +20,7 @@
 module mod_thermf_ben02
 
   use mod_constants, only: spcifh, t0deg, alpha0, epsilt, onem, &
-                           g2kg, kg2g, L_mks2cgs, M_mks2cgs
+                           g2kg, kg2g
   use mod_time,      only: nday_in_year, nday_of_year, nstep, &
                            nstep_in_day, baclin, &
                            xmi, l1mi, l2mi, l3mi, l4mi, l5mi
@@ -78,9 +78,7 @@ contains
     real :: fice0,hice0,hsnw0,qsww,qnsw,tice,albi,tsmlt,albi_h,qswi,dh
     real :: qsnwf,fcond,qdamp,qsmlt,qo2i,qbot,swfac,dtml,q,volice,df,dvi
     real :: dvs,fwflx,sstc,rice,dpmxl,hmxl,tmxl,trxflx,pbot,dprsi,sssc
-    real :: smxl,srxflx,sflxc,totsrp,totsrn,qp,qn,trflxc,A_cgs2mks
-
-    A_cgs2mks = 1./(L_mks2cgs**2)
+    real :: smxl,srxflx,sflxc,totsrp,totsrn,qp,qn,trflxc
 
     ! Due to conservation, the ratio of ice and snow density must be equal to
     ! the ratio of ice and snow heat of fusion
@@ -96,7 +94,7 @@ contains
 
     ! Set various constants
     dt = baclin                         ! Time step
-    cpsw = spcifh*M_mks2cgs             ! Specific heat of seawater
+    cpsw = spcifh                       ! Specific heat of seawater
     rnf_fac = baclin/real(nrfets*86400) ! Runoff reservoar detrainment rate
     sag_fac = exp(-sagets*dt)           ! Snow aging rate
 
@@ -401,7 +399,7 @@ contains
           ! salinity and any salinity limiting compensated for.
           util1(i,j) = -(sref*fwflx*g2kg &
                         +vrtsfl(i,j) &
-                        +salt_corr(i,j)*g2kg/(2.*dt)*(L_mks2cgs**2/M_mks2cgs)) &
+                        +salt_corr(i,j)*g2kg/(2.*dt)) &
                         *scp2(i,j)
 
           ! Reset salt correction
@@ -411,11 +409,11 @@ contains
           hmltfz(i,j) = (dvi*fusi+dvs*fuss)/dt
 
           ! Total heat flux in BLOM units [W cm-2] (positive upwards)
-          surflx(i,j) = -(swa(i,j)+nsf(i,j)+hmltfz(i,j))*A_cgs2mks
+          surflx(i,j) = -(swa(i,j)+nsf(i,j)+hmltfz(i,j))
 
           ! Short-wave heat flux in BLOM units [W cm-2] (positive
           ! upwards)
-          sswflx(i,j) = -qsww*(1.-fice0)*A_cgs2mks
+          sswflx(i,j) = -qsww*(1.-fice0)
 
           if (use_TRC) then
             ! ------------------------------------------------------------------
@@ -447,7 +445,7 @@ contains
               end if
               trflx(nt,i,j) = -trc(i,j,k1n,nt)*fwflx
               trflxc_aw(i,j,nt) = -(trflx(nt,i,j) &
-                                   +trc_corr(i,j,nt)/(2.*dt)*(L_mks2cgs**2/M_mks2cgs)) &
+                                   +trc_corr(i,j,nt)/(2.*dt)) &
                                    *scp2(i,j)
               trc_corr(i,j,nt) = 0.
             end do
@@ -473,7 +471,7 @@ contains
               hmxl = dpmxl/onem
               tmxl = (temp(i,j,1+nn)*dp(i,j,1+nn) &
                      +temp(i,j,2+nn)*dp(i,j,2+nn))/dpmxl+t0deg
-              trxflx = spcifh*L_mks2cgs*min(hmxl,trxdpt)/(trxday*86400.) &
+              trxflx = spcifh*min(hmxl,trxdpt)/(trxday*86400.) &
                        *min(trxlim,max(-trxlim,sstc-tmxl))/alpha0
             else
               pbot = p(i,j,1)
@@ -498,7 +496,7 @@ contains
               do kl = k,kk
                 t_rs_nonloc(i,j,kl+1) = 0.
               end do
-              trxflx = spcifh*L_mks2cgs*trxdpt/(trxday*86400.) &
+              trxflx = spcifh*trxdpt/(trxday*86400.) &
                        *min(trxlim,max(-trxlim,sstc-tmxl))/alpha0
             end if
             surrlx(i,j) = -trxflx
@@ -531,7 +529,7 @@ contains
               hmxl = dpmxl/onem
               smxl = (saln(i,j,1+nn)*dp(i,j,1+nn) &
                      +saln(i,j,2+nn)*dp(i,j,2+nn))/dpmxl
-              srxflx = L_mks2cgs*min(hmxl,srxdpt)/(srxday*86400.) &
+              srxflx = min(hmxl,srxdpt)/(srxday*86400.) &
                        *min(srxlim,max(-srxlim,sssc-smxl))/alpha0
             else
               pbot = p(i,j,1)
@@ -556,7 +554,7 @@ contains
               do kl = k,kk
                 s_rs_nonloc(i,j,kl+1) = 0.
               end do
-              srxflx = L_mks2cgs*srxdpt/(srxday*86400.) &
+              srxflx = srxdpt/(srxday*86400.) &
                    *min(srxlim,max(-srxlim,sssc-smxl))/alpha0
             end if
             salrlx(i,j) = -srxflx
@@ -593,7 +591,7 @@ contains
           ! Compute friction velocity (cm/s)
           ! --------------------------------------------------------------------
 
-          ustar(i,j) = (min(ustari(i,j),.8e-2)*fice0+ustarw(i,j)*(1.-fice0))*L_mks2cgs
+          ustar(i,j) = (min(ustari(i,j),.8e-2)*fice0+ustarw(i,j)*(1.-fice0))
 
         end do
       end do
@@ -618,8 +616,8 @@ contains
       do l = 1,isp(j)
         do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
           salflx(i,j) = -(vrtsfl(i,j)+sflxc+sfl(i,j)) &
-                         *(kg2g*(M_mks2cgs/L_mks2cgs**2))
-          brnflx(i,j) = -brnflx(i,j)*(kg2g*(M_mks2cgs/L_mks2cgs**2))
+                         *(kg2g)
+          brnflx(i,j) = -brnflx(i,j)*(kg2g)
         end do
       end do
     end do
@@ -659,7 +657,7 @@ contains
         do j = 1,jj
           do l = 1,isp(j)
             do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-              trflx(nt,i,j) = -(trflx(nt,i,j)+trflxc)*(M_mks2cgs/L_mks2cgs**2)
+              trflx(nt,i,j) = -(trflx(nt,i,j)+trflxc)
             end do
           end do
         end do

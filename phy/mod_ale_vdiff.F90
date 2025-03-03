@@ -39,7 +39,6 @@ module mod_ale_vdiff
 
 !TODO
   use mod_grid, only: scp2
-  use mod_constants, only: M_mks2cgs
 !TODO
 
   implicit none

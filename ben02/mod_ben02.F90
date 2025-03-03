@@ -26,7 +26,7 @@ module mod_ben02
 
   use mod_types,       only: i2, r4
   use mod_config,      only: expcnf
-  use mod_constants,   only: t0deg, spval, L_mks2cgs
+  use mod_constants,   only: t0deg, spval
   use mod_calendar,    only: date_offset, calendar_noerr, &
                              calendar_errstr
   use mod_time,        only: date, calendar, nday_in_year, nday_of_year, &
@@ -2100,12 +2100,10 @@ contains
     integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12) :: smtmsk
     real :: dx2,dy2,prc_sum,eva_sum,rnf_sum,swa_sum,lwa_sum,lht_sum, &
          sht_sum,fwf_fac,dangle,garea,le,albedo,fac,swa_ave,lwa_ave, &
-         lht_ave,sht_ave,crnf,cswa,A_cgs2mks
+         lht_ave,sht_ave,crnf,cswa
     real*4 :: rw4
     integer :: i,j,k,l,il,jl,nfu
     integer*2 :: rn2,ri2,rj2
-
-    A_cgs2mks = 1./(L_mks2cgs**2)
 
     ! --- Allocate memory for additional monthly forcing fields.
     allocate(taud  (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12), &
@@ -2789,7 +2787,7 @@ contains
       do k = 1,12
         do l = 1,isp(j)
           do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-            garea = scp2(i,j)*A_cgs2mks ! [m^2]
+            garea = scp2(i,j) ! [m^2]
 
             ! --- ----- freshwater fluxes [m/s]
             util1(i,j) = util1(i,j)+precip(i,j,k)*fwf_fac*garea
@@ -2833,7 +2831,7 @@ contains
       do j = 1,jj
         do l = 1,isp(j)
           do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-            garea = scp2(i,j)*A_cgs2mks ! [m^2]
+            garea = scp2(i,j) ! [m^2]
 
             ! --- ----- heat fluxes
             albedo = albs_f*ricclm(i,j,k)+albw(i,j)*(1.-ricclm(i,j,k))
@@ -2852,7 +2850,7 @@ contains
     call xcsum(lht_sum,util3,ip)
     call xcsum(sht_sum,util4,ip)
 
-    fac = (L_mks2cgs*L_mks2cgs)/(12.*area)
+    fac = (1.0)/(12.*area)
     swa_ave = swa_sum*fac
     lwa_ave = lwa_sum*fac
     lht_ave = lht_sum*fac

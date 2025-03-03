@@ -29,8 +29,7 @@ module mod_inicon
   use dimensions,    only: idm, jdm, kdm, itdm, jtdm
   use mod_types,     only: r8
   use mod_config,    only: expcnf
-  use mod_constants, only: grav, epsilp, onem, &
-                           L_mks2cgs, M_mks2cgs, P_mks2cgs
+  use mod_constants, only: grav, epsilp, onem
   use mod_time,      only: nstep, delt1, dlt
   use mod_xc,        only: xchalt, xcbcst, xcaput, xcstop, xctilr, &
                            mnproc, lp, ii, jj, kk, isp, ifp, ilp, &
@@ -112,7 +111,7 @@ contains
     ! improve the accuracy of the pressure interface by an
     ! iterative procedure
     q = 1._r8
-    do while (abs(q) > 1.e-5_r8*p_mks2cgs)
+    do while (abs(q) > 1.e-5_r8)
       call delphi(pup,plo,th,s,dphi,alpu,alpl)
       q = (phil-phiu-dphi)/alpl
       plo = plo-q
@@ -136,9 +135,6 @@ contains
     real :: dsig,a0,a1,a2
     integer, dimension(3) :: start,count
     integer :: i,j,kdmic,k,l,status,ncid,dimid,varid,kb
-    real :: iM_mks2cgs
-
-    iM_mks2cgs = 1.0 / M_mks2cgs
 
     if (mnproc == 1) then
       write (lp,'(2a)') ' reading initial condition from ', &
@@ -368,7 +364,7 @@ contains
     do j = 1,jj
       do l = 1,isp(j)
         do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-          ! z(i,j,1)=z(i,j,1)*L_mks2cgs
+          ! z(i,j,1)=z(i,j,1)
           z(i,j,1) = 0.
         end do
       end do
@@ -379,8 +375,8 @@ contains
       do k = 1,kdmic
         do l = 1,isp(j)
           do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-            z(i,j,k+1) = min(depths(i,j)*L_mks2cgs, &
-                             z(i,j,k)+dz(i,j,k)*L_mks2cgs)
+            z(i,j,k+1) = min(depths(i,j), &
+                             z(i,j,k)+dz(i,j,k))
           end do
         end do
       end do
@@ -394,15 +390,15 @@ contains
       do k = 2,kk
         do l = 1,isp(j)
           do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-            if (z(i,j,kk+1)-z(i,j,k) < 1.e-6*l_mks2cgs) then
-              z(i,j,k) = depths(i,j)*L_mks2cgs
+            if (z(i,j,kk+1)-z(i,j,k) < 1.e-6) then
+              z(i,j,k) = depths(i,j)
             end if
           end do
         end do
       end do
       do l = 1,isp(j)
         do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-          z(i,j,kk+1) = depths(i,j)*L_mks2cgs
+          z(i,j,kk+1) = depths(i,j)
         end do
       end do
     end do
@@ -415,7 +411,7 @@ contains
         do k = 1,kk
           do l = 1,isp(j)
             do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-              sigmar(i,j,k) = sigmar(i,j,k)*iM_mks2cgs
+              sigmar(i,j,k) = sigmar(i,j,k)
             end do
           end do
         end do
@@ -948,7 +944,7 @@ contains
       write (lp,103) nstep,i0+i,j0+j, &
            '  init.profile  temp    saln    dens   thkns    dpth', &
            (k,temp(i,j,k),saln(i,j,k), &
-           M_mks2cgs*sig(temp(i,j,k),saln(i,j,k)), &
+           sig(temp(i,j,k),saln(i,j,k)), &
            dp(i,j,k)/onem,p(i,j,k+1)/onem,k = 1,kk)
 103   format (i9,2i5,a/(28x,i3,3f8.2,2f8.1))
     end if

@@ -25,7 +25,7 @@ module mod_vcoord
 
    use mod_types,     only: r8
    use mod_config,    only: inst_suffix
-   use mod_constants, only: spval, onem, M_mks2cgs
+   use mod_constants, only: spval, onem
    use mod_xc
 
    implicit none
@@ -84,8 +84,6 @@ contains
       namelist /vcoord/ &
          vcoord_type, dpmin_surface, dpmin_inflation_factor, &
          sigref_spec, plevel_spec, sigref, plevel
-
-      real(r8), parameter :: iM_mks2cgs = 1._r8/M_mks2cgs
 
       ! Read variables in the namelist group 'vcoord'.
       if (mnproc == 1) then
@@ -166,7 +164,7 @@ contains
                   call xcstop('(readnml_vcoord)')
                   stop '(readnml_vcoord)'
                endif
-               sigref(:) = sigref(:)*iM_mks2cgs
+               sigref(:) = sigref(:)
             case default
                if (mnproc == 1) &
                   write (lp,'(3a)') ' readnml_vcoord: sigref_spec = ', &

@@ -25,8 +25,7 @@ module mod_fuk95
   ! ------------------------------------------------------------------------------
 
   use mod_types,     only: r8
-  use mod_constants, only: grav, rearth, rho0, pi, radian, epsilz, &
-                           L_mks2cgs, R_mks2cgs
+  use mod_constants, only: grav, rearth, rho0, pi, radian, epsilz
   use mod_xc
   use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml, sigmar
   use mod_grid,      only: qclon, qclat, pclon, pclat, uclon, uclat, vclon, vclat, &
@@ -46,31 +45,18 @@ module mod_fuk95
 
   private
 
-  !  real(r8), parameter :: &
-  !     u0     = 30._r8, &     ! Maximum jet velocity [cm s-1].
-  !     h1     = 1.e4_r8, &    ! Depth of active layer [cm].
-  !     h0     = 2.e4_r8, &    ! Depth of water column [cm].
-  !     l0     = 2.e6_r8, &    ! Half-width of the jet [cm].
-  !     drho   = 0.19e-3_r8, & ! Active layer density difference [g cm-3].
-  !     rhoc   = 1.0259_r8, &  ! Density at the center of active layer [g cm-3].
-  !     rhob   = 1.0270_r8, &  ! Density of water beneath active layer [g cm-3].
-  !     f      = 1.e-4_r8, &   ! Coriolis parameter [1 s-1].
-  !     lat0   = 45._r8, &     ! Center latitude of grid domain [deg].
-  !     lambda = 20.8e5, &     ! Channel length [cm].
-  !     mindz  = 1.e2_r8, &    ! Minimum interior layer thickness [cm].
-  !     saln0  = 35._r8        ! Constant salinity value [g kg-1].
   real(r8), parameter :: &
-       u0     = .3_r8*L_mks2cgs, &     ! Maximum jet velocity [m s-1].
-       h1     = 1.e2_r8*L_mks2cgs, &   ! Depth of active layer [m].
-       h0     = 2.e2_r8*L_mks2cgs, &   ! Depth of water column [m].
-       l0     = 2.e4_r8*L_mks2cgs, &   ! Half-width of the jet [m].
-       drho   = 0.19_r8*R_mks2cgs, &   ! Active layer density difference [kg m-3].
-       rhoc   = 1025.9_r8*R_mks2cgs, & ! Density at the center of active layer [kg m-3].
-       rhob   = 1027.0_r8*R_mks2cgs, & ! Density of water beneath active layer [kg m-3].
+       u0     = .3_r8, &     ! Maximum jet velocity [m s-1].
+       h1     = 1.e2_r8, &   ! Depth of active layer [m].
+       h0     = 2.e2_r8, &   ! Depth of water column [m].
+       l0     = 2.e4_r8, &   ! Half-width of the jet [m].
+       drho   = 0.19_r8, &   ! Active layer density difference [kg m-3].
+       rhoc   = 1025.9_r8, & ! Density at the center of active layer [kg m-3].
+       rhob   = 1027.0_r8, & ! Density of water beneath active layer [kg m-3].
        f      = 1.e-4_r8, &            ! Coriolis parameter [1 s-1].
        lat0   = 45._r8, &              ! Center latitude of grid domain [deg].
-       lambda = 20.8e3*L_mks2cgs, &    ! Channel length [m].
-       mindz  = 1._r8*L_mks2cgs, &     ! Minimum interior layer thickness [m].
+       lambda = 20.8e3, &    ! Channel length [m].
+       mindz  = 1._r8, &     ! Minimum interior layer thickness [m].
        saln0  = 35._r8                 ! Constant salinity value [g kg-1].
 
   public :: geoenv_fuk95, inifrc_fuk95, ictsz_fuk95
@@ -146,7 +132,7 @@ contains
         tmpg(1   , j) = 0._r8
         tmpg(itdm, j) = 0._r8
         do i = 2, itdm - 1
-          tmpg(i, j) = h0*L_mks2cgs**(-1)
+          tmpg(i, j) = h0
         enddo
       enddo
       !$omp end parallel do
@@ -324,8 +310,8 @@ contains
             do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
               x = x_nudge(real(i, r8), real(j, r8))
               z(i, j, 1) = 0._r8
-              z(i, j, 2) = .5_r8*mltmin*L_mks2cgs
-              z(i, j, 3) = mltmin*L_mks2cgs
+              z(i, j, 2) = .5_r8*mltmin
+              z(i, j, 3) = mltmin
               z(i, j, kk    ) = h1
               z(i, j, kk + 1) = h0
               sigm = rhoc*(1._r8 + f*u0*x_psi(x)/(grav*h1)) - rho0

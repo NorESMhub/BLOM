@@ -21,7 +21,6 @@ module mod_sfcstr_ben02
 
   use mod_xc,        only: xctilr, ii, jj, isu, ilu, ifu, isv, ifv, ilv, iu, iv, lp, &
                            halo_ps, mnproc
-  use mod_constants, only: P_mks2cgs
   use mod_forcing,   only: ztx, mty, taux, tauy
   use mod_seaice,    only: ficem, hicem, tauxice, tauyice
   use mod_checksum,  only: csdiag, chksummsk
@@ -50,13 +49,13 @@ contains
       do l = 1,isu(j)
         do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
           facice = (ficem(i,j)+ficem(i-1,j)) * min(2.,hicem(i,j)+hicem(i-1,j))*.25
-          taux(i,j) = P_mks2cgs*(ztx(i,j)*(1.-facice)+tauxice(i,j)*facice)
+          taux(i,j) = (ztx(i,j)*(1.-facice)+tauxice(i,j)*facice)
         end do
       end do
       do l = 1,isv(j)
         do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
           facice = (ficem(i,j)+ficem(i,j-1)) * min(2.,hicem(i,j)+hicem(i,j-1))*.25
-          tauy(i,j) = P_mks2cgs*(mty(i,j)*(1.-facice)+tauyice(i,j)*facice)
+          tauy(i,j) = (mty(i,j)*(1.-facice)+tauyice(i,j)*facice)
         end do
       end do
     end do

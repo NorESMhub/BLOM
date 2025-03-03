@@ -23,7 +23,7 @@ module mod_ndiff
 ! ------------------------------------------------------------------------------
 
   use mod_types,     only: r8
-  use mod_constants, only: grav, alpha0, epsilp, onemm, P_mks2cgs, R_mks2cgs
+  use mod_constants, only: grav, alpha0, epsilp, onemm
   use mod_time,      only: delt1
   use mod_xc
   use mod_grid,      only: scuy, scvx, scp2, scuxi, scvyi
@@ -38,8 +38,8 @@ module mod_ndiff
 
   real(r8), parameter :: &
        ndiff_dstsnp_fac = .01_r8, &
-       rho_eps = 1.e-5_r8*R_mks2cgs, &
-       dp_eps = 1.e-5_r8*P_mks2cgs
+       rho_eps = 1.e-5_r8, &
+       dp_eps = 1.e-5_r8
   integer, parameter :: &
        it = 1, &
        is = 2

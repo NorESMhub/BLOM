@@ -21,7 +21,6 @@
 subroutine export_mct(o2x_o, lsize, perm, jjcpl, nsend, sbuff, tlast_coupled)
 
   use mct_mod
-  use mod_constants, only: L_mks2cgs
   use shr_const_mod, only: SHR_CONST_TKFRZ
   use mod_types, only: r8
   use blom_cpl_indices
@@ -44,10 +43,8 @@ subroutine export_mct(o2x_o, lsize, perm, jjcpl, nsend, sbuff, tlast_coupled)
   ! Local variables
   integer :: i, j, n
   real(r8) :: tfac, utmp, vtmp
-  real(r8) :: iL_mks2cgs
 
   tfac = 1._r8/tlast_coupled
-  iL_mks2cgs = 1._r8/L_mks2cgs
 
   ! ----------------------------------------------------------------
   ! Interpolate onto scalar points, rotate, and pack surface
@@ -72,9 +69,9 @@ subroutine export_mct(o2x_o, lsize, perm, jjcpl, nsend, sbuff, tlast_coupled)
       vtmp = .5_r8*( sbuff(i,j  ,index_o2x_So_v) &
                    + sbuff(i,j+1,index_o2x_So_v))
       o2x_o%rattr(index_o2x_So_u,n) = &
-           (utmp*cosang(i,j) - vtmp*sinang(i,j))*tfac*iL_mks2cgs
+           (utmp*cosang(i,j) - vtmp*sinang(i,j))*tfac
       o2x_o%rattr(index_o2x_So_v,n) = &
-           (utmp*sinang(i,j) + vtmp*cosang(i,j))*tfac*iL_mks2cgs
+           (utmp*sinang(i,j) + vtmp*cosang(i,j))*tfac
       utmp = ( sbuff(i  ,j,index_o2x_So_dhdx)*iu(i  ,j) &
              + sbuff(i+1,j,index_o2x_So_dhdx)*iu(i+1,j)) &
              /max(1,iu(i,j) + iu(i+1,j))

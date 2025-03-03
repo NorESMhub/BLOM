@@ -57,7 +57,6 @@ module ocn_comp_mct
    use mod_blom_step,    only: blom_step
    use mod_fill_global,  only: fill_global
    use mod_forcing,      only: sprfac, prfac, flxco2, flxdms, flxbrf, flxn2o, flxnh3
-   use mod_constants,    only: L_mks2cgs
    use mod_grid,         only: scp2, plon, plat, scuy, scvx, scuxi, scvyi
    use mod_state,        only: u, v, temp, saln, pbu, pbv, ubflxs, vbflxs, sealv
    use mod_cesm,         only: frzpot
@@ -509,7 +508,7 @@ module ocn_comp_mct
      enddo
      call mct_gGrid_importRattr(dom_ocn, "lat", rdata, lsize)
 
-     radius = SHR_CONST_REARTH*L_mks2cgs ! Earth's radius in cm
+     radius = SHR_CONST_REARTH ! Earth's radius in cm
 
      n = 0
      do j = 1, jjcpl

@@ -20,7 +20,6 @@
 module mod_diffus
 
   use mod_time,      only: delt1
-  use mod_constants, only: P_mks2cgs
   use mod_xc
   use mod_grid,      only: scuy, scvx, scp2, scuxi, scvyi
   use mod_eos,       only: sig
@@ -53,7 +52,7 @@ contains
     real :: q
     integer :: nt
     real :: dpeps
-    parameter (dpeps = 1.e-5*P_mks2cgs)
+    parameter (dpeps = 1.e-5)
 
     call xctilr(dp(1-nbdy,1-nbdy,k1n), 1,kk, 3,3, halo_ps)
     if (ltedtp_opt == ltedtp_neutral) then

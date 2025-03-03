@@ -25,8 +25,7 @@ module mod_eddtra
 
    use mod_types,     only: r8
    use mod_constants, only: grav, alpha0, rho0, epsilp, spval, &
-                            onem, onecm, onemm, &
-                            L_mks2cgs
+                            onem, onecm, onemm
    use mod_time,      only: delt1
    use mod_xc
    use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml
@@ -49,9 +48,6 @@ module mod_eddtra
 
    real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
       hbl_tf, wpup_tf, hml_tf1, hml_tf
-
-   real(r8), parameter :: &
-      iL_mks2cgs = 1./L_mks2cgs
 
    ! Options with default values, modifiable by namelist.
    character(len = 80) :: &
@@ -81,7 +77,7 @@ module mod_eddtra
       tau_decaying_hml = 259200._r8, & ! Time-scale for running mean filter when
                                        ! signal is less than filtered value
                                        ! (used for mixed layer thickness) [s].
-      lfmin = 5.e3_r8*L_mks2cgs, &     ! Minimum length scale of mixed layer
+      lfmin = 5.e3_r8, &               ! Minimum length scale of mixed layer
                                        ! fronts [cm].
       mstar = .5_r8, &                 ! Scaling of boundary layer turbulence
                                        ! due to friction velocity (Bodner et
@@ -89,7 +85,7 @@ module mod_eddtra
       nstar = .066_r8, &               ! Scaling of boundary layer turbulence
                                        ! due to convective velocity (Bodner et
                                        ! al., 2023) [].
-      wpup_min = 1.e-3_r8*(L_mks2cgs**2) ! Minimum vertical momentum flux.
+      wpup_min = 1.e-3_r8              ! Minimum vertical momentum flux.
                                        ! According to Eq. (24) of Bodner et al.
                                        ! (2023), this minimum value should give
                                        ! a frontal length scale of abont 1 m for
@@ -1088,7 +1084,7 @@ contains
             do j = 1, jj
                do l = 1, isp(j)
                do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
-                  hbl = OBLdepth(i,j)*L_mks2cgs
+                  hbl = OBLdepth(i,j)
                   wpup = max(wpup_min, &
                              (mstar*ustar3(i,j) + nstar*wstar3(i,j))**c2_3)
                   call rmeanfilt(hbl_tf(i,j) , hbl , &
@@ -1127,7 +1123,7 @@ contains
          do j = 1, jj
             do l = 1, isp(j)
             do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
-               pml = min(p(i,j,1) + hml_tf(i,j)*(onem*iL_mks2cgs), p(i,j,kk+1))
+               pml = min(p(i,j,1) + hml_tf(i,j)*(onem), p(i,j,kk+1))
                dpmli = 1._r8/(pml - p(i,j,1))
                tmldp = 0._r8
                smldp = 0._r8
@@ -1275,7 +1271,7 @@ contains
             hml = .5_r8*(hml_tf(i-1,j) + hml_tf(i,j))
 
             ! Pressure of mixed layer base [g cm-1 s-2].
-            pml = min(puv(1) + hml*(onem*iL_mks2cgs), puv(kmax+1))
+            pml = min(puv(1) + hml*(onem), puv(kmax+1))
 
             ! Multiplicative inverse of mixed layer pressure thickness
             ! [g cm-1 s-2].
@@ -1545,7 +1541,7 @@ contains
             hml = .5_r8*(hml_tf(i,j-1) + hml_tf(i,j))
 
             ! Pressure of mixed layer base [g cm-1 s-2].
-            pml = min(puv(1) + hml*(onem*iL_mks2cgs), puv(kmax+1))
+            pml = min(puv(1) + hml*(onem), puv(kmax+1))
 
             ! Multiplicative inverse of mixed layer pressure thickness
             ! [g cm-1 s-2].

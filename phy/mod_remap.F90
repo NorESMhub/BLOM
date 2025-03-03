@@ -29,7 +29,6 @@ module mod_remap
 
   use mod_types,     only: r8
   use mod_xc
-  use mod_constants, only: P_mks2cgs
   use mod_tracers,   only: ntr, itrtke, itrgls, natr, trc ! TRC
   use mod_ifdefs,    only: use_TRC, use_ATRC, use_TKE, use_TKEADV
 
@@ -38,7 +37,7 @@ module mod_remap
 
   ! Parameters:
   real(r8), parameter :: &
-       dpeps = 1.e-12_r8*P_mks2cgs ! Small layer pressure thickness (equivalent
+       dpeps = 1.e-12_r8           ! Small layer pressure thickness (equivalent
                                    ! to approximately 10-16 m) [g cm-1 s-2].
   real(r8), parameter :: &
        treps = 1.e-14_r8           ! Small tracer concentration. (for use_TRC and use_ATRC)

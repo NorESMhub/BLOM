@@ -29,7 +29,7 @@ module ocn_import_export
    use dimensions,     only: kdm
    use mod_dia,        only: depthslev
    use mod_types,      only: r8
-   use mod_constants,  only: rearth, onem, L_mks2cgs
+   use mod_constants,  only: rearth, onem
    use mod_time,       only: nstep, baclin, delt1, dlt
    use mod_xc
    use mod_grid,       only: scuy, scvx, scp2, scuxi, scvyi, plon, plat, cosang, sinang
@@ -58,7 +58,6 @@ module ocn_import_export
 
    ! Parameters.
    character(len=*), parameter :: modname = '(mod_nuopc_methods)'
-   real(r8), parameter :: iL_mks2cgs = 1./L_mks2cgs
 
    type :: fldlist_type
       character(len=128) :: stdname
@@ -1106,8 +1105,8 @@ contains
             fldlist(index_So_omask)%dataptr(n) = 1._r8
 
             ! Surface velocity, interpolated onto scalar points and rotated [m s-1].
-            utmp = .5_r8*(acc_u(i,j) + acc_u(i+1,j))*tfac*iL_mks2cgs
-            vtmp = .5_r8*(acc_v(i,j) + acc_v(i,j+1))*tfac*iL_mks2cgs
+            utmp = .5_r8*(acc_u(i,j) + acc_u(i+1,j))*tfac
+            vtmp = .5_r8*(acc_v(i,j) + acc_v(i,j+1))*tfac
             fldlist(index_So_u)%dataptr(n) = utmp*cosang(i,j) &
                                            - vtmp*sinang(i,j)
             fldlist(index_So_v)%dataptr(n) = utmp*sinang(i,j) &

@@ -20,7 +20,7 @@
 module mod_diapfl
 
   use dimensions,    only: idm, jdm, kdm
-  use mod_constants, only: grav, alpha0, spval, epsilp, onem, L_mks2cgs
+  use mod_constants, only: grav, alpha0, spval, epsilp, onem
   use mod_time,      only: delt1
   use mod_xc,        only: xchalt, xctilr, ii, jj, kk, isp, ifp, ilp, &
                            i0, j0, lp, isu, ifu, ilu, isv, ifv, ilv, &
@@ -86,7 +86,7 @@ contains
     !   kappa  - von Karman constant []
     !   ustmin - minimum value of ustar used in computing the length
     !            scale bottom boundary layer mixing [cm/s]
-    parameter(dsgmnr=.1,fcmxr=.25,dsgcr0=.25,dfeps=1.e-12,gbbl=.2,kappa=.4,ustmin=.0001*L_mks2cgs)
+    parameter(dsgmnr=.1,fcmxr=.25,dsgcr0=.25,dfeps=1.e-12,gbbl=.2,kappa=.4,ustmin=.0001)
 
     ! Constant in the diffusion equation
     c = grav*grav*delt1/(alpha0*alpha0)

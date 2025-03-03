@@ -24,7 +24,7 @@ module mod_ale_forcing
 ! ------------------------------------------------------------------------------
 
   use mod_types,     only: r8
-  use mod_constants, only: grav, spcifh, alpha0, onem, onecm, onemu, L_mks2cgs
+  use mod_constants, only: grav, spcifh, alpha0, onem, onecm, onemu
   use mod_xc
   use mod_eos,       only: dsigdt0, dsigds0
   use mod_state,     only: dp, temp, saln, p
@@ -54,7 +54,6 @@ contains
     ! Numeric constants for brine absorption profile.
     real(r8), parameter :: cbra1 = 2._r8**(1._r8/3._r8)
     real(r8), parameter :: cbra2 = cbra1*cbra1/12._r8
-    real(r8), parameter :: iL_mks2cgs = 1./L_mks2cgs
     ! real(r8), parameter :: cbra1 = 2._r8**(1._r8/3._r8), &
     ! real(r8), parameter :: cbra2 = cbra1*cbra1/288._r8
     real(r8) :: cpi, gaa, pmax, lei, q, q3, pmaxi, nlbot, dsgdt, dsgds
@@ -125,8 +124,8 @@ contains
         do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
 
           ! Penetration factors at layer interfaces.
-          lei = 1._r8/(mlts(i,j)*(onem*iL_mks2cgs))
-          pmax = cbra1*mlts(i,j)*(onem*iL_mks2cgs)
+          lei = 1._r8/(mlts(i,j)*(onem))
+          pmax = cbra1*mlts(i,j)*(onem)
           kmax = 1
           s_br_nonloc(i,j,1) = 1._r8
           do k = 1, kk

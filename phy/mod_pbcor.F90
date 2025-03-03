@@ -28,7 +28,7 @@ module mod_pbcor
 
   use dimensions,    only: idm, jdm
   use mod_types,     only: r8
-  use mod_constants, only: epsilp, P_mks2cgs
+  use mod_constants, only: epsilp
   use mod_time,      only: dlt
   use mod_xc,        only: xctilr, xcstop, lp, ip, iu, iv, ii, jj, kk, &
                            isp, ifp, lp, isu, ifu, ilu, isv, ifv, ilv, &
@@ -55,10 +55,10 @@ module mod_pbcor
 
   ! Parameters:
   real(r8), parameter :: &
-       dpeps1 = 1.e-5_r8*P_mks2cgs  ! Small layer pressure thickness
+       dpeps1 = 1.e-5_r8            ! Small layer pressure thickness
                                     ! [g cm-1 s-2]. &
   real(r8), parameter :: &
-       dpeps2 = 1.e-7_r8*P_mks2cgs  ! Small layer pressure thickness
+       dpeps2 = 1.e-7_r8            ! Small layer pressure thickness
                                     ! [g cm-1 s-2].
 
   ! Public routines

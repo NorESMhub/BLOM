@@ -426,7 +426,7 @@ contains
   !------------------------------------------------------------------------
 
     use mod_types,     only: r8
-    use mod_constants, only: grav, spval, L_mks2cgs
+    use mod_constants, only: grav, spval
     use mod_time,      only: baclin
     use mod_xc
     use mod_grid,      only: scqx, scqy, scpx, scpy, scuy, scvx, scp2, depths
@@ -465,7 +465,7 @@ contains
         do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
           btdtmx = min(btdtmx, &
                       scpx(i, j)*scpy(i, j) &
-                      /sqrt(grav*depths(i, j)*L_mks2cgs*( scpx(i, j)*scpx(i, j) &
+                      /sqrt(grav*depths(i, j)*( scpx(i, j)*scpx(i, j) &
                       + scpy(i, j)*scpy(i, j))))
         enddo
       enddo

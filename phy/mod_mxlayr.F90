@@ -27,8 +27,7 @@ module mod_mxlayr
   use dimensions,    only: idm, jdm, kdm
   use mod_types,     only: r8
   use mod_constants, only: grav, spcifh, alpha0, epsilp, spval, onem, &
-                           tencm, onecm, onemm, onemu, &
-                           L_mks2cgs, R_mks2cgs
+                           tencm, onecm, onemm, onemu
   use mod_time,      only: delt1
   use mod_xc,        only: xcstop, xctilr, isp, ifp, ilp, isu, &
                            ifu, ilu, isv, ifv, ip, ilv, nbdy, &
@@ -95,10 +94,6 @@ module mod_mxlayr
                ! energy change [cm3 s-3].
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), protected :: &
        pbrnda  ! Brine plume pressure depth [g cm-1 s-2].
-
-  real(r8), parameter :: iL_mks2cgs = 1./L_mks2cgs
-  real(r8), parameter :: A_cgs2mks  = 1./(L_mks2cgs*L_mks2cgs)
-  real(r8), parameter :: V_mks2cgs  = L_mks2cgs**3
 
   ! Public module variables
   public :: rm0,rm5,mlrttp,mltmin
@@ -177,8 +172,8 @@ contains
     !             of TKE balance [].
     real :: kappa,mu,ustmin,mldjmp
     integer :: maxitr
-    parameter (kappa=.4,mu=2.,ustmin = .001*L_mks2cgs, &
-               mldjmp=1.e-3*R_mks2cgs,maxitr = 20)
+    parameter (kappa=.4,mu=2.,ustmin = .001, &
+               mldjmp=1.e-3,maxitr = 20)
 
     !  Parameters for the parameterization of restratification by mixed
     !  layer eddies by Fox-Kemper et al. (2008):
@@ -200,7 +195,7 @@ contains
     !    dsgmnr - minimum ratio of linearized density jump to target
     !             density jump across a layer interface [].
     real :: bpdrho,bpmndp,bpmxdp,bpdpmn,dsgmnr
-    parameter (bpdrho=.4*R_mks2cgs,bpmndp = 10.*onem, &
+    parameter (bpdrho=.4,bpmndp = 10.*onem, &
                bpmxdp=500.*onem,bpdpmn=1.*onem,dsgmnr = .1)
 
     ! ------------------------------------------------------------------
@@ -432,7 +427,7 @@ contains
               tkew = mtkeus(i,j)+mtkeni(i,j)+mtkebf(i,j)+mtkers(i,j)
               if (.not.(nitr == 1.and.pres(3)*lbi > 1.)) then
                 dtke = (tkew-tkeo)/dpmxl
-                if (abs(dtke)<(abs(tkew)+1.e-22*V_mks2cgs)/(pres(3)-pres(1))) then
+                if (abs(dtke)<(abs(tkew)+1.e-22)/(pres(3)-pres(1))) then
                   if (tkew < 0.) then
                     dpmxl = .5*(pres(1)-pmxl)
                   else
@@ -451,9 +446,9 @@ contains
               write (lp,*) 'dpth = ',pres(3)/onem,';'
               write (lp,*) 'pmxl = ',pmxl/onem,';'
               write (lp,*) 'corio = ',coriop(i,j),';'
-              write (lp,*) 'ustar = ',ustar(i,j)*iL_mks2cgs,';'
-              write (lp,*) 'bfltot = ',bfltot*A_cgs2mks,';'
-              write (lp,*) 'bflpsw = ',bflpsw*A_cgs2mks,';'
+              write (lp,*) 'ustar = ',ustar(i,j),';'
+              write (lp,*) 'bfltot = ',bfltot,';'
+              write (lp,*) 'bflpsw = ',bflpsw,';'
               write (lp,*) 'bg2 = ',util1(i,j),';'
               write (lp,*) 'ce = ',ce*sqrt(scp2(i,j))*rlf,';'
               write (lp,*)
@@ -741,7 +736,7 @@ contains
                   end if
                 else
                   if (delp(k) > onemu.and.dens(k) > densr(k).and. &
-                      sigfsl < densr(k)-(1.e-6*r_mks2cgs)) then
+                      sigfsl < densr(k)-(1.e-6)) then
                     dps = min(dpfsl,&
                               delp(k)*(dens(k)-densr(k))/(densr(k)-sigfsl))
                     q = 1./(dps+delp(k))
@@ -940,7 +935,7 @@ contains
                       end if
                       if (.not.chngd) then
                         if (abs(dtke) < &
-                             (abs(tkew)+1.e-22*V_mks2cgs)/delp(k)) then
+                             (abs(tkew)+1.e-22)/delp(k)) then
                           if (tkew < 0.) then
                             dpmxl = .5*(pres(k)-pmxl)
                           else
@@ -962,9 +957,9 @@ contains
                     write (lp,*) 'dpth = ',pres(3)/onem,';'
                     write (lp,*) 'pmxl = ',pmxl/onem,';'
                     write (lp,*) 'corio = ',coriop(i,j),';'
-                    write (lp,*) 'ustar = ',ustar(i,j)*iL_mks2cgs,';'
-                    write (lp,*) 'bfltot = ',bfltot*A_cgs2mks,';'
-                    write (lp,*) 'bflpsw = ',bflpsw*A_cgs2mks,';'
+                    write (lp,*) 'ustar = ',ustar(i,j),';'
+                    write (lp,*) 'bfltot = ',bfltot,';'
+                    write (lp,*) 'bflpsw = ',bflpsw,';'
                     write (lp,*) 'bg2 = ',util1(i,j),';'
                     write (lp,*) 'ce = ',ce*sqrt(scp2(i,j))*rlf,';'
                     write (lp,*) 'pres(3) = ',pres(3)/onem,';'
