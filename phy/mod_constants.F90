@@ -54,14 +54,9 @@ module mod_constants
                                   ! [kg m-1 s-2].
       g2kg   = 1.e-3_r8, &        ! convert g to kg coeff
       kg2g   = 1.e3_r8 !, &         ! convert kg to g coeff
-      ! L_mks2cgs = 1._r8, &        ! length coefficient converting CGS to MKS
-      ! M_mks2cgs = 1._r8, &        ! mass coefficient converting CGS to MKS
-      ! P_mks2cgs = 1._r8, &        ! pressure coefficient converting CGS to MKS
-      ! R_mks2cgs = 1._r8           ! rho coefficient converting CGS to MKS
 
    public :: grav, rearth, spcifh, t0deg, alpha0, rho0, pi, radian, &
              epsilpl, epsilp, epsilz, epsilt, epsilk, spval, &
-             tenm, onem, tencm, onecm, onemm, onemu, g2kg, kg2g !, &
-             !L_mks2cgs, M_mks2cgs, P_mks2cgs, R_mks2cgs
+             tenm, onem, tencm, onecm, onemm, onemu, g2kg, kg2g
 
 end module mod_constants
