@@ -366,7 +366,7 @@ contains
           write(io_stdo_bgc,*)' '
           write(io_stdo_bgc,*) 'Sediment shifting ...'
         endif
-        call sedshi(kpie,kpje,omask)
+        call sedshi(kpie,kpje,omask,kplyear)
       endif
 
     endif ! .not. use_sedbypass
