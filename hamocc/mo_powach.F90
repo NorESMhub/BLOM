@@ -36,7 +36,7 @@ contains
     use mo_param1_bgc,  only: ioxygen,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,      &
                               isilica,isssc12,issso12,issssil,issster,ks,ipowc13,ipowc14,isssc13,  &
                               isssc14,issso13,issso14,safediv,ipownh4,issso12_age
-    use mo_carbch,      only: co3,keqb,ocetra,sedfluxo
+    use mo_carbch,      only: co3,keqb,ocetra,sedfluxo,sedfluxb
     use mo_chemcon,     only: calcon
     use mo_param_bgc,   only: rnit,rcar,rdnit1,rdnit2,ro2ut,disso_sil,silsat,disso_poc,sed_denit,  &
                             & disso_caco3,ro2utammo,sed_alpha_poc,                                 &
@@ -81,8 +81,13 @@ contains
 
     ! Set array for saving diffusive sediment-water-column fluxes to zero
     !********************************************************************
-
     sedfluxo(:,:,:) = 0.0
+
+    ! set other sediment diagnostic variables to zero
+    sedfluxb(:,:,:) = 0.0
+    if (use_extNcycle) then
+      extNsed_diagnostics(:,:,:,:) = 0.0
+    endif
 
     ! A LOOP OVER J
     ! RJ: This loop must go from 1 to kpje in the parallel version,
