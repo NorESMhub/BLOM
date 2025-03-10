@@ -37,7 +37,7 @@ module ocn_comp_nuopc
                                 model_label_Finalize       => label_Finalize
    use nuopc_shr_methods, only: ChkErr, set_component_logging, &
                                 get_component_instance, state_setscalar, &
-                                alarmInit
+                                alarmInit, shr_get_rpointer_name
    use shr_cal_mod,       only: shr_cal_ymd2date
    use shr_log_mod,       only: shr_log_getLogUnit, shr_log_setLogUnit
    use ocn_import_export, only: fldlist_type, fldsMax, tlast_coupled, &
@@ -46,7 +46,7 @@ module ocn_comp_nuopc
                                 blom_getprecipfact, blom_accflds, &
                                 blom_importflds, blom_exportflds, &
                                 blom_advertise_imports, blom_advertise_exports
-   use mod_xc,            only: mpicom_external, lp, xchalt
+   use mod_xc,            only: mpicom_external, lp, xchalt, mnproc
    use mod_cesm,          only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
    use mod_config,        only: inst_index, inst_name, inst_suffix
    use mod_time,          only: blom_time
@@ -828,6 +828,9 @@ contains
                  ymd, tod
       logical :: first_call = .true., restart_alarm_on
       character(len=cllen) :: msg
+      integer :: nfu
+      character(len = 256) :: restartfn
+      character(len = 256) :: rpfile
 
       if (dbug > 5) call ESMF_LogWrite(subname//': called', ESMF_LOGMSG_INFO)
 
@@ -938,8 +941,18 @@ contains
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
 
          ! Write BLOM restart files.
-         call restart_write()
-
+         call restart_write (restartfn)
+         if(mnproc == 1) then
+         if (expcnf == 'cesm' .or. expcnf == 'channel') then
+            ! Write restart filename to rpointer.ocn.
+            if (mnproc == 1) then
+               call shr_get_rpointer_name(gcomp, 'ocn', ymd, tod, rpfile, 'write', rc)
+               open(newunit = nfu, file = rpfile)
+               write(nfu, '(a)') restartfn
+               close(unit = nfu)
+            endif
+         endif
+         endif
       endif
 
       ! ------------------------------------------------------------------------
@@ -1014,6 +1027,29 @@ contains
          call ESMF_LogWrite(subname//': setting alarms for '//trim(name), &
                             ESMF_LOGMSG_INFO)
 
+         ! Stop alarm.
+
+         call NUOPC_CompAttributeGet(gcomp, name="stop_option", &
+                                     value=stop_option, rc=rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+
+         call NUOPC_CompAttributeGet(gcomp, name="stop_n", &
+                                     value=cvalue, rc=rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         read(cvalue,*) stop_n
+
+         call NUOPC_CompAttributeGet(gcomp, name="stop_ymd", &
+                                     value=cvalue, rc=rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         read(cvalue,*) stop_ymd
+
+         call alarmInit(mclock, stop_alarm, stop_option, &
+                        opt_n=stop_n, opt_ymd=stop_ymd, RefTime=mcurrTime, &
+                        alarmname='stop_alarm', rc=rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+
+         call ESMF_AlarmSet(stop_alarm, clock=mclock, rc=rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
 
          ! Restart alarm.
 
@@ -1037,30 +1073,6 @@ contains
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
 
          call ESMF_AlarmSet(restart_alarm, clock=mclock, rc=rc)
-         if (ChkErr(rc, __LINE__, u_FILE_u)) return
-
-         ! Stop alarm.
-
-         call NUOPC_CompAttributeGet(gcomp, name="stop_option", &
-                                     value=stop_option, rc=rc)
-         if (ChkErr(rc, __LINE__, u_FILE_u)) return
-
-         call NUOPC_CompAttributeGet(gcomp, name="stop_n", &
-                                     value=cvalue, rc=rc)
-         if (ChkErr(rc, __LINE__, u_FILE_u)) return
-         read(cvalue,*) stop_n
-
-         call NUOPC_CompAttributeGet(gcomp, name="stop_ymd", &
-                                     value=cvalue, rc=rc)
-         if (ChkErr(rc, __LINE__, u_FILE_u)) return
-         read(cvalue,*) stop_ymd
-
-         call alarmInit(mclock, stop_alarm, stop_option, &
-                        opt_n=stop_n, opt_ymd=stop_ymd, RefTime=mcurrTime, &
-                        alarmname='stop_alarm', rc=rc)
-         if (ChkErr(rc, __LINE__, u_FILE_u)) return
-
-         call ESMF_AlarmSet(stop_alarm, clock=mclock, rc=rc)
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
 
       endif

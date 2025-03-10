@@ -1038,11 +1038,14 @@ contains
    ! Public procedures.
    ! ---------------------------------------------------------------------------
 
-   subroutine restart_write
+   subroutine restart_write (restfnout)
    ! ---------------------------------------------------------------------------
    ! Write model state to restart files.
    ! ---------------------------------------------------------------------------
 
+      character(len = *), intent(out), optional :: restfnout
+
+      ! local variables
       integer :: nfu, i, j, n
       character(len = 256), dimension(4) :: rstdate_str
       character(len = 256) :: rstfnm, fnm
@@ -1269,13 +1272,8 @@ contains
          call ncfcls
       endif
 
-      if (expcnf == 'cesm' .or. expcnf == 'channel') then
-         ! Write restart filename to rpointer.ocn.
-         if (mnproc == 1) then
-            open(newunit = nfu, file = 'rpointer.ocn'//trim(inst_suffix))
-            write(nfu, '(a)') rstfnm
-            close(unit = nfu)
-         endif
+      if (present(restfnout)) then
+        restfnout = rstfnm
       endif
 
    end subroutine restart_write
