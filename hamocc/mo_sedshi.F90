@@ -143,7 +143,7 @@ contains
             !ka          if(bolay(i,j).gt.0.) then
             uebers=wsed(i,j)*sedlay(i,j,ks,iv)
             if (use_sediment_quality .and. iv == issso12) then
-              burial(i,j,issso12_age) = (uebers*seddw(ks)*porsol(i,j,ks)*sedlay(i,j,k,issso12_age) &
+              burial(i,j,issso12_age) = (uebers*seddw(ks)*porsol(i,j,ks)*sedlay(i,j,ks,issso12_age)&
                                       &   + burial(i,j,issso12)*burial(i,j,issso12_age))           &
                                       & /(uebers*seddw(ks)*porsol(i,j,ks) + burial(i,j,issso12)+eps)
             endif
@@ -230,8 +230,8 @@ contains
           frac = porsol(i,j,ks)*seddw(ks)
 
           if (use_sediment_quality) then
-            ! Update burial POC age [yrs]
-            burial(i,j,issso12_age)    = burial(i,j,issso12_age) + dtbgc/31104000.
+            ! Update burial POC age [yrs] - NOTE that sedshi is called once per day!
+            burial(i,j,issso12_age)    = burial(i,j,issso12_age) + 86400./31104000.
             sedlay(i,j,ks,issso12_age) = (refill*burial(i,j,issso12)/frac * burial(i,j,issso12_age)&
                                        &    + sedlay(i,j,ks,issso12)*sedlay(i,j,ks,issso12_age))   &
                                        & /(refill*burial(i,j,issso12)/frac + sedlay(i,j,ks,issso12)+eps)
