@@ -495,10 +495,10 @@ module mo_param_bgc
   !
   real, protected :: sedict      = 1.e-9          ! m2/s Molecular diffusion coefficient
   real, protected :: silsat      = 0.001          ! kmol/m3 Silicate saturation concentration is 1 mol/m3
-  real, protected :: disso_poc   = 0.432 / 86400. ! 1/(kmol O2/m3 s)      Degradation rate constant of POP
+  real, protected :: disso_poc   = 0.432/sec_per_day ! 1/(kmol O2/m3 s)      Degradation rate constant of POP
   real, protected :: disso_sil   = 3.e-8          ! 1/(kmol Si(OH)4/m3 s) Dissolution rate constant of opal
   real, protected :: disso_caco3 = 1.e-7          ! 1/(kmol CO3--/m3 s) Dissolution rate constant of CaCO3
-  real, protected :: sed_denit   = 0.01/86400.    ! 1/s Denitrification rate constant of POP
+  real, protected :: sed_denit   = 0.01/sec_per_day  ! 1/s Denitrification rate constant of POP
   real, protected :: sed_alpha_poc = 1./90.       ! 1/d 1/decay time for sediment moving average - assuming ~3 month memory here
   real, protected :: sed_qual_sc = 1.             ! scaling factor for sediment quality-based remineralization
   !********************************************************************
@@ -698,7 +698,7 @@ contains
     perc_diron = fetune * 0.035 * 0.01 / 55.85
 
     dustd2   = dustd1*dustd1
-    dustsink = (9.81 * 86400. / 18.                 & ! g * sec per day / 18.
+    dustsink = (9.81 * sec_per_day / 18.                 & ! g * sec per day / 18.
                * (claydens - 1025.) / 1.567 * 1000. & ! excess density / dyn. visc.
                * dustd2 * 1.e-4)                      ! m/d
 
