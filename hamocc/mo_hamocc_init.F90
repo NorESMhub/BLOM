@@ -35,7 +35,7 @@ contains
     !  J.Schwinger,        *NORCE Climate, Bergen*    2020-05-25
     !***********************************************************************************************
 
-    use mod_time,       only: date,baclin
+    use mod_time,       only: date,baclin,calendar
     use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,isp,ifp,ilp,mnproc,lp,xchalt
     use mod_grid,       only: plon,plat,depths
     use mod_tracers,    only: ntrbgc,ntr,itrbgc,trc
@@ -47,7 +47,8 @@ contains
                               ocn_co2_type, use_sedbypass, use_BOXATM, use_BROMO,use_extNcycle,    &
                               use_coupler_ndep,lTO2depremin,use_sediment_quality
     use mo_param1_bgc,  only: ks,init_por2octra_mapping
-    use mo_param_bgc,   only: ini_parambgc,claydens,calcdens,calcwei,opaldens,opalwei,ropal
+    use mo_param_bgc,   only: ini_parambgc,claydens,calcdens,calcwei,opaldens,opalwei,ropal,       &
+                            & ini_bgctimes
     use mo_carbch,      only: alloc_mem_carbch,ocetra,atm,atm_co2
     use mo_biomod,      only: alloc_mem_biomod
     use mo_sedmnt,      only: alloc_mem_sedmnt,sedlay,powtra,burial,ini_sedmnt,prorca_mavg
@@ -91,12 +92,15 @@ contains
     !
     ! --- Set io units and some control parameters
     !
+    call ini_bgctimes(calendar)      ! Init basic time variables
+
     io_stdo_bgc = lp              !  standard out.
     dtbgc = nphys*baclin          !  time step length [sec].
     ndtdaybgc=NINT(86400./dtbgc)  !  time steps per day [No].
     dtb=1./ndtdaybgc              !  time step length [days].
     ldtbgc = 0
     ldtrunbgc = 0
+
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)

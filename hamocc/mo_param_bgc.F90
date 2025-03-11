@@ -40,7 +40,7 @@ module mo_param_bgc
                             do_n2onh3_coupled,use_extNcycle,                                       &
                             lkwrbioz_off,lTO2depremin,use_shelfsea_res_time,use_sediment_quality,  &
                             use_pref_tracers,use_coupler_ndep
-  use mod_xc,         only: mnproc
+  use mod_xc,         only: mnproc,xcstop
 
   implicit none
   private
@@ -63,6 +63,7 @@ module mo_param_bgc
 
   ! Routines
   public  :: ini_parambgc
+  public  :: ini_bgctimes
   private :: ini_aggregation
   private :: read_bgcnamelist
   private :: calc_param_atm
@@ -128,6 +129,14 @@ module mo_param_bgc
           & mufn2o_sed,POM_remin_q10_sed, POM_remin_Tref_sed,bkox_drempoc_sed,   &
           & max_limiter
 
+  ! Time variables
+  public :: sec_per_year,sec_per_day,days_per_year
+  !********************************************************************
+  ! Time parameters
+  !********************************************************************
+  real, parameter :: sec_per_day = 86400. ! seconds per day
+  real, protected :: sec_per_year         ! seconds per year
+  real, protected :: days_per_year        ! simulated days per year
 
   !********************************************************************
   ! Stoichiometry and fixed parameters
@@ -513,6 +522,29 @@ module mo_param_bgc
   real :: beta13, alpha14, d14cat, d13c_atm
 
 contains
+  !********************************************************************
+  subroutine ini_bgctimes(calendar)
+
+    character(len=*),intent(in) :: calendar
+
+    select case (trim(calendar))
+      ! see mod_calendar.F90 and mod_time.F90
+      case ('noleap','365_day')
+        days_per_year = 365.
+      case ('all_leap','366_day')
+        days_per_year = 366.
+      case ('360_day')
+        days_per_year = 360.
+      case default
+        if (mnproc == 1) then
+          write (io_stdo_bgc,*) 'Init iHAMOCC time variables: calendar not supported'
+        endif
+        call xcstop('(init_iHAMOCC_timevars)')
+             stop '(init_iHAMOCC_timevars)'
+    end select
+
+    sec_per_year = days_per_year*sec_per_day
+  end subroutine ini_bgctimes
 
   !********************************************************************
   subroutine ini_parambgc()
