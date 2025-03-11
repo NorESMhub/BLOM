@@ -102,9 +102,11 @@ contains
     ! ------------------------------------------------------------------
     ! Read limits file
     ! ------------------------------------------------------------------
-
-    call rdlim
-
+    if (present(rpfile)) then
+       call rdlim(rpfile)
+    else
+       call rdlim
+    endif
     ! ------------------------------------------------------------------
     ! Identify processor and horizontal indexes where detailed
     ! diagnostics are desired

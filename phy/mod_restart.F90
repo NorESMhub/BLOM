@@ -1357,11 +1357,11 @@ contains
                   !  l_rpfile will have no timestamp
                   write(lp,*) &
                       'restart_read: could not find file '// &
-                      l_rpfile//' or '//pfile//'!'
+                      l_rpfile//' or '//rpfile//'!'
                else
                   write(lp,*) &
                      'restart_read: could not find file '// &
-                      l_rpfile//
+                      l_rpfile//'!'
                endif
             endif
             call xcstop('(restart_read)')

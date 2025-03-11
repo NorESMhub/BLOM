@@ -85,6 +85,8 @@ module ocn_comp_nuopc
    integer :: dbug = 0
    logical :: profile_memory = .false.
 
+   logical:: write_restart_at_endofrun = .false.
+
    public :: SetServices, SetVM
 
 !================================================================================
@@ -460,10 +462,13 @@ contains
       ! ------------------------------------------------------------------------
 
       ! no need for mnproc, since it is used in in restart_read
-      call ESMF_ClockGet(eclock, currtime=currtime)
-      call ESMF_TimeGet(currtime, yy=yr, mm=mon, dd=day, tod=tod)
+      call ESMF_ClockGet(clock, currtime=currtime, rc=rc)
+      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      call ESMF_TimeGet(currtime, yy=yy, mm=mm, dd=dd, s=tod, rc=rc)
+      if (ChkErr(rc, __LINE__, u_FILE_u)) return
       ymd= 10000*yy + 100*mm + dd
-      call shr_get_rpointer_name(gcomp, 'ocn', ymd, tod, rpfile, 'write', rc)
+      call shr_get_rpointer_name(gcomp, 'ocn', ymd, tod, rpfile, 'write', rc=rc)
+      if (ChkErr(rc, __LINE__, u_FILE_u)) return
       call blom_init(rpfile)
 
       ! ------------------------------------------------------------------------
@@ -650,6 +655,7 @@ contains
       integer, allocatable, dimension(:) :: gindex
       integer :: n, spatialDim, numOwnedElements, nx_global, ny_global
       character(len=cllen)  :: cvalue
+      logical :: isPresent, isSet
 
       if (dbug > 5) call ESMF_LogWrite(subname//': called', ESMF_LOGMSG_INFO)
 
@@ -752,6 +758,14 @@ contains
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
       end if
 
+      ! Find if restart is needed at the end of the run
+
+      call NUOPC_CompAttributeGet(gcomp, name="write_restart_at_endofrun", value=cvalue, isPresent=isPresent, isSet=isSet, rc=rc)
+      if (ChkErr(rc,__LINE__,u_FILE_u)) return
+      if (isPresent .and. isSet) then
+         if (trim(cvalue) .eq. '.true.') write_restart_at_endofrun = .true.
+      end if
+
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
 
    end subroutine InitializeRealize
@@ -831,10 +845,10 @@ contains
       type(ESMF_State) :: importState, exportState
       type(ESMF_Clock) :: clock
       type(ESMF_Time)  :: currTime
-      type(ESMF_Alarm) :: restart_alarm
+      type(ESMF_Alarm) :: restart_alarm, stop_alarm
       integer :: shrlogunit, yr_sync, mon_sync, day_sync, tod_sync, ymd_sync, &
                  ymd, tod
-      logical :: first_call = .true., restart_alarm_on
+      logical :: first_call = .true., restart_alarm_on, stop_alarm_on, wrtrst
       character(len=cllen) :: msg
       integer :: nfu
       character(len = 256) :: restartfn
@@ -936,6 +950,21 @@ contains
       ! consider stop alarm?
       ! ------------------------------------------------------------------------
 
+      wrtrst = .false.
+      ! check for stop alarm 
+      call ESMF_ClockGetAlarm(clock, alarmname='stop_alarm', &
+                              alarm=stop_alarm, rc=rc)
+      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      stop_alarm_on = ESMF_AlarmIsRinging(stop_alarm, rc=rc)
+      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+
+      if (stop_alarm_on) then
+         if(write_restart_at_endofrun) wrtrst = .true.
+         call ESMF_AlarmRingerOff(stop_alarm, rc=rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      endif
+
+      ! check for restart alarm
       call ESMF_ClockGetAlarm(clock, alarmname='restart_alarm', &
                               alarm=restart_alarm, rc=rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
@@ -943,12 +972,13 @@ contains
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
 
       if (restart_alarm_on) then
-
-         ! Turn off the alarm
+         wrtrst = .true.
          call ESMF_AlarmRingerOff(restart_alarm, rc=rc)
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
-
+      endif
+      if (wrtrst) then
          ! Write BLOM restart files.
+         call blom_time(ymd, tod)
          call restart_write (restartfn)
          if(mnproc == 1) then
             ! Write restart filename to rpointer.ocn.
