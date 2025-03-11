@@ -1273,19 +1273,34 @@ contains
       endif
 
       if (present(restfnout)) then
-        restfnout = rstfnm
+         restfnout = rstfnm
+      else
+         ! mct will call this routine with restfnout
+         ! this block is here just in case
+         if (expcnf == 'cesm' .or. expcnf == 'channel') then
+            ! cesm condition here is just in case.
+            ! component caps call this routien with an arg
+            ! Write restart filename to rpointer.ocn.
+            if (mnproc == 1) then
+               open(newunit = nfu, file = 'rpointer.ocn'//trim(inst_suffix))
+               write(nfu, '(a)') rstfnm
+               close(unit = nfu)
+            endif
+         endif
       endif
 
    end subroutine restart_write
 
-   subroutine restart_read
+   subroutine restart_read(rpfile)
    ! ---------------------------------------------------------------------------
    ! Read model state from restart files.
    ! ---------------------------------------------------------------------------
 
+      character(len = *), intent(in), optional :: rpfile
+
       type(date_type) :: date_rest
       integer :: nfu, errstat, dndiff, ntr_file, i, j, l, n
-      character(len = 256) :: rstfnm, fnm
+      character(len = 256) :: rstfnm, fnm, l_rpfile
       character(len = 2) :: c2
       real(r8) :: pb_max, phi_min, rho_restart
       logical :: file_exist, fld_read
@@ -1314,21 +1329,40 @@ contains
       elseif (expcnf == 'cesm' .or. expcnf == 'channel') then
 
          ! Get restart file name from rpointer.ocn.
-         if (mnproc == 1) &
-            inquire(file = 'rpointer.ocn'//trim(inst_suffix), &
-                    exist = file_exist)
+         if (mnproc == 1) then
+            if(present(rpfile)) then
+               inquire(file = rpfile, exist = file_exist)
+               if (file_exist) then
+                  l_rpfile = rpfile
+               else
+                  l_rpfile = 'rpointer.ocn'//trim(inst_suffix)
+               endif
+            else
+               l_rpfile = 'rpointer.ocn'//trim(inst_suffix)
+            endif
+            inquire(file =l_rpfile, exist = file_exist)
+         endif
          call xcbcst(file_exist)
          if (file_exist) then
             if (mnproc == 1) then
-               open(newunit = nfu, file = 'rpointer.ocn'//trim(inst_suffix))
+               open(newunit = nfu, file =l_rpfile)
                read(nfu, '(a)') rstfnm
                close(unit = nfu)
             endif
             call xcbcst(rstfnm)
          else
             if (mnproc == 1) then
-               write(lp,*) 'restart_read: could not find file rpointer.ocn'// &
-                           trim(inst_suffix)//'!'
+               if (present(rpfile)) then
+                  ! if rpfile is not found
+                  !  l_rpfile will have no timestamp
+                  write(lp,*) &
+                      'restart_read: could not find file '// &
+                      l_rpfile//' or '//pfile//'!'
+               else
+                  write(lp,*) &
+                     'restart_read: could not find file '// &
+                      l_rpfile//
+               endif
             endif
             call xcstop('(restart_read)')
                    stop '(restart_read)'

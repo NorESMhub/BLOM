@@ -373,7 +373,10 @@ contains
       ! local variables
       type(ESMF_VM) :: vm
       type(ESMF_TimeInterval) :: timeStep
+      type(ESMF_Time) :: currtime
       integer :: localPet, nthrds, shrlogunit, n
+      integer :: yy, mm, dd, ymd, tod
+      character(len=cllen) :: rpfile
       character(len=cllen) :: starttype, stdname
       character(len=cllen) :: msg, cvalue
       logical :: isPresent, isSet
@@ -456,7 +459,12 @@ contains
       ! Initialize BLOM.
       ! ------------------------------------------------------------------------
 
-      call blom_init()
+      ! no need for mnproc, since it is used in in restart_read
+      call ESMF_ClockGet(eclock, currtime=currtime)
+      call ESMF_TimeGet(currtime, yy=yr, mm=mon, dd=day, tod=tod)
+      ymd= 10000*yy + 100*mm + dd
+      call shr_get_rpointer_name(gcomp, 'ocn', ymd, tod, rpfile, 'write', rc)
+      call blom_init(rpfile)
 
       ! ------------------------------------------------------------------------
       ! Get ScalarField attributes.
@@ -943,15 +951,11 @@ contains
          ! Write BLOM restart files.
          call restart_write (restartfn)
          if(mnproc == 1) then
-         if (expcnf == 'cesm' .or. expcnf == 'channel') then
             ! Write restart filename to rpointer.ocn.
-            if (mnproc == 1) then
-               call shr_get_rpointer_name(gcomp, 'ocn', ymd, tod, rpfile, 'write', rc)
-               open(newunit = nfu, file = rpfile)
-               write(nfu, '(a)') restartfn
-               close(unit = nfu)
-            endif
-         endif
+            call shr_get_rpointer_name(gcomp, 'ocn', ymd, tod, rpfile, 'write', rc)
+            open(newunit = nfu, file = rpfile)
+            write(nfu, '(a)') restartfn
+            close(unit = nfu)
          endif
       endif
 

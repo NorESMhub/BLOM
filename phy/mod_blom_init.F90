@@ -61,10 +61,13 @@ module mod_blom_init
 
 contains
 
-  subroutine blom_init()
+  subroutine blom_init(rpfile)
   ! ------------------------------------------------------------------
   ! initialize the model
   ! ------------------------------------------------------------------
+
+    ! optional arguments for running with nuopc
+    character(len = *), intent(in), optional :: rpfile
 
     ! Local variables
     integer :: istat,ncid,varid,i,j,k,l,m,n,mm,nn,k1m,k1n,mt,mmt,kn,km
@@ -223,9 +226,12 @@ contains
       ! ------------------------------------------------------------------
 
       delt1 = baclin+baclin
-
-      call restart_read()
-
+      ! nuopc can provide rpointer timestamp
+      if (present(rpfile)) then
+         call restart_read(rpfile)
+      else
+         call restart_read()
+      endif
     end if
 
     ! ------------------------------------------------------------------

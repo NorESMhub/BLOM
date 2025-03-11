@@ -46,7 +46,7 @@ module ocn_comp_mct
    ! BLOM modules
    use dimensions,       only: idm, jdm, nreg, itdm, jtdm
    use mod_types,        only: r8
-   use mod_config,       only: inst_index, inst_name, inst_suffix, resume_flag, expcnf
+   use mod_config,       only: inst_index, inst_name, inst_suffix, resume_flag
    use mod_time,         only: blom_time, nstep, baclin, delt1, dlt
    use mod_cesm,         only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
    use mod_xc,           only: mnproc, mpicom_external, xctilr, lp, nbdy, &
@@ -334,13 +334,11 @@ module ocn_comp_mct
       if (seq_timemgr_RestartAlarmIsOn(EClock) .or. &
           seq_timemgr_pauseAlarmIsOn(EClock)) then
          call restart_write (restartfn)
-         if (expcnf == 'cesm' .or. expcnf == 'channel') then
-            ! Write restart filename to rpointer.ocn.
-            if (mnproc == 1) then
-               open(newunit = nfu, file = 'rpointer.ocn'//trim(inst_suffix))
-               write(nfu, '(a)') restartfn
-               close(unit = nfu)
-            endif
+        ! Write restart filename to rpointer.ocn.
+         if (mnproc == 1) then
+            open(newunit = nfu, file = 'rpointer.ocn'//trim(inst_suffix))
+            write(nfu, '(a)') restartfn
+            close(unit = nfu)
          endif
       endif
       if (seq_timemgr_pauseAlarmIsOn(EClock)) resume_flag = .true.
