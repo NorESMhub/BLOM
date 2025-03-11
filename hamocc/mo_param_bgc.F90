@@ -134,9 +134,10 @@ module mo_param_bgc
   !********************************************************************
   ! Time parameters
   !********************************************************************
-  real, parameter :: sec_per_day = 86400. ! seconds per day
-  real, protected :: sec_per_year         ! seconds per year
-  real, protected :: days_per_year        ! simulated days per year
+  ! NOTE: days_per_year and sec_per_year are updated in ini_bgctimes(!)
+  real, parameter :: sec_per_day   = 86400.           ! [s/d]  seconds per day
+  real, protected :: days_per_year = 365.             ! [d/yr] days per year
+  real, protected :: sec_per_year  = 365.*sec_per_day ! [s/yr] seconds per year
 
   !********************************************************************
   ! Stoichiometry and fixed parameters
