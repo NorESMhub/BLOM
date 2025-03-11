@@ -533,8 +533,14 @@ contains
         days_per_year = 365.
       case ('all_leap','366_day')
         days_per_year = 366.
+        if (mnproc == 1) then
+          write (io_stdo_bgc,*) 'WARNING: Init iHAMOCC time variables: non-standard 366_day calendar selected'
+        endif
       case ('360_day')
         days_per_year = 360.
+        if (mnproc == 1) then
+          write (io_stdo_bgc,*) 'WARNING: Init iHAMOCC time variables: non-standard 360_day calendar selected'
+        endif
       case default
         if (mnproc == 1) then
           write (io_stdo_bgc,*) 'Init iHAMOCC time variables: calendar not supported'
