@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2021-2024 Mats Bentsen
+! Copyright (C) 2021-2025 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -25,8 +25,7 @@ module mod_fuk95
   ! ------------------------------------------------------------------------------
 
   use mod_types,     only: r8
-  use mod_constants, only: g, rearth, rho0, pi, radian, epsilz, &
-                           L_mks2cgs, R_mks2cgs
+  use mod_constants, only: grav, rearth, rho0, pi, radian, epsilz
   use mod_xc
   use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml, sigmar
   use mod_grid,      only: qclon, qclat, pclon, pclat, uclon, uclat, vclon, vclat, &
@@ -46,32 +45,19 @@ module mod_fuk95
 
   private
 
-  !  real(r8), parameter :: &
-  !     u0     = 30._r8, &     ! Maximum jet velocity [cm s-1].
-  !     h1     = 1.e4_r8, &    ! Depth of active layer [cm].
-  !     h0     = 2.e4_r8, &    ! Depth of water column [cm].
-  !     l0     = 2.e6_r8, &    ! Half-width of the jet [cm].
-  !     drho   = 0.19e-3_r8, & ! Active layer density difference [g cm-3].
-  !     rhoc   = 1.0259_r8, &  ! Density at the center of active layer [g cm-3].
-  !     rhob   = 1.0270_r8, &  ! Density of water beneath active layer [g cm-3].
-  !     f      = 1.e-4_r8, &   ! Coriolis parameter [1 s-1].
-  !     lat0   = 45._r8, &     ! Center latitude of grid domain [deg].
-  !     lambda = 20.8e5, &     ! Channel length [cm].
-  !     mindz  = 1.e2_r8, &    ! Minimum interior layer thickness [cm].
-  !     saln0  = 35._r8        ! Constant salinity value [g kg-1].
   real(r8), parameter :: &
-       u0     = .3_r8*L_mks2cgs, &     ! Maximum jet velocity [m s-1].
-       h1     = 1.e2_r8*L_mks2cgs, &   ! Depth of active layer [m].
-       h0     = 2.e2_r8*L_mks2cgs, &   ! Depth of water column [m].
-       l0     = 2.e4_r8*L_mks2cgs, &   ! Half-width of the jet [m].
-       drho   = 0.19_r8*R_mks2cgs, &   ! Active layer density difference [kg m-3].
-       rhoc   = 1025.9_r8*R_mks2cgs, & ! Density at the center of active layer [kg m-3].
-       rhob   = 1027.0_r8*R_mks2cgs, & ! Density of water beneath active layer [kg m-3].
-       f      = 1.e-4_r8, &            ! Coriolis parameter [1 s-1].
-       lat0   = 45._r8, &              ! Center latitude of grid domain [deg].
-       lambda = 20.8e3*L_mks2cgs, &    ! Channel length [m].
-       mindz  = 1._r8*L_mks2cgs, &     ! Minimum interior layer thickness [m].
-       saln0  = 35._r8                 ! Constant salinity value [g kg-1].
+       u0     = .3_r8, &     ! Maximum jet velocity [m s-1].
+       h1     = 1.e2_r8, &   ! Depth of active layer [m].
+       h0     = 2.e2_r8, &   ! Depth of water column [m].
+       l0     = 2.e4_r8, &   ! Half-width of the jet [m].
+       drho   = 0.19_r8, &   ! Active layer density difference [kg m-3].
+       rhoc   = 1025.9_r8, & ! Density at the center of active layer [kg m-3].
+       rhob   = 1027.0_r8, & ! Density of water beneath active layer [kg m-3].
+       f      = 1.e-4_r8, &  ! Coriolis parameter [1 s-1].
+       lat0   = 45._r8, &    ! Center latitude of grid domain [deg].
+       lambda = 20.8e3, &    ! Channel length [m].
+       mindz  = 1._r8, &     ! Minimum interior layer thickness [m].
+       saln0  = 35._r8       ! Constant salinity value [g kg-1].
 
   public :: geoenv_fuk95, inifrc_fuk95, ictsz_fuk95
 
@@ -89,7 +75,7 @@ contains
     real(r8), intent(in) :: ri, rj
 
     x_nudge = ( ri + i0 - itdm/2 - .5_r8 &
-         + .1_r8*sin(2._r8*(rj + j0 - 1)*pi/jtdm))*lambda/jtdm
+            + .1_r8*sin(2._r8*(rj + j0 - 1)*pi/jtdm))*lambda/jtdm
 
   end function x_nudge
 
@@ -146,7 +132,7 @@ contains
         tmpg(1   , j) = 0._r8
         tmpg(itdm, j) = 0._r8
         do i = 2, itdm - 1
-          tmpg(i, j) = h0*L_mks2cgs**(-1)
+          tmpg(i, j) = h0
         enddo
       enddo
       !$omp end parallel do
@@ -295,7 +281,7 @@ contains
         ! and corresponding isopycnic layer structure. The bulk mixed layer
         ! is set to the minimum mixed layer thickness.
 
-        drhojet = rhoc*f*u0*l0/(g*h1)
+        drhojet = rhoc*f*u0*l0/(grav*h1)
         dsig = (drho + drhojet)/(kk - 4)
         sigref(kk) = rhob - rho0
         sigref(kk - 1) = rhoc + .5_r8*(drho + drhojet) - rho0
@@ -324,11 +310,11 @@ contains
             do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
               x = x_nudge(real(i, r8), real(j, r8))
               z(i, j, 1) = 0._r8
-              z(i, j, 2) = .5_r8*mltmin*L_mks2cgs
-              z(i, j, 3) = mltmin*L_mks2cgs
+              z(i, j, 2) = .5_r8*mltmin
+              z(i, j, 3) = mltmin
               z(i, j, kk    ) = h1
               z(i, j, kk + 1) = h0
-              sigm = rhoc*(1._r8 + f*u0*x_psi(x)/(g*h1)) - rho0
+              sigm = rhoc*(1._r8 + f*u0*x_psi(x)/(grav*h1)) - rho0
               sigma(i, j, 1) = sigm &
                    + .5_r8*drho*(z(i, j, 2) + z(i, j, 1) - h1)/h1
               sigma(i, j, 2) = sigm &
@@ -341,7 +327,7 @@ contains
             do l = 1, isp(j)
               do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
                 x = x_nudge(real(i, r8), real(j, r8))
-                sigm = rhoc*(1._r8 + f*u0*x_psi(x)/(g*h1)) - rho0
+                sigm = rhoc*(1._r8 + f*u0*x_psi(x)/(grav*h1)) - rho0
                 sigi = .5_r8*(sigref(k - 1) + sigref(k))
                 z(i, j, k) = ((sigi - sigm)/drho + .5_r8)*h1
                 z(i, j, k) = min(z(i, j, kk) - mindz*(kk - k), &
@@ -361,14 +347,14 @@ contains
         ! active layer is distributed equally among the remaining model
         ! layers using constant z-level interfaces.
 
-        !           drhojet = rhoc*f*u0*l0/(g*h1)
+        !           drhojet = rhoc*f*u0*l0/(grav*h1)
         !           dsig = (drho + drhojet)/(kk - 4)
         !           sigref(kk) = .5_r8*(rhob + rhoc) + .25_r8*(drho + drhojet) - rho0
         !           sigref(kk - 1) = rhoc + .5_r8*(drho + drhojet - dsig) - rho0
         !           do k = kk - 2, 1, -1
         !              sigref(k) = sigref(k + 1) - dsig
         !           enddo
-        drhojet = rhoc*f*u0*l0/(g*h1)
+        drhojet = rhoc*f*u0*l0/(grav*h1)
         dsig = (drho + drhojet)/(kk - 5)
         sigref(kk - 2) = rhoc + .5_r8*(drho + drhojet - dsig) - rho0
         do k = kk - 3, 1, -1
@@ -404,7 +390,7 @@ contains
             do l = 1, isp(j)
               do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
                 x = x_nudge(real(i, r8), real(j, r8))
-                s1 = rhoc*(1._r8 + f*u0*x_psi(x)/(g*h1)) - rho0 &
+                s1 = rhoc*(1._r8 + f*u0*x_psi(x)/(grav*h1)) - rho0 &
                      + .5_r8*drho*(z(i, j, k + 1) + z(i, j, k) - h1)/h1
                 sigma(i, j, k) = &
                      ( s1*max(0._r8, min(z(i, j, k + 1), h1) - z(i, j, k)) &
@@ -450,7 +436,7 @@ contains
       do k = 1, kk + 1
         do l = 1, isp(j)
           do i = max(1, ifp(j, l)),min(ii, ilp(j, l))
-            phi(i, j, k) = - g*z(i, j, k)
+            phi(i, j, k) = - grav*z(i, j, k)
           enddo
         enddo
       enddo

@@ -19,8 +19,8 @@
 
 module mod_thermf_cesm
 
-  use mod_constants, only: g, spcifh, t0deg, alpha0, epsilt, onem, &
-                           g2kg, kg2g, L_mks2cgs, M_mks2cgs
+  use mod_constants, only: grav, spcifh, t0deg, alpha0, epsilt, onem, &
+                           g2kg, kg2g
   use mod_time,      only: nstep, nstep_in_day, nday_in_year, &
                            nday_of_year, baclin, &
                            xmi, l1mi, l2mi, l3mi, l4mi, l5mi
@@ -68,9 +68,7 @@ contains
     integer :: i,j,k,l,m1,m2,m3,m4,m5,ntld,kn,kl,nt
     real :: y,dpotl,hotl,totl,sotl,tice_f,fwflx,sstc,rice,dpmxl,hmxl
     real :: tmxl,trxflx,pbot,dprsi,sssc,smxl,srxflx,sflxc
-    real :: totsrp,totsrn,qp,qn,trflxc,A_cgs2mks
-
-    A_cgs2mks = 1./(L_mks2cgs**2)
+    real :: totsrp,totsrn,qp,qn,trflxc
 
     ! Set parameters for time interpolation when applying diagnosed heat and
     ! salt relaxation fluxes
@@ -118,7 +116,7 @@ contains
           ! Fresh water flux [kg m-2 s-1] (positive downwards)
           fwflx = eva(i,j)+lip(i,j)+sop(i,j)+rnf(i,j)+rfi(i,j)+fmltfz(i,j)
 
-          ! Salt flux due to brine rejection of freezing sea ice [kg m-2 m-1]
+          ! Salt flux due to brine rejection of freezing sea ice [kg m-2 s-1]
           ! (positive downwards)
           brnflx(i,j) = max(0.,-sotl*fmltfz(i,j)*g2kg+sfl(i,j))
 
@@ -131,7 +129,7 @@ contains
           ! salinity and any salinity limiting compensated for.
           util1(i,j) = -(sref*fwflx*g2kg &
                         +vrtsfl(i,j) &
-                        +salt_corr(i,j)*g2kg/(2.*baclin)*(L_mks2cgs**2/M_mks2cgs)) &
+                        +salt_corr(i,j)*g2kg/(2.*baclin)) &
                         *scp2(i,j)
 
           ! Reset salt correction
@@ -146,19 +144,19 @@ contains
           ! heated. Note the freezing potential is multiplied by 1/2 due to the
           ! leap-frog time stepping. The melting potential uses time averaged
           ! quantities since it is not accumulated.
-          frzpot(i,j) = max(0.,tice_f-totl)*spcifh*dpotl/(2.*g)*(L_mks2cgs**2)
+          frzpot(i,j) = max(0.,tice_f-totl)*spcifh*dpotl/(2.*grav)
           mltpot(i,j) = min(0.,tfrzm(i,j)-.5*(temp(i,j,k1m)+temp(i,j,k1n))) &
-                        *spcifh*.5*(dp(i,j,k1m)+dp(i,j,k1n))/g*(L_mks2cgs**2)
+                        *spcifh*.5*(dp(i,j,k1m)+dp(i,j,k1n))/grav
 
           ! Heat flux due to melting/freezing [W m-2] (positive downwards)
           hmltfz(i,j) = hmlt(i,j)+frzpot(i,j)/baclin
 
-          ! Total heat flux in BLOM units [W cm-2] (positive upwards)
-          surflx(i,j) = -(swa(i,j)+nsf(i,j)+hmltfz(i,j))*A_cgs2mks
+          ! Total heat flux in BLOM units [W m-2] (positive upwards)
+          surflx(i,j) = -(swa(i,j)+nsf(i,j)+hmltfz(i,j))
 
-          ! Short-wave heat flux in BLOM units [W cm-2] (positive
+          ! Short-wave heat flux in BLOM units [W m-2] (positive
           ! upwards)
-          sswflx(i,j) = -swa(i,j)*A_cgs2mks
+          sswflx(i,j) = -swa(i,j)
 
           if (use_TRC) then
             ! ------------------------------------------------------------------
@@ -190,7 +188,7 @@ contains
               end if
               trflx(nt,i,j) = -trc(i,j,k1n,nt)*fwflx
               trflxc_aw(i,j,nt) = -(trflx(nt,i,j) &
-                                   +trc_corr(i,j,nt)/(2.*baclin)*(L_mks2cgs**2/M_mks2cgs)) &
+                                   +trc_corr(i,j,nt)/(2.*baclin)) &
                                    *scp2(i,j)
               trc_corr(i,j,nt) = 0.
             end do
@@ -222,7 +220,7 @@ contains
               hmxl = dpmxl/onem
               tmxl = (temp(i,j,1+nn)*dp(i,j,1+nn) &
                      +temp(i,j,2+nn)*dp(i,j,2+nn))/dpmxl+t0deg
-              trxflx = spcifh*L_mks2cgs*min(hmxl,trxdpt)/(trxday*86400.) &
+              trxflx = spcifh*min(hmxl,trxdpt)/(trxday*86400.) &
                        *min(trxlim,max(-trxlim,sstc-tmxl))/alpha0
             else
               pbot = p(i,j,1)
@@ -247,7 +245,7 @@ contains
               do kl = k,kk
                 t_rs_nonloc(i,j,kl+1) = 0.
               end do
-              trxflx = spcifh*L_mks2cgs*trxdpt/(trxday*86400.) &
+              trxflx = spcifh*trxdpt/(trxday*86400.) &
                        *min(trxlim,max(-trxlim,sstc-tmxl))/alpha0
             end if
             surrlx(i,j) = -trxflx
@@ -283,7 +281,7 @@ contains
               hmxl = dpmxl/onem
               smxl = (saln(i,j,1+nn)*dp(i,j,1+nn) &
                      +saln(i,j,2+nn)*dp(i,j,2+nn))/dpmxl
-              srxflx = L_mks2cgs*min(hmxl,srxdpt)/(srxday*86400.) &
+              srxflx = min(hmxl,srxdpt)/(srxday*86400.) &
                        *min(srxlim,max(-srxlim,sssc-smxl))/alpha0
             else
               pbot = p(i,j,1)
@@ -308,8 +306,8 @@ contains
               do kl = k,kk
                 s_rs_nonloc(i,j,kl+1) = 0.
               end do
-              srxflx = L_mks2cgs*srxdpt/(srxday*86400.) &
-                   *min(srxlim,max(-srxlim,sssc-smxl))/alpha0
+              srxflx = srxdpt/(srxday*86400.) &
+                       *min(srxlim,max(-srxlim,sssc-smxl))/alpha0
             end if
             salrlx(i,j) = -srxflx
             util2(i,j) = max(0.,salrlx(i,j))*scp2(i,j)
@@ -332,10 +330,10 @@ contains
           end if
 
           ! --------------------------------------------------------------------
-          ! Friction velocity (cm/s)
+          ! Friction velocity (m/s)
           ! --------------------------------------------------------------------
 
-          ustar(i,j) = ustarw(i,j)*L_mks2cgs
+          ustar(i,j) = ustarw(i,j)
 
         end do
       end do
@@ -345,8 +343,8 @@ contains
     ! ------------------------------------------------------------------
     ! Apply the virtual salt flux correction and the compute the total
     ! salt flux by combining the virtual and true salt flux. Also
-    ! convert salt fluxes used later to unit [10e-3 g cm-2 s-1] and
-    ! positive upwards.
+    ! convert salt fluxes used later to unit [g m-2 s-1] and positive
+    ! upwards.
     ! ------------------------------------------------------------------
 
     call xcsum(sflxc,util1,ips)
@@ -359,9 +357,8 @@ contains
     do j = 1,jj
       do l = 1,isp(j)
         do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-          salflx(i,j) = -(vrtsfl(i,j)+sflxc+sfl(i,j)) &
-                         *(kg2g*(M_mks2cgs/L_mks2cgs**2))
-          brnflx(i,j) = -brnflx(i,j)*(kg2g*(M_mks2cgs/L_mks2cgs**2))
+          salflx(i,j) = -(vrtsfl(i,j)+sflxc+sfl(i,j))*kg2g
+          brnflx(i,j) = -brnflx(i,j)*kg2g
         end do
       end do
     end do
@@ -401,7 +398,7 @@ contains
         do j = 1,jj
           do l = 1,isp(j)
             do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-              trflx(nt,i,j) = -(trflx(nt,i,j)+trflxc)*(M_mks2cgs/L_mks2cgs**2)
+              trflx(nt,i,j) = -(trflx(nt,i,j)+trflxc)
             end do
           end do
         end do

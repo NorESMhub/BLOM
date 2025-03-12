@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2007-2022 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
+! Copyright (C) 2007-2025 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
 !
 ! This file is part of BLOM.
 !
@@ -33,7 +33,6 @@ module mod_eos
    private
 
    ! Coefficients for the functional fit of in situ density.
-#ifdef MKS
    real(r8), parameter :: &
       a11 =  9.9985372432159340e+02_r8, &
       a12 =  1.0380621928183473e+01_r8, &
@@ -53,29 +52,8 @@ module mod_eos
       b21 =  1.1995545126831476e-09_r8, &
       b22 =  5.5234008384648383e-12_r8, &
       b23 =  8.4310335919950873e-13_r8
-#else
-   real(r8), parameter :: &
-      a11 =  9.9985372432159340e-01_r8, &
-      a12 =  1.0380621928183473e-02_r8, &
-      a13 =  1.7073577195684715e-03_r8, &
-      a14 = -3.6570490496333680e-05_r8, &
-      a15 = -7.3677944503527477e-06_r8, &
-      a16 = -3.5529175999643348e-06_r8, &
-      b11 =  1.7083494994335439e-10_r8, &
-      b12 =  7.1567921402953455e-13_r8, &
-      b13 =  1.2821026080049485e-13_r8, &
-      a21 =  1.0_r8                   , &
-      a22 =  1.0316374535350838e-02_r8, &
-      a23 =  8.9521792365142522e-04_r8, &
-      a24 = -2.8438341552142710e-05_r8, &
-      a25 = -1.1887778959461776e-05_r8, &
-      a26 = -4.0163964812921489e-06_r8, &
-      b21 =  1.1995545126831476e-10_r8, &
-      b22 =  5.5234008384648383e-13_r8, &
-      b23 =  8.4310335919950873e-14_r8
-#endif
 
-   ! Reference pressure [g cm-1 s-2].
+   ! Reference pressure [kg m-1 s-2].
    real(r8) :: pref
 
    ! Coefficients for potential density in sigma units with reference pressure
@@ -117,7 +95,7 @@ contains
       !    P2(p,th,s) = a21 + (a22 + a24*th + a25*s)*th + (a23 + a26*s)*s
       !               + (b21 + b22*th + b23*s)*p
       ! Here we compute the coefficients needed for an expression for potential
-      ! density [g cm-3] in sigma units of the form
+      ! density [kg m-3] in sigma units of the form
       !    sig(th,s) = R1(th,s)/R2(th,s) 
       ! where
       !    R1(p,th,s) = ap11 + (ap12 + ap14*th + ap15*s)*th + (ap13 + ap16*s)*s
@@ -177,11 +155,11 @@ contains
 
    pure real(r8) function rho(p, th, s)
    ! ---------------------------------------------------------------------------
-   ! In situ density [g cm-3].
+   ! In situ density [kg m-3].
    ! ---------------------------------------------------------------------------
 
       real(r8), intent(in) :: &
-         p,    & ! Pressure [g cm-1 s-2].
+         p,    & ! Pressure [kg m-1 s-2].
          th,   & ! Potental temperature [deg C].
          s       ! Salinity [g kg-1].
 
@@ -194,11 +172,11 @@ contains
 
    pure real(r8) function alp(p, th, s)
    ! ---------------------------------------------------------------------------
-   ! Specific volume [cm3 g-1].
+   ! Specific volume [m3 kg-1].
    ! ---------------------------------------------------------------------------
 
       real(r8), intent(in) :: &
-         p,    & ! Pressure [g cm-1 s-2].
+         p,    & ! Pressure [kg m-1 s-2].
          th,   & ! Potental temperature [deg C].
          s       ! Salinity [g kg-1].
 
@@ -211,7 +189,7 @@ contains
 
    pure real(r8) function sig(th, s)
    ! ---------------------------------------------------------------------------
-   ! Potential density in sigma units [g cm-3].
+   ! Potential density in sigma units [kg m-3].
    ! ---------------------------------------------------------------------------
 
       real(r8), intent(in) :: &
@@ -226,7 +204,7 @@ contains
    pure real(r8) function sig0(th, s)
    ! ---------------------------------------------------------------------------
    ! Potential density in sigma units with reference pressure at the surface
-   ! [g cm-3].
+   ! [kg m-3].
    ! ---------------------------------------------------------------------------
 
       real(r8), intent(in) :: &
@@ -241,11 +219,11 @@ contains
    pure real(r8) function drhodt(p, th, s)
    ! ---------------------------------------------------------------------------
    ! Derivative of in situ density with respect to potential temperature
-   ! [g cm-3 K-1].
+   ! [kg m-3 K-1].
    ! ---------------------------------------------------------------------------
 
       real(r8), intent(in) :: &
-         p,    & ! Pressure [g cm-1 s-2].
+         p,    & ! Pressure [kg m-1 s-2].
          th,   & ! Potental temperature [deg C].
          s       ! Salinity [g kg-1].
 
@@ -264,7 +242,7 @@ contains
    pure real(r8) function dsigdt(th, s)
    ! ---------------------------------------------------------------------------
    ! Derivative of potential density with respect to potential temperature
-   ! [g cm-3 K-1].
+   ! [kg m-3 K-1].
    ! ---------------------------------------------------------------------------
 
       real(r8), intent(in) :: &
@@ -284,7 +262,7 @@ contains
    pure real(r8) function dsigdt0(th, s)
    ! ---------------------------------------------------------------------------
    ! Derivative of potential density referenced at the surface with respect to
-   ! potential temperature [g cm-3 K-1].
+   ! potential temperature [kg m-3 K-1].
    ! ---------------------------------------------------------------------------
 
       real(r8), intent(in) :: &
@@ -304,11 +282,11 @@ contains
 
    pure real(r8) function drhods(p, th, s)
    ! ---------------------------------------------------------------------------
-   ! Derivative of in situ density with respect to salinity [kg cm-3].
+   ! Derivative of in situ density with respect to salinity [kg m-3].
    ! ---------------------------------------------------------------------------
 
       real(r8), intent(in) :: &
-         p,    & ! Pressure [g cm-1 s-2].
+         p,    & ! Pressure [kg m-1 s-2].
          th,   & ! Potental temperature [deg C].
          s       ! Salinity [g kg-1].
 
@@ -326,7 +304,7 @@ contains
 
    pure real(r8) function dsigds(th, s)
    ! ---------------------------------------------------------------------------
-   ! Derivative of potential density with respect to salinity [kg cm-3].
+   ! Derivative of potential density with respect to salinity [kg m-3].
    ! ---------------------------------------------------------------------------
 
       real(r8), intent(in) :: &
@@ -346,7 +324,7 @@ contains
    pure real(r8) function dsigds0(th, s)
    ! ---------------------------------------------------------------------------
    ! Derivative of potential density referenced at the surface with respect to
-   ! salinity [kg cm-3].
+   ! salinity [kg m-3].
    ! ---------------------------------------------------------------------------
 
       real(r8), intent(in) :: &
@@ -371,7 +349,7 @@ contains
    ! ---------------------------------------------------------------------------
 
       real(r8), intent(in) :: &
-         sg,   & ! Potental density [g cm-3].
+         sg,   & ! Potental density [kg m-3].
          s       ! Salinity [g kg-1].
 
       real(r8) :: a, b, c
@@ -391,7 +369,7 @@ contains
    ! ---------------------------------------------------------------------------
 
       real(r8), intent(in) :: &
-         sg,   & ! Potental density [g cm-3].
+         sg,   & ! Potental density [kg m-3].
          th      ! Potential temperature [deg C].
 
       real(r8) :: a, b, c
@@ -406,12 +384,12 @@ contains
 
    pure real(r8) function p_alpha(p1, p2, th, s)
    ! ---------------------------------------------------------------------------
-   ! Integral of specific volume with respect to pressure [cm2 s-2].
+   ! Integral of specific volume with respect to pressure [m2 s-2].
    ! ---------------------------------------------------------------------------
 
       real(r8), intent(in) :: &
-         p1,   & ! Lower pressure bound [g cm-1 s-2].
-         p2,   & ! Upper pressure bound [g cm-1 s-2].
+         p1,   & ! Lower pressure bound [kg m-1 s-2].
+         p2,   & ! Upper pressure bound [kg m-1 s-2].
          th,   & ! Potential temperature [deg C].
          s       ! Salinity [g kg-1].
 
@@ -450,12 +428,12 @@ contains
 
    pure real(r8) function p_p_alpha(p1, p2, th, s)
    ! ---------------------------------------------------------------------------
-   ! Double integral of specific volume with respect to pressure [cm g s-4].
+   ! Double integral of specific volume with respect to pressure [m kg s-4].
    ! ---------------------------------------------------------------------------
 
       real(r8), intent(in) :: &
-         p1,   & ! Lower pressure bound [g cm-1 s-2].
-         p2,   & ! Upper pressure bound [g cm-1 s-2].
+         p1,   & ! Lower pressure bound [kg m-1 s-2].
+         p2,   & ! Upper pressure bound [kg m-1 s-2].
          th,   & ! Potential temperature [deg C].
          s       ! Salinity [g kg-1].
 
@@ -503,15 +481,15 @@ contains
    ! ---------------------------------------------------------------------------
 
       real(r8), intent(in) :: &
-         p1,   & ! Lower pressure bound [g cm-1 s-2].
-         p2,   & ! Upper pressure bound [g cm-1 s-2].
+         p1,   & ! Lower pressure bound [kg m-1 s-2].
+         p2,   & ! Upper pressure bound [kg m-1 s-2].
          th,   & ! Potential temperature [deg C].
          s       ! Salinity [g kg-1].
 
       real(r8), intent(out) :: &
-         dphi, & ! Geopotential difference [cm2 s-2].
-         alp1, & ! Specific volume at lower pressure bound [cm3 g-1].
-         alp2    ! Specific volume at upper pressure bound [cm3 g-1].
+         dphi, & ! Geopotential difference [m2 s-2].
+         alp1, & ! Specific volume at lower pressure bound [m3 kg-1].
+         alp2    ! Specific volume at upper pressure bound [m3 kg-1].
       
       real(r8), parameter :: &
          r1_3 = 1._r8/3._r8, &
@@ -552,11 +530,11 @@ contains
    pure real(r8) function dalpdt(p, th, s)
    ! ---------------------------------------------------------------------------
    ! Derivative of specific volume with respect to potential temperature
-   ! [cm3 g-1 K-1].
+   ! [m3 kg-1 K-1].
    ! ---------------------------------------------------------------------------
 
       real(r8), intent(in) :: &
-         p,    & ! Pressure [g cm-1 s-2].
+         p,    & ! Pressure [kg m-1 s-2].
          th,   & ! Potental temperature [deg C].
          s       ! Salinity [g kg-1].
 
@@ -574,11 +552,11 @@ contains
 
    pure real(r8) function dalpds(p, th, s)
    ! ---------------------------------------------------------------------------
-   ! Derivative of specific volume with respect to salinity [cm3 kg g-2].
+   ! Derivative of specific volume with respect to salinity [m3 g].
    ! ---------------------------------------------------------------------------
 
       real(r8), intent(in) :: &
-         p,    & ! Pressure [g cm-1 s-2].
+         p,    & ! Pressure [kg m-1 s-2].
          th,   & ! Potental temperature [deg C].
          s       ! Salinity [g kg-1].
 
@@ -602,9 +580,9 @@ contains
    ! ---------------------------------------------------------------------------
 
       real(r8), intent(in) :: &
-         p0,   & ! Dynamic enthalphy reference pressure [g cm-1 s-2].
-         p1,   & ! Lower pressure bound [g cm-1 s-2].
-         p2,   & ! Upper pressure bound [g cm-1 s-2].
+         p0,   & ! Dynamic enthalphy reference pressure [kg m-1 s-2].
+         p1,   & ! Lower pressure bound [kg m-1 s-2].
+         p2,   & ! Upper pressure bound [kg m-1 s-2].
          th,   & ! Potential temperature [deg C].
          s       ! Salinity [g kg-1].
 

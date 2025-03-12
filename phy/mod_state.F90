@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2020-2022 Mats Bentsen
+! Copyright (C) 2020-2025 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -32,51 +32,51 @@ module mod_state
    private
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, 2*kdm) :: &
-      u,         & ! u-component of baroclinic velocity [cm s-1].
-      v,         & ! v-component of baroclinic velocity [cm s-1].
-      dp,        & ! Layer pressure thickness [g cm-1 s-2].
-      dpu,       & ! Layer pressure thickness at u-point [g cm-1 s-2].
-      dpv,       & ! Layer pressure thickness at v-point [g cm-1 s-2].
+      u,         & ! u-component of baroclinic velocity [m s-1].
+      v,         & ! v-component of baroclinic velocity [m s-1].
+      dp,        & ! Layer pressure thickness [kg m-1 s-2].
+      dpu,       & ! Layer pressure thickness at u-point [kg m-1 s-2].
+      dpv,       & ! Layer pressure thickness at v-point [kg m-1 s-2].
       temp,      & ! Potential temperature [deg C].
       saln,      & ! Salinity [g kg-1].
-      sigma,     & ! Potential density [g cm-3].
-      uflx,      & ! u-component of mass flux [g cm s-2].
-      vflx,      & ! v-component of mass flux [g cm s-2].
-      utflx,     & ! u-component of heat flux [K g cm s-2].
-      vtflx,     & ! v-component of heat flux [K g cm s-2].
-      usflx,     & ! u-component of heat flux [g2 cm kg-1 s-2].
-      vsflx        ! v-component of heat flux [g2 cm kg-1 s-2].
+      sigma,     & ! Potential density [kg m-3].
+      uflx,      & ! u-component of mass flux [kg m s-2].
+      vflx,      & ! v-component of mass flux [kg m s-2].
+      utflx,     & ! u-component of heat flux [K kg m s-2].
+      vtflx,     & ! v-component of heat flux [K kg m s-2].
+      usflx,     & ! u-component of heat flux [g m s-2].
+      vsflx        ! v-component of heat flux [g m s-2].
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, kdm + 1) :: &
-      p,         & ! Layer interface pressure [g cm-1 s-2].
-      pu,        & ! Layer interface pressure at u-points [g cm-1 s-2].
-      pv,        & ! Layer interface pressure at v-points [g cm-1 s-2].
-      phi          ! Layer interface geopotential [cm2 s-2].
+      p,         & ! Layer interface pressure [kg m-1 s-2].
+      pu,        & ! Layer interface pressure at u-points [kg m-1 s-2].
+      pv,        & ! Layer interface pressure at v-points [kg m-1 s-2].
+      phi          ! Layer interface geopotential [m2 s-2].
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, 3) :: &
-      ubflxs,    & ! u-component of barotropic mass flux sum [g cm s-3].
-      vbflxs       ! v-component of barotropic mass flux sum [g cm s-3].
+      ubflxs,    & ! u-component of barotropic mass flux sum [kg m s-3].
+      vbflxs       ! v-component of barotropic mass flux sum [kg m s-3].
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, 2) :: &
-      ub,        & ! u-component of barotropic velocity [cm s-1].
-      vb,        & ! v-component of barotropic velocity [cm s-1].
-      pb,        & ! Bottom pressure [g cm-1 s-2].
-      pbu,       & ! Bottom pressure at u-point [g cm-1 s-2].
-      pbv,       & ! Bottom pressure at v-point [g cm-1 s-2].
+      ub,        & ! u-component of barotropic velocity [m s-1].
+      vb,        & ! v-component of barotropic velocity [m s-1].
+      pb,        & ! Bottom pressure [kg m-1 s-2].
+      pbu,       & ! Bottom pressure at u-point [kg m-1 s-2].
+      pbv,       & ! Bottom pressure at v-point [kg m-1 s-2].
       ubflxs_p,  & ! u-component of predicted barotropic mass flux sum
-                   ! [g cm s-3].
+                   ! [kg m s-3].
       vbflxs_p     ! v-component of predicted barotropic mass flux sum
-                   ! [g cm s-3].
+                   ! [kg m s-3].
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
-      pb_p,      & ! Predicted bottom pressure [g cm-1 s-2].
-      pbu_p,     & ! Predicted bottom pressure at u-point [g cm-1 s-2].
-      pbv_p,     & ! Predicted bottom pressure at v-point [g cm-1 s-2].
+      pb_p,      & ! Predicted bottom pressure [kg m-1 s-2].
+      pbu_p,     & ! Predicted bottom pressure at u-point [kg m-1 s-2].
+      pbv_p,     & ! Predicted bottom pressure at v-point [kg m-1 s-2].
       ubcors_p,  & ! u-component of predicted sum of barotropic coriolis term
-                   ! [cm s-2].
+                   ! [m s-2].
       vbcors_p,  & ! v-component of predicted sum of barotropic coriolis term
-                   ! [cm s-2].
-      sealv        ! Sea surface height [cm].
+                   ! [m s-2].
+      sealv        ! Sea surface height [m].
 
    integer, dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, 2) :: &
       kfpla        ! Index of first mass containing layer below the mixed layer.

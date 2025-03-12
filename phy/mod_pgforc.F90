@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2005-2024 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
+! Copyright (C) 2005-2025 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -28,7 +28,7 @@ module mod_pgforc
                            isp, ifp, ilp, isu, ifu, ilu, isv, ifv, ilv, &
                            halo_ps, mnproc, lp, ip, iu, iv, xcstop
   use mod_types,     only: r8
-  use mod_constants, only: g, epsilp, onemm, spval
+  use mod_constants, only: grav, epsilp, onemm, spval
   use mod_state,     only: dp, dpu, dpv, temp, saln, p, pu, pv, phi, &
                            pb_p, pbu_p, pbv_p, sealv
   use mod_eos,       only: pref, alp, p_alpha, delphi, dalpdt, dalpds, &
@@ -45,37 +45,37 @@ module mod_pgforc
   real(r8), parameter :: &
        wpgf = .25_r8, & ! Weight for time averaging of pressure gradient force
                         ! [].
-       p0_dynh = 0._r8  ! Reference pressure for dynamic enthalpy [g cm-1 s-2].
+       p0_dynh = 0._r8  ! Reference pressure for dynamic enthalpy [kg m-1 s-2].
 
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2*kdm) :: &
-       pgfx, &    ! x-component of baroclinic pressure gradient force [cm2 s-2].
-       pgfy       ! y-component of baroclinic pressure gradient force [cm2 s-2].
+       pgfx, &    ! x-component of baroclinic pressure gradient force [m2 s-2].
+       pgfy       ! y-component of baroclinic pressure gradient force [m2 s-2].
 
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: &
-       pgfx_o, &  ! 'pgfx' at old time level [cm2 s-2]. &
-       pgfy_o     ! 'pgfy' at old time level [cm2 s-2].
+       pgfx_o, &  ! 'pgfx' at old time level [m2 s-2]. &
+       pgfy_o     ! 'pgfy' at old time level [m2 s-2].
 
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) :: &
        pgfxm, &   ! x-component of barotropic pressure gradient force, not
-                  ! dependent on bottom pressure [cm2 s-2]
+                  ! dependent on bottom pressure [m2 s-2]
        pgfym, &   ! y-component of barotropic pressure gradient force, not
-                  ! dependent on bottom pressure [cm2 s-2]
+                  ! dependent on bottom pressure [m2 s-2]
        xixp, &    ! Dependeny of x-component of barotropic pressure gradient
-                  ! force on bottom pressure at (i, j) [cm3 g-1].
+                  ! force on bottom pressure at (i,j) [m3 g-1].
        xixm, &    ! Dependeny of x-component of barotropic pressure gradient
-                  ! force on bottom pressure at (i - 1, j) [cm3 g-1].
+                  ! force on bottom pressure at (i-1,j) [m3 g-1].
        xiyp, &    ! Dependeny of y-component of barotropic pressure gradient
-                  ! force on bottom pressure at (i, j) [cm3 g-1].
+                  ! force on bottom pressure at (i,j) [m3 g-1].
        xiym       ! Dependeny of y-component of barotropic pressure gradient
-                  ! force on bottom pressure at (i, j - 1) [cm3 g-1].
+                  ! force on bottom pressure at (i,j-1) [m3 g-1].
 
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
-       pgfxm_o, & ! 'pgfxm' at old time level [cm2 s-2]
-       pgfym_o, & ! 'pgfym' at old time level [cm2 s-2]
-       xixp_o, &  ! 'xixp' at old time level [cm3 g-1]
-       xixm_o, &  ! 'xixm' at old time level [cm3 g-1]
-       xiyp_o, &  ! 'xiyp' at old time level [cm3 g-1]
-       xiym_o         ! 'xiym' at old time level [cm3 g-1].
+       pgfxm_o, & ! 'pgfxm' at old time level [m2 s-2]
+       pgfym_o, & ! 'pgfym' at old time level [m2 s-2]
+       xixp_o, &  ! 'xixp' at old time level [m3 g-1]
+       xixm_o, &  ! 'xixm' at old time level [m3 g-1]
+       xiyp_o, &  ! 'xiyp' at old time level [m3 g-1]
+       xiym_o     ! 'xiym' at old time level [m3 g-1].
 
   ! Public variables.
   public :: pgfmth, wpgf, pgfx, pgfy, pgfx_o, pgfy_o, pgfxm, pgfym, &
@@ -610,7 +610,7 @@ contains
 
       do l = 1, isp(j)
         do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
-          sealv(i,j) = phi(i,j,1)/g
+          sealv(i,j) = phi(i,j,1)/grav
         end do
       end do
 

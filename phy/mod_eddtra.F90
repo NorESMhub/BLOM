@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2024 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
+! Copyright (C) 2015-2025 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -24,9 +24,8 @@ module mod_eddtra
 ! ------------------------------------------------------------------------------
 
    use mod_types,     only: r8
-   use mod_constants, only: g, alpha0, rho0, epsilp, spval, &
-                            onem, onecm, onemm, &
-                            L_mks2cgs
+   use mod_constants, only: grav, alpha0, rho0, epsilp, spval, &
+                            onem, onecm, onemm
    use mod_time,      only: delt1
    use mod_xc
    use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml
@@ -49,9 +48,6 @@ module mod_eddtra
 
    real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
       hbl_tf, wpup_tf, hml_tf1, hml_tf
-
-   real(r8), parameter :: &
-      iL_mks2cgs = 1./L_mks2cgs
 
    ! Options with default values, modifiable by namelist.
    character(len = 80) :: &
@@ -81,15 +77,15 @@ module mod_eddtra
       tau_decaying_hml = 259200._r8, & ! Time-scale for running mean filter when
                                        ! signal is less than filtered value
                                        ! (used for mixed layer thickness) [s].
-      lfmin = 5.e3_r8*L_mks2cgs, &     ! Minimum length scale of mixed layer
-                                       ! fronts [cm].
+      lfmin = 5.e3_r8, &               ! Minimum length scale of mixed layer
+                                       ! fronts [m].
       mstar = .5_r8, &                 ! Scaling of boundary layer turbulence
                                        ! due to friction velocity (Bodner et
                                        ! al., 2023) [].
       nstar = .066_r8, &               ! Scaling of boundary layer turbulence
                                        ! due to convective velocity (Bodner et
                                        ! al., 2023) [].
-      wpup_min = 1.e-3_r8*(L_mks2cgs**2) ! Minimum vertical momentum flux.
+      wpup_min = 1.e-3_r8              ! Minimum vertical momentum flux.
                                        ! According to Eq. (24) of Bodner et al.
                                        ! (2023), this minimum value should give
                                        ! a frontal length scale of abont 1 m for
@@ -296,7 +292,7 @@ contains
             enddo
 
             ! Eddy transport to mass flux conversion factor.
-            et2mf = - g*rho0*delt1*scuy(i,j)
+            et2mf = - grav*rho0*delt1*scuy(i,j)
 
             ! Index of last layer containing mass at either of the scalar points
             ! adjacent to the velocity point.
@@ -665,7 +661,7 @@ contains
             enddo
 
             ! Eddy transport to mass flux conversion factor.
-            et2mf = - g*rho0*delt1*scvx(i,j)
+            et2mf = - grav*rho0*delt1*scvx(i,j)
 
             ! Index of last layer containing mass at either of the scalar points
             ! adjacent to the velocity point.
@@ -1088,7 +1084,7 @@ contains
             do j = 1, jj
                do l = 1, isp(j)
                do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
-                  hbl = OBLdepth(i,j)*L_mks2cgs
+                  hbl = OBLdepth(i,j)
                   wpup = max(wpup_min, &
                              (mstar*ustar3(i,j) + nstar*wstar3(i,j))**c2_3)
                   call rmeanfilt(hbl_tf(i,j) , hbl , &
@@ -1122,12 +1118,12 @@ contains
             call xctilr(hml_tf, 1, 1, 2, 2, halo_ps)
          endif
 
-         ! Compute vertically averaged mixed layer density [g cm-3].
+         ! Compute vertically averaged mixed layer density [kg m-3].
          !$omp parallel do private(l, i, pml, dpmli, tmldp, smldp, k, kn)
          do j = 1, jj
             do l = 1, isp(j)
             do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
-               pml = min(p(i,j,1) + hml_tf(i,j)*(onem*iL_mks2cgs), p(i,j,kk+1))
+               pml = min(p(i,j,1) + hml_tf(i,j)*onem, p(i,j,kk+1))
                dpmli = 1._r8/(pml - p(i,j,1))
                tmldp = 0._r8
                smldp = 0._r8
@@ -1149,9 +1145,9 @@ contains
          !$omp end parallel do
          call xctilr(util1, 1,1, 2,2, halo_ps)
 
-         ! Compute components of submesoscale eddy transport [cm2 s-1].
+         ! Compute components of submesoscale eddy transport [m2 s-1].
          if (mlrmth_opt == mlrmth_bod23) then
-            csm = g*alpha0*ce/cl
+            csm = grav*alpha0*ce/cl
             !$omp parallel do private(l, i, hbl, hml, absf, wpup, drho)
             do j = -1, jj+2
                do l = 1, isu(j)
@@ -1182,7 +1178,7 @@ contains
             !$omp end parallel do
          else
             rtau = 1._r8/tau_mlr
-            csm = g*alpha0*ce
+            csm = grav*alpha0*ce
             !$omp parallel do private(l, i, hml, f, absfi, lfi, drho)
             do j = -1, jj+2
                do l = 1, isu(j)
@@ -1258,7 +1254,7 @@ contains
             mfleps = eps*epsilp*scu2(i,j)
 
             ! Eddy transport to mass flux conversion factor.
-            et2mf = - g*rho0*delt1*scuy(i,j)
+            et2mf = - grav*rho0*delt1*scuy(i,j)
 
             ! Get interface pressures and find index of last layer containing
             ! mass at either of the scalar points adjacent to the velocity point
@@ -1271,14 +1267,14 @@ contains
                if (dp(i-1,j,kn) > epsilp .or. dp(i,j,kn) > epsilp) kmax = k
             enddo
 
-            ! Mixed layer thickness [cm].
+            ! Mixed layer thickness [m].
             hml = .5_r8*(hml_tf(i-1,j) + hml_tf(i,j))
 
-            ! Pressure of mixed layer base [g cm-1 s-2].
-            pml = min(puv(1) + hml*(onem*iL_mks2cgs), puv(kmax+1))
+            ! Pressure of mixed layer base [kg m-1 s-2].
+            pml = min(puv(1) + hml*onem, puv(kmax+1))
 
             ! Multiplicative inverse of mixed layer pressure thickness
-            ! [g cm-1 s-2].
+            ! [kg m-1 s-2].
             dpmli = 1._r8/(pml - puv(1))
 
             ! Find index of first interface below the mixed layer base.
@@ -1528,7 +1524,7 @@ contains
             mfleps = eps*epsilp*scv2(i,j)
 
             ! Eddy transport to mass flux conversion factor.
-            et2mf = - g*rho0*delt1*scvx(i,j)
+            et2mf = - grav*rho0*delt1*scvx(i,j)
 
             ! Get interface pressures and find index of last layer containing
             ! mass at either of the scalar points adjacent to the velocity point
@@ -1541,14 +1537,14 @@ contains
                if (dp(i,j-1,kn) > epsilp .or. dp(i,j,kn) > epsilp) kmax = k
             enddo
 
-            ! Mixed layer thickness [cm].
+            ! Mixed layer thickness [m].
             hml = .5_r8*(hml_tf(i,j-1) + hml_tf(i,j))
 
-            ! Pressure of mixed layer base [g cm-1 s-2].
-            pml = min(puv(1) + hml*(onem*iL_mks2cgs), puv(kmax+1))
+            ! Pressure of mixed layer base [kg m-1 s-2].
+            pml = min(puv(1) + hml*(onem), puv(kmax+1))
 
             ! Multiplicative inverse of mixed layer pressure thickness
-            ! [g cm-1 s-2].
+            ! [kg m-1 s-2].
             dpmli = 1._r8/(pml - puv(1))
 
             ! Find index of first interface below the mixed layer base.

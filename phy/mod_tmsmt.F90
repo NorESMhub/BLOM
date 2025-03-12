@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2005-2024 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
+! Copyright (C) 2005-2025 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -52,13 +52,13 @@ module mod_tmsmt
 
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2*kdm) :: &
        dpold   ! Layer pressure thickness at old time level
-               ! [g cm-1 s-2].
+               ! [kg m-1 s-2].
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: &
        dpuold  ! Layer pressure thickness at u-point at old time
-               ! level [g cm-1 s-2].
+               ! level [kg m-1 s-2].
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: &
        dpvold  ! Layer pressure thickness at v-point at old time
-               ! level [g cm-1 s-2].
+               ! level [kg m-1 s-2].
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: &
        told    ! Potential temperature at old time level
                ! [deg C].
