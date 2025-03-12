@@ -138,7 +138,7 @@ module mo_param_bgc
   real, parameter :: sec_per_day   = 86400.           ! [s/d]  seconds per day
   real, protected :: days_per_year = 365.             ! [d/yr] days per year
   real, protected :: sec_per_year  = 365.*sec_per_day ! [s/yr] seconds per year
-
+  logical         :: lini=.true.
   !********************************************************************
   ! Stoichiometry and fixed parameters
   !********************************************************************
@@ -526,13 +526,14 @@ contains
 
   !********************************************************************
   subroutine ini_bgctimes(nday_in_year)
-
+    ! NOTE: called also at run time after initialization
     integer,intent(in) :: nday_in_year
 
     days_per_year = real(nday_in_year)
 
-    if (nday_in_year /= 365 .and. mnproc==1) then
-          write (io_stdo_bgc,*) 'WARNING: Init iHAMOCC time variables: non-standard calendar selected with [days] ',days_per_year
+    if (nday_in_year /= 365 .and. mnproc==1 .and. lini .eqv. .true.) then
+      write (io_stdo_bgc,*) 'WARNING: Init iHAMOCC time variables: non-standard calendar selected with [days] ',days_per_year
+      lini=.false.
     endif
 
     sec_per_year = days_per_year*sec_per_day
