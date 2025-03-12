@@ -523,32 +523,17 @@ module mo_param_bgc
   real :: beta13, alpha14, d14cat, d13c_atm
 
 contains
+
   !********************************************************************
-  subroutine ini_bgctimes(calendar)
+  subroutine ini_bgctimes(nday_in_year)
 
-    character(len=*),intent(in) :: calendar
+    integer,intent(in) :: nday_in_year
 
-    select case (trim(calendar))
-      ! see mod_calendar.F90 and mod_time.F90
-      case ('noleap','365_day')
-        days_per_year = 365.
-      case ('all_leap','366_day')
-        days_per_year = 366.
-        if (mnproc == 1) then
-          write (io_stdo_bgc,*) 'WARNING: Init iHAMOCC time variables: non-standard 366_day calendar selected'
-        endif
-      case ('360_day')
-        days_per_year = 360.
-        if (mnproc == 1) then
-          write (io_stdo_bgc,*) 'WARNING: Init iHAMOCC time variables: non-standard 360_day calendar selected'
-        endif
-      case default
-        if (mnproc == 1) then
-          write (io_stdo_bgc,*) 'Init iHAMOCC time variables: calendar not supported'
-        endif
-        call xcstop('(init_iHAMOCC_timevars)')
-             stop '(init_iHAMOCC_timevars)'
-    end select
+    days_per_year = real(nday_in_year)
+
+    if (nday_in_year /= 365 .and. mnproc==1) then
+          write (io_stdo_bgc,*) 'WARNING: Init iHAMOCC time variables: non-standard calendar selected with [days] ',days_per_year
+    endif
 
     sec_per_year = days_per_year*sec_per_day
   end subroutine ini_bgctimes

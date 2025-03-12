@@ -35,7 +35,7 @@ contains
     !  J.Schwinger,        *NORCE Climate, Bergen*    2020-05-25
     !***********************************************************************************************
 
-    use mod_time,       only: date,baclin,calendar
+    use mod_time,       only: date,baclin,nday_in_year
     use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,isp,ifp,ilp,mnproc,lp,xchalt
     use mod_grid,       only: plon,plat,depths
     use mod_tracers,    only: ntrbgc,ntr,itrbgc,trc
@@ -92,7 +92,7 @@ contains
     !
     ! --- Set io units and some control parameters
     !
-    call ini_bgctimes(calendar)      ! Init basic time variables
+    call ini_bgctimes(nday_in_year) ! Init basic time variables
 
     io_stdo_bgc = lp              !  standard out.
     dtbgc = nphys*baclin          !  time step length [sec].
@@ -111,6 +111,7 @@ contains
       write(io_stdo_bgc,*) 'dims',idm,jdm,kdm
       write(io_stdo_bgc,*) 'date',date
       write(io_stdo_bgc,*) 'time step',dtbgc
+      write(io_stdo_bgc,*) 'nday_in_year ',nday_in_year
     endif
     !
     ! --- Read the HAMOCC BGCNML namelist and check the value of some variables.
