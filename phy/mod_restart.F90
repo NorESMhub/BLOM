@@ -1,7 +1,8 @@
 ! ------------------------------------------------------------------------------
 ! Copyright (C) 2006-2025 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
 !                         Ingo Bethke, Jerry Tjiputra, Ping-Gin Chiu,
-!                         Aleksi Nummelin, Jörg Schwinger, Mariana Vertenstein, !                         Joeran Maerz
+!                         Aleksi Nummelin, Jörg Schwinger, Mariana Vertenstein,
+!                         Joeran Maerz
 !
 ! This file is part of BLOM.
 !
@@ -1453,9 +1454,7 @@ contains
       call xcmin(phi_min)
       rho_restart = - pb_max/phi_min
 
-      if (rho_restart > 1.e2_r8) then
-         print*,'Mehmet, this is not necessary!'
-      else
+      if (rho_restart < 1.e2_r8) then
          if (mnproc == 1) &
               write(lp,*) 'restart_read: restart variables will be converted '// &
                           'from CGS to MKS units.'

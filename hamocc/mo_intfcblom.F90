@@ -210,7 +210,7 @@ contains
     ! - integrate subroutine into module mo_intfcblom
     !***********************************************************************************************
 
-    use mod_constants, only: onem,L_mks2cgs,rho0,P_mks2cgs
+    use mod_constants, only: onem,rho0
     use mod_xc,        only: ii,jdm,jj,kdm,kk,ifp,isp,ilp,idm
     use mod_grid,      only: scpx,scpy
     use mod_state,     only: dp,temp,saln
@@ -257,8 +257,8 @@ contains
       do i=1,ii
         !
         ! --- - dimension of grid box in meters
-        bgc_dx(i,j) = scpx(i,j)/L_mks2cgs
-        bgc_dy(i,j) = scpy(i,j)/L_mks2cgs
+        bgc_dx(i,j) = scpx(i,j)
+        bgc_dy(i,j) = scpy(i,j)
         !
         ! --- - index of level above OBL depth
         ! ---   isopycninc coords: hOBL(i,j) = hOBL_static = 3.  =>  kmle(i,j) = 2
@@ -286,7 +286,7 @@ contains
             if(dp(i,j,kn) == 0.0) then
               ldp = 1.0
               pa  = ldp/rho(p1,th,s)
-            else if(dp(i,j,kn) <  1.0e-3*P_mks2cgs) then
+            else if(dp(i,j,kn) <  1.0e-3) then
               ldp = dp(i,j,kn)
               pa  = ldp/rho(p1,th,s)
             else

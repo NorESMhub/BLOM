@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2002-2022 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2002-2025 Mats Bentsen, Mehmet Ilicak
 
 ! This file is part of BLOM.
 
@@ -2843,7 +2843,7 @@ contains
     call xcsum(lht_sum,util3,ip)
     call xcsum(sht_sum,util4,ip)
 
-    fac = (1.0)/(12.*area)
+    fac = 1./(12.*area)
     swa_ave = swa_sum*fac
     lwa_ave = lwa_sum*fac
     lht_ave = lht_sum*fac

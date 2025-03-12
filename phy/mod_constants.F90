@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2020-2022 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2020-2025 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -53,7 +53,7 @@ module mod_constants
       onemu  = .009806_r8, &      ! 1 micrometer in units of pressure
                                   ! [kg m-1 s-2].
       g2kg   = 1.e-3_r8, &        ! convert g to kg coeff
-      kg2g   = 1.e3_r8 !, &         ! convert kg to g coeff
+      kg2g   = 1.e3_r8            ! convert kg to g coeff
 
    public :: grav, rearth, spcifh, t0deg, alpha0, rho0, pi, radian, &
              epsilpl, epsilp, epsilz, epsilt, epsilk, spval, &

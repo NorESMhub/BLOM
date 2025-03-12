@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2009-2024 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
+! Copyright (C) 2009-2025 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -85,7 +85,7 @@ contains
     !   gbbl   - efficientcy factor for bottom boundary layer mixing []
     !   kappa  - von Karman constant []
     !   ustmin - minimum value of ustar used in computing the length
-    !            scale bottom boundary layer mixing [cm/s]
+    !            scale bottom boundary layer mixing [m/s]
     parameter(dsgmnr=.1,fcmxr=.25,dsgcr0=.25,dfeps=1.e-12,gbbl=.2,kappa=.4,ustmin=.0001)
 
     ! Constant in the diffusion equation
@@ -202,7 +202,7 @@ contains
                 nubbl = gbbl*ustarb(i,j)**3 &
                         *exp(-(delp(k+1)+.5*delp(k))*abs(coriop(i,j)) &
                               *alpha0/(kappa*max(ustmin,ustarb(i,j))*grav)) &
-                       /(alpha0*grav*(sigr(k+1)-sigr(k)))
+                        /(alpha0*grav*(sigr(k+1)-sigr(k)))
                 nu(k) = max(nu(k),nubbl)
                 difdia(i,j,k) = nu(k)
               end if

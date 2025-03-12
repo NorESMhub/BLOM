@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2024 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
+! Copyright (C) 2015-2025 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -78,7 +78,7 @@ module mod_eddtra
                                        ! signal is less than filtered value
                                        ! (used for mixed layer thickness) [s].
       lfmin = 5.e3_r8, &               ! Minimum length scale of mixed layer
-                                       ! fronts [cm].
+                                       ! fronts [m].
       mstar = .5_r8, &                 ! Scaling of boundary layer turbulence
                                        ! due to friction velocity (Bodner et
                                        ! al., 2023) [].
@@ -1118,12 +1118,12 @@ contains
             call xctilr(hml_tf, 1, 1, 2, 2, halo_ps)
          endif
 
-         ! Compute vertically averaged mixed layer density [g cm-3].
+         ! Compute vertically averaged mixed layer density [kg m-3].
          !$omp parallel do private(l, i, pml, dpmli, tmldp, smldp, k, kn)
          do j = 1, jj
             do l = 1, isp(j)
             do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
-               pml = min(p(i,j,1) + hml_tf(i,j)*(onem), p(i,j,kk+1))
+               pml = min(p(i,j,1) + hml_tf(i,j)*onem, p(i,j,kk+1))
                dpmli = 1._r8/(pml - p(i,j,1))
                tmldp = 0._r8
                smldp = 0._r8
@@ -1145,7 +1145,7 @@ contains
          !$omp end parallel do
          call xctilr(util1, 1,1, 2,2, halo_ps)
 
-         ! Compute components of submesoscale eddy transport [cm2 s-1].
+         ! Compute components of submesoscale eddy transport [m2 s-1].
          if (mlrmth_opt == mlrmth_bod23) then
             csm = grav*alpha0*ce/cl
             !$omp parallel do private(l, i, hbl, hml, absf, wpup, drho)
@@ -1267,14 +1267,14 @@ contains
                if (dp(i-1,j,kn) > epsilp .or. dp(i,j,kn) > epsilp) kmax = k
             enddo
 
-            ! Mixed layer thickness [cm].
+            ! Mixed layer thickness [m].
             hml = .5_r8*(hml_tf(i-1,j) + hml_tf(i,j))
 
-            ! Pressure of mixed layer base [g cm-1 s-2].
-            pml = min(puv(1) + hml*(onem), puv(kmax+1))
+            ! Pressure of mixed layer base [kg m-1 s-2].
+            pml = min(puv(1) + hml*onem, puv(kmax+1))
 
             ! Multiplicative inverse of mixed layer pressure thickness
-            ! [g cm-1 s-2].
+            ! [kg m-1 s-2].
             dpmli = 1._r8/(pml - puv(1))
 
             ! Find index of first interface below the mixed layer base.
@@ -1537,14 +1537,14 @@ contains
                if (dp(i,j-1,kn) > epsilp .or. dp(i,j,kn) > epsilp) kmax = k
             enddo
 
-            ! Mixed layer thickness [cm].
+            ! Mixed layer thickness [m].
             hml = .5_r8*(hml_tf(i,j-1) + hml_tf(i,j))
 
-            ! Pressure of mixed layer base [g cm-1 s-2].
+            ! Pressure of mixed layer base [kg m-1 s-2].
             pml = min(puv(1) + hml*(onem), puv(kmax+1))
 
             ! Multiplicative inverse of mixed layer pressure thickness
-            ! [g cm-1 s-2].
+            ! [kg m-1 s-2].
             dpmli = 1._r8/(pml - puv(1))
 
             ! Find index of first interface below the mixed layer base.

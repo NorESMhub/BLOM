@@ -1,6 +1,6 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2024 Mats Bentsen, Jerry Tjiputra, Jörg Schwinger,
-!                         Mariana Vertenstein
+! Copyright (C) 2008-2025 Mats Bentsen, Jerry Tjiputra, Jörg Schwinger,
+!                         Mariana Vertenstein, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -52,13 +52,13 @@ subroutine export_mct(o2x_o, lsize, perm, jjcpl, nsend, sbuff, tlast_coupled)
   ! ----------------------------------------------------------------
 
   call xctilr(sbuff(1-nbdy,1-nbdy,index_o2x_So_u), &
-       1,1, 1,1, halo_uv)
+              1,1, 1,1, halo_uv)
   call xctilr(sbuff(1-nbdy,1-nbdy,index_o2x_So_v), &
-       1,1, 1,1, halo_vv)
+              1,1, 1,1, halo_vv)
   call xctilr(sbuff(1-nbdy,1-nbdy,index_o2x_So_dhdx), &
-       1,1, 1,1, halo_uv)
+              1,1, 1,1, halo_uv)
   call xctilr(sbuff(1-nbdy,1-nbdy,index_o2x_So_dhdy), &
-       1,1, 1,1, halo_vv)
+              1,1, 1,1, halo_vv)
 
   n = 0
   do j = 1, jjcpl

@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2024 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin,
+! Copyright (C) 2008-2025 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin,
 !                         Mariana Vertenstein
 !
 ! This file is part of BLOM.
@@ -93,14 +93,14 @@ contains
     real(r8), intent(in) :: &
          s     ! Layer salinity [g kg-1]. &
     real(r8), intent(in) :: &
-         phiu  ! Geopotential at upper interface [cm2 s-2]. &
+         phiu  ! Geopotential at upper interface [m2 s-2]. &
     real(r8), intent(in) :: &
-         phil  ! Geopotential at lower interface [cm2 s-2]. &
+         phil  ! Geopotential at lower interface [m2 s-2]. &
     real(r8), intent(in) :: &
-         pup   ! Pressure at upper interface [g cm-1 s-2].
+         pup   ! Pressure at upper interface [kg m-1 s-2].
 
     ! Function output
-    real(r8) :: plo ! Pressure at lower interface [g cm-1 s-2].
+    real(r8) :: plo ! Pressure at lower interface [kg m-1 s-2].
 
     ! Local variables
     real(r8) :: q,dphi,alpu,alpl
@@ -357,9 +357,7 @@ contains
 
     end if
 
-    ! Construct interface depths [cm] from layer thicknesses [m] and
-    ! convert unit of reference potential density from [kg/m^3] to
-    ! [g/cm^3]
+    ! Construct interface depths [m] from layer thicknesses [m]
     !$omp parallel do private(l,i)
     do j = 1,jj
       do l = 1,isp(j)
@@ -403,21 +401,6 @@ contains
       end do
     end do
     !$omp end parallel do
-    if ( vcoord_tag == vcoord_isopyc_bulkml .or. &
-        (vcoord_tag == vcoord_cntiso_hybrid .and. &
-         trim(sigref_spec) == 'inicon')) then
-      !$omp parallel do private(k,l,i)
-      do j = 1,jj
-        do k = 1,kk
-          do l = 1,isp(j)
-            do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-              sigmar(i,j,k) = sigmar(i,j,k)
-            end do
-          end do
-        end do
-      end do
-      !$omp end parallel do
-    end if
 
     ! compute layer interface geopotential
     !$omp parallel do private(k,l,i)

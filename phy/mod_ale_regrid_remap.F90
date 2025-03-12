@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2021-2024 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2021-2025 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -1141,7 +1141,7 @@ contains
          end select
       endif
 
-      ! Change units from [m] to [g cm-1 s-2] of depth interval variables.
+      ! Change units from [m] to [kg m-1 s-2] of depth interval variables.
       dpmin_interior = dpmin_interior*onem
 
    end subroutine readnml_ale_regrid_remap

@@ -117,58 +117,55 @@ module mod_difest
   !   iwdflg - If iwdflg=1, reduce background diapycnal diffusivity
   !            due to internal wave damping under sea-ice.
   !   dpbmin - smallest layer thickness allowed in evaluating
-  !            local gradient richardson number [g/cm/s**2].
+  !            local gradient richardson number [kg/m/s^2].
   !   drhomn - minimum density difference in evaluations the
   !            Brunt-Vaisala frequency and the local gradient
-  !            Richardson number [g/cm*3].
-  !   thkdff - diffusive velocity for thickness diffusion [cm/s].
-  !   temdff - diffusive velocity for tracer isopycnal diffusion
-  !            [cm/s].
+  !            Richardson number [kg/m*3].
+  !   thkdff - diffusive velocity for thickness diffusion [m/s].
+  !   temdff - diffusive velocity for tracer isopycnal diffusion [m/s].
   !   nu0    - diapycnal diffusivity when range of isopycnic physical
-  !            layers is restricted [cm**2/s].
-  !   nus0   - maximum shear driven diapycnal diffusivity
-  !            [cm**2/s].
-  !   nug0   - maximum gravity current diapycnal diffusivity
-  !            [cm**2/s].
-  !   drho0  - critical local interface density difference [g/cm**3]
+  !            layers is restricted [m^2/s].
+  !   nus0   - maximum shear driven diapycnal diffusivity [m^2/s].
+  !   nug0   - maximum gravity current diapycnal diffusivity [m^2/s].
+  !   drho0  - critical local interface density difference [kg/m^3]
   !   nuls0  - maximum diapycnal diffusivity applied when local
-  !            stability is weak [cm**2/s].
+  !            stability is weak [m^2/s].
   !   iwdfac - internal wave dissipation factor under sea ice [].
   !   dmxeff - diapycnal mixing efficiency [].
   !   tdmq   - tidal dissipation efficiency [].
   !   tdmls0 - tidal driven mixing length scale below critical
-  !            latitude [g/cm/s**2].
+  !            latitude [kg/m/s^2].
   !   tdmls1 - tidal driven mixing length scale above critical
-  !            latitude [g/cm/s**2].
+  !            latitude [kg/m/s^2].
   !   tdclat - critical latitude for tide M2 propagation [].
   !   tddlat - latitudinal transition zone for different tidal driven
   !            mixing length scales near the critical latitude.
   !   tkepls - length scale of surface TKE penetration beneath the
-  !            mixed layer [g/cm/s**2]
+  !            mixed layer [kg/m/s^2]
   !   niwls  - near-inertial waves driven mixing length scale
-  !            beneath the mixed layer [g/cm/s**2].
+  !            beneath the mixed layer [kg/m/s^2].
   !   cori30 - coriolis parameter at 30N [1/s].
   !   bvf0   - reference stratification in the parameterization of
   !            latitude dependent background diapycnal mixing [1/s].
-  !   nubmin - minimum background diapycnal diffusivity [cm**2/s].
+  !   nubmin - minimum background diapycnal diffusivity [m^2/s].
   !   dpgc   - thickness of region near the bottom where the maximum
   !            diffusivity is increased due to gravity current mixing
-  !            processes [g/cm/s**2].
+  !            processes [kg/m/s^2].
   !   dpgrav - thickness of region below the non-isopycnic surface
   !            layers used to estimate upper ocean Eady growth rate
-  !            [g/cm/s**2].
+  !            [kg/m/s^2].
   !   dpdiav - thickness of region below the non-isopycnic surface
   !            layers used to estimate lateral diffusivities in the
-  !            non-isopycnic layers [g/cm/s**2].
+  !            non-isopycnic layers [kg/m/s^2].
   !   dpddav - thickness of region below the non-isopycnic surface
   !            layers used to estimate diapycnal diffusivities in the
-  !            non-isopycnic layers [g/cm/s**2].
+  !            non-isopycnic layers [kg/m/s^2].
   !   dpnbav - thickness of region near the bottom used to estimate
-  !            bottom Brunt-Vaisala frequency [g/cm/s**2].
+  !            bottom Brunt-Vaisala frequency [kg/m/s^2].
   !  cpsemin - Lower bound of zonal eddy phase speed minus zonal
-  !            barotropic velocity [cm/s].
+  !            barotropic velocity [m/s].
   !  urmsemin- Lower bound of absolute value of RMS eddy velocity
-  !            [cm/s].
+  !            [m/s].
   integer , parameter :: iidtyp=2
   integer , parameter :: tdmflg=1
   integer , parameter :: iwdflg=1
@@ -950,7 +947,7 @@ contains
     real, dimension(kdm) :: BulkRi_1d        ! Bulk Richardson number for each layer
     real, dimension(kdm) :: deltaU2          ! square of delta U (shear) in denominator of Bulk Ri [m2 s-2]
     real, dimension(kdm) :: VT2              ! unresolved shear used for  Bulk Ri
-    real, dimension(kdm) :: deltaRho         ! delta Rho [g/cm3] in numerator of Bulk Ri number
+    real, dimension(kdm) :: deltaRho         ! delta Rho [kg/m3] in numerator of Bulk Ri number
     real, dimension(kdm+1,2) :: nonLocalTrans  ! Non-local transport for heat/salt at interfaces [nondim]
     real :: surf_layer_ext, surfFricVel
     real :: surfBuoyFlux
@@ -1034,10 +1031,8 @@ contains
           rig_i(:) = 1.e8 !Initialize w/ large Richardson value
 
           iFaceHeight(1) = z_int(i,j,1)
-          ! convert cm/s to m/s
           surfFricVel = ustar(i,j)
-          ! convert cm2/s3 to m2/s3
-          surfBuoyFlux = (buoyfl(i,j,2) - buoyfl(i,j,1))
+          surfBuoyFlux = buoyfl(i,j,2) - buoyfl(i,j,1)
           do k = 1,kk
             kn = k + nn
             kn1 = max(nn+1,kn-1)
@@ -1104,8 +1099,6 @@ contains
                  - buoyfl(i,j,1  ))
 
           end do  ! k
-          ! convert cm2/s2 to m2/s2
-          deltaU2 = deltaU2
 
           ! bottom values for the Ri and N
           rig_i(kk+1) = rig_i(kk)
@@ -1245,10 +1238,8 @@ contains
             Ks_kpp(k) = Kdiff_s(i,j,k)
           end do
           iFaceHeight(1) = z_int(i,j,1)
-          ! convert cm/s to m/s
           depth_int(1) = -iFaceHeight(1)
           surfFricVel = ustar(i,j)
-          ! convert cm2/s3 to m2/s3
 
           do k = 1,kk
             kn = k+nn
@@ -1300,7 +1291,6 @@ contains
                  Tdiff_out=Kd_col(:), nlev=kk, max_nlev = kk)
           else if (bdmtyp == 2) then
             ! Type 2: Background diffusivity is a constant
-            ! convert cm2/s2 to m2/s2
             Kv_col(:) = bdmc2
             Kd_col(:) = bdmc2
           else
@@ -1377,8 +1367,7 @@ contains
           Ks_kpp(:) = Kd_col(:)+Kd_conv(:)+Kd_shr(:)+Kd_tidal(:)
 
           ! Buoyancy flux acting on the OBL
-          surfBuoyFlux = ( buoyfl(i,j,kOBL+1) &
-               - buoyfl(i,j,1  ))
+          surfBuoyFlux = buoyfl(i,j,kOBL+1) - buoyfl(i,j,1  )
 
           ! Compute KPP using CVMix
           call CVMix_coeffs_kpp(&
@@ -1402,7 +1391,6 @@ contains
                CVMix_kpp_params_user = KPP_params )  ! KPP parameters
 
           !- ccc -------
-          ! convert m2/s to cm2/s
           Kv_kpp = Kv_kpp
           Kt_kpp = Kt_kpp
           Ks_kpp = Ks_kpp
@@ -1419,7 +1407,7 @@ contains
                  nonLocalTrans(k,1))
           end do
 
-          ! Compute convective velocity cubed [cm3 s-3].
+          ! Compute convective velocity cubed [m3 s-3].
           wstar3(i,j) = max(0.,-surfBuoyFlux)*OBLdepth(i,j)
 
         end do
@@ -1901,7 +1889,7 @@ contains
                 urmse(i) = 2.86*egc*egrs(i)*els
 
                 ! Zonal eddy phase speed minus zonal barotropic velocity
-                ! with a lower bound of -20 cm s-1.
+                ! with a lower bound of -0.20 m s-1.
                 cpse(i) = max(cpsemin,-betafp(i,j)*bcrrd(i)**2)
 
               end if
@@ -1922,7 +1910,7 @@ contains
 
                 ! Eddy mixing suppresion factor where lower bounds of
                 ! zonal velocity minus eddy phase speed and absolute value
-                ! of RMS eddy velocity is set to -20 cm s-1 and 5 cm s-1,
+                ! of RMS eddy velocity is set to -0.20 m s-1 and 0.05 m s-1,
                 ! respectively.
                 esfac = 1./(1.+4.*(umnsc/max(urmsemin, &
                                              abs(urmse(i))))**2)
@@ -1931,8 +1919,7 @@ contains
                 anisos(i) = anisos(i)/dps(i)
                 speed = max(1.e-22, &
                             sqrt(umls(i)*umls(i)+vmls(i)*vmls(i)))
-                esfac = 1./(1.+(speed/max(1.e-22, &
-                                          egrs(i)*els))**2)
+                esfac = 1./(1.+(speed/max(1.e-22,egrs(i)*els))**2)
               else
                 esfac = 1.
               end if
@@ -2367,8 +2354,7 @@ contains
                 dfints(i) = dfints(i)+difint(i,j,k)*q
 
                 if (edanis) then
-                  anisok(i,k) = 1./(1.+(speed/max(1.e-22, &
-                                                  egr(i,k)*els))**2)
+                  anisok(i,k) = 1./(1.+(speed/max(1.e-22,egr(i,k)*els))**2)
                   anisos(i) = anisos(i)+anisok(i,k)*q
                 end if
 
@@ -2414,7 +2400,7 @@ contains
                 urmse(i) = 2.86*egc*egrs(i)*els
 
                 ! Zonal eddy phase speed minus zonal barotropic velocity
-                ! with a lower bound of -20 cm s-1.
+                ! with a lower bound of -0.20 m s-1.
                 cpse(i) = max(cpsemin,-betafp(i,j)*bcrrd(i)**2)
 
               end if
@@ -2480,8 +2466,8 @@ contains
 
                   ! Eddy mixing suppression factor where lower bounds of
                   ! zonal velocity minus eddy phase speed and absolute
-                  ! value of RMS eddy velocity is set to -20 cm s-1 and
-                  ! 5 cm s-1, respectively.
+                  ! value of RMS eddy velocity is set to -0.20 m s-1 and
+                  ! 0.05 m s-1, respectively.
                   esfac = 1./(1.+4.*(umnsc/max(urmsemin, abs(urmse(i))))**2)
                 end if
 
@@ -2637,7 +2623,7 @@ contains
 
               ! Brunt-Vaisala frequency squared
               bvfsq(i,k) = grav*grav*max(drhomn,drhol(i,j,k)) &
-                   /max(epsilp,dp(i,j,kn))
+                           /max(epsilp,dp(i,j,kn))
 
               ! Brunt-Vaisala frequency
               bvf(i,k) = sqrt(bvfsq(i,k))
@@ -2993,7 +2979,7 @@ contains
                      /(dp(i,j,kn)*(1.-exp((p(i,j,3)-p(i,j,kk+1))/q)))
               end if
               nusm = grav*niwgf*(1.-niwbf)*niwlf*dmxeff*idkedt(i,j)*vsf &
-                   /(alpha0*bvfsq(i,max(k,kfil(i,j))))
+                     /(alpha0*bvfsq(i,max(k,kfil(i,j))))
               difdia(i,j,k) = difdia(i,j,k)+nusm
             end if
           end do
@@ -3012,7 +2998,7 @@ contains
                                     -buoyfl(i,j,1)))
 
           ! Mixed layer thickness
-          h = (p(i,j,3)-p(i,j,1))/(onem)
+          h = (p(i,j,3)-p(i,j,1))/onem
 
           ! Dimensionless vertical coordinate in the boundary layer
           sg = (p(i,j,2)-p(i,j,1))/(p(i,j,3)-p(i,j,1))

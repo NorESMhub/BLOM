@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2021-2024 Mats Bentsen
+! Copyright (C) 2021-2025 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -53,11 +53,11 @@ module mod_fuk95
        drho   = 0.19_r8, &   ! Active layer density difference [kg m-3].
        rhoc   = 1025.9_r8, & ! Density at the center of active layer [kg m-3].
        rhob   = 1027.0_r8, & ! Density of water beneath active layer [kg m-3].
-       f      = 1.e-4_r8, &            ! Coriolis parameter [1 s-1].
-       lat0   = 45._r8, &              ! Center latitude of grid domain [deg].
+       f      = 1.e-4_r8, &  ! Coriolis parameter [1 s-1].
+       lat0   = 45._r8, &    ! Center latitude of grid domain [deg].
        lambda = 20.8e3, &    ! Channel length [m].
        mindz  = 1._r8, &     ! Minimum interior layer thickness [m].
-       saln0  = 35._r8                 ! Constant salinity value [g kg-1].
+       saln0  = 35._r8       ! Constant salinity value [g kg-1].
 
   public :: geoenv_fuk95, inifrc_fuk95, ictsz_fuk95
 
@@ -75,7 +75,7 @@ contains
     real(r8), intent(in) :: ri, rj
 
     x_nudge = ( ri + i0 - itdm/2 - .5_r8 &
-         + .1_r8*sin(2._r8*(rj + j0 - 1)*pi/jtdm))*lambda/jtdm
+            + .1_r8*sin(2._r8*(rj + j0 - 1)*pi/jtdm))*lambda/jtdm
 
   end function x_nudge
 

@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2021-2024 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2021-2025 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -59,7 +59,7 @@ module mod_vcoord
       vcoord_tag
 
    real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: &
-      sigmar                      ! Reference potential density [g cm-3].
+      sigmar                      ! Reference potential density [kg m-3].
 
    public :: vcoord_tag, vcoord_isopyc_bulkml, vcoord_cntiso_hybrid, &
              vcoord_plevel, sigref_spec, sigmar, sigref, plevel, &
@@ -130,7 +130,7 @@ contains
          write (lp,*) '  plevel_spec =            ', trim(plevel_spec)
       endif
 
-      ! Change units from [m] to [g cm-1 s-2] of depth interval variables.
+      ! Change units from [m] to [kg m-1 s-2] of depth interval variables.
       dpmin_surface = dpmin_surface*onem
 
       ! Resolve options.
@@ -164,7 +164,6 @@ contains
                   call xcstop('(readnml_vcoord)')
                   stop '(readnml_vcoord)'
                endif
-               sigref(:) = sigref(:)
             case default
                if (mnproc == 1) &
                   write (lp,'(3a)') ' readnml_vcoord: sigref_spec = ', &
@@ -193,7 +192,7 @@ contains
                   call xcstop('(readnml_vcoord)')
                   stop '(readnml_vcoord)'
                endif
-               ! Change units from [m] to [g cm-1 s-2].
+               ! Change units from [m] to [kg m-1 s-2].
                plevel(:) = plevel(:)*onem
             case default
                if (mnproc == 1) &

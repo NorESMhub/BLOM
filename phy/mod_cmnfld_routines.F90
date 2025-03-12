@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2024 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
+! Copyright (C) 2015-2025 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -85,9 +85,9 @@ module mod_cmnfld_routines
             ! Compute BFSQ in the mixed layer.
             bfsqi(i, j, 1) = &
                .5_r8*grav*grav*( rho(p(i, j, 2), &
-                               temp(i, j, 2 + nn), saln(i, j, 2 + nn)) &
-                         - rho(p(i, j, 2), &
-                               temp(i, j, 1 + nn), saln(i, j, 1 + nn))) &
+                                     temp(i, j, 2 + nn), saln(i, j, 2 + nn)) &
+                               - rho(p(i, j, 2), &
+                                     temp(i, j, 1 + nn), saln(i, j, 1 + nn))) &
                /(dp(i, j, 1 + nn) + dp(i, j, 2 + nn))
             bfsqi(i, j, 2) = bfsqi(i, j, 1)
             bfsql(i, j, 1) = bfsqi(i, j, 1)
@@ -142,7 +142,7 @@ module mod_cmnfld_routines
                      slo = saln(i, j, kn)
                      delp(k) = max(onemm, plo - pup)
                      bfsqi(i, j, k) = grav*grav*( rho(p(i, j, k), tlo, slo) &
-                                          - rho(p(i, j, k), tup, sup))/delp(k)
+                                                - rho(p(i, j, k), tup, sup))/delp(k)
                      bfsq(k) = max(bfsqmn, bfsqi(i, j, k))
                      bfsqi(i, j, k) = bfsqi(i, j, k)*delp(k)/max(onem, delp(k))
                      if (p(i, j, kk + 1) - p(i, j, k) < onem) then
@@ -277,7 +277,7 @@ module mod_cmnfld_routines
                   slo = saln(i, j, kn)
                   delp(k) = max(onemm, plo - pup)
                   bfsqi(i, j, k) = grav*grav*( rho(p(i, j, k), tlo, slo) &
-                                       - rho(p(i, j, k), tup, sup))/delp(k)
+                                             - rho(p(i, j, k), tup, sup))/delp(k)
                   bfsq(k) = max(bfsqmn, bfsqi(i, j, k))
                   bfsqi(i, j, k) = bfsqi(i, j, k)*delp(k)/max(onem, delp(k))
                   if (p(i, j, kk + 1) - p(i, j, k) < onem) then
@@ -400,7 +400,7 @@ module mod_cmnfld_routines
                   tlo = temp(i, j, kn)
                   slo = saln(i, j, kn)
                   bfsqi(i, j, k) = grav*grav*( rho(p(i, j, k), tlo, slo) &
-                                       - rho(p(i, j, k), tup, sup)) &
+                                             - rho(p(i, j, k), tup, sup)) &
                                    /max(onem, plo - pup)
                   if (p(i, j, kk + 1) - p(i, j, k) < onem) then
                      bfsqi(i, j, k) = bfsqi(i, j, k - 1)
@@ -960,7 +960,7 @@ module mod_cmnfld_routines
                     zlo = z(i, j, k) + .5_r8*dz(i, j, k )
                     dblo = &
                        grav*(1._r8 - rho(plo, temp(i, j, k1m), saln(i, j, k1m)) &
-                                 /rho(plo, temp(i, j, km ), saln(i, j, km )))
+                                    /rho(plo, temp(i, j, km ), saln(i, j, km )))
                     if (dblo <= dbcrit) then
                        zup = zlo
                        dbup = dblo

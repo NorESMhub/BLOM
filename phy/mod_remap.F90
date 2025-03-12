@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2006-2024 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
+! Copyright (C) 2006-2025 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -37,10 +37,10 @@ module mod_remap
 
   ! Parameters:
   real(r8), parameter :: &
-       dpeps = 1.e-12_r8           ! Small layer pressure thickness (equivalent
-                                   ! to approximately 10-16 m) [g cm-1 s-2].
-  real(r8), parameter :: &
-       treps = 1.e-14_r8           ! Small tracer concentration. (for use_TRC and use_ATRC)
+       dpeps = 1.e-12_r8, & ! Small layer pressure thickness (equivalent to
+                            ! approximately 10-16 m) [kg m-1 s-2].
+       treps = 1.e-14_r8    ! Small tracer concentration (for use_TRC and
+                            ! use_ATRC)
 
   public :: remap_eitvel, remap_eitflx
 

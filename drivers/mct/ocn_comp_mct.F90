@@ -1,5 +1,6 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2020 Mats Bentsen, Alok Kumar Gupta, Ping-Gin Chiu
+! Copyright (C) 2008-2025 Mats Bentsen, Alok Kumar Gupta, Ping-Gin Chiu,
+!                         Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -508,7 +509,7 @@ module ocn_comp_mct
      enddo
      call mct_gGrid_importRattr(dom_ocn, "lat", rdata, lsize)
 
-     radius = SHR_CONST_REARTH ! Earth's radius in cm
+     radius = SHR_CONST_REARTH ! Earth's radius in m
 
      n = 0
      do j = 1, jjcpl

@@ -76,24 +76,24 @@ module mod_mxlayr
   ! Diagnostic variables:
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), protected :: &
        mtkeus  ! Mixed layer TKE tendency related to friction
-               ! velocity [cm3 s-3].
+               ! velocity [m3 s-3].
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), protected :: &
        mtkeni  ! Mixed layer TKE tendency related to near
-               ! inertial motions [cm3 s-3].
+               ! inertial motions [m3 s-3].
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), protected :: &
        mtkebf  ! Mixed layer TKE tendency related to buoyancy
-               ! forcing [cm3 s-3].
+               ! forcing [m3 s-3].
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), protected :: &
        mtkers  ! Mixed layer TKE tendency related to eddy
-               ! restratification [cm3 s-3].
+               ! restratification [m3 s-3].
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), protected :: &
        mtkepe  ! Mixed layer TKE tendency related to pot.
-               ! energy change [cm3 s-3].
+               ! energy change [m3 s-3].
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), protected :: &
        mtkeke  ! Mixed layer TKE tendency related to kin.
-               ! energy change [cm3 s-3].
+               ! energy change [m3 s-3].
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), protected :: &
-       pbrnda  ! Brine plume pressure depth [g cm-1 s-2].
+       pbrnda  ! Brine plume pressure depth [kg m-1 s-2].
 
   ! Public module variables
   public :: rm0,rm5,mlrttp,mltmin
@@ -164,16 +164,15 @@ contains
     !           - [].
     !    kappa  - von Karman constant [].
     !    ustmin - minimum value of ustar used in computing the length
-    !             scales for wind and buoyancy induced mixing [cm/s].
+    !             scales for wind and buoyancy induced mixing [m/s].
     !    mldjmp - minimum density jump at the mixed layer base used in
     !             the computation of potential energy change due to
-    !             entrainment [g/cm**3].
+    !             entrainment [kg/m^3].
     !    maxitr - maximum number of iterations allowed in the computation
     !             of TKE balance [].
     real :: kappa,mu,ustmin,mldjmp
     integer :: maxitr
-    parameter (kappa=.4,mu=2.,ustmin = .001, &
-               mldjmp=1.e-3,maxitr = 20)
+    parameter (kappa=.4,mu=2.,ustmin = .001,mldjmp=1.e-3,maxitr = 20)
 
     !  Parameters for the parameterization of restratification by mixed
     !  layer eddies by Fox-Kemper et al. (2008):
@@ -185,13 +184,13 @@ contains
 
     !  Parameters for brine plume parameterization:
     !    bpdrho - density contrast between surface and brine plume depth
-    !             [g/cm**3].
+    !             [kg/m^3].
     !    bpmndp - minimum distribution thickness of salt from sea-ice
-    !             freezing [g/cm/s**2].
+    !             freezing [kg/m/s^2].
     !    bpmxdp - maximum distribution depth below the mixed layer base
-    !             of salt from sea-ice freezing [g/cm/s**2].
+    !             of salt from sea-ice freezing [kg/m/s^2].
     !    bpdpmn - minimum layer thickness salt from sea-ice freezing
-    !             is distributed over [g/cm/s**2].
+    !             is distributed over [kg/m/s^2].
     !    dsgmnr - minimum ratio of linearized density jump to target
     !             density jump across a layer interface [].
     real :: bpdrho,bpmndp,bpmxdp,bpdpmn,dsgmnr
@@ -330,9 +329,9 @@ contains
           ! mixed layer.
           ! ------------------------------------------------------------------
 
-          ! bfltot = total buoyancy flux [cm**2/sec**3]
+          ! bfltot = total buoyancy flux [m^2/s^3]
           ! bflpsw = buoyancy flux due to penetrating short-wave radiation
-          ! [cm**2/sec**3]
+          ! [m^2/s^3]
           ! note: surface density increases (column is destabilized) if
           ! bfltot > 0
           q = 1./(delp(1)+delp(2))
@@ -341,7 +340,7 @@ contains
           alfa = -alpha0*dsigdt0(tmxl,smxl)
           beta = alpha0*dsigds0(tmxl,smxl)
           bfltot = grav*alpha0*(alfa*surflx(i,j)/spcifh &
-                            -beta*(salflx(i,j)-brnflx(i,j)))
+                               -beta*(salflx(i,j)-brnflx(i,j)))
           buoyfl(i,j,1) = bfltot
           bflpsw = grav*alpha0*alfa*swbgfc(i,j)*sswflx(i,j)/spcifh
 
@@ -655,11 +654,11 @@ contains
             ! Apply heat and salt forcing to top layer
             q = delt1*grav/delp(1)
             ttem(1) = ttem(1) &
-                 -(surflx(i,j)-(pswbas-pswup)*sswflx(i,j) &
-                 +surrlx(i,j))*q/spcifh
+                    -(surflx(i,j)-(pswbas-pswup)*sswflx(i,j) &
+                    +surrlx(i,j))*q/spcifh
             ssal(1) = ssal(1) &
-                 -(salflx(i,j)-brnflx(i,j) &
-                 +salrlx(i,j))*q
+                    -(salflx(i,j)-brnflx(i,j) &
+                    +salrlx(i,j))*q
             if (use_TRC) then
               do nt = 1,ntr
                 ttrc(nt,1) = ttrc(nt,1)-trflx(nt,i,j)*q
@@ -736,7 +735,7 @@ contains
                   end if
                 else
                   if (delp(k) > onemu.and.dens(k) > densr(k).and. &
-                      sigfsl < densr(k)-(1.e-6)) then
+                      sigfsl < densr(k)-1.e-6) then
                     dps = min(dpfsl,&
                               delp(k)*(dens(k)-densr(k))/(densr(k)-sigfsl))
                     q = 1./(dps+delp(k))
@@ -877,9 +876,9 @@ contains
                   do
                     nitr = nitr+1
                     tmxl = (tmxl0*(pres(k)-pres(1)) &
-                         +ttem(k)*(pmxl-pres(k)))/(pmxl-pres(1))
+                         + ttem(k)*(pmxl-pres(k)))/(pmxl-pres(1))
                     smxl = (smxl0*(pres(k)-pres(1)) &
-                         +ssal(k)*(pmxl-pres(k)))/(pmxl-pres(1))
+                         + ssal(k)*(pmxl-pres(k)))/(pmxl-pres(1))
                     dpe = dpe0 &
                          +max(.5*alpha0*alpha0*mldjmp &
                         *(pres(k)-pres(1))*(pmxl-pres(k)), &
@@ -934,8 +933,7 @@ contains
                         end if
                       end if
                       if (.not.chngd) then
-                        if (abs(dtke) < &
-                             (abs(tkew)+1.e-22)/delp(k)) then
+                        if (abs(dtke) < (abs(tkew)+1.e-22)/delp(k)) then
                           if (tkew < 0.) then
                             dpmxl = .5*(pres(k)-pmxl)
                           else

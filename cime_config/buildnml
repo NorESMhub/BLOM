@@ -71,7 +71,6 @@ def buildnml(case, caseroot, compname):
     ocn_ncpl                  = case.get_value("OCN_NCPL")
     pio_typename_ocn          = case.get_value("PIO_TYPENAME_OCN")
     pio_netcdf_format_ocn     = case.get_value("PIO_NETCDF_FORMAT_OCN")
-    blom_unit                 = case.get_value("BLOM_UNIT")
     blom_vcoord               = case.get_value("BLOM_VCOORD")
     blom_river_nutrients      = case.get_value("BLOM_RIVER_NUTRIENTS")
     blom_n_deposition         = case.get_value("BLOM_N_DEPOSITION")
@@ -182,7 +181,6 @@ def buildnml(case, caseroot, compname):
         config['pio_typename_ocn'] = pio_typename_ocn
         config['pio_netcdf_format_ocn'] = pio_netcdf_format_ocn
         config["continue_run"] = "yes" if continue_run else "no"
-        config['blom_unit'] = blom_unit if blom_unit else "unset"
         config['blom_vcoord'] = blom_vcoord
         config["blom_river_nutrients"] = "yes" if blom_river_nutrients else "no"
         config["blom_ndep_scenario"] = "ssp" if "ssp" in blom_ndep_scenario else blom_ndep_scenario

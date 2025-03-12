@@ -37,10 +37,6 @@ module mod_ale_vdiff
   use mod_tracers,   only: ntr, trc, trflx ! TRC
   use mod_ifdefs,    only: use_TRC
 
-!TODO
-  use mod_grid, only: scp2
-!TODO
-
   implicit none
   private
 

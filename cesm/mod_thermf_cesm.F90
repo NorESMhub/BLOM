@@ -116,7 +116,7 @@ contains
           ! Fresh water flux [kg m-2 s-1] (positive downwards)
           fwflx = eva(i,j)+lip(i,j)+sop(i,j)+rnf(i,j)+rfi(i,j)+fmltfz(i,j)
 
-          ! Salt flux due to brine rejection of freezing sea ice [kg m-2 m-1]
+          ! Salt flux due to brine rejection of freezing sea ice [kg m-2 s-1]
           ! (positive downwards)
           brnflx(i,j) = max(0.,-sotl*fmltfz(i,j)*g2kg+sfl(i,j))
 
@@ -151,10 +151,10 @@ contains
           ! Heat flux due to melting/freezing [W m-2] (positive downwards)
           hmltfz(i,j) = hmlt(i,j)+frzpot(i,j)/baclin
 
-          ! Total heat flux in BLOM units [W cm-2] (positive upwards)
+          ! Total heat flux in BLOM units [W m-2] (positive upwards)
           surflx(i,j) = -(swa(i,j)+nsf(i,j)+hmltfz(i,j))
 
-          ! Short-wave heat flux in BLOM units [W cm-2] (positive
+          ! Short-wave heat flux in BLOM units [W m-2] (positive
           ! upwards)
           sswflx(i,j) = -swa(i,j)
 
@@ -307,7 +307,7 @@ contains
                 s_rs_nonloc(i,j,kl+1) = 0.
               end do
               srxflx = srxdpt/(srxday*86400.) &
-                   *min(srxlim,max(-srxlim,sssc-smxl))/alpha0
+                       *min(srxlim,max(-srxlim,sssc-smxl))/alpha0
             end if
             salrlx(i,j) = -srxflx
             util2(i,j) = max(0.,salrlx(i,j))*scp2(i,j)
@@ -330,7 +330,7 @@ contains
           end if
 
           ! --------------------------------------------------------------------
-          ! Friction velocity (cm/s)
+          ! Friction velocity (m/s)
           ! --------------------------------------------------------------------
 
           ustar(i,j) = ustarw(i,j)
@@ -343,8 +343,8 @@ contains
     ! ------------------------------------------------------------------
     ! Apply the virtual salt flux correction and the compute the total
     ! salt flux by combining the virtual and true salt flux. Also
-    ! convert salt fluxes used later to unit [10e-3 g cm-2 s-1] and
-    ! positive upwards.
+    ! convert salt fluxes used later to unit [g m-2 s-1] and positive
+    ! upwards.
     ! ------------------------------------------------------------------
 
     call xcsum(sflxc,util1,ips)
@@ -357,9 +357,8 @@ contains
     do j = 1,jj
       do l = 1,isp(j)
         do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-          salflx(i,j) = -(vrtsfl(i,j)+sflxc+sfl(i,j)) &
-                         *(kg2g)
-          brnflx(i,j) = -brnflx(i,j)*(kg2g)
+          salflx(i,j) = -(vrtsfl(i,j)+sflxc+sfl(i,j))*kg2g
+          brnflx(i,j) = -brnflx(i,j)*kg2g
         end do
       end do
     end do

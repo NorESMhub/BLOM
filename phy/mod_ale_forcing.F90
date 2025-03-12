@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2021-2024 Mats Bentsen, Mariana Vertenstein
+! Copyright (C) 2021-2025 Mats Bentsen, Mariana Vertenstein, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -124,8 +124,8 @@ contains
         do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
 
           ! Penetration factors at layer interfaces.
-          lei = 1._r8/(mlts(i,j)*(onem))
-          pmax = cbra1*mlts(i,j)*(onem)
+          lei = 1._r8/(mlts(i,j)*onem)
+          pmax = cbra1*mlts(i,j)*onem
           kmax = 1
           s_br_nonloc(i,j,1) = 1._r8
           do k = 1, kk
@@ -188,10 +188,10 @@ contains
           sfbr = brnflx(i,j) ! Brine.
           sfnb = sf - sfbr   ! Non-brine.
 
-          ! Surface buoyancy flux [cm2 s-3].
+          ! Surface buoyancy flux [m2 s-3].
           buoyfl(i,j,1) = - (dsgdt*hf*cpi + dsgds*sf)*gaa
 
-          ! Buoyancy flux at subsurface layer interfaces [cm2 s-3].
+          ! Buoyancy flux at subsurface layer interfaces [m2 s-3].
           do k = 2, kk+1
             buoyfl(i,j,k) = - ( dsgdt*t_sw_nonloc(i,j,k)*hfsw*cpi &
                               + dsgds*s_br_nonloc(i,j,k)*sfbr)*gaa
