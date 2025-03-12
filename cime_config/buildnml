@@ -115,6 +115,56 @@ def buildnml(case, caseroot, compname):
 
     # Convert instance number to integer:
     ninst = int(ninst_ocn)
+    
+    # handle rpointers:
+    # after changes to rpointer files, now we can have multiple rpointers with timestamps
+    if ninst > 1:
+        # find all rpointers
+        rpointers_list = sorted(glob.glob(os.path.join(rundir, "rpointer.ocn*")))
+        timestmp_list = [None] * len(rpointers_list)
+        prev_inst_list = [None] * len(rpointers_list)
+        has_inst = [False] *len(rpointers_list)
+        for i in range(len(rpointers_list)):
+            rpointers_list[i] = os.path.basename(rpointers_list[i])
+            if (len(rpointers_list[i]) > 12 and len(rpointers_list[i]) < 30):
+                # there is no instance suffix but timestamp
+                has_inst[i] = False
+                timestmp_list[i] = rpointers_list[i][-16:-1]
+            elif len(rpointers_list[i]) > 30:
+                # both instance and timestamp
+                has_inst[i] = True
+                timestmp_list[i] = rpointers_list[i][-16:-1]
+                prev_inst_list[i] = int(rpointers_list[i][-20:-16])
+            elif len(rpointers_list[i]) > 12 and len(rpointers_list[i]) < 20:
+                # only instance
+                has_inst[i] = True
+                timestmp_list[i] = ""
+                prev_inst_list[i] = int(rpointers_list[i][-4:])
+            else:
+                # no instance no timestamp
+                has_inst[i] = False
+                timestmp_list[i] = ""
+                prev_inst_list[i] = -1
+        # check for instances in rpointers
+        if all(has_inst):
+            if max(prev_inst_list) != ninst:
+                print('Number of instances in rpointers > 0 but not equal number or blom instances - exit now')
+                exit
+        else:
+            for i in range(len(rpointers_list)):
+                single_rpointer = os.path.join(rundir,rpointers_list[i])
+                inst_string = ""
+                if not has_inst[i]:
+                    # this loop has to be inside, since there can be more than one rpointer.ocn per instance in the rundir.
+                    for inst_counter in range(1, ninst+1):
+                        inst_string = '_%04d' % inst_counter
+                        inst_rpointer = os.path.join(rundir,"rpointer.ocn"+ inst_string + '.' + timestmp_list[i])
+                        # only copy rpointers if instance rpointer does not exist already
+                        if not os.path.isfile(inst_rpointer):
+                            shutil.copy(single_rpointer,inst_rpointer)
+    # endif ninst>0
+    # if a user tries to run a case from a multi instance run with single instance
+    # they have to manually rename the rpointers and restart files
 
     for inst_counter in range(1, ninst+1):
 
@@ -131,19 +181,8 @@ def buildnml(case, caseroot, compname):
 
         inst_string = ""
         if ninst > 1:
-            single_case_rpointer = os.path.join(rundir, "rpointer.ocn")
             inst_string = '_%04d' % inst_counter
-            instance_rpointer = os.path.join(rundir, "rpointer.ocn"+inst_string)
-
-            # If multi-instance case does not have restart file, use
-            # single-case restart for each instance
-
-            if os.path.isfile(single_case_rpointer) and \
-               not os.path.isfile(instance_rpointer):
-                shutil.copy(single_case_rpointer, instance_rpointer)
-            # End if
-        # End if
-
+        
         # -----------------------------------------------------
         # Create blomconf/namelist
         # -----------------------------------------------------
