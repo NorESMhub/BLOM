@@ -226,7 +226,7 @@ contains
                           & / ((prorca(i,j)/(porsol(i,j,1)*seddw(1))) + sedlay(i,j,1,issso12) + eps)
             do k = 1, ks
               ! Update sediment POC age [yrs]
-              sedlay(i,j,k,issso12_age) = sedlay(i,j,k,issso12_age) + dtbgc/31104000.
+              sedlay(i,j,k,issso12_age) = sedlay(i,j,k,issso12_age) + dtbgc/31536000.
               ! Mean DOU flux [mmol O2/m2/d]
               ! Since reactivity is based on total sediment DOU (incl. nitrification),
               ! we here assume the full oxydation steo and use ro2ut
@@ -235,7 +235,7 @@ contains
               sed_reactivity_a(i,j,k)   = 2.48 * 10**(1.293 - 0.9822*log10(avgDOU))
               ! Calculating overall (scaled) reactivity k [1/year] -> [1/(kmol O2/m3 dt)]
               ! using 1mumol O2/m3 (=1e-6 kmol O2/m3) as reference
-              sed_reactivity_k(i,j,k)   = sed_qual_sc*dtbgc/(31104000.*1e-6)*0.151                 &
+              sed_reactivity_k(i,j,k)   = sed_qual_sc*dtbgc/(31536000.*1e-6)*0.151                 &
                                         & /(sed_reactivity_a(i,j,k) + sedlay(i,j,k,issso12_age)+eps)
             enddo
           endif
