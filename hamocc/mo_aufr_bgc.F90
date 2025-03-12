@@ -383,7 +383,6 @@ CONTAINS
         write(io_stdo_bgc,*) 'Initialising preformed tracer from scratch'
       endif
 
-    if (use_shelfsea_res_time) then
       lread_shelfage=.true.
       if(IOTYPE==0) then
         if(mnproc==1) ncstat=nf90_inq_varid(ncid,'shelfage',ncvarid)
@@ -400,9 +399,7 @@ CONTAINS
         write(io_stdo_bgc,*) 'AUFR_BGC info: shelfage not in restart file '
         write(io_stdo_bgc,*) 'Initialising shelfage from scratch'
       endif
-    endif
 
-    if (use_sediment_quality) then
       lread_sedqual=.true.
       if(IOTYPE==0) then
         if(mnproc==1) ncstat=nf90_inq_varid(ncid,'ssso12_age',ncvarid)
@@ -419,7 +416,7 @@ CONTAINS
         write(io_stdo_bgc,*) 'AUFR_BGC info: ssso12_age not in restart file '
         write(io_stdo_bgc,*) 'Initialising ssso12_age from scratch'
       endif
-    endif
+
 
     !
     ! Read restart data : ocean aquateous tracer

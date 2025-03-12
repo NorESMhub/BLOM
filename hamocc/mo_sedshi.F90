@@ -41,7 +41,7 @@ contains
     !***********************************************************************************************
 
     use mo_sedmnt,      only: burial,calfa,clafa,oplfa,orgfa,porsol,sedlay,seddw,solfu
-    use mo_param_bgc,   only: rcar,sec_per_year,sec_per_day
+    use mo_param_bgc,   only: rcar
     use mo_param1_bgc,  only: isssc12,issssil,issso12,issster,ks,nsedtra,isssc13,isssc14,          &
                               issso13,issso14,issso12_age,nsedtra_woage
     use mo_carbch,      only: sedfluxb
@@ -67,7 +67,7 @@ contains
 
     if(do_sedspinup .and. kplyear>=sedspin_yr_s .and. kplyear<=sedspin_yr_e) then
       ! accumulated time spent due to sediment acceleration
-      acc_time = sec_per_day*sedspin_ncyc/sec_per_year ! *dtbgc/dtbgc
+      acc_time = 86400.*sedspin_ncyc/31104000. ! *dtbgc/dtbgc
     endif
 
     ! DOWNWARD SHIFTING
@@ -239,7 +239,7 @@ contains
 
           if (use_sediment_quality) then
             ! Update burial POC age [yrs] - NOTE that sedshi is called once per day!
-            burial(i,j,issso12_age)    = burial(i,j,issso12_age) + sec_per_day/sec_per_year + acc_time
+            burial(i,j,issso12_age)    = burial(i,j,issso12_age) + 86400./31104000. + acc_time
             sedlay(i,j,ks,issso12_age) = (refill*burial(i,j,issso12)/frac * burial(i,j,issso12_age)&
                                        &    + sedlay(i,j,ks,issso12)*sedlay(i,j,ks,issso12_age))   &
                                        & /(refill*burial(i,j,issso12)/frac + sedlay(i,j,ks,issso12)+eps)

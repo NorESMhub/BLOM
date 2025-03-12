@@ -166,7 +166,6 @@ contains
     use mo_netcdf_bgcrw,    only: read_netcdf_var
     use mo_param1_bgc,      only: nndep,idepnoy,idepnhx
     use mo_chemcon,         only: mw_nitrogen
-    use mo_param_bgc,       only: sec_per_day
 
     ! Arguments
     integer, intent(in)  :: kpie              ! 1st dimension of model grid.
@@ -200,7 +199,7 @@ contains
       endif
 
       ! convert from kgN/m2/s to climatological input file units: kmolN/m2/yr
-      fatmndep = 365.*sec_per_day/mw_nitrogen
+      fatmndep = 365.*86400./mw_nitrogen
 
       if (use_extNcycle) then
         !$omp parallel do private(i)

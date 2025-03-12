@@ -30,7 +30,7 @@ contains
     ! **********************************************************************************************
 
     use mod_xc,         only: idm,jdm,kdm,nbdy
-    use mod_time,       only: date,nday_of_year,nstep,nstep_in_day,nday_in_year
+    use mod_time,       only: date,nday_of_year,nstep,nstep_in_day
     use mod_grid,       only: plat
     use mod_state,      only: temp,saln
     use mod_forcing,    only: swa,slp,abswnd,atmco2,flxco2,flxdms,atmbrf,flxbrf,                   &
@@ -49,7 +49,6 @@ contains
     use mo_trc_limitc,  only: trc_limitc
     use mo_param1_bgc,  only: nndep
     use mo_read_shelfmask, only: shelfmask
-    use mo_param_bgc,   only: ini_bgctimes
 
     ! Arguments
     integer, intent(in) :: m,n,mm,nn,k1m,k1n
@@ -59,8 +58,6 @@ contains
     real    :: ndep(idm,jdm,nndep)
     real    :: dust(idm,jdm)
     real    :: oafx(idm,jdm)
-
-    call ini_bgctimes(nday_in_year) ! update days per year (leap years, restart)
 
     call trc_limitc(nn)
 

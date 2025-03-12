@@ -40,8 +40,7 @@ contains
     use mo_chemcon,     only: calcon
     use mo_param_bgc,   only: rnit,rcar,rdnit1,rdnit2,ro2ut,disso_sil,silsat,disso_poc,sed_denit,  &
                             & disso_caco3,ro2utammo,sed_alpha_poc,                                 &
-                            & POM_remin_q10_sed,POM_remin_Tref_sed,bkox_drempoc_sed,sed_qual_sc,   &
-                            & sec_per_year,sec_per_day
+                            & POM_remin_q10_sed,POM_remin_Tref_sed,bkox_drempoc_sed,sed_qual_sc
     use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,seddw,sedhpl,sedlay,       &
                               silpro,pror13,pror14,prca13,prca14,prorca_mavg,sed_reactivity_a,     &
                               sed_reactivity_k,sed_applied_reminrate
@@ -219,7 +218,7 @@ contains
           if (omask(i,j) > 0.5 ) then
             ! Update moving average TOC flux to bottom
             ! units of prorca: kmol P/m2/dt -> prorca_mavg in mmol P/m2/d
-            prorca_mavg(i,j) = sed_alpha_poc*prorca(i,j)*1e6*dtbgc/sec_per_day                     &
+            prorca_mavg(i,j) = sed_alpha_poc*prorca(i,j)*1e6*dtbgc/86400.                          &
                              & + (1.-sed_alpha_poc)*prorca_mavg(i,j)
 
             ! update surface age due to fresh POC sedimentation flux
@@ -227,7 +226,7 @@ contains
                           & / ((prorca(i,j)/(porsol(i,j,1)*seddw(1))) + sedlay(i,j,1,issso12) + eps)
             do k = 1, ks
               ! Update sediment POC age [yrs]
-              sedlay(i,j,k,issso12_age) = sedlay(i,j,k,issso12_age) + dtbgc/sec_per_year
+              sedlay(i,j,k,issso12_age) = sedlay(i,j,k,issso12_age) + dtbgc/31104000.
               ! Mean DOU flux [mmol O2/m2/d]
               ! Since reactivity is based on total sediment DOU (incl. nitrification),
               ! we here assume the full oxydation steo and use ro2ut
@@ -236,7 +235,7 @@ contains
               sed_reactivity_a(i,j,k)   = 2.48 * 10**(1.293 - 0.9822*log10(avgDOU))
               ! Calculating overall (scaled) reactivity k [1/year] -> [1/(kmol O2/m3 dt)]
               ! using 1mumol O2/m3 (=1e-6 kmol O2/m3) as reference
-              sed_reactivity_k(i,j,k)   = sed_qual_sc*dtbgc/(sec_per_year*1e-6)*0.151              &
+              sed_reactivity_k(i,j,k)   = sed_qual_sc*dtbgc/(31104000.*1e-6)*0.151                 &
                                         & /(sed_reactivity_a(i,j,k) + sedlay(i,j,k,issso12_age)+eps)
             enddo
           endif
