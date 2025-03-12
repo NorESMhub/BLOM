@@ -40,7 +40,7 @@ module mo_param_bgc
                             do_n2onh3_coupled,use_extNcycle,                                       &
                             lkwrbioz_off,lTO2depremin,use_shelfsea_res_time,use_sediment_quality,  &
                             use_pref_tracers,use_coupler_ndep
-  use mod_xc,         only: mnproc,xcstop
+  use mod_xc,         only: mnproc
 
   implicit none
   private

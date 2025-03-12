@@ -101,7 +101,6 @@ contains
     ldtbgc = 0
     ldtrunbgc = 0
 
-
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)
       write(io_stdo_bgc,*) '********************************************'
