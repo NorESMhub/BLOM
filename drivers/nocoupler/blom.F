@@ -27,7 +27,7 @@ c
       use mod_xc
       use mod_state, only: dp
       use mod_checksum, only: chksummsk
-      use mod_blom_init, only: blom_init
+      use mod_blom_init, only: blom_init1, blom_init2
       use mod_blom_step, only: blom_step
 c
       implicit none
@@ -35,7 +35,8 @@ c
       integer :: nfu
 c
 c --- initialize the model
-      call blom_init
+      call blom_init1
+      call blom_init2
 c
 c --- advance the model from time step nstep1 to nstep2
       blom_loop: do

@@ -20,7 +20,7 @@
 
 module mod_rdlim
 
-  use mod_config,      only: expcnf, runid, inst_suffix
+  use mod_config,      only: expcnf, runid, inst_suffix, runtyp, refdat, reftod
   use mod_constants,   only: epsilt
   use mod_calendar,    only: date_type, daynum_diff, calendar_errstr, &
                              operator(==), operator(<), operator(/=)
@@ -125,12 +125,12 @@ contains
 
     ! Local variables
     type(date_type) :: date0_rest
-    character(len = 256) :: nlfnm,runtyp,rstfnm
+    character(len = 256) :: nlfnm,rstfnm
     character(len = 256) :: l_rpfile
     logical :: fexist
     integer :: m,n,idate,idate0,nfu,ios
 
-    namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,runtyp, &
+    namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf, &
          grfile,icfile,pref,baclin,batrop, &
          mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo, &
          vsc2hi,vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls, &
@@ -181,7 +181,6 @@ contains
       write (lp,*) 'IDATE0',IDATE0
       write (lp,*) 'RUNID ',trim(RUNID)
       write (lp,*) 'EXPCNF ',trim(EXPCNF)
-      write (lp,*) 'RUNTYP ',trim(RUNTYP)
       write (lp,*) 'GRFILE ',trim(GRFILE)
       write (lp,*) 'ICFILE ',trim(ICFILE)
       write (lp,*) 'PREF',PREF
@@ -266,7 +265,6 @@ contains
     call xcbcst(idate0)
     call xcbcst(runid)
     call xcbcst(expcnf)
-    call xcbcst(runtyp)
     call xcbcst(grfile)
     call xcbcst(icfile)
     call xcbcst(pref)

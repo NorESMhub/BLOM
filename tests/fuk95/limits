@@ -8,7 +8,6 @@
 ! IDATE0   : Initial experiment date in YYYYMMDD (i)
 ! RUNID    : Experiment name (a)
 ! EXPCNF   : Experiment configuration (a)
-! RUNTYP   : CESM run type (a)
 ! GRFILE   : Name of file containing grid specification (a)
 ! ICFILE   : Name of file containing initial conditions, that is either
 !            a valid restart file or 'inicon.nc' if climatological based
@@ -94,7 +93,6 @@
   IDATE0   = 20000101
   RUNID    = 'BLOM_fuk95'
   EXPCNF   = 'fuk95'
-  RUNTYP   = 'unset'
   GRFILE   = 'unset'
   ICFILE   = 'unset'
   PREF     = 0.

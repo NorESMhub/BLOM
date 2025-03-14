@@ -9,6 +9,10 @@ configure_file(input: 'limits',
                output: 'limits',
                copy: true)
 
+configure_file(input: 'restart',
+               output: 'restart',
+               copy: true)
+
 fuk95 = executable('fuk95_blom',
                    sources, dimension_fuk95,
                    include_directories: includes,

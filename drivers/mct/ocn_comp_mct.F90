@@ -52,7 +52,7 @@ module ocn_comp_mct
    use mod_xc,           only: mnproc, mpicom_external, xctilr, lp, nbdy, &
                                ii, jj, kk, i0, j0, nproc, jpr, cplmsk, halo_ps, &
                                ifu, ilu, isv, ifv, ilv, isp, ifp, ilp, isu
-   use mod_blom_init,    only: blom_init
+   use mod_blom_init,    only: blom_init1, blom_init2
    use mod_restart,      only: restart_write, restart_read
    use mod_blom_step,    only: blom_step
    use mod_fill_global,  only: fill_global
@@ -157,7 +157,8 @@ module ocn_comp_mct
       ! ----------------------------------------------------------------
 
       call t_startf('blom_init')
-      call blom_init
+      call blom_init1
+      call blom_init2
       call t_stopf('blom_init')
 
       ! ----------------------------------------------------------------

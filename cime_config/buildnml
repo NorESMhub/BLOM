@@ -283,10 +283,14 @@ def buildnml(case, caseroot, compname):
         var_list = ('DIN_LOC_ROOT', 'RUN_TYPE', 'BLOM_VCOORD','BLOM_NDEP_SCENARIO',
                     'CCSM_CO2_PPMV','OCN_CO2_TYPE',
                     'HAMOCC_SEDSPINUP_YR_START','HAMOCC_SEDSPINUP_YR_END',
-		    'HAMOCC_SEDSPINUP_NCYCLE')
+		                'HAMOCC_SEDSPINUP_NCYCLE',
+                    'RUN_REFDATE', 'RUN_REFTOD')
         for item in var_list:
             case_dict[item] = case.get_value(item)
-
+        if case_dict['RUN_TYPE'] == 'startup':
+            # these are needed for rpointer handling 
+            case_dict['RUN_REFDATE'] = ''
+            case_dict['RUN_REFTOD'] = ''
         pg_blom.reduce_ocn_in(case_dict, config)
 
         #----------------------------------------------------
@@ -318,7 +322,7 @@ def buildnml(case, caseroot, compname):
         namelist_file += inst_string
 
         # Create BLOM namelist
-        groups=['limits','diffusion','merdia','secdia','diaphy','stream_sss','stream_sst' ]
+        groups=['limits','diffusion','merdia','secdia','diaphy','stream_sss','stream_sst', 'restart' ]
 
         groups.append('cwmod')
 

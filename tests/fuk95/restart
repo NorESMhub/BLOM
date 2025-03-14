@@ -1,0 +1,12 @@
+! RESTART NAMELIST
+!
+! CONTENTS:
+!
+! RUNTYP   : CESM run type (a)
+! REFDAT   : CESM reference date for hybrid or branch runs (a)
+! REFTOD   : CESM reference tod for hybrid or branch runs (a)
+
+&restart
+  REFDAT = ''
+  REFTOD = ''
+  RUNTYP = 'startup'

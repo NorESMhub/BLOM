@@ -20,7 +20,7 @@
 module mod_blom_init
 
   use dimensions,          only: itdm, nreg
-  use mod_config,          only: expcnf
+  use mod_config,          only: expcnf, runtyp, refdat, reftod
   use mod_time,            only: date, nday1, nday2, nstep1, nstep2, nstep, delt1, &
                                  time0, baclin
   use mod_timing,          only: init_timing, get_time
@@ -49,7 +49,7 @@ module mod_blom_init
   use mod_ale_regrid_remap, only: init_ale_regrid_remap
   use mod_inigeo,          only: inigeo
   use mod_iniphy,          only: iniphy
-  use mod_restart,         only: restart_read
+  use mod_restart,         only: restart_read, restart_readnl
   use mod_ifdefs,          only: use_TRC, use_TKE
   use mod_tracers_update,  only: initrc
   use netcdf
@@ -57,23 +57,12 @@ module mod_blom_init
   implicit none
   private
 
-  public :: blom_init
+  public :: blom_init1
+  public :: blom_init2
 
 contains
 
-  subroutine blom_init(rpfile)
-  ! ------------------------------------------------------------------
-  ! initialize the model
-  ! ------------------------------------------------------------------
-
-    ! optional arguments for running with nuopc
-    character(len = *), intent(in), optional :: rpfile
-
-    ! Local variables
-    integer :: istat,ncid,varid,i,j,k,l,m,n,mm,nn,k1m,k1n,mt,mmt,kn,km
-    real    :: q
-    logical :: icrest,fexist
-    integer :: icrest_int
+  subroutine blom_init1()
 
     ! ---------------------------------------------------------------
     ! Initialize SPMD processing
@@ -99,10 +88,35 @@ contains
 
     call crcinit
 
+    !-------------------------------------------------------------------
+    ! Read namelists (for now just ones needed for proper restarts)
+    !-------------------------------------------------------------------
+    ! TODO: refactor rdlim and move it here
+
+    call restart_readnl
+
+  end subroutine blom_init1
+
+  subroutine blom_init2(rpfile)
+  ! ------------------------------------------------------------------
+  ! initialize the model
+  ! ------------------------------------------------------------------
+
+    ! optional arguments for running with nuopc
+    character(len = *), intent(in), optional :: rpfile
+
+    ! Local variables
+    integer :: istat,ncid,varid,i,j,k,l,m,n,mm,nn,k1m,k1n,mt,mmt,kn,km
+    real    :: q
+    logical :: icrest,fexist
+    integer :: icrest_int
+
     ! ------------------------------------------------------------------
     ! Read limits file
     ! ------------------------------------------------------------------
     if (present(rpfile)) then
+       ! restart namelist is already read in ocn_comp_nuopc
+       ! since it is needed for rpointer filenames
        call rdlim(rpfile)
     else
        call rdlim
@@ -426,7 +440,7 @@ contains
       call flush(lp)
     end if
 
-  end subroutine blom_init
+  end subroutine blom_init2
 
   subroutine numerical_bounds
   !------------------------------------------------------------------------

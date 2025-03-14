@@ -22,7 +22,8 @@
 module mod_restart
 
    use mod_types,          only: r8
-   use mod_config,         only: expcnf, runid, inst_suffix, resume_flag
+   use mod_config,         only: expcnf, runid, inst_suffix, resume_flag, &
+                                 runtyp, refdat, reftod
    use mod_calendar,       only: date_type, daynum_diff, operator(/=), &
                                  calendar_noerr, calendar_errstr
    use mod_time,           only: date0, date, nday1, nstep0, nstep1, nstep, time, time0, &
@@ -143,7 +144,7 @@ module mod_restart
       l2i_unitconv  = 1._r8, & ! One over length squared conversion.
       ml2i_unitconv = 1._r8    ! Mass over length squared conversion.
 
-   public  :: restart_write, restart_read
+   public  :: restart_write, restart_read, restart_readnl
 
    private :: extended_masks
    private :: defwrtfld
@@ -2327,5 +2328,51 @@ contains
       endif
 
    end subroutine restart_read
+
+   subroutine restart_readnl()
+
+      ! Read variables required for restarting with nuopc
+
+      character(len = 256) :: nlfnm
+      logical :: fexist
+      integer :: nfu
+
+      namelist /restart/ refdat, reftod, runtyp
+
+      if (mnproc == 1) then
+         nlfnm = 'ocn_in'//trim(inst_suffix)
+         inquire(file=nlfnm,exist = fexist)
+
+         if (fexist) then
+            open (newunit=nfu,file=nlfnm,status='old',action='read',recl = 80)
+         else
+
+            nlfnm = 'restart'//trim(inst_suffix)
+            inquire(file=nlfnm,exist = fexist)
+
+            if (fexist) then
+               open (newunit=nfu,file=nlfnm,status='old',action = 'read', &
+                    recl = 80)
+            else
+               write (lp,*) 'restart_readnl: could not find namelist file! '//trim(nlfnm)
+               call xchalt('(restart_readnl)')
+               stop '(restart_readnl)'
+            end if
+         end if
+
+
+         read (unit=nfu,nml = RESTART)
+         close (unit = nfu)
+         write (lp,*) 'reastart_readnl: BLOM RESTART NAMELIST GROUP:'
+         write (lp,*) 'RUNTYP ',trim(RUNTYP)
+         write (lp,*) 'REFDAT ',trim(REFDAT)
+         write (lp,*) 'REFTOD ',trim(REFTOD)
+      endif
+
+      call xcbcst(runtyp)
+      call xcbcst(refdat)
+      call xcbcst(reftod)
+   end subroutine restart_readnl
+
 
 end module mod_restart
