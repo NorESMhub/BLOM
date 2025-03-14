@@ -6,7 +6,8 @@
 ! REFDAT   : CESM reference date for hybrid or branch runs (a)
 ! REFTOD   : CESM reference tod for hybrid or branch runs (a)
 
-&restart
+&RESTART
   REFDAT = ''
   REFTOD = ''
   RUNTYP = 'startup'
+/
