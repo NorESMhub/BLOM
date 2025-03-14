@@ -1270,7 +1270,7 @@ contains
       ! continue run will have the same date as the current model time
       if (restart_flag == "read" .and. &
          (l_runtype == "hybrid" .or. l_runtype == "branch")) then
-         if (refdat /= '') then
+         if (refdat /= '' .or. refdat /= 'unset') then
             tmp_str = trim(refdat)
             read (tmp_str(1:4),'(i4)') yy
             read (tmp_str(6:8),'(i2)') mm
@@ -1280,7 +1280,7 @@ contains
           call blom_logwrite(trim(msg))
           call xchalt(subname)
          endif
-         if (reftod /= '') then
+         if (reftod /= '' .or. refdat /= 'unset') then
             tmp_str = trim(reftod)
             read (tmp_str, '(i5)'), tod
          else

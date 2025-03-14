@@ -99,12 +99,6 @@ def buildnml(case, caseroot, compname):
     expect(blom_vcoord == "isopyc_bulkml" or turbclo == "null",
            f"BLOM_VCOORD == {blom_vcoord} and BLOM_TURBULENT_CLOSURE == {turbclo} is not a valid combination")
 
-    #--------------------------
-    # Construct ParamGen objects:
-    #--------------------------
-
-    xml_fil = os.path.join(srcroot,"components","blom","cime_config","namelist_definition_blom.xml")
-    pg_blom = OcnInParamGen.from_namelist_xml(xml_fil)
 
     #------------------------
     # Loop over all instances:
@@ -134,7 +128,7 @@ def buildnml(case, caseroot, compname):
                 # both instance and timestamp
                 has_inst[i] = True
                 timestmp_list[i] = rpointers_list[i][-16:-1]
-                prev_inst_list[i] = int(rpointers_list[i][-20:-16])
+                prev_inst_list[i] = int(rpointers_list[i][-21:-17])
             elif len(rpointers_list[i]) > 12 and len(rpointers_list[i]) < 20:
                 # only instance
                 has_inst[i] = True
@@ -146,10 +140,13 @@ def buildnml(case, caseroot, compname):
                 timestmp_list[i] = ""
                 prev_inst_list[i] = -1
         # check for instances in rpointers
+        
         if all(has_inst):
-            if max(prev_inst_list) != ninst:
-                print('Number of instances in rpointers > 0 but not equal number or blom instances - exit now')
-                exit
+            if  prev_inst_list:
+                print(prev_inst_list)
+                if max(prev_inst_list) != ninst:
+                    print('Number of instances in rpointers > 0 but not equal number or blom instances - exit now')
+                    exit
         else:
             for i in range(len(rpointers_list)):
                 single_rpointer = os.path.join(rundir,rpointers_list[i])
@@ -174,7 +171,13 @@ def buildnml(case, caseroot, compname):
 
         if os.path.isfile(input_data_list):
             os.remove(input_data_list)
-
+        #--------------------------
+        # Construct ParamGen objects:
+        #--------------------------
+        # paramgen has to be initilized for each instance separately.
+        xml_fil = os.path.join(srcroot,"components","blom","cime_config","namelist_definition_blom.xml")
+        pg_blom = OcnInParamGen.from_namelist_xml(xml_fil)
+        
         # -----------------------------------------------------
         # Determine instance string
         # -----------------------------------------------------
@@ -289,8 +292,8 @@ def buildnml(case, caseroot, compname):
             case_dict[item] = case.get_value(item)
         if case_dict['RUN_TYPE'] == 'startup':
             # these are needed for rpointer handling 
-            case_dict['RUN_REFDATE'] = ''
-            case_dict['RUN_REFTOD'] = ''
+            case_dict['RUN_REFDATE'] = 'UNSET'
+            case_dict['RUN_REFTOD'] = 'UNSET'
         pg_blom.reduce_ocn_in(case_dict, config)
 
         #----------------------------------------------------
@@ -368,26 +371,26 @@ def buildnml(case, caseroot, compname):
             os.remove(data_list_path)
         pg_blom.write_inputdata(data_list_path, groups)
 
-    # To compare with previous namelist generation, make namelist variable uppercase and
-    # use single quotes instead of back quotes and make sure that file variables set to UNSET
-    # get changed to blank quotes
-    namelist_file_temp = os.path.join(confdir, "ocn_in_temp")
-    with open(namelist_file, "r") as fread:
-        with open(namelist_file_temp, "w") as fwrite:
-            for line_read in fread:
-                # replace single quote with double quote to generate same namelist as using
-                # csh buildnml
-                line = line_read.replace('"',"'")
-                # make all namelists upper case to generate same namelist as using csh buildnml
-                tokens = line.split('=',maxsplit=1)
-                if len(tokens) == 2:
-                    # Change UNSET values for files to lower case
-                    if 'UNSET' in tokens[1]:
-                        tokens[1] = "'unset'"
-                    fwrite.write(f"  {tokens[0].upper().strip()} = {tokens[1].strip()}\n")
-                else:
-                    fwrite.write(line)
-    shutil.move(namelist_file_temp, namelist_file)
+        # To compare with previous namelist generation, make namelist variable uppercase and
+        # use single quotes instead of back quotes and make sure that file variables set to UNSET
+        # get changed to blank quotes
+        namelist_file_temp = os.path.join(confdir, "ocn_in_temp")
+        with open(namelist_file, "r") as fread:
+            with open(namelist_file_temp, "w") as fwrite:
+                for line_read in fread:
+                    # replace single quote with double quote to generate same namelist as using
+                    # csh buildnml
+                    line = line_read.replace('"',"'")
+                    # make all namelists upper case to generate same namelist as using csh buildnml
+                    tokens = line.split('=',maxsplit=1)
+                    if len(tokens) == 2:
+                        # Change UNSET values for files to lower case
+                        if 'UNSET' in tokens[1]:
+                            tokens[1] = "'unset'"
+                        fwrite.write(f"  {tokens[0].upper().strip()} = {tokens[1].strip()}\n")
+                    else:
+                        fwrite.write(line)
+        shutil.move(namelist_file_temp, namelist_file)
 
 ###############################################################################
 def _main_func():
