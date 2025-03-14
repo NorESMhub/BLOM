@@ -48,11 +48,11 @@ module ocn_comp_nuopc
                                 blom_advertise_imports, blom_advertise_exports
    use mod_xc,            only: mpicom_external, lp, xchalt, mnproc
    use mod_cesm,          only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
-   use mod_config,        only: inst_index, inst_name, inst_suffix
+   use mod_config,        only: inst_index, inst_name, inst_suffix, runtyp, refdat, reftod
    use mod_time,          only: blom_time
    use mod_forcing,       only: srxday, trxday
    use mod_constants,     only: epsilt
-   use mod_blom_init,     only: blom_init
+   use mod_blom_init,     only: blom_init1, blom_init2
    use mod_blom_step,     only: blom_step
    use mod_fill_global,   only: fill_global
    use mod_restart,       only: restart_write
@@ -460,16 +460,9 @@ contains
       ! ------------------------------------------------------------------------
       ! Initialize BLOM.
       ! ------------------------------------------------------------------------
-
-      ! no need for mnproc, since it is used in in restart_read
-      call ESMF_ClockGet(clock, currtime=currtime, rc=rc)
-      if (ChkErr(rc, __LINE__, u_FILE_u)) return
-      call ESMF_TimeGet(currtime, yy=yy, mm=mm, dd=dd, s=tod, rc=rc)
-      if (ChkErr(rc, __LINE__, u_FILE_u)) return
-      ymd= 10000*yy + 100*mm + dd
-      call shr_get_rpointer_name(gcomp, 'ocn', ymd, tod, rpfile, 'write', rc=rc)
-      if (ChkErr(rc, __LINE__, u_FILE_u)) return
-      call blom_init(rpfile)
+      call blom_init1
+      call get_rpointer_filename(gcomp, clock, rpfile, 'read', runtype=runtyp)
+      call blom_init2(rpfile)
 
       ! ------------------------------------------------------------------------
       ! Get ScalarField attributes.
@@ -982,7 +975,7 @@ contains
          call restart_write (restartfn)
          if(mnproc == 1) then
             ! Write restart filename to rpointer.ocn.
-            call shr_get_rpointer_name(gcomp, 'ocn', ymd, tod, rpfile, 'write', rc)
+            call get_rpointer_filename(gcomp, clock, rpfile, 'write')
             open(newunit = nfu, file = rpfile)
             write(nfu, '(a)') restartfn
             close(unit = nfu)
@@ -1222,5 +1215,105 @@ contains
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
 
    end subroutine SetServices
+
+   subroutine get_rpointer_filename(gcomp, clock, rpfile, restart_flag, runtype)
+
+
+      type(ESMF_GridComp)  :: gcomp
+      type(ESMF_Clock)     :: clock
+
+      character(len=*),  intent(in)           :: restart_flag
+      character(len=*), intent(out)          :: rpfile
+      character(len=*),  intent(in), optional :: runtype
+
+     ! local variables:
+
+      type(ESMF_Time) :: currtime
+      integer :: shrlogunit, rc
+      integer :: yy, mm, dd, ymd, tod
+      character(len=16) :: l_runtype, tmp_str
+      character(len=1256) :: msg
+      
+      character(len=*), parameter :: &
+         subname = modname//":(get_rpointer_filename)"
+
+      rc = ESMF_SUCCESS
+
+      if (present(runtype)) then
+          l_runtype = runtype
+      else 
+          l_runtype = "startup"
+      endif
+
+      if ( .not. (restart_flag == "write" .or. restart_flag == "read") ) then
+          write(msg,*) "ERROR: wrong restart_flag specified can only be (read or write): "// restart_flag
+          call blom_logwrite(trim(msg))
+          call xchalt(subname)
+      endif
+
+      if (restart_flag == 'read') then
+         call ESMF_ClockGet(clock, currtime=currtime, rc=rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         call ESMF_TimeGet(currtime, yy=yy, mm=mm, dd=dd, s=tod, rc=rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      else
+         ! We write restarts after the blom step, 
+         ! however, the clock has not advanced yet
+         call ESMF_ClockGetNextTime(clock, nextTime=currtime, rc=rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         call ESMF_TimeGet(currtime, yy=yy, mm=mm, dd=dd, s=tod, rc=rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      endif
+
+      ! if a hybrid or branch run rpointer timestamp corresponds with
+      ! reference date of the reference case
+      ! continue run will have the same date as the current model time
+      if (restart_flag == "read" .and. &
+         (l_runtype == "hybrid" .or. l_runtype == "branch")) then
+         if (refdat /= '') then
+            tmp_str = trim(refdat)
+            read (tmp_str(1:4),'(i4)') yy
+            read (tmp_str(6:8),'(i2)') mm
+            read (tmp_str(9:10), '(i2)') dd
+         else
+          write(msg,*) "ERROR: empty RUN_REFDATE specified for hybrid/branch run: "// trim(refdat)
+          call blom_logwrite(trim(msg))
+          call xchalt(subname)
+         endif
+         if (reftod /= '') then
+            tmp_str = trim(reftod)
+            read (tmp_str, '(i5)'), tod
+         else
+           write(msg,*) "ERROR: empty RUN_REFTOD specified for hybrid/branch run: "// trim(reftod)
+          call blom_logwrite(trim(msg))
+          call xchalt(subname)
+         endif
+      endif
+
+      ymd=10000*yy+100*mm+dd
+      call shr_get_rpointer_name(gcomp, 'ocn', ymd, tod, rpfile, 'write', rc=rc)
+
+      if (restart_flag == "write") then
+         write(msg,*) subname//" restart file will be written in "// rpfile
+         call blom_logwrite(msg)
+      else if(restart_flag == "read" .and. l_runtype == "startup") then
+         write(msg,*) subname//" restart file will not be written in "// rpfile
+         call blom_logwrite(msg)
+      else if(restart_flag == "read" .and. l_runtype == "continue") then
+         write(msg,*) subname//" restart file will be read from "// rpfile
+         call blom_logwrite(msg)
+      else if(restart_flag == "read" .and. l_runtype == "branch") then
+         write(msg,*) subname//" restart file will be read from "// rpfile
+         call blom_logwrite(msg)
+      else if(restart_flag == "read" .and. l_runtype == "hybrid") then
+         write(msg,*) subname//" restart file will be read from "// rpfile
+         call blom_logwrite(msg)
+      endif
+
+
+      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+
+   end subroutine get_rpointer_filename
+
 
 end module ocn_comp_nuopc
