@@ -52,7 +52,7 @@ module ocn_comp_mct
    use mod_xc,           only: mnproc, mpicom_external, xctilr, lp, nbdy, &
                                ii, jj, kk, i0, j0, nproc, jpr, cplmsk, halo_ps, &
                                ifu, ilu, isv, ifv, ilv, isp, ifp, ilp, isu
-   use mod_blom_init,    only: blom_init
+   use mod_blom_init,    only: blom_init1, blom_init2
    use mod_restart,      only: restart_write, restart_read
    use mod_blom_step,    only: blom_step
    use mod_fill_global,  only: fill_global
@@ -157,7 +157,8 @@ module ocn_comp_mct
       ! ----------------------------------------------------------------
 
       call t_startf('blom_init')
-      call blom_init
+      call blom_init1
+      call blom_init2
       call t_stopf('blom_init')
 
       ! ----------------------------------------------------------------
@@ -271,6 +272,8 @@ module ocn_comp_mct
       ! Local variables
       type(seq_infodata_type), pointer :: infodata   ! Input init object
       integer :: shrlogunit, shrloglev, ymd, tod, ymd_sync, tod_sync
+      integer :: nfu
+      character(len = 256) :: restartfn
 
       ! ----------------------------------------------------------------
       ! Reset shr logging to my log file
@@ -331,7 +334,13 @@ module ocn_comp_mct
 
       if (seq_timemgr_RestartAlarmIsOn(EClock) .or. &
           seq_timemgr_pauseAlarmIsOn(EClock)) then
-         call restart_write
+         call restart_write (restartfn)
+        ! Write restart filename to rpointer.ocn.
+         if (mnproc == 1) then
+            open(newunit = nfu, file = 'rpointer.ocn'//trim(inst_suffix))
+            write(nfu, '(a)') restartfn
+            close(unit = nfu)
+         endif
       endif
       if (seq_timemgr_pauseAlarmIsOn(EClock)) resume_flag = .true.
 

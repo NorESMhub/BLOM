@@ -20,7 +20,7 @@
 
 module mod_rdlim
 
-  use mod_config,      only: expcnf, runid, inst_suffix
+  use mod_config,      only: expcnf, runid, inst_suffix, runtyp, refdat, reftod
   use mod_constants,   only: epsilt
   use mod_calendar,    only: date_type, daynum_diff, calendar_errstr, &
                              operator(==), operator(<), operator(/=)
@@ -117,18 +117,20 @@ module mod_rdlim
 
 contains
 
-  subroutine rdlim()
+  subroutine rdlim(rpfile)
   ! ------------------------------------------------------------------
   ! Read limits file
   ! ------------------------------------------------------------------
+    character(len = *), intent(in), optional :: rpfile
 
     ! Local variables
     type(date_type) :: date0_rest
-    character(len = 256) :: nlfnm,runtyp,rstfnm
+    character(len = 256) :: nlfnm,rstfnm
+    character(len = 256) :: l_rpfile
     logical :: fexist
     integer :: m,n,idate,idate0,nfu,ios
 
-    namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,runtyp, &
+    namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf, &
          grfile,icfile,pref,baclin,batrop, &
          mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo, &
          vsc2hi,vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls, &
@@ -179,7 +181,6 @@ contains
       write (lp,*) 'IDATE0',IDATE0
       write (lp,*) 'RUNID ',trim(RUNID)
       write (lp,*) 'EXPCNF ',trim(EXPCNF)
-      write (lp,*) 'RUNTYP ',trim(RUNTYP)
       write (lp,*) 'GRFILE ',trim(GRFILE)
       write (lp,*) 'ICFILE ',trim(ICFILE)
       write (lp,*) 'PREF',PREF
@@ -264,7 +265,6 @@ contains
     call xcbcst(idate0)
     call xcbcst(runid)
     call xcbcst(expcnf)
-    call xcbcst(runtyp)
     call xcbcst(grfile)
     call xcbcst(icfile)
     call xcbcst(pref)
@@ -965,18 +965,40 @@ contains
         ! file is expected and integration time is retrieved from
         ! restart file
 
-        if (mnproc == 1) &
-             inquire(file='rpointer.ocn'//trim(inst_suffix),exist = fexist)
+        if (mnproc == 1) then
+            if(present(rpfile)) then
+               write(lp,*) 'RPOINTER NAME:  '//rpfile//'!'
+               inquire(file = rpfile, exist = fexist)
+               if (fexist) then
+                  l_rpfile = rpfile
+               else
+                  l_rpfile = 'rpointer.ocn'//trim(inst_suffix)
+               endif
+            else
+               l_rpfile = 'rpointer.ocn'//trim(inst_suffix)
+            endif
+            inquire(file =l_rpfile, exist = fexist)
+        endif
         call xcbcst(fexist)
         if (.not.fexist) then
           if (mnproc == 1) then
-            write (lp,*) 'rdlim: could not find rpointer.ocn file!'
+             if (present(rpfile)) then
+                ! if rpfile is not found
+                !  l_rpfile will have no timestamp
+                write(lp,*) &
+                   'restart_read: could not find file '// &
+                    l_rpfile//' or '//rpfile//'!'
+             else
+                write(lp,*) &
+                   'restart_read: could not find file '// &
+                    l_rpfile//'!'
+               endif
           end if
           call xcstop('(rdlim)')
           stop '(rdlim)'
         end if
         if (mnproc == 1) then
-          open (newunit=nfu,file = 'rpointer.ocn'//trim(inst_suffix))
+          open (newunit=nfu,file = l_rpfile)
           read (nfu,'(a)') rstfnm
           close (unit = nfu)
           inquire(file=rstfnm,exist = fexist)
