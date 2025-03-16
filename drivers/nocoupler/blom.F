@@ -35,8 +35,7 @@ c
       integer :: nfu
 c
 c --- initialize the model
-      call blom_init1
-      call blom_init2
+      call blom_init
 c
 c --- advance the model from time step nstep1 to nstep2
       blom_loop: do
