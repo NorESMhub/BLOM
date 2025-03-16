@@ -286,19 +286,52 @@ def buildnml(case, caseroot, compname):
         var_list = ('DIN_LOC_ROOT', 'RUN_TYPE', 'BLOM_VCOORD','BLOM_NDEP_SCENARIO',
                     'CCSM_CO2_PPMV','OCN_CO2_TYPE',
                     'HAMOCC_SEDSPINUP_YR_START','HAMOCC_SEDSPINUP_YR_END',
-		                'HAMOCC_SEDSPINUP_NCYCLE',
-                    'RUN_REFDATE', 'RUN_REFTOD')
+		                'HAMOCC_SEDSPINUP_NCYCLE')
         for item in var_list:
             case_dict[item] = case.get_value(item)
-        if case_dict['RUN_TYPE'] == 'startup':
-            # these are needed for rpointer handling 
-            case_dict['RUN_REFDATE'] = 'UNSET'
-            case_dict['RUN_REFTOD'] = 'UNSET'
+
         pg_blom.reduce_ocn_in(case_dict, config)
 
         #----------------------------------------------------
         # Reset values of some variables
         #----------------------------------------------------
+        
+
+        icfile_inst = None
+        if run_type == 'hybrid':
+            icfile = "%s.blom.r.%s-%s.nc" %(run_refcase, run_refdate, run_reftod)
+            print(icfile)
+            #to start a multi-driver run from single instance run
+            if ninst > 1:
+                icfile_inst="%s.blom%s.r.%s-%s.nc" %(run_refcase,inst_string, run_refdate, run_reftod)
+                if (os.path.isfile(os.path.join(rundir,icfile)) and
+                    (not os.path.isfile(os.path.join(rundir,icfile_inst)))):
+                    shutil.copy(os.path.join(rundir, icfile),
+                    os.path.join(rundir, icfile_inst))
+
+                icfile=icfile_inst
+ 
+            # since stage_refcase is done within CIME's create_namelists()
+            # before component namlist is created
+            # we have to make this absolute to make check_inputdata work.
+            pg_blom.set_value("icfile",os.path.join(rundir,icfile))
+            print(pg_blom.get_value("icfile"))
+
+        driver = case.get_value("COMP_INTERFACE")
+        if driver == 'mct':
+            pg_blom.set_value('rpoint','rpointer.ocn')
+        elif driver == 'nuopc':
+            # check for older rpointers happens in the ocn cap
+            drv_ptr = case.get_value("DRV_RESTART_POINTER")
+            if drv_ptr:
+                blom_ptr = drv_ptr.replace("cpl","ocn")
+                blom_ptr = blom_ptr.replace("_0001", inst_string)
+            else:
+                # non-timestamped rpointers are used in older runs
+                blom_ptr = pg_blom.set_value('rpoint','rpointer.ocn')
+            if os.path.exists(os.path.join(rundir, blom_ptr)):
+                pg_blom.set_value('rpoint', blom_ptr)
+
 
         run_startdate = case.get_value("RUN_STARTDATE")
         idate = run_startdate.replace('-','')
@@ -364,7 +397,7 @@ def buildnml(case, caseroot, compname):
         filename.write_text(filename.read_text().replace('mer_regflg2','mer_regflg(2,:)'))
         filename.write_text(filename.read_text().replace('mer_regflg3','mer_regflg(3,:)'))
         filename.write_text(filename.read_text().replace('mer_regflg4','mer_regflg(4,:)'))
-
+        print(pg_blom.get_value("icfile"))
         # Write out blom.input_data_list
         data_list_path = os.path.join(case.get_case_root(), "Buildconf", "blom.input_data_list")
         if os.path.exists(data_list_path):

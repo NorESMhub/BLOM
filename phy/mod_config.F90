@@ -33,14 +33,14 @@ module mod_config
       inst_name   = '', & ! Instance name.
       inst_suffix = ''    ! Instance suffix.
     character(len = 16) :: &
-      refdat = '', &      ! Reference date for hybrid and branch runs (use)
-      reftod = '', &      ! Reference time of day for hybrid and restart runs
-      runtyp = 'startup'         !
+      runtyp = 'startup' ! runtype defined by cesm (startup, hybrid, branch, continue)
+    character(len = 50) :: &
+      rpoint = 'unset' ! rponiter file defined by cesm (for compatibility mct/nuopc)
    integer :: &
       inst_index = 0      ! Instance index.
    logical :: &
       resume_flag = .false.    ! resume flag, use at ocn_run_mct()
 
-   public ::  expcnf, runid, inst_name, inst_suffix, inst_index, resume_flag, runtyp, refdat, reftod
+   public ::  expcnf, runid, inst_name, inst_suffix, inst_index, resume_flag, runtyp, rpoint
 
 end module mod_config

@@ -20,7 +20,7 @@
 module mod_blom_init
 
   use dimensions,          only: itdm, nreg
-  use mod_config,          only: expcnf, runtyp, refdat, reftod
+  use mod_config,          only: expcnf, runtyp
   use mod_time,            only: date, nday1, nday2, nstep1, nstep2, nstep, delt1, &
                                  time0, baclin
   use mod_timing,          only: init_timing, get_time
@@ -49,7 +49,7 @@ module mod_blom_init
   use mod_ale_regrid_remap, only: init_ale_regrid_remap
   use mod_inigeo,          only: inigeo
   use mod_iniphy,          only: iniphy
-  use mod_restart,         only: restart_read, restart_readnl
+  use mod_restart,         only: restart_read
   use mod_ifdefs,          only: use_TRC, use_TKE
   use mod_tracers_update,  only: initrc
   use netcdf
@@ -57,13 +57,17 @@ module mod_blom_init
   implicit none
   private
 
-  public :: blom_init1
-  public :: blom_init2
+  public :: blom_init
 
 contains
 
-  subroutine blom_init1()
+  subroutine blom_init()
 
+    ! Local variables
+    integer :: istat,ncid,varid,i,j,k,l,m,n,mm,nn,k1m,k1n,mt,mmt,kn,km
+    real    :: q
+    logical :: icrest,fexist
+    integer :: icrest_int
     ! ---------------------------------------------------------------
     ! Initialize SPMD processing
     ! ------------------------------------------------------------------
@@ -88,39 +92,17 @@ contains
 
     call crcinit
 
-    !-------------------------------------------------------------------
-    ! Read namelists (for now just ones needed for proper restarts)
-    !-------------------------------------------------------------------
-    ! TODO: refactor rdlim and move it here
-
-    call restart_readnl
-
-  end subroutine blom_init1
-
-  subroutine blom_init2(rpfile)
   ! ------------------------------------------------------------------
   ! initialize the model
   ! ------------------------------------------------------------------
 
-    ! optional arguments for running with nuopc
-    character(len = *), intent(in), optional :: rpfile
-
-    ! Local variables
-    integer :: istat,ncid,varid,i,j,k,l,m,n,mm,nn,k1m,k1n,mt,mmt,kn,km
-    real    :: q
-    logical :: icrest,fexist
-    integer :: icrest_int
 
     ! ------------------------------------------------------------------
     ! Read limits file
     ! ------------------------------------------------------------------
-    if (present(rpfile)) then
-       ! restart namelist is already read in ocn_comp_nuopc
-       ! since it is needed for rpointer filenames
-       call rdlim(rpfile)
-    else
-       call rdlim
-    endif
+
+    call rdlim
+
     ! ------------------------------------------------------------------
     ! Identify processor and horizontal indexes where detailed
     ! diagnostics are desired
@@ -199,16 +181,20 @@ contains
     icrest = .false.
     icrest_int = 0
     if (mnproc == 1) then
-      inquire(file=icfile,exist = fexist)
-      if (fexist) then
-        istat = nf90_open(icfile,nf90_nowrite,ncid)
-        if (istat == nf90_noerr) then
-          istat = nf90_inq_varid(ncid,'dp',varid)
+      if ( expcnf == 'cesm' .and. runtyp /= 'startup') then
+        icrest = .true.
+      else
+        inquire(file=icfile,exist = fexist)
+        if (fexist) then
+          istat = nf90_open(icfile,nf90_nowrite,ncid)
           if (istat == nf90_noerr) then
-            icrest = .true.
+            istat = nf90_inq_varid(ncid,'dp',varid)
+            if (istat == nf90_noerr) then
+              icrest = .true.
+            end if
           end if
         end if
-      end if
+      endif
       if (icrest) icrest_int = 1
     end if
     call xcbcst(icrest_int)
@@ -242,13 +228,10 @@ contains
       ! ------------------------------------------------------------------
 
       delt1 = baclin+baclin
-      ! nuopc can provide rpointer timestamp
-      if (present(rpfile)) then
-         call restart_read(rpfile)
-      else
-         call restart_read()
-      endif
-    end if
+
+      call restart_read()
+
+    endif
 
     ! ------------------------------------------------------------------
     ! Initialize model time step and set time level indices consistent
@@ -440,7 +423,7 @@ contains
       call flush(lp)
     end if
 
-  end subroutine blom_init2
+  end subroutine blom_init
 
   subroutine numerical_bounds
   !------------------------------------------------------------------------

@@ -92,8 +92,8 @@
 
   <entry id="runtyp" modify_via_xml="RUN_TYPE">
     <type>char</type>
-    <category>restart</category>
-    <group>restart</group>
+    <category>limits</category>
+    <group>limits</group>
     <values>
       <value>$RUN_TYPE</value>
       <value continue_run="yes">continue</value>
@@ -101,24 +101,14 @@
     <desc>run type (a)</desc>
   </entry>
 
-  <entry id="refdat" modify_via_xml="RUN_REFDATE">
-    <type>char</type>
-    <category>restart</category>
-    <group>restart</group>
+  <entry id="rpoint">
+    <category>limits</category>
+    <group>limits</group>
     <values>
-      <value>$RUN_REFDATE</value>
+      <value>unset</value>
     </values>
-    <desc>Reference date for hybrid or branch runs (yyyy-mm-dd)</desc>
-  </entry>
-
-  <entry id="reftod" modify_via_xml="RUN_REFTOD">
+    <desc>name of the rpointer file (a)</desc>
     <type>char</type>
-    <category>restart</category>
-    <group>restart</group>
-    <values>
-      <value>$RUN_REFTOD</value>
-    </values>
-    <desc>Reference time of day (seconds) for hybrid or branch runs (sssss)</desc>
   </entry>
 
   <entry id="grfile" is_inputdata="yes">

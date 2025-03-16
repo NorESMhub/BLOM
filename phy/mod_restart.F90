@@ -22,8 +22,7 @@
 module mod_restart
 
    use mod_types,          only: r8
-   use mod_config,         only: expcnf, runid, inst_suffix, resume_flag, &
-                                 runtyp, refdat, reftod
+   use mod_config,         only: expcnf, runid, inst_suffix, resume_flag, rpoint, runtyp
    use mod_calendar,       only: date_type, daynum_diff, operator(/=), &
                                  calendar_noerr, calendar_errstr
    use mod_time,           only: date0, date, nday1, nstep0, nstep1, nstep, time, time0, &
@@ -144,7 +143,7 @@ module mod_restart
       l2i_unitconv  = 1._r8, & ! One over length squared conversion.
       ml2i_unitconv = 1._r8    ! Mass over length squared conversion.
 
-   public  :: restart_write, restart_read, restart_readnl
+   public  :: restart_write, restart_read
 
    private :: extended_masks
    private :: defwrtfld
@@ -1292,12 +1291,10 @@ contains
 
    end subroutine restart_write
 
-   subroutine restart_read(rpfile)
+   subroutine restart_read()
    ! ---------------------------------------------------------------------------
    ! Read model state from restart files.
    ! ---------------------------------------------------------------------------
-
-      character(len = *), intent(in), optional :: rpfile
 
       type(date_type) :: date_rest
       integer :: nfu, errstat, dndiff, ntr_file, i, j, l, n
@@ -1329,55 +1326,44 @@ contains
 
       elseif (expcnf == 'cesm' .or. expcnf == 'channel') then
 
-         ! Get restart file name from rpointer.ocn.
-         if (mnproc == 1) then
-            if(present(rpfile)) then
-               inquire(file = rpfile, exist = file_exist)
-               if (file_exist) then
-                  l_rpfile = rpfile
-               else
-                  l_rpfile = 'rpointer.ocn'//trim(inst_suffix)
-               endif
-            else
-               l_rpfile = 'rpointer.ocn'//trim(inst_suffix)
-            endif
-            inquire(file =l_rpfile, exist = file_exist)
-         endif
-         call xcbcst(file_exist)
-         if (file_exist) then
+         rstfnm = ''
+         ! here, we do a redudant check as in (rdlim)
+         if (runtyp == 'branch' .or. runtyp == 'continue') then
+            ! Get restart file name from rpointer.ocn
+            ! the correct rpoint is already set in rdlim
             if (mnproc == 1) then
-               open(newunit = nfu, file =l_rpfile)
-               read(nfu, '(a)') rstfnm
-               close(unit = nfu)
+              open (newunit = nfu, file = rpoint)
+              read (nfu,'(a)') rstfnm
+              close (unit = nfu)
             endif
             call xcbcst(rstfnm)
+         elseif (runtyp == 'hybrid') then
+            rstfnm = icfile
          else
+             if (mnproc == 1) then
+                write(lp,*) 'restart_read: ' &
+                // 'trying to read a restart file ' &
+                // 'when ryntype is startup or unset'
+             endif
+             call xcstop('(restart_read)')
+                    stop '(restart_read)'
+         endif
+         if (rstfnm == '') then
             if (mnproc == 1) then
-               if (present(rpfile)) then
-                  ! if rpfile is not found
-                  !  l_rpfile will have no timestamp
-                  write(lp,*) &
-                      'restart_read: could not find file '// &
-                      l_rpfile//' or '//rpfile//'!'
-               else
-                  write(lp,*) &
-                     'restart_read: could not find file '// &
-                      l_rpfile//'!'
-               endif
+               write(lp,*) 'restart_read: restart filename has not been set!'
             endif
             call xcstop('(restart_read)')
-                   stop '(restart_read)'
+                    stop '(restart_read)'
          endif
-
          ! Open restart file.
          if (mnproc == 1) inquire(file = rstfnm, exist = file_exist)
          call xcbcst(file_exist)
-         if (.not.file_exist) then
+         if (.not. file_exist) then
             if (mnproc == 1) then
-               write(lp,*) 'restart_read: could not find restart file!'
+               write(lp,*) 'restart_read: could not find restart file '// trim(rstfnm)
             endif
             call xcstop('(restart_read)')
-                   stop '(restart_read)'
+                    stop '(restart_read)'
          endif
          call ncfopn(rstfnm, 'r', ' ', 1, iotype)
 
@@ -2328,51 +2314,5 @@ contains
       endif
 
    end subroutine restart_read
-
-   subroutine restart_readnl()
-
-      ! Read variables required for restarting with nuopc
-
-      character(len = 256) :: nlfnm
-      logical :: fexist
-      integer :: nfu
-
-      namelist /restart/ refdat, reftod, runtyp
-
-      if (mnproc == 1) then
-         nlfnm = 'ocn_in'//trim(inst_suffix)
-         inquire(file=nlfnm,exist = fexist)
-
-         if (fexist) then
-            open (newunit=nfu,file=nlfnm,status='old',action='read',recl = 80)
-         else
-
-            nlfnm = 'restart'//trim(inst_suffix)
-            inquire(file=nlfnm,exist = fexist)
-
-            if (fexist) then
-               open (newunit=nfu,file=nlfnm,status='old',action = 'read', &
-                    recl = 80)
-            else
-               write (lp,*) 'restart_readnl: could not find namelist file! '//trim(nlfnm)
-               call xchalt('(restart_readnl)')
-               stop '(restart_readnl)'
-            end if
-         end if
-
-
-         read (unit=nfu,nml = RESTART)
-         close (unit = nfu)
-         write (lp,*) 'reastart_readnl: BLOM RESTART NAMELIST GROUP:'
-         write (lp,*) 'RUNTYP ',trim(RUNTYP)
-         write (lp,*) 'REFDAT ',trim(REFDAT)
-         write (lp,*) 'REFTOD ',trim(REFTOD)
-      endif
-
-      call xcbcst(runtyp)
-      call xcbcst(refdat)
-      call xcbcst(reftod)
-   end subroutine restart_readnl
-
 
 end module mod_restart
