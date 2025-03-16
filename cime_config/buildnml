@@ -310,6 +310,7 @@ def buildnml(case, caseroot, compname):
                     os.path.join(rundir, icfile_inst))
 
                 icfile=icfile_inst
+ 
             # since stage_refcase is done within CIME's create_namelists()
             # before component namlist is created
             # we have to make this absolute to make check_inputdata work.
