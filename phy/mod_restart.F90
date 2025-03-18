@@ -1328,7 +1328,7 @@ contains
 
          rstfnm = ''
          ! here, we do a redudant check as in (rdlim)
-         if (runtyp == 'branch' .or. runtyp == 'continue') then
+         if (runtyp == 'continue') then
             ! Get restart file name from rpointer.ocn
             ! the correct rpoint is already set in rdlim
             if (mnproc == 1) then
@@ -1337,7 +1337,7 @@ contains
               close (unit = nfu)
             endif
             call xcbcst(rstfnm)
-         elseif (runtyp == 'hybrid') then
+         elseif (runtyp == 'hybrid' .or. runtyp == 'branch') then
             rstfnm = icfile
          else
              if (mnproc == 1) then

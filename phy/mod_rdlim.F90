@@ -964,7 +964,7 @@ contains
       else
         ! for runtyp equal 'hybrid' a
         !  a valid restart file is expected as icfile
-        if (runtyp == 'hybrid') then
+        if (runtyp == 'hybrid'.or. runtyp == 'branch') then
           rstfnm=icfile
         else
 
@@ -996,7 +996,7 @@ contains
             call xcbcst(rstfnm)
           else
             if (mnproc == 1) then
-              write(lp,*) 'rdlim: runtyp is branch or continue ' // &
+              write(lp,*) 'rdlim: runtyp or continue ' // &
               'but rpoint is unset'
             endif
           endif

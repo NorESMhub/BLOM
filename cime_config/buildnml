@@ -298,7 +298,7 @@ def buildnml(case, caseroot, compname):
         
 
         icfile_inst = None
-        if run_type == 'hybrid':
+        if run_type == 'hybrid' or run_type == 'branch':
             icfile = "%s.blom.r.%s-%s.nc" %(run_refcase, run_refdate, run_reftod)
             print(icfile)
             #to start a multi-driver run from single instance run
