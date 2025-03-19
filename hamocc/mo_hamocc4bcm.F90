@@ -361,12 +361,13 @@ contains
       endif
 
       ! Sediment is shifted once a day (on both time levels!)
+      ! sedshi relies on the choice that it is only called once per day
       if (KLDTDAY == 1 .OR. KLDTDAY == 2) then
         if (mnproc.eq.1) then
           write(io_stdo_bgc,*)' '
           write(io_stdo_bgc,*) 'Sediment shifting ...'
         endif
-        call sedshi(kpie,kpje,omask)
+        call sedshi(kpie,kpje,omask,kplyear)
       endif
 
     endif ! .not. use_sedbypass

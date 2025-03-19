@@ -27,7 +27,7 @@ module mo_sedshi
 
 contains
 
-  subroutine sedshi(kpie,kpje,omask)
+  subroutine sedshi(kpie,kpje,omask,kplyear)
 
     !***********************************************************************************************
     ! Sediment shifting
@@ -45,12 +45,14 @@ contains
     use mo_param1_bgc,  only: isssc12,issssil,issso12,issster,ks,nsedtra,isssc13,isssc14,          &
                               issso13,issso14,issso12_age,nsedtra_woage
     use mo_carbch,      only: sedfluxb
-    use mo_control_bgc, only: use_cisonew,use_sediment_quality,dtbgc
+    use mo_control_bgc, only: use_cisonew,use_sediment_quality,dtbgc,                              &
+                            & do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc
 
     ! Arguments
     integer, intent(in) :: kpie
     integer, intent(in) :: kpje
     real,    intent(in) :: omask(kpie,kpje)
+    integer, intent(in) :: kplyear                                         ! current year.
 
     ! Local variables
     integer :: i,j,k,l,iv
@@ -59,8 +61,14 @@ contains
     real    :: sedlo,uebers,seddef,spresent,buried
     real    :: refill,frac
     real    :: eps=epsilon(1.)
+    real    :: acc_time=0.
 
     sedfluxb(:,:,:) = 0.
+
+    if(do_sedspinup .and. kplyear>=sedspin_yr_s .and. kplyear<=sedspin_yr_e) then
+      ! accumulated time spent due to sediment acceleration
+      acc_time = 86400.*sedspin_ncyc/31536000. ! *dtbgc/dtbgc
+    endif
 
     ! DOWNWARD SHIFTING
     ! shift solid sediment sediment downwards, if layer is full, i.e., if
@@ -143,7 +151,7 @@ contains
             !ka          if(bolay(i,j).gt.0.) then
             uebers=wsed(i,j)*sedlay(i,j,ks,iv)
             if (use_sediment_quality .and. iv == issso12) then
-              burial(i,j,issso12_age) = (uebers*seddw(ks)*porsol(i,j,ks)*sedlay(i,j,k,issso12_age) &
+              burial(i,j,issso12_age) = (uebers*seddw(ks)*porsol(i,j,ks)*sedlay(i,j,ks,issso12_age)&
                                       &   + burial(i,j,issso12)*burial(i,j,issso12_age))           &
                                       & /(uebers*seddw(ks)*porsol(i,j,ks) + burial(i,j,issso12)+eps)
             endif
@@ -230,8 +238,8 @@ contains
           frac = porsol(i,j,ks)*seddw(ks)
 
           if (use_sediment_quality) then
-            ! Update burial POC age [yrs]
-            burial(i,j,issso12_age)    = burial(i,j,issso12_age) + dtbgc/31104000.
+            ! Update burial POC age [yrs] - NOTE that sedshi is called once per day!
+            burial(i,j,issso12_age)    = burial(i,j,issso12_age) + 86400./31536000. + acc_time
             sedlay(i,j,ks,issso12_age) = (refill*burial(i,j,issso12)/frac * burial(i,j,issso12_age)&
                                        &    + sedlay(i,j,ks,issso12)*sedlay(i,j,ks,issso12_age))   &
                                        & /(refill*burial(i,j,issso12)/frac + sedlay(i,j,ks,issso12)+eps)
