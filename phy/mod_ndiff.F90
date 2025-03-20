@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2024 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
+! Copyright (C) 2024-2025 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -23,7 +23,7 @@ module mod_ndiff
 ! ------------------------------------------------------------------------------
 
   use mod_types,     only: r8
-  use mod_constants, only: g, alpha0, epsilp, onemm, P_mks2cgs, R_mks2cgs
+  use mod_constants, only: grav, alpha0, epsilp, onemm
   use mod_time,      only: delt1
   use mod_xc
   use mod_grid,      only: scuy, scvx, scp2, scuxi, scvyi
@@ -38,8 +38,8 @@ module mod_ndiff
 
   real(r8), parameter :: &
        ndiff_dstsnp_fac = .01_r8, &
-       rho_eps = 1.e-5_r8*R_mks2cgs, &
-       dp_eps = 1.e-5_r8*P_mks2cgs
+       rho_eps = 1.e-5_r8, &
+       dp_eps = 1.e-5_r8
   integer, parameter :: &
        it = 1, &
        is = 2
@@ -963,7 +963,7 @@ contains
         kdmx_m = kdmx_js(i-1,js)
         kdmx_p = kdmx_js(i  ,js)
         cdiff = delt1*scuy(i,j)*scuxi(i,j)
-        cnslp = alpha0*scuxi(i,j)/g
+        cnslp = alpha0*scuxi(i,j)/grav
 
         call ndiff_flx(p_srcdi_m, t_srcdi_m, tpc_src_m, &
                        drhodt_srcdi_m, drhods_srcdi_m, &
@@ -1025,7 +1025,7 @@ contains
         kdmx_m = kdmx_js(i,js_m)
         kdmx_p = kdmx_js(i,js_p)
         cdiff = delt1*scvx(i,j)*scvyi(i,j)
-        cnslp = alpha0*scvyi(i,j)/g
+        cnslp = alpha0*scvyi(i,j)/grav
 
         call ndiff_flx(p_srcdi_m, t_srcdi_m, tpc_src_m, &
                        drhodt_srcdi_m, drhods_srcdi_m, &

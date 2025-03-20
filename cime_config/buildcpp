@@ -75,7 +75,6 @@ def buildcpp(case):
     turbclo = case.get_value("BLOM_TURBULENT_CLOSURE")
     tracers = case.get_value("BLOM_TRACER_MODULES")
     blom_atrc = case.get_value("BLOM_ATRC")
-    blom_unit = case.get_value("BLOM_UNIT")
     pio_typename = case.get_value("PIO_TYPENAME", subgroup="OCN")
 
     blom_cppdefs = ""
@@ -122,11 +121,6 @@ def buildcpp(case):
 
     if blom_atrc:
         blom_cppdefs = blom_cppdefs + " -DATRC"
-
-    if blom_unit == "mks":
-        blom_cppdefs = blom_cppdefs + " -DMKS"
-    else:
-        expect(blom_unit == "cgs", "Unit system {} is not recognized".format(blom_unit))
 
     blom_cppdefs = "-DMPI" + blom_cppdefs
 

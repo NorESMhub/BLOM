@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2024 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
+! Copyright (C) 2008-2025 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -431,7 +431,7 @@ contains
   !------------------------------------------------------------------------
 
     use mod_types,     only: r8
-    use mod_constants, only: g, spval, L_mks2cgs
+    use mod_constants, only: grav, spval
     use mod_time,      only: baclin
     use mod_xc
     use mod_grid,      only: scqx, scqy, scpx, scpy, scuy, scvx, scp2, depths
@@ -469,9 +469,9 @@ contains
       do l = 1, isp(j)
         do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
           btdtmx = min(btdtmx, &
-                      scpx(i, j)*scpy(i, j) &
-                      /sqrt(g*depths(i, j)*L_mks2cgs*( scpx(i, j)*scpx(i, j) &
-                      + scpy(i, j)*scpy(i, j))))
+                       scpx(i, j)*scpy(i, j) &
+                       /sqrt(grav*depths(i, j)*( scpx(i, j)*scpx(i, j) &
+                                               + scpy(i, j)*scpy(i, j))))
         enddo
       enddo
     enddo
