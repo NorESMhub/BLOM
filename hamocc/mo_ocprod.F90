@@ -320,6 +320,7 @@ contains
         do k = 1,merge(kpke,kwrbioz(i,j),lkwrbioz_off)
 
           if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
+            dz = pddpo(i,j,k)
 
 
             if (use_AGG) then
@@ -484,9 +485,9 @@ contains
                                     &                       + (1.-nh4uptfrac)*phosy*ro2ut            & ! NO3 uptake
                                     &                       - (dtr+phosy)*ro2utammo                    ! Remin to NH4
               ! Output
-              phosy_NH4(i,j,k)   =  nh4uptfrac*phosy*rnit      ! kmol N/m3/dtb - NH4 uptake during PP growth
-              phosy_NO3(i,j,k)   = (1.-nh4uptfrac)*phosy*rnit  ! kmol N/m3/dtb - NO3 uptake during PP growth
-              remin_aerob(i,j,k) = (dtr+phosy)*rnit            ! kmol N/m3/dtb - Aerob remin to ammonium  (var. sources)
+              phosy_NH4(i,j,k)   =  nh4uptfrac*phosy*rnit*dz      ! kmol N/m2/dtb - NH4 uptake during PP growth
+              phosy_NO3(i,j,k)   = (1.-nh4uptfrac)*phosy*rnit*dz  ! kmol N/m2/dtb - NO3 uptake during PP growth
+              remin_aerob(i,j,k) = (dtr+phosy)*rnit*dz            ! kmol NH4/m2/dtb - Aerob remin to ammonium  (var. sources)
             endif
             ocetra(i,j,k,idet) = ocetra(i,j,k,idet)+export
             ocetra(i,j,k,idms) = ocetra(i,j,k,idms)+dmsprod-dms_bac-dms_uv
@@ -579,8 +580,6 @@ contains
             endif
 
             ! add up for total inventory and output
-            dz = pddpo(i,j,k)
-
             expoor(i,j)     = expoor(i,j)    +export*rcar*dz
             expoca(i,j)     = expoca(i,j)    +delcar*dz
             exposi(i,j)     = exposi(i,j)    +delsil*dz
@@ -624,6 +623,7 @@ contains
       do i = 1,kpie
         do k = merge(1,kwrbioz(i,j)+1,lkwrbioz_off),kpke
           if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
+            dz = pddpo(i,j,k)
 
             if (use_AGG) then
               avmass = ocetra(i,j,k,iphy)+ocetra(i,j,k,idet)
@@ -727,7 +727,7 @@ contains
               ocetra(i,j,k,ianh4) = ocetra(i,j,k,ianh4) + remin*rnit
               ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + (rnit-1.)*remin
               ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - ro2utammo*remin
-              remin_aerob(i,j,k)  = remin*rnit ! kmol/NH4/dtb - remin to NH4 from various sources
+              remin_aerob(i,j,k)  = remin_aerob(i,j,k) + remin*rnit*dz ! kmol NH4/m2/dtb - remin to NH4 from various sources
             endif
             ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+rcar*remin
             ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+remin*riron           &
@@ -777,7 +777,6 @@ contains
                     &    * (ocetra(i,j,k,idms) / (dmsp6+ocetra(i,j,k,idms)))
             ocetra(i,j,k,idms) = ocetra(i,j,k,idms)-dms_bac
 
-            dz = pddpo(i,j,k)
             intdms_bac(i,j) =  intdms_bac(i,j)+dms_bac*dz
 
             if (use_AGG) then
@@ -908,13 +907,13 @@ contains
     !                      minimum in the equatorial pacific/atlantic
     !                      does it make sense to check for oxygen and nitrate deficit?
 
-    !$OMP PARALLEL DO PRIVATE(remin,avmass,avnos,rem13,rem14,i,k)
+    !$OMP PARALLEL DO PRIVATE(remin,avmass,avnos,rem13,rem14,i,k,dz)
     loop4: do j = 1,kpje
       do i = 1,kpie
         do k = merge(1,kwrbioz(i,j)+1,lkwrbioz_off),kpke
           if(omask(i,j) > 0.5 .and. pddpo(i,j,k) > dp_min) then
             if(ocetra(i,j,k,ioxygen) < O2thresh_hypoxic .and. ocetra(i,j,k,iano3) < NO3thresh_sulf ) then
-
+              dz = pddpo(i,j,k)
               if (use_AGG) then
                 avmass = ocetra(i,j,k,iphy)+ocetra(i,j,k,idet)
               endif
@@ -941,7 +940,7 @@ contains
               endif
               if (use_extNcycle) then
                 ! Output
-                remin_sulf(i,j,k) = remin ! kmol P/m3/dtb
+                remin_sulf(i,j,k) = remin*dz ! kmol P/m2/dtb
               endif
               if (use_AGG) then
                 !***********************************************************************

@@ -90,7 +90,7 @@ contains
     real    :: Tdepanh4,O2limanh4,nut1lim,anh4new,potdnh4amox,fdetamox,fno2,fn2o,ftotnh4
     real    :: Tdepano2,O2limano2,nut2lim,ano2new,potdno2nitr,fdetnitr,ftotno2,no2fn2o,no2fno2,    &
                no2fdetamox
-    real    :: amoxfrac,nitrfrac,totd,amox,nitr,temp
+    real    :: amoxfrac,nitrfrac,totd,amox,nitr,temp,dz
 
     ! Set output-related fields to zero
     nitr_NH4      = 0.
@@ -102,7 +102,7 @@ contains
     !$OMP PARALLEL DO PRIVATE(i,k,Tdepanh4,O2limanh4,nut1lim,anh4new,potdnh4amox,fdetamox,fno2,    &
     !$OMP                     fn2o,ftotnh4,Tdepano2,O2limano2,nut2lim,ano2new,potdno2nitr,fdetnitr,&
     !$OMP                     ftotno2,amoxfrac,nitrfrac,totd,amox,nitr,temp,no2fn2o,no2fno2,       &
-    !$OMP                     no2fdetamox)
+    !$OMP                     no2fdetamox,dz)
     do j = 1,kpje
       do i = 1,kpie
         do k = 1,kpke
@@ -192,11 +192,12 @@ contains
                                   &                       - rnm1*rnoi*fdetnitr*nitr
 
             ! Output
-            nitr_NH4(i,j,k)       = amox               ! kmol N/m3/dtb   - NH4 consumption for nitrification on NH4-incl. usage for biomass
-            nitr_NO2(i,j,k)       = nitr               ! kmol N/m3/dtb   - NO2 consumption for nitrification on NO2
-            nitr_N2O_prod(i,j,k)  = 0.5*fn2o*amox      ! kmol N2O/m3/dtb - N2O production during aerob ammonium oxidation
-            nitr_NH4_OM(i,j,k)    = rnoi*fdetamox*amox ! kmol P/m3/dtb   - organic matter production during aerob NH4 oxidation
-            nitr_NO2_OM(i,j,k)    = rnoi*fdetnitr*nitr ! kmol P/m3/dtb   - organic matter production during aerob NO2 oxidation
+            dz = pddpo(i,j,k)
+            nitr_NH4(i,j,k)       = amox*dz               ! kmol N/m2/dtb   - NH4 consumption for nitrification on NH4-incl. usage for biomass
+            nitr_NO2(i,j,k)       = nitr*dz               ! kmol N/m2/dtb   - NO2 consumption for nitrification on NO2
+            nitr_N2O_prod(i,j,k)  = 0.5*fn2o*amox*dz      ! kmol N2O/m2/dtb - N2O production during aerob ammonium oxidation
+            nitr_NH4_OM(i,j,k)    = rnoi*fdetamox*amox*dz ! kmol P/m2/dtb   - organic matter production during aerob NH4 oxidation
+            nitr_NO2_OM(i,j,k)    = rnoi*fdetnitr*nitr*dz ! kmol P/m2/dtb   - organic matter production during aerob NO2 oxidation
           endif
         enddo
       enddo
@@ -215,12 +216,12 @@ contains
 
     !local variables
     integer :: i,j,k
-    real    :: Tdep,O2inhib,nutlim,ano3new,ano3denit,temp
+    real    :: Tdep,O2inhib,nutlim,ano3new,ano3denit,temp,dz
 
     ! Set output-related field to zero
     denit_NO3  = 0.
 
-    !$OMP PARALLEL DO PRIVATE(i,k,Tdep,O2inhib,nutlim,ano3new,ano3denit,temp)
+    !$OMP PARALLEL DO PRIVATE(i,k,Tdep,O2inhib,nutlim,ano3new,ano3denit,temp,dz)
     do j = 1,kpje
       do i = 1,kpie
         do k = 1,kpke
@@ -245,7 +246,8 @@ contains
             ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + ano3denit*rnm1*rnoxpi
 
             ! Output
-            denit_NO3(i,j,k) = ano3denit ! kmol NO3/m3/dtb   - NO3 usage for denit on NO3
+            dz = pddpo(i,j,k)
+            denit_NO3(i,j,k) = ano3denit*dz ! kmol NO3/m2/dtb   - NO3 usage for denit on NO3
           endif
         enddo
       enddo
@@ -264,13 +266,13 @@ contains
 
     !local variables
     integer :: i,j,k
-    real    :: Tdep,O2inhib,nut1lim,nut2lim,ano2new,ano2anmx,temp
+    real    :: Tdep,O2inhib,nut1lim,nut2lim,ano2new,ano2anmx,temp,dz
 
     ! Set output-related field to zero
     anmx_N2_prod = 0.
     anmx_OM_prod = 0.
 
-    !$OMP PARALLEL DO PRIVATE(i,k,Tdep,O2inhib,nut1lim,nut2lim,ano2new,ano2anmx,temp)
+    !$OMP PARALLEL DO PRIVATE(i,k,Tdep,O2inhib,nut1lim,nut2lim,ano2new,ano2anmx,temp,dz)
     do j = 1,kpje
       do i = 1,kpie
         do k = 1,kpke
@@ -302,8 +304,9 @@ contains
             ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - ano2anmx*rnm1*rno2anmxi
 
             ! Output
-            anmx_N2_prod(i,j,k) = ano2anmx*(rnh4anmx-rnit)*rno2anmxi  ! kmol N2/m3/dtb - N2 prod through anammox
-            anmx_OM_prod(i,j,k) = ano2anmx*rno2anmxi                  ! kmol P/m3/dtb  - OM production by anammox
+            dz = pddpo(i,j,k)
+            anmx_N2_prod(i,j,k) = ano2anmx*(rnh4anmx-rnit)*rno2anmxi*dz  ! kmol N2/m2/dtb - N2 prod through anammox
+            anmx_OM_prod(i,j,k) = ano2anmx*rno2anmxi*dz                  ! kmol P/m2/dtb  - OM production by anammox
           endif
         enddo
       enddo
@@ -327,7 +330,7 @@ contains
     real    :: fdenit,fdnra,potano2new,potdano2,potddet,fdetano2denit,fdetan2odenit,fdetdnra
     real    :: Tdepan2o,O2inhiban2o,nutliman2o,detliman2o,an2onew,an2odenit
 
-    real    :: temp
+    real    :: temp,dz
 
     ! Set output-related field to zero
     denit_NO2 = 0.
@@ -339,7 +342,7 @@ contains
     !$OMP                     rpotano2denit,rpotano2dnra,                                          &
     !$OMP                     fdenit,fdnra,potano2new,potdano2,potddet,fdetano2denit,              &
     !$OMP                     fdetan2odenit,fdetdnra,                                              &
-    !$OMP                     Tdepdnra,O2inhibdnra,nutlimdnra,detlimdnra,ano2dnra,temp)
+    !$OMP                     Tdepdnra,O2inhibdnra,nutlimdnra,detlimdnra,ano2dnra,temp,dz)
 
     do j = 1,kpje
       do i = 1,kpie
@@ -412,9 +415,10 @@ contains
             ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + (295.*ano2denit + rnm1*an2odenit)*rnoxpi &
                                  &                        + (rno2dnra + rnh4dnra - 1.)*rno2dnrai*ano2dnra
             ! Output
-            denit_NO2(i,j,k) = ano2denit ! kmol NO2/m3/dtb - denitrification on NO2
-            denit_N2O(i,j,k) = an2odenit ! kmol N2O/m3/dtb - denitrification on N2O
-            DNRA_NO2(i,j,k)  = ano2dnra  ! kmol NO2/m3/dtb - DNRA on NO2
+            dz = pddpo(i,j,k)
+            denit_NO2(i,j,k) = ano2denit*dz ! kmol NO2/m2/dtb - denitrification on NO2
+            denit_N2O(i,j,k) = an2odenit*dz ! kmol N2O/m2/dtb - denitrification on N2O
+            DNRA_NO2(i,j,k)  = ano2dnra*dz  ! kmol NO2/m2/dtb - DNRA on NO2
           endif
         enddo
       enddo

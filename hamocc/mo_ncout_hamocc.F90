@@ -1831,38 +1831,38 @@ contains
       call ncdefvar3d(LYR_ANO2(iogrp),cmpflg,'p',                               &
            &  'no2','Nitrite',' ','mol N m-3',1)
       call ncdefvar3d(LYR_nitr_NH4(iogrp),cmpflg,'p',                           &
-           &  'nh4nitr','NH4 nitrification rate',' ','mol N m-3 s-1',1)
+           &  'nh4nitr','NH4 nitrification rate',' ','mol N m-2 s-1',1)
       call ncdefvar3d(LYR_nitr_NO2(iogrp),cmpflg,'p',                           &
-           &  'no2nitr','NO2 nitrification rate',' ','mol N m-3 s-1',1)
+           &  'no2nitr','NO2 nitrification rate',' ','mol N m-2 s-1',1)
       call ncdefvar3d(LYR_nitr_N2O_prod(iogrp),cmpflg,'p',                      &
            &  'nitr_n2o','N2O prod during NH4 nitrification',' ',               &
-           &  'mol N2O m-3 s-1',1)
+           &  'mol N2O m-2 s-1',1)
       call ncdefvar3d(LYR_nitr_NH4_OM(iogrp),cmpflg,'p',                        &
            &  'nh4nitr_om','OM production during NH4 nitrification',' ',        &
-           &  'mol P m-3 s-1',1)
+           &  'mol P m-2 s-1',1)
       call ncdefvar3d(LYR_nitr_NO2_OM(iogrp),cmpflg,'p',                        &
            &  'no2nitr_om','OM production during NO2 nitrification',' ',        &
-           &  'mol P m-3 s-1',1)
+           &  'mol P m-2 s-1',1)
       call ncdefvar3d(LYR_denit_NO3(iogrp),cmpflg,'p',                          &
-           &  'no3denit','NO3 denitrification rate',' ','mol N m-3 s-1',1)
+           &  'no3denit','NO3 denitrification rate',' ','mol N m-2 s-1',1)
       call ncdefvar3d(LYR_denit_NO2(iogrp),cmpflg,'p',                          &
-           &  'no2denit','NO2 denitrification rate',' ','mol N m-3 s-1',1)
+           &  'no2denit','NO2 denitrification rate',' ','mol N m-2 s-1',1)
       call ncdefvar3d(LYR_denit_N2O(iogrp),cmpflg,'p',                          &
-           &  'n2odenit','N2O denitrification rate',' ','mol N2O m-3 s-1',1)
+           &  'n2odenit','N2O denitrification rate',' ','mol N2O m-2 s-1',1)
       call ncdefvar3d(LYR_DNRA_NO2(iogrp),cmpflg,'p',                           &
-           &  'no2dnra','NO2 DNRA rate',' ','mol N m-3 s-1',1)
+           &  'no2dnra','NO2 DNRA rate',' ','mol N m-2 s-1',1)
       call ncdefvar3d(LYR_anmx_N2_prod(iogrp),cmpflg,'p',                       &
-           &  'anmx_n2','Anammox N2 production rate',' ','mol N2 m-3 s-1',1)
+           &  'anmx_n2','Anammox N2 production rate',' ','mol N2 m-2 s-1',1)
       call ncdefvar3d(LYR_anmx_OM_prod(iogrp),cmpflg,'p',                       &
-           &  'anmx_om','Anammox OM production rate',' ','mol P m-3 s-1',1)
+           &  'anmx_om','Anammox OM production rate',' ','mol P m-2 s-1',1)
       call ncdefvar3d(LYR_phosy_NH4(iogrp),cmpflg,'p',                          &
-           &  'phosy_nh4','PP consumption rate of NH4',' ','mol N m-3 s-1',1)
+           &  'phosy_nh4','PP consumption rate of NH4',' ','mol N m-2 s-1',1)
       call ncdefvar3d(LYR_phosy_NO3(iogrp),cmpflg,'p',                          &
-           &  'phosy_no3','PP consumption rate of NO3',' ','mol N m-3 s-1',1)
+           &  'phosy_no3','PP consumption rate of NO3',' ','mol N m-2 s-1',1)
       call ncdefvar3d(LYR_remin_aerob(iogrp),cmpflg,'p',                        &
-           &  'remina','Aerob remineralization rate',' ','mol N m-3 s-1',1)
+           &  'remina','Aerob remineralization rate',' ','mol N m-2 s-1',1)
       call ncdefvar3d(LYR_remin_sulf(iogrp),cmpflg,'p',                         &
-           &  'remins','Sulfate remineralization rate',' ','mol P m-3 s-1',1)
+           &  'remins','Sulfate remineralization rate',' ','mol P m-2 s-1',1)
     endif
     if (use_M4AGO) then
       !      M4AGO
@@ -2018,44 +2018,44 @@ contains
       call ncdefvar3d(LVL_ANO2(iogrp),cmpflg,'p',                               &
            &  'no2lvl','Nitrite',' ','mol N m-3',2)
       call ncdefvar3d(LVL_nitr_NH4(iogrp),cmpflg,'p',                           &
-           &  'nh4nitrlvl','NH4 nitrification rate',' ','mol N m-3 s-1',2)
+           &  'nh4nitrlvl','NH4 nitrification rate',' ','mol N m-2 s-1',2)
       call ncdefvar3d(LVL_nitr_NO2(iogrp),cmpflg,'p',                           &
-           &  'no2nitrlvl','NO2 nitrification rate',' ','mol N m-3 s-1',2)
+           &  'no2nitrlvl','NO2 nitrification rate',' ','mol N m-2 s-1',2)
       call ncdefvar3d(LVL_nitr_N2O_prod(iogrp),cmpflg,'p',                      &
            &  'nitr_n2olvl','N2O prod during NH4 nitrification',' ',            &
-           &  'mol N2O m-3 s-1',2)
+           &  'mol N2O m-2 s-1',2)
       call ncdefvar3d(LVL_nitr_NH4_OM(iogrp),cmpflg,'p',                        &
            &  'nh4nitr_omlvl','OM production during NH4 nitrification',' ',     &
-           &  'mol P m-3 s-1',2)
+           &  'mol P m-2 s-1',2)
       call ncdefvar3d(LVL_nitr_NO2_OM(iogrp),cmpflg,'p',                        &
            &  'no2nitr_omlvl','OM production during NO2 nitrification',' ',     &
-           &  'mol P m-3 s-1',2)
+           &  'mol P m-2 s-1',2)
       call ncdefvar3d(LVL_denit_NO3(iogrp),cmpflg,'p',                          &
-           &  'no3denitlvl','NO3 denitrification rate',' ','mol N m-3 s-1',2)
+           &  'no3denitlvl','NO3 denitrification rate',' ','mol N m-2 s-1',2)
       call ncdefvar3d(LVL_denit_NO2(iogrp),cmpflg,'p',                          &
-           &  'no2denitlvl','NO2 denitrification rate',' ','mol N m-3 s-1',2)
+           &  'no2denitlvl','NO2 denitrification rate',' ','mol N m-2 s-1',2)
       call ncdefvar3d(LVL_denit_N2O(iogrp),cmpflg,'p',                          &
            &  'n2odenitlvl','N2O denitrification rate',' ',                     &
-           &  'mol N2O m-3 s-1',2)
+           &  'mol N2O m-2 s-1',2)
       call ncdefvar3d(LVL_DNRA_NO2(iogrp),cmpflg,'p',                           &
-           &  'no2dnralvl','NO2 DNRA rate',' ','mol N m-3 s-1',2)
+           &  'no2dnralvl','NO2 DNRA rate',' ','mol N m-2 s-1',2)
       call ncdefvar3d(LVL_anmx_N2_prod(iogrp),cmpflg,'p',                       &
            &  'anmx_n2lvl','Anammox N2 production rate',' ',                    &
-           &  'mol N2 m-3 s-1',2)
+           &  'mol N2 m-2 s-1',2)
       call ncdefvar3d(LVL_anmx_OM_prod(iogrp),cmpflg,'p',                       &
-           &  'anmx_omlvl','Anammox OM production rate',' ','mol P m-3 s-1',2)
+           &  'anmx_omlvl','Anammox OM production rate',' ','mol P m-2 s-1',2)
       call ncdefvar3d(LVL_phosy_NH4(iogrp),cmpflg,'p',                          &
            &  'phosy_nh4lvl','PP consumption rate of NH4',' ',                  &
-           &  'mol N m-3 s-1',2)
+           &  'mol N m-2 s-1',2)
       call ncdefvar3d(LVL_phosy_NO3(iogrp),cmpflg,'p',                          &
            &  'phosy_no3lvl','PP consumption rate of NO3',' ',                  &
-           &  'mol N m-3 s-1',2)
+           &  'mol N m-2 s-1',2)
       call ncdefvar3d(LVL_remin_aerob(iogrp),cmpflg,'p',                        &
            &  'reminalvl','Aerob remineralization rate',' ',                    &
-           &  'mol N m-3 s-1',2)
+           &  'mol N m-2 s-1',2)
       call ncdefvar3d(LVL_remin_sulf(iogrp),cmpflg,'p',                         &
            &  'reminslvl','Sulfate remineralization rate',' ',                  &
-           &  'mol P m-3 s-1',2)
+           &  'mol P m-2 s-1',2)
     endif
     if (use_M4AGO) then
       !      M4AGO
