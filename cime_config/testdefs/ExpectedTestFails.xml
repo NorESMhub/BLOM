@@ -37,10 +37,31 @@
     </phase>
   </test>
 
+  <test name="ERP_Ld3_P256.T62_tn14.NOINYOC.betzy_gnu">
+    <phase name="COMPARE_base_rest">
+      <status>FAIL</status>
+      <issue>BLOM#501</issue>
+    </phase>
+  </test>
+
   <test name="SMS_D_Ld1.T62_tn14.NOIIAOC20TR.betzy_intel">
     <phase name="RUN">
       <status>FAIL</status>
       <issue>BLOM#510</issue>
+    </phase>
+  </test>
+
+  <test name="SMS_D_Ld1.T62_tn14_wtn14nw.NOINYOC_WW3.betzy_gnu.blom-wavice">
+    <phase name="RUN">
+      <status>FAIL</status>
+      <issue>NorESMhub/NorESM_CICE#9</issue>
+    </phase>
+  </test>
+
+  <test name="ERS_Ld3.T62_tn14_wtn14nw.NOINY_WW3.betzy_gnu.blom-wavice">
+    <phase name="RUN">
+      <status>FAIL</status>
+      <issue>NorESMhub/NorESM_CICE#9</issue>
     </phase>
   </test>
 </expectedFails>
