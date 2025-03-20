@@ -101,6 +101,16 @@
     <desc>run type (a)</desc>
   </entry>
 
+  <entry id="rpoint">
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>unset</value>
+    </values>
+    <desc>name of the rpointer file (a)</desc>
+    <type>char</type>
+  </entry>
+
   <entry id="grfile" is_inputdata="yes">
     <type>char</type>
     <category>limits</category>
