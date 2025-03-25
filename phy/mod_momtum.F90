@@ -1,6 +1,6 @@
 ! ------------------------------------------------------------------------------
 ! Copyright (C) 2000 HYCOM Consortium and contributors
-! Copyright (C) 2001-2024 Mats Bentsen, Lars Inge Enstad, Mehmet Ilicak,
+! Copyright (C) 2001-2025 Mats Bentsen, Lars Inge Enstad, Mehmet Ilicak,
 !                         Mariana Vertenstein
 ! This file is part of BLOM.
 !
@@ -26,7 +26,7 @@ module mod_momtum
   ! ------------------------------------------------------------------
 
   use mod_types,     only: r8
-  use mod_constants, only: g, alpha0, epsilp, epsilpl, spval, &
+  use mod_constants, only: grav, alpha0, epsilp, epsilpl, spval, &
                            onem, onemm
   use mod_time,      only: delt1, dlt
   use mod_xc
@@ -53,22 +53,22 @@ module mod_momtum
   ! Variables to be set in namelist:
   real(r8), public :: &
        mdv2hi  ! Laplacian diffusion velocity for momentum
-               ! dissipation [cm s-1]. &
+               ! dissipation [m s-1]. &
   real(r8), public :: &
        mdv2lo  ! Same as mdv2hi but used when Rossby radius is
-               ! resolved [cm s-1]. &
+               ! resolved [m s-1]. &
   real(r8), public :: &
        mdv4hi  ! Biharmonic diffusion velocity for momentum
-               ! dissipation [cm s-1]. &
+               ! dissipation [m s-1]. &
   real(r8), public :: &
        mdv4lo  ! Same as mdv4hi but used when Rossby radius is
-               ! resolved [cm s-1]. &
+               ! resolved [m s-1]. &
   real(r8), public :: &
        mdc2hi  ! Laplacian diffusivity for momentum dissipation
-               ! [cm2 s-1]. &
+               ! [m2 s-1]. &
   real(r8), public :: &
        mdc2lo  ! Same as mdc2hi but used when Rossby radius is
-               ! resolved [cm2 s-1]. &
+               ! resolved [m2 s-1]. &
   real(r8), public :: &
        vsc2hi  ! Parameter used in deformation-dependent
                ! Laplacian viscosity []. &
@@ -83,7 +83,7 @@ module mod_momtum
                ! resolved []. &
   real(r8), public :: &
        cbar    ! RMS flow speed for linear bottom friction law
-               ! [cm s-1]. &
+               ! [m s-1]. &
   real(r8), public :: &
        cb      ! Coefficient of quadratic bottom friction [].
   character(len = 80), public :: &
@@ -100,16 +100,16 @@ module mod_momtum
        absvor          ! Absolute vorticity [s-1]. &
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2*kdm), public :: &
        dpvor           ! Layer pressure thickness used in vorticity
-                       ! computation [g cm-1 s-2].
+                       ! computation [kg m-1 s-2].
 
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
-       uja             ! u-component of velocity at (i,j-1) [cm s-1]. &
+       uja             ! u-component of velocity at (i,j-1) [m s-1]. &
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
-       ujb             ! u-component of velocity at (i,j+1) [cm s-1]. &
+       ujb             ! u-component of velocity at (i,j+1) [m s-1]. &
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
-       via             ! v-component of velocity at (i-1,j) [cm s-1]. &
+       via             ! v-component of velocity at (i-1,j) [m s-1]. &
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
-       vib             ! v-component of velocity at (i+1,j) [cm s-1]. &
+       vib             ! v-component of velocity at (i+1,j) [m s-1]. &
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
        defor1          ! Horizontal tension squared at p-points [s-2]. &
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
@@ -304,7 +304,7 @@ contains
                /max(epsilpl,pbv(i,j+1,n)*scvx(i,j+1)))*tsfac+util2(i,j)/thkbop
           ubbl = .5*sqrt(ubot*ubot+vbot*vbot)
           q = cb*(ubbl+cbar)
-          drag(i,j) = q*g/(alpha0*thkbop)
+          drag(i,j) = q*grav/(alpha0*thkbop)
           ustarb(i,j) = sqrt(q*ubbl)
         end do
 
@@ -941,7 +941,7 @@ contains
           do j = 1,jj
             do l = 1,isu(j)
               do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
-                stress(i,j) = -2.*taux(i,j)*g*scux(i,j)/(p(i,j,2)+p(i-1,j,2))
+                stress(i,j) = -2.*taux(i,j)*grav*scux(i,j)/(p(i,j,2)+p(i-1,j,2))
               end do
             end do
           end do
@@ -959,7 +959,7 @@ contains
           do l = 1,isu(j)
             do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
               stress(i,j) = -(mu_nonloc(i,j,k)-mu_nonloc(i,j,k+1)) &
-                            *taux(i,j)*g*scux(i,j)/max(onemm,dpu(i,j,km))
+                             *taux(i,j)*grav*scux(i,j)/max(onemm,dpu(i,j,km))
             end do
           end do
         end do
@@ -1104,7 +1104,7 @@ contains
           do j = 1,jj
             do l = 1,isv(j)
               do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
-                stress(i,j) = -2.*tauy(i,j)*g*scvy(i,j)/(p(i,j,2)+p(i,j-1,2))
+                stress(i,j) = -2.*tauy(i,j)*grav*scvy(i,j)/(p(i,j,2)+p(i,j-1,2))
               end do
             end do
           end do
@@ -1122,7 +1122,7 @@ contains
           do l = 1,isv(j)
             do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
               stress(i,j) = -(mv_nonloc(i,j,k)-mv_nonloc(i,j,k+1)) &
-                   *tauy(i,j)*g*scvy(i,j)/max(onemm,dpv(i,j,km))
+                             *tauy(i,j)*grav*scvy(i,j)/max(onemm,dpv(i,j,km))
             end do
           end do
         end do

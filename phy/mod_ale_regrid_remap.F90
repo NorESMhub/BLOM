@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2021-2024 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2021-2025 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -25,7 +25,7 @@ module mod_ale_regrid_remap
 
    use mod_types,     only: r8
    use mod_config,    only: inst_suffix
-   use mod_constants, only: g, epsilp, onem
+   use mod_constants, only: grav, epsilp, onem
    use mod_time,      only: delt1
    use mod_xc
    use mod_grid,      only: scuy, scvx, scp2, scuxi, scvyi, scp2i
@@ -289,7 +289,7 @@ contains
 
       ! Minimum potential density difference with respect to pressure for
       ! potential density to be used in regridding.
-      beta = bfsq_min/(g*g)
+      beta = bfsq_min/(grav*grav)
 
       do l = 1, isp(j)
          do i = max(ilb, ifp(j,l)), min(iub, ilp(j,l))
@@ -1141,7 +1141,7 @@ contains
          end select
       endif
 
-      ! Change units from [m] to [g cm-1 s-2] of depth interval variables.
+      ! Change units from [m] to [kg m-1 s-2] of depth interval variables.
       dpmin_interior = dpmin_interior*onem
 
    end subroutine readnml_ale_regrid_remap

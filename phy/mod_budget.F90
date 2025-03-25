@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2007-2025 Mats Bentsen, Mariana Vertenstein
+! Copyright (C) 2007-2025 Mats Bentsen, Mariana Vertenstein, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -23,7 +23,7 @@ module mod_budget
   ! ------------------------------------------------------------------------------
 
   use mod_types,     only: r8
-  use mod_constants, only: g, spcifh
+  use mod_constants, only: grav, spcifh
   use mod_time,      only: nstep, nstep1, delt1
   use mod_xc
   use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml
@@ -215,7 +215,7 @@ contains
              (sdp(2, m) - sdp(1, m))/mass0, &
              (sdp(3, m) - sdp(2, m))/mass0, &
              (sdp(4, m) - sdp(3, m))/mass0, &
-             (sdp(5, m) - sdp(4, m) + (sf - sc(m))*g)/mass0, &
+             (sdp(5, m) - sdp(4, m) + (sf - sc(m))*grav)/mass0, &
              (sdp(6, m) - sdp(5, m))/mass0, &
              (sdp(7, m) - sdp(6, m))/mass0
         close (nfu)
@@ -224,7 +224,7 @@ contains
              (tdp(2, m) - tdp(1, m))/mass0, &
              (tdp(3, m) - tdp(2, m))/mass0, &
              (tdp(4, m) - tdp(3, m))/mass0, &
-             (tdp(5, m) - tdp(4, m) + tf*g/spcifh)/mass0, &
+             (tdp(5, m) - tdp(4, m) + tf*grav/spcifh)/mass0, &
              (tdp(6, m) - tdp(5, m))/mass0, &
              (tdp(7, m) - tdp(6, m))/mass0
         close (nfu)
@@ -256,7 +256,7 @@ contains
                (trdp(2, m) - trdp(1, m))/mass0, &
                (trdp(3, m) - trdp(2, m))/mass0, &
                (trdp(4, m) - trdp(3, m))/mass0, &
-               (trdp(5, m) - trdp(4, m) + trf*g)/mass0, &
+               (trdp(5, m) - trdp(4, m) + trf*grav)/mass0, &
                (trdp(6, m) - trdp(5, m))/mass0, &
                (trdp(7, m) - trdp(6, m))/mass0
           close (nfu)
@@ -274,7 +274,7 @@ contains
         write (nfu, '(i8,6e12.4)') nstep - 1, &
              (sdp(2, m) - sdp(1, m))/mass0, &
              (sdp(3, m) - sdp(2, m))/mass0, &
-             (sdp(4, m) - sdp(3, m) + (sf - sc(m))*g)/mass0, &
+             (sdp(4, m) - sdp(3, m) + (sf - sc(m))*grav)/mass0, &
              (sdp(5, m) - sdp(4, m))/mass0, &
              (sdp(6, m) - sdp(5, m))/mass0, &
              (sdp(7, m) - sdp(6, m))/mass0
@@ -283,7 +283,7 @@ contains
         write (nfu, '(i8,6e12.4)') nstep - 1, &
              (tdp(2, m) - tdp(1, m))/mass0, &
              (tdp(3, m) - tdp(2, m))/mass0, &
-             (tdp(4, m) - tdp(3, m) + tf*g/spcifh)/mass0, &
+             (tdp(4, m) - tdp(3, m) + tf*grav/spcifh)/mass0, &
              (tdp(5, m) - tdp(4, m))/mass0, &
              (tdp(6, m) - tdp(5, m))/mass0, &
              (tdp(7, m) - tdp(6, m))/mass0
@@ -315,7 +315,7 @@ contains
           write (nfu, '(i8,6e12.4)') nstep - 1, &
                (trdp(2, m) - trdp(1, m))/mass0, &
                (trdp(3, m) - trdp(2, m))/mass0, &
-               (trdp(4, m) - trdp(3, m) + trf*g)/mass0, &
+               (trdp(4, m) - trdp(3, m) + trf*grav)/mass0, &
                (trdp(5, m) - trdp(4, m))/mass0, &
                (trdp(6, m) - trdp(5, m))/mass0, &
                (trdp(7, m) - trdp(6, m))/mass0

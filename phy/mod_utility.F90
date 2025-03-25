@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2020-2021 Mats Bentsen
+! Copyright (C) 2020-2025 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -41,9 +41,9 @@ module mod_utility
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
       umax, & ! u-component of maximum allowable velocity ensuring stability of
-              ! the upwind scheme [cm s-1].
+              ! the upwind scheme [m s-1].
       vmax    ! v-component of maximum allowable velocity ensuring stability of
-              ! the upwind scheme [cm s-1].
+              ! the upwind scheme [m s-1].
 
    ! Arrays for temporary storage.
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &

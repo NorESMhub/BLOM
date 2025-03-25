@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2024 Mats Bentsen, Ping-Gin Chiu, Mehmet Ilicak,
+! Copyright (C) 2015-2025 Mats Bentsen, Ping-Gin Chiu, Mehmet Ilicak,
 !                         Aleksi Nummelin, Mariana Vertenstein
 !
 ! This file is part of BLOM.
@@ -21,7 +21,7 @@
 module mod_geoenv
 
   use mod_config,    only: inst_suffix
-  use mod_constants, only: rearth, pi, radian, L_mks2cgs
+  use mod_constants, only: rearth, pi, radian
   use mod_xc,        only: xchalt, xcaput, xcbcst, itdm, jtdm, &
                            lp, nbdy, i0, ii, j0, jj,  mnproc
   use mod_diffusion, only: rhsctp, tbfile
@@ -59,7 +59,6 @@ contains
     integer, dimension(3) :: start,count
     integer :: i,j,k,status,ncid,dimid,varid,nfu,ios,ncwm,l
     logical :: fexist
-    real, parameter :: iL_mks2cgs = 1./L_mks2cgs
 
     namelist /cwmod/ cwmtag,cwmedg,cwmi,cwmj,cwmwth
 
@@ -862,27 +861,13 @@ contains
     end if
 
     ! ------------------------------------------------------------------
-    ! Get correct units of scale factors and topographic beta,
-    ! precompute cosine and sine of local angle of i-direction and with
+    ! Precompute cosine and sine of local angle of i-direction with
     ! eastward direction, and compute Coriolis and beta plane parameter
     ! ------------------------------------------------------------------
 
     !$omp parallel do private(i)
     do j = 1,jj
       do i = 1,ii
-
-        scqx(i,j) = scqx(i,j)*L_mks2cgs
-        scqy(i,j) = scqy(i,j)*L_mks2cgs
-        scpx(i,j) = scpx(i,j)*L_mks2cgs
-        scpy(i,j) = scpy(i,j)*L_mks2cgs
-        scux(i,j) = scux(i,j)*L_mks2cgs
-        scuy(i,j) = scuy(i,j)*L_mks2cgs
-        scvx(i,j) = scvx(i,j)*L_mks2cgs
-        scvy(i,j) = scvy(i,j)*L_mks2cgs
-        scq2(i,j) = scq2(i,j)*L_mks2cgs**2
-        scp2(i,j) = scp2(i,j)*L_mks2cgs**2
-        scu2(i,j) = scu2(i,j)*L_mks2cgs**2
-        scv2(i,j) = scv2(i,j)*L_mks2cgs**2
 
         cosang(i,j) = cos(angle(i,j))
         sinang(i,j) = sin(angle(i,j))
@@ -894,16 +879,6 @@ contains
       end do
     end do
     !$omp end parallel do
-
-    if (rhsctp) then
-      !$omp parallel do private(i)
-      do j = 1,jj
-        do i = 1,ii
-          betatp(i,j) = betatp(i,j)*iL_mks2cgs
-        end do
-      end do
-      !$omp end parallel do
-    end if
 
   end subroutine geoenv_file
 
