@@ -105,7 +105,7 @@ contains
       ncstat=nf90_close(ncid)
     else
       ! reconstruct shelf sea mask from internal bathymetry
-      !$OMP DO PARALLEL PRIVATE (i,j)
+      !$OMP PARALLEL DO PRIVATE (i,j)
       do j=1,kpje
         do i=1,kpie
           if((omask(i,j) > 0.5) .and. (pbath(i,j) <= shelfbreak_depth)) then
@@ -116,7 +116,7 @@ contains
       !$OMP END PARALLEL DO
     endif
 
-    !$OMP DO PARALLEL PRIVATE (i,j)
+    !$OMP PARALLEL DO PRIVATE (i,j)
     ! Eventually fill the logical shelfsea mask field
     do j = 1,kpje
       do i = 1,kpie

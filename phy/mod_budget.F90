@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2007-2024 Mats Bentsen, Mariana Vertenstein
+! Copyright (C) 2007-2025 Mats Bentsen, Mariana Vertenstein, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -23,13 +23,13 @@ module mod_budget
   ! ------------------------------------------------------------------------------
 
   use mod_types,     only: r8
-  use mod_constants, only: g, spcifh
+  use mod_constants, only: grav, spcifh
   use mod_time,      only: nstep, nstep1, delt1
   use mod_xc
   use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml
   use mod_grid,      only: scp2
   use mod_state,     only: pb, dp, temp, saln
-  use mod_forcing,   only: surflx, surrlx, salflx, salrlx
+  use mod_forcing,   only: salt_corr, surflx, surrlx, salflx, salrlx
   use mod_utility,   only: util1, util2, util3, util4
   use mod_tracers,   only: itrtke, itrgls, trc, trflx
   use mod_ifdefs,    only: use_TRC, use_TKE, use_GLS
@@ -55,6 +55,9 @@ module mod_budget
        glsdp            ! Global mass weighted sum of GLS.
   real(r8), dimension(ncalls, 2) :: &
        trdp             ! Global mass weighted sum of 1. tracer.
+
+  real(r8), dimension(2) :: &
+       sc               ! Global area weighted sum of salt correction.
 
   real(r8) :: &
        mass0, &         ! Global sum of mass.
@@ -176,6 +179,20 @@ contains
       call xcsum(trdp(ncall,n), util1, ips)
     end if
 
+    if ((vcoord_tag == vcoord_isopyc_bulkml .and. ncall == 5) .or. &
+        (vcoord_tag /= vcoord_isopyc_bulkml .and. ncall == 4)) then
+      !$omp parallel do private(l, i)
+      do j = 1, jj
+        do l = 1, isp(j)
+          do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+            util1(i,j) = salt_corr(i,j)*scp2(i,j)
+          enddo
+        enddo
+      enddo
+      !$omp end parallel do
+      call xcsum(sc(n), util1, ips)
+    endif
+
   end subroutine budget_sums
 
   subroutine budget_output(m)
@@ -198,7 +215,7 @@ contains
              (sdp(2, m) - sdp(1, m))/mass0, &
              (sdp(3, m) - sdp(2, m))/mass0, &
              (sdp(4, m) - sdp(3, m))/mass0, &
-             (sdp(5, m) - sdp(4, m) + sf*g)/mass0, &
+             (sdp(5, m) - sdp(4, m) + (sf - sc(m))*grav)/mass0, &
              (sdp(6, m) - sdp(5, m))/mass0, &
              (sdp(7, m) - sdp(6, m))/mass0
         close (nfu)
@@ -207,7 +224,7 @@ contains
              (tdp(2, m) - tdp(1, m))/mass0, &
              (tdp(3, m) - tdp(2, m))/mass0, &
              (tdp(4, m) - tdp(3, m))/mass0, &
-             (tdp(5, m) - tdp(4, m) + tf*g/spcifh)/mass0, &
+             (tdp(5, m) - tdp(4, m) + tf*grav/spcifh)/mass0, &
              (tdp(6, m) - tdp(5, m))/mass0, &
              (tdp(7, m) - tdp(6, m))/mass0
         close (nfu)
@@ -239,7 +256,7 @@ contains
                (trdp(2, m) - trdp(1, m))/mass0, &
                (trdp(3, m) - trdp(2, m))/mass0, &
                (trdp(4, m) - trdp(3, m))/mass0, &
-               (trdp(5, m) - trdp(4, m) + trf*g)/mass0, &
+               (trdp(5, m) - trdp(4, m) + trf*grav)/mass0, &
                (trdp(6, m) - trdp(5, m))/mass0, &
                (trdp(7, m) - trdp(6, m))/mass0
           close (nfu)
@@ -257,7 +274,7 @@ contains
         write (nfu, '(i8,6e12.4)') nstep - 1, &
              (sdp(2, m) - sdp(1, m))/mass0, &
              (sdp(3, m) - sdp(2, m))/mass0, &
-             (sdp(4, m) - sdp(3, m) + sf*g)/mass0, &
+             (sdp(4, m) - sdp(3, m) + (sf - sc(m))*grav)/mass0, &
              (sdp(5, m) - sdp(4, m))/mass0, &
              (sdp(6, m) - sdp(5, m))/mass0, &
              (sdp(7, m) - sdp(6, m))/mass0
@@ -266,7 +283,7 @@ contains
         write (nfu, '(i8,6e12.4)') nstep - 1, &
              (tdp(2, m) - tdp(1, m))/mass0, &
              (tdp(3, m) - tdp(2, m))/mass0, &
-             (tdp(4, m) - tdp(3, m) + tf*g/spcifh)/mass0, &
+             (tdp(4, m) - tdp(3, m) + tf*grav/spcifh)/mass0, &
              (tdp(5, m) - tdp(4, m))/mass0, &
              (tdp(6, m) - tdp(5, m))/mass0, &
              (tdp(7, m) - tdp(6, m))/mass0
@@ -298,7 +315,7 @@ contains
           write (nfu, '(i8,6e12.4)') nstep - 1, &
                (trdp(2, m) - trdp(1, m))/mass0, &
                (trdp(3, m) - trdp(2, m))/mass0, &
-               (trdp(4, m) - trdp(3, m) + trf*g)/mass0, &
+               (trdp(4, m) - trdp(3, m) + trf*grav)/mass0, &
                (trdp(5, m) - trdp(4, m))/mass0, &
                (trdp(6, m) - trdp(5, m))/mass0, &
                (trdp(7, m) - trdp(6, m))/mass0

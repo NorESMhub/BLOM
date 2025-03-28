@@ -171,7 +171,7 @@ contains
           fdetamox = 1. - (fn2o + fno2)
 
           ! NO2 oxidizing step of nitrification
-          Tdepano2    = q10ano2nitr_sed**((temp-Trefano2nitr_sed)/10.) 
+          Tdepano2    = q10ano2nitr_sed**((temp-Trefano2nitr_sed)/10.)
           O2limano2   = powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox) + bkoxnitr_sed)
           nut2lim     = powtra(i,j,k,ipowno2)/(powtra(i,j,k,ipowno2) + bkano2nitr_sed)
           ano2new     = powtra(i,j,k,ipowno2)/(1. + rano2nitr_sed*Tdepano2*O2limano2*nut2lim)
@@ -186,7 +186,7 @@ contains
           no2fdetamox = NOB2AOAy_sed*n2omaxy_sed*2.*(1. + n2oybeta_sed)*powtra(i,j,k,ipowaox)*bkyamox_sed  &
                       & /(powtra(i,j,k,ipowaox)**2 + 2.*powtra(i,j,k,ipowaox)*bkyamox_sed + bkyamox_sed**2)
 
-          fdetnitr = no2fdetamox/(no2fno2 + no2fn2o)   ! yield to energy usage ratio for NO2 -> ratio equals 16:x
+          fdetnitr = no2fdetamox/(no2fno2 + no2fn2o + eps)   ! yield to energy usage ratio for NO2 -> ratio equals 16:x
 
           ! limitation of the two processes through available nutrients, etc.
           totd     = potdnh4amox + potdno2nitr

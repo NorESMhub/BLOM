@@ -101,6 +101,16 @@
     <desc>run type (a)</desc>
   </entry>
 
+  <entry id="rpoint">
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>unset</value>
+    </values>
+    <desc>name of the rpointer file (a)</desc>
+    <type>char</type>
+  </entry>
+
   <entry id="grfile" is_inputdata="yes">
     <type>char</type>
     <category>limits</category>
@@ -141,9 +151,8 @@
     <group>limits</group>
     <values>
       <value>2000.e4</value>
-      <value blom_unit="cgs">2000.e5</value>
     </values>
-    <desc>Reference pressure for potential density (g/cm/s2) (f)</desc>
+    <desc>Reference pressure for potential density (kg/m/s2) (f)</desc>
   </entry>
 
   <entry id="baclin">
@@ -188,13 +197,10 @@
     <group>limits</group>
     <values>
       <value>.02</value>
-      <value blom_unit="cgs">2.</value>
-      <value ocn_grid="tnx0.25v4"  blom_unit="cgs">.15</value>
-      <value ocn_grid="tnx0.25v4"  blom_unit="mks">.0015</value>
-      <value ocn_grid="tnx0.125v4" blom_unit="cgs">.1</value>
-      <value ocn_grid="tnx0.125v4" blom_unit="mks">.001</value>
+      <value ocn_grid="tnx0.25v4" >.0015</value>
+      <value ocn_grid="tnx0.125v4">.001</value>
     </values>
-    <desc>Laplacian diffusion velocity for momentum dissipation (cm/s) (f)</desc>
+    <desc>Laplacian diffusion velocity for momentum dissipation (m/s) (f)</desc>
   </entry>
 
   <entry id="mdv2lo">
@@ -203,13 +209,10 @@
     <group>limits</group>
     <values>
       <value>.004</value>
-      <value blom_unit="cgs">.4</value>
-      <value ocn_grid="tnx0.25v4"  blom_unit="cgs">.15</value>
-      <value ocn_grid="tnx0.25v4"  blom_unit="mks">.0015</value>
-      <value ocn_grid="tnx0.125v4" blom_unit="cgs">.1</value>
-      <value ocn_grid="tnx0.125v4" blom_unit="mks">.001</value>
+      <value ocn_grid="tnx0.25v4" >.0015</value>
+      <value ocn_grid="tnx0.125v4">.001</value>
     </values>
-    <desc>Laplacian diffusion velocity for momentum dissipation (cm/s) (f)</desc>
+    <desc>Laplacian diffusion velocity for momentum dissipation (m/s) (f)</desc>
   </entry>
 
   <entry id="mdv4hi">
@@ -219,7 +222,7 @@
     <values>
       <value>0.</value>
     </values>
-    <desc>Biharmonic diffusion velocity for momentum dissipation (cm/s) (f)</desc>
+    <desc>Biharmonic diffusion velocity for momentum dissipation (m/s) (f)</desc>
   </entry>
 
   <entry id="mdv4lo">
@@ -229,7 +232,7 @@
     <values>
       <value>0.</value>
     </values>
-    <desc>Biharmonic diffusion velocity for momentum dissipation (cm/s) (f)</desc>
+    <desc>Biharmonic diffusion velocity for momentum dissipation (m/s) (f)</desc>
   </entry>
 
   <entry id="mdc2hi">
@@ -238,13 +241,10 @@
     <group>limits</group>
     <values>
       <value>5000.</value>
-      <value blom_unit="cgs">5000.e4</value>
-      <value ocn_grid="tnx0.25v4"  blom_unit="cgs">300.e4</value>
-      <value ocn_grid="tnx0.25v4"  blom_unit="mks">300.</value>
-      <value ocn_grid="tnx0.125v4" blom_unit="cgs">300.e4</value>
-      <value ocn_grid="tnx0.125v4" blom_unit="mks">300.</value>
+      <value ocn_grid="tnx0.25v4" >300.</value>
+      <value ocn_grid="tnx0.125v4">300.</value>
     </values>
-    <desc>Laplacian diffusivity for momentum dissipation (cm**2/s) (f)</desc>
+    <desc>Laplacian diffusivity for momentum dissipation (m**2/s) (f)</desc>
   </entry>
 
   <entry id="mdc2lo">
@@ -253,13 +253,10 @@
     <group>limits</group>
     <values>
       <value>300.</value>
-      <value blom_unit="cgs">300.e4</value>
-      <value ocn_grid="tnx0.25v4"  blom_unit="cgs">300.e4</value>
-      <value ocn_grid="tnx0.25v4"  blom_unit="mks">300.</value>
-      <value ocn_grid="tnx0.125v4" blom_unit="cgs">100.e4</value>
-      <value ocn_grid="tnx0.125v4" blom_unit="mks">100.</value>
+      <value ocn_grid="tnx0.25v4" >300.</value>
+      <value ocn_grid="tnx0.125v4">100.</value>
     </values>
-    <desc>Laplacian diffusivity for momentum dissipation (cm**2/s) (f)</desc>
+    <desc>Laplacian diffusivity for momentum dissipation (m**2/s) (f)</desc>
   </entry>
 
   <entry id="vsc2hi">
@@ -316,9 +313,8 @@
     <group>limits</group>
     <values>
       <value>.05</value>
-      <value blom_unit="cgs">5.</value>
     </values>
-    <desc>rms flow speed for linear bottom friction law (cm/s) (f)</desc>
+    <desc>rms flow speed for linear bottom friction law (m/s) (f)</desc>
   </entry>
 
   <entry id="cb">
@@ -363,7 +359,17 @@
     <values>
       <value>enscon</value>
     </values>
-    <desc>Momentum equation discretization method. Valid methods:</desc>
+    <desc>Momentum equation discretization method. Valid methods: 'enscon', 'enecon', 'enedis'</desc>
+  </entry>
+
+  <entry id="pgfmth">
+    <type>char</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>geopotential</value>
+    </values>
+    <desc>Pressure gradient force method. Valid options: 'geopotential', 'dynamic enthalpy'</desc>
   </entry>
 
   <entry id="bmcmth">
@@ -478,7 +484,6 @@
     <group>limits</group>
     <values>
       <value>5000.</value>
-      <value blom_unit="cgs">5000.e2</value>
     </values>
     <desc>Minimum length scale of mixed layer fronts</desc>
   </entry>
@@ -509,7 +514,6 @@
     <group>limits</group>
     <values>
       <value>1.e-7</value>
-      <value blom_unit="cgs">1.e-3</value>
     </values>
     <desc>Minimum vertical momentum flux (Bodner et al., 2023)</desc>
   </entry>
@@ -776,7 +780,7 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>none</value>
+      <value>param</value>
     </values>
     <desc>Source of wave fields. Valid source: 'none', 'param', 'extern' (a)</desc>
   </entry>
@@ -1162,11 +1166,8 @@
     <group>ale_regrid_remap</group>
     <values>
       <value>50000.</value>
-      <value blom_unit="cgs">50000.e4</value>
-      <value ocn_grid="tnx0.25v4"  blom_unit="mks">40000.</value>
-      <value ocn_grid="tnx0.25v4"  blom_unit="cgs">40000.e4</value>
-      <value ocn_grid="tnx0.125v4" blom_unit="mks">20000.</value>
-      <value ocn_grid="tnx0.125v4" blom_unit="cgs">20000.e4</value>
+      <value ocn_grid="tnx0.25v4" >40000.</value>
+      <value ocn_grid="tnx0.125v4">20000.</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -1273,9 +1274,8 @@
     <group>diffusion</group>
     <values>
       <value>4000.</value>
-      <value blom_unit="cgs">4000.e2</value>
     </values>
-    <desc>Minimum eddy length scale in  E. and G. (2008) param. (cm) (f)</desc>
+    <desc>Minimum eddy length scale in  E. and G. (2008) param. (m) (f)</desc>
   </entry>
 
   <entry id="egmndf">
@@ -1284,11 +1284,9 @@
     <group>diffusion</group>
     <values>
       <value>1.</value>
-      <value blom_unit="cgs">1.e4</value>
       <value ocn_grid="tnx0.125v4">0.</value>
-      <value ocn_grid="tnx0.125v4" blom_unit="cgs">0.</value>
     </values>
-    <desc>Minimum diffusivity in E. and G. (2008) param. (cm**2/s) (f)</desc>
+    <desc>Minimum diffusivity in E. and G. (2008) param. (m**2/s) (f)</desc>
   </entry>
 
   <entry id="egmxdf">
@@ -1297,11 +1295,9 @@
     <group>diffusion</group>
     <values>
       <value>2500.</value>
-      <value blom_unit="cgs">2500.e4</value>
       <value ocn_grid="tnx0.125v4">0.</value>
-      <value ocn_grid="tnx0.125v4" blom_unit="mks">0.</value>
     </values>
-    <desc>Maximum diffusivity in E. and G. (2008) param. (cm**2/s) (f)</desc>
+    <desc>Maximum diffusivity in E. and G. (2008) param. (m**2/s) (f)</desc>
   </entry>
 
   <entry id="egidfq">
@@ -1374,9 +1370,10 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>1.2</value>
+      <value>0.7</value>
+      <value blom_vcoord="isopyc_bulkml">1.2</value>
     </values>
-    <desc>Critical gradient richardson number for shear driven</desc>
+    <desc>Critical gradient Richardson number for shear driven vertical mixing</desc>
   </entry>
 
   <entry id="bdmtyp">
@@ -1395,7 +1392,6 @@
     <group>diffusion</group>
     <values>
       <value>5.e-8</value>
-      <value blom_unit="cgs">5.e-4</value>
     </values>
     <desc>Background diapycnal diffusivity times buoyancy frequency</desc>
   </entry>
@@ -1406,9 +1402,8 @@
     <group>diffusion</group>
     <values>
       <value>1.e-5</value>
-      <value blom_unit="cgs">.1</value>
     </values>
-    <desc>Background diapycnal diffusivity (cm**2/s) (f)</desc>
+    <desc>Background diapycnal diffusivity (m**2/s) (f)</desc>
   </entry>
 
   <entry id="bdmldp">
@@ -1447,7 +1442,7 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>none</value>
+      <value>vr12-ma</value>
     </values>
     <desc>Type of CVMix Langmuir turbulence parameterization. Valid</desc>
   </entry>
@@ -3770,6 +3765,7 @@
       <value>''</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx2v1_20130506.nc</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx1v4_20171107.nc</value>
+      <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.5v1_20250210.nc</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.25v4_20181004.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.125v4_20221013.nc</value>
     </values>
@@ -3806,6 +3802,7 @@
       <value>''</value>
       <value blom_river_nutrients="yes" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx2v1_20170915.nc</value>
       <value blom_river_nutrients="yes" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx1v4_20170820.nc</value>
+      <value blom_river_nutrients="yes" ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000c00_tnx0.5v1_20250220.nc</value>
       <value blom_river_nutrients="yes" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx0.25v4_20170821.nc</value>
       <value blom_river_nutrients="yes" ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx0.125v4_20221013.nc</value>
     </values>
@@ -3830,13 +3827,18 @@
     <group>bgcnml</group>
     <values>
       <value>''</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_CMIP6_tnx2v1_20180321.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_CMIP6_tnx2v1_20200826.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx2v1_20190702.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_CMIP6_tnx1v4_20171106.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_CMIP6_tnx1v4_20200826.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx1v4_20180613.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="ssp"  ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_201501-210012-${BLOM_NDEP_SCENARIO}_tnx1v4_20191112.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_1850_CMIP6_tnx2v1_20250207.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_2000_CMIP6_tnx2v1_20250207.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_185001-201412_tnx2v1_20250702.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="ssp"  ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_201501-210012-${BLOM_NDEP_SCENARIO}_tnx2v1_20250207.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_1850_CMIP6_tnx1v4_20250207.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_2000_CMIP6_tnx1v4_20250207.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_185001-201412_tnx1v4_20250207.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="ssp"  ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_201501-210012-${BLOM_NDEP_SCENARIO}_tnx1v4_20250207.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_1850_CMIP6_tnx0.5v1_20250207.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_2000_CMIP6_tnx0.5v1_20250207.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_185001-201412_tnx0.5v1_20250207.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="ssp"  ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_201501-210012-${BLOM_NDEP_SCENARIO}_tnx0.5v1_20250207.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_CMIP6_tnx0.25v4_20190912.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_CMIP6_tnx0.25v4_20200826.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx0.25v4_20190705.nc</value>
@@ -3845,15 +3847,16 @@
    <desc>File name (incl. full path) for atmopheric N-deposition data</desc>
   </entry>
 
-  <entry id="use_nuopc_ndep">
+  <entry id="use_coupler_ndep" modify_via_xml="HAMOCC_ATMNDEPC">
     <type>logical</type>
     <category>config_bgc</category>
     <group>config_bgc</group>
     <values>
       <value>.false.</value>
       <value comp_interface="nuopc">.true.</value>
+      <value hamocc_atmndepc="yes">.true.</value>
     </values>
-    <desc>if .true., use NUOPC to obtain NDEP (always imported to model).</desc>
+    <desc>if .true., use MCT coupler fields from CAM or NUOPC to obtain NDEP (always imported to model).</desc>
   </entry>
 
   <entry id="do_n2onh3_coupled" modify_via_xml="HAMOCC_N2OC">
@@ -4073,6 +4076,18 @@
     </desc>
   </entry>
 
+  <entry id="sedqualfile" is_inputdata="yes">
+    <type>char</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>''</value>
+    </values>
+    <desc>
+      File name (incl. full path) for sediment quality initialization (holding sediment POC age, moving prorca)
+    </desc>
+  </entry>
+
   <entry id="shelfsea_maskfile" is_inputdata="yes">
     <type>char</type>
     <category>bgcnml</category>
@@ -4249,6 +4264,18 @@
     </values>
     <desc>activate the HAMOCC shelfsea water residence time code</desc>
   </entry>
+
+  <entry id="use_sediment_quality" modify_via_xml="HAMOCC_SEDIMENT_QUALITY">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+      <value hamocc_sediment_quality="yes">.true.</value>
+    </values>
+    <desc>activate the HAMOCC sediment quality-based remineralization code</desc>
+  </entry>
+
 
   <!-- ========================= -->
   <!-- namelist group: bgcoafx -->
@@ -4709,6 +4736,16 @@
     </values>
     <desc>Sediment: remineralization rate (at reference temperature) (1/(kmol O2/m3 s))</desc>
   </entry>
+  
+  <entry id="sed_denit">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: denitrification/sulfate reduction rate (1/s))</desc>
+  </entry>
 
   <entry id="disso_sil">
     <type>real</type>
@@ -4728,6 +4765,26 @@
       <value>None</value>
     </values>
     <desc>Sediment: CaCO3 dissolution rate (1/(kmol CO3--/m3 s))</desc>
+  </entry>
+
+  <entry id="sed_alpha_poc">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: moving-average prcorca decay rate for sed. qualiy-based remin (1/d)</desc>
+  </entry>
+
+  <entry id="sed_qual_sc">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: scaling factor for sed. qualiy-based remin. rate (-)</desc>
   </entry>
 
   <entry id="rano3denit_sed">
@@ -8834,6 +8891,66 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>(ssster) [mol m-3]</desc>
+  </entry>
+
+  <entry id="sdm_qual_a">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Sediment reactivity a [yr]</desc>
+  </entry>
+
+  <entry id="sdm_qual_k">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Sediment reactivity k [1/(kmol O2/m3 s)]</desc>
+  </entry>
+
+  <entry id="sdm_qual_app">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Sediment reactivity applied [1/(kmol O2/m3 s)]</desc>
+  </entry>
+
+  <entry id="sdm_ssso12_age">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Sediment POC age [yr]</desc>
+  </entry>
+
+  <entry id="sdm_mavg_prorca">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Moving-average sedimentation flux [mmol P m-2 d-1)]</desc>
   </entry>
 
   <entry id="bur_ssso12">

@@ -82,7 +82,8 @@ CONTAINS
     use mo_carbch,          only: co2star,co3,hi,satoxy,ocetra,atm,nathi
     use mo_control_bgc,     only: io_stdo_bgc,ldtbgc,use_cisonew,use_AGG,                          &
                                   use_BOXATM,use_BROMO,use_CFC,use_natDIC,use_sedbypass,           &
-                                  use_extNcycle,use_pref_tracers,use_shelfsea_res_time
+                                  use_extNcycle,use_pref_tracers,use_shelfsea_res_time,            &
+                                  use_sediment_quality
     use mo_param1_bgc,      only: ialkali,ian2o,iano3,icalc,idet,idicsat,                          &
                                   idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,       &
                                   iprefalk,iprefdic,iprefo2,iprefpo4,iprefsilica,ishelfage,        &
@@ -94,10 +95,10 @@ CONTAINS
                                   iatmc13,iatmc14,iatmnco2,inatalkali,inatcalc,inatsco212,         &
                                   ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,          &
                                   isssc12,issso12,issssil,issster,ks,ianh4,iano2,ipownh4,ipown2o,  &
-                                  ipowno2
+                                  ipowno2,issso12_age
     use mo_vgrid,           only: kbo
-    use mo_sedmnt,          only: sedhpl
-    use mo_intfcblom,       only: sedlay2,powtra2,burial2,atm2
+    use mo_sedmnt,          only: sedhpl,prorca_mavg,burial,sedlay
+    use mo_intfcblom,       only: sedlay2,powtra2,burial2,atm2,prorca_mavg2
     use mo_param_bgc,       only: bifr13_ini,bifr14_ini,c14fac,re1312,re14to,prei13,prei14
     use mo_netcdf_bgcrw,    only: read_netcdf_var
 #ifdef PNETCDF
@@ -126,7 +127,8 @@ CONTAINS
     integer   :: restday                           !  day of restart file
     integer   :: restdtoce                         !  time step number from bgc ocean file
     integer   :: idate(5),i,j,k
-    logical   :: lread_cfc,lread_nat,lread_iso,lread_atm,lread_bro,lread_extn,lread_prefsi
+    logical   :: lread_cfc,lread_nat,lread_iso,lread_atm,lread_bro,lread_extn,lread_prefsi,        &
+              &  lread_sedqual
     logical   :: lread_shelfage
     real      :: rco213,rco214,alpha14,beta13,beta14,d13C_atm,d14cat
     integer   :: ncid,ncstat,ncvarid
@@ -381,6 +383,7 @@ CONTAINS
         write(io_stdo_bgc,*) 'Initialising preformed tracer from scratch'
       endif
 
+    if (use_shelfsea_res_time) then
       lread_shelfage=.true.
       if(IOTYPE==0) then
         if(mnproc==1) ncstat=nf90_inq_varid(ncid,'shelfage',ncvarid)
@@ -397,6 +400,26 @@ CONTAINS
         write(io_stdo_bgc,*) 'AUFR_BGC info: shelfage not in restart file '
         write(io_stdo_bgc,*) 'Initialising shelfage from scratch'
       endif
+    endif
+
+    if (use_sediment_quality) then
+      lread_sedqual=.true.
+      if(IOTYPE==0) then
+        if(mnproc==1) ncstat=nf90_inq_varid(ncid,'ssso12_age',ncvarid)
+        call xcbcst(ncstat)
+        if(ncstat.ne.nf90_noerr) lread_sedqual=.false.
+      else if(IOTYPE==1) then
+#ifdef PNETCDF
+        ncstat=nfmpi_inq_varid(ncid,'ssso12_age',ncvarid)
+        if(ncstat.ne.nf_noerr) lread_sedqual=.false.
+#endif
+      endif
+      if(mnproc==1 .and. .not. lread_sedqual) then
+        write(io_stdo_bgc,*) ' '
+        write(io_stdo_bgc,*) 'AUFR_BGC info: ssso12_age not in restart file '
+        write(io_stdo_bgc,*) 'Initialising ssso12_age from scratch'
+      endif
+    endif
 
     !
     ! Read restart data : ocean aquateous tracer
@@ -515,6 +538,11 @@ CONTAINS
         call read_netcdf_var(ncid,'bur_c14',burial2(1,1,1,isssc14),2,0,iotype)
         call read_netcdf_var(ncid,'powc13',powtra2(1,1,1,ipowc13),2*ks,0,iotype)
         call read_netcdf_var(ncid,'powc14',powtra2(1,1,1,ipowc14),2*ks,0,iotype)
+      endif
+      if (use_sediment_quality .and. lread_sedqual) then
+        call read_netcdf_var(ncid,'ssso12_age',sedlay2(1,1,1,issso12_age),2*ks,0,iotype)
+        call read_netcdf_var(ncid,'bur_o12_age',burial2(1,1,1,issso12_age),2,0,iotype)
+        call read_netcdf_var(ncid,'prorca_mavg',prorca_mavg2(1,1,1),2,0,iotype)
       endif
       if (use_extNcycle) then
         if(lread_extn) then
@@ -648,6 +676,26 @@ CONTAINS
 
       endif  ! .not. use_sedbypass
     endif ! use_cisonew .and. .not. lread_iso
+
+    if (.not. use_sedbypass) then
+      if (use_sediment_quality .and. .not. lread_sedqual) then
+        ! if (hybrid) restart, but age and mavgs should be started with filled values, if provided
+        do j=1,kpje
+          do i=1,kpie
+            if (omask(i,j) > 0.) then
+              burial2(i,j,1,issso12_age)      = burial(i,j,issso12_age)
+              burial2(i,j,2,issso12_age)      = burial(i,j,issso12_age)
+              prorca_mavg2(i,j,1)             = prorca_mavg(i,j)
+              prorca_mavg2(i,j,2)             = prorca_mavg(i,j)
+              do k=1,ks
+                sedlay2(i,j,k,issso12_age)    = sedlay(i,j,k,issso12_age)
+                sedlay2(i,j,ks+k,issso12_age) = sedlay(i,j,k,issso12_age)
+              enddo
+            endif
+          enddo
+        enddo
+      endif
+    endif
 
     ! return tracer fields to ocean model (both timelevels); No unit
     ! conversion here, since tracers in the restart file are in

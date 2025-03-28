@@ -37,7 +37,7 @@ module ocn_comp_nuopc
                                 model_label_Finalize       => label_Finalize
    use nuopc_shr_methods, only: ChkErr, set_component_logging, &
                                 get_component_instance, state_setscalar, &
-                                alarmInit
+                                alarmInit, shr_get_rpointer_name
    use shr_cal_mod,       only: shr_cal_ymd2date
    use shr_log_mod,       only: shr_log_getLogUnit, shr_log_setLogUnit
    use ocn_import_export, only: fldlist_type, fldsMax, tlast_coupled, &
@@ -46,9 +46,9 @@ module ocn_comp_nuopc
                                 blom_getprecipfact, blom_accflds, &
                                 blom_importflds, blom_exportflds, &
                                 blom_advertise_imports, blom_advertise_exports
-   use mod_xc,            only: mpicom_external, lp, xchalt
+   use mod_xc,            only: mpicom_external, lp, xchalt, mnproc
    use mod_cesm,          only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
-   use mod_config,        only: inst_index, inst_name, inst_suffix
+   use mod_config,        only: inst_index, inst_name, inst_suffix, runtyp
    use mod_time,          only: blom_time
    use mod_forcing,       only: srxday, trxday
    use mod_constants,     only: epsilt
@@ -84,6 +84,8 @@ module ocn_comp_nuopc
 
    integer :: dbug = 0
    logical :: profile_memory = .false.
+
+   logical:: write_restart_at_endofrun = .false.
 
    public :: SetServices, SetVM
 
@@ -373,7 +375,10 @@ contains
       ! local variables
       type(ESMF_VM) :: vm
       type(ESMF_TimeInterval) :: timeStep
+      type(ESMF_Time) :: currtime
       integer :: localPet, nthrds, shrlogunit, n
+      integer :: yy, mm, dd, ymd, tod
+      character(len=cllen) :: rpfile
       character(len=cllen) :: starttype, stdname
       character(len=cllen) :: msg, cvalue
       logical :: isPresent, isSet
@@ -456,7 +461,7 @@ contains
       ! Initialize BLOM.
       ! ------------------------------------------------------------------------
 
-      call blom_init()
+      call blom_init
 
       ! ------------------------------------------------------------------------
       ! Get ScalarField attributes.
@@ -642,6 +647,7 @@ contains
       integer, allocatable, dimension(:) :: gindex
       integer :: n, spatialDim, numOwnedElements, nx_global, ny_global
       character(len=cllen)  :: cvalue
+      logical :: isPresent, isSet
 
       if (dbug > 5) call ESMF_LogWrite(subname//': called', ESMF_LOGMSG_INFO)
 
@@ -744,6 +750,14 @@ contains
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
       end if
 
+      ! Find if restart is needed at the end of the run
+
+      call NUOPC_CompAttributeGet(gcomp, name="write_restart_at_endofrun", value=cvalue, isPresent=isPresent, isSet=isSet, rc=rc)
+      if (ChkErr(rc,__LINE__,u_FILE_u)) return
+      if (isPresent .and. isSet) then
+         if (trim(cvalue) .eq. '.true.') write_restart_at_endofrun = .true.
+      end if
+
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
 
    end subroutine InitializeRealize
@@ -823,11 +837,14 @@ contains
       type(ESMF_State) :: importState, exportState
       type(ESMF_Clock) :: clock
       type(ESMF_Time)  :: currTime
-      type(ESMF_Alarm) :: restart_alarm
+      type(ESMF_Alarm) :: restart_alarm, stop_alarm
       integer :: shrlogunit, yr_sync, mon_sync, day_sync, tod_sync, ymd_sync, &
                  ymd, tod
-      logical :: first_call = .true., restart_alarm_on
+      logical :: first_call = .true., restart_alarm_on, stop_alarm_on, wrtrst
       character(len=cllen) :: msg
+      integer :: nfu
+      character(len = 256) :: restartfn
+      character(len = 256) :: rpfile
 
       if (dbug > 5) call ESMF_LogWrite(subname//': called', ESMF_LOGMSG_INFO)
 
@@ -925,6 +942,21 @@ contains
       ! consider stop alarm?
       ! ------------------------------------------------------------------------
 
+      wrtrst = .false.
+      ! check for stop alarm 
+      call ESMF_ClockGetAlarm(clock, alarmname='stop_alarm', &
+                              alarm=stop_alarm, rc=rc)
+      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      stop_alarm_on = ESMF_AlarmIsRinging(stop_alarm, rc=rc)
+      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+
+      if (stop_alarm_on) then
+         if(write_restart_at_endofrun) wrtrst = .true.
+         call ESMF_AlarmRingerOff(stop_alarm, rc=rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      endif
+
+      ! check for restart alarm
       call ESMF_ClockGetAlarm(clock, alarmname='restart_alarm', &
                               alarm=restart_alarm, rc=rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
@@ -932,14 +964,21 @@ contains
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
 
       if (restart_alarm_on) then
-
-         ! Turn off the alarm
+         wrtrst = .true.
          call ESMF_AlarmRingerOff(restart_alarm, rc=rc)
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
-
+      endif
+      if (wrtrst) then
          ! Write BLOM restart files.
-         call restart_write()
-
+         call blom_time(ymd, tod)
+         call restart_write (restartfn)
+         if(mnproc == 1) then
+            ! Write restart filename to rpointer.ocn.
+            call shr_get_rpointer_name(gcomp, 'ocn', ymd, tod, rpfile, 'write', rc=rc)
+            open(newunit = nfu, file = rpfile)
+            write(nfu, '(a)') restartfn
+            close(unit = nfu)
+         endif
       endif
 
       ! ------------------------------------------------------------------------
@@ -1014,6 +1053,29 @@ contains
          call ESMF_LogWrite(subname//': setting alarms for '//trim(name), &
                             ESMF_LOGMSG_INFO)
 
+         ! Stop alarm.
+
+         call NUOPC_CompAttributeGet(gcomp, name="stop_option", &
+                                     value=stop_option, rc=rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+
+         call NUOPC_CompAttributeGet(gcomp, name="stop_n", &
+                                     value=cvalue, rc=rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         read(cvalue,*) stop_n
+
+         call NUOPC_CompAttributeGet(gcomp, name="stop_ymd", &
+                                     value=cvalue, rc=rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         read(cvalue,*) stop_ymd
+
+         call alarmInit(mclock, stop_alarm, stop_option, &
+                        opt_n=stop_n, opt_ymd=stop_ymd, RefTime=mcurrTime, &
+                        alarmname='stop_alarm', rc=rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+
+         call ESMF_AlarmSet(stop_alarm, clock=mclock, rc=rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
 
          ! Restart alarm.
 
@@ -1037,30 +1099,6 @@ contains
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
 
          call ESMF_AlarmSet(restart_alarm, clock=mclock, rc=rc)
-         if (ChkErr(rc, __LINE__, u_FILE_u)) return
-
-         ! Stop alarm.
-
-         call NUOPC_CompAttributeGet(gcomp, name="stop_option", &
-                                     value=stop_option, rc=rc)
-         if (ChkErr(rc, __LINE__, u_FILE_u)) return
-
-         call NUOPC_CompAttributeGet(gcomp, name="stop_n", &
-                                     value=cvalue, rc=rc)
-         if (ChkErr(rc, __LINE__, u_FILE_u)) return
-         read(cvalue,*) stop_n
-
-         call NUOPC_CompAttributeGet(gcomp, name="stop_ymd", &
-                                     value=cvalue, rc=rc)
-         if (ChkErr(rc, __LINE__, u_FILE_u)) return
-         read(cvalue,*) stop_ymd
-
-         call alarmInit(mclock, stop_alarm, stop_option, &
-                        opt_n=stop_n, opt_ymd=stop_ymd, RefTime=mcurrTime, &
-                        alarmname='stop_alarm', rc=rc)
-         if (ChkErr(rc, __LINE__, u_FILE_u)) return
-
-         call ESMF_AlarmSet(stop_alarm, clock=mclock, rc=rc)
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
 
       endif
@@ -1176,5 +1214,6 @@ contains
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
 
    end subroutine SetServices
+
 
 end module ocn_comp_nuopc

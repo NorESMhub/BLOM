@@ -9,6 +9,7 @@
 ! RUNID    : Experiment name (a)
 ! EXPCNF   : Experiment configuration (a)
 ! RUNTYP   : CESM run type (a)
+! RPOINT   : CESM rpointer file (a)
 ! GRFILE   : Name of file containing grid specification (a)
 ! ICFILE   : Name of file containing initial conditions, that is either
 !            a valid restart file or 'inicon.nc' if climatological based
@@ -95,6 +96,7 @@
   RUNID    = 'BLOM_fuk95'
   EXPCNF   = 'fuk95'
   RUNTYP   = 'unset'
+  RPOINT   = 'unset'
   GRFILE   = 'unset'
   ICFILE   = 'unset'
   PREF     = 0.

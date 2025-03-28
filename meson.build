@@ -76,10 +76,6 @@ subdir('idlage')
 
 # Handle options and add necessary flags and subfolders with source files
 
-if get_option('mks')
-  add_project_arguments('-DMKS', language: 'fortran')
-endif
-
 turbclo = get_option('turbclo')
 if turbclo.length() > 0 and get_option('vcoord') == 'cntiso_hybrid'
   message('Setting turbclo = [] for vcoord == \'cntiso_hybrid\'')

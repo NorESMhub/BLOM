@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2002-2024 Mats Bentsen, Jerry Tjiputra, Jörg Schwinger,
+! Copyright (C) 2002-2025 Mats Bentsen, Jerry Tjiputra, Jörg Schwinger,
 !                         Mariana Vertenstein, Joeran Maerz
 !
 ! This file is part of BLOM.
@@ -29,6 +29,8 @@ module mod_forcing
    use mod_time, only: nday_of_year, nstep, nstep_in_day, baclin
    use mod_xc
    use mod_grid, only: scp2
+   use mod_tracers, only: ntr
+   use mod_ifdefs, only: use_TRC
    use mod_checksum, only: csdiag, chksummsk
 
    implicit none
@@ -78,10 +80,10 @@ module mod_forcing
 
    ! Variables for diagnosed relaxation fluxes.
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, 48) :: &
-      tflxap, &       ! Heat flux to be applied [W cm-2].
-      sflxap, &       ! Salt flux to be applied [10e-3 g cm-2 s-1].
-      tflxdi, &       ! Diagnosed heat flux [W cm-2].
-      sflxdi          ! Diagnosed salt flux [10e-3 g cm-2 s-1].
+      tflxap, &       ! Heat flux to be applied [W m-2].
+      sflxap, &       ! Salt flux to be applied [g m-2 s-1].
+      tflxdi, &       ! Diagnosed heat flux [W m-2].
+      sflxdi          ! Diagnosed salt flux [g m-2 s-1].
    integer, dimension(48) :: &
       nflxdi          ! Accumulation counter for diagnosed relaxation fluxes.
 
@@ -144,23 +146,32 @@ module mod_forcing
       atmnoydep       ! atmospheric noy deposition [kgN/m2/s]
 
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy) :: &
-      surflx, &       ! Surface thermal energy flux [W cm-2].
-      surrlx, &       ! Surface relaxation thermal energy flux [W cm-2].
-      sswflx, &       ! Surface solar energy flux [W cm-2].
-      salflx, &       ! Surface salinity flux [10e-3 g cm-2 s-1].
-      brnflx, &       ! Surface brine flux [10e-3 g cm-2 s-1].
-      salrlx, &       ! Surface relaxation salinity flux [10e-3 g cm-2 s-1].
-      taux, &         ! u-component of surface stress [g cm-1 s-2].
-      tauy, &         ! v-component of surface stress [g cm-1 s-2].
-      ustar, &        ! Surface friction velocity [cm s-1].
-      ustarb, &       ! Bottom friction velocity [cm s-1].
-      ustar3, &       ! Friction velocity cubed [cm3 s-3].
-      wstar3          ! Convective velocity cubed [cm3 s-3].
+      surflx, &       ! Surface thermal energy flux [W m-2].
+      surrlx, &       ! Surface relaxation thermal energy flux [W m-2].
+      sswflx, &       ! Surface solar energy flux [W m-2].
+      salflx, &       ! Surface salinity flux [g m-2 s-1].
+      brnflx, &       ! Surface brine flux [g m-2 s-1].
+      salrlx, &       ! Surface relaxation salinity flux [g m-2 s-1].
+      taux, &         ! u-component of surface stress [kg m-1 s-2].
+      tauy, &         ! v-component of surface stress [kg m-1 s-2].
+      ustar, &        ! Surface friction velocity [m s-1].
+      ustarb, &       ! Bottom friction velocity [m s-1].
+      ustar3, &       ! Friction velocity cubed [m3 s-3].
+      wstar3          ! Convective velocity cubed [m3 s-3].
+
+   ! Correction fields for keeping tracers above zero value (expectation that
+   ! this will only occure due to the application of tracer virtual surface
+   ! fluxes.
+
+   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
+      salt_corr       ! Correction of salt [g m-2].
+   real(r8), allocatable, dimension(:,:,:) :: &
+      trc_corr        ! Correction of tracers (unit depending on tracer).
 
    ! Flux fields at model interfaces.
 
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy, kk + 1) :: &
-      buoyfl, &       ! Buoyancy flux [cm2 s-3].
+      buoyfl, &       ! Buoyancy flux [m2 s-3].
       t_sw_nonloc, &  ! Non-local transport term that is the fraction of
                       ! shortwave flux passing a layer interface [].
       t_rs_nonloc, &  ! Non-local transport term that is the fraction of
@@ -180,9 +191,10 @@ module mod_forcing
              atmco2, flxco2, flxdms, flxbrf, atmbrf, &
              atmn2o,flxn2o,atmnh3,flxnh3, atmnhxdep,atmnoydep, &
              surflx, surrlx, sswflx, salflx, brnflx, salrlx, taux, tauy, &
-             ustar, ustarb, ustar3, wstar3, buoyfl, t_sw_nonloc, t_rs_nonloc, &
-             s_br_nonloc, s_rs_nonloc, inivar_forcing, fwbbal, &
-             sss_stream, sst_stream, ice_stream, use_stream_relaxation
+             ustar, ustarb, ustar3, wstar3, buoyfl, salt_corr, trc_corr, &
+             t_sw_nonloc, t_rs_nonloc, s_br_nonloc, s_rs_nonloc, &
+             inivar_forcing, fwbbal, sss_stream, sst_stream, ice_stream, &
+             use_stream_relaxation
 
 contains
 
@@ -191,7 +203,7 @@ contains
    ! Initialize variables related to forcing.
    ! ---------------------------------------------------------------------------
 
-      integer :: i, j, k, l
+      integer :: i, j, k, l, errstat, nt
 
    !$omp parallel do private(i)
       do j = 1 - nbdy, jj + nbdy
@@ -240,9 +252,28 @@ contains
             ustarb(i, j) = spval
             ustar3(i, j) = spval
             wstar3(i, j) = spval
+            salt_corr(i, j) = spval
          enddo
       enddo
    !$omp end parallel do
+
+      if (use_TRC) then
+         allocate(trc_corr(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ntr), stat = errstat)
+         if (errstat /= 0) then
+            write(lp,*) 'Failed to allocate trc_corr!'
+            call xchalt('(inivar_forcing)')
+            stop '(inivar_forcing)'
+         endif
+      !$omp parallel do private(nt, i)
+         do j = 1 - nbdy, jj + nbdy
+            do nt = 1, ntr
+               do i = 1 - nbdy, ii + nbdy
+                  trc_corr(i, j, nt) = spval
+               enddo
+            enddo
+         enddo
+      !$omp end parallel do
+      endif
 
    !$omp parallel do private(k, i)
       do j = 1 - nbdy, jj + nbdy
@@ -290,10 +321,25 @@ contains
             ustar (i, j) = 0._r8
             ustarb(i, j) = 0._r8
             wstar3(i, j) = 0._r8
+            salt_corr(i, j) = 0._r8
          enddo
          enddo
       enddo
    !$omp end parallel do
+
+      if (use_TRC) then
+      !$omp parallel do private(nt, l, i)
+         do j = 1, jj
+            do nt = 1, ntr
+               do l = 1, isp(j)
+               do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+                  trc_corr(i, j, nt) = 0._r8
+               enddo
+               enddo
+            enddo
+         enddo
+      !$omp end parallel do
+      endif
 
    !$omp parallel do private(k, l, i)
       do j = 1, jj

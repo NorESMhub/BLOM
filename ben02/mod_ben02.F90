@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2002-2022 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2002-2025 Mats Bentsen, Mehmet Ilicak
 
 ! This file is part of BLOM.
 
@@ -26,7 +26,7 @@ module mod_ben02
 
   use mod_types,       only: i2, r4
   use mod_config,      only: expcnf
-  use mod_constants,   only: t0deg, spval, L_mks2cgs
+  use mod_constants,   only: t0deg, spval
   use mod_calendar,    only: date_offset, calendar_noerr, &
                              calendar_errstr
   use mod_time,        only: date, calendar, nday_in_year, nday_of_year, &
@@ -180,17 +180,10 @@ module mod_ben02
        atm_cswa_era          ! short-wave radiation adjustment factor
                              ! (NCEP)
 
-#ifdef MKS
   data atm_ice_csmt_ncep,atm_rnf_csmt_ncep /2.e10,1.e9/, &
        atm_crnf_ncep,atm_cswa_ncep /0.82073,0.88340/, &
        atm_ice_csmt_era,atm_rnf_csmt_era /0.0,1.e9/, &
        atm_crnf_era,atm_cswa_era /0.7234,0.9721/
-#else
-  data atm_ice_csmt_ncep,atm_rnf_csmt_ncep /2.e14,1.e13/, &
-       atm_crnf_ncep,atm_cswa_ncep /0.82073,0.88340/, &
-       atm_ice_csmt_era,atm_rnf_csmt_era /0.0,1.e13/, &
-       atm_crnf_era,atm_cswa_era /0.7234,0.9721/
-#endif
 
   real :: &
        zu, &                ! measurement height of wind [m]
@@ -2100,12 +2093,10 @@ contains
     integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12) :: smtmsk
     real :: dx2,dy2,prc_sum,eva_sum,rnf_sum,swa_sum,lwa_sum,lht_sum, &
          sht_sum,fwf_fac,dangle,garea,le,albedo,fac,swa_ave,lwa_ave, &
-         lht_ave,sht_ave,crnf,cswa,A_cgs2mks
+         lht_ave,sht_ave,crnf,cswa
     real*4 :: rw4
     integer :: i,j,k,l,il,jl,nfu
     integer*2 :: rn2,ri2,rj2
-
-    A_cgs2mks = 1./(L_mks2cgs**2)
 
     ! --- Allocate memory for additional monthly forcing fields.
     allocate(taud  (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12), &
@@ -2789,7 +2780,7 @@ contains
       do k = 1,12
         do l = 1,isp(j)
           do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-            garea = scp2(i,j)*A_cgs2mks ! [m^2]
+            garea = scp2(i,j) ! [m^2]
 
             ! --- ----- freshwater fluxes [m/s]
             util1(i,j) = util1(i,j)+precip(i,j,k)*fwf_fac*garea
@@ -2833,7 +2824,7 @@ contains
       do j = 1,jj
         do l = 1,isp(j)
           do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-            garea = scp2(i,j)*A_cgs2mks ! [m^2]
+            garea = scp2(i,j) ! [m^2]
 
             ! --- ----- heat fluxes
             albedo = albs_f*ricclm(i,j,k)+albw(i,j)*(1.-ricclm(i,j,k))
@@ -2852,7 +2843,7 @@ contains
     call xcsum(lht_sum,util3,ip)
     call xcsum(sht_sum,util4,ip)
 
-    fac = (L_mks2cgs*L_mks2cgs)/(12.*area)
+    fac = 1./(12.*area)
     swa_ave = swa_sum*fac
     lwa_ave = lwa_sum*fac
     lht_ave = lht_sum*fac

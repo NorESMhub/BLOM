@@ -1,6 +1,7 @@
 ! ------------------------------------------------------------------------------
 ! Copyright (C) 2000 HYCOM Consortium and contributors
-! Copyright (C) 2001-2024 Mats Bentsen, Lars Inge Enstad, Mariana Vertenstein
+! Copyright (C) 2001-2025 Mats Bentsen, Lars Inge Enstad, Mariana Vertenstein,
+!                         Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -56,15 +57,15 @@ module mod_barotp
   ! Variables to be set in namelist:
   real(r8) :: cwbdts   ! Coastal wave breaking damping resiprocal time scale [s-1]
   real(r8) :: cwbdls    ! Coastal wave breaking damping length scale [m].
-  real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::  ubflx    ! u-component of barotropic mass flux [g cm s-3].
-  real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::  vbflx    ! v-component of barotropic mass flux [g cm s-3].
-  real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::  pb_mn    ! Bottom pressure [g cm-1 s-2].
-  real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::  ubflx_mn ! u-component of barotropic mass flux [g cm s-3].
-  real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::  vbflx_mn ! v-component of barotropic mass flux [g cm s-3].
-  real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::  pvtrop   ! Potential vorticity of barotropic flow [cm s g-1].
+  real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::  ubflx    ! u-component of barotropic mass flux [kg m s-3].
+  real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::  vbflx    ! v-component of barotropic mass flux [kg m s-3].
+  real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::  pb_mn    ! Bottom pressure [kg m-1 s-2].
+  real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::  ubflx_mn ! u-component of barotropic mass flux [kg m s-3].
+  real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::  vbflx_mn ! v-component of barotropic mass flux [kg m s-3].
+  real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::  pvtrop   ! Potential vorticity of barotropic flow [m s kg-1].
 
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::   pvtrop_o  ! Potential vorticity of barotropic flow at old time
-                                                                      ! level [cm s g-1].
+                                                                      ! level [m s kg-1].
 
 contains
 

@@ -49,7 +49,8 @@ module mo_bgcmean
   use netcdf,         only: nf90_fill_double
   use mo_param1_bgc,  only: ks
   use mo_control_bgc, only: use_sedbypass,use_cisonew,use_CFC,use_natDIC,use_BROMO,use_BOXATM,     &
-                            use_AGG,use_M4AGO,use_extNcycle,use_pref_tracers,use_shelfsea_res_time
+                            use_AGG,use_M4AGO,use_extNcycle,use_pref_tracers,use_shelfsea_res_time,&
+                            use_sediment_quality
 
   implicit none
 
@@ -205,6 +206,8 @@ module mo_bgcmean
        & SDM_denit_NO2 = 0   ,SDM_denit_N2O = 0   ,SDM_DNRA_NO2      =0,  &
        & SDM_anmx_N2_prod=0  ,SDM_anmx_OM_prod=0  ,SDM_remin_aerob =0  ,  &
        & SDM_remin_sulf  =0  ,                                            &
+       & SDM_qual_a    =0    ,SDM_qual_k    =0    ,SDM_qual_app  =0,      &
+       & SDM_MAVG_prorca=0   ,SDM_ssso12_age=0,                           &
        & GLB_AVEPERIO  =0    ,GLB_FILEFREQ  =0    ,GLB_COMPFLAG  =0    ,  &
        & GLB_NCFORMAT  =0    ,GLB_INVENTORY =0
 
@@ -316,6 +319,8 @@ module mo_bgcmean
        & SDM_denit_NO2     ,SDM_denit_N2O     ,SDM_DNRA_NO2      ,        &
        & SDM_anmx_N2_prod  ,SDM_anmx_OM_prod  ,SDM_remin_aerob   ,        &
        & SDM_remin_sulf    ,                                              &
+       & SDM_qual_a        ,SDM_qual_k        ,SDM_qual_app      ,        &
+       & SDM_MAVG_prorca   ,SDM_ssso12_age    ,                           &
        & GLB_AVEPERIO      ,GLB_FILEFREQ      ,GLB_COMPFLAG      ,        &
        & GLB_NCFORMAT      ,GLB_FNAMETAG      ,GLB_INVENTORY
 
@@ -435,7 +440,8 @@ module mo_bgcmean
        &          jburflxsso12  = 0 ,                                     &
        &          jburflxsssc12 = 0 ,                                     &
        &          jburflxssssil = 0 ,                                     &
-       &          jburflxssster = 0
+       &          jburflxssster = 0 ,                                     &
+       &          jsed_mavg_prorca=0
 
   integer, dimension(nbgcmax) ::                                          &
        &          jsrfnatdic = 0 ,                                        &
@@ -683,7 +689,11 @@ module mo_bgcmean
        &          jsdm_anmx_N2_prod  = 0 ,                                &
        &          jsdm_anmx_OM_prod  = 0 ,                                &
        &          jsdm_remin_aerob   = 0 ,                                &
-       &          jsdm_remin_sulf    = 0
+       &          jsdm_remin_sulf    = 0 ,                                &
+       &          jsdm_qual_a        = 0 ,                                &
+       &          jsdm_qual_k        = 0 ,                                &
+       &          jsdm_qual_app      = 0 ,                                &
+       &          jsdm_ssso12_age    = 0
 
 
   integer :: nbgct_sed
@@ -915,6 +925,10 @@ CONTAINS
           jsediffn2o(n)=i_bsc_m2d*min(1,FLX_SEDIFFN2O(n))
           if (FLX_SEDIFFNO2(n) > 0) i_bsc_m2d=i_bsc_m2d+1
           jsediffno2(n)=i_bsc_m2d*min(1,FLX_SEDIFFNO2(n))
+        endif
+        if (use_sediment_quality) then
+          if (SDM_MAVG_PRORCA(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+          jsed_mavg_prorca(n)=i_bsc_m2d*min(1,SDM_MAVG_PRORCA(n))
         endif
       endif
       if (use_cisonew) then
@@ -1469,6 +1483,18 @@ CONTAINS
           jsdm_remin_sulf(n)=i_bsc_sed*min(1,SDM_remin_sulf(n))
         enddo
       endif
+      if (use_sediment_quality) then
+        do n=1,nbgc
+          if (SDM_qual_a(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_qual_a(n)=i_bsc_sed*min(1,SDM_qual_a(n))
+          if (SDM_qual_k(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_qual_k(n)=i_bsc_sed*min(1,SDM_qual_k(n))
+          if (SDM_qual_app(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_qual_app(n)=i_bsc_sed*min(1,SDM_qual_app(n))
+          if (SDM_ssso12_age(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_ssso12_age(n)=i_bsc_sed*min(1,SDM_ssso12_age(n))
+        enddo
+      endif
     endif
     nbgcm2d    = i_bsc_m2d+i_atm_m2d
     nbgcm3d    = i_bsc_m3d
@@ -1821,7 +1847,7 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos(nbgcmax)       ! position in buffer
-    real,    intent(in) :: fld(idm,jdm,ddm)   ! input data used for accumulation
+    real,    intent(in) :: fld(idm,jdm,kdm)   ! input data used for accumulation
     integer, intent(in) :: k                  ! layer index of fld
     integer, intent(in) :: ind1(idm,jdm)      ! index field for first accumulated level
     integer, intent(in) :: ind2(idm,jdm)      ! index field for last accumulated level

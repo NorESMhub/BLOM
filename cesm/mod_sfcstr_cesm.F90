@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2022 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
+! Copyright (C) 2015-2025 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -20,7 +20,6 @@
 module mod_sfcstr_cesm
 
   use mod_xc
-  use mod_constants, only: P_mks2cgs
   use mod_forcing,   only: ztx, mty, taux, tauy
   use mod_checksum,  only: csdiag, chksummsk
 
@@ -44,12 +43,12 @@ contains
     do j = 1,jj
       do l = 1,isu(j)
         do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
-          taux(i,j) = P_mks2cgs*ztx(i,j)
+          taux(i,j) = ztx(i,j)
         end do
       end do
       do l = 1,isv(j)
         do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
-          tauy(i,j) = P_mks2cgs*mty(i,j)
+          tauy(i,j) = mty(i,j)
         end do
       end do
     end do

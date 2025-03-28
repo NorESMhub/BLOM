@@ -27,7 +27,7 @@ module mo_sedshi
 
 contains
 
-  subroutine sedshi(kpie,kpje,omask)
+  subroutine sedshi(kpie,kpje,omask,kplyear)
 
     !***********************************************************************************************
     ! Sediment shifting
@@ -43,14 +43,16 @@ contains
     use mo_sedmnt,      only: burial,calfa,clafa,oplfa,orgfa,porsol,sedlay,seddw,solfu
     use mo_param_bgc,   only: rcar
     use mo_param1_bgc,  only: isssc12,issssil,issso12,issster,ks,nsedtra,isssc13,isssc14,          &
-                              issso13,issso14
+                              issso13,issso14,issso12_age,nsedtra_woage
     use mo_carbch,      only: sedfluxb
-    use mo_control_bgc, only: use_cisonew
+    use mo_control_bgc, only: use_cisonew,use_sediment_quality,dtbgc,                              &
+                            & do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc
 
     ! Arguments
     integer, intent(in) :: kpie
     integer, intent(in) :: kpje
     real,    intent(in) :: omask(kpie,kpje)
+    integer, intent(in) :: kplyear                                         ! current year.
 
     ! Local variables
     integer :: i,j,k,l,iv
@@ -58,8 +60,16 @@ contains
     real    :: wsed(kpie,kpje), fulsed(kpie,kpje)
     real    :: sedlo,uebers,seddef,spresent,buried
     real    :: refill,frac
+    real    :: eps=epsilon(1.)
+    real    :: acc_time=0.
 
     sedfluxb(:,:,:) = 0.
+
+    if(do_sedspinup .and. kplyear>=sedspin_yr_s .and. kplyear<=sedspin_yr_e) then
+      ! accumulated time spent due to sediment acceleration
+      acc_time = 86400.*sedspin_ncyc/31536000. ! *dtbgc/dtbgc
+    endif
+
     ! DOWNWARD SHIFTING
     ! shift solid sediment sediment downwards, if layer is full, i.e., if
     ! the volume filled by the four constituents poc, opal, caco3, clay
@@ -72,7 +82,7 @@ contains
       !$OMP PARALLEL DO PRIVATE(i,sedlo)
       do j=1,kpje
         do i=1,kpie
-          if(omask(i,j).gt.0.5) then
+          if(omask(i,j) > 0.5) then
             !ka          if(bolay(i,j).gt.0.) then
             sedlo  = rcar*orgfa*sedlay(i,j,k,issso12) &
                  & +      calfa*sedlay(i,j,k,isssc12) &
@@ -86,13 +96,20 @@ contains
       !$OMP END PARALLEL DO
 
       ! filling downward  (accumulation)
-      do iv=1,nsedtra
+      do iv=1,nsedtra_woage
         !$OMP PARALLEL DO PRIVATE(i,uebers)
         do j=1,kpje
           do i=1,kpie
-            if(omask(i,j).gt.0.5) then
+            if(omask(i,j) > 0.5) then
               !ka          if(bolay(i,j).gt.0.) then
               uebers=wsed(i,j)*sedlay(i,j,k,iv)
+              if (use_sediment_quality .and. iv == issso12) then
+                sedlay(i,j,k+1,issso12_age) = ( uebers                                             &
+                 & *(seddw(k)*porsol(i,j,k))/(seddw(k+1)*porsol(i,j,k+1))*sedlay(i,j,k,issso12_age)&
+                 &     + sedlay(i,j,k,issso12)*sedlay(i,j,k,issso12_age))                          &
+                 & / (uebers*(seddw(k)*porsol(i,j,k))/(seddw(k+1)*porsol(i,j,k+1))                 &
+                       + sedlay(i,j,k,issso12)+eps)
+              endif
               sedlay(i,j,k  ,iv)=sedlay(i,j,k  ,iv)-uebers
               sedlay(i,j,k+1,iv)=sedlay(i,j,k+1,iv)+uebers   &
                                *(seddw(k)*porsol(i,j,k))/(seddw(k+1)*porsol(i,j,k+1))
@@ -114,7 +131,7 @@ contains
     !$OMP PARALLEL DO PRIVATE(i,sedlo)
     do j=1,kpje
       do i=1,kpie
-        if(omask(i,j).gt.0.5) then
+        if(omask(i,j) > 0.5) then
           !ka          if(bolay(i,j).gt.0.) then
           sedlo  = rcar*orgfa*sedlay(i,j,ks,issso12)  &
                & +      calfa*sedlay(i,j,ks,isssc12)  &
@@ -126,13 +143,18 @@ contains
     enddo !end j-loop
     !$OMP END PARALLEL DO
 
-    do iv=1,nsedtra
+    do iv=1,nsedtra_woage
       !$OMP PARALLEL DO PRIVATE(i,uebers)
       do j=1,kpje
         do i=1,kpie
-          if(omask(i,j).gt.0.5) then
+          if(omask(i,j) > 0.5) then
             !ka          if(bolay(i,j).gt.0.) then
             uebers=wsed(i,j)*sedlay(i,j,ks,iv)
+            if (use_sediment_quality .and. iv == issso12) then
+              burial(i,j,issso12_age) = (uebers*seddw(ks)*porsol(i,j,ks)*sedlay(i,j,ks,issso12_age)&
+                                      &   + burial(i,j,issso12)*burial(i,j,issso12_age))           &
+                                      & /(uebers*seddw(ks)*porsol(i,j,ks) + burial(i,j,issso12)+eps)
+            endif
             sedlay(i,j,ks ,iv)=sedlay(i,j,ks ,iv)-uebers
             burial(i,j,iv)=burial(i,j,iv)+uebers*seddw(ks)*porsol(i,j,ks)
             sedfluxb(i,j,iv) = uebers*seddw(ks)*porsol(i,j,ks)
@@ -167,7 +189,7 @@ contains
       !$OMP PARALLEL DO PRIVATE(i,sedlo)
       do j=1,kpje
         do i=1,kpie
-          if(omask(i,j).gt.0.5) then
+          if(omask(i,j) > 0.5) then
             !ka        if(bolay(i,j).gt.0.) then
             sedlo  = rcar*orgfa*sedlay(i,j,k,issso12)  &
                  & +      calfa*sedlay(i,j,k,isssc12)  &
@@ -186,7 +208,7 @@ contains
     !$OMP PARALLEL DO PRIVATE(i,seddef,spresent,buried,refill,frac)
     do j=1,kpje
       do i=1,kpie
-        if(omask(i,j).gt.0.5) then
+        if(omask(i,j) > 0.5) then
           !ka      if(bolay(i,j).gt.0.) then
 
           ! deficiency to fully loaded sediment packed in sedlay(i,j,ks)
@@ -214,6 +236,14 @@ contains
           ! fill the last active layer
           refill=seddef/(buried+1.e-10)
           frac = porsol(i,j,ks)*seddw(ks)
+
+          if (use_sediment_quality) then
+            ! Update burial POC age [yrs] - NOTE that sedshi is called once per day!
+            burial(i,j,issso12_age)    = burial(i,j,issso12_age) + 86400./31536000. + acc_time
+            sedlay(i,j,ks,issso12_age) = (refill*burial(i,j,issso12)/frac * burial(i,j,issso12_age)&
+                                       &    + sedlay(i,j,ks,issso12)*sedlay(i,j,ks,issso12_age))   &
+                                       & /(refill*burial(i,j,issso12)/frac + sedlay(i,j,ks,issso12)+eps)
+          endif
 
           sedlay(i,j,ks,issso12)=sedlay(i,j,ks,issso12)+refill*burial(i,j,issso12)/frac
           sedlay(i,j,ks,isssc12)=sedlay(i,j,ks,isssc12)+refill*burial(i,j,isssc12)/frac
@@ -254,7 +284,7 @@ contains
       !$OMP PARALLEL DO PRIVATE(i,sedlo)
       do j=1,kpje
         do i=1,kpie
-          if(omask(i,j).gt.0.5) then
+          if(omask(i,j) > 0.5) then
             !ka        if(bolay(i,j).gt.0.) then
             sedlo  = rcar*orgfa*sedlay(i,j,k,issso12)  &
                  & +      calfa*sedlay(i,j,k,isssc12)  &
@@ -266,14 +296,19 @@ contains
       enddo !end j-loop
       !$OMP END PARALLEL DO
 
-      do iv=1,nsedtra
+      do iv=1,nsedtra_woage
         !$OMP PARALLEL DO PRIVATE(i,uebers,frac)
         do j=1,kpje
           do i=1,kpie
-            if(omask(i,j).gt.0.5) then
+            if(omask(i,j) > 0.5) then
               !ka        if(bolay(i,j).gt.0.) then
               uebers=sedlay(i,j,k,iv)*wsed(i,j)
               frac=porsol(i,j,k)*seddw(k)/(porsol(i,j,k-1)*seddw(k-1))
+              if (use_sediment_quality .and. iv == issso12) then
+                sedlay(i,j,k-1,issso12_age) = (uebers*frac*sedlay(i,j,k,issso12_age)               &
+                                            &+ sedlay(i,j,k-1,issso12)*sedlay(i,j,k-1,issso12_age))&
+                                            & / (uebers*frac + sedlay(i,j,k-1,issso12)+eps)
+              endif
               sedlay(i,j,k,iv)=sedlay(i,j,k,iv)-uebers
               sedlay(i,j,k-1,iv)=sedlay(i,j,k-1,iv)+uebers*frac
             endif

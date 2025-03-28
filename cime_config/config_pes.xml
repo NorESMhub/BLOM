@@ -174,7 +174,7 @@
           <ntasks_cpl>81</ntasks_cpl>
           <ntasks_lnd>1</ntasks_lnd>
           <ntasks_glc>1</ntasks_glc>
-          <ntasks_wav>1</ntasks_wav>
+          <ntasks_wav>80</ntasks_wav>
         </ntasks>
         <nthrds>
           <nthrds_atm>1</nthrds_atm>
@@ -358,7 +358,7 @@
 
   <!-- Configurations for the 1/2 degree tripolar (tnx0.5) grid  !-->
 
-  <!-- GRID: TL319_tn14 : start !-->
+  <!-- GRID: TL319_tn05 : start !-->
   <grid name="a%TL319.+oi%tnx0.5v1">
     <mach name="any">
       <pes pesize="M" compset="any">
@@ -405,7 +405,7 @@
           <ntasks_atm>256</ntasks_atm>
           <ntasks_rof>256</ntasks_rof>
           <ntasks_ice>256</ntasks_ice>
-          <ntasks_ocn>1269</ntasks_ocn>
+          <ntasks_ocn>1270</ntasks_ocn>
           <ntasks_cpl>256</ntasks_cpl>
           <ntasks_lnd>256</ntasks_lnd>
           <ntasks_glc>256</ntasks_glc>
@@ -434,6 +434,7 @@
       </pes>
     </mach>
   </grid>
+  <!-- GRID: TL319_tn05 : end !-->
 
   <!-- Configurations for the 1/4 degree tripolar (tnx0.25) grid  !-->
 

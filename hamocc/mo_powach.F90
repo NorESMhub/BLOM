@@ -32,17 +32,18 @@ contains
     ! Modified: S.Legutke,   *MPI-MaD, HH*    10.04.01
     !***********************************************************************************************
 
-    use mo_control_bgc, only: dtbgc,use_cisonew,use_extNcycle,lTO2depremin
+    use mo_control_bgc, only: dtbgc,use_cisonew,use_extNcycle,lTO2depremin,use_sediment_quality
     use mo_param1_bgc,  only: ioxygen,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,      &
                               isilica,isssc12,issso12,issssil,issster,ks,ipowc13,ipowc14,isssc13,  &
-                              isssc14,issso13,issso14,safediv,ipownh4
-    use mo_carbch,      only: co3,keqb,ocetra,sedfluxo
+                              isssc14,issso13,issso14,safediv,ipownh4,issso12_age
+    use mo_carbch,      only: co3,keqb,ocetra,sedfluxo,sedfluxb
     use mo_chemcon,     only: calcon
     use mo_param_bgc,   only: rnit,rcar,rdnit1,rdnit2,ro2ut,disso_sil,silsat,disso_poc,sed_denit,  &
-                            & disso_caco3,ro2utammo,                                               &
-                            & POM_remin_q10_sed,POM_remin_Tref_sed,bkox_drempoc_sed
+                            & disso_caco3,ro2utammo,sed_alpha_poc,                                 &
+                            & POM_remin_q10_sed,POM_remin_Tref_sed,bkox_drempoc_sed,sed_qual_sc
     use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,seddw,sedhpl,sedlay,       &
-                              silpro,pror13,pror14,prca13,prca14
+                              silpro,pror13,pror14,prca13,prca14,prorca_mavg,sed_reactivity_a,     &
+                              sed_reactivity_k,sed_applied_reminrate
     use mo_vgrid,       only: kbo,bolay
     use mo_powadi,      only: powadi
     use mo_carchm,      only: carchm_solve
@@ -75,11 +76,18 @@ contains
     real    :: K1, K2, Kb, Kw, Ks1, Kf, Ksi, K1p, K2p, K3p
     real    :: ah1, ac, cu, cb, cc, satlev
     real    :: ratc13, ratc14, rato13, rato14, poso13, poso14
+    real    :: avgDOU
+    real    :: eps=epsilon(1.)
 
     ! Set array for saving diffusive sediment-water-column fluxes to zero
     !********************************************************************
-
     sedfluxo(:,:,:) = 0.0
+
+    ! set other sediment diagnostic variables to zero
+    sedfluxb(:,:,:) = 0.0
+    if (use_extNcycle) then
+      extNsed_diagnostics(:,:,:,:) = 0.0
+    endif
 
     ! A LOOP OVER J
     ! RJ: This loop must go from 1 to kpje in the parallel version,
@@ -93,7 +101,7 @@ contains
     !$OMP&         K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,                      &
     !$OMP&         ah1,ac,cu,cb,cc,satlev,                                  &
     !$OMP&         ratc13,ratc14,rato13,rato14,poso13,poso14,               &
-    !$OMP&         k,i)
+    !$OMP&         k,i,avgDOU)
 
     j_loop: do j = 1, kpje
 
@@ -200,6 +208,40 @@ contains
         enddo
       enddo
 
+      ! Pre-calculate sediment POC age and prorca-moving average
+      ! to enable sediment quality-POC remineralization in sediment according to
+      ! Pika et al. 2023: Regional and global patterns of apparent organic matter
+      !                   reactivity in marine sediments. Global Biogeochemical Cycles 37,
+      !                   https://doi.org/10.1029/2022GB007636
+      if (use_sediment_quality) then
+        do i = 1, kpie
+          if (omask(i,j) > 0.5 ) then
+            ! Update moving average TOC flux to bottom
+            ! units of prorca: kmol P/m2/dt -> prorca_mavg in mmol P/m2/d
+            prorca_mavg(i,j) = sed_alpha_poc*prorca(i,j)*1e6*dtbgc/86400.                          &
+                             & + (1.-sed_alpha_poc)*prorca_mavg(i,j)
+
+            ! update surface age due to fresh POC sedimentation flux
+            sedlay(i,j,1,issso12_age) = sedlay(i,j,1,issso12) * sedlay(i,j,1,issso12_age)          &
+                          & / ((prorca(i,j)/(porsol(i,j,1)*seddw(1))) + sedlay(i,j,1,issso12) + eps)
+            do k = 1, ks
+              ! Update sediment POC age [yrs]
+              sedlay(i,j,k,issso12_age) = sedlay(i,j,k,issso12_age) + dtbgc/31536000.
+              ! Mean DOU flux [mmol O2/m2/d]
+              ! Since reactivity is based on total sediment DOU (incl. nitrification),
+              ! we here assume the full oxydation steo and use ro2ut
+              avgDOU                    = max(eps,prorca_mavg(i,j)*ro2ut)
+              ! Eq.(12) in Pika et al. 2023 * correction factor 2.48 = a (sed reactivity)
+              sed_reactivity_a(i,j,k)   = 2.48 * 10**(1.293 - 0.9822*log10(avgDOU))
+              ! Calculating overall (scaled) reactivity k [1/year] -> [1/(kmol O2/m3 dt)]
+              ! using 1mumol O2/m3 (=1e-6 kmol O2/m3) as reference
+              sed_reactivity_k(i,j,k)   = sed_qual_sc*dtbgc/(31536000.*1e-6)*0.151                 &
+                                        & /(sed_reactivity_a(i,j,k) + sedlay(i,j,k,issso12_age)+eps)
+            enddo
+          endif
+        enddo
+      endif
+
       ! Calculate oxygen-POC cycle and simultaneous oxygen diffusion
       !*************************************************************
 
@@ -216,6 +258,9 @@ contains
         if(omask(i,j) > 0.5) then
           undsa = powtra(i,j,1,ipowaox)
           sedb1(i,0) = bolay(i,j) * ocetra(i,j,kbo(i,j),ioxygen)
+          if (use_sediment_quality) then
+            dissot = sed_reactivity_k(i,j,1)
+          endif
           ex_disso_poc=merge(dissot*powtra(i,j,1,ipowaox)/(powtra(i,j,1,ipowaox)+bkox_drempoc_sed) & ! oxygen limitation
                          &       *POM_remin_q10_sed**((ptho(i,j,kbo(i,j))-POM_remin_Tref_sed)/10.) & ! T-dep
                          &   ,dissot,lTO2depremin)
@@ -244,6 +289,9 @@ contains
           if(omask(i,j) > 0.5) then
             undsa = powtra(i,j,k,ipowaox)
             sedb1(i,k) = seddw(k) * porwat(i,j,k) * powtra(i,j,k,ipowaox)
+            if (use_sediment_quality) then
+              dissot = sed_reactivity_k(i,j,k)
+            endif
             ex_disso_poc=merge(dissot*powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox)+bkox_drempoc_sed) & ! oxygen limitation
                          &       *POM_remin_q10_sed**((ptho(i,j,kbo(i,j))-POM_remin_Tref_sed)/10.) & ! T-dep
                          &   ,dissot,lTO2depremin)
@@ -290,6 +338,9 @@ contains
         do i = 1, kpie
           if(omask(i,j) > 0.5) then
             umfa = porsol(i,j,k) / porwat(i,j,k)
+            if (use_sediment_quality) then
+              dissot = sed_reactivity_k(i,j,k)
+            endif
             ex_disso_poc=merge(dissot*powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox)+bkox_drempoc_sed) & ! oxygen limitation
                          &       *POM_remin_q10_sed**((ptho(i,j,kbo(i,j))-POM_remin_Tref_sed)/10.) & ! T-dep
                          &   ,dissot,lTO2depremin)
@@ -322,6 +373,9 @@ contains
             if (use_cisonew) then
               sedlay(i,j,k,issso13) = sedlay(i,j,k,issso13) - poso13
               sedlay(i,j,k,issso14) = sedlay(i,j,k,issso14) - poso14
+            endif
+            if (use_sediment_quality) then
+              sed_applied_reminrate(i,j,k) = ex_disso_poc
             endif
           endif
         enddo
