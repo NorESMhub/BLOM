@@ -1,6 +1,9 @@
 #!/bin/bash
 # printf "some data for the file\nAnd a new line" >> fileName
-module load NCO/5.1.9-iomkl-2022a
+
+module purge
+
+module load NCO/5.1.3-foss-2022a
 module load CDO/2.0.6-gompi-2022a
 
 basename="ndeposition"
@@ -225,10 +228,18 @@ do
     fi
 
  
+    # add global attributes start- and endyear to the file (required by iHAMOCC) 
+    ncatted --glb_att_add startyear=${STARTYEAR} ndeposition-kg_${GRID}.nc
+    ncatted --glb_att_add endyear=${ENDYEAR} ndeposition-kg_${GRID}.nc
+    # modify from char to integer values
+    ncatted -O -h -a startyear,global,m,i,${STARTYEAR} ndeposition-kg_${GRID}.nc
+    ncatted -O -h -a endyear,global,m,i,${ENDYEAR} ndeposition-kg_${GRID}.nc
+
+
     #----------------------------------------------- Conservative remapping to BLOM grid and unit conversio:
     c=`python -c "print(${year}*${day}/${molweightN})"`
     echo "----------> Unit conversion factor (kg m-2 s-1 to kmol m-2 yr-1): $c"
-    
+
     if [[ $DRYNHx =~ "2099" ]];then 
       # setting some few missing values to zero (land areas anyway) and perform the unit conversion
       cdo -setattribute,ndep@units="kmol N m-2 yr-1"   \
@@ -254,13 +265,6 @@ do
           -remap,gridfile_${GRID}.nc,weights_${GRID}.nc  ndeposition-kg_${GRID}.nc ${OUTFILE}
     fi
 
- 
-    # add global attributes start- and endyear to the file (required by iHAMOCC) 
-    ncatted --glb_att_add startyear=${STARTYEAR} ${OUTFILE} 
-    ncatted --glb_att_add endyear=${ENDYEAR} ${OUTFILE}
-    # modify from char to integer values
-    ncatted -O -h -a startyear,global,m,i,${STARTYEAR} ${OUTFILE} 
-    ncatted -O -h -a endyear,global,m,i,${ENDYEAR} ${OUTFILE} 
     
     if [ ${TP} == 'HIST' ]; then
       cdo -selyear,2000 ${OUTFILE} ${basename}_2000_CMIP6_${GRID}_${version}.nc
