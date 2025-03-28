@@ -4,6 +4,15 @@
 
 <definitions_variables>
 
+  <entry id="BLOM_OUTPUT_SIZE">
+    <type>char</type>
+    <valid_values>spinup</valid_values>
+    <default_value>spinup</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Namelist option to set BLOM output option.</desc>
+  </entry>
+
   <entry id="COMP_OCN">
     <type>char</type>
     <valid_values>blom</valid_values>
@@ -199,6 +208,15 @@
     <group>run_component_blom</group>
     <file>env_run.xml</file>
     <desc>Namelist option to set sinking scheme. Requires module ecosys</desc>
+  </entry>
+
+  <entry id="HAMOCC_OUTPUT_SIZE">
+    <type>char</type>
+    <valid_values>spinup</valid_values>
+    <default_value>spinup</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Namelist option to set iHAMOCC output option. Requires module ecosys</desc>
   </entry>
 
   <entry id="HAMOCC_PREF_TRACERS">
