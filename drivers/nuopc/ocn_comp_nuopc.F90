@@ -60,6 +60,8 @@ module ocn_comp_nuopc
    use ocn_stream_sst,    only: ocn_stream_sst_init, ocn_stream_sst_interp
 #ifdef HAMOCC
    use mo_control_bgc,    only: use_BROMO
+   use ocn_stream_dust,   only: ocn_stream_dust_init, ocn_stream_dust_interp
+   use mod_forcing,       only: use_stream_dust
 #endif
 
    implicit none
@@ -758,6 +760,14 @@ contains
          if (trim(cvalue) .eq. '.true.') write_restart_at_endofrun = .true.
       end if
 
+#ifdef HAMOCC
+      ! Initialize sdat for dust deposition climatology if appropriate
+      if (use_stream_dust) then
+         call ocn_stream_dust_init(Emesh, clock, rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      end if
+#endif
+
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
 
    end subroutine InitializeRealize
@@ -923,6 +933,14 @@ contains
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
          end if
 
+#ifdef HAMOCC
+         ! Advance dust stream input if appropriate
+         if (use_stream_dust) then
+            call ocn_stream_dust_interp(clock, rc)
+            if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         end if
+#endif
+
          ! Advance the model a time step.
          call blom_step
 
@@ -943,7 +961,7 @@ contains
       ! ------------------------------------------------------------------------
 
       wrtrst = .false.
-      ! check for stop alarm 
+      ! check for stop alarm
       call ESMF_ClockGetAlarm(clock, alarmname='stop_alarm', &
                               alarm=stop_alarm, rc=rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
