@@ -101,6 +101,11 @@ module mod_forcing
 
    logical :: use_stream_relaxation ! If true, use nuopc stream relaxation capability
 
+   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
+        dust_stream              ! iron dust deposition flux (hamocc)
+   logical :: use_stream_dust    ! If true, use nuopc stream dust capability (hamocc only)
+
+
    ! Variables related to balancing the freshwater forcing budget.
    real(r8) :: &
       prfac           ! Correction factor for precipitation and runoff [].
@@ -194,7 +199,8 @@ module mod_forcing
              ustar, ustarb, ustar3, wstar3, buoyfl, salt_corr, trc_corr, &
              t_sw_nonloc, t_rs_nonloc, s_br_nonloc, s_rs_nonloc, &
              inivar_forcing, fwbbal, sss_stream, sst_stream, ice_stream, &
-             use_stream_relaxation
+             dust_stream, &
+             use_stream_relaxation, use_stream_dust
 
 contains
 
