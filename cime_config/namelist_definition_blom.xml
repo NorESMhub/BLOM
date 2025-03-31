@@ -3842,6 +3842,7 @@
       <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_CMIP6_tnx0.25v4_20190912.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_CMIP6_tnx0.25v4_20200826.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx0.25v4_20190705.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="ssp"  ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_201501-210012-${BLOM_NDEP_SCENARIO}_tnx0.25v4_20250325.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_CMIP6_tnx0.125v4_20221013.nc</value>
     </values>
    <desc>File name (incl. full path) for atmopheric N-deposition data</desc>
