@@ -39,7 +39,7 @@ contains
     use mo_carbch,      only: co3,keqb,ocetra,sedfluxo,sedfluxb
     use mo_chemcon,     only: calcon
     use mo_param_bgc,   only: rnit,rcar,rdnit1,rdnit2,ro2ut,disso_sil,silsat,disso_poc,sed_denit,  &
-                            & disso_caco3,ro2utammo,sed_alpha_poc,                                 &
+                            & disso_caco3,ro2utammo,sed_alpha_poc,sed_sulf,                        &
                             & POM_remin_q10_sed,POM_remin_Tref_sed,bkox_drempoc_sed,sed_qual_sc
     use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,seddw,sedhpl,sedlay,       &
                               silpro,pror13,pror14,prca13,prca14,prorca_mavg,sed_reactivity_a,     &
@@ -427,7 +427,7 @@ contains
         do i = 1, kpie
           if(omask(i,j) > 0.5) then
             if(powtra(i,j,k,ipowaox) < 3.e-6 .and. powtra(i,j,k,ipowno3) < 3.e-6) then
-              posol = denit * sedlay(i,j,k,issso12)         ! remineralization of poc
+              posol = sed_sulf * sedlay(i,j,k,issso12)         ! remineralization of poc
               umfa = porsol(i,j,k) / porwat(i,j,k)
               sulf(i,k) = posol*umfa      !this has P units: kmol P/m3 of pore water
               if (use_cisonew) then

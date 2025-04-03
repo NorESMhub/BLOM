@@ -4752,7 +4752,7 @@
     </values>
     <desc>Sediment: remineralization rate (at reference temperature) (1/(kmol O2/m3 s))</desc>
   </entry>
-  
+
   <entry id="sed_denit">
     <type>real</type>
     <category>bgcparams</category>
@@ -4760,7 +4760,17 @@
     <values>
       <value>None</value>
     </values>
-    <desc>Sediment: denitrification/sulfate reduction rate (1/s))</desc>
+    <desc>Sediment: denitrification reduction rate (1/s))</desc>
+  </entry>
+
+  <entry id="sed_sulf">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: sulfate reduction rate (1/s))</desc>
   </entry>
 
   <entry id="disso_sil">

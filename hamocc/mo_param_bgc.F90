@@ -95,7 +95,7 @@ module mo_param_bgc
   public :: vsmall,safe,pupper,plower,zdis,nmldmin
   public :: beta13,alpha14,atm_c13,atm_c14,c14fac,c14dec
   public :: sedict,silsat,disso_poc,disso_sil,disso_caco3
-  public :: sed_denit,calcwei,opalwei,orgwei
+  public :: sed_denit,sed_sulf,calcwei,opalwei,orgwei
   public :: calcdens,opaldens,orgdens,claydens
   public :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma
   public :: POM_remin_q10,opal_remin_q10,POM_remin_Tref,opal_remin_Tref
@@ -489,6 +489,7 @@ module mo_param_bgc
   real, protected :: disso_sil   = 3.e-8          ! 1/(kmol Si(OH)4/m3 s) Dissolution rate constant of opal
   real, protected :: disso_caco3 = 1.e-7          ! 1/(kmol CO3--/m3 s) Dissolution rate constant of CaCO3
   real, protected :: sed_denit   = 0.01/86400.    ! 1/s Denitrification rate constant of POP
+  real, protected :: sed_sulf    = 0.01/86400.    ! 1/s "Sulfate reduction" rate constant of POP
   real, protected :: sed_alpha_poc = 1./90.       ! 1/d 1/decay time for sediment moving average - assuming ~3 month memory here
   real, protected :: sed_qual_sc = 1.             ! scaling factor for sediment quality-based remineralization
   !********************************************************************
@@ -631,7 +632,7 @@ contains
                          bkoxdnra_sed,bkdnra_sed,q10anh4nitr_sed,                &
                          bkoxamox_sed,bkanh4nitr_sed,q10ano2nitr_sed,            &
                          bkoxnitr_sed,bkano2nitr_sed,sed_alpha_poc,sed_qual_sc,  &
-                         sed_denit
+                         sed_denit,sed_sulf
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)
@@ -754,6 +755,7 @@ contains
     disso_poc   = disso_poc   * dtbgc ! 1/(kmol O2/m3 time step)      Degradation rate constant of POP
     disso_caco3 = disso_caco3 * dtbgc ! 1/(kmol CO3--/m3 time step)   Dissolution rate constant of CaCO3
     sed_denit   = sed_denit   * dtbgc ! 1/time step                   Denitrification rate constant of POP
+    sed_sulf    = sed_sulf    * dtbgc ! 1/time step                   "Sulfate reduction" rate constant of POP
 
     if (use_extNcycle) then
       rano3denit = rano3denit *dtb ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
@@ -1007,6 +1009,7 @@ contains
       call pinfo_add_entry('disso_sil',   disso_sil   * dtbgcinv)
       call pinfo_add_entry('disso_caco3', disso_caco3 * dtbgcinv)
       call pinfo_add_entry('sed_denit',   sed_denit   * dtbgcinv)
+      call pinfo_add_entry('sed_sulf',    sed_sulf   * dtbgcinv)
       call pinfo_add_entry('silsat',      silsat)
       call pinfo_add_entry('orgwei',      orgwei)
       call pinfo_add_entry('opalwei',     opalwei)
