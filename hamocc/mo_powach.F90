@@ -40,7 +40,8 @@ contains
     use mo_chemcon,     only: calcon
     use mo_param_bgc,   only: rnit,rcar,rdnit1,rdnit2,ro2ut,disso_sil,silsat,disso_poc,sed_denit,  &
                             & disso_caco3,ro2utammo,sed_alpha_poc,sed_sulf,                        &
-                            & POM_remin_q10_sed,POM_remin_Tref_sed,bkox_drempoc_sed,sed_qual_sc
+                            & POM_remin_q10_sed,POM_remin_Tref_sed,bkox_drempoc_sed,sed_qual_sc,   &
+                            & sed_O2thresh_hypoxic,sed_O2thresh_sulf,sed_NO3thresh_sulf
     use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,seddw,sedhpl,sedlay,       &
                               silpro,pror13,pror14,prca13,prca14,prorca_mavg,sed_reactivity_a,     &
                               sed_reactivity_k,sed_applied_reminrate
@@ -390,7 +391,7 @@ contains
         do k = 1, ks
           do i = 1, kpie
             if(omask(i,j) > 0.5) then
-              if(powtra(i,j,k,ipowaox) < 1.e-6) then
+              if(powtra(i,j,k,ipowaox) < sed_O2thresh_hypoxic) then
                 posol = denit * min(0.25*powtra(i,j,k,ipowno3)/rdnit2, sedlay(i,j,k,issso12))
                 umfa = porsol(i,j,k)/porwat(i,j,k)
                 anaerob(i,k) = posol*umfa     !this has P units: kmol P/m3 of pore water
@@ -426,7 +427,7 @@ contains
       do k = 1, ks
         do i = 1, kpie
           if(omask(i,j) > 0.5) then
-            if(powtra(i,j,k,ipowaox) < 3.e-6 .and. powtra(i,j,k,ipowno3) < 3.e-6) then
+            if(powtra(i,j,k,ipowaox) < sed_O2thresh_sulf .and. powtra(i,j,k,ipowno3) < sed_NO3thresh_sulf) then
               posol = sed_sulf * sedlay(i,j,k,issso12)         ! remineralization of poc
               umfa = porsol(i,j,k) / porwat(i,j,k)
               sulf(i,k) = posol*umfa      !this has P units: kmol P/m3 of pore water

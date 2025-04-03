@@ -100,6 +100,7 @@ module mo_param_bgc
   public :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma
   public :: POM_remin_q10,opal_remin_q10,POM_remin_Tref,opal_remin_Tref
   public :: O2thresh_aerob,O2thresh_hypoxic,NO3thresh_sulf
+  public :: sed_O2thresh_aerob,sed_O2thresh_hypoxic,sed_NO3thresh_sulf
   public :: shelfbreak_depth
   public :: sed_alpha_poc,sed_qual_sc
 
@@ -483,6 +484,9 @@ module mo_param_bgc
   !********************************************************************
   ! Note that the rates in the sediment are given in per second here!
   !
+  real, parameter :: sed_O2thresh_hypoxic = 1.e-6    ! Below sed_O2thresh_hypoxic denitrification takes place (default model version)
+  real, parameter :: sed_O2thresh_sulf    = 3.e-6    ! Below sed_O2thresh_sulf 'sulfate reduction' takes place
+  real, parameter :: sed_NO3thresh_sulf   = 3.e-6    ! Below sed_NO3thresh_sulf 'sufate reduction' takes place
   real, protected :: sedict      = 1.e-9          ! m2/s Molecular diffusion coefficient
   real, protected :: silsat      = 0.001          ! kmol/m3 Silicate saturation concentration is 1 mol/m3
   real, protected :: disso_poc   = 0.432 / 86400. ! 1/(kmol O2/m3 s)      Degradation rate constant of POP
@@ -1004,6 +1008,9 @@ contains
       write(io_stdo_bgc,*)
       write(io_stdo_bgc,*) '********************************************'
       write(io_stdo_bgc,*) '* Values of MO_PARAM_BGC sediment variables : '
+      call pinfo_add_entry('sed_O2thresh_hypoxic',sed_O2thresh_hypoxic)
+      call pinfo_add_entry('sed_O2thresh_sulf',   sed_O2thresh_sulf)
+      call pinfo_add_entry('sed_NO3thresh_sulf',  sed_NO3thresh_sulf)
       call pinfo_add_entry('sedict',      sedict      * dtbgcinv)
       call pinfo_add_entry('disso_poc',   disso_poc   * dtbgcinv)
       call pinfo_add_entry('disso_sil',   disso_sil   * dtbgcinv)
