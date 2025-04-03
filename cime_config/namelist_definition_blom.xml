@@ -4753,6 +4753,36 @@
     <desc>Sediment: remineralization rate (at reference temperature) (1/(kmol O2/m3 s))</desc>
   </entry>
 
+  <entry id="sed_O2thresh_hypoxic">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: O2 threshold below which denitrification takes place </desc>
+  </entry>
+
+  <entry id="sed_O2thresh_sulf">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: O2 threshold below which sulfate reduction takes place </desc>
+  </entry>
+
+  <entry id="sed_NO3thresh_sulf">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: NO3 threshold below which sulfate reduction takes place </desc>
+  </entry>
+
   <entry id="sed_denit">
     <type>real</type>
     <category>bgcparams</category>
@@ -4760,7 +4790,7 @@
     <values>
       <value>None</value>
     </values>
-    <desc>Sediment: denitrification reduction rate (1/s))</desc>
+    <desc>Sediment: denitrification reduction rate (1/s)</desc>
   </entry>
 
   <entry id="sed_sulf">
@@ -4770,7 +4800,7 @@
     <values>
       <value>None</value>
     </values>
-    <desc>Sediment: sulfate reduction rate (1/s))</desc>
+    <desc>Sediment: sulfate reduction rate (1/s)</desc>
   </entry>
 
   <entry id="disso_sil">
