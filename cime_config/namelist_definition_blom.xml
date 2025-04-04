@@ -1872,7 +1872,7 @@
       <value>4,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value blom_output_size="spinup">0,0,0</value>
+      <value blom_output_size="spinup">4,4,0</value>
     </values>
     <desc>mixed layer thickness using "sigma-t" criterion [m]</desc>
   </entry>
@@ -2184,7 +2184,7 @@
       <value>4,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value blom_output_size="spinup">0,0,0</value>
+      <value blom_output_size="spinup">4,4,0</value>
     </values>
     <desc>ocean surface salinity [g kg-1]</desc>
   </entry>
@@ -2210,7 +2210,7 @@
       <value>4,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value blom_output_size="spinup">0,0,0</value>
+      <value blom_output_size="spinup">4,4,0</value>
     </values>
     <desc>ocean surface temperature [degC]</desc>
   </entry>
@@ -3473,7 +3473,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value blom_output_size="spinup">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -7800,7 +7800,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value hamocc_output_size="spinup">0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Phytoplankton (phyc) [mol C m-3]</desc>
   </entry>
@@ -7813,7 +7813,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value hamocc_output_size="spinup">0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Zooplankton (zooc) [mol C m-3]</desc>
   </entry>
@@ -7826,7 +7826,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value hamocc_output_size="spinup">0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Dissolved organic carbon (dissoc) [mol C m-3]</desc>
   </entry>
@@ -7839,7 +7839,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value hamocc_output_size="spinup">0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Primary production (pp) [mol C m-3 s-1]</desc>
   </entry>
@@ -8307,7 +8307,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value hamocc_output_size="spinup">0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Dissolved carbon (dissic) [mol C m-3]</desc>
   </entry>
@@ -8320,7 +8320,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value hamocc_output_size="spinup">0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Detrius (detoc) [mol C m-3]</desc>
   </entry>
@@ -8333,7 +8333,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value hamocc_output_size="spinup">0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>CaCO3 shells (calc) [mol C m-3]</desc>
   </entry>
@@ -8385,7 +8385,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value hamocc_output_size="spinup">0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>pH [-log10(H+)]</desc>
   </entry>
@@ -9371,7 +9371,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value hamocc_output_size="spinup">0,2</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Sediment reactivity a [yr]</desc>
   </entry>
