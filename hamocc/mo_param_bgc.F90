@@ -284,17 +284,17 @@ module mo_param_bgc
   !********************************************************************
   ! Remineralization and dissolution parameters
   !********************************************************************
-  real, parameter :: O2thresh_aerob   = 5.e-8    ! Above O2thresh_aerob aerob remineralization takes place
-  real, parameter :: O2thresh_hypoxic = 5.e-7    ! Below O2thresh_hypoxic denitrification and sulfate reduction takes place (default model version)
-  real, parameter :: NO3thresh_sulf   = 3.e-6    ! Below NO3thresh_sulf 'sufate reduction' takes place
-  real, protected :: remido     = 0.004           ! 1/d - remineralization rate (of DOM)
+  real, parameter :: O2thresh_aerob   = 5.e-8  ! Above O2thresh_aerob aerob remineralization takes place
+  real, parameter :: O2thresh_hypoxic = 5.e-7  ! Below O2thresh_hypoxic denitrification and sulfate reduction takes place (default model version)
+  real, parameter :: NO3thresh_sulf   = 3.e-6  ! Below NO3thresh_sulf 'sufate reduction' takes place
+  real, protected :: remido     = 0.004        ! 1/d - remineralization rate (of DOM)
   ! deep sea remineralisation constants
-  real, protected :: drempoc    = 0.025           ! 1/d Aerob remineralization rate detritus
+  real, protected :: drempoc    = 0.025        ! 1/d Aerob remineralization rate detritus
   real, protected :: drempoc_anaerob = 1.25e-3 ! =0.05*drempoc - remin in sub-/anoxic environm. - not be overwritten by M4AGO
   real, protected :: bkox_drempoc    = 1e-7    ! half-saturation constant for oxygen for ammonification (aerobic remin via drempoc)
-  real, protected :: dremopal   = 0.003           ! 1/d Dissolution rate for opal
-  real, protected :: dremn2o    = 0.01            ! 1/d Remineralization rate of detritus on N2O
-  real, protected :: dremsul    = 0.005           ! 1/d Remineralization rate for sulphate reduction
+  real, protected :: dremopal   = 0.003        ! 1/d Dissolution rate for opal
+  real, protected :: dremn2o    = 0.01         ! 1/d Remineralization rate of detritus on N2O
+  real, protected :: dremsul    = 0.005        ! 1/d Remineralization rate for sulphate reduction
   real, protected :: POM_remin_q10   = 2.1     ! Bidle et al. 2002: Regulation of Oceanic Silicon...
   real, protected :: opal_remin_q10  = 2.6     ! Bidle et al. 2002: Regulation of Oceanic Silicon...
   real, protected :: POM_remin_Tref  = 10.     ! [deg C] reference temperatue for Q10-dep. POC remin
@@ -338,7 +338,7 @@ module mo_param_bgc
   real, protected :: q10an2odenit  = 3.       ! Q10 factor for denitrificationj on N2O (-)
   real, protected :: Trefan2odenit = 10.      ! Reference temperature for denitrification on N2O (degr C)
   real, protected :: bkoxan2odenit = 10e-6    ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on N2O (kmol/m3)
-  real, protected :: bkan2odenit   = 0.1e-6    ! Half-saturation constant for denitrification on N2O (kmol/m3)
+  real, protected :: bkan2odenit   = 0.1e-6   ! Half-saturation constant for denitrification on N2O (kmol/m3)
 
   ! === DNRA NO2 -> NH4
   real, protected :: rdnra         = 0.0003   ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
@@ -484,9 +484,9 @@ module mo_param_bgc
   !********************************************************************
   ! Note that the rates in the sediment are given in per second here!
   !
-  real, protected :: sed_O2thresh_hypoxic = 1.e-6    ! Below sed_O2thresh_hypoxic denitrification takes place (default model version)
-  real, protected :: sed_O2thresh_sulf    = 3.e-6    ! Below sed_O2thresh_sulf 'sulfate reduction' takes place
-  real, protected :: sed_NO3thresh_sulf   = 3.e-6    ! Below sed_NO3thresh_sulf 'sufate reduction' takes place
+  real, protected :: sed_O2thresh_hypoxic = 1.e-6 ! Below sed_O2thresh_hypoxic denitrification takes place (default model version)
+  real, protected :: sed_O2thresh_sulf    = 3.e-6 ! Below sed_O2thresh_sulf 'sulfate reduction' takes place
+  real, protected :: sed_NO3thresh_sulf   = 3.e-6 ! Below sed_NO3thresh_sulf 'sufate reduction' takes place
   real, protected :: sedict      = 1.e-9          ! m2/s Molecular diffusion coefficient
   real, protected :: silsat      = 0.001          ! kmol/m3 Silicate saturation concentration is 1 mol/m3
   real, protected :: disso_poc   = 0.432 / 86400. ! 1/(kmol O2/m3 s)      Degradation rate constant of POP
@@ -1017,7 +1017,7 @@ contains
       call pinfo_add_entry('disso_sil',   disso_sil   * dtbgcinv)
       call pinfo_add_entry('disso_caco3', disso_caco3 * dtbgcinv)
       call pinfo_add_entry('sed_denit',   sed_denit   * dtbgcinv)
-      call pinfo_add_entry('sed_sulf',    sed_sulf   * dtbgcinv)
+      call pinfo_add_entry('sed_sulf',    sed_sulf    * dtbgcinv)
       call pinfo_add_entry('silsat',      silsat)
       call pinfo_add_entry('orgwei',      orgwei)
       call pinfo_add_entry('opalwei',     opalwei)

@@ -4790,7 +4790,7 @@
     <values>
       <value>None</value>
     </values>
-    <desc>Sediment: denitrification reduction rate (1/s)</desc>
+    <desc>Sediment: denitrification rate (1/s)</desc>
   </entry>
 
   <entry id="sed_sulf">
