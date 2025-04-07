@@ -9339,6 +9339,42 @@
     <desc>sulfate-based remin rate on det [mol P m-3 s-1] - ext. N cycle only</desc>
   </entry>
 
+  <entry id="sdm_rem_aerob">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Sediment: aerob remineralization rate on det [mol P m-3 s-1]</desc>
+  </entry>
+
+  <entry id="sdm_rem_denit">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Sediment: denitrification rate on det [mol P m-3 s-1]</desc>
+  </entry>
+
+  <entry id="sdm_rem_sulf">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+    </values>
+    <desc>Sediment: sulfate-based remin rate on det [mol P m-3 s-1]</desc>
+  </entry>
+
   <entry id="sdm_powasi">
     <type>integer(3)</type>
     <category>diabgc</category>

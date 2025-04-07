@@ -218,7 +218,9 @@ contains
                               FLX_SEDIFFNH4,FLX_SEDIFFN2O,FLX_SEDIFFNO2,                           &
                               jsdm_qual_a,jsdm_qual_k,jsdm_qual_app,jsdm_ssso12_age,               &
                               jsed_mavg_prorca,                                                    &
-                              SDM_qual_a,SDM_qual_k,SDM_qual_app,SDM_ssso12_age,SDM_MAVG_prorca
+                              SDM_qual_a,SDM_qual_k,SDM_qual_app,SDM_ssso12_age,SDM_MAVG_prorca,   &
+                              SDM_rem_aerob,SDM_rem_denit,SDM_rem_sulf,jsdm_rem_aerob,             &
+                              jsdm_rem_denit,jsdm_rem_sulf
     use mo_param_bgc,   only: c14fac,param4nc,nentries,controls4nc,centries
 
     ! Arguments
@@ -919,6 +921,10 @@ contains
         call wrtsdm(jsdm_anmx_OM_prod(iogrp), sdm_anmx_OM_prod(iogrp), rnacc*1e3/dtbgc,0.,cmpflg,'anmx_omsdm')
         call wrtsdm(jsdm_remin_aerob(iogrp),  sdm_remin_aerob(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'reminasdm')
         call wrtsdm(jsdm_remin_sulf(iogrp),   sdm_remin_sulf(iogrp),   rnacc*1e3/dtbgc,0.,cmpflg,'reminssdm')
+      else
+        call wrtsdm(jsdm_rem_aerob(iogrp),    sdm_rem_aerob(iogrp),    rnacc*1e3/dtbgc,0.,cmpflg,'remasdm')
+        call wrtsdm(jsdm_rem_denit(iogrp),    sdm_rem_denit(iogrp),    rnacc*1e3/dtbgc,0.,cmpflg,'remdsdm')
+        call wrtsdm(jsdm_rem_sulf(iogrp),     sdm_rem_sulf(iogrp),     rnacc*1e3/dtbgc,0.,cmpflg,'remssdm')
       endif
       if (use_sediment_quality) then
         call wrtsdm(jsdm_qual_a(iogrp),     sdm_qual_a(iogrp),     rnacc,0.,cmpflg,'quala_sdm')
@@ -1295,6 +1301,10 @@ contains
         call inisdm(jsdm_anmx_OM_prod(iogrp),0.)
         call inisdm(jsdm_remin_aerob(iogrp),0.)
         call inisdm(jsdm_remin_sulf(iogrp),0.)
+      else
+        call inisdm(jsdm_rem_aerob(iogrp),0.)
+        call inisdm(jsdm_rem_denit(iogrp),0.)
+        call inisdm(jsdm_rem_sulf(iogrp),0.)
       endif
       if (use_sediment_quality) then
         call inisdm(jsdm_qual_a(iogrp),0.)
@@ -1415,7 +1425,8 @@ contains
                               FLX_SEDIFFNH4,FLX_SEDIFFN2O,FLX_SEDIFFNO2,                           &
                               jsdm_qual_a,jsdm_qual_k,jsdm_qual_app,jsdm_ssso12_age,               &
                               jsed_mavg_prorca,                                                    &
-                              SDM_qual_a,SDM_qual_k,SDM_qual_app,SDM_ssso12_age,SDM_MAVG_prorca
+                              SDM_qual_a,SDM_qual_k,SDM_qual_app,SDM_ssso12_age,SDM_MAVG_prorca,   &
+                              sdm_rem_aerob,sdm_rem_denit,sdm_rem_sulf
 
 
     ! Arguments
@@ -2162,6 +2173,16 @@ contains
              &  'mol N m-3 s-1',3)
         call ncdefvar3d(sdm_remin_sulf(iogrp),cmpflg,'p',                       &
              &  'reminssdm','Sulfate remineralization rate sediment',' ',       &
+             &  'mol P m-3 s-1',3)
+      else
+        call ncdefvar3d(sdm_rem_aerob(iogrp),cmpflg,'p',                        &
+             &  'remasdm','Aerob remineralization rate sediment',' ',           &
+             &  'mol P m-3 s-1',3)
+        call ncdefvar3d(sdm_rem_denit(iogrp),cmpflg,'p',                        &
+             &  'remdsdm','Denitrification rate sediment',' ',                  &
+             &  'mol P m-3 s-1',3)
+        call ncdefvar3d(sdm_rem_sulf(iogrp),cmpflg,'p',                         &
+             &  'remssdm','Sulfate remineralization rate sediment',' ',         &
              &  'mol P m-3 s-1',3)
       endif
       if (use_sediment_quality) then

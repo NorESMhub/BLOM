@@ -132,7 +132,8 @@ contains
                                 jsdm_remin_sulf,jsediffnh4,jsediffn2o,jsediffno2,jatmn2o,jatmnh3,  &
                                 jndepnhxfx,jshelfage,jlvlshelfage,                                 &
                                 jsed_mavg_prorca,jsdm_remin_sulf,jsdm_qual_a,jsdm_qual_k,          &
-                                jsdm_qual_app,jsdm_ssso12_age
+                                jsdm_qual_app,jsdm_ssso12_age,jsdm_rem_aerob,jsdm_rem_denit,       &
+                                jsdm_rem_sulf
     use mo_control_bgc,   only: io_stdo_bgc,dtb,use_BROMO,use_AGG,use_WLIN,use_natDIC,             &
                                 use_CFC,use_sedbypass,use_cisonew,use_BOXATM,use_M4AGO,            &
                                 use_extNcycle,use_pref_tracers,use_shelfsea_res_time,              &
@@ -151,7 +152,8 @@ contains
                                 issso12,isssc12,issssil,issster,iprefsilica,iatmnh3,ianh4,iano2,   &
                                 ipownh4,ipown2o,ipowno2,ishelfage,issso12_age
     use mo_sedmnt,        only: powtra,sedlay,burial,prorca_mavg,sed_reactivity_a,                 &
-                                sed_reactivity_k,sed_applied_reminrate
+                                sed_reactivity_k,sed_applied_reminrate,sed_rem_aerob,sed_rem_denit,&
+                                sed_rem_sulf
     use mo_vgrid,         only: dp_min
     use mo_inventory_bgc, only: inventory_bgc
     use mo_ncwrt_bgc    , only: ncwrt_bgc
@@ -654,6 +656,10 @@ contains
         call accsdm(jsdm_anmx_OM_prod  ,extNsed_diagnostics(1,1,1,ised_anmx_OM_prod))
         call accsdm(jsdm_remin_aerob   ,extNsed_diagnostics(1,1,1,ised_remin_aerob))
         call accsdm(jsdm_remin_sulf    ,extNsed_diagnostics(1,1,1,ised_remin_sulf))
+      else
+        call accsdm(jsdm_rem_aerob     ,sed_rem_aerob(1,1,1))
+        call accsdm(jsdm_rem_denit     ,sed_rem_denit(1,1,1))
+        call accsdm(jsdm_rem_sulf      ,sed_rem_sulf(1,1,1))
       endif
       if (use_sediment_quality) then
         call accsdm(jsdm_ssso12_age, sedlay(1,1,1,issso12_age))
