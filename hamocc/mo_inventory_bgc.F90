@@ -252,6 +252,23 @@ contains
     call xcsum(zhito ,ztmp1,ips)
     call xcsum(zco3to,ztmp2,ips)
 
+    ! ODZ volume
+    ODZvol = 0.
+    ztmp1(:,:)=0.0
+    do k=1,kpke
+      do j=1,kpje
+        do i=1,kpie
+          if (ddpo(i,j,k) > dp_min .and. ocetra(i,j,k,ioxygen) < 20.0e-6) then
+            ! snapshot value for ODZ volume for hypoxic volume below 20mumol/L
+            vol = dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
+            ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*vol
+          endif
+        enddo
+      enddo
+    enddo
+    call xcsum(ODZvol,ztmp2,ips)
+
+
     !=== alkalinity of the first layer
     !--------------------------------------------------------------------
     zvoltop = 0.
@@ -823,6 +840,9 @@ contains
       ! atmosphere-ocean fluxes
       integer :: co2flux_varid,so2flux_varid,sn2flux_varid,sn2oflux_varid,snh3flux_varid
       integer :: sdmsflux_varid
+
+      ! ODZ volume
+      integer :: ODZvol_varid
 
       !=== Create new or open existing netCDF file
       if (.not.append2file_inv(iogrp)) then
@@ -1632,6 +1652,12 @@ contains
                &    'Global flux of NH3 into atmosphere') )
           call nccheck( NF90_PUT_ATT(ncid, snh3flux_varid, 'units', 'kmol') )
         endif
+
+        call nccheck( NF90_DEF_VAR(ncid, 'ODZvol', NF90_DOUBLE,                   &
+             &    time_dimid, ODZvol_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, ODZvol_varid, 'long_name',               &
+             &    'Global ODZ volume (<20mumol/L)') )
+        call nccheck( NF90_PUT_ATT(ncid, ODZvol_varid, 'units', 'm3') )
         !--- End define mode.
         call nccheck( NF90_ENDDEF(ncid) )
 
@@ -1796,6 +1822,7 @@ contains
         if (use_extNcycle) then
           call nccheck( NF90_INQ_VARID(ncid, "snh3flux",  snh3flux_varid) )
         endif
+        call nccheck( NF90_INQ_VARID(ncid, "ODZvol", ODZvol_varid) )
       endif
 
       !=== Increment record by 1, reset start and count arrays
@@ -2068,6 +2095,7 @@ contains
       if (use_extNcycle) then
         call nccheck( NF90_PUT_VAR(ncid, snh3flux_varid, snh3flux,start = wrstart) )
       endif
+      call nccheck( NF90_PUT_VAR(ncid, ODZvol_varid,ODZvol, start = wrstart) )
 
       !--- Close netCDF file
       call nccheck( NF90_CLOSE(ncid) )
