@@ -92,6 +92,7 @@ contains
     !--- additional ocean tracer
     real :: zhito                    ! Total hydrogen ion tracer
     real :: zco3to                   ! Total dissolved carbonate (CO3) tracer
+    real :: ODZvol                   ! ODZ volume (O2threshold: 20 mumol)
     !--- alkalinity of the first layer
     real :: zvoltop                  ! Total volume of top ocean layer
     real :: zalkali                  ! Total alkalinity of top ocean layer
@@ -278,21 +279,12 @@ contains
     ztmp2(:,:)=0.0
     do j=1,kpje
       do i=1,kpie
-        ztmp1(i,j) = omask(i,j)*dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
-        ztmp2(i,j) = ocetra(i,j,k,iphosph)*ztmp1(i,j)
+        vol        = omask(i,j)*dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
+        ztmp1(i,j) = ocetra(i,j,k,iphosph)*vol
+        ztmp2(i,j) = ocetra(i,j,k,iano3)*vol
       enddo
     enddo
-    call xcsum(zphosph,ztmp2,ips)
-
-    k=1
-    ztmp1(:,:)=0.0
-    ztmp2(:,:)=0.0
-    do j=1,kpje
-      do i=1,kpie
-        ztmp1(i,j) = omask(i,j)*dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
-        ztmp2(i,j) = ocetra(i,j,k,iano3)*ztmp1(i,j)
-      enddo
-    enddo
+    call xcsum(zphosph,ztmp1,ips)
     call xcsum(zano3,ztmp2,ips)
 
     !=== atmosphere flux and atmospheric CO2
