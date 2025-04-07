@@ -50,7 +50,7 @@ contains
                               igasnit,iopal,ioxygen,iphosph,iphy,ipowaic,ipowaox,ipowaph,ipowasi,  &
                               ipown2,ipowno3,isco212,isilica,isssc12,issso12,issssil,izoo,         &
                               irdin,irdip,irsi,iralk,irdoc,irdet,nocetra,npowtra,nsedtra,nriv,     &
-                              ianh4,iano2,iatmnh3,ipownh4,ipown2o,ipowno2
+                              ianh4,iano2,iatmnh3,ipownh4,ipown2o,ipowno2,iatmdms
     use mo_vgrid,       only: dp_min
 
     ! NOT sedbypass
@@ -333,6 +333,7 @@ contains
       co2flux = sum2d(atmflx(:,:,iatmco2))
       so2flux = sum2d(atmflx(:,:,iatmo2))
       sn2flux = sum2d(atmflx(:,:,iatmn2))
+      sdmsflux = sum2d(atmflx(:,:,iatmdms))
       sn2oflux = sum2d(atmflx(:,:,iatmn2o))
       if (use_extNcycle) then
         snh3flux = sum2d(atmflx(:,:,iatmnh3))
@@ -355,6 +356,7 @@ contains
       co2flux = sum2d(bgct2d(:,:,jco2flux))
       so2flux = sum2d(bgct2d(:,:,jo2flux))
       sn2flux = sum2d(bgct2d(:,:,jn2flux))
+      sdmsflux = sum2d(atmflx(:,:,iatmdms))
       sn2oflux = sum2d(bgct2d(:,:,jn2oflux))
       if (use_extNcycle) then
         snh3flux = sum2d(bgct2d(:,:,jnh3flux))
