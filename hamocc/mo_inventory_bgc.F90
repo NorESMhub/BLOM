@@ -902,8 +902,8 @@ contains
           call nccheck( NF90_DEF_VAR(ncid, 'zsedtotvol', NF90_DOUBLE, time_dimid,   &
                &    zsedtotvol_varid) )
           call nccheck( NF90_PUT_ATT(ncid, zsedtotvol_varid, 'long_name',           &
-               &    'Total sediment volume') )
-          call nccheck( NF90_PUT_ATT(ncid, zsedtotvol_varid, 'units', 'L') )
+               &    'Total sediment pore water volume') )
+          call nccheck( NF90_PUT_ATT(ncid, zsedtotvol_varid, 'units', 'm^3') )
 
           call nccheck( NF90_DEF_VAR(ncid, 'zpowtratot', NF90_DOUBLE,               &
                &    zpowtra_dimids, zpowtratot_varid) )
@@ -915,7 +915,13 @@ contains
                &    zpowtra_dimids, zpowtratoc_varid) )
           call nccheck( NF90_PUT_ATT(ncid, zpowtratoc_varid, 'long_name',           &
                &    'Aqueous sediment concentration') )
-          call nccheck( NF90_PUT_ATT(ncid, zpowtratoc_varid, 'units', 'kmol/L') )
+          call nccheck( NF90_PUT_ATT(ncid, zpowtratoc_varid, 'units', 'kmol/m^3') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'sedfluxo', NF90_DOUBLE,                 &
+               &    zpowtra_dimids, sum_sedfluxo_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, sum_sedfluxo_varid, 'long_name',         &
+               &    'Aqueous sediment tracer diffusive fluxes') )
+          call nccheck( NF90_PUT_ATT(ncid, sum_sedfluxo_varid, 'units', 'kmol/s') )
 
           !--- non-aqueous sediment tracers
           call nccheck( NF90_DEF_VAR(ncid, 'zsedlayto', NF90_DOUBLE,                &
@@ -1682,6 +1688,7 @@ contains
           call nccheck( NF90_INQ_VARID(ncid, 'zsedtotvol', zsedtotvol_varid) )
           call nccheck( NF90_INQ_VARID(ncid, 'zpowtratot', zpowtratot_varid) )
           call nccheck( NF90_INQ_VARID(ncid, 'zpowtratoc', zpowtratoc_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, 'sedfluxo',   sum_sedfluxo_varid) )
           !--- non-aqueous sediment tracers
           call nccheck( NF90_INQ_VARID(ncid, 'zsedlayto', zsedlayto_varid) )
           call nccheck( NF90_INQ_VARID(ncid, 'zburial', zburial_varid) )
@@ -1849,6 +1856,8 @@ contains
              &     start = zpowtra_wrstart, count = zpowtra_count) )
         call nccheck( NF90_PUT_VAR(ncid, zpowtratoc_varid, zpowtratoc,                &
              &     start = zpowtra_wrstart, count = zpowtra_count) )
+        call nccheck( NF90_PUT_VAR(ncid, sum_sedfluxo_varid, sum_sedfluxo/dtbgc,      &
+             &     start = zpowtra_wrstart,count = zpowtra_count) )
         !--- non-aqueous sediment tracers
         call nccheck( NF90_PUT_VAR(ncid, zsedlayto_varid, zsedlayto,                  &
              &     start = zsedtra_wrstart, count = zsedtra_count) )
