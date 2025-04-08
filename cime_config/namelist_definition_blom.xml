@@ -5632,7 +5632,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,1,0</value>
+      <value>0,1,2</value>
       <value hamocc_output_size="spinup">1,2</value>
     </values>
     <desc>Writing the BGC inventory files at BGC frequencies</desc>
