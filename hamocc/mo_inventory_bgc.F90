@@ -748,6 +748,10 @@ contains
       !--- time: dimension and variable id
       integer :: time_dimid
       integer :: time_varid
+      !--- River
+      integer :: nriv_dimid,nriv_dimids(2),sriv_varid
+      integer :: nriv_wrstart(2)    ! record start point
+      integer :: nriv_count(2)      ! record count
 
       ! NOT sedbypass
       !--- aqueous sediment tracers
@@ -882,6 +886,9 @@ contains
           call nccheck( NF90_DEF_DIM(ncid, 'npowtra', npowtra, npowtra_dimid) )
           call nccheck( NF90_DEF_DIM(ncid, 'nsedtra', nsedtra, nsedtra_dimid) )
         endif
+        if (do_rivinpt) then
+          call nccheck( NF90_DEF_DIM(ncid, 'nriv', nriv, nriv_dimid) )
+        endif
         call nccheck( NF90_DEF_DIM(ncid, 'time', NF90_UNLIMITED, time_dimid) )
 
         !--- Dimensions for arrays.
@@ -889,6 +896,9 @@ contains
         if (.not. use_sedbypass) then
           zpowtra_dimids = (/ npowtra_dimid, time_dimid /)
           zsedtra_dimids = (/ nsedtra_dimid, time_dimid /)
+        endif
+        if (do_rivinpt) then
+          nriv_dimids = (/ nriv_dimid, time_dimid /)
         endif
 
         !--- Define variables : time
@@ -942,6 +952,13 @@ contains
           call nccheck( NF90_PUT_ATT(ncid, zsedhplto_varid, 'long_name',            &
                &    'Total sediment accumulated hydrogen ions') )
           call nccheck( NF90_PUT_ATT(ncid, zsedhplto_varid, 'units', 'kmol') )
+        endif
+        if (do_rivinpt) then
+          call nccheck( NF90_DEF_VAR(ncid, 'rivinput', NF90_DOUBLE,                 &
+               &    nriv_dimids, sriv_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, sriv_varid, 'long_name',                 &
+               &    'Total riverine tracer fluxes') )
+          call nccheck( NF90_PUT_ATT(ncid, sriv_varid, 'units', 'kmol(?)') )
         endif
 
         !--- Define variables : oceanic tracers
@@ -1708,6 +1725,9 @@ contains
           call nccheck( NF90_INQ_VARID(ncid, 'zburial', zburial_varid) )
           call nccheck( NF90_INQ_VARID(ncid, 'zsedhplto', zsedhplto_varid) )
         endif
+        if (do_rivinpt) then
+          call nccheck( NF90_INQ_VARID(ncid, 'rivinput', sriv_varid) )
+        endif
 
         !--- Inquire varid : ocean tracers
         call nccheck( NF90_INQ_VARID(ncid, "ztotvol", ztotvol_varid) )
@@ -1859,6 +1879,10 @@ contains
         zsedtra_wrstart = (/ 1, ncrec(iogrp) /)
         zsedtra_count = (/ nsedtra, 1 /)
       endif
+      if (do_rivinpt) then
+        nriv_wrstart = (/ 1, ncrec(iogrp) /)
+        nriv_count   = (/ nriv, 1 /)
+      endif
 
       !=== Write output data to netCDF file
       !--- Write data : time
@@ -1881,6 +1905,9 @@ contains
              &     start = zsedtra_wrstart, count = zsedtra_count) )
         call nccheck( NF90_PUT_VAR(ncid, zsedhplto_varid, zsedhplto,                  &
              &     start = wrstart) )
+      endif
+      if (do_rivinpt) then
+        call nccheck( NF90_PUT_VAR(ncid, sriv_varid, srivflux,start=nriv_wrstart,count=nriv_count))
       endif
       !--- Write data : ocean tracers
       call nccheck( NF90_PUT_VAR(ncid, ztotvol_varid, ztotvol, start = wrstart) )
