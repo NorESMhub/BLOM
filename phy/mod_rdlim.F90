@@ -20,7 +20,7 @@
 
 module mod_rdlim
 
-  use mod_config,      only: expcnf, runid, inst_suffix
+  use mod_config,      only: expcnf, runid, inst_suffix, runtyp, rpoint
   use mod_constants,   only: epsilt
   use mod_calendar,    only: date_type, daynum_diff, calendar_errstr, &
                              operator(==), operator(<), operator(/=)
@@ -124,11 +124,12 @@ contains
 
     ! Local variables
     type(date_type) :: date0_rest
-    character(len = 256) :: nlfnm,runtyp,rstfnm
+    character(len = 256) :: nlfnm,rstfnm
+    character(len = 256) :: l_rpfile
     logical :: fexist
     integer :: m,n,idate,idate0,nfu,ios
 
-    namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,runtyp, &
+    namelist /limits/ nday1,nday2,idate,idate0,runid,runtyp, rpoint, expcnf, &
          grfile,icfile,pref,baclin,batrop, &
          mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo, &
          vsc2hi,vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls, &
@@ -178,8 +179,9 @@ contains
       write (lp,*) 'IDATE',IDATE
       write (lp,*) 'IDATE0',IDATE0
       write (lp,*) 'RUNID ',trim(RUNID)
-      write (lp,*) 'EXPCNF ',trim(EXPCNF)
       write (lp,*) 'RUNTYP ',trim(RUNTYP)
+      write (lp,*) 'RPOINT ',trim(RPOINT)
+      write (lp,*) 'EXPCNF ',trim(EXPCNF)
       write (lp,*) 'GRFILE ',trim(GRFILE)
       write (lp,*) 'ICFILE ',trim(ICFILE)
       write (lp,*) 'PREF',PREF
@@ -263,8 +265,9 @@ contains
     call xcbcst(idate)
     call xcbcst(idate0)
     call xcbcst(runid)
-    call xcbcst(expcnf)
     call xcbcst(runtyp)
+    call xcbcst(rpoint)
+    call xcbcst(expcnf)
     call xcbcst(grfile)
     call xcbcst(icfile)
     call xcbcst(pref)
@@ -959,57 +962,79 @@ contains
         nstep1 = nstep0
 
       else
+        ! for runtyp equal 'hybrid' a
+        !  a valid restart file is expected as icfile
+        if (runtyp == 'hybrid'.or. runtyp == 'branch') then
+          rstfnm=icfile
+        else
 
-        ! for runtyp equal 'hybrid', 'branch' or 'continue' a
-        ! 'rpointer.ocn' file containing the path to a valid restart
-        ! file is expected and integration time is retrieved from
-        ! restart file
+          ! For runtypes 'branch' or 'continue' override namelist date
+          ! with date extracted from restart file name in rpointer
+          if (rpoint /= 'unset') then
+            if (mnproc == 1) inquire(file = rpoint, exist = fexist)
+            call xcbcst(fexist)
+            if (.not. fexist) then
+              ! try rpointer without timestamp
+              if (mnproc == 1) then
+                 inquire(file = 'rpointer.ocn'//trim(inst_suffix), exist = fexist)
+              endif
+              if (fexist) then
+                rpoint = 'rpointer.ocn'//trim(inst_suffix)
+                call xcbcst(rpoint)
+              else
+                if (mnproc == 1) then
+                  write(lp,*) 'rdlim: could not find ' // rpoint // &
+                  ' or rpointer.ocn' // trim(inst_suffix)
+                endif
+              endif
+            endif
+            if (mnproc == 1) then
+              open (newunit = nfu, file = rpoint)
+              read (nfu,'(a)') rstfnm
+              close (unit = nfu)
+            endif
+            call xcbcst(rstfnm)
+          else
+            if (mnproc == 1) then
+              write(lp,*) 'rdlim: runtyp or continue ' // &
+              'but rpoint is unset'
+            endif
+          endif
 
-        if (mnproc == 1) &
-             inquire(file='rpointer.ocn'//trim(inst_suffix),exist = fexist)
+        endif
+
+        ! check restart file
+        if (mnproc == 1) inquire(file=rstfnm,exist = fexist)
         call xcbcst(fexist)
-        if (.not.fexist) then
+        if (.not. fexist) then
           if (mnproc == 1) then
-            write (lp,*) 'rdlim: could not find rpointer.ocn file!'
-          end if
+            write(lp,*) 'rdlim: could not find restart file: ' // &
+            trim(rstfnm)
+          endif
           call xcstop('(rdlim)')
           stop '(rdlim)'
-        end if
-        if (mnproc == 1) then
-          open (newunit=nfu,file = 'rpointer.ocn'//trim(inst_suffix))
-          read (nfu,'(a)') rstfnm
-          close (unit = nfu)
-          inquire(file=rstfnm,exist = fexist)
-        end if
-        call xcbcst(fexist)
-        if (.not.fexist) then
-          if (mnproc == 1) then
-            write (lp,*) 'rdlim: could not find restart file!'
-          end if
-          call xcstop('(rdlim)')
-          stop '(rdlim)'
-        end if
-        call xcbcst(rstfnm)
+        endif
         call ncfopn(rstfnm,'r',' ',1,iotype)
         call ncgeti('nday0',date0_rest%day)
         call ncgeti('nmonth0',date0_rest%month)
         call ncgeti('nyear0',date0_rest%year)
         call ncgetr('time0',time0)
         call ncgetr('time',time)
+        call ncfcls
         nday1 = nint(time-time0)
+        n = 1
+        do while (n < 256.and.rstfnm(n:n) /= ' ')
+          n = n+1
+        end do
+        n = n-1
+        read (rstfnm(n-18:n-15),'(i4)') date%year
+        read (rstfnm(n-13:n-12),'(i2)') date%month
+        read (rstfnm(n-10:n-9 ),'(i2)') date%day
 
         if (runtyp == 'hybrid') then
 
           !-- When runtyp equal 'hybrid' the ocean integration starts
           !-- after first coupling interval.
-          n = 1
-          do while (n < 256.and.rstfnm(n:n) /= ' ')
-            n = n+1
-          end do
-          n = n-1
-          read (rstfnm(n-18:n-15),'(i4)') date%year
-          read (rstfnm(n-13:n-12),'(i2)') date%month
-          read (rstfnm(n-10:n-9 ),'(i2)') date%day
           if (date == date0) then
             date0 = date0_rest
             nstep1 = nday1*nstep_in_day+nstep0
@@ -1018,29 +1043,17 @@ contains
             nday1 = 0
             nstep1 = nstep0
             date = date0
-          end if
+          endif
 
         else
 
+          ! For runtypes 'branch' or 'continue' override namelist date
+          ! Done before the condition. Here, only override 0
           date0 = date0_rest
           nstep1 = nday1*nstep_in_day
-
-          ! For runtypes 'branch' or 'continue' override namelist date
-          ! with date extracted from restart file name
-
-          n = 1
-          do while (n < 256.and.rstfnm(n:n) /= ' ')
-            n = n+1
-          end do
-          n = n-1
-          read (rstfnm(n-18:n-15),'(i4)') date%year
-          read (rstfnm(n-13:n-12),'(i2)') date%month
-          read (rstfnm(n-10:n-9 ),'(i2)') date%day
           call set_day_of_year
 
         end if
-
-        call ncfcls
 
       end if
 

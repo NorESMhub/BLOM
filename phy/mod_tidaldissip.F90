@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2020 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2015-2025 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -24,7 +24,7 @@ module mod_tidaldissip
 ! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
-   use mod_constants, only: spval, M_mks2cgs
+   use mod_constants, only: spval
    use mod_xc
    use mod_checksum, only: csdiag, chksummsk
    use netcdf
@@ -151,18 +151,6 @@ contains
       endif
 
       call xcaput(tmpg, twedon, 1)
-
-      ! Change units from [W s m-2 = kg s-2] to [g s-2].
-   !$omp parallel do private(l, i)
-      do j = 1, jj
-         do l = 1, isp(j)
-         do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
-            twedon(i, j) = twedon(i, j)*M_mks2cgs
-         enddo
-         enddo
-      enddo
-   !$omp end parallel do
-
       call xctilr(twedon,  1, 1, nbdy, nbdy, halo_ps)
 
       if (csdiag) then

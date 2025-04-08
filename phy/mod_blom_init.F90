@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2024 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
+! Copyright (C) 2008-2025 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -20,7 +20,7 @@
 module mod_blom_init
 
   use dimensions,          only: itdm, nreg
-  use mod_config,          only: expcnf
+  use mod_config,          only: expcnf, runtyp
   use mod_time,            only: date, nday1, nday2, nstep1, nstep2, nstep, delt1, &
                                  time0, baclin
   use mod_timing,          only: init_timing, get_time
@@ -62,16 +62,12 @@ module mod_blom_init
 contains
 
   subroutine blom_init()
-  ! ------------------------------------------------------------------
-  ! initialize the model
-  ! ------------------------------------------------------------------
 
     ! Local variables
     integer :: istat,ncid,varid,i,j,k,l,m,n,mm,nn,k1m,k1n,mt,mmt,kn,km
     real    :: q
     logical :: icrest,fexist
     integer :: icrest_int
-
     ! ---------------------------------------------------------------
     ! Initialize SPMD processing
     ! ------------------------------------------------------------------
@@ -95,6 +91,11 @@ contains
     ! ------------------------------------------------------------------
 
     call crcinit
+
+  ! ------------------------------------------------------------------
+  ! initialize the model
+  ! ------------------------------------------------------------------
+
 
     ! ------------------------------------------------------------------
     ! Read limits file
@@ -180,16 +181,20 @@ contains
     icrest = .false.
     icrest_int = 0
     if (mnproc == 1) then
-      inquire(file=icfile,exist = fexist)
-      if (fexist) then
-        istat = nf90_open(icfile,nf90_nowrite,ncid)
-        if (istat == nf90_noerr) then
-          istat = nf90_inq_varid(ncid,'dp',varid)
+      if ( expcnf == 'cesm' .and. runtyp /= 'startup') then
+        icrest = .true.
+      else
+        inquire(file=icfile,exist = fexist)
+        if (fexist) then
+          istat = nf90_open(icfile,nf90_nowrite,ncid)
           if (istat == nf90_noerr) then
-            icrest = .true.
+            istat = nf90_inq_varid(ncid,'dp',varid)
+            if (istat == nf90_noerr) then
+              icrest = .true.
+            end if
           end if
         end if
-      end if
+      endif
       if (icrest) icrest_int = 1
     end if
     call xcbcst(icrest_int)
@@ -226,7 +231,7 @@ contains
 
       call restart_read()
 
-    end if
+    endif
 
     ! ------------------------------------------------------------------
     ! Initialize model time step and set time level indices consistent
@@ -426,7 +431,7 @@ contains
   !------------------------------------------------------------------------
 
     use mod_types,     only: r8
-    use mod_constants, only: g, spval, L_mks2cgs
+    use mod_constants, only: grav, spval
     use mod_time,      only: baclin
     use mod_xc
     use mod_grid,      only: scqx, scqy, scpx, scpy, scuy, scvx, scp2, depths
@@ -464,9 +469,9 @@ contains
       do l = 1, isp(j)
         do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
           btdtmx = min(btdtmx, &
-                      scpx(i, j)*scpy(i, j) &
-                      /sqrt(g*depths(i, j)*L_mks2cgs*( scpx(i, j)*scpx(i, j) &
-                      + scpy(i, j)*scpy(i, j))))
+                       scpx(i, j)*scpy(i, j) &
+                       /sqrt(grav*depths(i, j)*( scpx(i, j)*scpx(i, j) &
+                                               + scpy(i, j)*scpy(i, j))))
         enddo
       enddo
     enddo

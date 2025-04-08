@@ -101,6 +101,16 @@
     <desc>run type (a)</desc>
   </entry>
 
+  <entry id="rpoint">
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>unset</value>
+    </values>
+    <desc>name of the rpointer file (a)</desc>
+    <type>char</type>
+  </entry>
+
   <entry id="grfile" is_inputdata="yes">
     <type>char</type>
     <category>limits</category>
@@ -141,9 +151,8 @@
     <group>limits</group>
     <values>
       <value>2000.e4</value>
-      <value blom_unit="cgs">2000.e5</value>
     </values>
-    <desc>Reference pressure for potential density (g/cm/s2) (f)</desc>
+    <desc>Reference pressure for potential density (kg/m/s2) (f)</desc>
   </entry>
 
   <entry id="baclin">
@@ -188,13 +197,10 @@
     <group>limits</group>
     <values>
       <value>.02</value>
-      <value blom_unit="cgs">2.</value>
-      <value ocn_grid="tnx0.25v4"  blom_unit="cgs">.15</value>
-      <value ocn_grid="tnx0.25v4"  blom_unit="mks">.0015</value>
-      <value ocn_grid="tnx0.125v4" blom_unit="cgs">.1</value>
-      <value ocn_grid="tnx0.125v4" blom_unit="mks">.001</value>
+      <value ocn_grid="tnx0.25v4" >.0015</value>
+      <value ocn_grid="tnx0.125v4">.001</value>
     </values>
-    <desc>Laplacian diffusion velocity for momentum dissipation (cm/s) (f)</desc>
+    <desc>Laplacian diffusion velocity for momentum dissipation (m/s) (f)</desc>
   </entry>
 
   <entry id="mdv2lo">
@@ -203,13 +209,10 @@
     <group>limits</group>
     <values>
       <value>.004</value>
-      <value blom_unit="cgs">.4</value>
-      <value ocn_grid="tnx0.25v4"  blom_unit="cgs">.15</value>
-      <value ocn_grid="tnx0.25v4"  blom_unit="mks">.0015</value>
-      <value ocn_grid="tnx0.125v4" blom_unit="cgs">.1</value>
-      <value ocn_grid="tnx0.125v4" blom_unit="mks">.001</value>
+      <value ocn_grid="tnx0.25v4" >.0015</value>
+      <value ocn_grid="tnx0.125v4">.001</value>
     </values>
-    <desc>Laplacian diffusion velocity for momentum dissipation (cm/s) (f)</desc>
+    <desc>Laplacian diffusion velocity for momentum dissipation (m/s) (f)</desc>
   </entry>
 
   <entry id="mdv4hi">
@@ -219,7 +222,7 @@
     <values>
       <value>0.</value>
     </values>
-    <desc>Biharmonic diffusion velocity for momentum dissipation (cm/s) (f)</desc>
+    <desc>Biharmonic diffusion velocity for momentum dissipation (m/s) (f)</desc>
   </entry>
 
   <entry id="mdv4lo">
@@ -229,7 +232,7 @@
     <values>
       <value>0.</value>
     </values>
-    <desc>Biharmonic diffusion velocity for momentum dissipation (cm/s) (f)</desc>
+    <desc>Biharmonic diffusion velocity for momentum dissipation (m/s) (f)</desc>
   </entry>
 
   <entry id="mdc2hi">
@@ -238,13 +241,10 @@
     <group>limits</group>
     <values>
       <value>5000.</value>
-      <value blom_unit="cgs">5000.e4</value>
-      <value ocn_grid="tnx0.25v4"  blom_unit="cgs">300.e4</value>
-      <value ocn_grid="tnx0.25v4"  blom_unit="mks">300.</value>
-      <value ocn_grid="tnx0.125v4" blom_unit="cgs">300.e4</value>
-      <value ocn_grid="tnx0.125v4" blom_unit="mks">300.</value>
+      <value ocn_grid="tnx0.25v4" >300.</value>
+      <value ocn_grid="tnx0.125v4">300.</value>
     </values>
-    <desc>Laplacian diffusivity for momentum dissipation (cm**2/s) (f)</desc>
+    <desc>Laplacian diffusivity for momentum dissipation (m**2/s) (f)</desc>
   </entry>
 
   <entry id="mdc2lo">
@@ -253,13 +253,10 @@
     <group>limits</group>
     <values>
       <value>300.</value>
-      <value blom_unit="cgs">300.e4</value>
-      <value ocn_grid="tnx0.25v4"  blom_unit="cgs">300.e4</value>
-      <value ocn_grid="tnx0.25v4"  blom_unit="mks">300.</value>
-      <value ocn_grid="tnx0.125v4" blom_unit="cgs">100.e4</value>
-      <value ocn_grid="tnx0.125v4" blom_unit="mks">100.</value>
+      <value ocn_grid="tnx0.25v4" >300.</value>
+      <value ocn_grid="tnx0.125v4">100.</value>
     </values>
-    <desc>Laplacian diffusivity for momentum dissipation (cm**2/s) (f)</desc>
+    <desc>Laplacian diffusivity for momentum dissipation (m**2/s) (f)</desc>
   </entry>
 
   <entry id="vsc2hi">
@@ -316,9 +313,8 @@
     <group>limits</group>
     <values>
       <value>.05</value>
-      <value blom_unit="cgs">5.</value>
     </values>
-    <desc>rms flow speed for linear bottom friction law (cm/s) (f)</desc>
+    <desc>rms flow speed for linear bottom friction law (m/s) (f)</desc>
   </entry>
 
   <entry id="cb">
@@ -488,7 +484,6 @@
     <group>limits</group>
     <values>
       <value>5000.</value>
-      <value blom_unit="cgs">5000.e2</value>
     </values>
     <desc>Minimum length scale of mixed layer fronts</desc>
   </entry>
@@ -519,7 +514,6 @@
     <group>limits</group>
     <values>
       <value>1.e-7</value>
-      <value blom_unit="cgs">1.e-3</value>
     </values>
     <desc>Minimum vertical momentum flux (Bodner et al., 2023)</desc>
   </entry>
@@ -1172,11 +1166,8 @@
     <group>ale_regrid_remap</group>
     <values>
       <value>50000.</value>
-      <value blom_unit="cgs">50000.e4</value>
-      <value ocn_grid="tnx0.25v4"  blom_unit="mks">40000.</value>
-      <value ocn_grid="tnx0.25v4"  blom_unit="cgs">40000.e4</value>
-      <value ocn_grid="tnx0.125v4" blom_unit="mks">20000.</value>
-      <value ocn_grid="tnx0.125v4" blom_unit="cgs">20000.e4</value>
+      <value ocn_grid="tnx0.25v4" >40000.</value>
+      <value ocn_grid="tnx0.125v4">20000.</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -1283,9 +1274,8 @@
     <group>diffusion</group>
     <values>
       <value>4000.</value>
-      <value blom_unit="cgs">4000.e2</value>
     </values>
-    <desc>Minimum eddy length scale in  E. and G. (2008) param. (cm) (f)</desc>
+    <desc>Minimum eddy length scale in  E. and G. (2008) param. (m) (f)</desc>
   </entry>
 
   <entry id="egmndf">
@@ -1294,11 +1284,9 @@
     <group>diffusion</group>
     <values>
       <value>1.</value>
-      <value blom_unit="cgs">1.e4</value>
       <value ocn_grid="tnx0.125v4">0.</value>
-      <value ocn_grid="tnx0.125v4" blom_unit="cgs">0.</value>
     </values>
-    <desc>Minimum diffusivity in E. and G. (2008) param. (cm**2/s) (f)</desc>
+    <desc>Minimum diffusivity in E. and G. (2008) param. (m**2/s) (f)</desc>
   </entry>
 
   <entry id="egmxdf">
@@ -1307,11 +1295,9 @@
     <group>diffusion</group>
     <values>
       <value>2500.</value>
-      <value blom_unit="cgs">2500.e4</value>
       <value ocn_grid="tnx0.125v4">0.</value>
-      <value ocn_grid="tnx0.125v4" blom_unit="mks">0.</value>
     </values>
-    <desc>Maximum diffusivity in E. and G. (2008) param. (cm**2/s) (f)</desc>
+    <desc>Maximum diffusivity in E. and G. (2008) param. (m**2/s) (f)</desc>
   </entry>
 
   <entry id="egidfq">
@@ -1406,7 +1392,6 @@
     <group>diffusion</group>
     <values>
       <value>5.e-8</value>
-      <value blom_unit="cgs">5.e-4</value>
     </values>
     <desc>Background diapycnal diffusivity times buoyancy frequency</desc>
   </entry>
@@ -1417,9 +1402,8 @@
     <group>diffusion</group>
     <values>
       <value>1.e-5</value>
-      <value blom_unit="cgs">.1</value>
     </values>
-    <desc>Background diapycnal diffusivity (cm**2/s) (f)</desc>
+    <desc>Background diapycnal diffusivity (m**2/s) (f)</desc>
   </entry>
 
   <entry id="bdmldp">
@@ -1578,6 +1562,7 @@
     <group>diaphy</group>
     <values>
       <value>'hd','hm','hy'</value>
+      <value blom_output_size="spinup">'hd','hm','hy'</value>
     </values>
     <desc>tag used in file name (c10)</desc>
   </entry>
@@ -1588,6 +1573,7 @@
     <group>diaphy</group>
     <values>
       <value>1,30,365</value>
+      <value blom_output_size="spinup">1,30,365</value>
     </values>
     <desc>average period in days</desc>
   </entry>
@@ -1600,6 +1586,7 @@
       <value>30,30,365</value>
       <value is_test="yes">1,30,365</value>
       <value is_test="yes" is_test_pfs="yes">30,30,365</value>
+      <value blom_output_size="spinup">30,30,365</value>
     </values>
     <desc>how often to start a new file in days</desc>
   </entry>
@@ -1610,6 +1597,7 @@
     <group>diaphy</group>
     <values>
       <value>0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>switch for compressed/uncompressed output</desc>
   </entry>
@@ -1622,6 +1610,7 @@
       <value>0,0,0</value>
       <value pio_netcdf_format_ocn="64bit_offset">1,1,1</value>
       <value pio_netcdf_format_ocn="64bit_data">1,1,1</value>
+      <value blom_output_size="spinup">1,1,1</value>
     </values>
     <desc>
       netcdf format (valid arguments are 0 for classic, 1 for 64-bit
@@ -1637,6 +1626,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>absolute wind speed [m s-1]</desc>
   </entry>
@@ -1648,6 +1638,7 @@
     <values>
       <value>0,0,0</value>
       <value is_test="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>surface albedo []</desc>
   </entry>
@@ -1660,6 +1651,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>Barotropic mass streamfunction [kg s-1]</desc>
   </entry>
@@ -1672,6 +1664,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>brine flux [kg m-2 s-1]</desc>
   </entry>
@@ -1684,6 +1677,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>brine plume depth [m]</desc>
   </entry>
@@ -1696,6 +1690,7 @@
       <value>0,0,0</value>
       <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>non-solar heat flux derivative [W m-2 K-1]</desc>
   </entry>
@@ -1708,6 +1703,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>evaporation [kg m-2 s-1]</desc>
   </entry>
@@ -1720,6 +1716,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>ice concentration [%]</desc>
   </entry>
@@ -1732,6 +1729,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>fresh water flux due to melting/freezing [kg m-2 s-1]</desc>
   </entry>
@@ -1744,6 +1742,7 @@
       <value>0,0,0</value>
       <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>ice thickness [m]</desc>
   </entry>
@@ -1756,6 +1755,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>heat flux due to melting/freezing [W m-2]</desc>
   </entry>
@@ -1768,6 +1768,7 @@
       <value>0,0,0</value>
       <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>snow depth [m]</desc>
   </entry>
@@ -1780,6 +1781,7 @@
       <value>0,0,0</value>
       <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>ice age [d]</desc>
   </entry>
@@ -1792,6 +1794,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>mixed layer inertial kinetic energy tendency [kg s-3]</desc>
   </entry>
@@ -1804,6 +1807,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>Langmuir enhancement factor []</desc>
   </entry>
@@ -1816,6 +1820,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>Surface layer averaged Langmuir number []</desc>
   </entry>
@@ -1828,6 +1833,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>liquid precipitation [kg m-2 s-1]</desc>
   </entry>
@@ -1840,6 +1846,7 @@
       <value>4,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>maximum mixed layer depth [m]</desc>
   </entry>
@@ -1852,6 +1859,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>mixed layer depth [m]</desc>
   </entry>
@@ -1864,6 +1872,7 @@
       <value>4,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">4,4,0</value>
     </values>
     <desc>mixed layer thickness using "sigma-t" criterion [m]</desc>
   </entry>
@@ -1876,6 +1885,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>minimum mixed layer thickness using "sigma-t" criterion [m]</desc>
   </entry>
@@ -1888,6 +1898,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>maximum mixed layer thickness using "sigma-t" criterion [m]</desc>
   </entry>
@@ -1900,6 +1911,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>mixed layer thickness squared using "sigma-t" criterion [m2]</desc>
   </entry>
@@ -1912,6 +1924,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>mixed layer TKE tendency related to friction velocity [kg s-3]</desc>
   </entry>
@@ -1924,6 +1937,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>mixed layer TKE tendency related to near inertial mot. [kg s-3]</desc>
   </entry>
@@ -1936,6 +1950,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>mixed layer TKE tendency related to buoyancy forcing [kg s-3]</desc>
   </entry>
@@ -1948,6 +1963,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>mixed layer TKE tendency related to eddy restrat. [kg s-3]</desc>
   </entry>
@@ -1960,6 +1976,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>mixed layer TKE tendency related to pot. energy change [kg s-3]</desc>
   </entry>
@@ -1972,6 +1989,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>mixed layer TKE tendency related to kin. energy change [kg s-3]</desc>
   </entry>
@@ -1984,6 +2002,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>wind stress y-component [N m-2]</desc>
   </entry>
@@ -1996,6 +2015,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>non-solar heat flux [W m-2]</desc>
   </entry>
@@ -2008,6 +2028,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>bottom pressure [Pa]</desc>
   </entry>
@@ -2020,6 +2041,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>surface pressure [Pa]</desc>
   </entry>
@@ -2032,6 +2054,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>frozen runoff [kg m-2 s-1]</desc>
   </entry>
@@ -2044,6 +2067,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>liquid runoff [kg m-2 s-1]</desc>
   </entry>
@@ -2056,6 +2080,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>salt flux received by ocean [kg m-2 s-1]</desc>
   </entry>
@@ -2068,6 +2093,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>restoring salt flux received by ocean [kg m-2 s-1]</desc>
   </entry>
@@ -2080,6 +2106,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>bottom salinity [g kg-1]</desc>
   </entry>
@@ -2092,6 +2119,7 @@
       <value>4,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">4,4,0</value>
     </values>
     <desc>sea level [m]</desc>
   </entry>
@@ -2104,6 +2132,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>sea level squared [m2]</desc>
   </entry>
@@ -2116,6 +2145,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>salt flux [kg m-2 s-1]</desc>
   </entry>
@@ -2128,6 +2158,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>solid precipitation [kg m-2 s-1]</desc>
   </entry>
@@ -2140,6 +2171,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>mixed layer density [kg m-3]</desc>
   </entry>
@@ -2152,6 +2184,7 @@
       <value>4,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">4,4,0</value>
     </values>
     <desc>ocean surface salinity [g kg-1]</desc>
   </entry>
@@ -2164,6 +2197,7 @@
       <value>4,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>ocean surface salinity squared [g2 kg-2]</desc>
   </entry>
@@ -2176,6 +2210,7 @@
       <value>4,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">4,4,0</value>
     </values>
     <desc>ocean surface temperature [degC]</desc>
   </entry>
@@ -2188,6 +2223,7 @@
       <value>4,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>ocean surface temperature squared [degC2]</desc>
   </entry>
@@ -2200,6 +2236,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>heat flux received by ocean [W m-2]</desc>
   </entry>
@@ -2212,6 +2249,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>restoring heat flux received by ocean [W m-2]</desc>
   </entry>
@@ -2224,6 +2262,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>short-wave heat flux [W m-2]</desc>
   </entry>
@@ -2236,6 +2275,7 @@
       <value>4,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>20C isoterm depth [m]</desc>
   </entry>
@@ -2248,6 +2288,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>momentum flux received by ocean x-component [N m-2]</desc>
   </entry>
@@ -2260,6 +2301,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>momentum flux received by ocean y-component [N m-2]</desc>
   </entry>
@@ -2272,6 +2314,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>bottom temperature [degC]</desc>
   </entry>
@@ -2284,6 +2327,7 @@
       <value>0,0,0</value>
       <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>ice temperature [degC]</desc>
   </entry>
@@ -2296,6 +2340,7 @@
       <value>0,0,0</value>
       <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>surface temperature [degC]</desc>
   </entry>
@@ -2308,6 +2353,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>barotropic velocity x-component [m s-1]</desc>
   </entry>
@@ -2320,6 +2366,7 @@
       <value>0,0,0</value>
       <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>ice velocity x-component [m s-1]</desc>
   </entry>
@@ -2332,6 +2379,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>friction velocity [m s-1]</desc>
   </entry>
@@ -2344,6 +2392,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>friction velocity cubed [m3 s-3]</desc>
   </entry>
@@ -2356,6 +2405,7 @@
       <value>0,0,0</value>
       <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>surface Stokes drift x-componen [m s-1]</desc>
   </entry>
@@ -2368,6 +2418,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>barotropic velocity y-component [m s-1]</desc>
   </entry>
@@ -2380,6 +2431,7 @@
       <value>0,0,0</value>
       <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>ice velocity y-component [m s-1]</desc>
   </entry>
@@ -2392,6 +2444,7 @@
       <value>0,0,0</value>
       <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>surface Stokes drift y-componen [m s-1]</desc>
   </entry>
@@ -2404,6 +2457,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>wind stress x-component [N m-2]</desc>
   </entry>
@@ -2416,6 +2470,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>buoyancy frequency squared [s-1]</desc>
   </entry>
@@ -2428,6 +2483,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>vertical diffusivity [log10(m2 s-1)|m2 s-1]</desc>
   </entry>
@@ -2440,6 +2496,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>vertical momentum diffusivity [log10(m2 s-1)|m2 s-1]</desc>
   </entry>
@@ -2452,6 +2509,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>vertical heat diffusivity [log10(m2 s-1)|m2 s-1]</desc>
   </entry>
@@ -2464,6 +2522,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>vertical salt diffusivity [log10(m2 s-1)|m2 s-1]</desc>
   </entry>
@@ -2476,6 +2535,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>layer interface diffusivity [log10(m2 s-1)]</desc>
   </entry>
@@ -2488,6 +2548,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>isopycnal diffusivity [log10(m2 s-1)]</desc>
   </entry>
@@ -2500,6 +2561,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2512,6 +2574,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2524,6 +2587,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2536,6 +2600,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2548,6 +2613,7 @@
       <value>0,0,0</value>
       <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2560,6 +2626,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2572,6 +2639,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2584,6 +2652,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2596,6 +2665,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2608,6 +2678,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2620,6 +2691,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2632,6 +2704,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2644,6 +2717,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2656,6 +2730,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2668,6 +2743,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2680,6 +2756,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2692,6 +2769,7 @@
       <value>0,4,0</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2704,6 +2782,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2716,6 +2795,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2728,6 +2808,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2740,6 +2821,7 @@
       <value>0,0,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2752,6 +2834,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2764,6 +2847,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2776,6 +2860,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2788,6 +2873,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2800,6 +2886,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2812,6 +2899,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2824,6 +2912,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2836,6 +2925,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2848,6 +2938,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2860,6 +2951,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2872,6 +2964,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2884,6 +2977,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2896,6 +2990,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2908,6 +3003,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2920,6 +3016,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2932,6 +3029,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2944,6 +3042,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2956,6 +3055,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2968,6 +3068,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2980,6 +3081,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -2992,6 +3094,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3004,6 +3107,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3016,6 +3120,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3028,6 +3133,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3040,6 +3146,7 @@
       <value>0,0,0</value>
       <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3052,6 +3159,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3064,6 +3172,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3076,6 +3185,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3088,6 +3198,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3100,6 +3211,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3112,6 +3224,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3124,6 +3237,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3136,6 +3250,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3148,6 +3263,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3160,6 +3276,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3172,6 +3289,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3184,6 +3302,7 @@
       <value>0,4,0</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3196,6 +3315,7 @@
       <value>0,4,0</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3210,6 +3330,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3222,6 +3343,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3234,6 +3356,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3246,6 +3369,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3258,6 +3382,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3270,6 +3395,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3282,6 +3408,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3294,6 +3421,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3306,6 +3434,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3318,6 +3447,7 @@
       <value>0,0,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3330,6 +3460,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3342,6 +3473,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3354,6 +3486,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3366,6 +3499,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3378,6 +3512,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3390,6 +3525,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3402,6 +3538,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3414,6 +3551,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3426,6 +3564,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3438,6 +3577,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3450,6 +3590,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3462,6 +3603,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3474,6 +3616,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3486,6 +3629,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3498,6 +3642,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3510,6 +3655,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3522,6 +3668,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3534,6 +3681,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3546,6 +3694,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3558,6 +3707,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3570,6 +3720,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3582,6 +3733,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3594,6 +3746,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3606,6 +3759,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3618,6 +3772,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3630,6 +3785,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3642,6 +3798,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3654,6 +3811,7 @@
       <value>0,4,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3858,6 +4016,7 @@
       <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_CMIP6_tnx0.25v4_20190912.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_CMIP6_tnx0.25v4_20200826.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx0.25v4_20190705.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="ssp"  ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndeposition_201501-210012-${BLOM_NDEP_SCENARIO}_tnx0.25v4_20250325.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_CMIP6_tnx0.125v4_20221013.nc</value>
     </values>
    <desc>File name (incl. full path) for atmopheric N-deposition data</desc>
@@ -4753,6 +4912,36 @@
     <desc>Sediment: remineralization rate (at reference temperature) (1/(kmol O2/m3 s))</desc>
   </entry>
   
+  <entry id="sed_O2thresh_hypoxic">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: O2 threshold below which denitrification takes place </desc>
+  </entry>
+
+  <entry id="sed_O2thresh_sulf">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: O2 threshold below which sulfate reduction takes place </desc>
+  </entry>
+
+  <entry id="sed_NO3thresh_sulf">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: NO3 threshold below which sulfate reduction takes place </desc>
+  </entry>
+
   <entry id="sed_denit">
     <type>real</type>
     <category>bgcparams</category>
@@ -4760,7 +4949,17 @@
     <values>
       <value>None</value>
     </values>
-    <desc>Sediment: denitrification/sulfate reduction rate (1/s))</desc>
+    <desc>Sediment: denitrification rate (1/s)</desc>
+  </entry>
+
+  <entry id="sed_sulf">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sediment: sulfate reduction rate (1/s)</desc>
   </entry>
 
   <entry id="disso_sil">
@@ -5375,6 +5574,7 @@
     <group>diabgc</group>
     <values>
       <value>'hbgcd','hbgcm','hbgcy'</value>
+      <value hamocc_output_size="spinup">'hbgcm','hbgcy'</value>
     </values>
     <desc>File name extension for BGC output frequencies</desc>
   </entry>
@@ -5385,6 +5585,7 @@
     <group>diabgc</group>
     <values>
       <value>1,30,365</value>
+      <value hamocc_output_size="spinup">30,365</value>
     </values>
     <desc>Averaging period for BGC diagnostic output</desc>
   </entry>
@@ -5397,6 +5598,7 @@
       <value>30,30,365</value>
       <value is_test="yes">1,30,365</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">30,365</value>
     </values>
     <desc>Frequency for writing the BGC output</desc>
   </entry>
@@ -5407,6 +5609,7 @@
     <group>diabgc</group>
     <values>
       <value>0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>switch for compressed/uncompressed output</desc>
   </entry>
@@ -5419,6 +5622,7 @@
       <value>0,0,0</value>
       <value pio_netcdf_format_ocn="64bit_offset">1,1,1</value>
       <value pio_netcdf_format_ocn="64bit_data">1,1,1</value>
+      <value hamocc_output_size="spinup">1,1</value>
     </values>
     <desc>netcdf format (valid arguments are 0 for classic, 1 for 64-bit offset and 2 for netcdf4/hdf5 format)</desc>
   </entry>
@@ -5429,6 +5633,7 @@
     <group>diabgc</group>
     <values>
       <value>0,1,2</value>
+      <value hamocc_output_size="spinup">1,2</value>
     </values>
     <desc>Writing the BGC inventory files at BGC frequencies</desc>
   </entry>
@@ -5438,9 +5643,9 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Phosphorus (po4) [mol P m-3]</desc>
   </entry>
@@ -5453,6 +5658,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Oxygen (o2) [mol O2 m-3]</desc>
   </entry>
@@ -5465,6 +5671,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Dissolved iron (dfe) [mol Fe m-3]</desc>
   </entry>
@@ -5477,6 +5684,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Nitrate (no3) [mol N m-3]</desc>
   </entry>
@@ -5489,6 +5697,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Surface nitrite concentration [mol NO2 m-3] - extended N cycle only</desc>
   </entry>
@@ -5501,6 +5710,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Surface ammonium concentration [mol NH4 m-3] - extended N cycle only</desc>
   </entry>
@@ -5513,6 +5723,7 @@
       <value>4,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Natural alkalinity (nattalk) [eq m-3]</desc>
   </entry>
@@ -5525,6 +5736,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Surface silicate concentration [mol Si m-3]</desc>
   </entry>
@@ -5537,6 +5749,7 @@
       <value>4,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Dissolved carbon (dissic) [mol C m-3]</desc>
   </entry>
@@ -5549,6 +5762,7 @@
       <value>4,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Phytoplankton (phyc) [mol C m-3]</desc>
   </entry>
@@ -5561,6 +5775,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>pH (ph) [-log10([h+])]</desc>
   </entry>
@@ -5573,6 +5788,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Export production (epc100) [mol C m-2 s-1]</desc>
   </entry>
@@ -5585,6 +5801,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Si export production (epsi100) [mol Si m-2 s-1]</desc>
   </entry>
@@ -5597,6 +5814,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Ca export production (epcalc100) [mol Ca m-2 s-1]</desc>
   </entry>
@@ -5609,6 +5827,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Piston velocity (kwco2)  [m s-1]</desc>
   </entry>
@@ -5621,6 +5840,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Piston velocity times solubility (kwco2*kh0) [m s-1 mol kg-1 uatm-1]</desc>
   </entry>
@@ -5633,6 +5853,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>CO2 solubility (kh0) [mol kg-1 uatm-1]</desc>
   </entry>
@@ -5645,6 +5866,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Surface CO2 fugacity [uatm]</desc>
   </entry>
@@ -5657,6 +5879,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Surface pCO2 [uatm]</desc>
   </entry>
@@ -5669,6 +5892,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>CO2 dry air mixing ratio that would be in equilibrium with the surface ocean [ppm]</desc>
   </entry>
@@ -5681,6 +5905,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Atmospheric pCO2 at the air-sea interface as seen by the gas-exchange parameterization [uatm]</desc>
   </entry>
@@ -5693,6 +5918,7 @@
       <value>4,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Downward CO2 flux (co2fxd) [kg C m-2 s-1]</desc>
   </entry>
@@ -5705,6 +5931,7 @@
       <value>4,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Upward CO2 flux (co2fxu) [kg C m-2 s-1]</desc>
   </entry>
@@ -5717,6 +5944,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Oxygen flux (fgo2) [mol O2 m-2 s-1]</desc>
   </entry>
@@ -5729,6 +5957,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Nitrogen flux (fgn2) [mol N2 m-2 s-1]</desc>
   </entry>
@@ -5741,6 +5970,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Surface pN2O under moist air [uatm]</desc>
   </entry>
@@ -5753,6 +5983,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Nitrous oxide flux [mol N2O m-2 s-1]</desc>
   </entry>
@@ -5765,6 +5996,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Surface pNH3 under moist air [natm]</desc>
   </entry>
@@ -5777,6 +6009,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Ammonia flux [mol NH3 m-2 s-1]</desc>
   </entry>
@@ -5789,6 +6022,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>DMS flux (dmsflux) [mol DMS m-2 s-1]</desc>
   </entry>
@@ -5801,6 +6035,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>surface DMS concentration (dms) [mol DMS m-3]</desc>
   </entry>
@@ -5813,6 +6048,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>DMS production (dmsprod) [mol DMS m-2 s-1]</desc>
   </entry>
@@ -5825,6 +6061,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>DMS bacterial consuption (dms_bac) [mol DMS m-2 s-1]</desc>
   </entry>
@@ -5837,6 +6074,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>DMS decomposition by UV (dms_uv) [mol DMS m-2 s-1]</desc>
   </entry>
@@ -5849,6 +6087,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Atmospheric CO2 (atmco2) [ppm]</desc>
   </entry>
@@ -5861,6 +6100,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Atmospheric O2 (atmo2) [ppm]</desc>
   </entry>
@@ -5873,6 +6113,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Atmospheric N2 (atmn2) [ppm]</desc>
   </entry>
@@ -5885,6 +6126,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Atmospheric NH3 [ppt]</desc>
   </entry>
@@ -5897,6 +6139,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Atmospheric N2O [ppt]</desc>
   </entry>
@@ -5909,6 +6152,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Natural dissolved carbon (natdissic) [mol C m-3]</desc>
   </entry>
@@ -5921,6 +6165,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Natural alkalinity (nattalk) [eq m-3]</desc>
   </entry>
@@ -5933,6 +6178,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Natural pH (natph) [-log10([h+])]</desc>
   </entry>
@@ -5945,6 +6191,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Natural surface PCO2 (spco2) [uatm]</desc>
   </entry>
@@ -5957,6 +6204,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Natural net CO2 flux (natco2fx) [kg C m-2 s-1]</desc>
   </entry>
@@ -5969,6 +6217,7 @@
       <value>0,2,2</value>
       <value is_test="yes">0,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Downward 13CO2 flux (co213fxd) [kg C m-2 s-1]</desc>
   </entry>
@@ -5981,6 +6230,7 @@
       <value>0,2,2</value>
       <value is_test="yes">0,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Upward 13CO2 flux (co213fxu) [kg C m-2 s-1]</desc>
   </entry>
@@ -5993,6 +6243,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Downward 14CO2 flux (co214fxd) [kg C m-2 s-1]</desc>
   </entry>
@@ -6005,6 +6256,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Upward 14CO2 flux (co214fxu) [kg C m-2 s-1]</desc>
   </entry>
@@ -6017,6 +6269,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>CFC11 flux [mol CFC11 m-2 s-1]</desc>
   </entry>
@@ -6029,6 +6282,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>CFC12 flux [mol CFC12 m-2 s-1]</desc>
   </entry>
@@ -6041,6 +6295,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>SF6 flux [mol SF6 m-2 s-1]</desc>
   </entry>
@@ -6053,6 +6308,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Atmospheric bromoform [ppt]</desc>
   </entry>
@@ -6065,6 +6321,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Surface bromoform concentration [mol CHBr3 m-3]</desc>
   </entry>
@@ -6077,6 +6334,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Surface bromoform flux [mol CHBr3 -m2 s-1]</desc>
   </entry>
@@ -6089,6 +6347,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Integrated bromoform production [mol CHBr3 m-2 s-1]</desc>
   </entry>
@@ -6101,6 +6360,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Integrated bromoform loss to photolysis [mol CHBr m-2 s-1]</desc>
   </entry>
@@ -6113,6 +6373,7 @@
       <value>4,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Primary production (pp) [mol C m-3 s-1]</desc>
   </entry>
@@ -6125,6 +6386,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Vertically integrated nitrogen fixation</desc>
   </entry>
@@ -6137,6 +6399,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Vertically integrated denitrification</desc>
   </entry>
@@ -6149,6 +6412,7 @@
       <value>0,0,0</value>
       <value blom_n_deposition="yes">0,2,2</value>
       <value blom_n_deposition="yes" is_test="yes">4,2,2</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>NOy nitrogen deposition flux [mol N m-2 s-1]</desc>
   </entry>
@@ -6161,6 +6425,7 @@
       <value>0,0,0</value>
       <value blom_n_deposition="yes">0,2,2</value>
       <value blom_n_deposition="yes" is_test="yes">4,2,2</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>NHx nitrogen deposition flux [mol N m-2 s-1] - extended N cycle only</desc>
   </entry>
@@ -6173,6 +6438,7 @@
       <value>0,0,0</value>
       <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>namelist for diagnostic iHAMOCC output</desc>
   </entry>
@@ -6185,6 +6451,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Gravitational POC flux at 100m [mol C m-2 s-1]</desc>
   </entry>
@@ -6197,6 +6464,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Gravitational POC flux at 500m [mol C m-2 s-1]</desc>
   </entry>
@@ -6209,6 +6477,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Gravitational POC flux at 1000m [mol C m-2 s-1]</desc>
   </entry>
@@ -6221,6 +6490,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Gravitational POC flux at 2000m [mol C m-2 s-1]</desc>
   </entry>
@@ -6233,6 +6503,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Gravitational POC flux at 4000m [mol C m-2 s-1]</desc>
   </entry>
@@ -6245,6 +6516,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Gravitational POC flux to the sediment [mol C m-2 s-1]</desc>
   </entry>
@@ -6257,6 +6529,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Gravitational dust fluxes at 100m</desc>
   </entry>
@@ -6269,6 +6542,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Gravitational dust fluxes at 500m</desc>
   </entry>
@@ -6281,6 +6555,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Gravitational dust fluxes at 1000m</desc>
   </entry>
@@ -6293,6 +6568,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Gravitational dust fluxes at 2000m</desc>
   </entry>
@@ -6305,6 +6581,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Gravitational dust fluxes at 4000m</desc>
   </entry>
@@ -6317,6 +6594,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Gravitational dust fluxes to sediment</desc>
   </entry>
@@ -6329,6 +6607,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Gravitational opal flux at 100m [mol Si m-2 s-1]</desc>
   </entry>
@@ -6341,6 +6620,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Gravitational opal flux at 500m [mol Si m-2 s-1]</desc>
   </entry>
@@ -6353,6 +6633,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Gravitational opal flux at 1000m [mol Si m-2 s-1]</desc>
   </entry>
@@ -6365,6 +6646,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Gravitational opal flux at 2000m [mol Si m-2 s-1]</desc>
   </entry>
@@ -6377,6 +6659,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Gravitational opal flux at 4000m [mol Si m-2 s-1]</desc>
   </entry>
@@ -6389,6 +6672,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Gravitational opal flux to the sediment [mol Si m-2 s-1]</desc>
   </entry>
@@ -6401,6 +6685,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Gravitational CaCO3 flux at 100m [mol Ca m-2 s-1]</desc>
   </entry>
@@ -6413,6 +6698,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Gravitational CaCO3 flux at 500m [mol Ca m-2 s-1]</desc>
   </entry>
@@ -6425,6 +6711,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Gravitational CaCO3 flux at 1000m [mol Ca m-2 s-1]</desc>
   </entry>
@@ -6437,6 +6724,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Gravitational CaCO3 flux at 2000m [mol Ca m-2 s-1]</desc>
   </entry>
@@ -6449,6 +6737,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Gravitational CaCO3 flux at 4000m [mol Ca m-2 s-1]</desc>
   </entry>
@@ -6461,6 +6750,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Gravitational CaCO3 flux to the sediment [mol Ca m-2 s-1]</desc>
   </entry>
@@ -6473,6 +6763,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Phytoplankton [mol P m-3]</desc>
   </entry>
@@ -6485,6 +6776,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Zooplankton [mol P m-3]</desc>
   </entry>
@@ -6497,6 +6789,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Dissolved organic carbon [mol P m-3]</desc>
   </entry>
@@ -6509,6 +6802,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Primary production [mol C m-3]</desc>
   </entry>
@@ -6521,6 +6815,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Phosphorus (po4) [mol P m-3]</desc>
   </entry>
@@ -6533,6 +6828,7 @@
       <value>0,0,4</value>
       <value is_test="yes">4,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Oxygen (o2) [mol O2 m-3]</desc>
   </entry>
@@ -6545,6 +6841,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Dissolved iron (dfe) [mol Fe m-3]</desc>
   </entry>
@@ -6557,6 +6854,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Nitrate concentration [mol NO3 m-3]</desc>
   </entry>
@@ -6569,6 +6867,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Nitrite concentration [mol NO2 m-3] - extended N cycle only</desc>
   </entry>
@@ -6581,6 +6880,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Ammonium concentration [mol NH4 m-3] - extended N cycle only</desc>
   </entry>
@@ -6593,6 +6893,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>nitrification rate on NH4 [mol NH4 m-3 s-1] - extended N cycle only   </desc>
   </entry>
@@ -6605,6 +6906,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>nitrification rate on NO2 [mol NO2 m-3 s-1] - extended N cycle only</desc>
   </entry>
@@ -6617,6 +6919,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>N2O production rate during nitrification on NH4 [mol N2O m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -6629,6 +6932,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>detritus production during nitrification on NH4 [mol P m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -6641,6 +6945,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>detritus production during nitrification on NO2 [mol P m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -6653,6 +6958,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>denitrification rate on NO3 [mol NO3 m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -6665,6 +6971,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>denitrification rate on NO2 [mol NO2 m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -6677,6 +6984,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>denitrification rate on N20 [mol N20 m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -6689,6 +6997,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>DNRA on NO2 [mol NO2 m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -6701,6 +7010,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>anammox N2 production [mol N2 m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -6713,6 +7023,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>anammox detritus production [mol P m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -6725,6 +7036,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only </desc>
   </entry>
@@ -6737,6 +7049,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only </desc>
   </entry>
@@ -6749,6 +7062,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>aerob remineralization rate (sev. sources) [mol NH4 m-3 s-1] - ext. N cycle only </desc>
   </entry>
@@ -6761,6 +7075,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>sulfate-based remin rate on det [mol P m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -6773,6 +7088,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>M4AGO aggregate mean settling velocity [m/d]</desc>
   </entry>
@@ -6785,6 +7101,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>molecular dynamic viscosity of sea water [kg m-1 s-1]</desc>
   </entry>
@@ -6797,6 +7114,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>stickiness of opal frustule [-]</desc>
   </entry>
@@ -6809,6 +7127,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>stickiness of opal frustule [-]</desc>
   </entry>
@@ -6821,6 +7140,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>maximum aggregate diameter [m]</desc>
   </entry>
@@ -6833,6 +7153,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>mean primary particle diameter [m]</desc>
   </entry>
@@ -6845,6 +7166,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>mean primary particle density [kg/m3]</desc>
   </entry>
@@ -6857,6 +7179,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>concentration weighted mean diameter of aggregates [m]</desc>
   </entry>
@@ -6869,6 +7192,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>fractal dimension of aggregates [-]</desc>
   </entry>
@@ -6881,6 +7205,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>slope of aggregate number distribution [-]</desc>
   </entry>
@@ -6893,6 +7218,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Volume-weighted mean aggregate density [kg m-3]</desc>
   </entry>
@@ -6905,6 +7231,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Volume-weighted mean aggregate porosity [-]</desc>
   </entry>
@@ -6917,6 +7244,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Alkalinity [eq m-3]</desc>
   </entry>
@@ -6929,6 +7257,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Silicate [mol Si m-3]</desc>
   </entry>
@@ -6941,6 +7270,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Dissolved inorganic carbon [mol C m-3]</desc>
   </entry>
@@ -6953,6 +7283,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Detritus [mol P m-3]</desc>
   </entry>
@@ -6965,6 +7296,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>CaCO3 shells (calc) [mol C m-3]</desc>
   </entry>
@@ -6977,6 +7309,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Opal shells (opal) [mol Si m-3]</desc>
   </entry>
@@ -6989,6 +7322,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Carbonate ions (co3) [mol C m-3]</desc>
   </entry>
@@ -7001,6 +7335,7 @@
       <value>0,0,0</value>
       <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Nitrous oxide concentration [mol N2O m-3]</desc>
   </entry>
@@ -7013,6 +7348,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>pH [-log10([H+])]</desc>
   </entry>
@@ -7025,6 +7361,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Calcite saturation state (omegac) [1]</desc>
   </entry>
@@ -7037,6 +7374,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Natural aragonite saturation state (natomegaa) [1]</desc>
   </entry>
@@ -7049,6 +7387,7 @@
       <value>0,0,4</value>
       <value is_test="yes">4,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>preformed oxygen (p_o2) [mol O2 m-3]</desc>
   </entry>
@@ -7061,6 +7400,7 @@
       <value>0,0,4</value>
       <value is_test="yes">4,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Saturated oxygen (satoxy) [mol O2 m-3]</desc>
   </entry>
@@ -7073,6 +7413,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Preformed phosphorus [mol P m-3]</desc>
   </entry>
@@ -7085,6 +7426,7 @@
       <value>0,0,4</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Pre-formed silica [mol Si m-3]</desc>
   </entry>
@@ -7097,6 +7439,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>preformed alkalinity (p_talk) [eq m-3]</desc>
   </entry>
@@ -7109,6 +7452,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>preformed DIC (p_dic) [mol C m-3]</desc>
   </entry>
@@ -7121,6 +7465,7 @@
       <value>0,4,4</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Shelfsea water residence time [d]</desc>
   </entry>
@@ -7134,6 +7479,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>saturated DIC (dic_sat) [mol C m-3]</desc>
   </entry>
@@ -7146,6 +7492,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Natural dissolved carbon (natdissic) [mol C m-3]</desc>
   </entry>
@@ -7158,6 +7505,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Natural alkalinity (nattalk) [eq m-3]</desc>
   </entry>
@@ -7170,6 +7518,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Natural carbonate ion concentration (natco3) [mol C m-3]</desc>
   </entry>
@@ -7182,6 +7531,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Natural CaCO3 shells (natcalc) [mol C m-3]</desc>
   </entry>
@@ -7194,6 +7544,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Natural pH (natph) [-log10([h+])]</desc>
   </entry>
@@ -7206,6 +7557,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Natural calcite saturation state (natomegac) [1]</desc>
   </entry>
@@ -7218,6 +7570,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Natural aragonite saturation state (natomegaa) [1]</desc>
   </entry>
@@ -7230,6 +7583,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Dissolved C13 (dissic13) [mol C m-3]</desc>
   </entry>
@@ -7242,6 +7596,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Dissolved C14 (dissic14) [mol C m-3]</desc>
   </entry>
@@ -7254,6 +7609,7 @@
       <value>0,0,2</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>at-depth variable sediment porosity (as opposed to default: only depth) </desc>
   </entry>
@@ -7266,6 +7622,7 @@
       <value>0,0,2</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>delta 14C of DIC [1]</desc>
   </entry>
@@ -7278,6 +7635,7 @@
       <value>0,0,2</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Delta 14C of DIC [1]</desc>
   </entry>
@@ -7290,6 +7648,7 @@
       <value>0,0,2</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Particulate organic carbon 13 (detoc13) [mol C m-3]</desc>
   </entry>
@@ -7302,6 +7661,7 @@
       <value>0,0,2</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Dissolved organic carbon 13 (dissoc13) [mol C m-3]</desc>
   </entry>
@@ -7314,6 +7674,7 @@
       <value>0,0,2</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Particulate inorganic carbon 13 (calc13) [mol C m-3]</desc>
   </entry>
@@ -7326,6 +7687,7 @@
       <value>0,0,2</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>13C of phytoplankton biomass (phyc13) [mol C m-3]</desc>
   </entry>
@@ -7338,6 +7700,7 @@
       <value>0,0,2</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>13C of zootoplankton biomass (zooc13) [mol C m-3]</desc>
   </entry>
@@ -7350,6 +7713,7 @@
       <value>0,0,2</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>CFC11 concentration [mol CFC11 m-3]</desc>
   </entry>
@@ -7362,6 +7726,7 @@
       <value>0,0,2</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>CFC12 concentration [mol CFC12 m-3]</desc>
   </entry>
@@ -7374,6 +7739,7 @@
       <value>0,0,2</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>SF6 concentration [mol SF6 m-3]</desc>
   </entry>
@@ -7386,6 +7752,7 @@
       <value>0,0,2</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>index of point diagnostics (i)</desc>
   </entry>
@@ -7398,6 +7765,7 @@
       <value>0,0,2</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Mass sinking velocity (aggregate scheme) [m d-1]</desc>
   </entry>
@@ -7410,6 +7778,7 @@
       <value>0,0,2</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Number sinking velocity (aggregate scheme) [m d-1]</desc>
   </entry>
@@ -7422,6 +7791,7 @@
       <value>0,0,0</value>
       <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Epsilon exponent (aggregate scheme) [1]</desc>
   </entry>
@@ -7434,6 +7804,7 @@
       <value>0,0,0</value>
       <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Average particle size (aggregate scheme)</desc>
   </entry>
@@ -7444,6 +7815,7 @@
     <group>diabgc</group>
     <values>
       <value>0,0,2</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Bromoform [mol CHBr3 m-3]</desc>
   </entry>
@@ -7456,6 +7828,7 @@
       <value>0,2,2</value>
       <value is_test="yes">0,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Layer thickness [m]</desc>
   </entry>
@@ -7468,6 +7841,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Phytoplankton (phyc) [mol C m-3]</desc>
   </entry>
@@ -7480,6 +7854,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Zooplankton (zooc) [mol C m-3]</desc>
   </entry>
@@ -7492,6 +7867,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Dissolved organic carbon (dissoc) [mol C m-3]</desc>
   </entry>
@@ -7504,6 +7880,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Primary production (pp) [mol C m-3 s-1]</desc>
   </entry>
@@ -7516,6 +7893,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Phosphorus (po4) [mol P m-3]</desc>
   </entry>
@@ -7528,6 +7906,7 @@
       <value>0,4,4</value>
       <value is_test="yes">4,4,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,4</value>
     </values>
     <desc>Oxygen (o2) [mol O2 m-3]</desc>
   </entry>
@@ -7540,6 +7919,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>eposition</desc>
   </entry>
@@ -7552,6 +7932,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Nitrate (no3) [mol N m-3]</desc>
   </entry>
@@ -7564,6 +7945,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Nitrite concentration [mol NO2 m-3] - extended N cycle only</desc>
   </entry>
@@ -7576,6 +7958,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Ammonium concentration [mol NH4 m-3] - extended N cycle only</desc>
   </entry>
@@ -7588,6 +7971,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>nitrification rate on NH4 [mol NH4 m-3 s-1] - extended N cycle only   </desc>
   </entry>
@@ -7600,6 +7984,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>nitrification rate on NO2 [mol NO2 m-3 s-1] - extended N cycle only</desc>
   </entry>
@@ -7612,6 +7997,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>N2O production rate during nitrification on NH4 [mol N2O m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -7624,6 +8010,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>detritus production during nitrification on NH4 [mol P m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -7636,6 +8023,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>detritus production during nitrification on NO2 [mol P m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -7648,6 +8036,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>denitrification rate on NO3 [mol NO3 m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -7660,6 +8049,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>denitrification rate on NO2 [mol NO2 m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -7672,6 +8062,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>denitrification rate on N20 [mol N20 m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -7684,6 +8075,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>DNRA on NO2 [mol NO2 m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -7696,6 +8088,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>anammox N2 production [mol N2 m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -7708,6 +8101,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>anammox detritus production [mol P m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -7720,6 +8114,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only </desc>
   </entry>
@@ -7732,6 +8127,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only </desc>
   </entry>
@@ -7744,6 +8140,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>aerob remineralization rate (sev. sources) [mol NH4 m-3 s-1] - ext. N cycle only </desc>
   </entry>
@@ -7756,6 +8153,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>sulfate-based remin rate on det [mol P m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -7768,6 +8166,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>M4AGO aggregate mean settling velocity [m/d]</desc>
   </entry>
@@ -7780,6 +8179,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>molecular dynamic viscosity of sea water [kg m-1 s-1]</desc>
   </entry>
@@ -7792,6 +8192,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>stickiness of opal frustule [-]</desc>
   </entry>
@@ -7804,6 +8205,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>stickiness of opal frustule [-]</desc>
   </entry>
@@ -7816,6 +8218,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>maximum aggregate diameter [m]</desc>
   </entry>
@@ -7828,6 +8231,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>mean primary particle diameter [m]</desc>
   </entry>
@@ -7840,6 +8244,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>mean primary particle density [kg/m3]</desc>
   </entry>
@@ -7852,6 +8257,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>concentration weighted mean diameter of aggregates [m]</desc>
   </entry>
@@ -7864,6 +8270,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>fractal dimension of aggregates [-]</desc>
   </entry>
@@ -7876,6 +8283,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>slope of aggregate number distribution [-]</desc>
   </entry>
@@ -7888,6 +8296,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Volume-weighted mean aggregate density [kg m-3]</desc>
   </entry>
@@ -7900,6 +8309,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Volume-weighted mean aggregate porosity [-]</desc>
   </entry>
@@ -7912,6 +8322,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Alkalinity (talk) [eq m-3]</desc>
   </entry>
@@ -7924,6 +8335,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Silicate (si) [mol Si m-3]</desc>
   </entry>
@@ -7936,6 +8348,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Dissolved carbon (dissic) [mol C m-3]</desc>
   </entry>
@@ -7948,6 +8361,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Detrius (detoc) [mol C m-3]</desc>
   </entry>
@@ -7960,6 +8374,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>CaCO3 shells (calc) [mol C m-3]</desc>
   </entry>
@@ -7972,6 +8387,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Opal shells (opal) [mol Si m-3]</desc>
   </entry>
@@ -7984,6 +8400,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>]</desc>
   </entry>
@@ -7996,6 +8413,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Nitrous oxide concentration [mol N2O m-3]</desc>
   </entry>
@@ -8008,6 +8426,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>pH [-log10(H+)]</desc>
   </entry>
@@ -8020,6 +8439,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Calcite saturation state (omegac) [1]</desc>
   </entry>
@@ -8032,6 +8452,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Aragonite saturation state (omegaa) [1]</desc>
   </entry>
@@ -8044,6 +8465,7 @@
       <value>0,4,4</value>
       <value is_test="yes">4,4,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,4</value>
     </values>
     <desc>preformed oxygen (p_o2) [mol O2 m-3]</desc>
   </entry>
@@ -8054,6 +8476,7 @@
     <group>diabgc</group>
     <values>
       <value>0,4,4</value>
+      <value hamocc_output_size="spinup">0,4</value>
     </values>
     <desc>Saturated oxygen (satoxy) [mol O2 m-3]</desc>
   </entry>
@@ -8066,6 +8489,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>preformed phosphate (p_po4) [mol PO4 m-3]</desc>
   </entry>
@@ -8078,6 +8502,7 @@
       <value>0,4,4</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Pre-formed silica [mol m-3]</desc>
   </entry>
@@ -8090,6 +8515,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>preformed alkalinity (p_talk) [eq m-3]</desc>
   </entry>
@@ -8102,6 +8528,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>preformed DIC (p_dic) [mol C m-3]</desc>
   </entry>
@@ -8114,6 +8541,7 @@
       <value>0,4,4</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Shelfsea water residence time [d]</desc>
   </entry>
@@ -8126,6 +8554,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>saturated DIC (dic_sat) [mol C m-3]</desc>
   </entry>
@@ -8138,6 +8567,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Natural dissolved carbon (natdissic) [mol C m-3]</desc>
   </entry>
@@ -8150,6 +8580,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Natural alkalinity (nattalk) [eq m-3]</desc>
   </entry>
@@ -8162,6 +8593,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Natural carbonate ion concentration (natco3) [mol C m-3]</desc>
   </entry>
@@ -8174,6 +8606,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Natural CaCO3 shells (natcalc) [mol C m-3]</desc>
   </entry>
@@ -8186,6 +8619,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Natural pH (natph) [-log10([h+])]</desc>
   </entry>
@@ -8198,6 +8632,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Natural calcite saturation state (natomegac) [1]</desc>
   </entry>
@@ -8210,6 +8645,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Natural aragonite saturation state (natomegaa) [1]</desc>
   </entry>
@@ -8222,6 +8658,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Dissolved C13 (dissic13) [mol C m-3]</desc>
   </entry>
@@ -8234,6 +8671,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Dissolved C14 (dissic14) [mol C m-3]</desc>
   </entry>
@@ -8246,6 +8684,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>delta 13C of DIC [1]</desc>
   </entry>
@@ -8258,6 +8697,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Particulate organic carbon 13 (detoc13) [mol C m-3]</desc>
   </entry>
@@ -8270,6 +8710,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Dissolved organic carbon 13 (dissoc13) [mol C m-3]</desc>
   </entry>
@@ -8282,6 +8723,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Particulate inorganic carbon 13 (calc13) [mol C m-3]</desc>
   </entry>
@@ -8294,6 +8736,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>13C of phytoplankton biomass (phyc13) [mol C m-3]</desc>
   </entry>
@@ -8306,6 +8749,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>13C of zootoplankton biomass (zooc13) [mol C m-3]</desc>
   </entry>
@@ -8318,6 +8762,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>CFC11 concentration [mol CFC11 m-3]</desc>
   </entry>
@@ -8330,6 +8775,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>CFC12 concentration [mol CFC12 m-3]</desc>
   </entry>
@@ -8342,6 +8788,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>SF6 concentration [mol SF6 m-3]</desc>
   </entry>
@@ -8354,6 +8801,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Number of sinking particles (aggregate scheme,nos) [cm-3]</desc>
   </entry>
@@ -8366,6 +8814,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Mass sinking velocity (aggregate scheme) [m d-1]</desc>
   </entry>
@@ -8378,6 +8827,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Number sinking velocity (aggregate scheme) [m d-1]</desc>
   </entry>
@@ -8390,6 +8840,7 @@
       <value>0,0,0</value>
       <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Epsilon exponent (aggregate scheme) [1]</desc>
   </entry>
@@ -8402,6 +8853,7 @@
       <value>0,0,0</value>
       <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Average particle size (aggregate scheme)</desc>
   </entry>
@@ -8414,6 +8866,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Bromoform [mol CHBr3 m-3]</desc>
   </entry>
@@ -8426,6 +8879,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Diffusive DIC flux to sediment (positive downward) [mol C m-2 s-1]</desc>
   </entry>
@@ -8438,6 +8892,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Diffusive alkalinity flux to sediment (positive downward) [mol eq m-2 s-1]</desc>
   </entry>
@@ -8450,6 +8905,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Diffusive phosphate flux to sediment (positive downward) [mol P m-2 s-1]</desc>
   </entry>
@@ -8462,6 +8918,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>sediment - water-column diffusive flux of oxygen [mol O2 m-2 s-1]</desc>
   </entry>
@@ -8474,6 +8931,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>sediment - water-column diffusive flux of N2 [mol N2 m-2 s-1]</desc>
   </entry>
@@ -8486,6 +8944,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>sediment - water-column diffusive flux of nitrate [mol NO3 m-2 s-1]</desc>
   </entry>
@@ -8498,6 +8957,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Sediment - water-column diffusive flux of ammonium [mol NH4 m-2 s-1]</desc>
   </entry>
@@ -8510,6 +8970,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Sediment - water-column diffusive flux of N2O [mol N2O m-2 s-1]</desc>
   </entry>
@@ -8522,6 +8983,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Sediment - water-column diffusive flux of nitrite [mol NO2 m-2 s-1]</desc>
   </entry>
@@ -8534,6 +8996,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>sediment - water-column diffusive flux of silica [mol Si m-2 s-1]</desc>
   </entry>
@@ -8546,6 +9009,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>burial fluxes organic carbon [mol P m-2 s-1]</desc>
   </entry>
@@ -8558,6 +9022,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>burial fluxes of calcium carbonate [mol Ca m-2 s-1]</desc>
   </entry>
@@ -8570,6 +9035,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>burial fluxes of silicate [mol Si m-2 s-1]</desc>
   </entry>
@@ -8582,6 +9048,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>burial fluxes of clay [g m-2 s-1]</desc>
   </entry>
@@ -8594,6 +9061,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>(powdic) [mol C m-3]</desc>
   </entry>
@@ -8606,6 +9074,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>(powalk) [eq m-3]</desc>
   </entry>
@@ -8618,6 +9087,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>(powpho) [eq m-3]</desc>
   </entry>
@@ -8630,6 +9100,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>(powox) [mol O2 m-3]</desc>
   </entry>
@@ -8642,6 +9113,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>(pown2) [mol N2 m-3]</desc>
   </entry>
@@ -8654,6 +9126,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>(powno3)[mol N m-3]</desc>
   </entry>
@@ -8666,6 +9139,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>(pownh4) [mol NH4 m-3] - extended N cycle only</desc>
   </entry>
@@ -8678,6 +9152,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>(pown2o) [mol N2O m-3] - extended N cycle only</desc>
   </entry>
@@ -8690,6 +9165,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>(powno2) [mol NO2 m-3] - extended N cycle only</desc>
   </entry>
@@ -8702,6 +9178,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>nitrification rate on NH4 [mol NH4 m-3 s-1] - extended N cycle only   </desc>
   </entry>
@@ -8714,6 +9191,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>nitrification rate on NO2 [mol NO2 m-3 s-1] - extended N cycle only</desc>
   </entry>
@@ -8726,6 +9204,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>N2O production rate during nitrification on NH4 [mol N2O m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -8738,6 +9217,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>detritus production during nitrification on NH4 [mol P m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -8750,6 +9230,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>detritus production during nitrification on NO2 [mol P m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -8762,6 +9243,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>denitrification rate on NO3 [mol NO3 m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -8774,6 +9256,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>denitrification rate on NO2 [mol NO2 m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -8786,6 +9269,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>denitrification rate on N20 [mol N20 m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -8798,6 +9282,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>DNRA on NO2 [mol NO2 m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -8810,6 +9295,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>anammox N2 production [mol N2 m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -8822,6 +9308,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>anammox detritus production [mol P m-3 s-1] - ext. N cycle only</desc>
   </entry>
@@ -8834,6 +9321,7 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>aerob remineralization rate (sev. sources) [mol NH4 m-3 s-1] - ext. N cycle only </desc>
   </entry>
@@ -8846,8 +9334,48 @@
       <value>0,0,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>sulfate-based remin rate on det [mol P m-3 s-1] - ext. N cycle only</desc>
+  </entry>
+
+  <entry id="sdm_rem_aerob">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Sediment: aerob remineralization rate on det [mol P m-3 s-1]</desc>
+  </entry>
+
+  <entry id="sdm_rem_denit">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Sediment: denitrification rate on det [mol P m-3 s-1]</desc>
+  </entry>
+
+  <entry id="sdm_rem_sulf">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Sediment: sulfate-based remin rate on det [mol P m-3 s-1]</desc>
   </entry>
 
   <entry id="sdm_powasi">
@@ -8858,6 +9386,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>(powsi) [mol Si m-3]</desc>
   </entry>
@@ -8870,6 +9399,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>(ssso12) [mol m-3]</desc>
   </entry>
@@ -8882,6 +9412,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>(ssssil) [mol Si m-3]</desc>
   </entry>
@@ -8894,6 +9425,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>(sssc12) [mol C m-3]</desc>
   </entry>
@@ -8906,6 +9438,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>(ssster) [mol m-3]</desc>
   </entry>
@@ -8918,6 +9451,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Sediment reactivity a [yr]</desc>
   </entry>
@@ -8930,6 +9464,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Sediment reactivity k [1/(kmol O2/m3 s)]</desc>
   </entry>
@@ -8942,6 +9477,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Sediment reactivity applied [1/(kmol O2/m3 s)]</desc>
   </entry>
@@ -8954,6 +9490,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Sediment POC age [yr]</desc>
   </entry>
@@ -8966,6 +9503,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Moving-average sedimentation flux [mmol P m-2 d-1)]</desc>
   </entry>
@@ -8978,6 +9516,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>(ssso12) [mol m-3]</desc>
   </entry>
@@ -8990,6 +9529,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>(ssssil) [mol Si m-3]</desc>
   </entry>
@@ -9002,6 +9542,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>(sssc12) [mol C m-3]</desc>
   </entry>
@@ -9014,6 +9555,7 @@
       <value>0,0,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>(ssster) [mol m-3]</desc>
   </entry>

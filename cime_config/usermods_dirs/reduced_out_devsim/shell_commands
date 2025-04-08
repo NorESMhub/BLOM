@@ -1,0 +1,4 @@
+# Limiting the output size/volume to spinup
+# to reduce storage costs  
+./xmlchange BLOM_OUTPUT_SIZE=spinup
+./xmlchange HAMOCC_OUTPUT_SIZE=spinup

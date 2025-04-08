@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2024 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
+! Copyright (C) 2015-2025 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -24,7 +24,7 @@ module mod_cmnfld_routines
   ! ------------------------------------------------------------------------------
 
    use mod_types,     only: r8
-   use mod_constants, only: g, alpha0, rho0, epsilp, onem, onecm, onemm
+   use mod_constants, only: grav, alpha0, rho0, epsilp, onem, onecm, onemm
    use mod_xc
    use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml
    use mod_grid,      only: scuxi, scvyi
@@ -84,10 +84,10 @@ module mod_cmnfld_routines
 
             ! Compute BFSQ in the mixed layer.
             bfsqi(i, j, 1) = &
-               .5_r8*g*g*( rho(p(i, j, 2), &
-                               temp(i, j, 2 + nn), saln(i, j, 2 + nn)) &
-                         - rho(p(i, j, 2), &
-                               temp(i, j, 1 + nn), saln(i, j, 1 + nn))) &
+               .5_r8*grav*grav*( rho(p(i, j, 2), &
+                                     temp(i, j, 2 + nn), saln(i, j, 2 + nn)) &
+                               - rho(p(i, j, 2), &
+                                     temp(i, j, 1 + nn), saln(i, j, 1 + nn))) &
                /(dp(i, j, 1 + nn) + dp(i, j, 2 + nn))
             bfsqi(i, j, 2) = bfsqi(i, j, 1)
             bfsql(i, j, 1) = bfsqi(i, j, 1)
@@ -141,8 +141,8 @@ module mod_cmnfld_routines
                      tlo = temp(i, j, kn)
                      slo = saln(i, j, kn)
                      delp(k) = max(onemm, plo - pup)
-                     bfsqi(i, j, k) = g*g*( rho(p(i, j, k), tlo, slo) &
-                                          - rho(p(i, j, k), tup, sup))/delp(k)
+                     bfsqi(i, j, k) = grav*grav*( rho(p(i, j, k), tlo, slo) &
+                                                - rho(p(i, j, k), tup, sup))/delp(k)
                      bfsq(k) = max(bfsqmn, bfsqi(i, j, k))
                      bfsqi(i, j, k) = bfsqi(i, j, k)*delp(k)/max(onem, delp(k))
                      if (p(i, j, kk + 1) - p(i, j, k) < onem) then
@@ -276,8 +276,8 @@ module mod_cmnfld_routines
                   tlo = temp(i, j, kn)
                   slo = saln(i, j, kn)
                   delp(k) = max(onemm, plo - pup)
-                  bfsqi(i, j, k) = g*g*( rho(p(i, j, k), tlo, slo) &
-                                       - rho(p(i, j, k), tup, sup))/delp(k)
+                  bfsqi(i, j, k) = grav*grav*( rho(p(i, j, k), tlo, slo) &
+                                             - rho(p(i, j, k), tup, sup))/delp(k)
                   bfsq(k) = max(bfsqmn, bfsqi(i, j, k))
                   bfsqi(i, j, k) = bfsqi(i, j, k)*delp(k)/max(onem, delp(k))
                   if (p(i, j, kk + 1) - p(i, j, k) < onem) then
@@ -399,8 +399,8 @@ module mod_cmnfld_routines
                   endif
                   tlo = temp(i, j, kn)
                   slo = saln(i, j, kn)
-                  bfsqi(i, j, k) = g*g*( rho(p(i, j, k), tlo, slo) &
-                                       - rho(p(i, j, k), tup, sup)) &
+                  bfsqi(i, j, k) = grav*grav*( rho(p(i, j, k), tlo, slo) &
+                                             - rho(p(i, j, k), tup, sup)) &
                                    /max(onem, plo - pup)
                   if (p(i, j, kk + 1) - p(i, j, k) < onem) then
                      bfsqi(i, j, k) = bfsqi(i, j, k - 1)
@@ -505,7 +505,7 @@ module mod_cmnfld_routines
                      - rho(pm, temp(i - 1, j, 2 + nn), saln(i - 1, j, 2 + nn))
                phi_x = phi(i, j, 3) - phi(i - 1, j, 3)
                bfsqm = .5_r8*(bfsqf(i - 1, j, 3) + bfsqf(i, j, 3))
-               nslpx(i, j, 3) = (g*rho_x/(rho0*bfsqm) + phi_x/g)*scuxi(i, j)
+               nslpx(i, j, 3) = (grav*rho_x/(rho0*bfsqm) + phi_x/grav)*scuxi(i, j)
                if (phi(i    , j, 3) > phi(i - 1, j, kk + 1) .and. &
                    phi(i - 1, j, 3) > phi(i    , j, kk + 1)) then
                   nnslpx(i, j, 3) = sqrt(bfsqm)*nslpx(i, j, 3)
@@ -527,7 +527,7 @@ module mod_cmnfld_routines
                                           saln(i - 1, j, kn    )))
                   phi_x = phi(i, j, k) - phi(i - 1, j, k)
                   bfsqm = .5_r8*(bfsqf(i - 1, j, k) + bfsqf(i, j, k))
-                  nslpx(i, j, k) = (g*rho_x/(rho0*bfsqm) + phi_x/g)*scuxi(i, j)
+                  nslpx(i, j, k) = (grav*rho_x/(rho0*bfsqm) + phi_x/grav)*scuxi(i, j)
                   if (phi(i    , j, k) > phi(i - 1, j, kk + 1) .and. &
                       phi(i - 1, j, k) > phi(i    , j, kk + 1)) then
                      nnslpx(i, j, k) = sqrt(bfsqm)*nslpx(i, j, k)
@@ -594,7 +594,7 @@ module mod_cmnfld_routines
                      - rho(pm, temp(i, j - 1, 2 + nn), saln(i, j - 1, 2 + nn))
                phi_y = phi(i, j, 3) - phi(i, j - 1, 3)
                bfsqm = .5_r8*(bfsqf(i, j - 1, 3) + bfsqf(i, j, 3))
-               nslpy(i, j, 3) = (g*rho_y/(rho0*bfsqm) + phi_y/g)*scvyi(i, j)
+               nslpy(i, j, 3) = (grav*rho_y/(rho0*bfsqm) + phi_y/grav)*scvyi(i, j)
                if (phi(i, j    , 3) > phi(i, j - 1, kk + 1) .and. &
                    phi(i, j - 1, 3) > phi(i, j    , kk + 1)) then
                   nnslpy(i, j, 3) = sqrt(bfsqm)*nslpy(i, j, 3)
@@ -616,7 +616,7 @@ module mod_cmnfld_routines
                                           saln(i, j - 1, kn    )))
                   phi_y = phi(i, j, k) - phi(i, j - 1, k)
                   bfsqm = .5_r8*(bfsqf(i, j - 1, k) + bfsqf(i, j, k))
-                  nslpy(i, j, k) = (g*rho_y/(rho0*bfsqm) + phi_y/g)*scvyi(i, j)
+                  nslpy(i, j, k) = (grav*rho_y/(rho0*bfsqm) + phi_y/grav)*scvyi(i, j)
                   if (phi(i, j    , k) > phi(i, j - 1, kk + 1) .and. &
                       phi(i, j - 1, k) > phi(i, j    , kk + 1)) then
                      nnslpy(i, j, k) = sqrt(bfsqm)*nslpy(i, j, k)
@@ -735,7 +735,7 @@ module mod_cmnfld_routines
                                        saln(i - 1, j, kn    )))
                phi_x = phi(i, j, k) - phi(i - 1, j, k)
                bfsqm = .5_r8*(bfsqf(i - 1, j, k) + bfsqf(i, j, k))
-               nslpx(i, j, k) = (g*rho_x/(rho0*bfsqm) + phi_x/g)*scuxi(i, j)
+               nslpx(i, j, k) = (grav*rho_x/(rho0*bfsqm) + phi_x/grav)*scuxi(i, j)
                if (phi(i    , j, k) > phi(i - 1, j, kk + 1) .and. &
                    phi(i - 1, j, k) > phi(i    , j, kk + 1)) then
                   nnslpx(i, j, k) = sqrt(bfsqm)*nslpx(i, j, k)
@@ -788,7 +788,7 @@ module mod_cmnfld_routines
                                        saln(i, j - 1, kn    )))
                phi_y = phi(i, j, k) - phi(i, j - 1, k)
                bfsqm = .5_r8*(bfsqf(i, j - 1, k) + bfsqf(i, j, k))
-               nslpy(i, j, k) = (g*rho_y/(rho0*bfsqm) + phi_y/g)*scvyi(i, j)
+               nslpy(i, j, k) = (grav*rho_y/(rho0*bfsqm) + phi_y/grav)*scvyi(i, j)
                if (phi(i, j    , k) > phi(i, j - 1, kk + 1) .and. &
                    phi(i, j - 1, k) > phi(i, j    , kk + 1)) then
                   nnslpy(i, j, k) = sqrt(bfsqm)*nslpy(i, j, k)
@@ -901,7 +901,7 @@ module mod_cmnfld_routines
       do j = 1, jj
          do l = 1, isp(j)
          do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
-            z(i, j, kk + 1) = - phi(i, j, kk + 1)/g
+            z(i, j, kk + 1) = - phi(i, j, kk + 1)/grav
          enddo
          enddo
       enddo
@@ -917,7 +917,7 @@ module mod_cmnfld_routines
                else
                   z(i, j, k) = z(i, j, k + 1) &
                              + p_alpha(p(i, j, k + 1), p(i, j, k), &
-                                       temp(i, j, km), saln(i, j, km))/g
+                                       temp(i, j, km), saln(i, j, km))/grav
                endif
                dz(i, j, k) = z(i, j, k + 1) - z(i, j, k)
             enddo
@@ -959,8 +959,8 @@ module mod_cmnfld_routines
                     plo = p(i, j, k) + .5_r8*dp(i, j, km)
                     zlo = z(i, j, k) + .5_r8*dz(i, j, k )
                     dblo = &
-                       g*(1._r8 - rho(plo, temp(i, j, k1m), saln(i, j, k1m)) &
-                                 /rho(plo, temp(i, j, km ), saln(i, j, km )))
+                       grav*(1._r8 - rho(plo, temp(i, j, k1m), saln(i, j, k1m)) &
+                                    /rho(plo, temp(i, j, km ), saln(i, j, km )))
                     if (dblo <= dbcrit) then
                        zup = zlo
                        dbup = dblo

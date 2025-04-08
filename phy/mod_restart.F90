@@ -1,7 +1,8 @@
 ! ------------------------------------------------------------------------------
 ! Copyright (C) 2006-2025 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
 !                         Ingo Bethke, Jerry Tjiputra, Ping-Gin Chiu,
-!                         Aleksi Nummelin, Jörg Schwinger, Mariana Vertenstein, !                         Joeran Maerz
+!                         Aleksi Nummelin, Jörg Schwinger, Mariana Vertenstein,
+!                         Joeran Maerz
 !
 ! This file is part of BLOM.
 !
@@ -22,7 +23,7 @@
 module mod_restart
 
    use mod_types,          only: r8
-   use mod_config,         only: expcnf, runid, inst_suffix, resume_flag
+   use mod_config,         only: expcnf, runid, inst_suffix, resume_flag, rpoint, runtyp
    use mod_calendar,       only: date_type, daynum_diff, operator(/=), &
                                  calendar_noerr, calendar_errstr
    use mod_time,           only: date0, date, nday1, nstep0, nstep1, nstep, time, time0, &
@@ -112,7 +113,7 @@ module mod_restart
 #ifdef HAMOCC
    use mo_control_bgc,     only: use_BROMO, use_extNcycle
 #endif
-   use mod_ifdefs,         only: use_TRC, use_TKE, use_IDLAGE, use_MKS
+   use mod_ifdefs,         only: use_TRC, use_TKE, use_IDLAGE
    use mod_idlage,         only: idlage_init
    use mod_tracers_update, only: restart_trcwt, restart_trcrd
 
@@ -1038,11 +1039,14 @@ contains
    ! Public procedures.
    ! ---------------------------------------------------------------------------
 
-   subroutine restart_write
+   subroutine restart_write (restfnout)
    ! ---------------------------------------------------------------------------
    ! Write model state to restart files.
    ! ---------------------------------------------------------------------------
 
+      character(len = *), intent(out), optional :: restfnout
+
+      ! local variables
       integer :: nfu, i, j, n
       character(len = 256), dimension(4) :: rstdate_str
       character(len = 256) :: rstfnm, fnm
@@ -1269,25 +1273,33 @@ contains
          call ncfcls
       endif
 
-      if (expcnf == 'cesm' .or. expcnf == 'channel') then
-         ! Write restart filename to rpointer.ocn.
-         if (mnproc == 1) then
-            open(newunit = nfu, file = 'rpointer.ocn'//trim(inst_suffix))
-            write(nfu, '(a)') rstfnm
-            close(unit = nfu)
+      if (present(restfnout)) then
+         restfnout = rstfnm
+      else
+         ! mct will call this routine with restfnout
+         ! this block is here just in case
+         if (expcnf == 'cesm' .or. expcnf == 'channel') then
+            ! cesm condition here is just in case.
+            ! component caps call this routien with an arg
+            ! Write restart filename to rpointer.ocn.
+            if (mnproc == 1) then
+               open(newunit = nfu, file = 'rpointer.ocn'//trim(inst_suffix))
+               write(nfu, '(a)') rstfnm
+               close(unit = nfu)
+            endif
          endif
       endif
 
    end subroutine restart_write
 
-   subroutine restart_read
+   subroutine restart_read()
    ! ---------------------------------------------------------------------------
    ! Read model state from restart files.
    ! ---------------------------------------------------------------------------
 
       type(date_type) :: date_rest
       integer :: nfu, errstat, dndiff, ntr_file, i, j, l, n
-      character(len = 256) :: rstfnm, fnm
+      character(len = 256) :: rstfnm, fnm, l_rpfile
       character(len = 2) :: c2
       real(r8) :: pb_max, phi_min, rho_restart
       logical :: file_exist, fld_read
@@ -1315,36 +1327,44 @@ contains
 
       elseif (expcnf == 'cesm' .or. expcnf == 'channel') then
 
-         ! Get restart file name from rpointer.ocn.
-         if (mnproc == 1) &
-            inquire(file = 'rpointer.ocn'//trim(inst_suffix), &
-                    exist = file_exist)
-         call xcbcst(file_exist)
-         if (file_exist) then
+         rstfnm = ''
+         ! here, we do a redudant check as in (rdlim)
+         if (runtyp == 'continue') then
+            ! Get restart file name from rpointer.ocn
+            ! the correct rpoint is already set in rdlim
             if (mnproc == 1) then
-               open(newunit = nfu, file = 'rpointer.ocn'//trim(inst_suffix))
-               read(nfu, '(a)') rstfnm
-               close(unit = nfu)
+              open (newunit = nfu, file = rpoint)
+              read (nfu,'(a)') rstfnm
+              close (unit = nfu)
             endif
             call xcbcst(rstfnm)
+         elseif (runtyp == 'hybrid' .or. runtyp == 'branch') then
+            rstfnm = icfile
          else
+             if (mnproc == 1) then
+                write(lp,*) 'restart_read: ' &
+                // 'trying to read a restart file ' &
+                // 'when ryntype is startup or unset'
+             endif
+             call xcstop('(restart_read)')
+                    stop '(restart_read)'
+         endif
+         if (rstfnm == '') then
             if (mnproc == 1) then
-               write(lp,*) 'restart_read: could not find file rpointer.ocn'// &
-                           trim(inst_suffix)//'!'
+               write(lp,*) 'restart_read: restart filename has not been set!'
             endif
             call xcstop('(restart_read)')
-                   stop '(restart_read)'
+                    stop '(restart_read)'
          endif
-
          ! Open restart file.
          if (mnproc == 1) inquire(file = rstfnm, exist = file_exist)
          call xcbcst(file_exist)
-         if (.not.file_exist) then
+         if (.not. file_exist) then
             if (mnproc == 1) then
-               write(lp,*) 'restart_read: could not find restart file!'
+               write(lp,*) 'restart_read: could not find restart file '// trim(rstfnm)
             endif
             call xcstop('(restart_read)')
-                   stop '(restart_read)'
+                    stop '(restart_read)'
          endif
          call ncfopn(rstfnm, 'r', ' ', 1, iotype)
 
@@ -1453,42 +1473,22 @@ contains
       call xcmin(phi_min)
       rho_restart = - pb_max/phi_min
 
-      if (rho_restart > 1.e2_r8) then
-         if (.not. use_MKS) then
-            if (mnproc == 1) &
-                 write(lp,*) 'restart_read: restart variables will be converted '// &
-                             'from MKS to CGS units.'
-            l_unitconv    = 1.e2_r8
-            m_unitconv    = 1.e3_r8
-            p_unitconv    = 1.e1_r8
-            r_unitconv    = 1.e-3_r8
-            l2_unitconv   = 1.e4_r8
-            l3_unitconv   = 1.e6_r8
-            lm_unitconv   = 1.e5_r8
-            l2m2_unitconv = 1.e10_r8
-            pi_unitconv   = 1.e-1_r8
-            ri_unitconv   = 1.e3_r8
-            l2i_unitconv  = 1.e-4_r8
-            ml2i_unitconv = 1.e-1_r8
-         end if
-      else
-         if (use_MKS) then
-            if (mnproc == 1) &
-                 write(lp,*) 'restart_read: restart variables will be converted '// &
-                             'from CGS to MKS units.'
-            l_unitconv    = 1.e-2_r8
-            m_unitconv    = 1.e-3_r8
-            p_unitconv    = 1.e-1_r8
-            r_unitconv    = 1.e3_r8
-            l2_unitconv   = 1.e-4_r8
-            l3_unitconv   = 1.e-6_r8
-            lm_unitconv   = 1.e-5_r8
-            l2m2_unitconv = 1.e-10_r8
-            pi_unitconv   = 1.e1_r8
-            ri_unitconv   = 1.e-3_r8
-            l2i_unitconv  = 1.e4_r8
-            ml2i_unitconv = 1.e1_r8
-         end if
+      if (rho_restart < 1.e2_r8) then
+         if (mnproc == 1) &
+              write(lp,*) 'restart_read: restart variables will be converted '// &
+                          'from CGS to MKS units.'
+         l_unitconv    = 1.e-2_r8
+         m_unitconv    = 1.e-3_r8
+         p_unitconv    = 1.e-1_r8
+         r_unitconv    = 1.e3_r8
+         l2_unitconv   = 1.e-4_r8
+         l3_unitconv   = 1.e-6_r8
+         lm_unitconv   = 1.e-5_r8
+         l2m2_unitconv = 1.e-10_r8
+         pi_unitconv   = 1.e1_r8
+         ri_unitconv   = 1.e-3_r8
+         l2i_unitconv  = 1.e4_r8
+         ml2i_unitconv = 1.e1_r8
       endif
 
       call readfld('u', l_unitconv, u, iuu)

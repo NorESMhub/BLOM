@@ -1,5 +1,6 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2020 Mats Bentsen, Alok Kumar Gupta, Ping-Gin Chiu
+! Copyright (C) 2008-2025 Mats Bentsen, Alok Kumar Gupta, Ping-Gin Chiu,
+!                         Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -57,7 +58,6 @@ module ocn_comp_mct
    use mod_blom_step,    only: blom_step
    use mod_fill_global,  only: fill_global
    use mod_forcing,      only: sprfac, prfac, flxco2, flxdms, flxbrf, flxn2o, flxnh3
-   use mod_constants,    only: L_mks2cgs
    use mod_grid,         only: scp2, plon, plat, scuy, scvx, scuxi, scvyi
    use mod_state,        only: u, v, temp, saln, pbu, pbv, ubflxs, vbflxs, sealv
    use mod_cesm,         only: frzpot
@@ -271,6 +271,8 @@ module ocn_comp_mct
       ! Local variables
       type(seq_infodata_type), pointer :: infodata   ! Input init object
       integer :: shrlogunit, shrloglev, ymd, tod, ymd_sync, tod_sync
+      integer :: nfu
+      character(len = 256) :: restartfn
 
       ! ----------------------------------------------------------------
       ! Reset shr logging to my log file
@@ -331,7 +333,14 @@ module ocn_comp_mct
 
       if (seq_timemgr_RestartAlarmIsOn(EClock) .or. &
           seq_timemgr_pauseAlarmIsOn(EClock)) then
-         call restart_write
+         call restart_write (restartfn)
+        ! Write restart filename to rpointer.ocn.
+        ! we do not use rpoint variable, since it's only for restart read
+         if (mnproc == 1) then
+            open(newunit = nfu, file = 'rpointer.ocn'//trim(inst_suffix))
+            write(nfu, '(a)') restartfn
+            close(unit = nfu)
+         endif
       endif
       if (seq_timemgr_pauseAlarmIsOn(EClock)) resume_flag = .true.
 
@@ -509,7 +518,7 @@ module ocn_comp_mct
      enddo
      call mct_gGrid_importRattr(dom_ocn, "lat", rdata, lsize)
 
-     radius = SHR_CONST_REARTH*L_mks2cgs ! Earth's radius in cm
+     radius = SHR_CONST_REARTH ! Earth's radius in m
 
      n = 0
      do j = 1, jjcpl

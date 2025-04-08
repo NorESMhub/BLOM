@@ -71,7 +71,6 @@ def buildnml(case, caseroot, compname):
     ocn_ncpl                  = case.get_value("OCN_NCPL")
     pio_typename_ocn          = case.get_value("PIO_TYPENAME_OCN")
     pio_netcdf_format_ocn     = case.get_value("PIO_NETCDF_FORMAT_OCN")
-    blom_unit                 = case.get_value("BLOM_UNIT")
     blom_vcoord               = case.get_value("BLOM_VCOORD")
     blom_river_nutrients      = case.get_value("BLOM_RIVER_NUTRIENTS")
     blom_n_deposition         = case.get_value("BLOM_N_DEPOSITION")
@@ -79,6 +78,8 @@ def buildnml(case, caseroot, compname):
     blom_coupling             = case.get_value("BLOM_COUPLING")
     blom_tracer_modules       = case.get_value("BLOM_TRACER_MODULES")
     blom_atrc                 = case.get_value("BLOM_ATRC")
+    blom_output_size          = case.get_value("BLOM_OUTPUT_SIZE")
+    hamocc_output_size        = case.get_value("HAMOCC_OUTPUT_SIZE")
     hamocc_ciso               = case.get_value("HAMOCC_CISO")
     hamocc_extncycle          = case.get_value("HAMOCC_EXTNCYCLE")
     hamocc_n2oc               = case.get_value("HAMOCC_N2OC")
@@ -99,12 +100,6 @@ def buildnml(case, caseroot, compname):
     expect(blom_vcoord == "isopyc_bulkml" or turbclo == "null",
            f"BLOM_VCOORD == {blom_vcoord} and BLOM_TURBULENT_CLOSURE == {turbclo} is not a valid combination")
 
-    #--------------------------
-    # Construct ParamGen objects:
-    #--------------------------
-
-    xml_fil = os.path.join(srcroot,"components","blom","cime_config","namelist_definition_blom.xml")
-    pg_blom = OcnInParamGen.from_namelist_xml(xml_fil)
 
     #------------------------
     # Loop over all instances:
@@ -115,6 +110,59 @@ def buildnml(case, caseroot, compname):
 
     # Convert instance number to integer:
     ninst = int(ninst_ocn)
+    
+    # handle rpointers:
+    # after changes to rpointer files, now we can have multiple rpointers with timestamps
+    if ninst > 1:
+        # find all rpointers
+        rpointers_list = sorted(glob.glob(os.path.join(rundir, "rpointer.ocn*")))
+        timestmp_list = [None] * len(rpointers_list)
+        prev_inst_list = [None] * len(rpointers_list)
+        has_inst = [False] *len(rpointers_list)
+        for i in range(len(rpointers_list)):
+            rpointers_list[i] = os.path.basename(rpointers_list[i])
+            if (len(rpointers_list[i]) > 12 and len(rpointers_list[i]) < 30):
+                # there is no instance suffix but timestamp
+                has_inst[i] = False
+                timestmp_list[i] = rpointers_list[i][-16:-1]
+            elif len(rpointers_list[i]) > 30:
+                # both instance and timestamp
+                has_inst[i] = True
+                timestmp_list[i] = rpointers_list[i][-16:-1]
+                prev_inst_list[i] = int(rpointers_list[i][-21:-17])
+            elif len(rpointers_list[i]) > 12 and len(rpointers_list[i]) < 20:
+                # only instance
+                has_inst[i] = True
+                timestmp_list[i] = ""
+                prev_inst_list[i] = int(rpointers_list[i][-4:])
+            else:
+                # no instance no timestamp
+                has_inst[i] = False
+                timestmp_list[i] = ""
+                prev_inst_list[i] = -1
+        # check for instances in rpointers
+        
+        if all(has_inst):
+            if  prev_inst_list:
+                print(prev_inst_list)
+                if max(prev_inst_list) != ninst:
+                    print('Number of instances in rpointers > 0 but not equal number or blom instances - exit now')
+                    exit
+        else:
+            for i in range(len(rpointers_list)):
+                single_rpointer = os.path.join(rundir,rpointers_list[i])
+                inst_string = ""
+                if not has_inst[i]:
+                    # this loop has to be inside, since there can be more than one rpointer.ocn per instance in the rundir.
+                    for inst_counter in range(1, ninst+1):
+                        inst_string = '_%04d' % inst_counter
+                        inst_rpointer = os.path.join(rundir,"rpointer.ocn"+ inst_string + '.' + timestmp_list[i])
+                        # only copy rpointers if instance rpointer does not exist already
+                        if not os.path.isfile(inst_rpointer):
+                            shutil.copy(single_rpointer,inst_rpointer)
+    # endif ninst>0
+    # if a user tries to run a case from a multi instance run with single instance
+    # they have to manually rename the rpointers and restart files
 
     for inst_counter in range(1, ninst+1):
 
@@ -124,26 +172,21 @@ def buildnml(case, caseroot, compname):
 
         if os.path.isfile(input_data_list):
             os.remove(input_data_list)
-
+        #--------------------------
+        # Construct ParamGen objects:
+        #--------------------------
+        # paramgen has to be initilized for each instance separately.
+        xml_fil = os.path.join(srcroot,"components","blom","cime_config","namelist_definition_blom.xml")
+        pg_blom = OcnInParamGen.from_namelist_xml(xml_fil)
+        
         # -----------------------------------------------------
         # Determine instance string
         # -----------------------------------------------------
 
         inst_string = ""
         if ninst > 1:
-            single_case_rpointer = os.path.join(rundir, "rpointer.ocn")
             inst_string = '_%04d' % inst_counter
-            instance_rpointer = os.path.join(rundir, "rpointer.ocn"+inst_string)
-
-            # If multi-instance case does not have restart file, use
-            # single-case restart for each instance
-
-            if os.path.isfile(single_case_rpointer) and \
-               not os.path.isfile(instance_rpointer):
-                shutil.copy(single_case_rpointer, instance_rpointer)
-            # End if
-        # End if
-
+        
         # -----------------------------------------------------
         # Create blomconf/namelist
         # -----------------------------------------------------
@@ -182,7 +225,6 @@ def buildnml(case, caseroot, compname):
         config['pio_typename_ocn'] = pio_typename_ocn
         config['pio_netcdf_format_ocn'] = pio_netcdf_format_ocn
         config["continue_run"] = "yes" if continue_run else "no"
-        config['blom_unit'] = blom_unit if blom_unit else "unset"
         config['blom_vcoord'] = blom_vcoord
         config["blom_river_nutrients"] = "yes" if blom_river_nutrients else "no"
         config["blom_ndep_scenario"] = "ssp" if "ssp" in blom_ndep_scenario else blom_ndep_scenario
@@ -190,6 +232,8 @@ def buildnml(case, caseroot, compname):
         config["blom_coupling"] = blom_coupling
         config["blom_tracer_modules"] = blom_tracer_modules
         config["blom_atrc"] = blom_atrc
+        config["blom_output_size"] = blom_output_size 
+        config["hamocc_output_size"] = hamocc_output_size  
         config["hamocc_ciso"] = "yes" if hamocc_ciso else "no"
         config["hamocc_extncycle"] = "yes" if hamocc_extncycle else "no"
         config["hamocc_n2oc"] = "yes" if hamocc_n2oc else "no"
@@ -244,7 +288,7 @@ def buildnml(case, caseroot, compname):
         var_list = ('DIN_LOC_ROOT', 'RUN_TYPE', 'BLOM_VCOORD','BLOM_NDEP_SCENARIO',
                     'CCSM_CO2_PPMV','OCN_CO2_TYPE',
                     'HAMOCC_SEDSPINUP_YR_START','HAMOCC_SEDSPINUP_YR_END',
-		    'HAMOCC_SEDSPINUP_NCYCLE')
+		                'HAMOCC_SEDSPINUP_NCYCLE')
         for item in var_list:
             case_dict[item] = case.get_value(item)
 
@@ -253,6 +297,43 @@ def buildnml(case, caseroot, compname):
         #----------------------------------------------------
         # Reset values of some variables
         #----------------------------------------------------
+        
+
+        icfile_inst = None
+        if run_type == 'hybrid' or run_type == 'branch':
+            icfile = "%s.blom.r.%s-%s.nc" %(run_refcase, run_refdate, run_reftod)
+            print(icfile)
+            #to start a multi-driver run from single instance run
+            if ninst > 1:
+                icfile_inst="%s.blom%s.r.%s-%s.nc" %(run_refcase,inst_string, run_refdate, run_reftod)
+                if (os.path.isfile(os.path.join(rundir,icfile)) and
+                    (not os.path.isfile(os.path.join(rundir,icfile_inst)))):
+                    shutil.copy(os.path.join(rundir, icfile),
+                    os.path.join(rundir, icfile_inst))
+
+                icfile=icfile_inst
+ 
+            # since stage_refcase is done within CIME's create_namelists()
+            # before component namlist is created
+            # we have to make this absolute to make check_inputdata work.
+            pg_blom.set_value("icfile",os.path.join(rundir,icfile))
+            print(pg_blom.get_value("icfile"))
+
+        driver = case.get_value("COMP_INTERFACE")
+        if driver == 'mct':
+            pg_blom.set_value('rpoint','rpointer.ocn')
+        elif driver == 'nuopc':
+            # check for older rpointers happens in the ocn cap
+            drv_ptr = case.get_value("DRV_RESTART_POINTER")
+            if drv_ptr:
+                blom_ptr = drv_ptr.replace("cpl","ocn")
+                blom_ptr = blom_ptr.replace("_0001", inst_string)
+            else:
+                # non-timestamped rpointers are used in older runs
+                blom_ptr = pg_blom.set_value('rpoint','rpointer.ocn')
+            if os.path.exists(os.path.join(rundir, blom_ptr)):
+                pg_blom.set_value('rpoint', blom_ptr)
+
 
         run_startdate = case.get_value("RUN_STARTDATE")
         idate = run_startdate.replace('-','')
@@ -279,7 +360,7 @@ def buildnml(case, caseroot, compname):
         namelist_file += inst_string
 
         # Create BLOM namelist
-        groups=['limits','diffusion','merdia','secdia','diaphy','stream_sss','stream_sst' ]
+        groups=['limits','diffusion','merdia','secdia','diaphy','stream_sss','stream_sst', 'restart' ]
 
         groups.append('cwmod')
 
@@ -318,33 +399,33 @@ def buildnml(case, caseroot, compname):
         filename.write_text(filename.read_text().replace('mer_regflg2','mer_regflg(2,:)'))
         filename.write_text(filename.read_text().replace('mer_regflg3','mer_regflg(3,:)'))
         filename.write_text(filename.read_text().replace('mer_regflg4','mer_regflg(4,:)'))
-
+        print(pg_blom.get_value("icfile"))
         # Write out blom.input_data_list
         data_list_path = os.path.join(case.get_case_root(), "Buildconf", "blom.input_data_list")
         if os.path.exists(data_list_path):
             os.remove(data_list_path)
         pg_blom.write_inputdata(data_list_path, groups)
 
-    # To compare with previous namelist generation, make namelist variable uppercase and
-    # use single quotes instead of back quotes and make sure that file variables set to UNSET
-    # get changed to blank quotes
-    namelist_file_temp = os.path.join(confdir, "ocn_in_temp")
-    with open(namelist_file, "r") as fread:
-        with open(namelist_file_temp, "w") as fwrite:
-            for line_read in fread:
-                # replace single quote with double quote to generate same namelist as using
-                # csh buildnml
-                line = line_read.replace('"',"'")
-                # make all namelists upper case to generate same namelist as using csh buildnml
-                tokens = line.split('=',maxsplit=1)
-                if len(tokens) == 2:
-                    # Change UNSET values for files to lower case
-                    if 'UNSET' in tokens[1]:
-                        tokens[1] = "'unset'"
-                    fwrite.write(f"  {tokens[0].upper().strip()} = {tokens[1].strip()}\n")
-                else:
-                    fwrite.write(line)
-    shutil.move(namelist_file_temp, namelist_file)
+        # To compare with previous namelist generation, make namelist variable uppercase and
+        # use single quotes instead of back quotes and make sure that file variables set to UNSET
+        # get changed to blank quotes
+        namelist_file_temp = os.path.join(confdir, "ocn_in_temp")
+        with open(namelist_file, "r") as fread:
+            with open(namelist_file_temp, "w") as fwrite:
+                for line_read in fread:
+                    # replace single quote with double quote to generate same namelist as using
+                    # csh buildnml
+                    line = line_read.replace('"',"'")
+                    # make all namelists upper case to generate same namelist as using csh buildnml
+                    tokens = line.split('=',maxsplit=1)
+                    if len(tokens) == 2:
+                        # Change UNSET values for files to lower case
+                        if 'UNSET' in tokens[1]:
+                            tokens[1] = "'unset'"
+                        fwrite.write(f"  {tokens[0].upper().strip()} = {tokens[1].strip()}\n")
+                    else:
+                        fwrite.write(line)
+        shutil.move(namelist_file_temp, namelist_file)
 
 ###############################################################################
 def _main_func():

@@ -95,11 +95,12 @@ module mo_param_bgc
   public :: vsmall,safe,pupper,plower,zdis,nmldmin
   public :: beta13,alpha14,atm_c13,atm_c14,c14fac,c14dec
   public :: sedict,silsat,disso_poc,disso_sil,disso_caco3
-  public :: sed_denit,calcwei,opalwei,orgwei
+  public :: sed_denit,sed_sulf,calcwei,opalwei,orgwei
   public :: calcdens,opaldens,orgdens,claydens
   public :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma
   public :: POM_remin_q10,opal_remin_q10,POM_remin_Tref,opal_remin_Tref
   public :: O2thresh_aerob,O2thresh_hypoxic,NO3thresh_sulf
+  public :: sed_O2thresh_sulf,sed_O2thresh_hypoxic,sed_NO3thresh_sulf
   public :: shelfbreak_depth
   public :: sed_alpha_poc,sed_qual_sc
 
@@ -283,17 +284,17 @@ module mo_param_bgc
   !********************************************************************
   ! Remineralization and dissolution parameters
   !********************************************************************
-  real, parameter :: O2thresh_aerob   = 5.e-8    ! Above O2thresh_aerob aerob remineralization takes place
-  real, parameter :: O2thresh_hypoxic = 5.e-7    ! Below O2thresh_hypoxic denitrification and sulfate reduction takes place (default model version)
-  real, parameter :: NO3thresh_sulf   = 3.e-6    ! Below NO3thresh_sulf 'sufate reduction' takes place
-  real, protected :: remido     = 0.004           ! 1/d - remineralization rate (of DOM)
+  real, parameter :: O2thresh_aerob   = 5.e-8  ! Above O2thresh_aerob aerob remineralization takes place
+  real, parameter :: O2thresh_hypoxic = 5.e-7  ! Below O2thresh_hypoxic denitrification and sulfate reduction takes place (default model version)
+  real, parameter :: NO3thresh_sulf   = 3.e-6  ! Below NO3thresh_sulf 'sufate reduction' takes place
+  real, protected :: remido     = 0.004        ! 1/d - remineralization rate (of DOM)
   ! deep sea remineralisation constants
-  real, protected :: drempoc    = 0.025           ! 1/d Aerob remineralization rate detritus
+  real, protected :: drempoc    = 0.025        ! 1/d Aerob remineralization rate detritus
   real, protected :: drempoc_anaerob = 1.25e-3 ! =0.05*drempoc - remin in sub-/anoxic environm. - not be overwritten by M4AGO
   real, protected :: bkox_drempoc    = 1e-7    ! half-saturation constant for oxygen for ammonification (aerobic remin via drempoc)
-  real, protected :: dremopal   = 0.003           ! 1/d Dissolution rate for opal
-  real, protected :: dremn2o    = 0.01            ! 1/d Remineralization rate of detritus on N2O
-  real, protected :: dremsul    = 0.005           ! 1/d Remineralization rate for sulphate reduction
+  real, protected :: dremopal   = 0.003        ! 1/d Dissolution rate for opal
+  real, protected :: dremn2o    = 0.01         ! 1/d Remineralization rate of detritus on N2O
+  real, protected :: dremsul    = 0.005        ! 1/d Remineralization rate for sulphate reduction
   real, protected :: POM_remin_q10   = 2.1     ! Bidle et al. 2002: Regulation of Oceanic Silicon...
   real, protected :: opal_remin_q10  = 2.6     ! Bidle et al. 2002: Regulation of Oceanic Silicon...
   real, protected :: POM_remin_Tref  = 10.     ! [deg C] reference temperatue for Q10-dep. POC remin
@@ -337,7 +338,7 @@ module mo_param_bgc
   real, protected :: q10an2odenit  = 3.       ! Q10 factor for denitrificationj on N2O (-)
   real, protected :: Trefan2odenit = 10.      ! Reference temperature for denitrification on N2O (degr C)
   real, protected :: bkoxan2odenit = 10e-6    ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on N2O (kmol/m3)
-  real, protected :: bkan2odenit   = 0.1e-6    ! Half-saturation constant for denitrification on N2O (kmol/m3)
+  real, protected :: bkan2odenit   = 0.1e-6   ! Half-saturation constant for denitrification on N2O (kmol/m3)
 
   ! === DNRA NO2 -> NH4
   real, protected :: rdnra         = 0.0003   ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
@@ -483,12 +484,16 @@ module mo_param_bgc
   !********************************************************************
   ! Note that the rates in the sediment are given in per second here!
   !
+  real, protected :: sed_O2thresh_hypoxic = 1.e-6 ! Below sed_O2thresh_hypoxic denitrification takes place (default model version)
+  real, protected :: sed_O2thresh_sulf    = 3.e-6 ! Below sed_O2thresh_sulf 'sulfate reduction' takes place
+  real, protected :: sed_NO3thresh_sulf   = 3.e-6 ! Below sed_NO3thresh_sulf 'sufate reduction' takes place
   real, protected :: sedict      = 1.e-9          ! m2/s Molecular diffusion coefficient
   real, protected :: silsat      = 0.001          ! kmol/m3 Silicate saturation concentration is 1 mol/m3
   real, protected :: disso_poc   = 0.432 / 86400. ! 1/(kmol O2/m3 s)      Degradation rate constant of POP
   real, protected :: disso_sil   = 3.e-8          ! 1/(kmol Si(OH)4/m3 s) Dissolution rate constant of opal
   real, protected :: disso_caco3 = 1.e-7          ! 1/(kmol CO3--/m3 s) Dissolution rate constant of CaCO3
   real, protected :: sed_denit   = 0.01/86400.    ! 1/s Denitrification rate constant of POP
+  real, protected :: sed_sulf    = 0.01/86400.    ! 1/s "Sulfate reduction" rate constant of POP
   real, protected :: sed_alpha_poc = 1./90.       ! 1/d 1/decay time for sediment moving average - assuming ~3 month memory here
   real, protected :: sed_qual_sc = 1.             ! scaling factor for sediment quality-based remineralization
   !********************************************************************
@@ -631,7 +636,8 @@ contains
                          bkoxdnra_sed,bkdnra_sed,q10anh4nitr_sed,                &
                          bkoxamox_sed,bkanh4nitr_sed,q10ano2nitr_sed,            &
                          bkoxnitr_sed,bkano2nitr_sed,sed_alpha_poc,sed_qual_sc,  &
-                         sed_denit
+                         sed_denit,sed_sulf,                                     &
+                         sed_O2thresh_hypoxic,sed_O2thresh_sulf,sed_NO3thresh_sulf
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)
@@ -754,6 +760,7 @@ contains
     disso_poc   = disso_poc   * dtbgc ! 1/(kmol O2/m3 time step)      Degradation rate constant of POP
     disso_caco3 = disso_caco3 * dtbgc ! 1/(kmol CO3--/m3 time step)   Dissolution rate constant of CaCO3
     sed_denit   = sed_denit   * dtbgc ! 1/time step                   Denitrification rate constant of POP
+    sed_sulf    = sed_sulf    * dtbgc ! 1/time step                   "Sulfate reduction" rate constant of POP
 
     if (use_extNcycle) then
       rano3denit = rano3denit *dtb ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
@@ -1002,11 +1009,15 @@ contains
       write(io_stdo_bgc,*)
       write(io_stdo_bgc,*) '********************************************'
       write(io_stdo_bgc,*) '* Values of MO_PARAM_BGC sediment variables : '
+      call pinfo_add_entry('sed_O2thresh_hypoxic',sed_O2thresh_hypoxic)
+      call pinfo_add_entry('sed_O2thresh_sulf',   sed_O2thresh_sulf)
+      call pinfo_add_entry('sed_NO3thresh_sulf',  sed_NO3thresh_sulf)
       call pinfo_add_entry('sedict',      sedict      * dtbgcinv)
       call pinfo_add_entry('disso_poc',   disso_poc   * dtbgcinv)
       call pinfo_add_entry('disso_sil',   disso_sil   * dtbgcinv)
       call pinfo_add_entry('disso_caco3', disso_caco3 * dtbgcinv)
       call pinfo_add_entry('sed_denit',   sed_denit   * dtbgcinv)
+      call pinfo_add_entry('sed_sulf',    sed_sulf    * dtbgcinv)
       call pinfo_add_entry('silsat',      silsat)
       call pinfo_add_entry('orgwei',      orgwei)
       call pinfo_add_entry('opalwei',     opalwei)

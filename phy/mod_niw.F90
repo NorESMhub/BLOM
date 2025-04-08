@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2020 Mats Bentsen
+! Copyright (C) 2020-2025 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -23,7 +23,7 @@ module mod_niw
 ! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
-   use mod_constants, only: g, alpha0, pi, spval
+   use mod_constants, only: grav, alpha0, pi, spval
    use mod_time, only: delt1, dlt
    use mod_grid, only: scuy, scvx, coriop
    use mod_xc
@@ -50,18 +50,18 @@ module mod_niw
       cori10 = 2.5256e-5_r8 ! Coriolis parameter at 10N [1/s].
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, 4) :: &
-      uml, &    ! u-component of mixed layer velocities [cm s-1].
-      vml       ! v-component of mixed layer velocities [cm s-1].
+      uml, &    ! u-component of mixed layer velocities [m s-1].
+      vml       ! v-component of mixed layer velocities [m s-1].
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, 2) :: &
       umlres, & ! u-component of mixed layer velocity reservoar for temporal
-                ! smoothing [cm s-1].
+                ! smoothing [m s-1].
       vmlres    ! v-component of mixed layer velocity reservoar for temporal
-                ! smoothing [cm s-1].
+                ! smoothing [m s-1].
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
       idkedt  ! Vertically integrated inertial kinetic energy tendency
-              ! [cm3 s-3].
+              ! [m3 s-3].
 
 
    public :: niwgf, niwbf, niwlf, &
@@ -222,7 +222,7 @@ contains
                                + ( util2(i, j    )*iv(i, j    ) &
                                  + util2(i, j + 1)*iv(i, j + 1)) &
                                 /max(1, iv(i, j) + iv(i, j + 1))) &
-                           *alpha0/(2._r8*g*delt1)
+                           *alpha0/(2._r8*grav*delt1)
          enddo
          enddo
       enddo
