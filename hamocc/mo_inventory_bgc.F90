@@ -356,7 +356,7 @@ contains
       co2flux = sum2d(bgct2d(:,:,jco2flux))
       so2flux = sum2d(bgct2d(:,:,jo2flux))
       sn2flux = sum2d(bgct2d(:,:,jn2flux))
-      sdmsflux = sum2d(atmflx(:,:,iatmdms))
+      sdmsflux = sum2d(atmflx(:,:,iatmdms)) ! exception: DMS is instantanious flux (no accumulation)
       sn2oflux = sum2d(bgct2d(:,:,jn2oflux))
       if (use_extNcycle) then
         snh3flux = sum2d(bgct2d(:,:,jnh3flux))
@@ -722,7 +722,7 @@ contains
                                idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,   &
                                inatalkali,inatcalc,inatsco212,ianh4,iano2,iprefsilica
       use mo_control_bgc,only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,  &
-                               use_CFC,use_natDIC,use_BROMO,use_pref_tracers
+                               use_CFC,use_natDIC,use_BROMO,use_pref_tracers,dtbgc
 
       implicit none
 
@@ -1645,7 +1645,7 @@ contains
              &    time_dimid, sdmsflux_varid) )
         call nccheck( NF90_PUT_ATT(ncid, sdmsflux_varid, 'long_name',             &
              &    'Global flux of DMS into atmosphere') )
-        call nccheck( NF90_PUT_ATT(ncid, sdmsflux_varid, 'units', 'kmol') )
+        call nccheck( NF90_PUT_ATT(ncid, sdmsflux_varid, 'units', 'kmol/s') )
 
         if (use_extNcycle) then
           call nccheck( NF90_DEF_VAR(ncid, 'snh3flux', NF90_DOUBLE,               &
@@ -2093,7 +2093,7 @@ contains
       call nccheck( NF90_PUT_VAR(ncid, so2flux_varid, so2flux,start = wrstart) )
       call nccheck( NF90_PUT_VAR(ncid, sn2flux_varid, sn2flux,start = wrstart) )
       call nccheck( NF90_PUT_VAR(ncid, sn2oflux_varid,sn2oflux,start = wrstart) )
-      call nccheck( NF90_PUT_VAR(ncid, sdmsflux_varid,sdmsflux,start = wrstart) )
+      call nccheck( NF90_PUT_VAR(ncid, sdmsflux_varid,sdmsflux/dtbgc,start = wrstart) )
       if (use_extNcycle) then
         call nccheck( NF90_PUT_VAR(ncid, snh3flux_varid, snh3flux,start = wrstart) )
       endif
