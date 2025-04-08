@@ -44,7 +44,8 @@ contains
                             & sed_O2thresh_hypoxic,sed_O2thresh_sulf,sed_NO3thresh_sulf
     use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,seddw,sedhpl,sedlay,       &
                               silpro,pror13,pror14,prca13,prca14,prorca_mavg,sed_reactivity_a,     &
-                              sed_reactivity_k,sed_applied_reminrate
+                              sed_reactivity_k,sed_applied_reminrate,                              &
+                              sed_rem_aerob,sed_rem_denit,sed_rem_sulf
     use mo_vgrid,       only: kbo,bolay
     use mo_powadi,      only: powadi
     use mo_carchm,      only: carchm_solve
@@ -88,6 +89,10 @@ contains
     sedfluxb(:,:,:) = 0.0
     if (use_extNcycle) then
       extNsed_diagnostics(:,:,:,:) = 0.0
+    else
+      sed_rem_aerob(:,:,:) = 0.
+      sed_rem_denit(:,:,:) = 0.
+      sed_rem_sulf(:,:,:)  = 0.
     endif
 
     ! A LOOP OVER J
@@ -364,6 +369,7 @@ contains
             if (.not. use_extNcycle) then
               powtra(i,j,k,ipowno3) = powtra(i,j,k,ipowno3) + posol*rnit*umfa
               aerob(i,k) = posol*umfa     !this has P units: kmol P/m3 of pore water
+              sed_rem_aerob(i,j,k) = posol*umfa ! Output
             else
               powtra(i,j,k,ipownh4) = powtra(i,j,k,ipownh4) + posol*rnit*umfa
               ex_ddic(i,k) = rcar*posol*umfa ! C-units kmol C/m3 of pore water
@@ -411,6 +417,7 @@ contains
                   sedlay(i,j,k,issso13) = sedlay(i,j,k,issso13) - poso13
                   sedlay(i,j,k,issso14) = sedlay(i,j,k,issso14) - poso14
                 endif
+                sed_rem_denit(i,j,k) = posol * umfa
               endif
             endif
           enddo
@@ -448,6 +455,8 @@ contains
               endif
               if (use_extNcycle) then
                 extNsed_diagnostics(i,j,k,ised_remin_sulf) = posol*umfa ! Output
+              else
+                sed_rem_sulf(i,j,k) = posol * umfa
               endif
             endif
           endif
