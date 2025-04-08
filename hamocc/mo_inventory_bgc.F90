@@ -842,6 +842,7 @@ contains
       ! atmosphere-ocean fluxes
       integer :: co2flux_varid,so2flux_varid,sn2flux_varid,sn2oflux_varid,snh3flux_varid
       integer :: sdmsflux_varid
+      integer :: sndepnoyflux_varid,sndepnhxflux_varid
 
       ! ODZ volume
       integer :: ODZvol_varid
@@ -1653,12 +1654,25 @@ contains
              &    'Global flux of DMS into atmosphere') )
         call nccheck( NF90_PUT_ATT(ncid, sdmsflux_varid, 'units', 'kmol/s') )
 
+        call nccheck( NF90_DEF_VAR(ncid, 'sndepnoyflux', NF90_DOUBLE,             &
+               &    time_dimid, sndepnoyflux_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, sndepnoyflux_varid, 'long_name',         &
+               &    'Global deposition of NOy from atmosphere') )
+        call nccheck( NF90_PUT_ATT(ncid, sndepnoyflux_varid, 'units', 'kmol') )
+
         if (use_extNcycle) then
           call nccheck( NF90_DEF_VAR(ncid, 'snh3flux', NF90_DOUBLE,               &
                &    time_dimid, snh3flux_varid) )
           call nccheck( NF90_PUT_ATT(ncid, snh3flux_varid, 'long_name',           &
                &    'Global flux of NH3 into atmosphere') )
           call nccheck( NF90_PUT_ATT(ncid, snh3flux_varid, 'units', 'kmol') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'sndepnhxflux', NF90_DOUBLE,           &
+               &    time_dimid, sndepnhxflux_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, sndepnhxflux_varid, 'long_name',       &
+               &    'Global deposition of NHx from atmosphere') )
+          call nccheck( NF90_PUT_ATT(ncid, sndepnhxflux_varid, 'units', 'kmol') )
+
         endif
 
         call nccheck( NF90_DEF_VAR(ncid, 'ODZvol', NF90_DOUBLE,                   &
@@ -1828,8 +1842,10 @@ contains
         call nccheck( NF90_INQ_VARID(ncid, "sn2flux",  sn2flux_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "sn2oflux", sn2oflux_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "sdmsflux", sdmsflux_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "sndepnoyflux",  sndepnoyflux_varid) )
         if (use_extNcycle) then
           call nccheck( NF90_INQ_VARID(ncid, "snh3flux",  snh3flux_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "sndepnhxflux",  sndepnhxflux_varid) )
         endif
         call nccheck( NF90_INQ_VARID(ncid, "ODZvol", ODZvol_varid) )
       endif
@@ -2103,8 +2119,10 @@ contains
       call nccheck( NF90_PUT_VAR(ncid, sn2flux_varid, sn2flux,start = wrstart) )
       call nccheck( NF90_PUT_VAR(ncid, sn2oflux_varid,sn2oflux,start = wrstart) )
       call nccheck( NF90_PUT_VAR(ncid, sdmsflux_varid,sdmsflux/dtbgc,start = wrstart) )
+      call nccheck( NF90_PUT_VAR(ncid, sndepnoyflux_varid, sndepnoyflux,start = wrstart) )
       if (use_extNcycle) then
         call nccheck( NF90_PUT_VAR(ncid, snh3flux_varid, snh3flux,start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, sndepnhxflux_varid, sndepnhxflux,start = wrstart) )
       endif
       call nccheck( NF90_PUT_VAR(ncid, ODZvol_varid,ODZvol, start = wrstart) )
 
