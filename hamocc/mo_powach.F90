@@ -32,7 +32,8 @@ contains
     ! Modified: S.Legutke,   *MPI-MaD, HH*    10.04.01
     !***********************************************************************************************
 
-    use mo_control_bgc, only: dtbgc,use_cisonew,use_extNcycle,lTO2depremin,use_sediment_quality
+    use mo_control_bgc, only: dtbgc,use_cisonew,use_extNcycle,lTO2depremin,use_sediment_quality,   &
+                            & ldyn_sed_age
     use mo_param1_bgc,  only: ioxygen,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,      &
                               isilica,isssc12,issso12,issssil,issster,ks,ipowc13,ipowc14,isssc13,  &
                               isssc14,issso13,issso14,safediv,ipownh4,issso12_age
@@ -226,13 +227,16 @@ contains
             ! units of prorca: kmol P/m2/dt -> prorca_mavg in mmol P/m2/d
             prorca_mavg(i,j) = sed_alpha_poc*prorca(i,j)*1e6*dtbgc/86400.                          &
                              & + (1.-sed_alpha_poc)*prorca_mavg(i,j)
-
-            ! update surface age due to fresh POC sedimentation flux
-            sedlay(i,j,1,issso12_age) = sedlay(i,j,1,issso12) * sedlay(i,j,1,issso12_age)          &
+            if (ldyn_sed_age) then
+              ! update surface age due to fresh POC sedimentation flux
+              sedlay(i,j,1,issso12_age) = sedlay(i,j,1,issso12) * sedlay(i,j,1,issso12_age)        &
                           & / ((prorca(i,j)/(porsol(i,j,1)*seddw(1))) + sedlay(i,j,1,issso12) + eps)
+            endif
             do k = 1, ks
-              ! Update sediment POC age [yrs]
-              sedlay(i,j,k,issso12_age) = sedlay(i,j,k,issso12_age) + dtbgc/31536000.
+              if (ldyn_sed_age) then
+                ! Update sediment POC age [yrs]
+                sedlay(i,j,k,issso12_age) = sedlay(i,j,k,issso12_age) + dtbgc/31536000.
+              endif
               ! Mean DOU flux [mmol O2/m2/d]
               ! Since reactivity is based on total sediment DOU (incl. nitrification),
               ! we here assume the full oxydation steo and use ro2ut

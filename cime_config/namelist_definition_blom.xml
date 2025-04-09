@@ -4076,6 +4076,16 @@
     <desc>Switch for T- and O2-dependent remineralization of POM</desc>
   </entry>
 
+  <entry id="ldyn_sed_age">
+    <type>logical</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>Switch for dynamic age of POM when using use_sediment_quality</desc>
+  </entry>
+
   <entry id="do_oalk">
     <type>logical</type>
     <category>bgcnml</category>
