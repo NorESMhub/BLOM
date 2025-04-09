@@ -727,7 +727,7 @@ contains
               ocetra(i,j,k,ianh4) = ocetra(i,j,k,ianh4) + remin*rnit
               ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + (rnit-1.)*remin
               ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - ro2utammo*remin
-              remin_aerob(i,j,k)  = remin*rnit ! kmol/NH4/dtb - remin to NH4 from various sources
+              remin_aerob(i,j,k)  = remin_aerob(i,j,k)+remin*rnit ! kmol/NH4/dtb - remin to NH4 from various sources
             endif
             ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+rcar*remin
             ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+remin*riron           &
