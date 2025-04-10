@@ -35,11 +35,14 @@
 !            'enscon' (Sadourny (1975) enstrophy conserving), 'enecon'
 !            (Sadourny (1975) energy conserving), 'enedis' (Sadourny
 !            (1975) energy conserving with some dissipation) (a)
+! PGFMTH   : Pressure gradient force method. Valid options:
+!            'geopotential', 'dynamic enthalpy' (a)
 ! BMCMTH   : Baroclinic mass flux correction method. Valid methods:
 !            'uc' (upstream column), 'dluc' (depth limited upstream
 !            column) (a)
-! RMPMTH   : Method of applying eddy-induced transport in the remap
-!            transport algorithm. Valid methods: 'eitvel', 'eitflx' (a)
+! ADVMTH   : Advection method. Valid methods: 'remap', 'cppm' (a)
+! CPPM_LIMITING : CPPM limiting. Valid methods: 'monotonic',
+!                 'non_oscillatory' (a)
 ! MLRTTP   : Type of mixed layer restratification time scale. Valid
 !            types: 'variable', 'constant', 'limited' (a)
 ! RM0      : Efficiency factor of wind TKE generation in the Oberhuber
@@ -112,13 +115,15 @@
   VSC2LO   = .2
   VSC4HI   = 0.
   VSC4LO   = 0.
-  CBAR     = 5.
+  CBAR     = .05
   CB       = .002
   CWBDTS   = 0.
   CWBDLS   = 25.
   MOMMTH   = 'enscon'
+  PGFMTH   = 'geopotential'
   BMCMTH   = 'uc'
-  RMPMTH   = 'eitvel'
+  ADVMTH   = 'remap'
+  CPPM_LIMITING = 'non_oscillatory'
   MLRTTP   = 'constant'
   RM0      = 1.2
   RM5      = 0.
@@ -214,19 +219,19 @@
   EDSPRS   = .true.
   EGC      = 0.
   EGGAM    = 200.
-  EGLSMN   = 4000.e2
+  EGLSMN   = 4000.
   EGMNDF   = 0.
-  EGMXDF   = 1500.e4
+  EGMXDF   = 1500.
   EGIDFQ   = 1.
   TBFILE   = 'unset'
-  RHISCF   = .5
+  RHISCF   = 0.
   EDANIS   = .false.
   REDI3D   = .false.
   RHSCTP   = .false.
   RI0      = 1.2
   BDMTYP   = 2
-  BDMC1    = 5.e-4
-  BDMC2    = .15
+  BDMC1    = 5.e-8
+  BDMC2    = 1.e-5
   BDMLDP   = .false.
   TKEPF    = 0.
   SMOBLD   = .true.

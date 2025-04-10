@@ -369,7 +369,7 @@ contains
             if (dp(i-1,j,kn) >= onemm .and. dp(i,j,kn) >= onemm) then
               pgfx(i,j,kn) = pgfx(i,j,kn) &
                            + .5_r8*( (dynh_t(i-1,j,k) + dynh_t(i,j,k)) &
-                                     *(temp   (i,j,k) - temp   (i-1,j,k)) &
+                                     *(temp(i,j,kn) - temp(i-1,j,kn)) &
                                    + (dynh_a(i-1,j,k) + dynh_a(i,j,k)) &
                                      *(alpha_r(i,j,k) - alpha_r(i-1,j,k)))
             endif
@@ -388,7 +388,7 @@ contains
             if (dp(i,j-1,kn) >= onemm .and. dp(i,j,kn) >= onemm) then
               pgfy(i,j,kn) = pgfy(i,j,kn) &
                            + .5_r8*( (dynh_t(i,j-1,k) + dynh_t(i,j,k)) &
-                                     *(temp   (i,j,k) - temp   (i,j-1,k)) &
+                                     *(temp(i,j,kn) - temp(i,j-1,kn)) &
                                    + (dynh_a(i,j-1,k) + dynh_a(i,j,k)) &
                                      *(alpha_r(i,j,k) - alpha_r(i,j-1,k)))
             endif

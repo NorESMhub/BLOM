@@ -384,14 +384,24 @@
     <desc>Baroclinic mass flux correction method. Valid methods:</desc>
   </entry>
 
-  <entry id="rmpmth">
+  <entry id="advmth">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>eitvel</value>
+      <value>remap</value>
     </values>
-    <desc>Method of applying eddy-induced transport in the remap</desc>
+    <desc>Advection method. Valid methods: 'remap', 'cppm'.</desc>
+  </entry>
+
+  <entry id="cppm_limiting">
+    <type>char</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>non_oscillatory</value>
+    </values>
+    <desc>CPPM limiting. Valid methods: 'monotonic', 'non_oscillatory'.</desc>
   </entry>
 
   <entry id="mlrmth">

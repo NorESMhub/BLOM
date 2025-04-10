@@ -155,12 +155,12 @@ contains
       real(r8) :: flxhi, flxlo, q
       integer :: i, j, k, l, km, kn
 
-      call xctilr(difint, 1,kk, 2,2, halo_ps)
+      call xctilr(difint, 1,kk, 1,1, halo_ps)
 
       !$omp parallel do private(l, i)
-      do j = -1, jj+2
+      do j = 1, jj
          do l = 1, isu(j)
-         do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
+         do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
             umfltd(i,j,1+mm) = 0._r8
             umfltd(i,j,2+mm) = 0._r8
             umfltd(i,j,3+mm) = 0._r8
@@ -169,9 +169,9 @@ contains
       enddo
       !$omp end parallel do
       !$omp parallel do private(l, i)
-      do j = 0, jj+2
+      do j = 1, jj
          do l = 1, isv(j)
-         do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
+         do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
             vmfltd(i,j,1+mm) = 0._r8
             vmfltd(i,j,2+mm) = 0._r8
             vmfltd(i,j,3+mm) = 0._r8
@@ -185,9 +185,9 @@ contains
          kn = k + nn
 
          !$omp parallel do private(l, i, flxhi, flxlo, q)
-         do j = -1, jj+2
+         do j = 1, jj
             do l = 1, isu(j)
-            do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
+            do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
                flxhi =   .125_r8*min(dp(i-1,j,kn-1)*scp2(i-1,j), &
                                      dp(i  ,j,kn  )*scp2(i  ,j))
                flxlo = - .125_r8*min(dp(i  ,j,kn-1)*scp2(i  ,j), &
@@ -200,13 +200,8 @@ contains
                umfltd(i,j,km  ) = - q
             enddo
             enddo
-         enddo
-         !$omp end parallel do
-
-         !$omp parallel do private(l, i, flxhi, flxlo, q)
-         do j = 0, jj+2
             do l = 1, isv(j)
-            do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
+            do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
                flxhi =   .125_r8*min(dp(i,j-1,kn-1)*scp2(i,j-1), &
                                      dp(i,j  ,kn  )*scp2(i,j  ))
                flxlo = - .125_r8*min(dp(i,j  ,kn-1)*scp2(i,j  ), &
@@ -249,41 +244,35 @@ contains
       integer :: i, j, k, l, km, kn, kintr, kmax, kmin, niter, kdir
       logical :: changed
 
-      call xctilr(difint, 1, kk, 2, 2, halo_ps)
-      call xctilr(pbu, 1, 2, 2, 2, halo_us)
-      call xctilr(pbv, 1, 2, 2, 2, halo_vs)
-
+      call xctilr(difint, 1, kk, 1, 1, halo_ps)
 
       ! Compute top pressure at velocity points.
       !$omp parallel do private(l, i)
-      do j= -1, jj+2
+      do j= 1, jj
          do l = 1, isu(j)
-         do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
+         do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
             ptu(i,j) = max(p(i-1,j,1), p(i,j,1))
          enddo
          enddo
-      enddo
-      !$omp end parallel do
-      !$omp parallel do private(l, i)
-      do j = 0, jj+2
          do l = 1, isv(j)
-         do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
+         do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
             ptv(i,j) = max(p(i,j-1,1), p(i,j,1))
          enddo
          enddo
       enddo
       !$omp end parallel do
 
-      ! ------------------------------------------------------------------------
-      ! Compute u-component of eddy-induced mass fluxes.
-      ! ------------------------------------------------------------------------
-
       !$omp parallel do private(l, i, k, km, et2mf, kmax, kn, kintr, kappa, &
       !$omp                     upsilon, kmin, mfl, dlm, dlp, fhi, flo, changed, &
       !$omp                     niter, kdir, q)
-      do j = -1, jj+2
+      do j = 1, jj
+
+         ! ---------------------------------------------------------------------
+         ! Compute u-component of eddy-induced mass fluxes.
+         ! ---------------------------------------------------------------------
+
          do l = 1, isu(j)
-         do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
+         do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
 
             ! Set eddy-induced mass fluxes to zero initially.
             do k = 1, kk
@@ -640,19 +629,13 @@ contains
 
          enddo
          enddo
-      enddo
-      !$omp end parallel do
 
-      ! ------------------------------------------------------------------------
-      ! Compute v-component of eddy-induced mass fluxes.
-      ! ------------------------------------------------------------------------
+         ! ---------------------------------------------------------------------
+         ! Compute v-component of eddy-induced mass fluxes.
+         ! ---------------------------------------------------------------------
 
-      !$omp parallel do private(l, i, k, km, et2mf, kmax, kn, kintr, kappa, &
-      !$omp                     upsilon, kmin, mfl, dlm, dlp, fhi, flo, changed, &
-      !$omp                     niter, kdir, q)
-      do j = 0, jj+2
          do l = 1, isv(j)
-         do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
+         do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
 
             ! Set eddy-induced mass fluxes to zero initially.
             do k = 1, kk
@@ -1042,24 +1025,18 @@ contains
       integer :: i, j, k, l, km, kn, kmax, kml, niter, kdir
       logical :: changed
 
-      call xctilr(difint, 1, kk, 2, 2, halo_ps)
-      call xctilr(pbu, 1, 2, 2, 2, halo_us)
-      call xctilr(pbv, 1, 2, 2, 2, halo_vs)
+      call xctilr(difint, 1, kk, 1, 1, halo_ps)
 
       if (mlrmth_opt == mlrmth_none) then
          !$omp parallel do private(l, i)
-         do j = -1, jj+2
+         do j = 1, jj
             do l = 1, isu(j)
-            do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
+            do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
                upssmx(i,j) = 0._r8
             enddo
             enddo
-         enddo
-         !$omp end parallel do
-         !$omp parallel do private(l, i)
-         do j = 0, jj+2
             do l = 1, isv(j)
-            do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
+            do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
                upssmy(i,j) = 0._r8
             enddo
             enddo
@@ -1099,9 +1076,9 @@ contains
                enddo
             enddo
             !$omp end parallel do
-            call xctilr(hbl_tf, 1, 1, 2, 2, halo_ps)
-            call xctilr(wpup_tf, 1, 1, 2, 2, halo_ps)
-            call xctilr(hml_tf, 1, 1, 2, 2, halo_ps)
+            call xctilr(hbl_tf, 1, 1, 1, 1, halo_ps)
+            call xctilr(wpup_tf, 1, 1, 1, 1, halo_ps)
+            call xctilr(hml_tf, 1, 1, 1, 1, halo_ps)
          else
             !$omp parallel do private(l, i)
             do j = 1, jj
@@ -1115,7 +1092,7 @@ contains
                enddo
             enddo
             !$omp end parallel do
-            call xctilr(hml_tf, 1, 1, 2, 2, halo_ps)
+            call xctilr(hml_tf, 1, 1, 1, 1, halo_ps)
          endif
 
          ! Compute vertically averaged mixed layer density [kg m-3].
@@ -1143,15 +1120,15 @@ contains
             enddo
          enddo
          !$omp end parallel do
-         call xctilr(util1, 1,1, 2,2, halo_ps)
+         call xctilr(util1, 1,1, 1,1, halo_ps)
 
          ! Compute components of submesoscale eddy transport [m2 s-1].
          if (mlrmth_opt == mlrmth_bod23) then
             csm = grav*alpha0*ce/cl
             !$omp parallel do private(l, i, hbl, hml, absf, wpup, drho)
-            do j = -1, jj+2
+            do j = 1, jj
                do l = 1, isu(j)
-               do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
+               do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
                   hbl = .5_r8*(hbl_tf(i-1,j) + hbl_tf(i,j))
                   hml = .5_r8*(hml_tf(i-1,j) + hml_tf(i,j))
                   absf = .5_r8*abs(coriop(i-1,j) + coriop(i,j))
@@ -1160,12 +1137,8 @@ contains
                   upssmx(i,j) = csm*absf*hbl*hml*hml*drho/wpup
                enddo
                enddo
-            enddo
-            !$omp end parallel do
-            !$omp parallel do private(l, i, hbl, hml, absf, wpup, drho)
-            do j = 0, jj+2
                do l = 1, isv(j)
-               do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
+               do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
                   hbl = .5_r8*(hbl_tf(i,j-1) + hbl_tf(i,j))
                   hml = .5_r8*(hml_tf(i,j-1) + hml_tf(i,j))
                   absf = .5_r8*abs(coriop(i,j-1) + coriop(i,j))
@@ -1180,9 +1153,9 @@ contains
             rtau = 1._r8/tau_mlr
             csm = grav*alpha0*ce
             !$omp parallel do private(l, i, hml, f, absfi, lfi, drho)
-            do j = -1, jj+2
+            do j = 1, jj
                do l = 1, isu(j)
-               do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
+               do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
                   hml = .5_r8*(hml_tf(i-1,j) + hml_tf(i,j))
                   f = .5_r8*(coriop(i-1,j) + coriop(i,j))
                   absfi = 1._r8/sqrt(f*f + rtau*rtau)
@@ -1192,12 +1165,8 @@ contains
                   upssmx(i,j) = csm*hml*hml*drho*lfi*absfi
                enddo
                enddo
-            enddo
-            !$omp end parallel do
-            !$omp parallel do private(l, i, hml, f, absfi, lfi, drho)
-            do j = 0, jj+2
                do l = 1, isv(j)
-               do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
+               do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
                   hml = .5_r8*(hml_tf(i,j-1) + hml_tf(i,j))
                   f = .5_r8*(coriop(i,j-1) + coriop(i,j))
                   absfi = 1._r8/sqrt(f*f + rtau*rtau)
@@ -1214,34 +1183,31 @@ contains
 
       ! Compute top pressure at velocity points.
       !$omp parallel do private(l, i)
-      do j = -1, jj+2
+      do j = 1, jj
          do l = 1, isu(j)
-         do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
+         do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
             ptu(i,j) = max(p(i-1,j,1), p(i,j,1))
          enddo
          enddo
-      enddo
-      !$omp end parallel do
-      !$omp parallel do private(l, i)
-      do j = 0, jj+2
          do l = 1, isv(j)
-         do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
+         do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
             ptv(i,j) = max(p(i,j-1,1), p(i,j,1))
          enddo
          enddo
       enddo
       !$omp end parallel do
 
-      ! ------------------------------------------------------------------------
-      ! Compute u-component of eddy-induced mass fluxes.
-      ! ------------------------------------------------------------------------
-
       !$omp parallel do private(l, i, k, km, mfleps, et2mf, kmax, puv, kn, hml, &
       !$omp                     pml, dpmli, kml, kappa, mflgm, mflsm, q, mfl, &
       !$omp                     dlm, dlp, changed, niter, kdir)
-      do j = -1, jj+2
+      do j = 1, jj
+
+         ! ---------------------------------------------------------------------
+         ! Compute u-component of eddy-induced mass fluxes.
+         ! ---------------------------------------------------------------------
+
          do l = 1, isu(j)
-         do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
+         do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
 
             ! Set eddy-induced mass fluxes to zero initially.
             do k = 1, kk
@@ -1499,19 +1465,13 @@ contains
 
          enddo
          enddo
-      enddo
-      !$omp end parallel do
 
-      ! ------------------------------------------------------------------------
-      ! Compute v-component of eddy-induced mass fluxes.
-      ! ------------------------------------------------------------------------
+         ! ---------------------------------------------------------------------
+         ! Compute v-component of eddy-induced mass fluxes.
+         ! ---------------------------------------------------------------------
 
-      !$omp parallel do private(l, i, k, km, mfleps, et2mf, kmax, puv, kn, hml, &
-      !$omp                     pml, dpmli, kml, kappa, mflgm, mflsm, q, mfl, &
-      !$omp                     dlm, dlp, changed, niter, kdir)
-      do j = 0, jj+2
          do l = 1, isv(j)
-         do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
+         do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
 
             ! Set eddy-induced mass fluxes to zero initially.
             do k = 1, kk

@@ -17,6 +17,7 @@ sources += files(
 'mod_config.F90',
 'mod_constants.F90',
 'mod_convec.F90',
+'mod_cppm.F90',
 'mod_dia.F90',
 'mod_diapfl.F90',
 'mod_difest.F90',

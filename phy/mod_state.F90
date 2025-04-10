@@ -53,6 +53,10 @@ module mod_state
       pv,        & ! Layer interface pressure at v-points [kg m-1 s-2].
       phi          ! Layer interface geopotential [m2 s-2].
 
+   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, kdm) :: &
+      cau,       & ! u-component of flux area [m2].
+      cav          ! v-component of flux area [m2].
+
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, 3) :: &
       ubflxs,    & ! u-component of barotropic mass flux sum [kg m s-3].
       vbflxs       ! v-component of barotropic mass flux sum [kg m s-3].
@@ -83,7 +87,7 @@ module mod_state
 
    public :: u, v, dp, dpu, dpv, temp, saln, sigma, &
              uflx, vflx, utflx, vtflx, usflx, vsflx, &
-             p, pu, pv, phi, ubflxs, vbflxs, &
+             p, pu, pv, phi, cau, cav, ubflxs, vbflxs, &
              ub, vb, pb, pbu, pbv, ubflxs_p, vbflxs_p, &
              pb_p, pbu_p, pbv_p, ubcors_p, vbcors_p, sealv, kfpla, &
              inivar_state, init_fluxes
@@ -319,6 +323,9 @@ contains
       call xctilr(vsflx,    1, 2*kk, nbdy, nbdy, halo_vs)
       call xctilr(v,        1, 2*kk, nbdy, nbdy, halo_vs)
 
+      cau(:,:,:) = 0._r8
+      cav(:,:,:) = 0._r8
+
       if (csdiag) then
          if (mnproc == 1) then
             write (lp, *) 'inivar_state:'
@@ -342,6 +349,8 @@ contains
          call chksummsk(vbcors_p, iv, 1, 'vbcors_p')
          call chksummsk(u, iu, 2*kk, 'u')
          call chksummsk(v, iv, 2*kk, 'v')
+         call chksummsk(cau, iu, kk, 'cau')
+         call chksummsk(cav, iv, kk, 'cav')
          call chksummsk(uflx, iu, 2*kk, 'uflx')
          call chksummsk(vflx, iv, 2*kk, 'vflx')
          call chksummsk(dp, ip, 2*kk, 'dp')
