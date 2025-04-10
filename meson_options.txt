@@ -21,6 +21,8 @@ option('iage', type: 'boolean',
        description: 'Enable ideal age tracer', value: true)
 option('ecosys', type: 'boolean',
        description: 'Enable HAMOCC as ecosystem module', value: false)
+option('offline_sediment_spinup', type: 'boolean',
+       description: 'Perform a HAMOCC offline spinup', value: false)
 option('atrc', type: 'boolean',
        description: 'Enable age tracer in BLOM', value: false)
 option('hamocc_agg', type: 'boolean',

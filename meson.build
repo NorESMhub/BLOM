@@ -120,6 +120,11 @@ if get_option('ecosys')
   subdir('hamocc')
 endif
 
+# Provide preprocessor-flag for offline-sediment-spinup
+if get_option('offline_sediment_spinup')
+  add_project_arguments('-DOFFLINE_SEDIMENT_SPINUP', language: 'fortran')
+endif
+
 if get_option('levitus2x')
   add_project_arguments('-DLEVITUS2X', language: 'fortran')
 endif

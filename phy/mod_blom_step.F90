@@ -119,7 +119,7 @@ contains
     call budget_sums(1,n,nn)
 
     call step_time
-
+#ifndef OFFLINE_SEDIMENT_SPINUP
     ! ------------------------------------------------------------------
     ! Reset fluxes to be accumulated over a model time step and update
     ! flux halos the first time step of a day to reproduce results after
@@ -224,11 +224,12 @@ contains
       call budget_sums(4,n,nn)
       diapfl_time = get_time()
     end if
-
+#endif
     if (use_TRC) then
       ! update tracer due to non-passive processes
       call updtrc(m,n,mm,nn,k1m,k1n)
     end if
+#ifndef OFFLINE_SEDIMENT_SPINUP
 
     call budget_sums(5,n,nn)
     auxil_time = auxil_time+get_time()
@@ -380,7 +381,7 @@ contains
     end if
 
     delt1 = baclin + baclin
-
+#endif
   end subroutine blom_step
 
 end module mod_blom_step
