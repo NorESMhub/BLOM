@@ -225,12 +225,13 @@ contains
       diapfl_time = get_time()
     end if
 #endif
+
     if (use_TRC) then
       ! update tracer due to non-passive processes
       call updtrc(m,n,mm,nn,k1m,k1n)
     end if
-#ifndef OFFLINE_SEDIMENT_SPINUP
 
+#ifndef OFFLINE_SEDIMENT_SPINUP
     call budget_sums(5,n,nn)
     auxil_time = auxil_time+get_time()
 
@@ -306,6 +307,7 @@ contains
     mxlayr_total_time = mxlayr_total_time+mxlayr_time
     tmsmt2_total_time = tmsmt2_total_time+tmsmt2_time
     diaacc_total_time = diaacc_total_time+diaacc_time
+#endif
 
     if (((rstann.and.nday_of_year == 1.or.rstmon.and.date%day == 1) &
          .and.mod(nstep,nstep_in_day) == 0).or. &
@@ -335,6 +337,7 @@ contains
       total_time = total_time+total_step_time
       total_xio_time = total_xio_time+total_step_time-io_time
 
+#ifndef OFFLINE_SEDIMENT_SPINUP
       if (mnproc == 1) then
         write (lp,'(f12.4,a,i8)') total_step_time, '  sec for step ', nstep
         write (lp,'(f12.4,a,i8)') total_time/(nstep-nstep1),' Avg Time'
@@ -358,6 +361,7 @@ contains
         write (lp,'(f12.4,a,i8)') diaacc_total_time*q,'% diaacc'
         write (lp,'(f12.4,a,i8)') io_total_time*q    ,'% IO'
       end if
+#endif
 
     else
 
@@ -374,14 +378,15 @@ contains
       total_time = total_time + total_step_time
       total_xio_time = total_xio_time + total_step_time-io_time
 
+#ifndef OFFLINE_SEDIMENT_SPINUP
       if (mnproc == 1) then
         write (lp,'(f12.4,a,i8)') total_step_time, '  sec for step ', nstep
       end if
+#endif
 
     end if
 
     delt1 = baclin + baclin
-#endif
   end subroutine blom_step
 
 end module mod_blom_step
