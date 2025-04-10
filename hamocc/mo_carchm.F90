@@ -23,7 +23,7 @@ module mo_carchm
   private
 
   public  :: carchm
-  public  :: carchm_solve
+  public  :: carchm_solve, carchm_kequi
 
   ! Maximum number of iterations for carbon chemistry solver
   integer, parameter :: niter=20

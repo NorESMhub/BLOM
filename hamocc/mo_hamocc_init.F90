@@ -45,7 +45,8 @@ contains
                               ldtrunbgc,ndtdaybgc,with_dmsph,l_3Dvarsedpor,use_M4AGO,              &
                               lkwrbioz_off,do_n2onh3_coupled,                                      &
                               ocn_co2_type, use_sedbypass, use_BOXATM, use_BROMO,use_extNcycle,    &
-                              use_coupler_ndep,lTO2depremin,use_sediment_quality,ldyn_sed_age
+                              use_coupler_ndep,lTO2depremin,use_sediment_quality,ldyn_sed_age,     &
+                              offline_sediment_spinup
     use mo_param1_bgc,  only: ks,init_por2octra_mapping
     use mo_param_bgc,   only: ini_parambgc,claydens,calcdens,calcwei,opaldens,opalwei,ropal
     use mo_carbch,      only: alloc_mem_carbch,ocetra,atm,atm_co2
@@ -108,6 +109,13 @@ contains
       write(io_stdo_bgc,*) 'dims',idm,jdm,kdm
       write(io_stdo_bgc,*) 'date',date
       write(io_stdo_bgc,*) 'time step',dtbgc
+      if (offline_sediment_spinup) then
+        write(io_stdo_bgc,*) '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+        write(io_stdo_bgc,*) ' '
+        write(io_stdo_bgc,*) 'Performing offline sediment spinup - NO WATER COLUMN BGC!!!!'
+        write(io_stdo_bgc,*) ' '
+        write(io_stdo_bgc,*) '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+      endif
     endif
     !
     ! --- Read the HAMOCC BGCNML namelist and check the value of some variables.
