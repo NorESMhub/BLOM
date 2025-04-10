@@ -88,6 +88,12 @@ module mo_control_bgc
   logical           :: use_shelfsea_res_time  = .false.
   logical           :: use_sediment_quality   = .false.
 
+#ifdef OFFLINE_SEDIMENT_SPINUP
+  logical           :: offline_sediment_spinup = .true.
+#else
+  logical           :: offline_sediment_spinup = .false.
+#endif
+
 contains
 
   subroutine get_bgc_namelist
