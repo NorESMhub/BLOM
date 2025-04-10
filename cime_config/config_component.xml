@@ -6,8 +6,8 @@
 
   <entry id="BLOM_OUTPUT_SIZE">
     <type>char</type>
-    <valid_values>spinup</valid_values>
-    <default_value>spinup</default_value>
+    <valid_values>spinup,default</valid_values>
+    <default_value>default</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
     <desc>Namelist option to set BLOM output option.</desc>
@@ -212,8 +212,8 @@
 
   <entry id="HAMOCC_OUTPUT_SIZE">
     <type>char</type>
-    <valid_values>spinup</valid_values>
-    <default_value>spinup</default_value>
+    <valid_values>spinup,default</valid_values>
+    <default_value>default</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
     <desc>Namelist option to set iHAMOCC output option. Requires module ecosys</desc>
