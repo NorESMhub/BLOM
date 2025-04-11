@@ -61,6 +61,7 @@ contains
     use mo_read_pi_ph,  only: ini_pi_ph,pi_ph_file
     use mo_read_sedpor, only: read_sedpor,sedporfile
     use mo_read_sedqual,only: read_sedqual,sedqualfile
+    use mo_read_sedspinoff,only: read_sedspinoff,sedspinoff_file
     use mo_clim_swa,    only: ini_swa_clim,swaclimfile
     use mo_Gdata_read,  only: inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c
     use mo_intfcblom,   only: alloc_mem_intfcblom,nphys,bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask,        &
@@ -89,7 +90,7 @@ contains
          &            inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c,swaclimfile,       &
          &            with_dmsph,pi_ph_file,l_3Dvarsedpor,sedporfile,ocn_co2_type,use_M4AGO,       &
          &            do_n2onh3_coupled,lkwrbioz_off,lTO2depremin,shelfsea_maskfile,sedqualfile,   &
-         &            ldyn_sed_age
+         &            ldyn_sed_age,sedspinoff_file
     !
     ! --- Set io units and some control parameters
     !
@@ -210,6 +211,9 @@ contains
     call read_sedpor(idm,jdm,ks,omask,sed_por)
     !     Second, read the sediment POC age and climatological prorca and pot. apply it in ini_sedmnt
     call read_sedqual(idm,jdm,ks,omask,sed_POCage_init,prorca_mavg_init)
+    !     Third, potentially read climatology for offline sediment spinup
+    call read_sedspinoff(idm,jdm,omask)
+    !     Eventually, initialize the sediment
     call ini_sedmnt(idm,jdm,omask,sed_por,sed_POCage_init,prorca_mavg_init)
 
     !

@@ -35,6 +35,7 @@ sources += files(
   'mo_read_oafx.F90',
   'mo_read_sedpor.F90',
   'mo_read_sedqual.F90',
+  'mo_read_sedspinoff.F90',
   'mo_sedmnt.F90',
   'mo_sedmnt_spinoff.F90',
   'mo_vgrid.F90',

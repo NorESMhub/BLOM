@@ -33,19 +33,19 @@ module mo_carchm
 
   ! Avoid division by zero
   real, parameter :: eps_safe = epsilon(1.)
-  
+
   ! Minimum and maximum SST/SSS set for carbon chemistry and gas exchange calculations
   real, parameter :: temp_min = -1.0
   real, parameter :: temp_max = 40.0
   real, parameter :: saln_min =  5.0
   real, parameter :: saln_max = 40.0
-  
+
   ! Minimum and maximum H+ concentrations allowed in the iterative carbon chemistry solver
   ! The values set below (corresponding to pH 5 and 11) should never be reached in any resonable 
   ! oceanographic context
   real, parameter :: ah_min = 1.0e-11
   real, parameter :: ah_max = 1.0e-5
-  
+
 contains
 
   subroutine carchm(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,prho,pglat,omask,psicomo,ppao,pfu10,     &
@@ -157,7 +157,7 @@ contains
     ! extNcycle
     real    :: flx_nh3,sch_nh3_a,sch_nh3_w,kw_nh3,ka_nh3,atnh3,diff_nh3_a,diff_nh3_w,mu_air,mu_w,p_dbar,rho_air
     real    :: h_nh3,hstar_nh3,pKa_nh3,Kh_nh3,cD_wind,u_star
-    
+
 
     ! set variables for diagnostic output to zero
     atmflx (:,:,:)=0.
@@ -221,10 +221,10 @@ contains
             s    = min(saln_max,max(saln_min,psao(i,j,k)))
             tk   = t + tzero
             tk100= tk/100.0
-            
+
             rrho = prho(i,j,k)                   ! seawater density [g/cm3]
             prb  = ptiestu(i,j,k)*98060.0*1.027e-6 ! pressure in unit bars, 98060 = onem
-            
+
             tc   = ocetra(i,j,k,isco212) / rrho  ! convert to mol/kg
             ta   = ocetra(i,j,k,ialkali) / rrho
             sit  = ocetra(i,j,k,isilica) / rrho
@@ -276,7 +276,7 @@ contains
               t2 = t**2
               t3 = t**3
               t4 = t**4
-              
+
               ! Schmidt numbers according to Wanninkhof (2014), Table 1, for temp=[-2,40]
               scco2 = 2116.8 - 136.25*t + 4.7353*t2 - 0.092307*t3 + 0.0007555 *t4
               sco2  = 1920.4 - 135.6 *t + 5.2122*t2 - 0.10939 *t3 + 0.00093777*t4
@@ -309,7 +309,7 @@ contains
                        & + s * (1.3817e-8 * t - 2.6363e-10 * t2)                            &
                        & - p_dbar*p_dbar * (6.3255e-13 * t - 1.2116e-14 * t2)
                 mu_w   = mu_w * 0.1 ! conversion from g/(cm s) to kg/(m s)
- 
+
                 ! diffusion coeff in air (m2/s) Fuller 1966 / Johnson 2010
                 ! division by pressure: ppao [Pa]; in Fuller, p is a factor for denominator [atm]
                 diff_nh3_a =  1.0e-7 * tk**1.75 * M_nh3 / (ppao(i,j)/101325.0)
@@ -324,20 +324,20 @@ contains
                 ! Schmidt number water phase
                 sch_nh3_w  = mu_w   /(diff_nh3_w * rrho * 1000.)
               endif
-              
+
               ! solubility of N2 (Weiss, R.F. 1970, Deep-Sea Res., 17, 721-735) for moist air
               ! at 1 atm; multiplication with oxyco converts to kmol/m^3/atm, temp=[-1,40], saln=[0,40]
               ani=an0+an1/tk100+an2*alog(tk100)+an3*tk100+s*(an4+an5*tk100+an6*tk100**2)
               anisa=exp(ani)*oxyco
 
               ! solubility of laughing gas  (Weiss and Price 1980, Marine Chemistry, 8, 347-359)
-              ! for moist air at 1 atm in kmol/m^3/atm, temp=[-1,40], saln=[0,40] 
+              ! for moist air at 1 atm in kmol/m^3/atm, temp=[-1,40], saln=[0,40]
               rs=al1+al2/tk100+al3*log(tk100)+al4*tk100**2+s*(bl1+bl2*tk100+bl3*tk100**2)
               satn2o(i,j)=exp(rs)
 
               if (use_CFC) then
                 ! solubility of cfc11,12 (mol/(l*atm)) (Warner and Weiss 1985) and
-                ! sf6 from eq. 6 of Bullister et al. (2002), temp=[-1,40], saln=[0,40] 
+                ! sf6 from eq. 6 of Bullister et al. (2002), temp=[-1,40], saln=[0,40]
                 ! These are the alpha in (1b) of the ocmpic2 howto
                 a_11 = exp(-229.9261 + 319.6552*(100/tk) + 119.4471*log(tk100)       &
                      &     -1.39165*(tk100)**2 + s*(-0.142382 + 0.091459*(tk100)     &
@@ -365,7 +365,7 @@ contains
                 ! effective gas-over-liquid Henry constant (Paulot et al. 2015)
                 hstar_nh3   = h_nh3/(1. + 10.**(log10(hi(i,j,k))+pKa_nh3))
               endif
-              
+
               ! Transfer (piston) velocity kw according to Wanninkhof (2014), in units of ms-1
               Xconvxa = 6.97e-07   ! Wanninkhof's a=0.251 converted from [cm hr-1]/[m s-1]^2 to [ms-1]/[m s-1]^2
               kwco2 = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./scco2)**0.5
@@ -405,7 +405,7 @@ contains
               ! -----------------------------------------------------------------
               ! Calculate and apply surface fluxes
               ! -----------------------------------------------------------------
-              
+
               atco2 = atm(i,j,iatmco2)
               ato2  = atm(i,j,iatmo2)
               atn2  = atm(i,j,iatmn2)
@@ -421,7 +421,7 @@ contains
                 atnh3  = atm(i,j,iatmnh3)
               endif
 
-              ! Sea level pressure in atm. This is used in all surface flux calculations where 
+              ! Sea level pressure in atm. This is used in all surface flux calculations where
               ! atmospheric concentration is given as a mixing ratio (i.e. partial pressure = mixing ratio*SLP/P_0 [atm])
               rpp0  = ppao(i,j)/101325.0
 
@@ -437,7 +437,7 @@ contains
               ! Calculate the CO2 concentration in equilibrium with atmospheric x' (atco2=mole fraction of CO2 in dry air [ppm])
               cu_sat = Kh0*atco2*1.0e-6*(rpp0-pH2O)*fc
 
-              fluxd = cu_sat*kwco2*dtbgc*rrho ! cu_sat and cu are in mol/kg. Multiply by rrho (g/cm^3) 
+              fluxd = cu_sat*kwco2*dtbgc*rrho ! cu_sat and cu are in mol/kg. Multiply by rrho (g/cm^3)
               fluxu = cu    *kwco2*dtbgc*rrho ! to get fluxes in kmol/m^2
 
               ! Set limit for CO2 outgassing to avoid negative DIC concentration
@@ -581,7 +581,7 @@ contains
               if (use_extNcycle) then
                 atmflx(i,j,iatmnh3)=-flx_nh3 ! positive to atmosphere [kmol NH3 m-2 timestep-1]
               endif
-              
+
               ! Save up- and downward components of carbon fluxes for output
               co2fxd(i,j)  = fluxd
               co2fxu(i,j)  = fluxu
@@ -608,7 +608,7 @@ contains
 
             endif ! k==1
 
-            
+
             ! -----------------------------------------------------------------
             ! Deep ocean processes
             ! -----------------------------------------------------------------
@@ -723,7 +723,7 @@ contains
     endif ! end of use_cisonew and not use_sedbypass
 
   end subroutine carchm
-  
+
 
   subroutine carchm_kequi(temp,saln,prb,Kh0,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,Kspc,Kspa)
 
@@ -779,7 +779,7 @@ contains
 
 
     ! Kh0 = [CO2]/ fCO2 (fCO2 = fugacity of CO2 in air)
-    ! Weiss (1974), note this does not include a correction for the effect of moist air at 
+    ! Weiss (1974), note this does not include a correction for the effect of moist air at
     ! air-sea interface [mol/kg/atm], temp=[-1,45], saln=[0,45]
     nKhwe74 = ad1+ad2/tk100+ad3*log(tk100)+s*(bd1+bd2*tk100+bd3*tk100**2)
     Kh0     = exp( nKhwe74 )
