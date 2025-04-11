@@ -261,7 +261,7 @@
     <valid_values>TRUE,FALSE</valid_values>
     <default_value>FALSE</default_value>
     <values>
-      <value compset="_BLOM.*%ECO">iage ecosys</value>
+      <value compset="_BLOM.*%ECO">FALSE</value>
     </values>
     <group>build_component_blom</group>
     <file>env_build.xml</file>
