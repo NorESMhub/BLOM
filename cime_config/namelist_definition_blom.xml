@@ -4273,6 +4273,18 @@
     </desc>
   </entry>
 
+  <entry id="sedspinoff_file" is_inputdata="yes">
+    <type>char</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>''</value>
+    </values>
+    <desc>
+      File name (incl. full path) for offline sediment spinup - holding climatological mean of carflx_bot,calflx_bot,dustflx_bot and bsiflx_bot
+    </desc>
+  </entry>
+
   <entry id="shelfsea_maskfile" is_inputdata="yes">
     <type>char</type>
     <category>bgcnml</category>
