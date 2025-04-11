@@ -55,6 +55,10 @@ contains
     integer :: i,j
     logical :: file_exists = .false.
     integer :: ncid,ncstat,errstat
+    real    :: tmp_prorca(kpie,kpje)
+    real    :: tmp_prcaca(kpie,kpje)
+    real    :: tmp_produs(kpie,kpje)
+    real    :: tmp_silpro(kpie,kpje)
 
     ! Return if offline_sediment_spinup is turned off
     if (.not. offline_sediment_spinup) then
@@ -132,10 +136,10 @@ contains
     !   - dustflx_bot: g m-2 s-1
     !   - bsiflx_bot:  mol Si m-2 s-1
     ! as usually provided as output by iHAMOCC
-    call read_netcdf_var(ncid,'carflx_bot',clim_prorca,1,1,0)
-    call read_netcdf_var(ncid,'calflx_bot',clim_prcaca,1,1,0)
-    call read_netcdf_var(ncid,'dustflx_bot',clim_produs,1,1,0)
-    call read_netcdf_var(ncid,'bsiflx_bot',clim_silpro,1,1,0)
+    call read_netcdf_var(ncid,'carflx_bot',tmp_prorca,1,1,0)
+    call read_netcdf_var(ncid,'calflx_bot',tmp_prcaca,1,1,0)
+    call read_netcdf_var(ncid,'dustflx_bot',tmp_produs,1,1,0)
+    call read_netcdf_var(ncid,'bsiflx_bot',tmp_silpro,1,1,0)
 
     ! Close file
     if (mnproc == 1) then
@@ -145,6 +149,18 @@ contains
         stop        '(read_sedspinoff: Problem with netCDF2)'
       end if
     end if
+
+    do j=1,kpje
+      do i=1,kpie
+        if (omask(i,j) > 0.5) then
+          clim_prorca(i,j) = tmp_prorca(i,j)
+          clim_prcaca(i,j) = tmp_prcaca(i,j)
+          clim_produs(i,j) = tmp_produs(i,j)
+          clim_silpro(i,j) = tmp_silpro(i,j)
+        endif
+      enddo
+    enddo
+
 
   end subroutine read_sedspinoff
 
