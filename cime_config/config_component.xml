@@ -256,6 +256,18 @@
     <desc>Set namelist option to activate the carbon isotope code. Requires module ecosys</desc>
   </entry>
 
+  <entry id="HAMOCC_OFFLINE_SEDIMENT_SPINUP">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <values>
+      <value compset="_BLOM.*%ECO">iage ecosys</value>
+    </values>
+    <group>build_component_blom</group>
+    <file>env_build.xml</file>
+    <desc>Offline sediment spinup. Requires module ecosys</desc>
+  </entry>
+
   <entry id="HAMOCC_SEDBYPASS">
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
