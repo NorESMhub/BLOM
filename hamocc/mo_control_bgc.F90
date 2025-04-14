@@ -26,6 +26,8 @@ module mo_control_bgc
   ! Modified
   ! J.Schwinger,      *Uni Research, Bergen*   2018-04-12
   ! - removed unused variables
+  !  T. Bourgeois,     *NORCE climate, Bergen*   2025-04-14
+  !  - implement R2OMIP protocol
   !*************************************************************************************************
 
   implicit none
@@ -87,6 +89,7 @@ module mo_control_bgc
   logical           :: use_pref_tracers       = .true.
   logical           :: use_shelfsea_res_time  = .false.
   logical           :: use_sediment_quality   = .false.
+  logical           :: use_r2o                = .false.
 
 contains
 

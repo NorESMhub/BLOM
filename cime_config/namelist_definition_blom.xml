@@ -3968,6 +3968,16 @@
     <desc>Logical switch to activate riverine input</desc>
   </entry>
 
+    <entry id="use_r2o">
+    <type>logical</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>Logical switch to use riverine carbon and nutrient inputs following R2OMIP protocol</desc>
+  </entry>
+
   <entry id="rivinfile" is_inputdata="yes">
     <type>char</type>
     <category>bgcnml</category>
@@ -4460,7 +4470,6 @@
     </values>
     <desc>activate the HAMOCC sediment quality-based remineralization code</desc>
   </entry>
-
 
   <!-- ========================= -->
   <!-- namelist group: bgcoafx -->

@@ -29,6 +29,8 @@ module mo_param_bgc
   !  - split the original BELEG_BGC in two parts, BELEG_PARM and BELEG_VARS
   ! jmaerz
   !  - rename beleg_parm to mo_param_bgc
+  !  T. Bourgeois,     *NORCE climate, Bergen*   2025-04-14
+  !  - implement R2OMIP protocol
   !*************************************************************************************************
 
   use mo_carbch,      only: atm_co2
@@ -39,7 +41,7 @@ module mo_param_bgc
                             use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type,use_M4AGO,&
                             do_n2onh3_coupled,use_extNcycle,                                       &
                             lkwrbioz_off,lTO2depremin,use_shelfsea_res_time,use_sediment_quality,  &
-                            use_pref_tracers,use_coupler_ndep
+                            use_pref_tracers,use_coupler_ndep,use_r2o
   use mod_xc,         only: mnproc
 
   implicit none
@@ -81,13 +83,14 @@ module mo_param_bgc
 
   ! Other module variables
   public :: ro2ut,rcar,rnit,rnoi,riron,rdnit0,rdnit1,rdnit2,rdn2o1,rdn2o2
+  public :: rcar_tdoclc,rcar_tdochc,rnit_tdoclc,rnit_tdochc
   public :: atm_n2,atm_o2,atm_co2_nat,atm_bromo,re1312,atm_n2o,atm_nh3
   public :: srfdic_min,re14to,prei13,prei14,ctochl
   public :: atten_w,atten_c,atten_uv,atten_f
   public :: perc_diron,fesoly,phytomi,pi_alpha
   public :: dyphy,tf2,tf1,tf0,tff,bifr13_ini,bifr14_ini,c14_t_half
   public :: rbro,fbro1,fbro2,grami
-  public :: calmax,remido
+  public :: calmax,remido,deg_tdoclc,deg_tdochc
   public :: dustd1,dustd2,dustd3,dustsink
   public :: SinkExp, FractDim, Stick, cellmass, cellsink
   public :: fsh,fse,alow1, alow2,alow3
@@ -142,6 +145,10 @@ module mo_param_bgc
   real, parameter :: rnit   = 16.                 ! mol N per mol P
   real, parameter :: rnoi   = 1./rnit             ! mol P per mol N
   real, parameter :: riron  = 5.*rcar*1.e-6       ! fe to P ratio in organic matter
+  real, parameter :: rcar_tdoclc  = 276           ! mol C per mol P in low-C tDOC (R2OMIP)
+  real, parameter :: rcar_tdochc  = 2583          ! mol C per mol P in high-C tDOC (R2OMIP)
+  real, parameter :: rnit_tdoclc  = 25            ! mol N per mol P in low-C tDOC (R2OMIP)
+  real, parameter :: rnit_tdochc  = 103           ! mol N per mol P in high-C tDOC (R2OMIP)
 
   ! stoichiometric ratios for denitrification from Paulmier et al. 2009, Table 1 and
   ! equation 18. Note that their R_0=ro2ut-2*rnit.
@@ -288,6 +295,8 @@ module mo_param_bgc
   real, parameter :: O2thresh_hypoxic = 5.e-7  ! Below O2thresh_hypoxic denitrification and sulfate reduction takes place (default model version)
   real, parameter :: NO3thresh_sulf   = 3.e-6  ! Below NO3thresh_sulf 'sufate reduction' takes place
   real, protected :: remido     = 0.004        ! 1/d - remineralization rate (of DOM)
+  real, protected :: deg_tdoclc = 0.00183        ! 1/d Degradation time scale of low-C tDOC (1.5 yr)
+  real, protected :: deg_tdochc = 0.00183        ! 1/d Degradation time scale of high-C tDOC (1.5 yr)
   ! deep sea remineralisation constants
   real, protected :: drempoc    = 0.025        ! 1/d Aerob remineralization rate detritus
   real, protected :: drempoc_anaerob = 1.25e-3 ! =0.05*drempoc - remin in sub-/anoxic environm. - not be overwritten by M4AGO
@@ -617,7 +626,7 @@ contains
                          ecan,zinges,epsher,bkopal,rcalc,ropal,                  &
                          remido,drempoc,dremopal,dremn2o,dremsul,fetune,relaxfe, &
                          wmin,wmax,wlin,wpoc_const,wcal_const,wopal_const,       &
-                         disso_poc,disso_sil,disso_caco3,                        &
+                         disso_poc,disso_sil,disso_caco3,deg_tdoclc,deg_tdochc,  &
                          rano3denit,rano2anmx,rano2denit,ran2odenit,rdnra,       &
                          ranh4nitr,rano2nitr,rano3denit_sed,rano2anmx_sed,       &
                          rano2denit_sed,ran2odenit_sed,rdnra_sed,ranh4nitr_sed,  &
@@ -720,6 +729,8 @@ contains
     dremopal = dremopal*dtb   ! 1/d to 1/time step  Dissolution rate of opal
     dremn2o  = dremn2o*dtb    ! 1/d to 1/time step  Remineralization rate of detritus on N2O
     dremsul  = dremsul*dtb    ! 1/d to 1/time step  Remineralization rate for sulphate reduction
+    deg_tdoclc = deg_tdoclc*dtb ! 1/d to 1/time step - degradation time scale of terrestrial DOC
+    deg_tdochc = deg_tdochc*dtb ! 1/d to 1/time step - degradation time scale of terrestrial DOC
 
     !********************************************************************
     !     Parameters for DMS and BrO schemes
@@ -868,6 +879,7 @@ contains
       call cinfo_add_entry('use_M4AGO',              use_M4AGO)
       call cinfo_add_entry('use_pref_tracers',       use_pref_tracers)
       call cinfo_add_entry('use_coupler_ndep',       use_coupler_ndep)
+      call cinfo_add_entry('use_r2o',  use_r2o)
       if (use_extNcycle) then
         call cinfo_add_entry('do_n2onh3_coupled',       do_n2onh3_coupled)
       endif
@@ -1146,6 +1158,14 @@ contains
       call pinfo_add_entry('bkoxnitr_sed',      bkoxnitr_sed)
       call pinfo_add_entry('bkano2nitr_sed',    bkano2nitr_sed)
       call pinfo_add_entry('NOB2AOAy_sed',      NOB2AOAy_sed)
+    endif
+    if (use_r2o) then
+      call pinfo_add_entry('deg_tdoclc',     deg_tdoclc*dtbinv)
+      call pinfo_add_entry('deg_tdochc',     deg_tdochc*dtbinv)
+      call pinfo_add_entry('rcar_tdoclc', rcar_tdoclc)
+      call pinfo_add_entry('rcar_tdochc', rcar_tdochc)
+      call pinfo_add_entry('rnit_tdoclc', rnit_tdoclc)
+      call pinfo_add_entry('rnit_tdochc', rnit_tdochc)
     endif
   end subroutine write_parambgc
 
