@@ -40,7 +40,7 @@ module mod_xc
   integer, parameter :: mxthrd=8  ! NOMP = 0,1
 
   ! halo size
-  integer, parameter :: nbdy = 3
+  integer, parameter :: nbdy = 4
 
   ! OpenMP will allocate jblk rows to each thread in turn
   integer, parameter :: jblk = (jdm+2*nbdy+mxthrd-1)/mxthrd
