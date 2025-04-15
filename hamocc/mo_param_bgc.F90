@@ -879,7 +879,7 @@ contains
       call cinfo_add_entry('use_M4AGO',              use_M4AGO)
       call cinfo_add_entry('use_pref_tracers',       use_pref_tracers)
       call cinfo_add_entry('use_coupler_ndep',       use_coupler_ndep)
-      call cinfo_add_entry('use_r2o',  use_r2o)
+      call cinfo_add_entry('use_r2o',                use_r2o)
       if (use_extNcycle) then
         call cinfo_add_entry('do_n2onh3_coupled',       do_n2onh3_coupled)
       endif
@@ -1160,8 +1160,8 @@ contains
       call pinfo_add_entry('NOB2AOAy_sed',      NOB2AOAy_sed)
     endif
     if (use_r2o) then
-      call pinfo_add_entry('deg_tdoclc',     deg_tdoclc*dtbinv)
-      call pinfo_add_entry('deg_tdochc',     deg_tdochc*dtbinv)
+      call pinfo_add_entry('deg_tdoclc',  deg_tdoclc*dtbinv)
+      call pinfo_add_entry('deg_tdochc',  deg_tdochc*dtbinv)
       call pinfo_add_entry('rcar_tdoclc', rcar_tdoclc)
       call pinfo_add_entry('rcar_tdochc', rcar_tdochc)
       call pinfo_add_entry('rnit_tdoclc', rnit_tdoclc)

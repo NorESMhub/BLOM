@@ -374,12 +374,16 @@ contains
             zoothresh = max(0.,(ocetra(i,j,k,izoo)-2.*grami))
             if (lkwrbioz_off) then
               bacfra = 0.
+              if (use_r2o) then
+                tdoclc_deg = 0.
+                tdochc_deg = 0.
+              endif
             else
               bacfra = remido*ocetra(i,j,k,idoc)
-            endif
-            if (use_r2o) then
-              tdoclc_deg = deg_tdoclc*ocetra(i,j,k,itdoc_lc)
-              tdochc_deg = deg_tdochc*ocetra(i,j,k,itdoc_lc)
+              if (use_r2o) then
+                tdoclc_deg = deg_tdoclc*ocetra(i,j,k,itdoc_lc)
+                tdochc_deg = deg_tdochc*ocetra(i,j,k,itdoc_hc)
+              endif
             endif
             exud = gammap*phythresh
             zoomor = spemor*zoothresh*zoothresh           ! *10 compared to linear in tropics (tinka)
@@ -501,7 +505,7 @@ contains
             endif
             ocetra(i,j,k,idet) = ocetra(i,j,k,idet)+export
             ocetra(i,j,k,idms) = ocetra(i,j,k,idms)+dmsprod-dms_bac-dms_uv
-            ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)-delcar+rcar*dtr ! formerly
+            ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)-delcar+rcar*dtr
             if (use_r2o) then
               ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+tdoclc_deg*rcar_tdoclc+tdochc_deg*rcar_tdochc
             endif
