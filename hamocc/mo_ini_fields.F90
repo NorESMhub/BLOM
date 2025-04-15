@@ -36,6 +36,8 @@ contains
     !  Modified
     !  J.Schwinger,        *NORCE Climate, Bergen*    2020-05-19
     !  -split the original BELEG_BGC in two parts, BELEG_PARM (NOW MO_PARAM_BGC) and BELEG_VARS
+    !  T. Bourgeois,     *NORCE climate, Bergen*   2025-04-14
+    !  - implement R2OMIP protocol
     !***********************************************************************************************
 
     use mo_control_bgc, only: use_natDIC,use_cisonew,use_BROMO,use_extNcycle
@@ -95,12 +97,12 @@ contains
     use mo_biomod,      only: abs_oce
     use mo_control_bgc, only: rmasks,use_FB_BGC_OCE,use_cisonew,use_AGG,use_CFC,use_natDIC,        &
                               use_BROMO, use_sedbypass,use_extNcycle,use_pref_tracers,             &
-                              use_shelfsea_res_time,use_sediment_quality
+                              use_shelfsea_res_time,use_sediment_quality,use_r2o
     use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,     &
                               iiron,iopal,ioxygen,iphosph,iphy,iprefalk,iprefdic,iprefo2,iprefpo4, &
                               isco212,isilica,izoo,iadust,inos,ibromo,icfc11,icfc12,isf6,          &
                               icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,           &
-                              isco213,isco214,izoo13,izoo14,safediv,inatcalc,                      &
+                              isco213,isco214,izoo13,izoo14,safediv,inatcalc,itdoc_lc,itdoc_hc,   &
                               ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,      &
                               issso12,issssil,issster,ks,nsedtra,ipowc13,ipowc13,issso13,issso13,  &
                               isssc13,ipowc14,isssc14,issso14,iprefsilica,iano2,ianh4,ishelfage,   &
@@ -205,6 +207,10 @@ contains
             endif
             if (use_shelfsea_res_time) then
               ocetra(i,j,k,ishelfage)   = 0.
+            endif
+            if (use_r2o) then
+              ocetra(i,j,k,itdoc_lc)   = 0.
+              ocetra(i,j,k,itdoc_hc)   = 0.
             endif
             if (use_AGG) then
               ! calculate initial numbers from mass, to start with appropriate size distribution

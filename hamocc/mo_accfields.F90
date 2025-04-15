@@ -32,6 +32,8 @@ contains
     !
     !     Modified
     !     --------
+    !  T. Bourgeois,     *NORCE climate, Bergen*   2025-04-14
+    !  - implement R2OMIP protocol
     !
     !     Purpose
     !     -------
@@ -74,7 +76,7 @@ contains
                                 jdms,jdms_bac,jdms_uv,jdmsflux,                                    &
                                 jdmsprod,jdoc,jdp,jeps,jexpoca,                                    &
                                 jexport,jexposi,jgrazer,jintdnit,jintnfix,jintphosy,               &
-                                jiralk,jirdet,jirdin,jirdip,jirdoc,jiriron,                        &
+                                jiralk,jirdet,jirdin,jirdip,jirdoc,jirtdoc,jiriron,                &
                                 jiron,jirsi,jkwco2,jlvlalkali,jlvlano3,jlvlasize,                  &
                                 jlvlbigd14c,jlvlbromo,jlvlcalc,jlvlcalc13,                         &
                                 jlvlcfc11,jlvlcfc12,jlvlco3,jlvld13c,jlvld14c,                     &
@@ -143,7 +145,7 @@ contains
                                 ioxygen,iphosph,iphy,iprefalk,iprefdic,                            &
                                 iprefpo4,iprefo2,isco212,isilica,izoo,                             &
                                 irdin,irdip,irsi,iralk,iriron,irdoc,irdet,inos,iatmbromo,ibromo,   &
-                                iatmf11,iatmf12,iatmsf6,icfc11,icfc12,isf6,                        &
+                                iatmf11,iatmf12,iatmsf6,icfc11,icfc12,isf6,irtdoc,                  &
                                 iatmc13,iatmc14,icalc13,idet13,idoc13,iphy13,isco213,isco214,      &
                                 izoo13,safediv,                                                    &
                                 iatmnco2,inatalkali,inatcalc,inatsco212,                           &
@@ -236,6 +238,7 @@ contains
             bgct2d(i,j,jpodisi)  = bgct2d(i,j,jpodisi)  + sedfluxo(i,j,ipowasi)/2.0
           endif
           ! N-deposition, ocean alkalinization, and riverine input fluxes
+          ! DIC seems to be missing below
           bgct2d(i,j,jndepnoy) = bgct2d(i,j,jndepnoy) + ndepnoyflx(i,j)/2.0
           bgct2d(i,j,joalk)    = bgct2d(i,j,joalk)    + oalkflx(i,j)/2.0
           bgct2d(i,j,jirdin)   = bgct2d(i,j,jirdin)   + rivinflx(i,j,irdin)/2.0
@@ -244,6 +247,7 @@ contains
           bgct2d(i,j,jiralk)   = bgct2d(i,j,jiralk)   + rivinflx(i,j,iralk)/2.0
           bgct2d(i,j,jiriron)  = bgct2d(i,j,jiriron)  + rivinflx(i,j,iriron)/2.0
           bgct2d(i,j,jirdoc)   = bgct2d(i,j,jirdoc)   + rivinflx(i,j,irdoc)/2.0
+          bgct2d(i,j,jirtdoc)  = bgct2d(i,j,jirtdoc)  + rivinflx(i,j,irtdoc)/2.0
           bgct2d(i,j,jirdet)   = bgct2d(i,j,jirdet)   + rivinflx(i,j,irdet)/2.0
 
         endif

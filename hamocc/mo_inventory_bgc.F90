@@ -35,13 +35,15 @@ contains
     ! Modified
     ! T. Torsvik             *UiB*            22.02.22
     !    Include option for writing inventory to netCDF file.
+    !  T. Bourgeois,     *NORCE climate, Bergen*   2025-04-14
+    !  - implement R2OMIP protocol
     !***********************************************************************************************
 
     use mod_xc,         only: mnproc,ips,nbdy,xcsum
     use mo_carbch,      only: atm,atmflx,co3,hi,ndepnoyflx,rivinflx,ocetra,sedfluxo,ndepnhxflx
     use mo_sedmnt,      only: prcaca,prorca,silpro
     use mo_biomod,      only: expoor,expoca,exposi
-    use mo_param_bgc,   only: rcar,rnit
+    use mo_param_bgc,   only: rcar,rnit,rcar_tdoclc,rcar_tdochc,rnit_tdoclc,rnit_tdochc
     use mo_control_bgc, only: do_ndep,do_rivinpt,io_stdo_bgc
     use mo_bgcmean,     only: bgct2d,jco2flux,jirdin,jn2flux,jn2oflux,jndepnoy,jndepnhx,           &
                               jo2flux,jprcaca,jnh3flux,jdmsflux,                                   &
@@ -50,14 +52,14 @@ contains
                               igasnit,iopal,ioxygen,iphosph,iphy,ipowaic,ipowaox,ipowaph,ipowasi,  &
                               ipown2,ipowno3,isco212,isilica,isssc12,issso12,issssil,izoo,         &
                               irdin,irdip,irsi,iralk,irdoc,irdet,nocetra,npowtra,nsedtra,nriv,     &
-                              ianh4,iano2,iatmnh3,ipownh4,ipown2o,ipowno2,iatmdms
+                              ianh4,iano2,iatmnh3,ipownh4,ipown2o,ipowno2,iatmdms,irtdoc
     use mo_vgrid,       only: dp_min
 
     ! NOT sedbypass
     use mo_param1_bgc,  only: ks
     use mo_sedmnt,      only: porwat,seddw,sedlay,burial,sedhpl,powtra,porsol
     use mo_control_bgc, only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,   &
-                              use_CFC,use_natDIC,use_BROMO,use_extNcycle
+                              use_CFC,use_natDIC,use_BROMO,use_extNcycle,use_r2o
 
     ! Arguments
     integer, intent(in) :: kpie,kpje,kpke
@@ -463,10 +465,19 @@ contains
     endif
 
     if (do_rivinpt) then
-      totalcarbon = totalcarbon- (srivflux(irdoc)+srivflux(irdet))*rcar                            &
-           &                   - (srivflux(iralk)+srivflux(irdin)+srivflux(irdip))   ! =sco212
-      totalnitr   = totalnitr  - (srivflux(irdoc)+srivflux(irdet))*rnit - srivflux(irdin)
-      totalphos   = totalphos  - (srivflux(irdoc)+srivflux(irdet)+srivflux(irdip))
+      if (use_r2o) then
+        totalcarbon = totalcarbon- srivflux(irdoc)*rcar-srivflux(irtdoc)*rcar_tdochc &
+             &                   - srivflux(irdet)*rcar_tdoclc                      &
+             &                   - srivflux(iralk)-srivflux(irdin)-srivflux(irdip)   ! =sco212
+        totalnitr   = totalnitr  - srivflux(irdoc)*rnit-srivflux(irtdoc)*rnit_tdochc      &
+             &                     -srivflux(irdet)*rnit_tdoclc - srivflux(irdin)
+        totalphos   = totalphos  - srivflux(irdoc)-srivflux(irtdoc)-srivflux(irdet)-srivflux(irdip)
+      else
+        totalcarbon = totalcarbon- (srivflux(irdoc)+srivflux(irdet))*rcar                            &
+             &                   - (srivflux(iralk)+srivflux(irdin)+srivflux(irdip))   ! =sco212
+        totalnitr   = totalnitr  - (srivflux(irdoc)+srivflux(irdet))*rnit - srivflux(irdin)
+        totalphos   = totalphos  - (srivflux(irdoc)+srivflux(irdet)+srivflux(irdip))
+      endif
       totalsil    = totalsil   -  srivflux(irsi)
       totaloxy    = totaloxy   - (srivflux(irdoc)+srivflux(irdet))*(-24.)                          &
            &                   -  srivflux(irdin)*1.5 - srivflux(irdip)*2.                         &
