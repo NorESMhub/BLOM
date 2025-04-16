@@ -220,7 +220,9 @@ contains
                               jsed_mavg_prorca,                                                    &
                               SDM_qual_a,SDM_qual_k,SDM_qual_app,SDM_ssso12_age,SDM_MAVG_prorca,   &
                               SDM_rem_aerob,SDM_rem_denit,SDM_rem_sulf,jsdm_rem_aerob,             &
-                              jsdm_rem_denit,jsdm_rem_sulf
+                              jsdm_rem_denit,jsdm_rem_sulf,                                        &
+                              LVL_NUTLIM_FE,LVL_NUTLIM_N,LVL_NUTLIM_PHOSPH,                        &
+                              jlvlnutlim_fe,jlvlnutlim_n,jlvlnutlim_phosph
     use mo_param_bgc,   only: c14fac,param4nc,nentries,controls4nc,centries
 
     ! Arguments
@@ -442,6 +444,9 @@ contains
 
     ! --- Mask sea floor in level data
     call msklvl(jlvlphyto(iogrp),depths)
+    call msklvl(jlvlnutlim_fe(iogrp),depths)
+    call msklvl(jlvlnutlim_n(iogrp),depths)
+    call msklvl(jlvlnutlim_phosph(iogrp),depths)
     call msklvl(jlvlgrazer(iogrp),depths)
     call msklvl(jlvldoc(iogrp),depths)
     call msklvl(jlvlphosy(iogrp),depths)
@@ -804,6 +809,9 @@ contains
     call wrtlvl(jlvln2o(iogrp),      LVL_N2O(iogrp),      rnacc*1e3,      0.,cmpflg,'n2olvl')
     call wrtlvl(jlvlo2sat(iogrp),    LVL_O2SAT(iogrp),    rnacc*1e3,      0.,cmpflg,'satoxylvl')
     call wrtlvl(jlvldicsat(iogrp),   LVL_DICSAT(iogrp),   rnacc*1e3,      0.,cmpflg,'sat_diclvl')
+    call wrtlvl(jlvlnutlim_fe(iogrp),LVL_NUTLIM_FE(iogrp),rnacc    ,      0.,cmpflg,'nlim_felvl')
+    call wrtlvl(jlvlnutlim_n(iogrp), LVL_NUTLIM_N(iogrp), rnacc    ,      0.,cmpflg,'nlim_nlvl')
+    call wrtlvl(jlvlnutlim_phosph(iogrp),LVL_NUTLIM_PHOSPH(iogrp),rnacc,  0.,cmpflg,'nlim_po4lvl')
     if (use_pref_tracers) then
       call wrtlvl(jlvlprefo2(iogrp),   LVL_PREFO2(iogrp),   rnacc*1e3,      0.,cmpflg,'p_o2lvl')
       call wrtlvl(jlvlprefpo4(iogrp),  LVL_PREFPO4(iogrp),  rnacc*1e3,      0.,cmpflg,'p_po4lvl')
@@ -1168,6 +1176,9 @@ contains
     call inilvl(jlvldic(iogrp),0.)
     call inilvl(jlvlalkali(iogrp),0.)
     call inilvl(jlvlphosy(iogrp),0.)
+    call inilvl(jlvlnutlim_fe(iogrp),0.)
+    call inilvl(jlvlnutlim_n(iogrp),0.)
+    call inilvl(jlvlnutlim_phosph(iogrp),0.)
     call inilvl(jlvlphosph(iogrp),0.)
     call inilvl(jlvloxygen(iogrp),0.)
     call inilvl(jlvlano3(iogrp),0.)
@@ -1426,7 +1437,8 @@ contains
                               jsdm_qual_a,jsdm_qual_k,jsdm_qual_app,jsdm_ssso12_age,               &
                               jsed_mavg_prorca,                                                    &
                               SDM_qual_a,SDM_qual_k,SDM_qual_app,SDM_ssso12_age,SDM_MAVG_prorca,   &
-                              sdm_rem_aerob,sdm_rem_denit,sdm_rem_sulf
+                              sdm_rem_aerob,sdm_rem_denit,sdm_rem_sulf,                            &
+                              LVL_NUTLIM_FE,LVL_NUTLIM_N,LVL_NUTLIM_PHOSPH
 
 
     ! Arguments
@@ -1919,6 +1931,12 @@ contains
          &   'dissoclvl','Dissolved organic carbon',' ','mol P m-3',2)
     call ncdefvar3d(LVL_PHYTO(iogrp),cmpflg,'p',                                &
          &   'phyclvl','Phytoplankton',' ','mol P m-3',2)
+    call ncdefvar3d(LVL_NUTLIM_FE(iogrp),cmpflg,'p',                            &
+         &   'nlim_felvl','Nutrient limitation Fe time fraction',' ','-',2)
+    call ncdefvar3d(LVL_NUTLIM_N(iogrp),cmpflg,'p',                             &
+         &   'nlim_nlvl','Nutrient limitation N time fraction',' ','-',2)
+    call ncdefvar3d(LVL_NUTLIM_PHOSPH(iogrp),cmpflg,'p',                        &
+         &   'nlim_po4lvl','Nutrient limitation PO4 time fraction',' ','-',2)
     call ncdefvar3d(LVL_GRAZER(iogrp),cmpflg,'p',                               &
          &   'zooclvl','Zooplankton',' ','mol P m-3',2)
     call ncdefvar3d(LVL_POC(iogrp),cmpflg,'p',                                  &

@@ -68,6 +68,7 @@ module mo_carbch
   real, dimension (:,:),     allocatable, public :: suppco2
   real, dimension (:,:,:),   allocatable, public :: sedfluxo
   real, dimension (:,:,:),   allocatable, public :: sedfluxb
+  real, dimension (:,:,:,:), allocatable, public :: nutlim_diag
 
   real, dimension (:,:),     allocatable, public :: fco2
   real, dimension (:,:),     allocatable, public :: pco2
@@ -92,6 +93,11 @@ module mo_carbch
   real, public :: atm_cfc11_nh, atm_cfc11_sh
   real, public :: atm_cfc12_nh, atm_cfc12_sh
   real, public :: atm_sf6_nh, atm_sf6_sh
+
+  ! Index for nutlim_diag
+  integer, parameter, public :: inutlim_phosph = 1
+  integer, parameter, public :: inutlim_n      = 2
+  integer, parameter, public :: inutlim_fe     = 3
 
 contains
 
@@ -235,6 +241,17 @@ contains
     allocate (sedfluxb(kpie,kpje,nsedtra),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory sedfluxb'
     sedfluxb(:,:,:) = 0.0
+
+    if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)'Memory allocation for variable nutlim_diag ..'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      write(io_stdo_bgc,*)'Third dimension    : ',kpke
+      write(io_stdo_bgc,*)'Fourth dimension   : ',3     ! number of potentially limiting nutrients
+    endif
+    allocate (nutlim_diag(kpie,kpje,kpke,3),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory nutlim_diag'
+    nutlim_diag(:,:,:,:) = 0.0
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable satn2o ...'
