@@ -4044,7 +4044,7 @@
     <desc>if .true., use MCT coupler fields from CAM or NUOPC to obtain NDEP (always imported to model).</desc>
   </entry>
 
-  <entry id="do_n2onh3_coupled" modify_via_xml="HAMOCC_N2OC">
+  <entry id="do_n2o_coupled" modify_via_xml="HAMOCC_N2OC">
     <type>logical</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -4052,7 +4052,18 @@
       <value>.false.</value>
       <value hamocc_n2oc="yes" hamocc_extncycle="yes">.true.</value>
     </values>
-    <desc>Switch to couple N2O and NH3 fluxes</desc>
+    <desc>Switch to couple N2O fluxes to atmosphere</desc>
+  </entry>
+  
+  <entry id="do_nh3_coupled" modify_via_xml="HAMOCC_NH3C">
+    <type>logical</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>.false.</value>
+      <value hamocc_nh3c="yes" hamocc_extncycle="yes">.true.</value>
+    </values>
+    <desc>Switch to couple NH3 fluxes to atmosphere</desc>
   </entry>
 
   <entry id="use_m4ago">
