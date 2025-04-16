@@ -45,7 +45,8 @@ contains
                                 ndepnoyflx,rivinflx,oalkflx,ocetra,omegaa,omegac,fco2,pco2,xco2,   &
                                 pco2_gex,satoxy,sedfluxo,sedfluxb,kwco2a,co2sol,pn2om,             &
                                 co213fxd,co213fxu,co214fxd,co214fxu,                               &
-                                natco3,nathi,natomegaa,natomegac,natpco2,pnh3,ndepnhxflx
+                                natco3,nathi,natomegaa,natomegac,natpco2,pnh3,ndepnhxflx,          &
+                                nutlim_diag,inutlim_fe,inutlim_n,inutlim_phosph
     use mo_biomod,        only: bsiflx_bot,bsiflx0100,bsiflx0500,bsiflx1000,                       &
                                 bsiflx2000,bsiflx4000,calflx_bot,calflx0100,calflx0500,            &
                                 calflx1000,calflx2000,calflx4000,carflx_bot,carflx0100,            &
@@ -133,7 +134,7 @@ contains
                                 jndepnhxfx,jshelfage,jlvlshelfage,                                 &
                                 jsed_mavg_prorca,jsdm_remin_sulf,jsdm_qual_a,jsdm_qual_k,          &
                                 jsdm_qual_app,jsdm_ssso12_age,jsdm_rem_aerob,jsdm_rem_denit,       &
-                                jsdm_rem_sulf
+                                jsdm_rem_sulf,jlvlnutlim_fe,jlvlnutlim_n,jlvlnutlim_phosph
     use mo_control_bgc,   only: io_stdo_bgc,dtb,use_BROMO,use_AGG,use_WLIN,use_natDIC,             &
                                 use_CFC,use_sedbypass,use_cisonew,use_BOXATM,use_M4AGO,            &
                                 use_extNcycle,use_pref_tracers,use_shelfsea_res_time,              &
@@ -512,11 +513,15 @@ contains
          &  jlvl_phosy_NH4+jlvl_phosy_NO3+jlvl_remin_aerob+jlvl_remin_sulf+ &
          &  jlvl_agg_ws+jlvl_dynvis+jlvl_agg_stick+jlvl_agg_stickf+         &
          &  jlvl_agg_dmax+jlvl_agg_avdp+jlvl_agg_avrhop+jlvl_agg_avdC+      &
-         &  jlvl_agg_df+jlvl_agg_b+jlvl_agg_Vrhof+jlvl_agg_Vpor             &
+         &  jlvl_agg_df+jlvl_agg_b+jlvl_agg_Vrhof+jlvl_agg_Vpor+            &
+         &  jlvlnutlim_fe+jlvlnutlim_n+jlvlnutlim_phosph                    &
          &  ) /= 0) then
       do k=1,kpke
         call bgczlv(pddpo,k,ind1,ind2,wghts)
         call acclvl(jlvlphyto,ocetra(1,1,1,iphy),k,ind1,ind2,wghts)
+        call acclvl(jlvlnutlim_fe,nutlim_diag(1,1,1,inutlim_fe),k,ind1,ind2,wghts)
+        call acclvl(jlvlnutlim_n,nutlim_diag(1,1,1,inutlim_n),k,ind1,ind2,wghts)
+        call acclvl(jlvlnutlim_phosph,nutlim_diag(1,1,1,inutlim_phosph),k,ind1,ind2,wghts)
         call acclvl(jlvlgrazer,ocetra(1,1,1,izoo),k,ind1,ind2,wghts)
         call acclvl(jlvlphosph,ocetra(1,1,1,iphosph),k,ind1,ind2,wghts)
         call acclvl(jlvloxygen,ocetra(1,1,1,ioxygen),k,ind1,ind2,wghts)
