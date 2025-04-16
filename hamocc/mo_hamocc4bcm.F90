@@ -55,8 +55,8 @@ contains
                                 do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,               &
                                 use_BROMO, use_CFC, use_PBGC_CK_TIMESTEP,                          &
                                 use_BOXATM, use_sedbypass,ocn_co2_type,                            &
-                                do_n2onh3_coupled,use_extNcycle,use_pref_tracers,                  &
-                                use_shelfsea_res_time
+                                do_n2o_coupled,use_extNcycle,use_pref_tracers,                     &
+                                use_shelfsea_res_time,do_nh3_coupled
     use mo_param1_bgc,    only: iatmco2,iatmdms,nocetra,nriv,iatmbromo,nndep,iatmn2o,iatmnh3
     use mo_vgrid,         only: set_vgrid
     use mo_apply_fedep,   only: apply_fedep
@@ -175,20 +175,29 @@ contains
     endif
 
     if (use_extNcycle) then
-      if (do_n2onh3_coupled) then
+      if (do_n2o_coupled) then
         !$OMP PARALLEL DO PRIVATE(i)
         do  j=1,kpje
           do  i=1,kpie
             if (patmn2o(i,j) > 0.) then
               atm(i,j,iatmn2o)=patmn2o(i,j)
             endif
+          enddo
+        enddo
+        !$OMP END PARALLEL DO
+        if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting N2O conc. from atm'
+      endif
+      if (do_nh3_coupled) then
+        !$OMP PARALLEL DO PRIVATE(i)
+        do  j=1,kpje
+          do  i=1,kpie
             if (patmnh3(i,j) > 0.) then
               atm(i,j,iatmnh3)=patmnh3(i,j)
             endif
           enddo
         enddo
         !$OMP END PARALLEL DO
-        if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting N2O and NH3 conc. from atm'
+        if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting NH3 conc. from atm'
       endif
     endif
 
@@ -424,11 +433,14 @@ contains
     do  j=1,kpje
       do  i=1,kpie
         if (use_extNcycle) then
-          if (do_n2onh3_coupled) then
+          if (do_n2o_coupled) then
               if(omask(i,j) > 0.5) pflxn2o(i,j)=-mw_n2o*atmflx(i,j,iatmn2o)/dtbgc  ! conversion factor checked against CAM
-              if(omask(i,j) > 0.5) pflxnh3(i,j)=-mw_nh3*atmflx(i,j,iatmnh3)/dtbgc  ! conversion factor checked against CAM
           else
               if(omask(i,j) > 0.5) pflxn2o(i,j)=0.0
+          endif
+          if (do_nh3_coupled) then
+              if(omask(i,j) > 0.5) pflxnh3(i,j)=-mw_nh3*atmflx(i,j,iatmnh3)/dtbgc  ! conversion factor checked against CAM
+          else
               if(omask(i,j) > 0.5) pflxnh3(i,j)=0.0
           endif
         else
