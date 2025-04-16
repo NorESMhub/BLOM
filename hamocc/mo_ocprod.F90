@@ -61,7 +61,8 @@ contains
     !***********************************************************************************************
 
     use mod_xc,           only: mnproc
-    use mo_carbch,        only: ocetra,satoxy,hi,co2star
+    use mo_carbch,        only: ocetra,satoxy,hi,co2star,nutlim_diag,inutlim_fe,inutlim_phosph,    &
+                              & inutlim_n
     use mo_sedmnt,        only: prcaca,produs,prorca,silpro,pror13,pror14,prca13,prca14
     use mo_param_bgc,     only: drempoc,drempoc_anaerob,bkox_drempoc,dremn2o,dremopal,dremsul,     &
                                 dyphy,ecan,epsher,fesoly,                                          &
@@ -140,6 +141,7 @@ contains
     real :: wpocd,wcald,wopald,wdustd,dagg
     real :: wcal,wdust,wopal,wpoc
     real :: o2lim ! O2 limitation of ammonification (POC remin)
+    real :: tiny_val = epsilon(1.)
     ! sedbypass
     real :: florca,flcaca,flsil
     ! cisonew
@@ -218,6 +220,7 @@ contains
     intdms_bac (:,:) = 0.
     intdms_uv  (:,:) = 0.
     phosy3d  (:,:,:) = 0.
+    nutlim_diag(:,:,:,:) = 0.
 
     if (use_BROMO) then
       int_chbr3_uv  (:,:) = 0.
@@ -352,12 +355,40 @@ contains
 
               xn         = avphy/(1. - pho*grlim)       ! phytoplankton growth
               phosy      = max(0.,min(xn-avphy,max_limiter*avanut)) ! limit PP growth to available nutr.
+              if (abs(grlim - nutlim) < tiny_val) then
+                if (abs(grlim - ocetra(i,j,k,iiron)/(ocetra(i,j,k,iiron)+bkiron)) < tiny_val) then
+                  nutlim_diag(i,j,k,inutlim_fe)     = 1.
+                  nutlim_diag(i,j,k,inutlim_phosph) = 0.
+                  nutlim_diag(i,j,k,inutlim_n)      = 0.
+                else
+                  nutlim_diag(i,j,k,inutlim_fe)     = 0.
+                  nutlim_diag(i,j,k,inutlim_phosph) = 1.
+                  nutlim_diag(i,j,k,inutlim_n)      = 0.
+                endif
+              else
+                  nutlim_diag(i,j,k,inutlim_fe)     = 0.
+                  nutlim_diag(i,j,k,inutlim_phosph) = 0.
+                  nutlim_diag(i,j,k,inutlim_n)      = 1.
+              endif
             else
               avanut = max(0.,min(ocetra(i,j,k,iphosph),rnoi*ocetra(i,j,k,iano3)))
               avanfe = max(0.,min(avanut,ocetra(i,j,k,iiron)/riron))
               xa = avanfe
               xn = xa/(1.+pho*avphy/(xa+bkphy))
               phosy = max(0.,xa-xn)
+              if (abs(avanfe - ocetra(i,j,k,iiron)) < tiny_val) then
+                nutlim_diag(i,j,k,inutlim_fe)     = 1.
+                nutlim_diag(i,j,k,inutlim_phosph) = 0.
+                nutlim_diag(i,j,k,inutlim_n)      = 0.
+              else if (ocetra(i,j,k,iphosph) <= rnoi * ocetra(i,j,k,iano3)) then
+                nutlim_diag(i,j,k,inutlim_fe)     = 0.
+                nutlim_diag(i,j,k,inutlim_phosph) = 1.
+                nutlim_diag(i,j,k,inutlim_n)      = 0.
+              else
+                nutlim_diag(i,j,k,inutlim_fe)     = 0.
+                nutlim_diag(i,j,k,inutlim_phosph) = 0.
+                nutlim_diag(i,j,k,inutlim_n)      = 1.
+              endif
             endif
             phosy = merge(avdic/rcar, phosy, avdic <= rcar*phosy)     ! limit phosy by available DIC
             ya = avphy+phosy
