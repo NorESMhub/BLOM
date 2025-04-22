@@ -76,7 +76,8 @@ contains
     use mo_carbch,      only: co2star,co3,hi,satoxy,nathi
     use mo_control_bgc, only: io_stdo_bgc,ldtbgc,rmasks,rmasko,use_cisonew,use_AGG,use_BOXATM,     &
                               use_BROMO,use_CFC,use_natDIC,use_sedbypass,use_extNcycle,            &
-                              use_pref_tracers,use_shelfsea_res_time,use_sediment_quality,use_river2omip  &
+                              use_pref_tracers,use_shelfsea_res_time,use_sediment_quality,         &
+                              use_river2omip
     use mo_sedmnt,      only: sedhpl
     use mo_intfcblom,   only: sedlay2,powtra2,burial2,atm2,prorca_mavg2
     use mo_param1_bgc,  only: ialkali, ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,    &
@@ -531,11 +532,11 @@ contains
            &    1,'d',25,'Shelfwater residence time',rmissing,65,io_stdo_bgc)
     endif
     if (use_river2omip) then
-      call NETCDF_DEF_VARDB(ncid,7,'tdoc_lc',3,ncdimst,ncvarid,                                   &
-           &    6,'mol/kg',52,'Terrestrial dissolved organic carbon (low C content)',             &
+      call NETCDF_DEF_VARDB(ncid,7,'tdoc_lc',3,ncdimst,ncvarid,                                    &
+           &    6,'mol/kg',52,'Terrestrial dissolved organic carbon (low C content)',              &
            &    rmissing,56,io_stdo_bgc)
-      call NETCDF_DEF_VARDB(ncid,7,'tdoc_hc',3,ncdimst,ncvarid,                                   &
-           &    6,'mol/kg',53,'Terrestrial dissolved organic carbon (high C content)',            &
+      call NETCDF_DEF_VARDB(ncid,7,'tdoc_hc',3,ncdimst,ncvarid,                                    &
+           &    6,'mol/kg',53,'Terrestrial dissolved organic carbon (high C content)',             &
            &    rmissing,57,io_stdo_bgc)
     endif
 

@@ -87,7 +87,7 @@ CONTAINS
     use mo_param1_bgc,      only: ialkali,ian2o,iano3,icalc,idet,idicsat,                          &
                                   idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,       &
                                   iprefalk,iprefdic,iprefo2,iprefpo4,iprefsilica,ishelfage,        &
-                                  isco212,isilica,izoo,nocetra,itdoc_lc,itdoc_hc                   &
+                                  isco212,isilica,izoo,nocetra,itdoc_lc,itdoc_hc,                  &
                                   iadust,inos,iatmco2,iatmn2,iatmo2,ibromo,icfc11,icfc12,isf6,     &
                                   icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,       &
                                   isco213,isco214,izoo13,izoo14,safediv,                           &
