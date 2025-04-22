@@ -87,7 +87,7 @@ contains
     use mod_nctools,    only: ncfopn,ncread,ncfcls
     use mo_control_bgc, only: io_stdo_bgc,do_rivinpt
     use mo_param1_bgc,  only: nriv,irdin,irdip,irsi,iralk,iriron,irdoc,irtdoc,irdet
-    use mo_control_bgc, only: use_r2o
+    use mo_control_bgc, only: use_river2omip
 
     ! Arguments
     integer,  intent(in) :: kpie             ! 1st dimension of model grid.
@@ -137,7 +137,7 @@ contains
     call ncread('DIC',riv_DIC2d,dummymask,0,0.) ! It is actually alkalinity that is observed
     call ncread('Fe' ,riv_DFe2d,dummymask,0,0.)
     call ncread('DOC',riv_idoc2d,dummymask,0,0.)
-    if (use_r2o) then
+    if (use_river2omip) then
       call ncread('slDOC',riv_itdoc2d,dummymask,0,0.)
     else
       riv_itdoc2d = 0

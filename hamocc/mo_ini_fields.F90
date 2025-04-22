@@ -97,7 +97,7 @@ contains
     use mo_biomod,      only: abs_oce
     use mo_control_bgc, only: rmasks,use_FB_BGC_OCE,use_cisonew,use_AGG,use_CFC,use_natDIC,        &
                               use_BROMO, use_sedbypass,use_extNcycle,use_pref_tracers,             &
-                              use_shelfsea_res_time,use_sediment_quality,use_r2o
+                              use_shelfsea_res_time,use_sediment_quality,use_river2omip
     use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,     &
                               iiron,iopal,ioxygen,iphosph,iphy,iprefalk,iprefdic,iprefo2,iprefpo4, &
                               isco212,isilica,izoo,iadust,inos,ibromo,icfc11,icfc12,isf6,          &
@@ -208,7 +208,7 @@ contains
             if (use_shelfsea_res_time) then
               ocetra(i,j,k,ishelfage)   = 0.
             endif
-            if (use_r2o) then
+            if (use_river2omip) then
               ocetra(i,j,k,itdoc_lc)   = 0.
               ocetra(i,j,k,itdoc_hc)   = 0.
             endif

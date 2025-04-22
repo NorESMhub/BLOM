@@ -83,7 +83,7 @@ CONTAINS
     use mo_control_bgc,     only: io_stdo_bgc,ldtbgc,use_cisonew,use_AGG,                          &
                                   use_BOXATM,use_BROMO,use_CFC,use_natDIC,use_sedbypass,           &
                                   use_extNcycle,use_pref_tracers,use_shelfsea_res_time,            &
-                                  use_sediment_quality,use_r2o
+                                  use_sediment_quality,use_river2omip
     use mo_param1_bgc,      only: ialkali,ian2o,iano3,icalc,idet,idicsat,                          &
                                   idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,       &
                                   iprefalk,iprefdic,iprefo2,iprefpo4,iprefsilica,ishelfage,        &
@@ -454,7 +454,7 @@ CONTAINS
     if (use_shelfsea_res_time .and. lread_shelfage) then
       call read_netcdf_var(ncid,'shelfage',locetra(1,1,1,ishelfage),2*kpke,0,iotype)
     endif
-    if (use_r2o) then
+    if (use_river2omip) then
       call read_netcdf_var(ncid,'tdoc_lc',locetra(1,1,1,itdoc_lc),2*kpke,0,iotype)
       call read_netcdf_var(ncid,'tdoc_hc',locetra(1,1,1,itdoc_hc),2*kpke,0,iotype)
     endif

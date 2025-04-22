@@ -3968,7 +3968,7 @@
     <desc>Logical switch to activate riverine input</desc>
   </entry>
 
-    <entry id="use_r2o">
+    <entry id="use_river2omip">
     <type>logical</type>
     <category>bgcnml</category>
     <group>bgcnml</group>

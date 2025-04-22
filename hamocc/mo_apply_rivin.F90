@@ -58,7 +58,7 @@ contains
     !  Apply riverine input to oceanic tracer fields
     !***********************************************************************************************
 
-    use mo_control_bgc, only: dtb,do_rivinpt,use_cisonew,use_r2o
+    use mo_control_bgc, only: dtb,do_rivinpt,use_cisonew,use_river2omip
     use mo_param1_bgc,  only: nriv,irdin,irdip,irsi,iralk,iriron,irdoc,irtdoc,irdet,               &
                               iano3,iphosph,isilica,isco212,iiron,idoc,itdoc_lc,itdoc_hc,idet,     &
                               ialkali,inatsco212,inatalkali
@@ -99,7 +99,7 @@ contains
           enddo
 
           if (use_cisonew) then
-            if (use_r2o) then
+            if (use_river2omip) then
               ocetra(i,j,1:kmle(i,j),isco213) = ocetra(i,j,1:kmle(i,j),isco213)                      &
                    &                          + ocetra(i,j,1:kmle(i,j),isco213)                      &
                    &                          /(ocetra(i,j,1:kmle(i,j),isco212)+safediv)             &
@@ -143,7 +143,7 @@ contains
             endif
           endif
 
-          if (use_r2o) then
+          if (use_river2omip) then
             ! Riverine labile DOC (riv_lDOC) instantaneously degraded as DIC.
             ! DIC <= riv_DIC + riv_lDOC
             ! Riverine DIN and DIP from remineralized riv_lDOC are already included in the
@@ -214,7 +214,7 @@ contains
           rivinflx(i,j,iralk)  = rivin(i,j,iralk)*fdt
           rivinflx(i,j,iriron) = rivin(i,j,iriron)*fdt*dFe_frac
           rivinflx(i,j,irdoc)  = rivin(i,j,irdoc)*fdt
-          if (use_r2o) then
+          if (use_river2omip) then
             rivinflx(i,j,irtdoc) = rivin(i,j,irtdoc)*fdt
           else
             rivinflx(i,j,irtdoc) = 0

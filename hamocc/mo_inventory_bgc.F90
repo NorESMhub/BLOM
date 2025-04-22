@@ -59,7 +59,7 @@ contains
     use mo_param1_bgc,  only: ks
     use mo_sedmnt,      only: porwat,seddw,sedlay,burial,sedhpl,powtra,porsol
     use mo_control_bgc, only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,   &
-                              use_CFC,use_natDIC,use_BROMO,use_extNcycle,use_r2o
+                              use_CFC,use_natDIC,use_BROMO,use_extNcycle,use_river2omip
 
     ! Arguments
     integer, intent(in) :: kpie,kpje,kpke
@@ -465,7 +465,7 @@ contains
     endif
 
     if (do_rivinpt) then
-      if (use_r2o) then
+      if (use_river2omip) then
         totalcarbon = totalcarbon- srivflux(irdoc)*rcar-srivflux(irtdoc)*rcar_tdochc &
              &                   - srivflux(irdet)*rcar_tdoclc                      &
              &                   - srivflux(iralk)-srivflux(irdin)-srivflux(irdip)   ! =sco212

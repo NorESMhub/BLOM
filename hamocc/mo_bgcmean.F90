@@ -52,7 +52,7 @@ module mo_bgcmean
   use mo_param1_bgc,  only: ks
   use mo_control_bgc, only: use_sedbypass,use_cisonew,use_CFC,use_natDIC,use_BROMO,use_BOXATM,     &
                             use_AGG,use_M4AGO,use_extNcycle,use_pref_tracers,use_shelfsea_res_time,&
-                            use_sediment_quality,use_r2o
+                            use_sediment_quality,use_river2omip
 
   implicit none
 
@@ -1103,7 +1103,7 @@ CONTAINS
         if (LYR_SHELFAGE(n) > 0) i_bsc_m3d=i_bsc_m3d+1
         jshelfage(n)=i_bsc_m3d*min(1,LYR_SHELFAGE(n))
       endif
-      if (use_r2o) then
+      if (use_river2omip) then
         if (LYR_TDOC_LC(n) > 0) i_bsc_m3d=i_bsc_m3d+1
         jtdoc_lc(n)=i_bsc_m3d*min(1,LYR_TDOC_LC(n))
         if (LYR_TDOC_HC(n) > 0) i_bsc_m3d=i_bsc_m3d+1
@@ -1292,7 +1292,7 @@ CONTAINS
         if (LVL_SHELFAGE(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlshelfage(n)=ilvl_bsc_m3d*min(1,LVL_SHELFAGE(n))
       endif
-      if (use_r2o) then
+      if (use_river2omip) then
         if (LVL_TDOC_LC(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvltdoc_lc(n)=ilvl_bsc_m3d*min(1,LVL_TDOC_LC(n))
         if (LVL_TDOC_HC(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1

@@ -100,7 +100,7 @@ contains
     use mo_control_bgc,   only: dtb,io_stdo_bgc,with_dmsph,                                        &
                                 use_BROMO,use_AGG,use_PBGC_OCNP_TIMESTEP,use_FB_BGC_OCE,           &
                                 use_AGG,use_cisonew,use_natDIC, use_WLIN,use_sedbypass,use_M4AGO,  &
-                                use_extNcycle,lkwrbioz_off,lTO2depremin,use_r2o
+                                use_extNcycle,lkwrbioz_off,lTO2depremin,use_river2omip
     use mo_vgrid,         only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000,kwrbioz,ptiestu
     use mo_vgrid,         only: kmle
     use mo_clim_swa,      only: swa_clim
@@ -374,13 +374,13 @@ contains
             zoothresh = max(0.,(ocetra(i,j,k,izoo)-2.*grami))
             if (lkwrbioz_off) then
               bacfra = 0.
-              if (use_r2o) then
+              if (use_river2omip) then
                 tdoclc_deg = 0.
                 tdochc_deg = 0.
               endif
             else
               bacfra = remido*ocetra(i,j,k,idoc)
-              if (use_r2o) then
+              if (use_river2omip) then
                 tdoclc_deg = deg_tdoclc*ocetra(i,j,k,itdoc_lc)
                 tdochc_deg = deg_tdochc*ocetra(i,j,k,itdoc_hc)
               endif
@@ -481,7 +481,7 @@ contains
             dtr = bacfra-phosy+graton+ecan*zoomor
 
             ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+dtr
-            if (use_r2o) then
+            if (use_river2omip) then
               ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)+tdoclc_deg*rnit_tdoclc+tdochc_deg*rnit_tdochc
               ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+tdoclc_deg+tdochc_deg
             endif
@@ -506,13 +506,13 @@ contains
             ocetra(i,j,k,idet) = ocetra(i,j,k,idet)+export
             ocetra(i,j,k,idms) = ocetra(i,j,k,idms)+dmsprod-dms_bac-dms_uv
             ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)-delcar+rcar*dtr
-            if (use_r2o) then
+            if (use_river2omip) then
               ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+tdoclc_deg*rcar_tdoclc+tdochc_deg*rcar_tdochc
             endif
             ocetra(i,j,k,iphy) = ocetra(i,j,k,iphy)+phosy-grazing-phymor-exud
             ocetra(i,j,k,izoo) = ocetra(i,j,k,izoo)+grawa-excdoc-zoomor
             ocetra(i,j,k,idoc) = ocetra(i,j,k,idoc)-bacfra+excdoc+exud
-            if (use_r2o) then
+            if (use_river2omip) then
               ocetra(i,j,k,itdoc_lc) = ocetra(i,j,k,itdoc_lc)-tdoclc_deg
               ocetra(i,j,k,itdoc_hc) = ocetra(i,j,k,itdoc_hc)-tdochc_deg
             endif
@@ -689,7 +689,7 @@ contains
               ocetra(i,j,k,izoo14) = ocetra(i,j,k,izoo14)-sterzo14
             endif
 
-            if (use_r2o) then
+            if (use_river2omip) then
               tdoclc_deg = deg_tdoclc*ocetra(i,j,k,itdoc_lc) ! tDOC degradation independent from O2 (cf. R2OMIP)
               tdochc_deg = deg_tdochc*ocetra(i,j,k,itdoc_hc)
             endif
@@ -745,13 +745,13 @@ contains
 
             remin = pocrem + docrem + phyrem
 
-            if (use_r2o) then
+            if (use_river2omip) then
               ocetra(i,j,k,itdoc_lc) = ocetra(i,j,k,itdoc_lc) - tdochc_deg
               ocetra(i,j,k,itdoc_hc) = ocetra(i,j,k,itdoc_hc) - tdoclc_deg
             endif
 
             ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+remin
-            if (use_r2o) then
+            if (use_river2omip) then
               ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)+tdoclc_deg*rnit_tdoclc+tdochc_deg*rnit_tdochc
               ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+tdoclc_deg+tdochc_deg
             endif
@@ -766,7 +766,7 @@ contains
               remin_aerob(i,j,k)  = remin_aerob(i,j,k)+remin*rnit ! kmol/NH4/dtb - remin to NH4 from various sources
             endif
             ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+rcar*remin
-            if (use_r2o) then
+            if (use_river2omip) then
               ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+tdoclc_deg*rcar_tdoclc+tdochc_deg*rcar_tdochc
             endif
             ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+remin*riron           &

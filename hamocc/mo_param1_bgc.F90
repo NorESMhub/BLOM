@@ -260,14 +260,14 @@ contains
     use mo_control_bgc, only: use_BROMO,use_AGG,use_WLIN,use_natDIC,use_CFC,use_cisonew,           &
                               use_sedbypass,use_PBGC_OCNP_TIMESTEP,use_PBGC_CK_TIMESTEP,           &
                               use_FB_BGC_OCE, use_BOXATM,use_extNcycle,use_pref_tracers,           &
-                              use_coupler_ndep,use_shelfsea_res_time,use_r2o
+                              use_coupler_ndep,use_shelfsea_res_time,use_river2omip
 
     integer :: iounit
 
     namelist / config_bgc / use_BROMO,use_AGG,use_WLIN,use_natDIC,use_CFC,use_cisonew,             &
                             use_sedbypass,use_PBGC_OCNP_TIMESTEP,use_PBGC_CK_TIMESTEP,             &
                             use_FB_BGC_OCE,use_BOXATM,use_extNcycle,use_pref_tracers,              &
-                            use_coupler_ndep,use_shelfsea_res_time,use_sediment_quality,use_r2o
+                            use_coupler_ndep,use_shelfsea_res_time,use_sediment_quality,use_river2omip
 
     io_stdo_bgc = lp              !  standard out.
 
@@ -400,7 +400,7 @@ contains
       i_shelfage = 0
       ishelfage  = -1
     endif
-    if (use_r2o) then
+    if (use_river2omip) then
       i_r2o = 2
       itdoc_lc  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+1
       itdoc_hc  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+2

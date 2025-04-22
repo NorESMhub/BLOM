@@ -41,7 +41,7 @@ module mo_param_bgc
                             use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type,use_M4AGO,&
                             do_n2onh3_coupled,use_extNcycle,                                       &
                             lkwrbioz_off,lTO2depremin,use_shelfsea_res_time,use_sediment_quality,  &
-                            use_pref_tracers,use_coupler_ndep,use_r2o
+                            use_pref_tracers,use_coupler_ndep,use_river2omip
   use mod_xc,         only: mnproc
 
   implicit none
@@ -879,7 +879,7 @@ contains
       call cinfo_add_entry('use_M4AGO',              use_M4AGO)
       call cinfo_add_entry('use_pref_tracers',       use_pref_tracers)
       call cinfo_add_entry('use_coupler_ndep',       use_coupler_ndep)
-      call cinfo_add_entry('use_r2o',                use_r2o)
+      call cinfo_add_entry('use_river2omip',                use_river2omip)
       if (use_extNcycle) then
         call cinfo_add_entry('do_n2onh3_coupled',       do_n2onh3_coupled)
       endif
@@ -1159,7 +1159,7 @@ contains
       call pinfo_add_entry('bkano2nitr_sed',    bkano2nitr_sed)
       call pinfo_add_entry('NOB2AOAy_sed',      NOB2AOAy_sed)
     endif
-    if (use_r2o) then
+    if (use_river2omip) then
       call pinfo_add_entry('deg_tdoclc',  deg_tdoclc*dtbinv)
       call pinfo_add_entry('deg_tdochc',  deg_tdochc*dtbinv)
       call pinfo_add_entry('rcar_tdoclc', rcar_tdoclc)
