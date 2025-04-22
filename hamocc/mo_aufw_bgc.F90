@@ -76,7 +76,7 @@ contains
     use mo_carbch,      only: co2star,co3,hi,satoxy,nathi
     use mo_control_bgc, only: io_stdo_bgc,ldtbgc,rmasks,rmasko,use_cisonew,use_AGG,use_BOXATM,     &
                               use_BROMO,use_CFC,use_natDIC,use_sedbypass,use_extNcycle,            &
-                              use_pref_tracers,use_shelfsea_res_time,use_sediment_quality
+                              use_pref_tracers,use_shelfsea_res_time,use_sediment_quality,use_r2o  &
     use mo_sedmnt,      only: sedhpl
     use mo_intfcblom,   only: sedlay2,powtra2,burial2,atm2,prorca_mavg2
     use mo_param1_bgc,  only: ialkali, ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,    &
@@ -87,7 +87,7 @@ contains
                               isssc13,isssc14,ipowc13,ipowc14,iatmnco2,iatmc13,iatmc14,inatalkali, &
                               inatcalc,inatsco212,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,  &
                               ipowno3,isssc12,issso12,issssil,issster,iprefsilica,ianh4,iano2,     &
-                              ipownh4,ipown2o,ipowno2,ishelfage,issso12_age
+                              ipownh4,ipown2o,ipowno2,ishelfage,issso12_age,itdoc_lc,itdoc_hc
     use mo_netcdf_bgcrw,only: write_netcdf_var,netcdf_def_vardb
 #ifdef PNETCDF
     use mod_xc,         only: mpicomm
@@ -529,6 +529,14 @@ contains
     if (use_shelfsea_res_time) then
       call NETCDF_DEF_VARDB(ncid,8,'shelfage',3,ncdimst,ncvarid,                                   &
            &    1,'d',25,'Shelfwater residence time',rmissing,65,io_stdo_bgc)
+    endif
+    if (use_r2o) then
+      call NETCDF_DEF_VARDB(ncid,8,'tdoc_lc',3,ncdimst,ncvarid,                                   &
+           &    6,'mol/kg',52,'Terrestrial dissolved organic carbon (low C content)',             &
+           &    rmissing,56,io_stdo_bgc)
+      call NETCDF_DEF_VARDB(ncid,8,'tdoc_hc',3,ncdimst,ncvarid,                                   &
+           &    6,'mol/kg',53,'Terrestrial dissolved organic carbon (high C content)',            &
+           &    rmissing,57,io_stdo_bgc)
     endif
 
     !

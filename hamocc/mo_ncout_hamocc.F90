@@ -36,7 +36,7 @@ contains
     use mod_dia,        only: diafnm,sigmar1,iotype,ddm,depthslev,depthslev_bnds
     use mo_control_bgc, only: dtbgc,use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO,              &
                               use_sedbypass,use_BOXATM,use_M4AGO,use_extNcycle,use_pref_tracers,   &
-                              use_shelfsea_res_time,use_sediment_quality
+                              use_shelfsea_res_time,use_sediment_quality,use_r2o
     use mo_vgrid,       only: k0100,k0500,k1000,k2000,k4000
     use mo_param1_bgc,  only: ks
     use mod_nctools,    only: ncwrt1,ncdims,nctime,ncfcls,ncfopn,ncdimc,ncputr,ncputi,ncwrtr
@@ -160,6 +160,8 @@ contains
                               bur_sssc12,bur_ssssil,bur_ssster,bur_ssso12,                         &
                               inisdm,inibur,wrtsdm,accbur,accsdm,wrtbur,                           &
                               jatmco2,jatmn2,jatmo2,srf_atmo2,srf_atmn2,                           &
+                              jtdoc_lc,jtdoc_hc,lyr_tdoc_lc,lyr_tdoc_hc,lvl_tdoc_lc,lvl_tdoc_hc,   &
+                              jlvltdoc_lc,jlvltdoc_hc,                                             &
                               lyr_agg_ws,lyr_dynvis,lyr_agg_stick,                                 &
                               lyr_agg_stickf,lyr_agg_dmax,lyr_agg_avdp,                            &
                               lyr_agg_avrhop,lyr_agg_avdC,lyr_agg_df,                              &
@@ -347,6 +349,10 @@ contains
     if (use_shelfsea_res_time) then
       call finlyr(jshelfage(iogrp),jdp(iogrp))
     endif
+    if (use_r2o) then
+      call finlyr(jtdoc_lc(iogrp),jdp(iogrp))
+      call finlyr(jtdoc_hc(iogrp),jdp(iogrp))
+    endif
     if (use_cisonew) then
       call finlyr(jdic13(iogrp),jdp(iogrp))
       call finlyr(jdic14(iogrp),jdp(iogrp))
@@ -471,6 +477,10 @@ contains
     endif
     if (use_shelfsea_res_time) then
       call msklvl(jlvlshelfage(iogrp),depths)
+    endif
+    if (use_r2o) then
+      call msklvl(jlvltdoc_lc(iogrp),depths)
+      call msklvl(jlvltdoc_hc(iogrp),depths)
     endif
     if (use_cisonew) then
       call msklvl(jlvldic13(iogrp),depths)
@@ -711,6 +721,10 @@ contains
     if (use_shelfsea_res_time) then
       call wrtlyr(jshelfage(iogrp),     LYR_SHELFAGE(iogrp),  rnacc,        0.,cmpflg,'shelfage')
     endif
+    if (use_r2o) then
+      call wrtlyr(jtdoc_lc(iogrp),     LYR_TDOC_LC(iogrp),  1e3,            0.,cmpflg,'tdoc_lc')
+      call wrtlyr(jtdoc_hc(iogrp),     LYR_TDOC_HC(iogrp),  1e3,            0.,cmpflg,'tdoc_hc')
+    endif
     if (use_cisonew) then
       call wrtlyr(jdic13(iogrp),       LYR_DIC13(iogrp),    1.e3,           0.,cmpflg,'dissic13')
       call wrtlyr(jdic14(iogrp),       LYR_DIC14(iogrp),    1.e3*c14fac,    0.,cmpflg,'dissic14')
@@ -813,6 +827,10 @@ contains
     endif
     if (use_shelfsea_res_time) then
       call wrtlvl(jlvlshelfage(iogrp),  LVL_SHELFAGE(iogrp),  rnacc,      0.,cmpflg,'shelfagelvl')
+    endif
+    if (use_r2o) then
+      call wrtlvl(jlvltdoc_lc(iogrp),  LVL_TDOC_LC(iogrp),  rnacc*1e3,      0.,cmpflg,'tdoc_lc')
+      call wrtlvl(jlvltdoc_hc(iogrp),  LVL_TDOC_HC(iogrp),  rnacc*1e3,      0.,cmpflg,'tdoc_hc')
     endif
     if (use_cisonew) then
       call wrtlvl(jlvldic13(iogrp),    LVL_DIC13(iogrp),    rnacc*1.e3,     0.,cmpflg,'dissic13lvl')
@@ -1095,6 +1113,10 @@ contains
     if (use_shelfsea_res_time) then
       call inilyr(jshelfage(iogrp),0.)
     endif
+    if (use_r2o) then
+      call inilyr(jtdoc_lc(iogrp),0.)
+      call inilyr(jtdoc_hc(iogrp),0.)
+    endif
     if (use_cisonew) then
       call inilyr(jdic13(iogrp),0.)
       call inilyr(jdic14(iogrp),0.)
@@ -1195,6 +1217,10 @@ contains
     endif
     if (use_shelfsea_res_time) then
       call inilvl(jlvlshelfage(iogrp),0.)
+    endif
+    if (use_r2o) then
+      call inilvl(jlvltdoc_lc(iogrp),0.)
+      call inilvl(jlvltdoc_hc(iogrp),0.)
     endif
     if (use_cisonew) then
       call inilvl(jlvldic13(iogrp),0.)

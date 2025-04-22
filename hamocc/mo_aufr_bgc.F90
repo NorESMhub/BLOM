@@ -83,11 +83,11 @@ CONTAINS
     use mo_control_bgc,     only: io_stdo_bgc,ldtbgc,use_cisonew,use_AGG,                          &
                                   use_BOXATM,use_BROMO,use_CFC,use_natDIC,use_sedbypass,           &
                                   use_extNcycle,use_pref_tracers,use_shelfsea_res_time,            &
-                                  use_sediment_quality
+                                  use_sediment_quality,use_r2o
     use mo_param1_bgc,      only: ialkali,ian2o,iano3,icalc,idet,idicsat,                          &
                                   idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,       &
                                   iprefalk,iprefdic,iprefo2,iprefpo4,iprefsilica,ishelfage,        &
-                                  isco212,isilica,izoo,nocetra,                                    &
+                                  isco212,isilica,izoo,nocetra,itdoc_lc,itdoc_hc                   &
                                   iadust,inos,iatmco2,iatmn2,iatmo2,ibromo,icfc11,icfc12,isf6,     &
                                   icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,       &
                                   isco213,isco214,izoo13,izoo14,safediv,                           &
@@ -453,6 +453,10 @@ CONTAINS
     endif
     if (use_shelfsea_res_time .and. lread_shelfage) then
       call read_netcdf_var(ncid,'shelfage',locetra(1,1,1,ishelfage),2*kpke,0,iotype)
+    endif
+    if (use_r2o) then
+      call read_netcdf_var(ncid,'tdoc_lc',locetra(1,1,1,itdoc_lc),2*kpke,0,iotype)
+      call read_netcdf_var(ncid,'tdoc_hc',locetra(1,1,1,itdoc_hc),2*kpke,0,iotype)
     endif
     if (use_cisonew .and. lread_iso) then
       call read_netcdf_var(ncid,'sco213',locetra(1,1,1,isco213),2*kpke,0,iotype)
