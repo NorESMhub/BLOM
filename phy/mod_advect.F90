@@ -72,7 +72,7 @@ contains
         km = k + mm
         kn = k + nn
         do l = 1, isu(j)
-        do i = ifu(j,l), ilu(j,l)
+        do i = max(1,ifu(j,l)), min(ii,ilu(j,l))
            dtdl = delt1*scuy(i,j)
            ca_tmp = u(i,j,km)*dtdl &
                   + ubflxs_p(i,j,m)*dlt/pbu(i,j,m) &
@@ -81,7 +81,7 @@ contains
         enddo
         enddo
         do l = 1, isv(j)
-        do i = ifv(j,l), ilv(j,l)
+        do i = max(1,ifv(j,l)), min(ii,ilv(j,l))
            dtdl = delt1*scvx(i,j)
            ca_tmp = v(i,j,km)*dtdl &
                   + vbflxs_p(i,j,m)*dlt/pbv(i,j,m) &
