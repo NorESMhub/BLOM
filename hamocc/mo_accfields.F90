@@ -238,7 +238,6 @@ contains
             bgct2d(i,j,jpodisi)  = bgct2d(i,j,jpodisi)  + sedfluxo(i,j,ipowasi)/2.0
           endif
           ! N-deposition, ocean alkalinization, and riverine input fluxes
-          ! DIC seems to be missing below
           bgct2d(i,j,jndepnoy) = bgct2d(i,j,jndepnoy) + ndepnoyflx(i,j)/2.0
           bgct2d(i,j,joalk)    = bgct2d(i,j,joalk)    + oalkflx(i,j)/2.0
           bgct2d(i,j,jirdin)   = bgct2d(i,j,jirdin)   + rivinflx(i,j,irdin)/2.0
