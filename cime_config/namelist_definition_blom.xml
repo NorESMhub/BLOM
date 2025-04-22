@@ -7490,6 +7490,31 @@
     <desc>Shelfsea water residence time [d]</desc>
   </entry>
 
+  <entry id="lyr_tdoc_lc">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">0,0,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
+    </values>
+    <desc>Low C terrestrial dissolved organic carbon (tdoc_lc) [mol C m-3]</desc>
+  </entry>
+
+  <entry id="lyr_tdoc_hc">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">0,0,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
+    </values>
+    <desc>High C terrestrial dissolved organic carbon (tdoc_hc) [mol C m-3]</desc>
+  </entry>
 
   <entry id="lyr_dicsat">
     <type>integer(3)</type>
@@ -8564,6 +8589,32 @@
       <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Shelfsea water residence time [d]</desc>
+  </entry>
+
+  <entry id="lvl_tdoc_lc">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Low C terrestrial dissolved organic carbon (tdoc_lc) [mol C m-3]</desc>
+  </entry>
+
+  <entry id="lvl_tdoc_hc">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>High C terrestrial dissolved organic carbon (tdoc_hc) [mol C m-3]</desc>
   </entry>
 
   <entry id="lvl_dicsat">
