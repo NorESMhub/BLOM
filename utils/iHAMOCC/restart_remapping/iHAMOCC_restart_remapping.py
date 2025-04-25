@@ -480,7 +480,7 @@ def main():
                                    + 'Original file history: '+ds_coarse_hamocc.attrs['history']
  
     # ----------------------------------------- Eventually write the restart file
-    new_restart.to_netcdf(out_new_restart_file)
+    new_restart.to_netcdf(out_new_restart_file,format="NETCDF3_64BIT")
   
     # Clean up temporary files
     clean_tmpfiles(tmpfiles)
@@ -622,7 +622,7 @@ def main():
     # Write out the adjusted restart file
     fil,ext=os.path.splitext(adjustable_restart_file)
     out_file_adjusted = os.path.join(fil+'_adjusted'+ext)
-    adjusted_restart.to_netcdf(out_file_adjusted)    
+    adjusted_restart.to_netcdf(out_file_adjusted,format="NETCDF3_64BIT")    
     print('\n====================================================================================')
     print('\n   The following data set has been written to the new adjusted restart file:      \n')
     print(adjusted_restart)
