@@ -519,14 +519,13 @@ contains
                 remin_aerob(i,j,k)    = remin_aerob(i,j,k)    + tdoclc_deg*rnit_tdocl              &
                                       &                       + tdochc_deg*rnit_tdochc
               endif
+              ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + tdoclc_deg*rcar_tdoclc               &
+                                    &                       + tdochc_deg*rcar_tdochc
+              ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + (tdoclc_deg+tdochc_deg)*riron
             endif
             ocetra(i,j,k,idet) = ocetra(i,j,k,idet)+export
             ocetra(i,j,k,idms) = ocetra(i,j,k,idms)+dmsprod-dms_bac-dms_uv
             ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)-delcar+rcar*dtr
-            if (use_river2omip) then
-              ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + tdoclc_deg*rcar_tdoclc               &
-                                    &                       + tdochc_deg*rcar_tdochc
-            endif
             ocetra(i,j,k,iphy) = ocetra(i,j,k,iphy)+phosy-grazing-phymor-exud
             ocetra(i,j,k,izoo) = ocetra(i,j,k,izoo)+grawa-excdoc-zoomor
             ocetra(i,j,k,idoc) = ocetra(i,j,k,idoc)-bacfra+excdoc+exud
@@ -780,7 +779,7 @@ contains
               remin_aerob(i,j,k)  = remin_aerob(i,j,k)+remin*rnit ! kmol/NH4/dtb - remin to NH4 from various sources
             endif
             if (use_river2omip) then
-              ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + tdoclc_deg+tdochc_deg
+              ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + tdoclc_deg + tdochc_deg
               if (.not. use_extNcycle) then
                 ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)   + tdoclc_deg*rnit_tdoclc             &
                                       &                       + tdochc_deg*rnit_tdochc
@@ -798,11 +797,11 @@ contains
                 remin_aerob(i,j,k)    = remin_aerob(i,j,k)    + tdoclc_deg*rnit_tdocl              &
                                       &                       + tdochc_deg*rnit_tdochc
               endif
+              ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + tdoclc_deg*rcar_tdoclc               &
+                                    &                       + tdochc_deg*rcar_tdochc
+              ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)     + (tdoclc_deg+tdochc_deg)*riron
             endif
             ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+rcar*remin
-            if (use_river2omip) then
-              ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+tdoclc_deg*rcar_tdoclc+tdochc_deg*rcar_tdochc
-            endif
             ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+remin*riron           &
                  &             -relaxfe*max(ocetra(i,j,k,iiron)-fesoly,0.)
             if (use_natDIC) then
