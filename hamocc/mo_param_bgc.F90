@@ -83,7 +83,8 @@ module mo_param_bgc
 
   ! Other module variables
   public :: ro2ut,rcar,rnit,rnoi,riron,rdnit0,rdnit1,rdnit2,rdn2o1,rdn2o2
-  public :: rcar_tdoclc,rcar_tdochc,rnit_tdoclc,rnit_tdochc
+  public :: rcar_tdoclc,rhyd_tdoclc,roxy_tdoclc,rnit_tdoclc,ro2ut_tdoclc
+  public :: rcar_tdochc,rhyd_tdochc,roxy_tdochc,rnit_tdochc,ro2ut_tdochc
   public :: atm_n2,atm_o2,atm_co2_nat,atm_bromo,re1312,atm_n2o,atm_nh3
   public :: srfdic_min,re14to,prei13,prei14,ctochl
   public :: atten_w,atten_c,atten_uv,atten_f
@@ -145,10 +146,6 @@ module mo_param_bgc
   real, parameter :: rnit   = 16.                 ! mol N per mol P
   real, parameter :: rnoi   = 1./rnit             ! mol P per mol N
   real, parameter :: riron  = 5.*rcar*1.e-6       ! fe to P ratio in organic matter
-  real, parameter :: rcar_tdoclc  = 276           ! mol C per mol P in low-C tDOC (R2OMIP)
-  real, parameter :: rcar_tdochc  = 2583          ! mol C per mol P in high-C tDOC (R2OMIP)
-  real, parameter :: rnit_tdoclc  = 25            ! mol N per mol P in low-C tDOC (R2OMIP)
-  real, parameter :: rnit_tdochc  = 103           ! mol N per mol P in high-C tDOC (R2OMIP)
 
   ! stoichiometric ratios for denitrification from Paulmier et al. 2009, Table 1 and
   ! equation 18. Note that their R_0=ro2ut-2*rnit.
@@ -183,6 +180,20 @@ module mo_param_bgc
   real, parameter :: rnh4dnra      = rno2dnra + rnit ! production of NH4 per mol OM during DNRA
   real, parameter :: rnh4dnrai     = 1./rnh4dnra     ! inverse
   real, parameter :: rnm1          = rnit - 1.
+
+  ! Terrestrial dissolved organic carbon tDOC (river2oceanmip) 
+  ! Low-carbon tDOC
+  real, parameter :: rcar_tdoclc  = 276                           ! mol C per mol P
+  real, parameter :: rnit_tdoclc  = 25                            ! mol N per mol P
+  real, parameter :: rhyd_tdoclc  = 2*rcar_tdoclc+3*rnit_tdoclc+3 ! mol H per mol P in low-C tDOC (Paulmier et al. 2009)
+  real, parameter :: roxy_tdoclc  = rcar_tdoclc + 4.              ! mol O per mol P in low-C tDOC (Paulmier et al. 2009)
+  real, parameter :: ro2ut_tdoclc = (4*rcar_tdoclc+rhyd_tdoclc-2*roxy_tdoclc+5*rnit_tdoclc+5) ./ 4 ! Oxygen utilization per mol tDOC during remineralisation (Paulmier et al. 2009)
+  ! High-carbon tDOC
+  real, parameter :: rcar_tdochc  = 2583                          ! mol C per mol P
+  real, parameter :: rnit_tdochc  = 103                           ! mol N per mol P
+  real, parameter :: rhyd_tdochc  = 2*rcar_tdochc+3*rnit_tdochc+3 ! mol H per mol P (Paulmier et al. 2009)
+  real, parameter :: roxy_tdochc  = rcar_tdochc + 4.              ! mol O per mol P (Paulmier et al. 2009)
+  real, parameter :: ro2ut_tdochc = (4*rcar_tdochc+rhyd_tdochc-2*roxy_tdochc+5*rnit_tdochc+5) ./ 4 ! Oxygen utilization per mol tDOC during remineralisation (Paulmier et al. 2009)
 
   !********************************************************************
   ! Atmosphere:
@@ -295,8 +306,8 @@ module mo_param_bgc
   real, parameter :: O2thresh_hypoxic = 5.e-7  ! Below O2thresh_hypoxic denitrification and sulfate reduction takes place (default model version)
   real, parameter :: NO3thresh_sulf   = 3.e-6  ! Below NO3thresh_sulf 'sufate reduction' takes place
   real, protected :: remido     = 0.004        ! 1/d - remineralization rate (of DOM)
-  real, protected :: deg_tdoclc = 0.00183        ! 1/d Degradation time scale of low-C tDOC (1.5 yr)
-  real, protected :: deg_tdochc = 0.00183        ! 1/d Degradation time scale of high-C tDOC (1.5 yr)
+  real, protected :: deg_tdoclc = 0.00183      ! 1/d Degradation time scale of low-C tDOC (1.5 yr)
+  real, protected :: deg_tdochc = 0.00183      ! 1/d Degradation time scale of high-C tDOC (1.5 yr)
   ! deep sea remineralisation constants
   real, protected :: drempoc    = 0.025        ! 1/d Aerob remineralization rate detritus
   real, protected :: drempoc_anaerob = 1.25e-3 ! =0.05*drempoc - remin in sub-/anoxic environm. - not be overwritten by M4AGO
@@ -1160,12 +1171,18 @@ contains
       call pinfo_add_entry('NOB2AOAy_sed',      NOB2AOAy_sed)
     endif
     if (use_river2omip) then
-      call pinfo_add_entry('deg_tdoclc',  deg_tdoclc*dtbinv)
-      call pinfo_add_entry('deg_tdochc',  deg_tdochc*dtbinv)
       call pinfo_add_entry('rcar_tdoclc', rcar_tdoclc)
-      call pinfo_add_entry('rcar_tdochc', rcar_tdochc)
+      call pinfo_add_entry('rhyd_tdoclc', rhyd_tdoclc)
+      call pinfo_add_entry('roxy_tdoclc', roxy_tdoclc)
       call pinfo_add_entry('rnit_tdoclc', rnit_tdoclc)
+      call pinfo_add_entry('ro2ut_tdoclc', ro2ut_tdoclc)
+      call pinfo_add_entry('deg_tdoclc',  deg_tdoclc*dtbinv)
+      call pinfo_add_entry('rcar_tdochc', rcar_tdochc)
+      call pinfo_add_entry('rhyd_tdochc', rhyd_tdochc)
+      call pinfo_add_entry('roxy_tdochc', roxy_tdochc)
       call pinfo_add_entry('rnit_tdochc', rnit_tdochc)
+      call pinfo_add_entry('ro2ut_tdochc', ro2ut_tdochc)
+      call pinfo_add_entry('deg_tdochc',  deg_tdochc*dtbinv)
     endif
   end subroutine write_parambgc
 

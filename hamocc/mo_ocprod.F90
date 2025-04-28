@@ -69,8 +69,7 @@ contains
                                 dyphy,ecan,epsher,fesoly,                                          &
                                 gammap,gammaz,grami,grazra,pi_alpha,phytomi,                       &
                                 rcalc,rcar,rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,                     &
-                                relaxfe,remido,riron,rnit,rnoi,ro2ut,ropal,deg_tdoclc,deg_tdochc,  &
-                                rcar_tdoclc,rcar_tdochc,rnit_tdoclc,rnit_tdochc,                   &
+                                relaxfe,remido,riron,rnit,rnoi,ro2ut,ropal,                        &
                                 spemor,wcal_const,wdust_const,wopal_const,wpoc_const,              &
                                 zinges,alar1,alar2,alar3,                                          &
                                 alow1,alow2,alow3,calmax,cellmass,                                 &
@@ -81,7 +80,9 @@ contains
                                 fbro1,fbro2,atten_f,atten_c,atten_uv,atten_w,bkopal,bkphy,bkzoo,   &
                                 POM_remin_q10,POM_remin_Tref,opal_remin_q10,opal_remin_Tref,       &
                                 bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo,max_limiter,         &
-                                O2thresh_aerob,O2thresh_hypoxic,NO3thresh_sulf
+                                O2thresh_aerob,O2thresh_hypoxic,NO3thresh_sulf,                    &
+                                rcar_tdoclc,rcar_tdochc,rnit_tdoclc,rnit_tdochc,ro2ut_tdoclc,      &
+                                ro2ut_tdochc,deg_tdoclc,deg_tdochc,
     use mo_biomod,        only: bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,bsiflx_bot, &
                                 calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot, &
                                 carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,carflx_bot, &
@@ -481,12 +482,8 @@ contains
             dtr = bacfra-phosy+graton+ecan*zoomor
 
             ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+dtr
-            if (use_river2omip) then
-              ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)+tdoclc_deg*rnit_tdoclc+tdochc_deg*rnit_tdochc
-              ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+tdoclc_deg+tdochc_deg
-            endif
             if (.not. use_extNcycle) then
-              ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)+dtr*rnit
+              ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)+dtr*rnit
               ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)-2.*delcar-(rnit+1)*dtr
               ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen)-dtr*ro2ut
             else
@@ -503,11 +500,32 @@ contains
               phosy_NO3(i,j,k)   = (1.-nh4uptfrac)*phosy*rnit  ! kmol N/m3/dtb - NO3 uptake during PP growth
               remin_aerob(i,j,k) = (dtr+phosy)*rnit            ! kmol N/m3/dtb - Aerob remin to ammonium  (var. sources)
             endif
+            if (use_river2omip) then
+              ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + tdoclc_deg+tdochc_deg
+              if (.not. use_extNcycle) then
+                ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)   + tdoclc_deg*rnit_tdoclc             &
+                                      &                       + tdochc_deg*rnit_tdochc
+                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - (rnit_tdoclc+1.)*tdoclc_deg         &
+                                      &                       - (rnit_tdochc+1.)*tdochc_deg
+                ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - tdoclc_deg*ro2ut_tdoclc            &
+                                      &                       - tdochc_deg*ro2ut_tdochc
+              else
+                ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   + tdoclc_deg*rnit_tdocl              &
+                                      &                       + tdochc_deg*rnit_tdochc
+                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + tdoclc_deg*(rnit_tdoclc-1.)         &
+                                      &                       + tdochc_deg*(rnit_tdochc-1.)
+                ! Need to compute the ro2utammo of tdoclc and hc? How?
+                ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - (tdoclc_deg+tdochc_deg)*ro2utammo
+                remin_aerob(i,j,k)    = remin_aerob(i,j,k)    + tdoclc_deg*rnit_tdocl              &
+                                      &                       + tdochc_deg*rnit_tdochc
+              endif
+            endif
             ocetra(i,j,k,idet) = ocetra(i,j,k,idet)+export
             ocetra(i,j,k,idms) = ocetra(i,j,k,idms)+dmsprod-dms_bac-dms_uv
             ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)-delcar+rcar*dtr
             if (use_river2omip) then
-              ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+tdoclc_deg*rcar_tdoclc+tdochc_deg*rcar_tdochc
+              ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + tdoclc_deg*rcar_tdoclc               &
+                                    &                       + tdochc_deg*rcar_tdochc
             endif
             ocetra(i,j,k,iphy) = ocetra(i,j,k,iphy)+phosy-grazing-phymor-exud
             ocetra(i,j,k,izoo) = ocetra(i,j,k,izoo)+grawa-excdoc-zoomor
