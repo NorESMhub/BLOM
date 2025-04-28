@@ -376,7 +376,7 @@ contains
               xa = avanfe
               xn = xa/(1.+pho*avphy/(xa+bkphy))
               phosy = max(0.,xa-xn)
-              if (abs(avanfe - ocetra(i,j,k,iiron)) < tiny_val) then
+              if (abs(avanfe - ocetra(i,j,k,iiron)/riron) < tiny_val) then
                 nutlim_diag(i,j,k,inutlim_fe)     = 1.
                 nutlim_diag(i,j,k,inutlim_phosph) = 0.
                 nutlim_diag(i,j,k,inutlim_n)      = 0.
