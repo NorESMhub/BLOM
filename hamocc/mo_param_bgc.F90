@@ -183,17 +183,19 @@ module mo_param_bgc
 
   ! Terrestrial dissolved organic carbon tDOC (river2oceanmip) 
   ! Low-carbon tDOC
-  real, parameter :: rcar_tdoclc  = 276                           ! mol C per mol P
-  real, parameter :: rnit_tdoclc  = 25                            ! mol N per mol P
-  real, parameter :: rhyd_tdoclc  = 2*rcar_tdoclc+3*rnit_tdoclc+3 ! mol H per mol P in low-C tDOC (Paulmier et al. 2009)
-  real, parameter :: roxy_tdoclc  = rcar_tdoclc + 4.              ! mol O per mol P in low-C tDOC (Paulmier et al. 2009)
-  real, parameter :: ro2ut_tdoclc = (4*rcar_tdoclc+rhyd_tdoclc-2*roxy_tdoclc+5*rnit_tdoclc+5) ./ 4 ! Oxygen utilization per mol tDOC during remineralisation (Paulmier et al. 2009)
+  real, parameter :: rcar_tdoclc  = 276.                             ! mol C per mol P
+  real, parameter :: rnit_tdoclc  = 25.                              ! mol N per mol P
+  real, parameter :: rhyd_tdoclc  = 2.*rcar_tdoclc+3.*rnit_tdoclc+3. ! mol H per mol P in low-C tDOC (Paulmier et al. 2009)
+  real, parameter :: roxy_tdoclc  = rcar_tdoclc + 4.                 ! mol O per mol P in low-C tDOC (Paulmier et al. 2009)
+  real, parameter :: ro2ut_tdoclc = (4.*rcar_tdoclc+rhyd_tdoclc-2.*roxy_tdoclc+5.*rnit_tdoclc+5.)  &
+                                  & /4. ! Oxygen utilization per mol tDOC during remineralisation (Paulmier et al. 2009)
   ! High-carbon tDOC
-  real, parameter :: rcar_tdochc  = 2583                          ! mol C per mol P
-  real, parameter :: rnit_tdochc  = 103                           ! mol N per mol P
-  real, parameter :: rhyd_tdochc  = 2*rcar_tdochc+3*rnit_tdochc+3 ! mol H per mol P (Paulmier et al. 2009)
+  real, parameter :: rcar_tdochc  = 2583.                            ! mol C per mol P
+  real, parameter :: rnit_tdochc  = 103.                             ! mol N per mol P
+  real, parameter :: rhyd_tdochc  = 2.*rcar_tdochc+3.*rnit_tdochc+3. ! mol H per mol P (Paulmier et al. 2009)
   real, parameter :: roxy_tdochc  = rcar_tdochc + 4.              ! mol O per mol P (Paulmier et al. 2009)
-  real, parameter :: ro2ut_tdochc = (4*rcar_tdochc+rhyd_tdochc-2*roxy_tdochc+5*rnit_tdochc+5) ./ 4 ! Oxygen utilization per mol tDOC during remineralisation (Paulmier et al. 2009)
+  real, parameter :: ro2ut_tdochc = (4.*rcar_tdochc+rhyd_tdochc-2.*roxy_tdochc+5.*rnit_tdochc+5.)  &
+                                  & /4. ! Oxygen utilization per mol tDOC during remineralisation (Paulmier et al. 2009)
 
   !********************************************************************
   ! Atmosphere:
