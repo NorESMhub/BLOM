@@ -91,7 +91,7 @@ contains
                                 expoor,exposi,expoca,intdnit,intdms_bac,intdmsprod,intdms_uv,      &
                                 intphosy,int_chbr3_prod,int_chbr3_uv,                              &
                                 phosy3d,abs_oce,strahl,asize3d,wmass,wnumb,eps3d,phosy_NH4,        &
-                                phosy_NO3, remin_aerob,remin_sulf
+                                phosy_NO3,remin_aerob,remin_sulf
     use mo_param1_bgc,    only: ialkali,ian2o,iano3,icalc,idet,idms,idoc,ifdust,itdoc_lc,itdoc_hc, &
                                 igasnit,iiron,iopal,ioxygen,iphosph,iphy,isco212,                  &
                                 isilica,izoo,iadust,inos,ibromo,                                   &
@@ -505,14 +505,14 @@ contains
               if (.not. use_extNcycle) then
                 ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)   + tdoclc_deg*rnit_tdoclc             &
                                       &                       + tdochc_deg*rnit_tdochc
-                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - (rnit_tdoclc+1.)*tdoclc_deg         &
+                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - (rnit_tdoclc+1.)*tdoclc_deg        &
                                       &                       - (rnit_tdochc+1.)*tdochc_deg
                 ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - tdoclc_deg*ro2ut_tdoclc            &
                                       &                       - tdochc_deg*ro2ut_tdochc
               else
                 ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   + tdoclc_deg*rnit_tdocl              &
                                       &                       + tdochc_deg*rnit_tdochc
-                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + tdoclc_deg*(rnit_tdoclc-1.)         &
+                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + tdoclc_deg*(rnit_tdoclc-1.)        &
                                       &                       + tdochc_deg*(rnit_tdochc-1.)
                 ! Need to compute the ro2utammo of tdoclc and hc? How?
                 ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - (tdoclc_deg+tdochc_deg)*ro2utammo
@@ -769,10 +769,6 @@ contains
             endif
 
             ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+remin
-            if (use_river2omip) then
-              ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)+tdoclc_deg*rnit_tdoclc+tdochc_deg*rnit_tdochc
-              ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+tdoclc_deg+tdochc_deg
-            endif
             if (.not. use_extNcycle) then
               ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)+remin*rnit
               ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)-(rnit+1)*remin
@@ -782,6 +778,26 @@ contains
               ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + (rnit-1.)*remin
               ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - ro2utammo*remin
               remin_aerob(i,j,k)  = remin_aerob(i,j,k)+remin*rnit ! kmol/NH4/dtb - remin to NH4 from various sources
+            endif
+            if (use_river2omip) then
+              ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + tdoclc_deg+tdochc_deg
+              if (.not. use_extNcycle) then
+                ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)   + tdoclc_deg*rnit_tdoclc             &
+                                      &                       + tdochc_deg*rnit_tdochc
+                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - (rnit_tdoclc+1.)*tdoclc_deg        &
+                                      &                       - (rnit_tdochc+1.)*tdochc_deg
+                ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - tdoclc_deg*ro2ut_tdoclc            &
+                                      &                       - tdochc_deg*ro2ut_tdochc
+              else
+                ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   + tdoclc_deg*rnit_tdocl              &
+                                      &                       + tdochc_deg*rnit_tdochc
+                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + tdoclc_deg*(rnit_tdoclc-1.)        &
+                                      &                       + tdochc_deg*(rnit_tdochc-1.)
+                ! Need to compute the ro2utammo of tdoclc and hc? How?
+                ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - (tdoclc_deg+tdochc_deg)*ro2utammo
+                remin_aerob(i,j,k)    = remin_aerob(i,j,k)    + tdoclc_deg*rnit_tdocl              &
+                                      &                       + tdochc_deg*rnit_tdochc
+              endif
             endif
             ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+rcar*remin
             if (use_river2omip) then
