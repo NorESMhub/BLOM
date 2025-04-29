@@ -92,7 +92,8 @@ contains
                                 intphosy,int_chbr3_prod,int_chbr3_uv,                              &
                                 phosy3d,abs_oce,strahl,asize3d,wmass,wnumb,eps3d,phosy_NH4,        &
                                 phosy_NO3,remin_aerob,remin_sulf
-    use mo_param1_bgc,    only: ialkali,ian2o,iano3,icalc,idet,idms,idoc,ifdust,itdoc_lc,itdoc_hc, &
+    use mo_param1_bgc,    only: ialkali,ian2o,iano3,icalc,idet,idms,idoc,ifdust,                   &
+                                itdoc_lc,itdoc_hc,itdoc_lc13,itdoc_hc13,itdoc_lc14,itdoc_hc14,     &
                                 igasnit,iiron,iopal,ioxygen,iphosph,iphy,isco212,                  &
                                 isilica,izoo,iadust,inos,ibromo,                                   &
                                 icalc13,icalc14,idet13,idet14,idoc13,idoc14,                       &
@@ -167,9 +168,11 @@ contains
     real :: sterzo13,sterzo14
     real :: pocrem13,pocrem14
     real :: docrem13,docrem14
+    real :: tdoclc_rem13,tdochc_rem13,tdoclc_rem14,tdochc_rem14
     real :: phyrem13,phyrem14
     real :: rem13,rem14
     real :: rco213,rco214,rdoc13,rdoc14,rdet13,rdet14
+    real :: rtdoclc13,rtdochc13,rtdoclc14,rtdochc14
     real :: rphy13,rphy14,rzoo13,rzoo14
     ! sedbypass
     real :: flor13,flor14,flca13,flca14
@@ -309,6 +312,7 @@ contains
     !$OMP  ,zoomor,excdoc,exud,export,delsil,delcar,dmsprod               &
     !$OMP  ,dms_bac,dms_uv,dtr,phofa,temfa,zoothresh,dms_ph,dz,opalrem    &
     !$OMP  ,avmass,avnos,zmornos,tdoclc_rem,tdochc_rem                    &
+    !$OMP  ,tdoclc_rem13,tdochc_rem13,tdoclc_rem14,tdochc_rem14           &
     !$OMP  ,rco213,rco214,rphy13,rphy14,rzoo13,rzoo14,grazing13,grazing14 &
     !$OMP  ,graton13,graton14,gratpoc13,gratpoc14,grawa13,grawa14         &
     !$OMP  ,phosy13,phosy14,bacfra13,bacfra14,phymor13,phymor14,zoomor13  &
@@ -431,9 +435,21 @@ contains
               if (lkwrbioz_off) then
                 bacfra13 = 0.
                 bacfra14 = 0.
+                if (use_river2omip) then
+                  tdoclc_rem13 = 0.
+                  tdochc_rem13 = 0.
+                  tdoclc_rem14 = 0.
+                  tdochc_rem14 = 0.
+                endif
               else
                 bacfra13 = remido*ocetra(i,j,k,idoc13)
                 bacfra14 = remido*ocetra(i,j,k,idoc14)
+                if (use_river2omip) then
+                  tdoclc_rem13 = rem_tdoclc*ocetra(i,j,k,itdoc_lc13)
+                  tdochc_rem13 = rem_tdochc*ocetra(i,j,k,itdoc_hc13)
+                  tdoclc_rem14 = rem_tdoclc*ocetra(i,j,k,itdoc_lc14)
+                  tdochc_rem14 = rem_tdochc*ocetra(i,j,k,itdoc_hc14)
+                endif
               endif
 
               phymor13 = phymor*rphy13
@@ -550,6 +566,16 @@ contains
               ocetra(i,j,k,idoc14) = ocetra(i,j,k,idoc14)-bacfra14+excdoc14+exud14
               ocetra(i,j,k,icalc13) = ocetra(i,j,k,icalc13)+delcar13
               ocetra(i,j,k,icalc14) = ocetra(i,j,k,icalc14)+delcar14
+              if (use_river2omip) then
+                ocetra(i,j,k,isco213) = ocetra(i,j,k,isco213) + tdoclc_rem13*rcar_tdoclc           &
+                                      &                       + tdochc_rem13*rcar_tdochc
+                ocetra(i,j,k,isco214) = ocetra(i,j,k,isco214) + tdoclc_rem14*rcar_tdoclc           &
+                                      &                       + tdochc_rem14*rcar_tdochc    
+                ocetra(i,j,k,itdoc_lc13) = ocetra(i,j,k,itdoc_lc13)-tdoclc_rem13
+                ocetra(i,j,k,itdoc_hc13) = ocetra(i,j,k,itdoc_hc13)-tdochc_rem13
+                ocetra(i,j,k,itdoc_lc14) = ocetra(i,j,k,itdoc_lc14)-tdoclc_rem14
+                ocetra(i,j,k,itdoc_hc14) = ocetra(i,j,k,itdoc_hc14)-tdochc_rem14
+              endif
             endif
             if (use_natDIC) then
               ocetra(i,j,k,inatsco212) = ocetra(i,j,k,inatsco212)-delcar+rcar*dtr
@@ -654,6 +680,8 @@ contains
     !$OMP PARALLEL DO PRIVATE(phythresh,zoothresh,sterph,sterzo,remin     &
     !$OMP  ,opalrem,aou,refra,dms_bac,pocrem,docrem,phyrem,dz,o2lim       &
     !$OMP  ,avmass,avnos,zmornos,tdoclc_rem,tdochc_rem                    &
+    !$OMP  ,tdoclc_rem13,tdochc_rem13,tdoclc_rem14,tdochc_rem14           &
+    !$OMP  ,rtdoclc13,rtdochc13,rtdoclc14,rtdochc14                       &
     !$OMP  ,rphy13,rphy14,rzoo13,rzoo14,rdet13,rdet14,rdoc13,rdoc14       &
     !$OMP  ,sterph13,sterph14,sterzo13,sterzo14,pocrem13,pocrem14         &
     !$OMP  ,docrem13,docrem14,phyrem13,phyrem14                           &
@@ -681,7 +709,12 @@ contains
               rdet14 = ocetra(i,j,k,idet14)/(ocetra(i,j,k,idet)+safediv)
               rdoc13 = ocetra(i,j,k,idoc13)/(ocetra(i,j,k,idoc)+safediv)
               rdoc14 = ocetra(i,j,k,idoc14)/(ocetra(i,j,k,idoc)+safediv)
-
+              if (use_river2omip) then
+                rtdoclc13 = ocetra(i,j,k,itdoc_lc13)/(ocetra(i,j,k,itdoc_lc)+safediv)
+                rtdochc13 = ocetra(i,j,k,itdoc_hc13)/(ocetra(i,j,k,itdoc_hc)+safediv)
+                rtdoclc14 = ocetra(i,j,k,itdoc_lc14)/(ocetra(i,j,k,itdoc_lc)+safediv)
+                rtdochc14 = ocetra(i,j,k,itdoc_hc14)/(ocetra(i,j,k,itdoc_hc)+safediv)
+              endif 
               sterph13 = sterph*rphy13
               sterph14 = sterph*rphy14
               sterzo13 = sterzo*rzoo13
@@ -745,6 +778,11 @@ contains
                 docrem14 = docrem*rdoc14
                 phyrem13 = phyrem*rphy13
                 phyrem14 = phyrem*rphy14
+                if (use_river2omip) then
+                  tdoclc_rem13 = tdoclc_rem*rtdoclc13
+                  tdochc_rem13 = tdochc_rem*rtdoclc13
+                  tdoclc_rem14 = tdoclc_rem*rtdoclc14
+                  tdochc_rem14 = tdochc_rem*rtdoclc14
               endif
             else
               pocrem = 0.
@@ -761,6 +799,12 @@ contains
                 pocrem14 = 0.
                 docrem14 = 0.
                 phyrem14 = 0.
+                if (use_river2omip) then
+                  tdoclc_rem13 = 0.
+                  tdochc_rem13 = 0.
+                  tdoclc_rem14 = 0.
+                  tdochc_rem14 = 0.
+                endif
               endif
             endif
 
@@ -824,6 +868,12 @@ contains
 
               ocetra(i,j,k,isco213) = ocetra(i,j,k,isco213)+rcar*(pocrem13+docrem13+phyrem13)
               ocetra(i,j,k,isco214) = ocetra(i,j,k,isco214)+rcar*(pocrem14+docrem14+phyrem14)
+              if (use_river2omip) then
+                ocetra(i,j,k,itdoc_lc13) = ocetra(i,j,k,itdoc_lc13)-tdoclc_rem13
+                ocetra(i,j,k,itdoc_hc13) = ocetra(i,j,k,itdoc_hc13)-tdochc_rem13
+                ocetra(i,j,k,itdoc_lc14) = ocetra(i,j,k,itdoc_lc14)-tdoclc_rem14
+                ocetra(i,j,k,itdoc_hc14) = ocetra(i,j,k,itdoc_hc14)-tdochc_rem14
+              endif
             endif
             !***********************************************************************
             ! as ragueneau (2000) notes, Si(OH)4sat is about 1000 umol, but

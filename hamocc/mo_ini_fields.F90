@@ -102,7 +102,8 @@ contains
                               iiron,iopal,ioxygen,iphosph,iphy,iprefalk,iprefdic,iprefo2,iprefpo4, &
                               isco212,isilica,izoo,iadust,inos,ibromo,icfc11,icfc12,isf6,          &
                               icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,           &
-                              isco213,isco214,izoo13,izoo14,safediv,inatcalc,itdoc_lc,itdoc_hc,   &
+                              isco213,isco214,izoo13,izoo14,safediv,inatcalc,itdoc_lc,itdoc_hc,    &
+                              itdoc_lc13,itdoc_hc13,itdoc_lc14,itdoc_hc14,                         &
                               ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,      &
                               issso12,issssil,issster,ks,nsedtra,ipowc13,ipowc13,issso13,issso13,  &
                               isssc13,ipowc14,isssc14,issso14,iprefsilica,iano2,ianh4,ishelfage,   &
@@ -209,9 +210,14 @@ contains
               ocetra(i,j,k,ishelfage)   = 0.
             endif
             if (use_river2omip) then
-              ocetra(i,j,k,itdoc_lc)   = 0.
-              ocetra(i,j,k,itdoc_hc)   = 0.
-            endif
+              ocetra(i,j,k,itdoc_lc)    = 0.
+              ocetra(i,j,k,itdoc_hc)    = 0.
+              if (use_cisonew) then
+                ocetra(i,j,k,itdoc_lc13)  = 0.
+                ocetra(i,j,k,itdoc_hc13)  = 0.
+                ocetra(i,j,k,itdoc_lc14)  = 0.
+                ocetra(i,j,k,itdoc_hc14)  = 0.
+              endif
             if (use_AGG) then
               ! calculate initial numbers from mass, to start with appropriate size distribution
               snow = (ocetra(i,j,k,iphy)+ocetra(i,j,k,idet))*1.e+6

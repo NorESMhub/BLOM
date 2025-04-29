@@ -61,7 +61,8 @@ contains
     use mo_control_bgc, only: dtb,do_rivinpt,use_cisonew,use_river2omip
     use mo_param1_bgc,  only: nriv,irdin,irdip,irsi,iralk,iriron,irdoc,irtdoc,irdet,               &
                               iano3,iphosph,isilica,isco212,iiron,idoc,itdoc_lc,itdoc_hc,idet,     &
-                              ialkali,inatsco212,inatalkali
+                              ialkali,inatsco212,inatalkali,itdoc_lc13,itdoc_hc13,itdoc_lc14,      &
+                              itdoc_hc14
     use mo_param1_bgc,  only: idet13,idet14,idoc13,idoc14,isco213,isco214,safediv
     use mo_vgrid,       only: kmle
     use mo_carbch,      only: ocetra,rivinflx
@@ -100,16 +101,32 @@ contains
 
           if (use_cisonew) then
             if (use_river2omip) then
-              ocetra(i,j,1:kmle(i,j),isco213) = ocetra(i,j,1:kmle(i,j),isco213)                    &
-                   &                          + ocetra(i,j,1:kmle(i,j),isco213)                    &
-                   &                          /(ocetra(i,j,1:kmle(i,j),isco212)+safediv)           &
-                   &                          * (rivin(i,j,iralk)*fdt/volij                        &
-                   &                          +  rivin(i,j,irdoc)*fdt/volij)                         
-              ocetra(i,j,1:kmle(i,j),isco214) = ocetra(i,j,1:kmle(i,j),isco214)                    &
-                   &                          + ocetra(i,j,1:kmle(i,j),isco214)                    &
-                   &                          /(ocetra(i,j,1:kmle(i,j),isco212)+safediv)           &
-                   &                          * (rivin(i,j,iralk)*fdt/volij                        &
-                   &                          + rivin(i,j,irdoc)*fdt/volij)                        
+              ocetra(i,j,1:kmle(i,j),isco213)    = ocetra(i,j,1:kmle(i,j),isco213)                 &
+                   &                             + ocetra(i,j,1:kmle(i,j),isco213)                 &
+                   &                             /(ocetra(i,j,1:kmle(i,j),isco212)+safediv)        &
+                   &                             * (rivin(i,j,iralk)*fdt/volij                     &
+                   &                             +  rivin(i,j,irdoc)*fdt/volij)
+              ocetra(i,j,1:kmle(i,j),isco214)    = ocetra(i,j,1:kmle(i,j),isco214)                 &
+                   &                             + ocetra(i,j,1:kmle(i,j),isco214)                 &
+                   &                             /(ocetra(i,j,1:kmle(i,j),isco212)+safediv)        &
+                   &                             * (rivin(i,j,iralk)*fdt/volij                     &
+                   &                             + rivin(i,j,irdoc)*fdt/volij)
+              ocetra(i,j,1:kmle(i,j),itdoc_lc13) = ocetra(i,j,1:kmle(i,j),itdoc_lc13)              &
+                                                 + ocetra(i,j,1:kmle(i,j),itdoc_lc13)              &
+                                                 /(ocetra(i,j,1:kmle(i,j),itdoc_lc)+safediv)       &
+                                                 * rivin(i,j,irdet)*fdt/volij
+              ocetra(i,j,1:kmle(i,j),itdoc_hc13) = ocetra(i,j,1:kmle(i,j),itdoc_hc13)              &
+                                                 + ocetra(i,j,1:kmle(i,j),itdoc_hc13)              &
+                                                 /(ocetra(i,j,1:kmle(i,j),itdoc_hc)+safediv)       &
+                                                 * rivin(i,j,irtdoc)*fdt/volij
+              ocetra(i,j,1:kmle(i,j),itdoc_lc14) = ocetra(i,j,1:kmle(i,j),itdoc_lc14)              &
+                                                 + ocetra(i,j,1:kmle(i,j),itdoc_lc14)              &
+                                                 /(ocetra(i,j,1:kmle(i,j),itdoc_lc)+safediv)       &
+                                                 * rivin(i,j,irdet)*fdt/volij
+              ocetra(i,j,1:kmle(i,j),itdoc_hc14) = ocetra(i,j,1:kmle(i,j),itdoc_hc14)              &
+                                                 + ocetra(i,j,1:kmle(i,j),itdoc_hc14)              &
+                                                 /(ocetra(i,j,1:kmle(i,j),itdoc_hc)+safediv)       &
+                                                 * rivin(i,j,irtdoc)*fdt/volij
             else
               ocetra(i,j,1:kmle(i,j),isco213) = ocetra(i,j,1:kmle(i,j),isco213)                    &
                    &                          + ocetra(i,j,1:kmle(i,j),isco213)                    &
@@ -164,12 +181,12 @@ contains
             ! tDOC_hc <= riv_slDOC
             ! Riverine POC instantaneously dissolved as low-carbon tDOC (tDOC_lc)
             ! tDOC_lc <= riv_POC
-            ocetra(i,j,1:kmle(i,j),itdoc_hc) = ocetra(i,j,1:kmle(i,j),itdoc_hc)                    &
-                 &                           + rivin(i,j,irtdoc)*fdt/volij
             ocetra(i,j,1:kmle(i,j),itdoc_lc) = ocetra(i,j,1:kmle(i,j),itdoc_lc)                    &
                  &                           + rivin(i,j,irdet)*fdt/volij
-            ocetra(i,j,1:kmle(i,j),isco212)  = ocetra(i,j,1:kmle(i,j),isco212)                      &
-                 &                           + rivin(i,j,iralk)*fdt/volij                           &
+            ocetra(i,j,1:kmle(i,j),itdoc_hc) = ocetra(i,j,1:kmle(i,j),itdoc_hc)                    &
+                 &                           + rivin(i,j,irtdoc)*fdt/volij
+            ocetra(i,j,1:kmle(i,j),isco212)  = ocetra(i,j,1:kmle(i,j),isco212)                     &
+                 &                           + rivin(i,j,iralk)*fdt/volij                          &
                  &                           + rivin(i,j,irdoc)*fdt/volij
             if (use_natDIC) then
               ocetra(i,j,1:kmle(i,j),inatsco212) = ocetra(i,j,1:kmle(i,j),inatsco212)              &

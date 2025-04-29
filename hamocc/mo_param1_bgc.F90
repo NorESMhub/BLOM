@@ -120,6 +120,10 @@ module mo_param1_bgc
   integer, protected :: i_r2o
   integer, protected :: itdoc_lc
   integer, protected :: itdoc_hc
+  integer, protected :: itdoc_lc13
+  integer, protected :: itdoc_hc13
+  integer, protected :: itdoc_lc14
+  integer, protected :: itdoc_hc14
 
   ! total number of advected tracers (set by allocate_tracers in mod_tracers.F90)
   integer :: nocetra
@@ -401,9 +405,21 @@ contains
       ishelfage  = -1
     endif
     if (use_river2omip) then
-      i_r2o = 2
       itdoc_lc  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+1
       itdoc_hc  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+2
+      if (use_cisonew)  
+        i_r2o = 6
+        itdoc_lc13  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+3
+        itdoc_hc13  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+4
+        itdoc_lc14  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+5
+        itdoc_hc14  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+6
+      else
+        i_r2o = 2
+        itdoc_lc13  = -1
+        itdoc_hc13  = -1
+        itdoc_lc14  = -1
+        itdoc_hc14  = -1
+      endif
     else
       i_r2o = 0
       itdoc_lc  = -1

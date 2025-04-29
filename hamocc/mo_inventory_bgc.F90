@@ -43,7 +43,8 @@ contains
     use mo_carbch,      only: atm,atmflx,co3,hi,ndepnoyflx,rivinflx,ocetra,sedfluxo,ndepnhxflx
     use mo_sedmnt,      only: prcaca,prorca,silpro
     use mo_biomod,      only: expoor,expoca,exposi
-    use mo_param_bgc,   only: rcar,rnit,rcar_tdoclc,rcar_tdochc,rnit_tdoclc,rnit_tdochc
+    use mo_param_bgc,   only: rcar,rnit,rcar_tdoclc,rcar_tdochc,rnit_tdoclc,rnit_tdochc,           &
+                              roxy_tdoclc,roxy_tdochc
     use mo_control_bgc, only: do_ndep,do_rivinpt,io_stdo_bgc
     use mo_bgcmean,     only: bgct2d,jco2flux,jirdin,jn2flux,jn2oflux,jndepnoy,jndepnhx,           &
                               jo2flux,jprcaca,jnh3flux,jdmsflux,                                   &
@@ -52,7 +53,8 @@ contains
                               igasnit,iopal,ioxygen,iphosph,iphy,ipowaic,ipowaox,ipowaph,ipowasi,  &
                               ipown2,ipowno3,isco212,isilica,isssc12,issso12,issssil,izoo,         &
                               irdin,irdip,irsi,iralk,irdoc,irdet,nocetra,npowtra,nsedtra,nriv,     &
-                              ianh4,iano2,iatmnh3,ipownh4,ipown2o,ipowno2,iatmdms,irtdoc
+                              ianh4,iano2,iatmnh3,ipownh4,ipown2o,ipowno2,iatmdms,irtdoc,itdoc_lc, &
+                              itdoc_hc
     use mo_vgrid,       only: dp_min
 
     ! NOT sedbypass
@@ -430,7 +432,6 @@ contains
        &  - sndepnhxflux                                                  &
        &  +zpowtratot(ipownh4)+zpowtratot(ipown2o)*2+zpowtratot(ipowno2)
     endif
-
     totalphos=                                                            &
          zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)               &
          + zocetratot(izoo)+zocetratot(iphosph)                           &
@@ -464,24 +465,40 @@ contains
       totaloxy = totaloxy + zocetratot(iano2)+zpowtratot(ipown2o)*0.5+zpowtratot(ipowno2)
     endif
 
+    if (use_river2omip) then
+      totalcarbon = totalcarbon + zocetratot(itdoc_lc)*rcar_tdoclc        &
+                                + zocetratot(itdoc_hc)*rcar_tdoclc
+      totalnitr   = totalnitr   + zocetratot(itdoc_lc)*rnit_tdoclc        &
+                                + zocetratot(itdoc_hc)*rnit_tdoclc
+      totaloxy   = totaloxy     + zocetratot(itdoc_lc)*roxy_tdoclc        &
+                                + zocetratot(itdoc_hc)*roxy_tdoclc
+      totalphos  = totalphos + zocetratot(itdoc_lc) + zocetratot(itdoc_hc)
+    endif
+
     if (do_rivinpt) then
       if (use_river2omip) then
-        totalcarbon = totalcarbon- srivflux(irdoc)*rcar-srivflux(irtdoc)*rcar_tdochc &
-             &                   - srivflux(irdet)*rcar_tdoclc                      &
+        totalcarbon = totalcarbon- srivflux(irdoc)*rcar-srivflux(irtdoc)*rcar_tdochc               &
+             &                   - srivflux(irdet)*rcar_tdoclc                                     &
              &                   - srivflux(iralk)-srivflux(irdin)-srivflux(irdip)   ! =sco212
-        totalnitr   = totalnitr  - srivflux(irdoc)*rnit-srivflux(irtdoc)*rnit_tdochc      &
-             &                     -srivflux(irdet)*rnit_tdoclc - srivflux(irdin)
+        totalnitr   = totalnitr  - srivflux(irdoc)*rnit-srivflux(irtdoc)*rnit_tdochc               &
+             &                   - srivflux(irdet)*rnit_tdoclc - srivflux(irdin)
         totalphos   = totalphos  - srivflux(irdoc)-srivflux(irtdoc)-srivflux(irdet)-srivflux(irdip)
+                                 ! For O2, not sure about substracting or adding rdet (->tDOC_lc)
+        totaloxy    = totaloxy   - (srivflux(irdoc)-srivflux(irtdoc)*roxy_tdochc                   &
+             &                   - srivflux(irdet))*roxy_tdoclc                                   &
+             &                   - srivflux(irdin)*1.5 - srivflux(irdip)*2.                        &
+             &                   - (srivflux(iralk)+srivflux(irdin)+srivflux(irdip))
+
       else
-        totalcarbon = totalcarbon- (srivflux(irdoc)+srivflux(irdet))*rcar                            &
+        totalcarbon = totalcarbon- (srivflux(irdoc)+srivflux(irdet))*rcar                          &
              &                   - (srivflux(iralk)+srivflux(irdin)+srivflux(irdip))   ! =sco212
         totalnitr   = totalnitr  - (srivflux(irdoc)+srivflux(irdet))*rnit - srivflux(irdin)
         totalphos   = totalphos  - (srivflux(irdoc)+srivflux(irdet)+srivflux(irdip))
+        totaloxy    = totaloxy   - (srivflux(irdoc)+srivflux(irdet))*(-24.)                        &
+             &                   -  srivflux(irdin)*1.5 - srivflux(irdip)*2.                       &
+             &                   - (srivflux(iralk)+srivflux(irdin)+srivflux(irdip))
       endif
       totalsil    = totalsil   -  srivflux(irsi)
-      totaloxy    = totaloxy   - (srivflux(irdoc)+srivflux(irdet))*(-24.)                          &
-           &                   -  srivflux(irdin)*1.5 - srivflux(irdip)*2.                         &
-           &                   - (srivflux(iralk)+srivflux(irdin)+srivflux(irdip))
     endif
 
     !=== Compute sediment fluxes
@@ -731,6 +748,7 @@ contains
       use mo_param1_bgc, only: idicsat,idms,ifdust,iiron,iprefalk,iprefdic,iprefo2,iprefpo4,       &
                                iadust,inos,ibromo,icfc11,icfc12,isf6,icalc13,icalc14,idet13,       &
                                idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,   &
+                               itdoc_lc13,itdoc_hc13,itdoc_lc14,itdoc_hc14,                        &
                                inatalkali,inatcalc,inatsco212,ianh4,iano2,iprefsilica
       use mo_control_bgc,only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,  &
                                use_CFC,use_natDIC,use_BROMO,use_pref_tracers,dtbgc
@@ -796,6 +814,8 @@ contains
       integer :: zt_ano3srf_varid,   zc_ano3srf_varid     ! Dissolved nitrate in surface layer
       integer :: zt_silica_varid,    zc_silica_varid      ! Silicid acid (Si(OH)4)
       integer :: zt_doc_varid,       zc_doc_varid         ! Dissolved organic carbon
+      integer :: zt_tdoclc_varid,    zc_tdoclc_varid      ! Terrestrial low-C dissolved organic carbon
+      integer :: zt_tdochc_varid,    zc_tdochc_varid      ! Terrestrial high-C dissolved organic carbon
       integer :: zt_poc_varid,       zc_poc_varid         ! Particulate organic carbon
       integer :: zt_phyto_varid,     zc_phyto_varid       ! Phytoplankton concentration
       integer :: zt_grazer_varid,    zc_grazer_varid      ! Zooplankton concentration
@@ -817,6 +837,10 @@ contains
       integer :: zt_sco214_varid,    zc_sco214_varid      ! Dissolved CO2-C14
       integer :: zt_doc13_varid,     zc_doc13_varid       ! Dissolved organic carbon-C13
       integer :: zt_doc14_varid,     zc_doc14_varid       ! Dissolved organic carbon-C14
+      integer :: zt_tdoclc13_varid,  zc_tdoclc13_varid    ! Terrestrial low-C dissolved organic carbon-C13
+      integer :: zt_tdochc13_varid,  zc_tdochc13_varid    ! Terrestrial high-C dissolved organic carbon-C13
+      integer :: zt_tdoclc14_varid,  zc_tdoclc14_varid    ! Terrestrial low-C dissolved organic carbon-C14
+      integer :: zt_tdochc14_varid,  zc_tdochc14_varid    ! Terrestrial high-C dissolved organic carbon-C14
       integer :: zt_poc13_varid,     zc_poc13_varid       ! Particulate organic carbon-C13
       integer :: zt_poc14_varid,     zc_poc14_varid       ! Particulate organic carbon-C14
       integer :: zt_phyto13_varid,   zc_phyto13_varid     ! Phytoplankton concentration-C13
@@ -1438,6 +1462,57 @@ contains
           call nccheck( NF90_PUT_ATT(ncid, zc_calciu14_varid, 'long_name',          &
                &    'Mean calcium carbonate-C14 concentration') )
           call nccheck( NF90_PUT_ATT(ncid, zc_calciu14_varid, 'units', 'kmol/m^3') )
+
+          if (use_river2omip) then
+            call nccheck( NF90_DEF_VAR(ncid, 'zt_tdoclc13', NF90_DOUBLE,                 &
+                 &    time_dimid, zt_tdoclc13_varid) )
+            call nccheck( NF90_PUT_ATT(ncid, zt_tdoclc13_varid, 'long_name',             &
+                 &    'Total terrestrial low-C dissolved organic carbon-C13 tracer') )
+            call nccheck( NF90_PUT_ATT(ncid, zt_tdoclc13_varid, 'units', 'kmol') )
+    
+            call nccheck( NF90_DEF_VAR(ncid, 'zc_tdoclc13', NF90_DOUBLE,                 &
+                 &    time_dimid, zc_tdoclc13_varid) )
+            call nccheck( NF90_PUT_ATT(ncid, zc_tdoclc13_varid, 'long_name',             &
+                 &    'Mean terrestrial low-C dissolved organic carbon-C13 concentration') )
+            call nccheck( NF90_PUT_ATT(ncid, zc_tdoclc13_varid, 'units', 'kmol/m^3') )
+
+            call nccheck( NF90_DEF_VAR(ncid, 'zt_tdochc13', NF90_DOUBLE,                 &
+                 &    time_dimid, zt_tdochc13_varid) )
+            call nccheck( NF90_PUT_ATT(ncid, zt_tdochc13_varid, 'long_name',             &
+                 &    'Total terrestrial high-C dissolved organic carbon-C13 tracer') )
+            call nccheck( NF90_PUT_ATT(ncid, zt_tdochc13_varid, 'units', 'kmol') )
+    
+            call nccheck( NF90_DEF_VAR(ncid, 'zc_tdochc13', NF90_DOUBLE,                 &
+                 &    time_dimid, zc_tdochc13_varid) )
+            call nccheck( NF90_PUT_ATT(ncid, zc_tdochc13_varid, 'long_name',             &
+                 &    'Mean terrestrial high-C dissolved organic carbon-C13 concentration') )
+            call nccheck( NF90_PUT_ATT(ncid, zc_tdochc13_varid, 'units', 'kmol/m^3') )
+
+            call nccheck( NF90_DEF_VAR(ncid, 'zt_tdoclc14', NF90_DOUBLE,                 &
+                 &    time_dimid, zt_tdoclc14_varid) )
+            call nccheck( NF90_PUT_ATT(ncid, zt_tdoclc14_varid, 'long_name',             &
+                 &    'Total terrestrial low-C dissolved organic carbon-C14 tracer') )
+            call nccheck( NF90_PUT_ATT(ncid, zt_tdoclc14_varid, 'units', 'kmol') )
+    
+            call nccheck( NF90_DEF_VAR(ncid, 'zc_tdoclc14', NF90_DOUBLE,                 &
+                 &    time_dimid, zc_tdoclc14_varid) )
+            call nccheck( NF90_PUT_ATT(ncid, zc_tdoclc14_varid, 'long_name',             &
+                 &    'Mean terrestrial low-C dissolved organic carbon-C14 concentration') )
+            call nccheck( NF90_PUT_ATT(ncid, zc_tdoclc14_varid, 'units', 'kmol/m^3') )
+
+            call nccheck( NF90_DEF_VAR(ncid, 'zt_tdochc14', NF90_DOUBLE,                 &
+                 &    time_dimid, zt_tdochc14_varid) )
+            call nccheck( NF90_PUT_ATT(ncid, zt_tdochc14_varid, 'long_name',             &
+                 &    'Total terrestrial high-C dissolved organic carbon-C14 tracer') )
+            call nccheck( NF90_PUT_ATT(ncid, zt_tdochc14_varid, 'units', 'kmol') )
+    
+            call nccheck( NF90_DEF_VAR(ncid, 'zc_tdochc14', NF90_DOUBLE,                 &
+                 &    time_dimid, zc_tdochc14_varid) )
+            call nccheck( NF90_PUT_ATT(ncid, zc_tdochc14_varid, 'long_name',             &
+                 &    'Mean terrestrial high-C dissolved organic carbon-C14 concentration') )
+            call nccheck( NF90_PUT_ATT(ncid, zc_tdochc14_varid, 'units', 'kmol/m^3') )
+
+          endif
         endif
 
         if (use_AGG) then
@@ -1583,6 +1658,32 @@ contains
                &    'Mean nitrite concentration') )
           call nccheck( NF90_PUT_ATT(ncid, zc_ano2_varid, 'units', 'kmol/m^3') )
         endif
+        if (use_river2omip) then
+          call nccheck( NF90_DEF_VAR(ncid, 'zt_tdoclc', NF90_DOUBLE,              &
+               &    time_dimid, zt_tdoclc_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zt_tdoclc_varid, 'long_name',          &
+               &    'Total terrestrial low-C dissolved organic carbon tracer') )
+          call nccheck( NF90_PUT_ATT(ncid, zt_tdoclc_varid, 'units', 'kmol') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zc_tdoclc', NF90_DOUBLE,              &
+               &    time_dimid, zc_tdoclc_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zc_tdoclc_varid, 'long_name',          &
+               &    'Mean terrestrial low-C dissolved organic carbon concentration') )
+          call nccheck( NF90_PUT_ATT(ncid, zc_tdoclc_varid, 'units', 'kmol/m^3') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zt_tdochc', NF90_DOUBLE,              &
+               &    time_dimid, zt_tdochc_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zt_tdochc_varid, 'long_name',          &
+               &    'Total terrestrial high-C dissolved organic carbon tracer') )
+          call nccheck( NF90_PUT_ATT(ncid, zt_tdochc_varid, 'units', 'kmol') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zc_tdochc', NF90_DOUBLE,              &
+               &    time_dimid, zc_tdochc_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zc_tdochc_varid, 'long_name',          &
+               &    'Mean terrestrial high-C dissolved organic carbon concentration') )
+          call nccheck( NF90_PUT_ATT(ncid, zc_tdochc_varid, 'units', 'kmol/m^3') )
+        endif
+
         !--- Define variables : sum of inventory
         call nccheck( NF90_DEF_VAR(ncid, 'totcarb', NF90_DOUBLE, time_dimid,      &
              &    totcarb_varid) )
@@ -1821,6 +1922,16 @@ contains
           call nccheck( NF90_INQ_VARID(ncid, "zc_calciu13", zc_calciu13_varid) )
           call nccheck( NF90_INQ_VARID(ncid, "zt_calciu14", zt_calciu14_varid) )
           call nccheck( NF90_INQ_VARID(ncid, "zc_calciu14", zc_calciu14_varid) )
+          if (use_river2omip) then
+            call nccheck( NF90_INQ_VARID(ncid, "zt_tdoclc13", zt_tdoclc13_varid) )
+            call nccheck( NF90_INQ_VARID(ncid, "zc_tdoclc13", zc_tdoclc13_varid) )
+            call nccheck( NF90_INQ_VARID(ncid, "zt_tdochc13", zt_tdochc13_varid) )
+            call nccheck( NF90_INQ_VARID(ncid, "zc_tdochc13", zc_tdochc13_varid) )
+            call nccheck( NF90_INQ_VARID(ncid, "zt_tdoclc14", zt_tdoclc14_varid) )
+            call nccheck( NF90_INQ_VARID(ncid, "zc_tdoclc14", zc_tdoclc14_varid) )
+            call nccheck( NF90_INQ_VARID(ncid, "zt_tdochc14", zt_tdochc14_varid) )
+            call nccheck( NF90_INQ_VARID(ncid, "zc_tdochc14", zc_tdochc14_varid) )
+          endif
         endif
         if (use_AGG) then
           call nccheck( NF90_INQ_VARID(ncid, "zt_snos", zt_snos_varid) )
@@ -1853,6 +1964,12 @@ contains
           call nccheck( NF90_INQ_VARID(ncid, "zc_nh4", zc_nh4_varid) )
           call nccheck( NF90_INQ_VARID(ncid, "zt_ano2", zt_ano2_varid) )
           call nccheck( NF90_INQ_VARID(ncid, "zc_ano2", zc_ano2_varid) )
+        endif
+        if (use_river2omip) then
+          call nccheck( NF90_INQ_VARID(ncid, "zt_tdoclc", zt_tdoclc_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zc_tdoclc", zc_tdoclc_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zt_tdochc", zt_tdochc_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zc_tdochc", zc_tdochc_varid) )
         endif
         !--- Inquire varid : sum of inventory
         call nccheck( NF90_INQ_VARID(ncid, "totcarb", totcarb_varid) )
@@ -2071,6 +2188,24 @@ contains
              &    zocetratot(icalc14), start = wrstart) )
         call nccheck( NF90_PUT_VAR(ncid, zc_calciu14_varid,                          &
              &    zocetratoc(icalc14), start = wrstart) )
+        if (use_river2omip) then
+          call nccheck( NF90_PUT_VAR(ncid, zt_tdoclc13_varid,                        &
+               &    zocetratot(itdoc_lc13), start = wrstart) )
+          call nccheck( NF90_PUT_VAR(ncid, zc_tdoclc13_varid,                        &
+               &    zocetratoc(itdoc_lc13), start = wrstart) )
+          call nccheck( NF90_PUT_VAR(ncid, zt_tdochc13_varid,                        &
+               &    zocetratot(itdoc_hc13), start = wrstart) )
+          call nccheck( NF90_PUT_VAR(ncid, zc_tdochc13_varid,                        &
+               &    zocetratoc(itdoc_hc13), start = wrstart) )
+          call nccheck( NF90_PUT_VAR(ncid, zt_tdoclc14_varid,                        &
+               &    zocetratot(itdoc_lc14), start = wrstart) )
+          call nccheck( NF90_PUT_VAR(ncid, zc_tdoclc14_varid,                        &
+               &    zocetratoc(itdoc_lc14), start = wrstart) )
+          call nccheck( NF90_PUT_VAR(ncid, zt_tdochc14_varid,                        &
+               &    zocetratot(itdoc_hc14), start = wrstart) )
+          call nccheck( NF90_PUT_VAR(ncid, zc_tdochc14_varid,                        &
+               &    zocetratoc(itdoc_hc14), start = wrstart) )
+        endif
       endif
       if (use_AGG) then
         call nccheck( NF90_PUT_VAR(ncid, zt_snos_varid,                              &
@@ -2125,6 +2260,16 @@ contains
              &    zocetratot(iano2), start = wrstart) )
         call nccheck( NF90_PUT_VAR(ncid, zc_ano2_varid,                              &
              &    zocetratoc(iano2), start = wrstart) )
+      endif
+      if (use_river2omip) then
+        call nccheck( NF90_PUT_VAR(ncid, zt_tdoclc_varid,                          &
+             &    zocetratot(itdoc_lc), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zc_tdoclc_varid,                          &
+             &    zocetratoc(itdoc_lc), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zt_tdochc_varid,                          &
+             &    zocetratot(itdoc_hc), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zc_tdochc_varid,                          &
+             &    zocetratoc(itdoc_hc), start = wrstart) )
       endif
       !--- Write data : sum of inventory
       call nccheck( NF90_PUT_VAR(ncid, totcarb_varid, totalcarbon,                 &
