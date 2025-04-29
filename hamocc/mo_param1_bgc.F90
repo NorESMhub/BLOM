@@ -407,7 +407,7 @@ contains
     if (use_river2omip) then
       itdoc_lc  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+1
       itdoc_hc  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+2
-      if (use_cisonew)  
+      if (use_cisonew) then
         i_r2o = 6
         itdoc_lc13  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+3
         itdoc_hc13  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+4

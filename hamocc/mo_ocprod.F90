@@ -783,6 +783,7 @@ contains
                   tdochc_rem13 = tdochc_rem*rtdoclc13
                   tdoclc_rem14 = tdoclc_rem*rtdoclc14
                   tdochc_rem14 = tdochc_rem*rtdoclc14
+                endif
               endif
             else
               pocrem = 0.

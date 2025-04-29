@@ -218,6 +218,7 @@ contains
                 ocetra(i,j,k,itdoc_lc14)  = 0.
                 ocetra(i,j,k,itdoc_hc14)  = 0.
               endif
+            endif
             if (use_AGG) then
               ! calculate initial numbers from mass, to start with appropriate size distribution
               snow = (ocetra(i,j,k,iphy)+ocetra(i,j,k,idet))*1.e+6
