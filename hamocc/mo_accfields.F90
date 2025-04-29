@@ -148,7 +148,7 @@ contains
                                 irdin,irdip,irsi,iralk,iriron,irdoc,irdet,inos,iatmbromo,ibromo,   &
                                 iatmf11,iatmf12,iatmsf6,icfc11,icfc12,isf6,irtdoc,                 &
                                 iatmc13,iatmc14,icalc13,idet13,idoc13,iphy13,isco213,isco214,      &
-                                izoo13,safediv,itdoc_lc13,itdoc_lc14,                              &
+                                izoo13,safediv,itdoc_lc13,itdoc_hc13,                              &
                                 iatmnco2,inatalkali,inatcalc,inatsco212,                           &
                                 ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,                           &
                                 ipown2,ipowno3,isssc12,issso12,issssil,issster,                    &
@@ -512,8 +512,8 @@ contains
          &  jlvlano3+jlvlalkali+jlvlsilica+jlvldic+jlvldoc+jlvlpoc+jlvlcalc+ &
          &  jlvlopal+jlvln2o+jlvlco3+jlvlph+jlvlomegaa+jlvlomegac+jlvlphosy+ &
          &  jlvlo2sat+jlvlprefo2+jlvlprefpo4+jlvlprefalk+jlvlprefdic+        &
-         &  jlvlprefsilica+jlvlshelfage+jlvltdoc_lc+jlvltdoc_hc              &
-         &  jlvltdoc_lc13+jlvltdoc_hc13
+         &  jlvlprefsilica+jlvlshelfage+jlvltdoc_lc+jlvltdoc_hc+             &
+         &  jlvltdoc_lc13+jlvltdoc_hc13+                                     &
          &  jlvldicsat+jlvlnatdic+jlvlnatalkali+jlvlnatcalc+jlvlnatco3+      &
          &  jlvlnatomegaa+jlvlnatomegac+jlvldic13+jlvldic14+jlvld13c+        &
          &  jlvld14c+jlvlbigd14c+jlvlpoc13+jlvldoc13+jlvlcalc13+jlvlphyto13+ &

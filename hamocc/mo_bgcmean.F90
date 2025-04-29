@@ -133,7 +133,8 @@ module mo_bgcmean
        & FLX_BURSSO12  =0    ,FLX_BURSSSC12 =0    ,FLX_BURSSSSIL =0    ,  &
        & FLX_BURSSSTER =0    ,                                            &
        & LYR_PHYTO     =0    ,LYR_GRAZER    =0    ,LYR_DOC       =0    ,  &
-       & LYR_TDOC_LC   =0    ,LYR_TDOC_HC   =0    ,                       &
+       & LYR_TDOC_LC   =0    ,LYR_TDOC_HC   =0    ,LYR_TDOC_LC13 =0    ,  &
+       & LYR_TDOC_HC13 =0                                              ,  &
        & LYR_PHOSY     =0    ,LYR_PHOSPH    =0    ,LYR_OXYGEN    =0    ,  &
        & LYR_IRON      =0    ,LYR_ANO3      =0    ,LYR_ALKALI    =0    ,  &
        & LYR_SILICA    =0    ,LYR_DIC       =0    ,LYR_POC       =0    ,  &
@@ -166,7 +167,8 @@ module mo_bgcmean
        & LYR_agg_b     =0    ,LYR_agg_Vrhof =0    ,LYR_agg_Vpor  =0    ,  &
        !========== LVLs
        & LVL_PHYTO     =0    ,LVL_GRAZER    =0    ,LVL_DOC       =0    ,  &
-       & LVL_TDOC_LC   =0    ,LVL_TDOC_HC   =0    ,                       &
+       & LVL_TDOC_LC   =0    ,LVL_TDOC_HC   =0    , LVL_TDOC_LC13 =0   ,  &
+       & LVL_TDOC_HC13                                                 ,  &
        & LVL_PHOSY     =0    ,LVL_PHOSPH    =0    ,LVL_OXYGEN    =0    ,  &
        & LVL_IRON      =0    ,LVL_ANO3      =0    ,LVL_ALKALI    =0    ,  &
        & LVL_SILICA    =0    ,LVL_DIC       =0    ,LVL_POC       =0    ,  &
@@ -524,8 +526,8 @@ module mo_bgcmean
        &          jlvlphyto  = 0 ,                                        &
        &          jlvlgrazer = 0 ,                                        &
        &          jlvldoc    = 0 ,                                        &
-       &          jlvltdoc_lc= 0 ,                                       &
-       &          jlvltdoc_hc= 0 ,                                       &
+       &          jlvltdoc_lc = 0 ,                                       &
+       &          jlvltdoc_hc = 0 ,                                       &
        &          jlvlphosy  = 0 ,                                        &
        &          jlvlphosph = 0 ,                                        &
        &          jlvloxygen = 0 ,                                        &
@@ -562,6 +564,8 @@ module mo_bgcmean
        &          jbigd14c   = 0 ,                                        &
        &          jpoc13     = 0 ,                                        &
        &          jdoc13     = 0 ,                                        &
+       &          jtdoc_lc13 = 0 ,                                        &
+       &          jtdoc_hc13 = 0 ,                                        &
        &          jcalc13    = 0 ,                                        &
        &          jphyto13   = 0 ,                                        &
        &          jgrazer13  = 0 ,                                        &
@@ -572,6 +576,8 @@ module mo_bgcmean
        &          jlvlbigd14c= 0 ,                                        &
        &          jlvlpoc13  = 0 ,                                        &
        &          jlvldoc13  = 0 ,                                        &
+       &          jlvltdoc_lc13 = 0 ,                                     &
+       &          jlvltdoc_hc13 = 0 ,                                     &
        &          jlvlcalc13 = 0 ,                                        &
        &          jlvlphyto13 = 0,                                        &
        &          jlvlgrazer13= 0
@@ -1138,6 +1144,12 @@ CONTAINS
         jphyto13(n)=i_bsc_m3d*min(1,LYR_PHYTO13(n))
         if (LYR_GRAZER13(n) > 0) i_bsc_m3d=i_bsc_m3d+1
         jgrazer13(n)=i_bsc_m3d*min(1,LYR_GRAZER13(n))
+        if (use_river2omip) then
+          if (LYR_TDOC_LC13(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+          jtdoc_lc13(n)=i_bsc_m3d*min(1,LYR_TDOC_LC13(n))
+          if (LYR_TDOC_HC13(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+          jtdoc_hc13(n)=i_bsc_m3d*min(1,LYR_TDOC_HC13(n))
+        endif
       endif
       if (use_AGG) then
         if (LYR_NOS(n) > 0) i_bsc_m3d=i_bsc_m3d+1
@@ -1327,6 +1339,12 @@ CONTAINS
         jlvlphyto13(n)=ilvl_bsc_m3d*min(1,LVL_PHYTO13(n))
         if (LVL_GRAZER13(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlgrazer13(n)=ilvl_bsc_m3d*min(1,LVL_GRAZER13(n))
+        if (use_river2omip) then
+          if (LVL_TDOC_LC13(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+          jlvltdoc_lc13(n)=ilvl_bsc_m3d*min(1,LVL_TDOC_LC13(n))
+          if (LVL_TDOC_HC13(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+          jlvltdoc_hc13(n)=ilvl_bsc_m3d*min(1,LVL_TDOC_HC13(n))
+        endif
       endif
       if (use_AGG) then
         if (LVL_NOS(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
