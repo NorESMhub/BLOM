@@ -82,7 +82,8 @@ contains
                                 bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo,max_limiter,         &
                                 O2thresh_aerob,O2thresh_hypoxic,NO3thresh_sulf,                    &
                                 rcar_tdoclc,rcar_tdochc,rnit_tdoclc,rnit_tdochc,ro2ut_tdoclc,      &
-                                ro2ut_tdochc,rem_tdoclc,rem_tdochc
+                                ro2ut_tdochc,ro2utammo_tdoclc,ro2utammo_tdochc,rem_tdoclc,         &
+                                rem_tdochc
     use mo_biomod,        only: bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,bsiflx_bot, &
                                 calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot, &
                                 carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,carflx_bot, &
@@ -530,8 +531,8 @@ contains
                                       &                       + tdochc_rem*rnit_tdochc
                 ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + tdoclc_rem*(rnit_tdoclc-1.)        &
                                       &                       + tdochc_rem*(rnit_tdochc-1.)
-                ! Need to compute the ro2utammo of tdoclc and hc? How?
-                ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - (tdoclc_rem+tdochc_rem)*ro2utammo
+                ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - tdoclc_rem*ro2utammo_tdoclc        &
+                                                              - tdochc_rem*ro2utammo_tdochc
                 remin_aerob(i,j,k)    = remin_aerob(i,j,k)    + tdoclc_rem*rnit_tdoclc             &
                                       &                       + tdochc_rem*rnit_tdochc
               endif
@@ -842,8 +843,8 @@ contains
                                       &                       + tdochc_rem*rnit_tdochc
                 ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + tdoclc_rem*(rnit_tdoclc-1.)        &
                                       &                       + tdochc_rem*(rnit_tdochc-1.)
-                ! Need to compute the ro2utammo of tdoclc and hc? How?
-                ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - (tdoclc_rem+tdochc_rem)*ro2utammo
+                ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - tdoclc_rem*ro2utammo_tdoclc        &
+                                                              - tdochc_rem*ro2utammo_tdochc
                 remin_aerob(i,j,k)    = remin_aerob(i,j,k)    + tdoclc_rem*rnit_tdoclc             &
                                       &                       + tdochc_rem*rnit_tdochc
               endif

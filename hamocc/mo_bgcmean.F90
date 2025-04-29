@@ -167,7 +167,7 @@ module mo_bgcmean
        & LYR_agg_b     =0    ,LYR_agg_Vrhof =0    ,LYR_agg_Vpor  =0    ,  &
        !========== LVLs
        & LVL_PHYTO     =0    ,LVL_GRAZER    =0    ,LVL_DOC       =0    ,  &
-       & LVL_TDOC_LC   =0    ,LVL_TDOC_HC   =0    , LVL_TDOC_LC13 =0   ,  &
+       & LVL_TDOC_LC   =0    ,LVL_TDOC_HC   =0    ,LVL_TDOC_LC13 =0   ,  &
        & LVL_TDOC_HC13                                                 ,  &
        & LVL_PHOSY     =0    ,LVL_PHOSPH    =0    ,LVL_OXYGEN    =0    ,  &
        & LVL_IRON      =0    ,LVL_ANO3      =0    ,LVL_ALKALI    =0    ,  &
