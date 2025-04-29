@@ -165,12 +165,12 @@ contains
             ! Riverine POC instantaneously dissolved as low-carbon tDOC (tDOC_lc)
             ! tDOC_lc <= riv_POC
             ocetra(i,j,1:kmle(i,j),itdoc_hc) = ocetra(i,j,1:kmle(i,j),itdoc_hc)                    &
-                 &                          + rivin(i,j,irtdoc)*fdt/volij
+                 &                           + rivin(i,j,irtdoc)*fdt/volij
             ocetra(i,j,1:kmle(i,j),itdoc_lc) = ocetra(i,j,1:kmle(i,j),itdoc_lc)                    &
-                 &                          + rivin(i,j,irdet)*fdt/volij
-            ocetra(i,j,1:kmle(i,j),isco212) = ocetra(i,j,1:kmle(i,j),isco212)                      &
-                 &                          + rivin(i,j,iralk)*fdt/volij                           &
-                 &                          + rivin(i,j,irdoc)*fdt/volij
+                 &                           + rivin(i,j,irdet)*fdt/volij
+            ocetra(i,j,1:kmle(i,j),isco212)  = ocetra(i,j,1:kmle(i,j),isco212)                      &
+                 &                           + rivin(i,j,iralk)*fdt/volij                           &
+                 &                           + rivin(i,j,irdoc)*fdt/volij
             if (use_natDIC) then
               ocetra(i,j,1:kmle(i,j),inatsco212) = ocetra(i,j,1:kmle(i,j),inatsco212)              &
                    &                             + rivin(i,j,iralk)*fdt/volij                      &

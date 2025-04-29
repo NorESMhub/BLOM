@@ -91,7 +91,7 @@ module mo_param_bgc
   public :: perc_diron,fesoly,phytomi,pi_alpha
   public :: dyphy,tf2,tf1,tf0,tff,bifr13_ini,bifr14_ini,c14_t_half
   public :: rbro,fbro1,fbro2,grami
-  public :: calmax,remido,deg_tdoclc,deg_tdochc
+  public :: calmax,remido,rem_tdoclc,rem_tdochc
   public :: dustd1,dustd2,dustd3,dustsink
   public :: SinkExp, FractDim, Stick, cellmass, cellsink
   public :: fsh,fse,alow1, alow2,alow3
@@ -308,8 +308,8 @@ module mo_param_bgc
   real, parameter :: O2thresh_hypoxic = 5.e-7  ! Below O2thresh_hypoxic denitrification and sulfate reduction takes place (default model version)
   real, parameter :: NO3thresh_sulf   = 3.e-6  ! Below NO3thresh_sulf 'sufate reduction' takes place
   real, protected :: remido     = 0.004        ! 1/d - remineralization rate (of DOM)
-  real, protected :: deg_tdoclc = 0.00183      ! 1/d Degradation time scale of low-C tDOC (1.5 yr)
-  real, protected :: deg_tdochc = 0.00183      ! 1/d Degradation time scale of high-C tDOC (1.5 yr)
+  real, protected :: rem_tdoclc = 0.00183      ! 1/d Degradation time scale of low-C tDOC (1.5 yr)
+  real, protected :: rem_tdochc = 0.00183      ! 1/d Degradation time scale of high-C tDOC (1.5 yr)
   ! deep sea remineralisation constants
   real, protected :: drempoc    = 0.025        ! 1/d Aerob remineralization rate detritus
   real, protected :: drempoc_anaerob = 1.25e-3 ! =0.05*drempoc - remin in sub-/anoxic environm. - not be overwritten by M4AGO
@@ -639,7 +639,7 @@ contains
                          ecan,zinges,epsher,bkopal,rcalc,ropal,                  &
                          remido,drempoc,dremopal,dremn2o,dremsul,fetune,relaxfe, &
                          wmin,wmax,wlin,wpoc_const,wcal_const,wopal_const,       &
-                         disso_poc,disso_sil,disso_caco3,deg_tdoclc,deg_tdochc,  &
+                         disso_poc,disso_sil,disso_caco3,rem_tdoclc,rem_tdochc,  &
                          rano3denit,rano2anmx,rano2denit,ran2odenit,rdnra,       &
                          ranh4nitr,rano2nitr,rano3denit_sed,rano2anmx_sed,       &
                          rano2denit_sed,ran2odenit_sed,rdnra_sed,ranh4nitr_sed,  &
@@ -742,8 +742,8 @@ contains
     dremopal = dremopal*dtb   ! 1/d to 1/time step  Dissolution rate of opal
     dremn2o  = dremn2o*dtb    ! 1/d to 1/time step  Remineralization rate of detritus on N2O
     dremsul  = dremsul*dtb    ! 1/d to 1/time step  Remineralization rate for sulphate reduction
-    deg_tdoclc = deg_tdoclc*dtb ! 1/d to 1/time step - degradation time scale of terrestrial DOC
-    deg_tdochc = deg_tdochc*dtb ! 1/d to 1/time step - degradation time scale of terrestrial DOC
+    rem_tdoclc = rem_tdoclc*dtb ! 1/d to 1/time step - remineralisation time scale of terrestrial DOC
+    rem_tdochc = rem_tdochc*dtb ! 1/d to 1/time step - remineralisation time scale of terrestrial DOC
 
     !********************************************************************
     !     Parameters for DMS and BrO schemes
@@ -1178,13 +1178,13 @@ contains
       call pinfo_add_entry('roxy_tdoclc', roxy_tdoclc)
       call pinfo_add_entry('rnit_tdoclc', rnit_tdoclc)
       call pinfo_add_entry('ro2ut_tdoclc', ro2ut_tdoclc)
-      call pinfo_add_entry('deg_tdoclc',  deg_tdoclc*dtbinv)
+      call pinfo_add_entry('rem_tdoclc',  rem_tdoclc*dtbinv)
       call pinfo_add_entry('rcar_tdochc', rcar_tdochc)
       call pinfo_add_entry('rhyd_tdochc', rhyd_tdochc)
       call pinfo_add_entry('roxy_tdochc', roxy_tdochc)
       call pinfo_add_entry('rnit_tdochc', rnit_tdochc)
       call pinfo_add_entry('ro2ut_tdochc', ro2ut_tdochc)
-      call pinfo_add_entry('deg_tdochc',  deg_tdochc*dtbinv)
+      call pinfo_add_entry('rem_tdochc',  rem_tdochc*dtbinv)
     endif
   end subroutine write_parambgc
 

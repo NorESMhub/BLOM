@@ -82,7 +82,7 @@ contains
                                 bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo,max_limiter,         &
                                 O2thresh_aerob,O2thresh_hypoxic,NO3thresh_sulf,                    &
                                 rcar_tdoclc,rcar_tdochc,rnit_tdoclc,rnit_tdochc,ro2ut_tdoclc,      &
-                                ro2ut_tdochc,deg_tdoclc,deg_tdochc
+                                ro2ut_tdochc,rem_tdoclc,rem_tdochc
     use mo_biomod,        only: bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,bsiflx_bot, &
                                 calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot, &
                                 carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,carflx_bot, &
@@ -135,7 +135,7 @@ contains
     real :: avgra,grazing,avsil,avdic,graton
     real :: gratpoc,grawa,bacfra,phymor,zoomor,excdoc,exud
     real :: export, delsil, delcar, sterph, sterzo, remin
-    real :: docrem,opalrem,remin2o,aou,refra,pocrem,phyrem,tdoclc_deg,tdochc_deg
+    real :: docrem,opalrem,remin2o,aou,refra,pocrem,phyrem,tdoclc_rem,tdochc_rem
     real :: zoothresh,phythresh
     real :: temp,temfa,phofa                  ! temperature and irradiation factor for photosynthesis
     real :: absorption,absorption_uv
@@ -308,7 +308,7 @@ contains
     !$OMP  ,phosy,ya,yn,grazing,graton,gratpoc,grawa,bacfra,phymor        &
     !$OMP  ,zoomor,excdoc,exud,export,delsil,delcar,dmsprod               &
     !$OMP  ,dms_bac,dms_uv,dtr,phofa,temfa,zoothresh,dms_ph,dz,opalrem    &
-    !$OMP  ,avmass,avnos,zmornos,tdoclc_deg,tdochc_deg                    &
+    !$OMP  ,avmass,avnos,zmornos,tdoclc_rem,tdochc_rem                    &
     !$OMP  ,rco213,rco214,rphy13,rphy14,rzoo13,rzoo14,grazing13,grazing14 &
     !$OMP  ,graton13,graton14,gratpoc13,gratpoc14,grawa13,grawa14         &
     !$OMP  ,phosy13,phosy14,bacfra13,bacfra14,phymor13,phymor14,zoomor13  &
@@ -376,14 +376,14 @@ contains
             if (lkwrbioz_off) then
               bacfra = 0.
               if (use_river2omip) then
-                tdoclc_deg = 0.
-                tdochc_deg = 0.
+                tdoclc_rem = 0.
+                tdochc_rem = 0.
               endif
             else
               bacfra = remido*ocetra(i,j,k,idoc)
               if (use_river2omip) then
-                tdoclc_deg = deg_tdoclc*ocetra(i,j,k,itdoc_lc)
-                tdochc_deg = deg_tdochc*ocetra(i,j,k,itdoc_hc)
+                tdoclc_rem = rem_tdoclc*ocetra(i,j,k,itdoc_lc)
+                tdochc_rem = rem_tdochc*ocetra(i,j,k,itdoc_hc)
               endif
             endif
             exud = gammap*phythresh
@@ -501,27 +501,27 @@ contains
               remin_aerob(i,j,k) = (dtr+phosy)*rnit            ! kmol N/m3/dtb - Aerob remin to ammonium  (var. sources)
             endif
             if (use_river2omip) then
-              ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + tdoclc_deg+tdochc_deg
+              ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + tdoclc_rem+tdochc_rem
               if (.not. use_extNcycle) then
-                ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)   + tdoclc_deg*rnit_tdoclc             &
-                                      &                       + tdochc_deg*rnit_tdochc
-                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - (rnit_tdoclc+1.)*tdoclc_deg        &
-                                      &                       - (rnit_tdochc+1.)*tdochc_deg
-                ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - tdoclc_deg*ro2ut_tdoclc            &
-                                      &                       - tdochc_deg*ro2ut_tdochc
+                ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)   + tdoclc_rem*rnit_tdoclc             &
+                                      &                       + tdochc_rem*rnit_tdochc
+                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - (rnit_tdoclc+1.)*tdoclc_rem        &
+                                      &                       - (rnit_tdochc+1.)*tdochc_rem
+                ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - tdoclc_rem*ro2ut_tdoclc            &
+                                      &                       - tdochc_rem*ro2ut_tdochc
               else
-                ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   + tdoclc_deg*rnit_tdoclc             &
-                                      &                       + tdochc_deg*rnit_tdochc
-                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + tdoclc_deg*(rnit_tdoclc-1.)        &
-                                      &                       + tdochc_deg*(rnit_tdochc-1.)
+                ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   + tdoclc_rem*rnit_tdoclc             &
+                                      &                       + tdochc_rem*rnit_tdochc
+                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + tdoclc_rem*(rnit_tdoclc-1.)        &
+                                      &                       + tdochc_rem*(rnit_tdochc-1.)
                 ! Need to compute the ro2utammo of tdoclc and hc? How?
-                ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - (tdoclc_deg+tdochc_deg)*ro2utammo
-                remin_aerob(i,j,k)    = remin_aerob(i,j,k)    + tdoclc_deg*rnit_tdoclc             &
-                                      &                       + tdochc_deg*rnit_tdochc
+                ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - (tdoclc_rem+tdochc_rem)*ro2utammo
+                remin_aerob(i,j,k)    = remin_aerob(i,j,k)    + tdoclc_rem*rnit_tdoclc             &
+                                      &                       + tdochc_rem*rnit_tdochc
               endif
-              ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + tdoclc_deg*rcar_tdoclc               &
-                                    &                       + tdochc_deg*rcar_tdochc
-              ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + (tdoclc_deg+tdochc_deg)*riron
+              ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + tdoclc_rem*rcar_tdoclc               &
+                                    &                       + tdochc_rem*rcar_tdochc
+              ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + (tdoclc_rem+tdochc_rem)*riron
             endif
             ocetra(i,j,k,idet) = ocetra(i,j,k,idet)+export
             ocetra(i,j,k,idms) = ocetra(i,j,k,idms)+dmsprod-dms_bac-dms_uv
@@ -530,8 +530,8 @@ contains
             ocetra(i,j,k,izoo) = ocetra(i,j,k,izoo)+grawa-excdoc-zoomor
             ocetra(i,j,k,idoc) = ocetra(i,j,k,idoc)-bacfra+excdoc+exud
             if (use_river2omip) then
-              ocetra(i,j,k,itdoc_lc) = ocetra(i,j,k,itdoc_lc)-tdoclc_deg
-              ocetra(i,j,k,itdoc_hc) = ocetra(i,j,k,itdoc_hc)-tdochc_deg
+              ocetra(i,j,k,itdoc_lc) = ocetra(i,j,k,itdoc_lc)-tdoclc_rem
+              ocetra(i,j,k,itdoc_hc) = ocetra(i,j,k,itdoc_hc)-tdochc_rem
             endif
             ocetra(i,j,k,icalc) = ocetra(i,j,k,icalc)+delcar
             if (use_cisonew) then
@@ -653,7 +653,7 @@ contains
 
     !$OMP PARALLEL DO PRIVATE(phythresh,zoothresh,sterph,sterzo,remin     &
     !$OMP  ,opalrem,aou,refra,dms_bac,pocrem,docrem,phyrem,dz,o2lim       &
-    !$OMP  ,avmass,avnos,zmornos,tdoclc_deg,tdochc_deg                    &
+    !$OMP  ,avmass,avnos,zmornos,tdoclc_rem,tdochc_rem                    &
     !$OMP  ,rphy13,rphy14,rzoo13,rzoo14,rdet13,rdet14,rdoc13,rdoc14       &
     !$OMP  ,sterph13,sterph14,sterzo13,sterzo14,pocrem13,pocrem14         &
     !$OMP  ,docrem13,docrem14,phyrem13,phyrem14                           &
@@ -706,11 +706,6 @@ contains
               ocetra(i,j,k,izoo14) = ocetra(i,j,k,izoo14)-sterzo14
             endif
 
-            if (use_river2omip) then
-              tdoclc_deg = deg_tdoclc*ocetra(i,j,k,itdoc_lc) ! tDOC degradation independent from O2 (cf. R2OMIP)
-              tdochc_deg = deg_tdochc*ocetra(i,j,k,itdoc_hc)
-            endif
-
             if(ocetra(i,j,k,ioxygen) > O2thresh_aerob) then
               if (lTO2depremin) then
                 ! Both, use_M4AGO and use_extNcycle switch lTO2depremin to true!
@@ -730,6 +725,15 @@ contains
                 phyrem = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
               endif
 
+              if (use_river2omip) then
+                tdoclc_rem = rem_tdoclc*ocetra(i,j,k,itdoc_lc)
+                tdochc_rem = rem_tdochc*ocetra(i,j,k,itdoc_hc)
+                tdoclc_rem = min(rem_tdoclc*ocetra(i,j,k,idoc), 0.33*ocetra(i,j,k,ioxygen)/ro2ut_tdoclc)
+                tdochc_rem = min(rem_tdochc*ocetra(i,j,k,idoc), 0.33*ocetra(i,j,k,ioxygen)/ro2ut_tdochc)
+                ocetra(i,j,k,itdoc_lc) = ocetra(i,j,k,itdoc_lc) - tdoclc_rem
+                ocetra(i,j,k,itdoc_hc) = ocetra(i,j,k,itdoc_hc) - tdochc_rem
+              endif
+
               if (lkwrbioz_off) then ! dying before in PP loop
                 phyrem = 0.
               endif
@@ -746,6 +750,10 @@ contains
               pocrem = 0.
               docrem = 0.
               phyrem = 0.
+              if (use_river2omip) then
+                tdoclc_rem = 0.
+                tdochc_rem = 0.
+              endif
               if (use_cisonew) then
                 pocrem13 = 0.
                 docrem13 = 0.
@@ -762,12 +770,8 @@ contains
 
             remin = pocrem + docrem + phyrem
 
-            if (use_river2omip) then
-              ocetra(i,j,k,itdoc_lc) = ocetra(i,j,k,itdoc_lc) - tdochc_deg
-              ocetra(i,j,k,itdoc_hc) = ocetra(i,j,k,itdoc_hc) - tdoclc_deg
-            endif
-
             ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+remin
+
             if (.not. use_extNcycle) then
               ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)+remin*rnit
               ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)-(rnit+1)*remin
@@ -778,29 +782,31 @@ contains
               ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - ro2utammo*remin
               remin_aerob(i,j,k)  = remin_aerob(i,j,k)+remin*rnit ! kmol/NH4/dtb - remin to NH4 from various sources
             endif
+            
             if (use_river2omip) then
-              ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + tdoclc_deg + tdochc_deg
+              ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + tdoclc_rem + tdochc_rem
               if (.not. use_extNcycle) then
-                ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)   + tdoclc_deg*rnit_tdoclc             &
-                                      &                       + tdochc_deg*rnit_tdochc
-                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - (rnit_tdoclc+1.)*tdoclc_deg        &
-                                      &                       - (rnit_tdochc+1.)*tdochc_deg
-                ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - tdoclc_deg*ro2ut_tdoclc            &
-                                      &                       - tdochc_deg*ro2ut_tdochc
+                ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)   + tdoclc_rem*rnit_tdoclc             &
+                                      &                       + tdochc_rem*rnit_tdochc
+                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - (rnit_tdoclc+1.)*tdoclc_rem        &
+                                      &                       - (rnit_tdochc+1.)*tdochc_rem
+                ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - tdoclc_rem*ro2ut_tdoclc            &
+                                      &                       - tdochc_rem*ro2ut_tdochc
               else
-                ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   + tdoclc_deg*rnit_tdoclc             &
-                                      &                       + tdochc_deg*rnit_tdochc
-                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + tdoclc_deg*(rnit_tdoclc-1.)        &
-                                      &                       + tdochc_deg*(rnit_tdochc-1.)
+                ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   + tdoclc_rem*rnit_tdoclc             &
+                                      &                       + tdochc_rem*rnit_tdochc
+                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + tdoclc_rem*(rnit_tdoclc-1.)        &
+                                      &                       + tdochc_rem*(rnit_tdochc-1.)
                 ! Need to compute the ro2utammo of tdoclc and hc? How?
-                ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - (tdoclc_deg+tdochc_deg)*ro2utammo
-                remin_aerob(i,j,k)    = remin_aerob(i,j,k)    + tdoclc_deg*rnit_tdoclc             &
-                                      &                       + tdochc_deg*rnit_tdochc
+                ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - (tdoclc_rem+tdochc_rem)*ro2utammo
+                remin_aerob(i,j,k)    = remin_aerob(i,j,k)    + tdoclc_rem*rnit_tdoclc             &
+                                      &                       + tdochc_rem*rnit_tdochc
               endif
-              ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + tdoclc_deg*rcar_tdoclc               &
-                                    &                       + tdochc_deg*rcar_tdochc
-              ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)     + (tdoclc_deg+tdochc_deg)*riron
+              ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + tdoclc_rem*rcar_tdoclc               &
+                                    &                       + tdochc_rem*rcar_tdochc
+              ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)     + (tdoclc_rem+tdochc_rem)*riron
             endif
+            
             ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+rcar*remin
             ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+remin*riron           &
                  &             -relaxfe*max(ocetra(i,j,k,iiron)-fesoly,0.)
