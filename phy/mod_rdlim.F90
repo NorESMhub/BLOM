@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2024 Mats Bentsen, Mehmet Ilicak, Ingo Bethke,
+! Copyright (C) 2008-2025 Mats Bentsen, Mehmet Ilicak, Ingo Bethke,
 !                         Ping-Gin Chiu, Aleksi Nummelin, Mariana Vertenstein
 !
 ! This file is part of BLOM.
@@ -32,7 +32,8 @@ module mod_rdlim
   use mod_grid,        only: grfile
   use mod_eos,         only: pref
   use mod_inicon,      only: icfile
-  use mod_advect,      only: rmpmth
+  use mod_advect,      only: advmth
+  use mod_cppm,        only: cppm_limiting
   use mod_pbcor,       only: bmcmth
   use mod_momtum,      only: mdv2hi, mdv2lo, mdv4hi, mdv4lo, mdc2hi, &
                              mdc2lo, vsc2hi, vsc2lo, vsc4hi, vsc4lo, &
@@ -134,7 +135,7 @@ contains
          grfile,icfile,pref,baclin,batrop, &
          mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo, &
          vsc2hi,vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls, &
-         mommth,pgfmth,bmcmth,rmpmth, &
+         mommth,pgfmth,bmcmth,advmth,cppm_limiting, &
          mlrmth,ce,cl,tau_mlr,tau_growing_hbl,tau_decaying_hbl, &
          tau_growing_hml,tau_decaying_hml,lfmin,mstar,nstar,wpup_min, &
          mlrttp,rm0,rm5,tdfile,niwgf,niwbf,niwlf, &
@@ -206,7 +207,8 @@ contains
       write (lp,*) 'MOMMTH ',trim(MOMMTH)
       write (lp,*) 'PGFMTH ',trim(PGFMTH)
       write (lp,*) 'BMCMTH ',trim(BMCMTH)
-      write (lp,*) 'RMPMTH ',trim(RMPMTH)
+      write (lp,*) 'ADVMTH ',trim(ADVMTH)
+      write (lp,*) 'CPPM_LIMITING ',trim(CPPM_LIMITING)
       write (lp,*) 'MLRMTH ',trim(MLRMTH)
       write (lp,*) 'CE',CE
       write (lp,*) 'CL',CL
@@ -293,7 +295,8 @@ contains
     call xcbcst(mommth)
     call xcbcst(pgfmth)
     call xcbcst(bmcmth)
-    call xcbcst(rmpmth)
+    call xcbcst(advmth)
+    call xcbcst(cppm_limiting)
     call xcbcst(mlrmth)
     call xcbcst(ce)
     call xcbcst(cl)

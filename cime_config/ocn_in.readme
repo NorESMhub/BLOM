@@ -40,8 +40,9 @@
 ! BMCMTH   : Baroclinic mass flux correction method. Valid methods:
 !            'uc' (upstream column), 'dluc' (depth limited upstream
 !            column) (a)
-! RMPMTH   : Method of applying eddy-induced transport in the remap
-!            transport algorithm. Valid methods: 'eitvel', 'eitflx' (a)
+! ADVMTH   : Advection method. Valid methods: 'remap', 'cppm' (a)
+! CPPM_LIMITING : CPPM limiting. Valid methods: 'monotonic',
+!                 'non_oscillatory' (a)
 ! MLRMTH   : Mixed layer restratification method. Valid methods: 'none',
 !            'fox08','bod23' (a)
 ! CE       : Efficiency factor for the restratification by mixed layer

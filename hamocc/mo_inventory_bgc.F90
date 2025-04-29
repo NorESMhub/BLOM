@@ -44,13 +44,13 @@ contains
     use mo_param_bgc,   only: rcar,rnit
     use mo_control_bgc, only: do_ndep,do_rivinpt,io_stdo_bgc
     use mo_bgcmean,     only: bgct2d,jco2flux,jirdin,jn2flux,jn2oflux,jndepnoy,jndepnhx,           &
-                              jo2flux,jprcaca,jnh3flux,                                            &
+                              jo2flux,jprcaca,jnh3flux,jdmsflux,                                   &
                               jprorca,jsilpro,nbgcmax,glb_inventory
     use mo_param1_bgc,  only: ialkali,ian2o,iano3,iatmco2,iatmn2,iatmn2o,iatmo2,icalc,idet,idoc,   &
                               igasnit,iopal,ioxygen,iphosph,iphy,ipowaic,ipowaox,ipowaph,ipowasi,  &
                               ipown2,ipowno3,isco212,isilica,isssc12,issso12,issssil,izoo,         &
                               irdin,irdip,irsi,iralk,irdoc,irdet,nocetra,npowtra,nsedtra,nriv,     &
-                              ianh4,iano2,iatmnh3,ipownh4,ipown2o,ipowno2
+                              ianh4,iano2,iatmnh3,ipownh4,ipown2o,ipowno2,iatmdms
     use mo_vgrid,       only: dp_min
 
     ! NOT sedbypass
@@ -92,16 +92,19 @@ contains
     !--- additional ocean tracer
     real :: zhito                    ! Total hydrogen ion tracer
     real :: zco3to                   ! Total dissolved carbonate (CO3) tracer
+    real :: ODZvol                   ! ODZ volume (O2threshold: 20 mumol)
     !--- alkalinity of the first layer
     real :: zvoltop                  ! Total volume of top ocean layer
     real :: zalkali                  ! Total alkalinity of top ocean layer
+    real :: zphosph                  ! Total phosphate of top ocean layer
+    real :: zano3                    ! Total nitrate of top ocean layer
     !--- river fluxes
     real :: srivflux(nriv)           ! sum of riverfluxes
     !--- atmosphere flux and atmospheric CO2
     real :: sndepnoyflux             ! sum of N dep fluxes
     real :: sndepnhxflux             ! sum of N dep fluxes
     real :: zatmco2,zatmo2,zatmn2
-    real :: co2flux,so2flux,sn2flux,sn2oflux,snh3flux
+    real :: co2flux,so2flux,sn2flux,sn2oflux,snh3flux,sdmsflux
     real :: zprorca,zprcaca,zsilpro
     !--- total tracer budgets
     real :: totalcarbon,totalphos,totalsil,totalnitr,totaloxy
@@ -249,6 +252,23 @@ contains
     call xcsum(zhito ,ztmp1,ips)
     call xcsum(zco3to,ztmp2,ips)
 
+    ! ODZ volume
+    ODZvol = 0.
+    ztmp1(:,:)=0.0
+    do k=1,kpke
+      do j=1,kpje
+        do i=1,kpie
+          if (ddpo(i,j,k) > dp_min .and. ocetra(i,j,k,ioxygen) < 20.0e-6) then
+            ! snapshot value for ODZ volume for hypoxic volume below 20mumol/L
+            vol = dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
+            ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*vol
+          endif
+        enddo
+      enddo
+    enddo
+    call xcsum(ODZvol,ztmp2,ips)
+
+
     !=== alkalinity of the first layer
     !--------------------------------------------------------------------
     zvoltop = 0.
@@ -267,6 +287,23 @@ contains
     call xcsum(zvoltop,ztmp1,ips)
     call xcsum(zalkali,ztmp2,ips)
 
+    !=== phosphate and nitrate of the first layer
+    zphosph = 0.
+    zano3   = 0.
+
+    k=1
+    ztmp1(:,:)=0.0
+    ztmp2(:,:)=0.0
+    do j=1,kpje
+      do i=1,kpie
+        vol        = omask(i,j)*dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
+        ztmp1(i,j) = ocetra(i,j,k,iphosph)*vol
+        ztmp2(i,j) = ocetra(i,j,k,iano3)*vol
+      enddo
+    enddo
+    call xcsum(zphosph,ztmp1,ips)
+    call xcsum(zano3,ztmp2,ips)
+
     !=== atmosphere flux and atmospheric CO2
     !--------------------------------------------------------------------
     ztotarea =0.
@@ -275,6 +312,7 @@ contains
     sn2flux  =0.
     sn2oflux =0.
     snh3flux =0.
+    sdmsflux =0.
     sndepnoyflux=0.
     sndepnhxflux=0.
     srivflux =0.
@@ -295,6 +333,7 @@ contains
       co2flux = sum2d(atmflx(:,:,iatmco2))
       so2flux = sum2d(atmflx(:,:,iatmo2))
       sn2flux = sum2d(atmflx(:,:,iatmn2))
+      sdmsflux = sum2d(atmflx(:,:,iatmdms))
       sn2oflux = sum2d(atmflx(:,:,iatmn2o))
       if (use_extNcycle) then
         snh3flux = sum2d(atmflx(:,:,iatmnh3))
@@ -317,6 +356,7 @@ contains
       co2flux = sum2d(bgct2d(:,:,jco2flux))
       so2flux = sum2d(bgct2d(:,:,jo2flux))
       sn2flux = sum2d(bgct2d(:,:,jn2flux))
+      sdmsflux = sum2d(atmflx(:,:,iatmdms)) ! exception: DMS is instantanious flux (no accumulation)
       sn2oflux = sum2d(bgct2d(:,:,jn2oflux))
       if (use_extNcycle) then
         snh3flux = sum2d(bgct2d(:,:,jnh3flux))
@@ -682,7 +722,7 @@ contains
                                idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,   &
                                inatalkali,inatcalc,inatsco212,ianh4,iano2,iprefsilica
       use mo_control_bgc,only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,  &
-                               use_CFC,use_natDIC,use_BROMO,use_pref_tracers
+                               use_CFC,use_natDIC,use_BROMO,use_pref_tracers,dtbgc
 
       implicit none
 
@@ -708,6 +748,10 @@ contains
       !--- time: dimension and variable id
       integer :: time_dimid
       integer :: time_varid
+      !--- River
+      integer :: nriv_dimid,nriv_dimids(2),sriv_varid
+      integer :: nriv_wrstart(2)    ! record start point
+      integer :: nriv_count(2)      ! record count
 
       ! NOT sedbypass
       !--- aqueous sediment tracers
@@ -732,10 +776,13 @@ contains
       integer :: ztotvol_varid                            ! Total ocean volume
       integer :: zt_sco212_varid,    zc_sco212_varid      ! Dissolved CO2
       integer :: zt_alkali_varid,    zc_alkali_varid      ! Alkalinity
+      integer :: zt_alkalisrf_varid, zc_alkalisrf_varid   ! Alkalinity in surface layer
       integer :: zt_phosph_varid,    zc_phosph_varid      ! Dissolved phosphate
+      integer :: zt_phosphsrf_varid, zc_phosphsrf_varid   ! Dissolved phosphate in surface layer
       integer :: zt_oxygen_varid,    zc_oxygen_varid      ! Dissolved oxygen
       integer :: zt_gasnit_varid,    zc_gasnit_varid      ! Gaseous nitrogen (N2)
       integer :: zt_ano3_varid,      zc_ano3_varid        ! Dissolved nitrate
+      integer :: zt_ano3srf_varid,   zc_ano3srf_varid     ! Dissolved nitrate in surface layer
       integer :: zt_silica_varid,    zc_silica_varid      ! Silicid acid (Si(OH)4)
       integer :: zt_doc_varid,       zc_doc_varid         ! Dissolved organic carbon
       integer :: zt_poc_varid,       zc_poc_varid         ! Particulate organic carbon
@@ -796,7 +843,13 @@ contains
       integer :: sum_zprorca_varid, sum_zprcaca_varid, sum_zsilpro_varid
       integer :: sum_sedfluxo_varid
       integer :: sum_expoor_varid, sum_expoca_varid, sum_exposi_varid
+      ! atmosphere-ocean fluxes
+      integer :: co2flux_varid,so2flux_varid,sn2flux_varid,sn2oflux_varid,snh3flux_varid
+      integer :: sdmsflux_varid
+      integer :: sndepnoyflux_varid,sndepnhxflux_varid
 
+      ! ODZ volume
+      integer :: ODZvol_varid
 
       !=== Create new or open existing netCDF file
       if (.not.append2file_inv(iogrp)) then
@@ -833,6 +886,9 @@ contains
           call nccheck( NF90_DEF_DIM(ncid, 'npowtra', npowtra, npowtra_dimid) )
           call nccheck( NF90_DEF_DIM(ncid, 'nsedtra', nsedtra, nsedtra_dimid) )
         endif
+        if (do_rivinpt) then
+          call nccheck( NF90_DEF_DIM(ncid, 'nriv', nriv, nriv_dimid) )
+        endif
         call nccheck( NF90_DEF_DIM(ncid, 'time', NF90_UNLIMITED, time_dimid) )
 
         !--- Dimensions for arrays.
@@ -840,6 +896,9 @@ contains
         if (.not. use_sedbypass) then
           zpowtra_dimids = (/ npowtra_dimid, time_dimid /)
           zsedtra_dimids = (/ nsedtra_dimid, time_dimid /)
+        endif
+        if (do_rivinpt) then
+          nriv_dimids = (/ nriv_dimid, time_dimid /)
         endif
 
         !--- Define variables : time
@@ -854,8 +913,8 @@ contains
           call nccheck( NF90_DEF_VAR(ncid, 'zsedtotvol', NF90_DOUBLE, time_dimid,   &
                &    zsedtotvol_varid) )
           call nccheck( NF90_PUT_ATT(ncid, zsedtotvol_varid, 'long_name',           &
-               &    'Total sediment volume') )
-          call nccheck( NF90_PUT_ATT(ncid, zsedtotvol_varid, 'units', 'L') )
+               &    'Total sediment pore water volume') )
+          call nccheck( NF90_PUT_ATT(ncid, zsedtotvol_varid, 'units', 'm^3') )
 
           call nccheck( NF90_DEF_VAR(ncid, 'zpowtratot', NF90_DOUBLE,               &
                &    zpowtra_dimids, zpowtratot_varid) )
@@ -867,7 +926,13 @@ contains
                &    zpowtra_dimids, zpowtratoc_varid) )
           call nccheck( NF90_PUT_ATT(ncid, zpowtratoc_varid, 'long_name',           &
                &    'Aqueous sediment concentration') )
-          call nccheck( NF90_PUT_ATT(ncid, zpowtratoc_varid, 'units', 'kmol/L') )
+          call nccheck( NF90_PUT_ATT(ncid, zpowtratoc_varid, 'units', 'kmol/m^3') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'sedfluxo', NF90_DOUBLE,                 &
+               &    zpowtra_dimids, sum_sedfluxo_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, sum_sedfluxo_varid, 'long_name',         &
+               &    'Aqueous sediment tracer diffusive fluxes') )
+          call nccheck( NF90_PUT_ATT(ncid, sum_sedfluxo_varid, 'units', 'kmol/s') )
 
           !--- non-aqueous sediment tracers
           call nccheck( NF90_DEF_VAR(ncid, 'zsedlayto', NF90_DOUBLE,                &
@@ -887,6 +952,13 @@ contains
           call nccheck( NF90_PUT_ATT(ncid, zsedhplto_varid, 'long_name',            &
                &    'Total sediment accumulated hydrogen ions') )
           call nccheck( NF90_PUT_ATT(ncid, zsedhplto_varid, 'units', 'kmol') )
+        endif
+        if (do_rivinpt) then
+          call nccheck( NF90_DEF_VAR(ncid, 'rivinput', NF90_DOUBLE,                 &
+               &    nriv_dimids, sriv_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, sriv_varid, 'long_name',                 &
+               &    'Total riverine tracer fluxes') )
+          call nccheck( NF90_PUT_ATT(ncid, sriv_varid, 'units', 'kmol(?)') )
         endif
 
         !--- Define variables : oceanic tracers
@@ -920,6 +992,18 @@ contains
              &    'Mean alkalinity concentration') )
         call nccheck( NF90_PUT_ATT(ncid, zc_alkali_varid, 'units', 'kmol/m^3') )
 
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_alkalisrf', NF90_DOUBLE,             &
+             &    time_dimid, zt_alkalisrf_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_alkalisrf_varid, 'long_name',         &
+             &    'Total surface alkalinity tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_alkalisrf_varid, 'units', 'kmol') )
+
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_alkalisrf', NF90_DOUBLE,             &
+             &    time_dimid, zc_alkalisrf_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_alkalisrf_varid, 'long_name',         &
+             &    'Mean surface alkalinity concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_alkalisrf_varid, 'units', 'kmol/m^3') )
+
         call nccheck( NF90_DEF_VAR(ncid, 'zt_phosph', NF90_DOUBLE,                &
              &    time_dimid, zt_phosph_varid) )
         call nccheck( NF90_PUT_ATT(ncid, zt_phosph_varid, 'long_name',            &
@@ -931,6 +1015,18 @@ contains
         call nccheck( NF90_PUT_ATT(ncid, zc_phosph_varid, 'long_name',            &
              &    'Mean dissolved phosphate concentration') )
         call nccheck( NF90_PUT_ATT(ncid, zc_phosph_varid, 'units', 'kmol/m^3') )
+
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_phosphsrf', NF90_DOUBLE,             &
+             &    time_dimid, zt_phosphsrf_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_phosphsrf_varid, 'long_name',         &
+             &    'Total surface dissolved phosphate tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_phosphsrf_varid, 'units', 'kmol') )
+
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_phosphsrf', NF90_DOUBLE,             &
+             &    time_dimid, zc_phosphsrf_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_phosphsrf_varid, 'long_name',         &
+             &    'Mean surface dissolved phosphate concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_phosphsrf_varid, 'units', 'kmol/m^3') )
 
         call nccheck( NF90_DEF_VAR(ncid, 'zt_oxygen', NF90_DOUBLE,                &
              &    time_dimid, zt_oxygen_varid) )
@@ -967,6 +1063,18 @@ contains
         call nccheck( NF90_PUT_ATT(ncid, zc_ano3_varid, 'long_name',              &
              &    'Mean dissolved nitrate concentration') )
         call nccheck( NF90_PUT_ATT(ncid, zc_ano3_varid, 'units', 'kmol/m^3') )
+
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_ano3srf', NF90_DOUBLE,               &
+             &    time_dimid, zt_ano3srf_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_ano3srf_varid, 'long_name',           &
+             &    'Total surface dissolved nitrate tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_ano3srf_varid, 'units', 'kmol') )
+
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_ano3srf', NF90_DOUBLE,               &
+             &    time_dimid, zc_ano3srf_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_ano3srf_varid, 'long_name',           &
+             &    'Mean syrface dissolved nitrate concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_ano3srf_varid, 'units', 'kmol/m^3') )
 
         call nccheck( NF90_DEF_VAR(ncid, 'zt_silica', NF90_DOUBLE,                &
              &    time_dimid, zt_silica_varid) )
@@ -1532,6 +1640,63 @@ contains
              &    'Global total export production of silicate') )
         call nccheck( NF90_PUT_ATT(ncid, sum_exposi_varid, 'units', 'kmol') )
 
+        ! atmosphere-ocean fluxes
+        call nccheck( NF90_DEF_VAR(ncid, 'sco2flux', NF90_DOUBLE,                 &
+             &    time_dimid, co2flux_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, co2flux_varid, 'long_name',              &
+             &    'Global flux of CO2 into atmosphere') )
+        call nccheck( NF90_PUT_ATT(ncid, co2flux_varid, 'units', 'kmol') )
+
+        call nccheck( NF90_DEF_VAR(ncid, 'so2flux', NF90_DOUBLE,                  &
+             &    time_dimid, so2flux_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, so2flux_varid, 'long_name',              &
+             &    'Global flux of O2 into atmosphere') )
+        call nccheck( NF90_PUT_ATT(ncid, so2flux_varid, 'units', 'kmol') )
+
+        call nccheck( NF90_DEF_VAR(ncid, 'sn2flux', NF90_DOUBLE,                  &
+             &    time_dimid, sn2flux_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, sn2flux_varid, 'long_name',              &
+             &    'Global flux of N2 into atmosphere') )
+        call nccheck( NF90_PUT_ATT(ncid, sn2flux_varid, 'units', 'kmol') )
+
+        call nccheck( NF90_DEF_VAR(ncid, 'sn2oflux', NF90_DOUBLE,                 &
+             &    time_dimid, sn2oflux_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, sn2oflux_varid, 'long_name',             &
+             &    'Global flux of N2O into atmosphere') )
+        call nccheck( NF90_PUT_ATT(ncid, sn2oflux_varid, 'units', 'kmol') )
+
+        call nccheck( NF90_DEF_VAR(ncid, 'sdmsflux', NF90_DOUBLE,                 &
+             &    time_dimid, sdmsflux_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, sdmsflux_varid, 'long_name',             &
+             &    'Global flux of DMS into atmosphere') )
+        call nccheck( NF90_PUT_ATT(ncid, sdmsflux_varid, 'units', 'kmol/s') )
+
+        call nccheck( NF90_DEF_VAR(ncid, 'sndepnoyflux', NF90_DOUBLE,             &
+               &    time_dimid, sndepnoyflux_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, sndepnoyflux_varid, 'long_name',         &
+               &    'Global deposition of NOy from atmosphere') )
+        call nccheck( NF90_PUT_ATT(ncid, sndepnoyflux_varid, 'units', 'kmol') )
+
+        if (use_extNcycle) then
+          call nccheck( NF90_DEF_VAR(ncid, 'snh3flux', NF90_DOUBLE,               &
+               &    time_dimid, snh3flux_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, snh3flux_varid, 'long_name',           &
+               &    'Global flux of NH3 into atmosphere') )
+          call nccheck( NF90_PUT_ATT(ncid, snh3flux_varid, 'units', 'kmol') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'sndepnhxflux', NF90_DOUBLE,           &
+               &    time_dimid, sndepnhxflux_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, sndepnhxflux_varid, 'long_name',       &
+               &    'Global deposition of NHx from atmosphere') )
+          call nccheck( NF90_PUT_ATT(ncid, sndepnhxflux_varid, 'units', 'kmol') )
+
+        endif
+
+        call nccheck( NF90_DEF_VAR(ncid, 'ODZvol', NF90_DOUBLE,                   &
+             &    time_dimid, ODZvol_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, ODZvol_varid, 'long_name',               &
+             &    'Global ODZ volume (<20mumol/L)') )
+        call nccheck( NF90_PUT_ATT(ncid, ODZvol_varid, 'units', 'm3') )
         !--- End define mode.
         call nccheck( NF90_ENDDEF(ncid) )
 
@@ -1554,10 +1719,14 @@ contains
           call nccheck( NF90_INQ_VARID(ncid, 'zsedtotvol', zsedtotvol_varid) )
           call nccheck( NF90_INQ_VARID(ncid, 'zpowtratot', zpowtratot_varid) )
           call nccheck( NF90_INQ_VARID(ncid, 'zpowtratoc', zpowtratoc_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, 'sedfluxo',   sum_sedfluxo_varid) )
           !--- non-aqueous sediment tracers
           call nccheck( NF90_INQ_VARID(ncid, 'zsedlayto', zsedlayto_varid) )
           call nccheck( NF90_INQ_VARID(ncid, 'zburial', zburial_varid) )
           call nccheck( NF90_INQ_VARID(ncid, 'zsedhplto', zsedhplto_varid) )
+        endif
+        if (do_rivinpt) then
+          call nccheck( NF90_INQ_VARID(ncid, 'rivinput', sriv_varid) )
         endif
 
         !--- Inquire varid : ocean tracers
@@ -1566,14 +1735,20 @@ contains
         call nccheck( NF90_INQ_VARID(ncid, "zc_sco212", zc_sco212_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zt_alkali", zt_alkali_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zc_alkali", zc_alkali_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zt_alkalisrf", zt_alkalisrf_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_alkalisrf", zc_alkalisrf_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zt_phosph", zt_phosph_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zc_phosph", zc_phosph_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zt_phosphsrf", zt_phosphsrf_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_phosphsrf", zc_phosphsrf_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zt_oxygen", zt_oxygen_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zc_oxygen", zc_oxygen_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zt_gasnit", zt_gasnit_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zc_gasnit", zc_gasnit_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zt_ano3", zt_ano3_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zc_ano3", zc_ano3_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zt_ano3srf", zt_ano3srf_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_ano3srf", zc_ano3srf_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zt_silica", zt_silica_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zc_silica", zc_silica_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zt_doc", zt_doc_varid) )
@@ -1681,6 +1856,18 @@ contains
         call nccheck( NF90_INQ_VARID(ncid, "sum_expoor", sum_expoor_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "sum_expoca", sum_expoca_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "sum_exposi", sum_exposi_varid) )
+        !--- Inquire varid: atmosphere-ocean fluxes
+        call nccheck( NF90_INQ_VARID(ncid, "sco2flux", co2flux_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "so2flux",  so2flux_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "sn2flux",  sn2flux_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "sn2oflux", sn2oflux_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "sdmsflux", sdmsflux_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "sndepnoyflux",  sndepnoyflux_varid) )
+        if (use_extNcycle) then
+          call nccheck( NF90_INQ_VARID(ncid, "snh3flux",  snh3flux_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "sndepnhxflux",  sndepnhxflux_varid) )
+        endif
+        call nccheck( NF90_INQ_VARID(ncid, "ODZvol", ODZvol_varid) )
       endif
 
       !=== Increment record by 1, reset start and count arrays
@@ -1691,6 +1878,10 @@ contains
         zpowtra_count = (/ npowtra, 1 /)
         zsedtra_wrstart = (/ 1, ncrec(iogrp) /)
         zsedtra_count = (/ nsedtra, 1 /)
+      endif
+      if (do_rivinpt) then
+        nriv_wrstart = (/ 1, ncrec(iogrp) /)
+        nriv_count   = (/ nriv, 1 /)
       endif
 
       !=== Write output data to netCDF file
@@ -1705,6 +1896,8 @@ contains
              &     start = zpowtra_wrstart, count = zpowtra_count) )
         call nccheck( NF90_PUT_VAR(ncid, zpowtratoc_varid, zpowtratoc,                &
              &     start = zpowtra_wrstart, count = zpowtra_count) )
+        call nccheck( NF90_PUT_VAR(ncid, sum_sedfluxo_varid, sum_sedfluxo/dtbgc,      &
+             &     start = zpowtra_wrstart,count = zpowtra_count) )
         !--- non-aqueous sediment tracers
         call nccheck( NF90_PUT_VAR(ncid, zsedlayto_varid, zsedlayto,                  &
              &     start = zsedtra_wrstart, count = zsedtra_count) )
@@ -1712,6 +1905,9 @@ contains
              &     start = zsedtra_wrstart, count = zsedtra_count) )
         call nccheck( NF90_PUT_VAR(ncid, zsedhplto_varid, zsedhplto,                  &
              &     start = wrstart) )
+      endif
+      if (do_rivinpt) then
+        call nccheck( NF90_PUT_VAR(ncid, sriv_varid, srivflux,start=nriv_wrstart,count=nriv_count))
       endif
       !--- Write data : ocean tracers
       call nccheck( NF90_PUT_VAR(ncid, ztotvol_varid, ztotvol, start = wrstart) )
@@ -1723,10 +1919,14 @@ contains
            &    zocetratot(ialkali), start = wrstart) )
       call nccheck( NF90_PUT_VAR(ncid, zc_alkali_varid,                            &
            &    zocetratoc(ialkali), start = wrstart) )
+      call nccheck( NF90_PUT_VAR(ncid, zt_alkalisrf_varid,zalkali, start = wrstart) )
+      call nccheck( NF90_PUT_VAR(ncid, zc_alkalisrf_varid,zalkali/zvoltop, start = wrstart) )
       call nccheck( NF90_PUT_VAR(ncid, zt_phosph_varid,                            &
            &    zocetratot(iphosph), start = wrstart) )
       call nccheck( NF90_PUT_VAR(ncid, zc_phosph_varid,                            &
            &    zocetratoc(iphosph), start = wrstart) )
+      call nccheck( NF90_PUT_VAR(ncid, zt_phosphsrf_varid,zphosph, start = wrstart) )
+      call nccheck( NF90_PUT_VAR(ncid, zc_phosphsrf_varid,zphosph/zvoltop, start = wrstart) )
       call nccheck( NF90_PUT_VAR(ncid, zt_oxygen_varid,                            &
            &    zocetratot(ioxygen), start = wrstart) )
       call nccheck( NF90_PUT_VAR(ncid, zc_oxygen_varid,                            &
@@ -1739,6 +1939,8 @@ contains
            &    zocetratot(iano3), start = wrstart) )
       call nccheck( NF90_PUT_VAR(ncid, zc_ano3_varid,                              &
            &    zocetratoc(iano3), start = wrstart) )
+      call nccheck( NF90_PUT_VAR(ncid, zt_ano3srf_varid,zano3, start = wrstart) )
+      call nccheck( NF90_PUT_VAR(ncid, zc_ano3srf_varid,zano3/zvoltop, start = wrstart) )
       call nccheck( NF90_PUT_VAR(ncid, zt_silica_varid,                            &
            &    zocetratot(isilica), start = wrstart) )
       call nccheck( NF90_PUT_VAR(ncid, zc_silica_varid,                            &
@@ -1938,6 +2140,18 @@ contains
            &    start = wrstart) )
       call nccheck( NF90_PUT_VAR(ncid, sum_exposi_varid, sum_exposi,               &
            &    start = wrstart) )
+      !--- Write data ocean-atmosphere fluxes
+      call nccheck( NF90_PUT_VAR(ncid, co2flux_varid, co2flux,start = wrstart) )
+      call nccheck( NF90_PUT_VAR(ncid, so2flux_varid, so2flux,start = wrstart) )
+      call nccheck( NF90_PUT_VAR(ncid, sn2flux_varid, sn2flux,start = wrstart) )
+      call nccheck( NF90_PUT_VAR(ncid, sn2oflux_varid,sn2oflux,start = wrstart) )
+      call nccheck( NF90_PUT_VAR(ncid, sdmsflux_varid,sdmsflux/dtbgc,start = wrstart) )
+      call nccheck( NF90_PUT_VAR(ncid, sndepnoyflux_varid, sndepnoyflux,start = wrstart) )
+      if (use_extNcycle) then
+        call nccheck( NF90_PUT_VAR(ncid, snh3flux_varid, snh3flux,start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, sndepnhxflux_varid, sndepnhxflux,start = wrstart) )
+      endif
+      call nccheck( NF90_PUT_VAR(ncid, ODZvol_varid,ODZvol, start = wrstart) )
 
       !--- Close netCDF file
       call nccheck( NF90_CLOSE(ncid) )

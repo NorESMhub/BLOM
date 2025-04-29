@@ -199,6 +199,7 @@ module mo_bgcmean
        & SDM_SSSC12    =0    ,SDM_SSSTER    =0                         ,  &
        & BUR_SSSO12    =0    ,BUR_SSSC12    =0    ,BUR_SSSSIL    =0    ,  &
        & BUR_SSSTER    =0                                              ,  &
+       & SDM_rem_aerob =0   , SDM_rem_denit =0    , SDM_rem_sulf =0    ,  &
        !extNcycle
        & SDM_POWNH4    =0    ,SDM_POWN2O    =0    ,SDM_POWNO2    =0    ,  &
        & SDM_nitr_NH4  =0    ,SDM_nitr_NO2  =0    ,SDM_nitr_N2O_prod =0,  &
@@ -313,6 +314,7 @@ module mo_bgcmean
        & SDM_SSSC12        ,SDM_SSSTER                           ,        &
        & BUR_SSSO12        ,BUR_SSSC12        ,BUR_SSSSIL        ,        &
        & BUR_SSSTER                                              ,        &
+       & SDM_rem_aerob     ,SDM_rem_denit     , SDM_rem_sulf     ,        &
        & SDM_POWNH4        ,SDM_POWN2O        ,SDM_POWNO2        ,        &
        & SDM_nitr_NH4      ,SDM_nitr_NO2      ,SDM_nitr_N2O_prod ,        &
        & SDM_nitr_NH4_OM   ,SDM_nitr_NO2_OM   ,SDM_denit_NO3     ,        &
@@ -677,6 +679,9 @@ module mo_bgcmean
        &          jpownh4 = 0 ,                                           &
        &          jpown2o = 0 ,                                           &
        &          jpowno2 = 0 ,                                           &
+       &          jsdm_rem_aerob     = 0 ,                                &
+       &          jsdm_rem_denit     = 0 ,                                &
+       &          jsdm_rem_sulf      = 0 ,                                &
        &          jsdm_nitr_NH4      = 0 ,                                &
        &          jsdm_nitr_NO2      = 0 ,                                &
        &          jsdm_nitr_N2O_prod = 0 ,                                &
@@ -1481,6 +1486,15 @@ CONTAINS
           jsdm_remin_aerob(n)=i_bsc_sed*min(1,SDM_remin_aerob(n))
           if (SDM_remin_sulf(n) > 0) i_bsc_sed=i_bsc_sed+1
           jsdm_remin_sulf(n)=i_bsc_sed*min(1,SDM_remin_sulf(n))
+        enddo
+      else
+        do n=1,nbgc
+          if (SDM_rem_aerob(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_rem_aerob(n)=i_bsc_sed*min(1,SDM_rem_aerob(n))
+          if (SDM_rem_denit(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_rem_denit(n)=i_bsc_sed*min(1,SDM_rem_denit(n))
+          if (SDM_rem_sulf(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_rem_sulf(n)=i_bsc_sed*min(1,SDM_rem_sulf(n))
         enddo
       endif
       if (use_sediment_quality) then
