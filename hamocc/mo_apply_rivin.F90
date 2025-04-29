@@ -105,7 +105,8 @@ contains
                    &                             + ocetra(i,j,1:kmle(i,j),isco213)                 &
                    &                             /(ocetra(i,j,1:kmle(i,j),isco212)+safediv)        &
                    &                             * (rivin(i,j,iralk)*fdt/volij                     &
-                   &                             +  rivin(i,j,irdoc)*fdt/volij)
+                   &                             +  rivin(i,j,irdoc)*fdt/volij) ! Alkalinity changes from instantaneous riverine
+                                                                                ! DOC remineralisation are ignored.
               ocetra(i,j,1:kmle(i,j),isco214)    = ocetra(i,j,1:kmle(i,j),isco214)                 &
                    &                             + ocetra(i,j,1:kmle(i,j),isco214)                 &
                    &                             /(ocetra(i,j,1:kmle(i,j),isco212)+safediv)        &
@@ -187,7 +188,8 @@ contains
                  &                           + rivin(i,j,irtdoc)*fdt/volij
             ocetra(i,j,1:kmle(i,j),isco212)  = ocetra(i,j,1:kmle(i,j),isco212)                     &
                  &                           + rivin(i,j,iralk)*fdt/volij                          &
-                 &                           + rivin(i,j,irdoc)*fdt/volij
+                 &                           + rivin(i,j,irdoc)*fdt/volij ! Alkalinity changes from instantaneous DOC
+                                                                          ! remineralisation are ignored.
             if (use_natDIC) then
               ocetra(i,j,1:kmle(i,j),inatsco212) = ocetra(i,j,1:kmle(i,j),inatsco212)              &
                    &                             + rivin(i,j,iralk)*fdt/volij                      &
