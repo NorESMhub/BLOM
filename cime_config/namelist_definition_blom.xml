@@ -9596,6 +9596,17 @@
     <desc>if .true., use NUOPC stream relaxation capability</desc>
   </entry>
 
+  <entry id="use_stream_dust">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.true.</value>
+    </values>
+    <desc>if .true., use NUOPC stream functionality for HAMOOC fedep input </desc>
+  </entry>
+
   <!-- =========================  -->
   <!-- namelist group: stream_sss -->
   <!-- =========================  -->
@@ -9733,6 +9744,75 @@
     </desc>
     <values>
       <value>1</value>
+    </values>
+  </entry>
+
+  <!-- =========================  -->
+  <!-- namelist group: stream_dust -->
+  <!-- =========================  -->
+
+  <entry id="stream_dust_mesh_filename">
+    <type>char</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>stream mesh file</desc>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_T42_ESMFmesh_cdf5.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_data_filename">
+    <type>char(10)</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>
+      file name(s) containing dust deposition data
+    </desc>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_T42.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_varname">
+    <type>char</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>
+      variable name on stream file
+    </desc>
+    <values>
+      <value>dustdep</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_year_first">
+    <type>integer</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>
+      First year in stream to use
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_year_last">
+    <type>integer</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>
+      Last year in stream to use
+    </desc>
+    <values>
+      <value>1850</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_year_align">
+    <type>integer</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>
+      Align stream_year_first with this model year
+    </desc>
+    <values>
+      <value>1850</value>
     </values>
   </entry>
 
