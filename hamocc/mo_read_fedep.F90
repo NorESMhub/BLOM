@@ -124,7 +124,7 @@ contains
   end subroutine ini_read_fedep
 
 
-  subroutine get_fedep(kpie,kpje,kplmon,dust)
+  subroutine get_fedep(kpie,kpje,kbnd,kplmon,dust,dust_stream)
 
     !***********************************************************************************************
     ! Get iron (dust) deposition for current month
@@ -132,12 +132,36 @@ contains
     !  J.Schwinger            *NORCE Climate, Bergen*       2020-05-19
     !***********************************************************************************************
 
+    use mod_xc             , only: nbdy
+    use mo_output_forcing  , only: output_forcing
+
     integer, intent(in)  :: kpie             ! 1st dimension of model grid
     integer, intent(in)  :: kpje             ! 2nd dimension of model grid
+    integer, intent(in)  :: kbnd             !
     integer, intent(in)  :: kplmon           ! current month.
     real,    intent(out) :: dust(kpie,kpje)  ! dust flux for current month
+    real, optional, intent(in) :: dust_stream(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
 
-    dust = dustflx(:,:,kplmon)
+    integer :: i,j
+    logical :: debug = .true.
+    logical :: first_time = .true.
+
+    if (present(dust_stream)) then
+       do j=1,kpje
+          do i=1,kpie
+             dust(i,j) = dust_stream(i,j)
+          end do
+       end do
+    else
+       dust(:,:) = dustflx(:,:,kplmon)
+    end if
+
+    if (debug) then
+       if (first_time) then
+          call output_forcing('fedep.nc', 'fedep', kpie, kpje, dust)
+          first_time = .false.
+       end if
+    end if
 
   end subroutine get_fedep
 
