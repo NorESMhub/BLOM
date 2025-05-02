@@ -133,7 +133,15 @@
     <alias>N2NOINYJRARYF1961OC</alias>
     <lname>1850_DATM%JRARYF1961_SLND_CICE_BLOM%ECO_DROF%JRARYF1961_SGLC_SWAV</lname>
   </compset>
-   
+  <compset>
+    <alias>NOIIAJRARYF6162OC</alias>
+    <lname>1850_DATM%JRA-RYF6162_SLND_CICE_BLOM%HYB%ECO_DROF%JRA-RYF6162_SGLC_SWAV</lname>
+  </compset>
+  <compset>
+    <alias>NOIIAJRARYF8485OC</alias>
+    <lname>1850_DATM%JRA-RYF8485_SLND_CICE_BLOM%HYB%ECO_DROF%JRA-RYF8485_SGLC_SWAV</lname>
+  </compset>
+
   
   <!-- CPLHIST forcing - no prognostic wave -->
 
