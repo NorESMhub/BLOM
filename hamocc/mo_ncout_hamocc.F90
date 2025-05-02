@@ -222,7 +222,9 @@ contains
                               SDM_rem_aerob,SDM_rem_denit,SDM_rem_sulf,jsdm_rem_aerob,             &
                               jsdm_rem_denit,jsdm_rem_sulf,                                        &
                               LVL_NUTLIM_FE,LVL_NUTLIM_N,LVL_NUTLIM_PHOSPH,                        &
-                              jlvlnutlim_fe,jlvlnutlim_n,jlvlnutlim_phosph
+                              jlvlnutlim_fe,jlvlnutlim_n,jlvlnutlim_phosph,                        &
+                              ZEU_NUTLIM_FE,ZEU_NUTLIM_N,ZEU_NUTLIM_PHOSPH,                        &
+                              jzeunutlim_fe,jzeunutlim_n,jzeunutlim_phosph
     use mo_param_bgc,   only: c14fac,param4nc,nentries,controls4nc,centries
 
     ! Arguments
@@ -618,6 +620,9 @@ contains
     call wrtsrf(jdustflx2000(iogrp),  FLX_DUST2000(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'dustflx2000')
     call wrtsrf(jdustflx4000(iogrp),  FLX_DUST4000(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'dustflx4000')
     call wrtsrf(jdustflx_bot(iogrp),  FLX_DUST_BOT(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'dustflx_bot')
+    call wrtsrf(jzeunutlim_fe(iogrp), ZEU_NUTLIM_FE(iogrp), rnacc,0.,cmpflg,'zeu_nlim_fe')
+    call wrtsrf(jzeunutlim_phosph(iogrp), ZEU_NUTLIM_PHOSPH(iogrp), rnacc,0.,cmpflg,'zeu_nlim_po4')
+    call wrtsrf(jzeunutlim_n(iogrp), ZEU_NUTLIM_N(iogrp), rnacc,0.,cmpflg,'zeu_nlim_n')
     if (.not. use_sedbypass) then
       call wrtsrf(jsediffic(iogrp),    FLX_SEDIFFIC(iogrp), rnacc*1e3/dtbgc,0.,cmpflg,'sedfdic')
       call wrtsrf(jsediffal(iogrp),    FLX_SEDIFFAL(iogrp), rnacc*1e3/dtbgc,0.,cmpflg,'sedfalk')
@@ -1005,6 +1010,9 @@ contains
     call inisrf(jdustflx2000(iogrp),0.)
     call inisrf(jdustflx4000(iogrp),0.)
     call inisrf(jdustflx_bot(iogrp),0.)
+    call inisrf(jzeunutlim_fe(iogrp),0.)
+    call inisrf(jzeunutlim_phosph(iogrp),0.)
+    call inisrf(jzeunutlim_n(iogrp),0.)
     if (.not. use_sedbypass) then
       call inisrf(jsediffic(iogrp),0.)
       call inisrf(jsediffal(iogrp),0.)
@@ -1438,7 +1446,8 @@ contains
                               jsed_mavg_prorca,                                                    &
                               SDM_qual_a,SDM_qual_k,SDM_qual_app,SDM_ssso12_age,SDM_MAVG_prorca,   &
                               sdm_rem_aerob,sdm_rem_denit,sdm_rem_sulf,                            &
-                              LVL_NUTLIM_FE,LVL_NUTLIM_N,LVL_NUTLIM_PHOSPH
+                              LVL_NUTLIM_FE,LVL_NUTLIM_N,LVL_NUTLIM_PHOSPH,                        &
+                              ZEU_NUTLIM_FE,ZEU_NUTLIM_N,ZEU_NUTLIM_PHOSPH
 
 
     ! Arguments
@@ -1596,6 +1605,12 @@ contains
          &   'Dust flux at 4000m',' ','g m-2 s-1',0)
     call ncdefvar3d(FLX_DUST_BOT(iogrp),cmpflg,'p','dustflx_bot',               &
          &   'Dust flux to sediment',' ','g m-2 s-1',0)
+    call ncdefvar3d(ZEU_NUTLIM_FE(iogrp),cmpflg,'p','zeu_nlim_fe',              &
+         &   'Euphotic zone nutrient limitation Fe time fraction',' ','-',0)
+    call ncdefvar3d(ZEU_NUTLIM_PHOSPH(iogrp),cmpflg,'p','zeu_nlim_po4',         &
+         &   'Euphotic zone nutrient limitation PO4 time fraction',' ','-',0)
+    call ncdefvar3d(ZEU_NUTLIM_N(iogrp),cmpflg,'p','zeu_nlim_n',                &
+         &   'Euphotic zone nutrient limitation N time fraction',' ','-',0)
 
     call ncdefvar3d(SRF_N2OFX(iogrp),cmpflg,'p','n2oflux',                      &
          &   'N2O flux',' ','mol N2O m-2 s-1',0)

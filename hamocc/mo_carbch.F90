@@ -69,6 +69,7 @@ module mo_carbch
   real, dimension (:,:,:),   allocatable, public :: sedfluxo
   real, dimension (:,:,:),   allocatable, public :: sedfluxb
   real, dimension (:,:,:,:), allocatable, public :: nutlim_diag
+  real, dimension (:,:,:),   allocatable, public :: zeu_nutlim_diag
 
   real, dimension (:,:),     allocatable, public :: fco2
   real, dimension (:,:),     allocatable, public :: pco2
@@ -252,6 +253,16 @@ contains
     allocate (nutlim_diag(kpie,kpje,kpke,3),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory nutlim_diag'
     nutlim_diag(:,:,:,:) = 0.0
+
+    if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)'Memory allocation for variable zeu_nutlim_diag ..'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      write(io_stdo_bgc,*)'Third dimension    : ',3     ! number of potentially limiting nutrients
+    endif
+    allocate (zeu_nutlim_diag(kpie,kpje,3),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory zeu_nutlim_diag'
+    zeu_nutlim_diag(:,:,:) = 0.0
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable satn2o ...'

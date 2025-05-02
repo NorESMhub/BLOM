@@ -62,7 +62,7 @@ contains
 
     use mod_xc,           only: mnproc
     use mo_carbch,        only: ocetra,satoxy,hi,co2star,nutlim_diag,inutlim_fe,inutlim_phosph,    &
-                              & inutlim_n
+                              & inutlim_n,zeu_nutlim_diag
     use mo_sedmnt,        only: prcaca,produs,prorca,silpro,pror13,pror14,prca13,prca14
     use mo_param_bgc,     only: drempoc,drempoc_anaerob,bkox_drempoc,dremn2o,dremopal,dremsul,     &
                                 dyphy,ecan,epsher,fesoly,                                          &
@@ -142,6 +142,7 @@ contains
     real :: wcal,wdust,wopal,wpoc
     real :: o2lim ! O2 limitation of ammonification (POC remin)
     real :: tiny_val = epsilon(1.)
+    real :: zeu
     ! sedbypass
     real :: florca,flcaca,flsil
     ! cisonew
@@ -221,6 +222,7 @@ contains
     intdms_uv  (:,:) = 0.
     phosy3d  (:,:,:) = 0.
     nutlim_diag(:,:,:,:) = 0.
+    zeu_nutlim_diag(:,:,:) = 0.
 
     if (use_BROMO) then
       int_chbr3_uv  (:,:) = 0.
@@ -316,10 +318,11 @@ contains
     !$OMP  ,growth_co2,phygrowth                                          &
     !$OMP  ,bro_beta,bro_uv                                               &
     !$OMP  ,ano3up_inh,nutlim,anh4lim,nlim,grlim,nh4uptfrac               &
-    !$OMP  ,i,k)
+    !$OMP  ,i,k,zeu)
 
     loop1: do j = 1,kpje
       do i = 1,kpie
+        zeu  = 0.
         do k = 1,merge(kpke,kwrbioz(i,j),lkwrbioz_off)
 
           if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
@@ -627,9 +630,22 @@ contains
             intphosy(i,j)   = intphosy(i,j)  +phosy*rcar*dz  ! primary production in kmol C m-2
             phosy3d(i,j,k)  = phosy*rcar                     ! primary production in kmol C m-3
 
-
+            if ( k<= kwrbioz(i,j)) then
+              zeu  = zeu  + dz ! total depth considered
+              zeu_nutlim_diag(i,j,inutlim_fe)     = zeu_nutlim_diag(i,j,inutlim_fe)                &
+                                                  & + nutlim_diag(i,j,k,inutlim_fe)*dz
+              zeu_nutlim_diag(i,j,inutlim_phosph) = zeu_nutlim_diag(i,j,inutlim_phosph)            &
+                                                  & + nutlim_diag(i,j,k,inutlim_phosph)*dz
+              zeu_nutlim_diag(i,j,inutlim_n)      = zeu_nutlim_diag(i,j,inutlim_n)                 &
+                                                  & + nutlim_diag(i,j,k,inutlim_n)*dz
+            endif
           endif         ! pddpo(i,j,k) > dp_min
         enddo         ! kwrbioz
+        if (zeu > dp_min) then
+          zeu_nutlim_diag(i,j,inutlim_fe)    = zeu_nutlim_diag(i,j,inutlim_fe)    /zeu
+          zeu_nutlim_diag(i,j,inutlim_phosph)= zeu_nutlim_diag(i,j,inutlim_phosph)/zeu
+          zeu_nutlim_diag(i,j,inutlim_n)     = zeu_nutlim_diag(i,j,inutlim_n)     /zeu
+        endif
       enddo         ! kpie
     enddo loop1   ! kpje
 

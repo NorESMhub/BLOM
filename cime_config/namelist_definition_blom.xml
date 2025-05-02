@@ -7875,7 +7875,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value hamocc_output_size="spinup">0,2</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Nutrient limitation Fe - time fraction</desc>
   </entry>
@@ -7888,7 +7888,7 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value hamocc_output_size="spinup">0,2</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Nutrient limitation N - time fraction</desc>
   </entry>
@@ -7901,9 +7901,48 @@
       <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value hamocc_output_size="spinup">0,2</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Nutrient limitation PO4 - time fraction</desc>
+  </entry>
+
+  <entry id="zeu_nutlim_fe">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Euphotic zone nutrient limitation Fe - time fraction</desc>
+  </entry>
+
+  <entry id="zeu_nutlim_n">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Euphotic zone nutrient limitation N - time fraction</desc>
+  </entry>
+
+  <entry id="zeu_nutlim_phosph">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Euphotic zone nutrient limitation PO4 - time fraction</desc>
   </entry>
 
   <entry id="lvl_grazer">
