@@ -47,7 +47,7 @@ module mod_rdlim
                              trxday, srxday, trxdpt, srxdpt, trxlim, &
                              srxlim, srxbal, sprfac, &
                              srxlim, srxbal, sprfac, use_stream_relaxation
-  use mod_swabs,       only: swamth, jwtype, chlopt, ccfile
+  use mod_swabs,       only: swamth, jwtype, chlopt, ccfile, svfile
   use mod_diffusion,   only: readnml_diffusion
   use mod_eddtra,      only: mlrmth, ce, cl, tau_mlr, tau_growing_hbl, &
                              tau_decaying_hbl, tau_growing_hml, &
@@ -138,7 +138,7 @@ contains
          mlrmth,ce,cl,tau_mlr,tau_growing_hbl,tau_decaying_hbl, &
          tau_growing_hml,tau_decaying_hml,lfmin,mstar,nstar,wpup_min, &
          mlrttp,rm0,rm5,tdfile,niwgf,niwbf,niwlf, &
-         swamth,jwtype,chlopt,ccfile, &
+         swamth,jwtype,chlopt,ccfile,svfile, &
          trxday,srxday,trxdpt,srxdpt,trxlim,srxlim, &
          aptflx,apsflx,ditflx,disflx,srxbal,scfile, &
          wavsrc,smtfrc,sprfac, &
@@ -230,6 +230,7 @@ contains
       write (lp,*) 'JWTYPE',JWTYPE
       write (lp,*) 'CHLOPT ',trim(CHLOPT)
       write (lp,*) 'CCFILE ',trim(CCFILE)
+      write (lp,*) 'SVFILE ',trim(SVFILE)
       write (lp,*) 'TRXDAY',TRXDAY
       write (lp,*) 'SRXDAY',SRXDAY
       write (lp,*) 'TRXDPT',TRXDPT
@@ -317,6 +318,7 @@ contains
     call xcbcst(jwtype)
     call xcbcst(chlopt)
     call xcbcst(ccfile)
+    call xcbcst(svfile)
     call xcbcst(trxday)
     call xcbcst(srxday)
     call xcbcst(trxdpt)

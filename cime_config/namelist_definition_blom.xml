@@ -653,6 +653,18 @@
     </desc>
   </entry>
 
+  <entry id="svfile" is_inputdata="yes">
+    <type>char</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>unset</value>
+    </values>
+    <desc>
+      Name of file containing spatially varying spectral band fractions and attenuation lengths
+    </desc>
+  </entry>
+
   <entry id="trxday">
     <type>real</type>
     <category>limits</category>

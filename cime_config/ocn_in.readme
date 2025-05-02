@@ -84,11 +84,13 @@
 ! NIWLF    : Fraction of near-inertial energy dissipated locally beneath
 !            the boundary layer () (f)
 ! SWAMTH   : Shortwave radiation absorption method. Valid methods:
-!            'top-layer', 'jerlov', 'chlorophyll' (a)
+!            'top-layer', 'jerlov', 'chlorophyll', 'spatial_frac_attlen' (a)
 ! JWTYPE   : Number indicating the Jerlov (1968) water type (i)
 ! CHLOPT   : Chlorophyll concentration option. Valid options:
 !            'climatology' (a)
 ! CCFILE   : Name of file containing chlorophyll concentration climatology (a)
+! SVFILE   : Name of file containing spatially varying spectral band fractions
+!            and attenuation lengths (a)
 ! TRXDAY   : e-folding time scale (days) for SST relax., if 0 no relax. (f)
 ! SRXDAY   : e-folding time scale (days) for SSS relax., if 0 no relax. (f)
 ! TRXDPT   : Maximum mixed layer depth for e-folding SST relaxation (m) (f)
