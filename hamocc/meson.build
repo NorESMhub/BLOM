@@ -40,6 +40,7 @@ sources += files(
   'mo_ncout_hamocc.F90',
   'mo_netcdf_bgcrw.F90',
   'mo_ocprod.F90',
+  'mo_output_forcing.F90',
   'mo_powach.F90',
   'mo_powadi.F90',
   'mo_preftrc.F90',

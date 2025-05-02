@@ -1,4 +1,4 @@
-module mod_output_forcing
+module mo_output_forcing
 
    use netcdf,    only: nf90_64bit_offset, nf90_global, nf90_noerr, nf90_nofill, nf90_def_dim,   &
                         nf90_enddef, nf90_close, nf90_create, nf90_strerror, &
@@ -87,4 +87,4 @@ contains
 
     end subroutine output_forcing
 
- end module mod_output_forcing
+ end module mo_output_forcing
