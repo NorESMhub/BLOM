@@ -62,7 +62,7 @@
     </machines>
     <options>
       <option name="wallclock">00:20:00</option>
-      <option name="comment">debug mode; 1 degree; hybrid coordinates; hamocc; JRA forcing; 20TR historical</option>
+      <option name="comment">debug mode; 1 degree; hybrid coordinates; hamocc; JRA repeat year forcing 1961-1962</option>
     </options>
   </test>
   <test name="SMS_D_Ld1" grid="TL319_tn14" compset="NOIIAJRARYF8485OC">
@@ -72,7 +72,7 @@
     </machines>
     <options>
       <option name="wallclock">00:20:00</option>
-      <option name="comment">debug mode; 1 degree; hybrid coordinates; hamocc; JRA forcing; 20TR historical</option>
+      <option name="comment">debug mode; 1 degree; hybrid coordinates; hamocc; JRA repeat year forcing 1984-1985</option>
     </options>
   </test>
   <test name="ERS_Ld3" grid="T62_tn21" compset="NOINY">
