@@ -8,7 +8,7 @@
     </machines>
     <options>
       <option name="wallclock">00:20:00</option>
-      <option name="comment">intel debug mode; 1 degree; hybrid coordinates; hamocc; core forcing</option>
+      <option name="comment">debug mode; 1 degree; hybrid coordinates; hamocc; core forcing</option>
     </options>
   </test>
   <test name="SMS_D_Ld1" grid="T62_tn14" compset="NOIIA">
@@ -17,7 +17,7 @@
     </machines>
     <options>
       <option name="wallclock">00:20:00</option>
-      <option name="comment">intel debug mode; 1 degree; hybrid coordinates; IAF forcing</option>
+      <option name="comment">debug mode; 1 degree; hybrid coordinates; IAF forcing</option>
     </options>
   </test>
   <test name="SMS_D_Ld1" grid="T62_tn14" compset="NOIIAOC">
@@ -26,7 +26,7 @@
     </machines>
     <options>
       <option name="wallclock">00:20:00</option>
-      <option name="comment">intel debug mode; 1 degree; hybrid coordinates; hamocc; IAF forcing</option>
+      <option name="comment">debug mode; 1 degree; hybrid coordinates; hamocc; IAF forcing</option>
     </options>
   </test>
   <test name="SMS_D_Ld1" grid="T62_tn14" compset="NOIIAOC20TR">
@@ -35,7 +35,7 @@
     </machines>
     <options>
       <option name="wallclock">00:20:00</option>
-      <option name="comment">intel debug mode; 1 degree; hybrid coordinates; hamocc; IAF forcing; 20TR historical</option>
+      <option name="comment">debug mode; 1 degree; hybrid coordinates; hamocc; IAF forcing; 20TR historical</option>
     </options>
   </test>
   <test name="SMS_D_Ld1" grid="T62_tn14" compset="NOIIAJRAOC1850">
@@ -44,7 +44,7 @@
     </machines>
     <options>
       <option name="wallclock">00:20:00</option>
-      <option name="comment">intel debug mode; 1 degree; hybrid coordinates; hamocc; JRA forcing; 1850 clim</option>
+      <option name="comment">debug mode; 1 degree; hybrid coordinates; hamocc; JRA forcing; 1850 clim</option>
     </options>
   </test>
   <test name="SMS_D_Ld1" grid="T62_tn14" compset="NOIIAJRAOC20TR">
@@ -53,7 +53,26 @@
     </machines>
     <options>
       <option name="wallclock">00:20:00</option>
-      <option name="comment">intel debug mode; 1 degree; hybrid coordinates; hamocc; JRA forcing; 20TR historical</option>
+      <option name="comment">debug mode; 1 degree; hybrid coordinates; hamocc; JRA forcing; 20TR historical</option>
+    </options>
+  </test>
+  <test name="SMS_D_Ld1" grid="TL319_tn14" compset="NOIIAJRARYF6162OC">
+    <machines>
+      <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
+    </machines>
+    <options>
+      <option name="wallclock">00:20:00</option>
+      <option name="comment">debug mode; 1 degree; hybrid coordinates; hamocc; JRA forcing; 20TR historical</option>
+    </options>
+  </test>
+  <test name="SMS_D_Ld1" grid="TL319_tn14" compset="NOIIAJRARYF8485OC">
+    <machines>
+      <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
+      <machine name="betzy" compiler="gnu" category="aux_blom_noresm"/>
+    </machines>
+    <options>
+      <option name="wallclock">00:20:00</option>
+      <option name="comment">debug mode; 1 degree; hybrid coordinates; hamocc; JRA forcing; 20TR historical</option>
     </options>
   </test>
   <test name="ERS_Ld3" grid="T62_tn21" compset="NOINY">
@@ -62,7 +81,7 @@
     </machines>
     <options>
       <option name="wallclock">00:20:00</option>
-      <option name="comment">intel restart test; 2 degree; hybrid coordinates; core forcing</option>
+      <option name="comment">restart test; 2 degree; hybrid coordinates; core forcing</option>
     </options>
   </test>
   <test name="ERS_Ld3" grid="T62_tn14" compset="NOINYOC">
@@ -71,7 +90,7 @@
     </machines>
     <options>
       <option name="wallclock">00:20:00</option>
-      <option name="comment">intel restart test; 1 degree; hybrid coordinates; hamocc; core forcing</option>
+      <option name="comment">restart test; 1 degree; hybrid coordinates; hamocc; core forcing</option>
     </options>
   </test>
   <test name="ERS_Ld3" grid="T62_tn14" compset="N2NOINYOC">
@@ -80,7 +99,7 @@
     </machines>
     <options>
       <option name="wallclock">00:20:00</option>
-      <option name="comment">intel restart test; 1 degree; isopycnic layers; hamocc; core forcing</option>
+      <option name="comment">restart test; 1 degree; isopycnic layers; hamocc; core forcing</option>
     </options>
   </test>
   <test name="ERS_Ld3" grid="TL319_tn05" compset="NOIIAJRA">
@@ -89,7 +108,7 @@
     </machines>
     <options>
       <option name="wallclock">00:20:00</option>
-      <option name="comment">intel restart test; 0.5 degree; hybrid coordinates; JRA forcing</option>
+      <option name="comment">restart test; 0.5 degree; hybrid coordinates; JRA forcing</option>
     </options>
   </test>
   <test name="ERR_Ld3" grid="TL319_tn14" compset="NOIIAJRAOC">
@@ -98,7 +117,7 @@
     </machines>
     <options>
       <option name="wallclock">00:20:00</option>
-      <option name="comment">gnu restart/resubmit test; 1 degree; hybrid coordinates; hamocc; JRA forcing</option>
+      <option name="comment">restart/resubmit test; 1 degree; hybrid coordinates; hamocc; JRA forcing</option>
     </options>
   </test>
   <test name="ERI_C2" grid="TL319_tn14" compset="NOIIAJRAOC">
@@ -107,10 +126,9 @@
     </machines>
     <options>
       <option name="wallclock">01:00:00</option>
-      <option name="comment">intel hybrid/branch/restart test; 1 degree; hybrid coordinates; hamocc; JRA forcing</option>
+      <option name="comment">hybrid/branch/restart test; 1 degree; hybrid coordinates; hamocc; JRA forcing</option>
     </options>
   </test>
-
   <test name="ERP_Ld3_P256" grid="T62_tn14" compset="NOINYOC">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
@@ -129,7 +147,7 @@
     </machines>
     <options>
       <option name="wallclock">00:20:00</option>
-      <option name="comment">intel debug mode; 1 degree; hybrid coordinates; hamocc; wave code; core forcing</option>
+      <option name="comment">debug mode; 1 degree; hybrid coordinates; hamocc; wave code; core forcing</option>
     </options>
   </test>
   <test name="ERS_Ld3" grid="T62_tn14_wtn14nw" compset="NOINY_WW3" testmods="blom/wavice">
@@ -139,7 +157,7 @@
     </machines>
     <options>
       <option name="wallclock">01:00:00</option>
-      <option name="comment">intel restart test; 1 degree; hybrid coordinates; wave code; core forcing</option>
+      <option name="comment">restart test; 1 degree; hybrid coordinates; wave code; core forcing</option>
     </options>
   </test>
   <!-- Declarations for tests with different iHAMOCC settings: aux_hamocc_noresm -->
