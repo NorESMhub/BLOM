@@ -17,7 +17,10 @@
 
 module mo_kind
 
-  use, intrinsic :: iso_fortran_env, only: int8, int16, int32, int64, real32, real64
+  use mod_types,   only: blom_i1 => i1, blom_i2 => i2, blom_i4 => i4, blom_i8 => i8, &
+                         blom_r4 => r4, blom_r8 => r8, blom_kind_cs, blom_kind_cm,   &
+                         blom_kind_cl, blom_kind_cx, blom_kind_cxx
+  use mod_utility, only: fnmlen
 
   implicit none
   !----------------------------------------------------------------------------
@@ -25,17 +28,17 @@ module mo_kind
   !----------------------------------------------------------------------------
 
   public
-  integer,parameter :: i1 = int8               ! 8-bit integer
-  integer,parameter :: i2 = int16              ! 16-bit integer
-  integer,parameter :: i4 = int32              ! 32-bit integer
-  integer,parameter :: i8 = int64              ! 64-bit integer
-  integer,parameter :: r4 = real32             ! 4 byte real
-  integer,parameter :: r8 = real64             ! 8 byte real
-  integer,parameter :: HAMOCC_KIND_CS = 80     ! short char
-  integer,parameter :: HAMOCC_KIND_CM = 160    ! mid-sized char
-  integer,parameter :: HAMOCC_KIND_CL = 256    ! long char
-  integer,parameter :: HAMOCC_KIND_CX = 512    ! extra-long char
-  integer,parameter :: HAMOCC_KIND_CXX= 4096   ! extra-extra-long char
+  integer,parameter :: i1 = blom_i1                     ! 8-bit integer
+  integer,parameter :: i2 = blom_i2                     ! 16-bit integer
+  integer,parameter :: i4 = blom_i4                     ! 32-bit integer
+  integer,parameter :: i8 = blom_i8                     ! 64-bit integer
+  integer,parameter :: r4 = blom_r4                     ! 4 byte real
+  integer,parameter :: r8 = blom_r8                     ! 8 byte real
+  integer,parameter :: HAMOCC_KIND_CS  = blom_kind_cs   ! short char
+  integer,parameter :: HAMOCC_KIND_CM  = blom_kind_cm   ! mid-sized char
+  integer,parameter :: HAMOCC_KIND_CL  = blom_kind_cl   ! long char
+  integer,parameter :: HAMOCC_KIND_CX  = blom_kind_cx   ! extra-long char
+  integer,parameter :: HAMOCC_KIND_CXX = blom_kind_cxx  ! extra-extra-long char
 
-  integer,parameter :: bgc_fnmlen = 512        ! default filename length
+  integer,parameter :: bgc_fnmlen = fnmlen              ! default filename length
 end module mo_kind
