@@ -41,4 +41,6 @@ module mo_kind
   integer,parameter :: HAMOCC_KIND_CXX = blom_kind_cxx  ! extra-extra-long char
 
   integer,parameter :: bgc_fnmlen = fnmlen              ! default filename length
+  integer,parameter :: rp = r8                          ! default real precision
+  integer,parameter :: ip = i4                          ! default integer precision
 end module mo_kind
