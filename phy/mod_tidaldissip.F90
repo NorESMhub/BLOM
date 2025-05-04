@@ -27,6 +27,7 @@ module mod_tidaldissip
    use mod_constants, only: spval
    use mod_xc
    use mod_checksum, only: csdiag, chksummsk
+   use mod_utility, only: fnmlen
    use netcdf
 
    implicit none
@@ -36,7 +37,7 @@ module mod_tidaldissip
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy) :: &
       twedon ! Tidal wave energy dissipation over buoyancy frequency [g s-2].
 
-   character(len = 256) :: &
+   character(len = fnmlen) :: &
       tdfile ! Name of file containing tidal wave energy dissipation divided by
              ! by bottom buoyancy frequency.
 

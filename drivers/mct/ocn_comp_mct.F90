@@ -61,6 +61,7 @@ module ocn_comp_mct
    use mod_grid,         only: scp2, plon, plat, scuy, scvx, scuxi, scvyi
    use mod_state,        only: u, v, temp, saln, pbu, pbv, ubflxs, vbflxs, sealv
    use mod_cesm,         only: frzpot
+   use mod_utility,      only: fnmlen
    use blom_cpl_indices
 
    implicit none
@@ -272,7 +273,7 @@ module ocn_comp_mct
       type(seq_infodata_type), pointer :: infodata   ! Input init object
       integer :: shrlogunit, shrloglev, ymd, tod, ymd_sync, tod_sync
       integer :: nfu
-      character(len = 256) :: restartfn
+      character(len = fnmlen) :: restartfn
 
       ! ----------------------------------------------------------------
       ! Reset shr logging to my log file

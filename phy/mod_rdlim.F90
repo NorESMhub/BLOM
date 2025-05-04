@@ -111,6 +111,7 @@ module mod_rdlim
   use mod_checksum,    only: csdiag
   use mod_nctools,     only: ncfopn, ncgeti, ncgetr, ncfcls
   use mod_ifdefs,      only: use_diag
+  use mod_utility,     only: fnmlen
 
   implicit none
   private
@@ -126,8 +127,8 @@ contains
 
     ! Local variables
     type(date_type) :: date0_rest
-    character(len = 256) :: nlfnm,rstfnm
-    character(len = 256) :: l_rpfile
+    character(len = fnmlen) :: nlfnm,rstfnm
+    character(len = fnmlen) :: l_rpfile
     logical :: fexist
     integer :: m,n,idate,idate0,nfu,ios
 
@@ -1030,7 +1031,7 @@ contains
         call ncfcls
         nday1 = nint(time-time0)
         n = 1
-        do while (n < 256.and.rstfnm(n:n) /= ' ')
+        do while (n < fnmlen.and.rstfnm(n:n) /= ' ')
           n = n+1
         end do
         n = n-1

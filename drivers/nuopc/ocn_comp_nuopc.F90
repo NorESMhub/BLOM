@@ -58,6 +58,7 @@ module ocn_comp_nuopc
    use mod_restart,       only: restart_write
    use ocn_stream_sss,    only: ocn_stream_sss_init, ocn_stream_sss_interp
    use ocn_stream_sst,    only: ocn_stream_sst_init, ocn_stream_sst_interp
+   use mod_utility,       only: fnmlen
 #ifdef HAMOCC
    use mo_control_bgc,    only: use_BROMO
    use ocn_stream_dust,   only: ocn_stream_dust_init, ocn_stream_dust_interp
@@ -853,8 +854,8 @@ contains
       logical :: first_call = .true., restart_alarm_on, stop_alarm_on, wrtrst
       character(len=cllen) :: msg
       integer :: nfu
-      character(len = 256) :: restartfn
-      character(len = 256) :: rpfile
+      character(len = fnmlen) :: restartfn
+      character(len = fnmlen) :: rpfile
 
       if (dbug > 5) call ESMF_LogWrite(subname//': called', ESMF_LOGMSG_INFO)
 

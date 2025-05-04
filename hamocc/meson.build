@@ -23,6 +23,7 @@ sources += files(
   'mo_chemcon.F90',
   'mo_clim_swa.F90',
   'mo_control_bgc.F90',
+  'mo_kind.F90',
   'mo_intfcblom.F90',
   'mo_param1_bgc.F90',
   'mo_param_bgc.F90',

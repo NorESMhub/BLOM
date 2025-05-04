@@ -61,7 +61,7 @@ module mod_dia
                            surrlx, salflx, brnflx, salrlx, taux, tauy, &
                            ustar, ustar3
   use mod_niw,       only: idkedt
-  use mod_utility,   only: util1, util2, util3, util4
+  use mod_utility,   only: util1, util2, util3, util4, fnmlen
   use mod_ben02,     only: dfl, alb
   use mod_thdysi,    only: tsrfm,ticem
   use mod_tracers,   only: ntrocn, ntr, natr, itriag, itrtke, itrgls, trc
@@ -161,8 +161,8 @@ module mod_dia
   integer, parameter         :: slenmax=50
   integer, parameter, public :: rflgdm=20
   character(len=slenmax), dimension(odm), public :: mer_regnam = ''
-  character(len=256), public :: mer_orfile
-  character(len=256), public :: mer_mifile
+  character(len=fnmlen), public :: mer_orfile
+  character(len=fnmlen), public :: mer_mifile
   integer, dimension(odm,rflgdm), public :: mer_regflg = -1
   integer, dimension(odm), public :: mer_nflg
   real, dimension(odm), public :: mer_minlat=-90.
@@ -178,7 +178,7 @@ module mod_dia
        mhflx,mhftd,mhfsm,mhfld,msflx,msftd,msfsm,msfld
 
   ! Section transports
-  character(len = 256), public :: sec_sifile
+  character(len = fnmlen), public :: sec_sifile
   integer :: sec_num
   integer, parameter :: max_sec = 400
   character(len = slenmax) :: sec_name(max_sec)
@@ -374,7 +374,7 @@ contains
     character(len = *), intent(out):: fname   ! file name
 
     ! Local variables
-    character(len = 256) :: prefix
+    character(len = fnmlen) :: prefix
     character(len = 1) :: sep1,sep2
     type(date_type) :: date_tmp
     integer :: errstat,ns
@@ -1886,15 +1886,15 @@ contains
     integer :: iogrp
     integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), save :: iuu
     integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), save :: ivv
-    integer,              save :: irec(nphymax)
-    character(len=256),   save :: fname(nphymax)
-    logical                    :: iniflg = .true.
-    logical                    :: append2file(nphymax) = .false.
-    integer                    :: i,j,k,l,cmpflg
-    character(len=30)          :: timeunits
-    character(len=20)          :: startdate
-    real                       :: datenum,rnacc
-    real, dimension(itdm,jtdm) :: bflxg,strg
+    integer,               save :: irec(nphymax)
+    character(len=fnmlen), save :: fname(nphymax)
+    logical                     :: iniflg = .true.
+    logical                     :: append2file(nphymax) = .false.
+    integer                     :: i,j,k,l,cmpflg
+    character(len=30)           :: timeunits
+    character(len=20)           :: startdate
+    real                        :: datenum,rnacc
+    real, dimension(itdm,jtdm)  :: bflxg,strg
     integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ind1,ind2
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ddm) :: wghts
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ddm) :: wghtsflx

@@ -25,13 +25,14 @@ module mod_grid
    use mod_types, only: r8
    use mod_constants, only: spval
    use mod_xc, only: idm, jdm, kdm, nbdy, ii, jj, kk
+   use mod_utility, only: fnmlen
 
    implicit none
 
    private
 
    ! Variable to be set in namelist:
-   character(len = 256) :: &
+   character(len = fnmlen) :: &
       grfile     ! Name of file containing grid specification.
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, 4) :: &
