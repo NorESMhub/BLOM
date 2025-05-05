@@ -18,8 +18,8 @@
 module mo_kind
 
   use mod_types,   only: blom_i1 => i1, blom_i2 => i2, blom_i4 => i4, blom_i8 => i8, &
-                         blom_r4 => r4, blom_r8 => r8, blom_kind_cs, blom_kind_cm,   &
-                         blom_kind_cl, blom_kind_cx, blom_kind_cxx
+                         blom_r4 => r4, blom_r8 => r8, blom_char_s, blom_char_m,     &
+                         blom_char_l, blom_char_x, blom_char_xx
   use mod_utility, only: fnmlen
 
   implicit none
@@ -28,19 +28,19 @@ module mo_kind
   !----------------------------------------------------------------------------
 
   public
-  integer,parameter :: i1 = blom_i1                     ! 8-bit integer
-  integer,parameter :: i2 = blom_i2                     ! 16-bit integer
-  integer,parameter :: i4 = blom_i4                     ! 32-bit integer
-  integer,parameter :: i8 = blom_i8                     ! 64-bit integer
-  integer,parameter :: r4 = blom_r4                     ! 4 byte real
-  integer,parameter :: r8 = blom_r8                     ! 8 byte real
-  integer,parameter :: HAMOCC_KIND_CS  = blom_kind_cs   ! short char
-  integer,parameter :: HAMOCC_KIND_CM  = blom_kind_cm   ! mid-sized char
-  integer,parameter :: HAMOCC_KIND_CL  = blom_kind_cl   ! long char
-  integer,parameter :: HAMOCC_KIND_CX  = blom_kind_cx   ! extra-long char
-  integer,parameter :: HAMOCC_KIND_CXX = blom_kind_cxx  ! extra-extra-long char
+  integer,parameter :: i1 = blom_i1                   ! 8-bit integer
+  integer,parameter :: i2 = blom_i2                   ! 16-bit integer
+  integer,parameter :: i4 = blom_i4                   ! 32-bit integer
+  integer,parameter :: i8 = blom_i8                   ! 64-bit integer
+  integer,parameter :: r4 = blom_r4                   ! 4 byte real
+  integer,parameter :: r8 = blom_r8                   ! 8 byte real
+  integer,parameter :: HAMOCC_CHAR_S  = blom_char_s   ! short char
+  integer,parameter :: HAMOCC_CHAR_M  = blom_char_m   ! mid-sized char
+  integer,parameter :: HAMOCC_CHAR_L  = blom_char_l   ! long char
+  integer,parameter :: HAMOCC_CHAR_X  = blom_char_x   ! extra-long char
+  integer,parameter :: HAMOCC_CHAR_XX = blom_char_xx  ! extra-extra-long char
 
-  integer,parameter :: bgc_fnmlen = fnmlen              ! default filename length
-  integer,parameter :: rp = r8                          ! default real precision
-  integer,parameter :: ip = i4                          ! default integer precision
+  integer,parameter :: bgc_fnmlen = fnmlen            ! default filename length
+  integer,parameter :: rp = r8                        ! default real precision
+  integer,parameter :: ip = i4                        ! default integer precision
 end module mo_kind

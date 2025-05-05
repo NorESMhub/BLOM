@@ -22,7 +22,7 @@ module mod_utility
 ! This module contains various utility variables.
 ! ------------------------------------------------------------------------------
 
-   use mod_types, only: r8, blom_kind_cx
+   use mod_types, only: r8, blom_char_x
    use mod_constants, only: spval
    use mod_xc
    use mod_checksum, only: csdiag, chksummsk
@@ -50,7 +50,7 @@ module mod_utility
       util1, util2, util3, util4
 
    ! Default length of character variables for filenames
-   integer,parameter :: fnmlen = blom_kind_cx
+   integer,parameter :: fnmlen = blom_char_x
 
    public :: utotm, vtotm, utotn, vtotn, &
              uflux, vflux, uflux2, vflux2, uflux3, vflux3, &
