@@ -27,6 +27,7 @@ module mod_diffusion
    use mod_constants, only: spval, epsilk
    use mod_xc
    use mod_forcing, only: wavsrc_opt, wavsrc_none, wavsrc_param, wavsrc_extern
+   use mod_utility, only: fnmlen
 
    implicit none
    private
@@ -72,7 +73,7 @@ module mod_diffusion
                 ! according to Gregg et al. (2003).
       smobld    ! If true, apply lateral smoothing of CVMix estimated boundary
                 ! layer depth.
-   character(len = 256) :: &
+   character(len = fnmlen) :: &
       tbfile    ! Name of file containing topographic beta parameter.
    character(len = 80) :: &
       lngmtp, & ! Type of Langmuir turbulence parameterization. Valid types:

@@ -59,13 +59,14 @@ module mod_inicon
   use mod_pointtest, only: itest, jtest, ptest
   use mod_checksum,  only: csdiag, chksummsk
   use mod_inicon_ben02, only: inicon_ben02
+  use mod_utility,   only: fnmlen
   use netcdf
 
   implicit none
   private
 
   ! Variables to be set in namelist:
-  character(len = 256), public :: &
+  character(len = fnmlen), public :: &
        icfile ! Name of file containing initial conditions, that is
   ! either a valid restart file or 'inicon.nc' if
   ! climatological based initial conditions are desired.

@@ -222,13 +222,14 @@ contains
                               SDM_rem_aerob,SDM_rem_denit,SDM_rem_sulf,jsdm_rem_aerob,             &
                               jsdm_rem_denit,jsdm_rem_sulf
     use mo_param_bgc,   only: c14fac,param4nc,nentries,controls4nc,centries
+    use mo_kind,        only: bgc_fnmlen
 
     ! Arguments
     integer                  :: i,j,k,l,nt
     integer                  :: ny,nm,nd,dayfrac,cmpflg,iogrp
     integer,            save :: irec(nbgcmax)
     logical,            save :: append2file(nbgcmax)
-    character(len=256), save :: fname(nbgcmax)
+    character(len=bgc_fnmlen), save :: fname(nbgcmax)
     character(len=20)        :: startdate
     character(len=30)        :: timeunits
     real                     :: datenum,rnacc

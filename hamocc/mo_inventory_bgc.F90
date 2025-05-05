@@ -723,6 +723,7 @@ contains
                                inatalkali,inatcalc,inatsco212,ianh4,iano2,iprefsilica
       use mo_control_bgc,only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,  &
                                use_CFC,use_natDIC,use_BROMO,use_pref_tracers,dtbgc
+      use mo_kind,       only: bgc_fnmlen
 
       implicit none
 
@@ -730,7 +731,7 @@ contains
 
       !=== Save filename and counter variables
       !--- netCDF output file names
-      character(len=256), dimension(nbgcmax), save :: fname_inv
+      character(len=bgc_fnmlen), dimension(nbgcmax), save :: fname_inv
       integer, dimension(nbgcmax), save :: ncrec = 0
       logical, dimension(nbgcmax), save :: append2file_inv
       data append2file_inv /nbgcmax*.false./

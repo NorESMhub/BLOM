@@ -29,6 +29,8 @@ module mo_read_fedep
   !    and a module that applies the fluxes in core hamocc (mo_apply_fedep)
   !*************************************************************************************************
 
+  use mo_kind, only: bgc_fnmlen
+
   implicit none
   private
 
@@ -36,7 +38,7 @@ module mo_read_fedep
   public :: get_fedep      ! Get the iron (dust) deposition for a given month
 
   ! File name (incl. full path) for input data, set through namelist in hamocc_init
-  character(len=512), public :: fedepfile=''
+  character(len=bgc_fnmlen), public :: fedepfile=''
 
   ! Array to store dust deposition flux after reading from file
   real, allocatable,  public :: dustflx(:,:,:)

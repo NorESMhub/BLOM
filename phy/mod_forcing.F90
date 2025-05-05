@@ -32,6 +32,7 @@ module mod_forcing
    use mod_tracers, only: ntr
    use mod_ifdefs, only: use_TRC
    use mod_checksum, only: csdiag, chksummsk
+   use mod_utility, only: fnmlen
 
    implicit none
 
@@ -58,7 +59,7 @@ module mod_forcing
       srxlim          ! Maximum absolute value of SSS difference in relaxation
                       ! [g kg-1].
 
-   character(len = 256) :: &
+   character(len = fnmlen) :: &
       scfile, &       ! Name of file containing monthly SSS climatology.
       wavsrc          ! Source of wave fields. Valid source: 'none', 'param',
                       ! 'extern'.

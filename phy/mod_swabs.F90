@@ -55,6 +55,7 @@ module mod_swabs
    use mod_time,     only: xmi, l1mi, l2mi, l3mi, l4mi, l5mi
    use mod_checksum, only: csdiag, chksummsk
    use mod_intp1d,   only: intp1d
+   use mod_utility,  only: fnmlen
    use netcdf
 
    implicit none
@@ -82,9 +83,9 @@ module mod_swabs
    !   ccfile: Name of file containing chlorophyll concentration climatology.
    !   svfile: Name of file containing spatially varying spectral band fractions
    !           and attenuation lengths.
-   character (len = 80)  :: swamth, chlopt
-   character (len = 256) :: ccfile, svfile
-   integer               :: jwtype
+   character (len = 80)     :: swamth, chlopt
+   character (len = fnmlen) :: ccfile, svfile
+   integer                  :: jwtype
 
   ! Parameter arrays related to shortwave radiation absorption following Paulson
   ! and Simpson's (1977) fit to the data of Jerlov (1968):
