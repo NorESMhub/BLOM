@@ -23,11 +23,12 @@ module mo_kind
   use mod_utility, only: fnmlen
 
   implicit none
+  private
+
   !----------------------------------------------------------------------------
-  ! precision/kind constants add data public
+  ! precision/kind constants, default settings
   !----------------------------------------------------------------------------
 
-  public
   integer,parameter :: i1 = blom_i1                   ! 8-bit integer
   integer,parameter :: i2 = blom_i2                   ! 16-bit integer
   integer,parameter :: i4 = blom_i4                   ! 32-bit integer
@@ -43,4 +44,9 @@ module mo_kind
   integer,parameter :: bgc_fnmlen = fnmlen            ! default filename length
   integer,parameter :: rp = r8                        ! default real precision
   integer,parameter :: ip = i4                        ! default integer precision
+
+  ! Only expose the default parameters at this stage.
+  ! We can revisit this if we see that a larger set of parameters is needed.
+  public :: bgc_fnmlen, rp, ip
+
 end module mo_kind
