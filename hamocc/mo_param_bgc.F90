@@ -642,20 +642,14 @@ contains
 
     namelist /bgcparams/ bkphy,dyphy,bluefix,bkzoo,grazra,spemor,gammap,gammaz,  &
                          ecan,zinges,epsher,bkopal,rcalc,ropal,                  &
-<<<<<<< HEAD
-                         remido,drempoc,dremopal,dremn2o,dremsul,fetune,relaxfe, &
-                         wmin,wmax,wlin,wpoc_const,wcal_const,wopal_const,       &
-                         disso_poc,disso_sil,disso_caco3,rem_tdoclc,rem_tdochc,  &
-=======
                          remido,drempoc,dremopal,dremcalc,dremn2o,dremsul,       &
                          fetune,relaxfe,wmin,wmax,wlin,wpoc_const,wcal_const,    &
                          wopal_const,disso_poc,disso_sil,disso_caco3,            &
->>>>>>> master
                          rano3denit,rano2anmx,rano2denit,ran2odenit,rdnra,       &
                          ranh4nitr,rano2nitr,rano3denit_sed,rano2anmx_sed,       &
                          rano2denit_sed,ran2odenit_sed,rdnra_sed,ranh4nitr_sed,  &
                          rano2nitr_sed,atm_nh3,atm_n2o,bkphyanh4,bkphyano3,      &
-                         bkphosph,                                               &
+                         bkphosph,rem_tdoclc,rem_tdochc,                         &
                          q10ano3denit,sc_ano3denit,bkano3denit,q10anmx,alphaanmx,&
                          bkoxanmx,bkano2anmx,q10ano2denit,                       &
                          bkoxano2denit,bkano2denit,q10an2odenit,bkoxan2odenit,   &
