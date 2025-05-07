@@ -458,12 +458,6 @@ CONTAINS
     if (use_river2omip) then
       call read_netcdf_var(ncid,'tdoc_lc',locetra(1,1,1,itdoc_lc),2*kpke,0,iotype)
       call read_netcdf_var(ncid,'tdoc_hc',locetra(1,1,1,itdoc_hc),2*kpke,0,iotype)
-      if (use_cisonew) then
-       call read_netcdf_var(ncid,'tdoc_lc13',locetra(1,1,1,itdoc_lc13),2*kpke,0,iotype)
-       call read_netcdf_var(ncid,'tdoc_hc13',locetra(1,1,1,itdoc_hc13),2*kpke,0,iotype)
-       call read_netcdf_var(ncid,'tdoc_lc14',locetra(1,1,1,itdoc_lc14),2*kpke,0,iotype)
-       call read_netcdf_var(ncid,'tdoc_hc14',locetra(1,1,1,itdoc_hc14),2*kpke,0,iotype)
-      endif
     endif
     if (use_cisonew .and. lread_iso) then
       call read_netcdf_var(ncid,'sco213',locetra(1,1,1,isco213),2*kpke,0,iotype)
@@ -478,6 +472,12 @@ CONTAINS
       call read_netcdf_var(ncid,'poc14',locetra(1,1,1,idet14),2*kpke,0,iotype)
       call read_netcdf_var(ncid,'calciu13',locetra(1,1,1,icalc13),2*kpke,0,iotype)
       call read_netcdf_var(ncid,'calciu14',locetra(1,1,1,icalc14),2*kpke,0,iotype)
+      if (use_river2omip) then
+       call read_netcdf_var(ncid,'tdoc_lc13',locetra(1,1,1,itdoc_lc13),2*kpke,0,iotype)
+       call read_netcdf_var(ncid,'tdoc_hc13',locetra(1,1,1,itdoc_hc13),2*kpke,0,iotype)
+       call read_netcdf_var(ncid,'tdoc_lc14',locetra(1,1,1,itdoc_lc14),2*kpke,0,iotype)
+       call read_netcdf_var(ncid,'tdoc_hc14',locetra(1,1,1,itdoc_hc14),2*kpke,0,iotype)
+      endif
     endif
     if (use_AGG)then
       call read_netcdf_var(ncid,'snos',locetra(1,1,1,inos),2*kpke,0,iotype)
@@ -647,6 +647,10 @@ CONTAINS
               locetra(i,j,k,idet14)=locetra(i,j,k,idet)*rco214*bifr14_ini
               locetra(i,j,k,icalc13)=locetra(i,j,k,icalc)*rco213
               locetra(i,j,k,icalc14)=locetra(i,j,k,icalc)*rco214
+              if (use_river2omip) then
+                locetra(i,j,k,itdoc_lc13)=locetra(i,j,k,itdoc_lc13)*rco213*bifr13_ini
+                locetra(i,j,k,itdoc_lc14)=locetra(i,j,k,itdoc_lc14)*rco214*bifr14_ini
+              endif
             endif
           enddo
         enddo

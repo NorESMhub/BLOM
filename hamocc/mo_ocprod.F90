@@ -522,8 +522,8 @@ contains
               if (.not. use_extNcycle) then
                 ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)   + tdoclc_rem*rnit_tdoclc             &
                                       &                       + tdochc_rem*rnit_tdochc
-                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - (rnit_tdoclc+1.)*tdoclc_rem        &
-                                      &                       - (rnit_tdochc+1.)*tdochc_rem
+                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - tdoclc_rem*(rnit_tdoclc+1.)        &
+                                      &                       - tdochc_rem*(rnit_tdochc+1.)
                 ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - tdoclc_rem*ro2ut_tdoclc            &
                                       &                       - tdochc_rem*ro2ut_tdochc
               else
@@ -834,8 +834,8 @@ contains
               if (.not. use_extNcycle) then
                 ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)   + tdoclc_rem*rnit_tdoclc             &
                                       &                       + tdochc_rem*rnit_tdochc
-                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - (rnit_tdoclc+1.)*tdoclc_rem        &
-                                      &                       - (rnit_tdochc+1.)*tdochc_rem
+                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - tdoclc_rem*(rnit_tdoclc+1.)        &
+                                      &                       - tdochc_rem*(rnit_tdochc+1.)
                 ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - tdoclc_rem*ro2ut_tdoclc            &
                                       &                       - tdochc_rem*ro2ut_tdochc
               else
