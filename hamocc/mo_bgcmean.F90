@@ -181,6 +181,8 @@ module mo_bgcmean
        & LVL_D13C      =0    ,LVL_D14C      =0    ,LVL_BIGD14C   =0    ,  &
        & LVL_POC13     =0    ,LVL_DOC13     =0    ,LVL_CALC13    =0    ,  &
        & LVL_PHYTO13   =0    ,LVL_GRAZER13  =0    ,                       &
+       & LVL_NUTLIM_FE =0    ,LVL_NUTLIM_N  =0    ,LVL_NUTLIM_PHOSPH=0 ,  &
+       & ZEU_NUTLIM_FE =0    ,ZEU_NUTLIM_N  =0    ,ZEU_NUTLIM_PHOSPH=0 ,  &
        ! extNcycle LVL
        & LVL_ANH4      =0    ,LVL_ANO2      =0    ,                       &
        & LVL_nitr_NH4  =0    ,LVL_nitr_NO2  =0    ,LVL_nitr_N2O_prod =0,  &
@@ -298,6 +300,8 @@ module mo_bgcmean
        & LVL_D13C          ,LVL_D14C          ,LVL_BIGD14C       ,        &
        & LVL_PHYTO13       ,LVL_GRAZER13      ,LVL_POC13         ,        &
        & LVL_DOC13         ,LVL_CALC13        ,                           &
+       & LVL_NUTLIM_FE     ,LVL_NUTLIM_N      ,LVL_NUTLIM_PHOSPH ,        &
+       & ZEU_NUTLIM_FE     ,ZEU_NUTLIM_N      ,ZEU_NUTLIM_PHOSPH ,        &
        & LVL_ANH4          ,LVL_ANO2          ,                           &
        & LVL_nitr_NH4      ,LVL_nitr_NO2      ,LVL_nitr_N2O_prod ,        &
        & LVL_nitr_NH4_OM   ,LVL_nitr_NO2_OM   ,LVL_denit_NO3     ,        &
@@ -426,7 +430,10 @@ module mo_bgcmean
        &          jdustflx1000= 0 ,                                       &
        &          jdustflx2000= 0 ,                                       &
        &          jdustflx4000= 0 ,                                       &
-       &          jdustflx_bot= 0
+       &          jdustflx_bot= 0 ,                                       &
+       &          jzeunutlim_fe      = 0 ,                                &
+       &          jzeunutlim_phosph  = 0 ,                                &
+       &          jzeunutlim_n       = 0
 
   integer, dimension(nbgcmax) ::                                          &
        &          jsediffic  = 0 ,                                        &
@@ -515,6 +522,9 @@ module mo_bgcmean
        &          jcfc12     = 0 ,                                        &
        &          jsf6       = 0 ,                                        &
        &          jlvlphyto  = 0 ,                                        &
+       &          jlvlnutlim_fe=0,                                        &
+       &          jlvlnutlim_n =0,                                        &
+       &          jlvlnutlim_phosph=0,                                    &
        &          jlvlgrazer = 0 ,                                        &
        &          jlvldoc    = 0 ,                                        &
        &          jlvlphosy  = 0 ,                                        &
@@ -899,6 +909,12 @@ CONTAINS
       jdustflx4000(n)=i_bsc_m2d*min(1,FLX_DUST4000(n))
       if (FLX_DUST_BOT(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jdustflx_bot(n)=i_bsc_m2d*min(1,FLX_DUST_BOT(n))
+      if (ZEU_NUTLIM_FE(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jzeunutlim_fe(n)=i_bsc_m2d*min(1,ZEU_NUTLIM_FE(n))
+      if (ZEU_NUTLIM_PHOSPH(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jzeunutlim_phosph(n)=i_bsc_m2d*min(1,ZEU_NUTLIM_PHOSPH(n))
+      if (ZEU_NUTLIM_N(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jzeunutlim_N(n)=i_bsc_m2d*min(1,ZEU_NUTLIM_N(n))
 
       if (.not. use_sedbypass) then
         if (FLX_SEDIFFIC(n) > 0) i_bsc_m2d=i_bsc_m2d+1
@@ -1221,6 +1237,12 @@ CONTAINS
       endif
       if (LVL_PHYTO(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
       jlvlphyto(n)=ilvl_bsc_m3d*min(1,LVL_PHYTO(n))
+      if (LVL_NUTLIM_FE(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+      jlvlnutlim_fe(n)=ilvl_bsc_m3d*min(1,LVL_NUTLIM_FE(n))
+      if (LVL_NUTLIM_N(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+      jlvlnutlim_n(n)=ilvl_bsc_m3d*min(1,LVL_NUTLIM_N(n))
+      if (LVL_NUTLIM_PHOSPH(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+      jlvlnutlim_phosph(n)=ilvl_bsc_m3d*min(1,LVL_NUTLIM_PHOSPH(n))
       if (LVL_GRAZER(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
       jlvlgrazer(n)=ilvl_bsc_m3d*min(1,LVL_GRAZER(n))
       if (LVL_DOC(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
