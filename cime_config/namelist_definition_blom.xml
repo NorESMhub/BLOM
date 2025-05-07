@@ -4766,6 +4766,16 @@
     <desc>remineralization and dissolution parameter: 1/d Dissolution rate for opal</desc>
   </entry>
 
+  <entry id="dremcalc">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>remineralization and dissolution parameter: 1/d Dissolution rate for CaCO3 (applied if Omega_c lt 1)</desc>
+  </entry>
+
   <entry id="dremn2o">
     <type>real</type>
     <category>bgcparams</category>

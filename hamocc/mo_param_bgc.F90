@@ -72,7 +72,7 @@ module mo_param_bgc
   ! Module variables set by bgcparams namelist
   public :: wpoc_const,wcal_const,wopal_const,wdust_const
   public :: bkopal,bkphy,bluefix,bkzoo
-  public :: drempoc,dremopal,dremn2o,dremsul
+  public :: drempoc,dremopal,dremcalc,dremn2o,dremsul
   public :: drempoc_anaerob,bkox_drempoc
   public :: grazra,gammap,gammaz,spemor
   public :: ecan,epsher,fetune
@@ -287,14 +287,15 @@ module mo_param_bgc
   real, parameter :: O2thresh_aerob   = 5.e-8  ! Above O2thresh_aerob aerob remineralization takes place
   real, parameter :: O2thresh_hypoxic = 5.e-7  ! Below O2thresh_hypoxic denitrification and sulfate reduction takes place (default model version)
   real, parameter :: NO3thresh_sulf   = 3.e-6  ! Below NO3thresh_sulf 'sufate reduction' takes place
-  real, protected :: remido     = 0.004        ! 1/d - remineralization rate (of DOM)
+  real, protected :: remido           = 0.004  ! 1/d - remineralization rate (of DOM)
   ! deep sea remineralisation constants
-  real, protected :: drempoc    = 0.025        ! 1/d Aerob remineralization rate detritus
+  real, protected :: drempoc         = 0.025   ! 1/d Aerob remineralization rate detritus
   real, protected :: drempoc_anaerob = 1.25e-3 ! =0.05*drempoc - remin in sub-/anoxic environm. - not be overwritten by M4AGO
   real, protected :: bkox_drempoc    = 1e-7    ! half-saturation constant for oxygen for ammonification (aerobic remin via drempoc)
-  real, protected :: dremopal   = 0.003        ! 1/d Dissolution rate for opal
-  real, protected :: dremn2o    = 0.01         ! 1/d Remineralization rate of detritus on N2O
-  real, protected :: dremsul    = 0.005        ! 1/d Remineralization rate for sulphate reduction
+  real, protected :: dremopal        = 0.003   ! 1/d Dissolution rate for opal
+  real, protected :: dremcalc        = 0.00035 ! 1/d Dissolution rate for CaCO3 (applied if Omega_c < 1)
+  real, protected :: dremn2o         = 0.01    ! 1/d Remineralization rate of detritus on N2O
+  real, protected :: dremsul         = 0.005   ! 1/d Remineralization rate for sulphate reduction
   real, protected :: POM_remin_q10   = 2.1     ! Bidle et al. 2002: Regulation of Oceanic Silicon...
   real, protected :: opal_remin_q10  = 2.6     ! Bidle et al. 2002: Regulation of Oceanic Silicon...
   real, protected :: POM_remin_Tref  = 10.     ! [deg C] reference temperatue for Q10-dep. POC remin
@@ -615,9 +616,9 @@ contains
 
     namelist /bgcparams/ bkphy,dyphy,bluefix,bkzoo,grazra,spemor,gammap,gammaz,  &
                          ecan,zinges,epsher,bkopal,rcalc,ropal,                  &
-                         remido,drempoc,dremopal,dremn2o,dremsul,fetune,relaxfe, &
-                         wmin,wmax,wlin,wpoc_const,wcal_const,wopal_const,       &
-                         disso_poc,disso_sil,disso_caco3,                        &
+                         remido,drempoc,dremopal,dremcalc,dremn2o,dremsul,       &
+                         fetune,relaxfe,wmin,wmax,wlin,wpoc_const,wcal_const,    &
+                         wopal_const,disso_poc,disso_sil,disso_caco3,            &
                          rano3denit,rano2anmx,rano2denit,ran2odenit,rdnra,       &
                          ranh4nitr,rano2nitr,rano3denit_sed,rano2anmx_sed,       &
                          rano2denit_sed,ran2odenit_sed,rdnra_sed,ranh4nitr_sed,  &
@@ -718,6 +719,7 @@ contains
     drempoc  = drempoc*dtb    ! 1/d to 1/time step  Aerob remineralization rate of detritus
     drempoc_anaerob = drempoc_anaerob*dtb ! 1/d Anaerob remin rate of detritus
     dremopal = dremopal*dtb   ! 1/d to 1/time step  Dissolution rate of opal
+    dremcalc = dremcalc*dtb   ! 1/d to 1/time step  Dissolution rate of CaCO3
     dremn2o  = dremn2o*dtb    ! 1/d to 1/time step  Remineralization rate of detritus on N2O
     dremsul  = dremsul*dtb    ! 1/d to 1/time step  Remineralization rate for sulphate reduction
 
@@ -922,6 +924,7 @@ contains
       call pinfo_add_entry('NO3thresh_sulf',  NO3thresh_sulf)
       call pinfo_add_entry('drempoc',     drempoc*dtbinv)
       call pinfo_add_entry('dremopal',    dremopal*dtbinv)
+      call pinfo_add_entry('dremcalc',    dremcalc*dtbinv)
       call pinfo_add_entry('dremn2o',     dremn2o*dtbinv)
       call pinfo_add_entry('dremsul',     dremsul*dtbinv)
       call pinfo_add_entry('bluefix',     bluefix*dtbinv)
