@@ -36,7 +36,17 @@ module mod_types
       i8 = int64, &
       r4 = real32, &
       r8 = real64
+   integer,parameter :: BLOM_CHAR_S = 80      ! short char
+   integer,parameter :: BLOM_CHAR_M = 160     ! mid-sized char
+   integer,parameter :: BLOM_CHAR_L = 256     ! long char
+   integer,parameter :: BLOM_CHAR_X = 512     ! extra-long char
+   integer,parameter :: BLOM_CHAR_XX= 4096    ! extra-extra-long char
 
-   public :: i1, i2, i4, i8, r4, r8
+   public :: i1, i2, i4, i8, r4, r8,  &
+        BLOM_CHAR_S,                  &
+        BLOM_CHAR_M,                  &
+        BLOM_CHAR_L,                  &
+        BLOM_CHAR_X,                  &
+        BLOM_CHAR_XX
 
 end module mod_types

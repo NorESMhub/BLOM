@@ -37,7 +37,7 @@ module mod_thermf_ben02
                            fmltfz, sfl, ustarw, surflx, surrlx, &
                            sswflx, salflx, brnflx, salrlx, ustar, &
                            salt_corr, trc_corr, t_rs_nonloc, s_rs_nonloc
-  use mod_swabs,     only: swbgal, swbgfc
+  use mod_swabs,     only: swal2, swfc2
   use mod_ben02,     only: tsi_tda, tml_tda, sml_tda, alb_tda, fice_tda, &
                            tsi, ntda, dfl, albw, alb, &
                            rnfins, rnfres, nrfets, rhowat
@@ -300,7 +300,7 @@ contains
 
           ! Predict temperature change in mixed layer after a leapfrog time step
           ! due to heat fluxes
-          swfac = 1.-swbgfc(i,j)*exp(-hotl/swbgal(i,j))
+          swfac = 1.-swfc2(i,j)*exp(-hotl/swal2(i,j))
           dtml = (swfac*qsww+qnsw)*2.*dt/(cpsw*rhowat*hotl)
 
           if     (totl+dtml < tice_f) then

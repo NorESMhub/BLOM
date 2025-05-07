@@ -54,6 +54,7 @@ module mo_read_rivin
 
   use dimensions, only: idm,jdm
   use mod_xc ,    only: nbdy
+  use mo_kind,    only: bgc_fnmlen
 
   implicit none
   private
@@ -62,7 +63,7 @@ module mo_read_rivin
   public :: ini_read_rivin ! read gnews riverine nutrient and carbon data
 
   ! File name (incl. full path) for input data, set through namelist in mo_hamocc_init
-  character(len=256), public :: rivinfile = ''
+  character(len=bgc_fnmlen), public :: rivinfile = ''
   real, allocatable,  public :: rivflx(:,:,:) ! holds input data as read from file
 
   ! arrays for reading riverine inputs on the model grid

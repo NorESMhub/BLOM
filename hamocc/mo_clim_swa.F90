@@ -25,6 +25,8 @@ module mo_clim_swa
   !  J.Tjiputra,        *NORCE Climate, Bergen*    2021-04-15
   !*************************************************************************************************
 
+  use mo_kind, only: bgc_fnmlen
+
   implicit none
   private
 
@@ -34,7 +36,7 @@ module mo_clim_swa
   ! Module variables
 
   ! File name (incl. full path) for input data, set through namelist in hamocc_init.F
-  character(len=512), public :: swaclimfile=''
+  character(len=bgc_fnmlen), public :: swaclimfile=''
 
   ! Array to store swa flux after reading from file
   real, allocatable, public :: swa_clim(:,:,:)

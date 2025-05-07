@@ -116,6 +116,7 @@ module mod_restart
    use mod_ifdefs,         only: use_TRC, use_TKE, use_IDLAGE
    use mod_idlage,         only: idlage_init
    use mod_tracers_update, only: restart_trcwt, restart_trcrd
+   use mod_utility,        only: fnmlen
 
    implicit none
 
@@ -1049,7 +1050,7 @@ contains
       ! local variables
       integer :: nfu, i, j, n
       character(len = 256), dimension(4) :: rstdate_str
-      character(len = 256) :: rstfnm, fnm
+      character(len = fnmlen) :: rstfnm, fnm
       character(len = 2) :: c2
 
       ! Formulate restart filename.
@@ -1299,7 +1300,7 @@ contains
 
       type(date_type) :: date_rest
       integer :: nfu, errstat, dndiff, ntr_file, i, j, l, n
-      character(len = 256) :: rstfnm, fnm, l_rpfile
+      character(len = fnmlen) :: rstfnm, fnm, l_rpfile
       character(len = 2) :: c2
       real(r8) :: pb_max, phi_min, rho_restart
       logical :: file_exist, fld_read

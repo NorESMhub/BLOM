@@ -57,6 +57,8 @@ module mo_read_oafx
   !  - add ability to use an OA input file
   !*************************************************************************************************
 
+  use mo_kind, only: bgc_fnmlen
+
   implicit none
   private
 
@@ -68,7 +70,7 @@ module mo_read_oafx
   ! Module variables
 
   character(len=128), protected, public  :: oalkscen   =''
-  character(len=512), protected, public  :: oalkfile   =''
+  character(len=bgc_fnmlen), protected, public  :: oalkfile   =''
   real,allocatable,   protected          :: oalkflx(:,:)
   integer,            protected          :: startyear,endyear
 

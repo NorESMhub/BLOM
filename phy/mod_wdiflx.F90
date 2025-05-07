@@ -25,6 +25,7 @@ module mod_wdiflx
   use mod_forcing, only: tflxdi, sflxdi, nflxdi, ditflx, disflx
   use mod_nctools
   use mod_dia,     only : iotype
+  use mod_utility, only: fnmlen
 
   implicit none
   private
@@ -38,7 +39,7 @@ contains
     ! --- Write accumulated diagnosed heat and salt fluxes
 
     ! Local variables
-    character(len=256) :: fname
+    character(len=fnmlen) :: fname
     integer :: i,j,k
 
     if (ditflx) then

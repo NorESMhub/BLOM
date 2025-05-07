@@ -28,7 +28,7 @@ module mod_ale_forcing
   use mod_xc
   use mod_eos,       only: dsigdt0, dsigds0
   use mod_state,     only: dp, temp, saln, p
-  use mod_swabs,     only: swbgal, swbgfc, swamxd
+  use mod_swabs,     only: swamxd, swfc1, swfc2, swal1, swal2
   use mod_forcing,   only: surflx, sswflx, salflx, brnflx, buoyfl, &
                            t_sw_nonloc, s_br_nonloc
   use mod_cmnfld,    only: mlts
@@ -56,7 +56,8 @@ contains
     real(r8), parameter :: cbra2 = cbra1*cbra1/12._r8
     ! real(r8), parameter :: cbra1 = 2._r8**(1._r8/3._r8), &
     ! real(r8), parameter :: cbra2 = cbra1*cbra1/288._r8
-    real(r8) :: cpi, gaa, pmax, lei, q, q3, pmaxi, nlbot, dsgdt, dsgds
+    real(r8) :: cpi, gaa, pmax, lei1, lei2, lei, q, q3, pmaxi, nlbot, &
+                dsgdt, dsgds
     real(r8) :: hf, hfsw, hfns, sf, sfbr, sfnb
     integer  :: i, j, k, l, kmax, kn
 
@@ -71,20 +72,22 @@ contains
     ! Maximum pressure of shortwave absorption.
     pmax = swamxd*onem
 
-    !$omp parallel do private(l, i, lei, kmax, k, kn, pmaxi, nlbot)
+    !$omp parallel do private(l, i, lei1, lei2, kmax, k, kn, pmaxi, nlbot)
     do j = 1, jj
       do l = 1, isp(j)
         do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
 
           ! Penetration factors at layer interfaces.
-          lei = 1._r8/(swbgal(i,j)*onem)
+          lei1 = 1._r8/(swal1(i,j)*onem)
+          lei2 = 1._r8/(swal2(i,j)*onem)
           kmax = 1
           t_sw_nonloc(i,j,1) = 1._r8
           do k = 1, kk
             kn = k + nn
             if (dp(i,j,kn) > onemu) then
               t_sw_nonloc(i,j,k+1) = &
-                   swbgfc(i,j)*exp( - lei*min(pmax, p(i,j,k+1)))
+                   swfc1(i,j)*exp( - lei1*min(pmax, p(i,j,k+1))) &
+                 + swfc2(i,j)*exp( - lei2*min(pmax, p(i,j,k+1)))
               kmax = k
             else
               t_sw_nonloc(i,j,k+1) = t_sw_nonloc(i,j,k)

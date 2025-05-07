@@ -39,7 +39,7 @@ module mo_param_bgc
                             do_ndep,do_oalk,do_rivinpt,do_sedspinup,l_3Dvarsedpor,                 &
                             use_BOXATM,use_CFC,use_PBGC_CK_TIMESTEP,                               &
                             use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type,use_M4AGO,&
-                            do_n2onh3_coupled,use_extNcycle,                                       &
+                            do_n2o_coupled,do_nh3_coupled,use_extNcycle,                           &
                             lkwrbioz_off,lTO2depremin,use_shelfsea_res_time,use_sediment_quality,  &
                             use_pref_tracers,use_coupler_ndep,use_river2omip
   use mod_xc,         only: mnproc
@@ -206,7 +206,7 @@ module mo_param_bgc
   !********************************************************************
 
   real, protected :: atm_n2      = 802000. ! atmosphere dinitrogen concentration
-  real, protected :: atm_n2o     = 300e3   ! atmosphere laughing gas mixing ratio around 1980: 300 ppb,provided in ppt,300ppb = 300e3ppt = 3e-7 mol/mol
+  real, protected :: atm_n2o     = 270.1e3 ! atmosphere N2O conc. pre-industrial: 270.1 (+-6ppb) IPCC 2021, p708, provided in ppt,300ppb = 300e3ppt = 3e-7 mol/mol
   real, protected :: atm_nh3     = 0.      ! Six & Mikolajewicz 2022: less than 1nmol m-3
   real, protected :: atm_o2      = 196800. ! atmosphere oxygen concentration
   real, protected :: atm_co2_nat = 284.32  ! atmosphere CO2 concentration CMIP6 pre-industrial reference
@@ -898,7 +898,8 @@ contains
       call cinfo_add_entry('use_coupler_ndep',       use_coupler_ndep)
       call cinfo_add_entry('use_river2omip',                use_river2omip)
       if (use_extNcycle) then
-        call cinfo_add_entry('do_n2onh3_coupled',       do_n2onh3_coupled)
+        call cinfo_add_entry('do_n2o_coupled',       do_n2o_coupled)
+        call cinfo_add_entry('do_nh3_coupled',       do_nh3_coupled)
       endif
       write(io_stdo_bgc,*) '* '
       write(io_stdo_bgc,*) '* Values of MO_PARAM_BGC variables : '

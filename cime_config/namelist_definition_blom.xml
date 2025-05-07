@@ -384,14 +384,24 @@
     <desc>Baroclinic mass flux correction method. Valid methods:</desc>
   </entry>
 
-  <entry id="rmpmth">
+  <entry id="advmth">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>eitvel</value>
+      <value>remap</value>
     </values>
-    <desc>Method of applying eddy-induced transport in the remap</desc>
+    <desc>Advection method. Valid methods: 'remap', 'cppm'.</desc>
+  </entry>
+
+  <entry id="cppm_limiting">
+    <type>char</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>non_oscillatory</value>
+    </values>
+    <desc>CPPM limiting. Valid methods: 'monotonic', 'non_oscillatory'.</desc>
   </entry>
 
   <entry id="mlrmth">
@@ -640,6 +650,18 @@
     </values>
     <desc>
       Name of file containing chlorophyll concentration climatology
+    </desc>
+  </entry>
+
+  <entry id="svfile" is_inputdata="yes">
+    <type>char</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>unset</value>
+    </values>
+    <desc>
+      Name of file containing spatially varying spectral band fractions and attenuation lengths
     </desc>
   </entry>
 
@@ -4044,7 +4066,7 @@
     <desc>if .true., use MCT coupler fields from CAM or NUOPC to obtain NDEP (always imported to model).</desc>
   </entry>
 
-  <entry id="do_n2onh3_coupled" modify_via_xml="HAMOCC_N2OC">
+  <entry id="do_n2o_coupled" modify_via_xml="HAMOCC_N2OC">
     <type>logical</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -4052,7 +4074,18 @@
       <value>.false.</value>
       <value hamocc_n2oc="yes" hamocc_extncycle="yes">.true.</value>
     </values>
-    <desc>Switch to couple N2O and NH3 fluxes</desc>
+    <desc>Switch to couple N2O fluxes to atmosphere</desc>
+  </entry>
+  
+  <entry id="do_nh3_coupled" modify_via_xml="HAMOCC_NH3C">
+    <type>logical</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>.false.</value>
+      <value hamocc_nh3c="yes" hamocc_extncycle="yes">.true.</value>
+    </values>
+    <desc>Switch to couple NH3 fluxes to atmosphere</desc>
   </entry>
 
   <entry id="use_m4ago">
@@ -9750,6 +9783,17 @@
     <desc>if .true., use NUOPC stream relaxation capability</desc>
   </entry>
 
+  <entry id="use_stream_dust">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.true.</value>
+    </values>
+    <desc>if .true., use NUOPC stream functionality for HAMOOC fedep input </desc>
+  </entry>
+
   <!-- =========================  -->
   <!-- namelist group: stream_sss -->
   <!-- =========================  -->
@@ -9887,6 +9931,75 @@
     </desc>
     <values>
       <value>1</value>
+    </values>
+  </entry>
+
+  <!-- =========================  -->
+  <!-- namelist group: stream_dust -->
+  <!-- =========================  -->
+
+  <entry id="stream_dust_mesh_filename">
+    <type>char</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>stream mesh file</desc>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_T42_ESMFmesh_cdf5.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_data_filename">
+    <type>char(10)</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>
+      file name(s) containing dust deposition data
+    </desc>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_T42.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_varname">
+    <type>char</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>
+      variable name on stream file
+    </desc>
+    <values>
+      <value>dustdep</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_year_first">
+    <type>integer</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>
+      First year in stream to use
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_year_last">
+    <type>integer</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>
+      Last year in stream to use
+    </desc>
+    <values>
+      <value>1850</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_year_align">
+    <type>integer</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>
+      Align stream_year_first with this model year
+    </desc>
+    <values>
+      <value>1850</value>
     </values>
   </entry>
 

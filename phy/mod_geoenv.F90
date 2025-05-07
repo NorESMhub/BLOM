@@ -31,6 +31,7 @@ module mod_geoenv
                            scv2, qlon, qlat, plon, plat, ulon, ulat, &
                            vlon, vlat, depths, corioq, coriop, betafp, &
                            betatp, angle, cosang, sinang, hangle, nwp
+  use mod_utility,   only: fnmlen
   use netcdf
 
   implicit none
@@ -50,7 +51,7 @@ contains
 
     ! Local variables
     integer, parameter :: cwmlen = 100
-    character (len = 256) :: nlfnm
+    character (len = fnmlen) :: nlfnm
     character (len = 80), dimension(cwmlen) :: cwmtag
     character (len = 1), dimension(cwmlen) :: cwmedg
     real, dimension(itdm,jtdm) :: tmpg

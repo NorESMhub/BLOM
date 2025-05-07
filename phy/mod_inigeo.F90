@@ -339,7 +339,11 @@ contains
     !$omp parallel do private(i)
     do j = 1-nbdy,jj+nbdy
       do i = 1-nbdy,ii+nbdy
-        ipwocn(i,j) = nint(util1(i,j))
+        if (abs(util1(i,j) - 1.) < 1.e-9) then
+          ipwocn(i,j) = 1
+        else
+          ipwocn(i,j) = 0
+        end if
       end do
     end do
     !$omp end parallel do
