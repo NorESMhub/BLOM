@@ -367,7 +367,8 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>geopotential</value>
+      <value>dynamic enthalpy</value>
+      <value blom_vcoord="isopyc_bulkml">geopotential</value>
     </values>
     <desc>Pressure gradient force method. Valid options: 'geopotential', 'dynamic enthalpy'</desc>
   </entry>
@@ -377,9 +378,8 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>uc</value>
-      <value blom_vcoord="cntiso_hybrid">dluc</value>
-      <value blom_vcoord="plevel"       >dluc</value>
+      <value>dluc</value>
+      <value blom_vcoord="isopyc_bulkml">uc</value>
     </values>
     <desc>Baroclinic mass flux correction method. Valid methods:</desc>
   </entry>
@@ -389,7 +389,8 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>remap</value>
+      <value>cppm</value>
+      <value blom_vcoord="isopyc_bulkml">remap</value>
     </values>
     <desc>Advection method. Valid methods: 'remap', 'cppm'.</desc>
   </entry>
@@ -612,7 +613,8 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>jerlov</value>
+      <value>chlorophyll</value>
+      <value blom_vcoord="isopyc_bulkml">jerlov</value>
     </values>
     <desc>Shortwave radiation absorption method. Valid methods:</desc>
   </entry>
@@ -1423,7 +1425,8 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>1.e-5</value>
+      <value>1.5e-5</value>
+      <value blom_vcoord="isopyc_bulkml">1.e-5</value>
     </values>
     <desc>Background diapycnal diffusivity (m**2/s) (f)</desc>
   </entry>
@@ -1433,8 +1436,7 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>.false.</value>
-      <value blom_vcoord="isopyc_bulkml">.true.</value>
+      <value>.true.</value>
     </values>
     <desc>Make the background mixing latitude dependent according to</desc>
   </entry>
