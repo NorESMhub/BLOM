@@ -367,7 +367,8 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>geopotential</value>
+      <value>dynamic enthalpy</value>
+      <value blom_vcoord="isopyc_bulkml">geopotential</value>
     </values>
     <desc>Pressure gradient force method. Valid options: 'geopotential', 'dynamic enthalpy'</desc>
   </entry>
@@ -377,9 +378,8 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>uc</value>
-      <value blom_vcoord="cntiso_hybrid">dluc</value>
-      <value blom_vcoord="plevel"       >dluc</value>
+      <value>dluc</value>
+      <value blom_vcoord="isopyc_bulkml">uc</value>
     </values>
     <desc>Baroclinic mass flux correction method. Valid methods:</desc>
   </entry>
@@ -389,7 +389,8 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>remap</value>
+      <value>cppm</value>
+      <value blom_vcoord="isopyc_bulkml">remap</value>
     </values>
     <desc>Advection method. Valid methods: 'remap', 'cppm'.</desc>
   </entry>
@@ -612,7 +613,8 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>jerlov</value>
+      <value>chlorophyll</value>
+      <value blom_vcoord="isopyc_bulkml">jerlov</value>
     </values>
     <desc>Shortwave radiation absorption method. Valid methods:</desc>
   </entry>
@@ -1423,7 +1425,8 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>1.e-5</value>
+      <value>1.5e-5</value>
+      <value blom_vcoord="isopyc_bulkml">1.e-5</value>
     </values>
     <desc>Background diapycnal diffusivity (m**2/s) (f)</desc>
   </entry>
@@ -1433,8 +1436,7 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>.false.</value>
-      <value blom_vcoord="isopyc_bulkml">.true.</value>
+      <value>.true.</value>
     </values>
     <desc>Make the background mixing latitude dependent according to</desc>
   </entry>
@@ -4773,6 +4775,16 @@
     <desc>remineralization and dissolution parameter: 1/d Dissolution rate for opal</desc>
   </entry>
 
+  <entry id="dremcalc">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>remineralization and dissolution parameter: 1/d Dissolution rate for CaCO3 (applied if Omega_c lt 1)</desc>
+  </entry>
+
   <entry id="dremn2o">
     <type>real</type>
     <category>bgcparams</category>
@@ -7974,6 +7986,84 @@
       <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>Phytoplankton (phyc) [mol C m-3]</desc>
+  </entry>
+
+  <entry id="lvl_nutlim_fe">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
+    </values>
+    <desc>Nutrient limitation Fe - time fraction</desc>
+  </entry>
+
+  <entry id="lvl_nutlim_n">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
+    </values>
+    <desc>Nutrient limitation N - time fraction</desc>
+  </entry>
+
+  <entry id="lvl_nutlim_phosph">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
+    </values>
+    <desc>Nutrient limitation PO4 - time fraction</desc>
+  </entry>
+
+  <entry id="zeu_nutlim_fe">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Euphotic zone nutrient limitation Fe - time fraction</desc>
+  </entry>
+
+  <entry id="zeu_nutlim_n">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Euphotic zone nutrient limitation N - time fraction</desc>
+  </entry>
+
+  <entry id="zeu_nutlim_phosph">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Euphotic zone nutrient limitation PO4 - time fraction</desc>
   </entry>
 
   <entry id="lvl_grazer">

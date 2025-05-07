@@ -95,15 +95,14 @@ contains
     use mo_control_bgc, only: dtbgc,use_cisonew,use_natDIC,use_CFC,use_BROMO,                      &
                               use_cisonew,use_sedbypass,use_extNcycle
     use mo_param1_bgc,  only: ialkali,iatmo2,iatmco2,iatmdms,iatmn2,iatmn2o,ian2o,icalc,           &
-                              idicsat,idms,igasnit,ioxygen,iphosph,                                &
-                              isco212,isilica,                                                     &
+                              idicsat,idms,igasnit,ioxygen,iphosph,isco212,isilica,                &
                               iatmf11,iatmf12,iatmsf6,icfc11,icfc12,isf6,                          &
                               iatmc13,iatmc14,icalc13,icalc14,idet14,idoc14,iphy14,                &
                               isco213,isco214,izoo14,safediv,                                      &
                               iatmnco2,inatalkali,inatcalc,inatsco212,                             &
                               ks,issso14,isssc14,ipowc14,                                          &
                               iatmbromo,ibromo,iatmnh3,ianh4
-    use mo_param_bgc,   only: srfdic_min,c14dec,atm_co2_nat,atm_n2o
+    use mo_param_bgc,   only: dremcalc,srfdic_min,c14dec,atm_co2_nat,atm_n2o
     use mo_vgrid,       only: dp_min,kmle,kbo,ptiestu
     use mo_carbch,      only: atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,                 &
                               atm_sf6_nh,atm_sf6_sh,                                               &
@@ -632,14 +631,14 @@ contains
             OmegaC(i,j,k) = omega / Kspc
             supsat=co3(i,j,k)-co3(i,j,k)/OmegaC(i,j,k)
             undsa=max(0.0,-supsat)
-            dissol=min(undsa,0.05*ocetra(i,j,k,icalc))
+            dissol=min(undsa,dremcalc*ocetra(i,j,k,icalc))
             if (use_natDIC) then
               natomega = ( calcon * s / 35.0 ) * natcc
               natOmegaA(i,j,k) = natomega / Kspa
               natOmegaC(i,j,k) = natomega / Kspc
               natsupsat=natco3(i,j,k)-natco3(i,j,k)/natOmegaC(i,j,k)
               natundsa=max(0.0,-natsupsat)
-              natdissol=min(natundsa,0.05*ocetra(i,j,k,inatcalc))
+              natdissol=min(natundsa,dremcalc*ocetra(i,j,k,inatcalc))
             endif
             if (use_cisonew) then
               dissol13=dissol*ocetra(i,j,k,icalc13)/(ocetra(i,j,k,icalc)+safediv)
