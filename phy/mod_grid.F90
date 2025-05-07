@@ -111,61 +111,49 @@ contains
    ! Initialize arrays.
    ! ---------------------------------------------------------------------------
 
-      integer :: i, j, k
-
-   !$omp parallel do private(i, k)
-      do j = 1 - nbdy, jj + nbdy
-         do k = 1, 4
-            do i = 1 - nbdy, ii + nbdy
-               qclon(i, j, k) = spval
-               qclat(i, j, k) = spval
-               pclon(i, j, k) = spval
-               pclat(i, j, k) = spval
-               uclon(i, j, k) = spval
-               uclat(i, j, k) = spval
-               vclon(i, j, k) = spval
-               vclat(i, j, k) = spval
-            enddo
-         enddo
-         do i = 1 - nbdy, ii + nbdy
-            scqx(i, j) = spval
-            scqy(i, j) = spval
-            scpx(i, j) = spval
-            scpy(i, j) = spval
-            scux(i, j) = spval
-            scuy(i, j) = spval
-            scvx(i, j) = spval
-            scvy(i, j) = spval
-            scq2(i, j) = spval
-            scp2(i, j) = spval
-            scu2(i, j) = spval
-            scv2(i, j) = spval
-            scq2i(i, j) = spval
-            scp2i(i, j) = spval
-            scuxi(i, j) = spval
-            scuyi(i, j) = spval
-            scvxi(i, j) = spval
-            scvyi(i, j) = spval
-            qlon(i, j) = spval
-            qlat(i, j) = spval
-            plon(i, j) = spval
-            plat(i, j) = spval
-            ulon(i, j) = spval
-            ulat(i, j) = spval
-            vlon(i, j) = spval
-            vlat(i, j) = spval
-            depths(i, j) = spval
-            corioq(i, j) = spval
-            coriop(i, j) = spval
-            betafp(i, j) = spval
-            betatp(i, j) = spval
-            angle(i, j) = spval
-            cosang(i, j) = spval
-            sinang(i, j) = spval
-            hangle(i,j) = spval
-         enddo
-      enddo
-   !$omp end parallel do
+      scqx(:,:) = spval
+      scqy(:,:) = spval
+      scpx(:,:) = spval
+      scpy(:,:) = spval
+      scux(:,:) = spval
+      scuy(:,:) = spval
+      scvx(:,:) = spval
+      scvy(:,:) = spval
+      scq2(:,:) = spval
+      scp2(:,:) = spval
+      scu2(:,:) = spval
+      scv2(:,:) = spval
+      scq2i(:,:) = spval
+      scp2i(:,:) = spval
+      scuxi(:,:) = spval
+      scuyi(:,:) = spval
+      scvxi(:,:) = spval
+      scvyi(:,:) = spval
+      qlon(:,:) = spval
+      qlat(:,:) = spval
+      plon(:,:) = spval
+      plat(:,:) = spval
+      ulon(:,:) = spval
+      ulat(:,:) = spval
+      vlon(:,:) = spval
+      vlat(:,:) = spval
+      depths(:,:) = spval
+      corioq(:,:) = spval
+      coriop(:,:) = spval
+      betafp(:,:) = spval
+      betatp(:,:) = spval
+      angle(:,:) = spval
+      cosang(:,:) = spval
+      sinang(:,:) = spval
+      hangle(:,:) = spval
+      qclon(:,:,:) = spval
+      qclat(:,:,:) = spval
+      pclon(:,:,:) = spval
+      pclat(:,:,:) = spval
+      uclon(:,:,:) = spval
+      uclat(:,:,:) = spval
+      vclon(:,:,:) = spval
+      vclat(:,:,:) = spval
 
    end subroutine inivar_grid
 

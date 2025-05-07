@@ -52,13 +52,7 @@ contains
 
       integer :: i, j, l
 
-   !$omp parallel do private(i)
-      do j = 1 - nbdy, jj + nbdy
-         do i = 1 - nbdy, ii + nbdy
-            twedon(i, j) = spval
-         enddo
-      enddo
-   !$omp end parallel do
+      twedon(:,:) = spval
 
    !$omp parallel do private(l, i)
       do j = 1, jj

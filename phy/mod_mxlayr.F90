@@ -114,19 +114,13 @@ contains
     ! Local variables
     integer :: i,j
 
-    !$omp parallel do private(i)
-    do j = 1-nbdy,jj+nbdy
-      do i = 1-nbdy,ii+nbdy
-        mtkeus(i,j) = spval
-        mtkeni(i,j) = spval
-        mtkebf(i,j) = spval
-        mtkers(i,j) = spval
-        mtkepe(i,j) = spval
-        mtkeke(i,j) = spval
-        pbrnda(i,j) = spval
-      end do
-    end do
-    !$omp end parallel do
+    mtkeus(:,:) = spval
+    mtkeni(:,:) = spval
+    mtkebf(:,:) = spval
+    mtkers(:,:) = spval
+    mtkepe(:,:) = spval
+    mtkeke(:,:) = spval
+    pbrnda(:,:) = spval
 
   end subroutine inivar_mxlayr
 

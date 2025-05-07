@@ -67,28 +67,22 @@ contains
 
       integer :: i, j, l
 
-   !$omp parallel do private(i)
-      do j = 1 - nbdy, jj + nbdy
-         do i = 1 - nbdy, ii + nbdy
-            utotm (i, j) = spval
-            vtotm (i, j) = spval
-            utotn (i, j) = spval
-            vtotn (i, j) = spval
-            uflux (i, j) = spval
-            vflux (i, j) = spval
-            uflux2(i, j) = spval
-            vflux2(i, j) = spval
-            uflux3(i, j) = spval
-            vflux3(i, j) = spval
-            umax  (i, j) = spval
-            vmax  (i, j) = spval
-            util1 (i, j) = spval
-            util2 (i, j) = spval
-            util3 (i, j) = spval
-            util4 (i, j) = spval
-         enddo
-      enddo
-   !$omp end parallel do
+      utotm (:,:) = spval
+      vtotm (:,:) = spval
+      utotn (:,:) = spval
+      vtotn (:,:) = spval
+      uflux (:,:) = spval
+      vflux (:,:) = spval
+      uflux2(:,:) = spval
+      vflux2(:,:) = spval
+      uflux3(:,:) = spval
+      vflux3(:,:) = spval
+      umax  (:,:) = spval
+      vmax  (:,:) = spval
+      util1 (:,:) = spval
+      util2 (:,:) = spval
+      util3 (:,:) = spval
+      util4 (:,:) = spval
 
       ! Initialize 'utotm', 'uflux', 'uflux2', 'uflux3' at points located
       ! upstream and downstream (in i-direction) of p-points. Initialize 'utotn'

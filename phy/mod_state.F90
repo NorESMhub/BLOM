@@ -101,61 +101,42 @@ contains
 
       integer :: i, j, k, l
 
-   !$omp parallel do private(i, k)
-      do j = 1 - nbdy, jj + nbdy
-         do i = 1 - nbdy, ii + nbdy
-            pb_p(i, j) = spval
-            pbu_p(i, j) = spval
-            pbv_p(i, j) = spval
-            ubcors_p(i, j) = spval
-            vbcors_p(i, j) = spval
-            sealv(i, j) = spval
-         enddo
-         do k = 1, 2
-            do i = 1 - nbdy, ii + nbdy
-              pb(i, j, k) = spval
-              ub(i, j, k) = spval
-              vb(i, j, k) = spval
-              ubflxs_p(i, j, k) = spval
-              vbflxs_p(i, j, k) = spval
-              pbu(i, j, k) = spval
-              pbv(i, j, k) = spval
-            enddo
-         enddo
-         do k = 1, 3
-            do i = 1 - nbdy, ii + nbdy
-              ubflxs(i, j, k) = spval
-              vbflxs(i, j, k) = spval
-            enddo
-         enddo
-         do k = 1, kk + 1
-            do i = 1 - nbdy, ii + nbdy
-               p  (i, j, k) = spval
-               pu (i, j, k) = spval
-               pv (i, j, k) = spval
-               phi(i, j, k) = spval
-            enddo
-         enddo
-         do k = 1, 2*kk
-            do i = 1 - nbdy, ii + nbdy
-               u    (i, j, k) = spval
-               v    (i, j, k) = spval
-               uflx (i, j, k) = spval
-               utflx(i, j, k) = spval
-               usflx(i, j, k) = spval
-               vflx (i, j, k) = spval
-               vtflx(i, j, k) = spval
-               vsflx(i, j, k) = spval
-               dp   (i, j, k) = spval
-               dpu  (i, j, k) = spval
-               dpv  (i, j, k) = spval
-               temp (i, j, k) = spval
-               saln (i, j, k) = spval
-               sigma(i, j, k) = spval
-            enddo
-         enddo
-      enddo
-   !$omp end parallel do
+      pb_p(:,:) = spval
+      pbu_p(:,:) = spval
+      pbv_p(:,:) = spval
+      ubcors_p(:,:) = spval
+      vbcors_p(:,:) = spval
+      sealv(:,:) = spval
+      pb(:,:,:) = spval
+      ub(:,:,:) = spval
+      vb(:,:,:) = spval
+      ubflxs_p(:,:,:) = spval
+      vbflxs_p(:,:,:) = spval
+      pbu(:,:,:) = spval
+      pbv(:,:,:) = spval
+      ubflxs(:,:,:) = spval
+      vbflxs(:,:,:) = spval
+      p(:,:,:) = spval
+      pu(:,:,:) = spval
+      pv(:,:,:) = spval
+      phi(:,:,:) = spval
+      u(:,:,:) = spval
+      v(:,:,:) = spval
+      uflx(:,:,:) = spval
+      utflx(:,:,:) = spval
+      usflx(:,:,:) = spval
+      vflx(:,:,:) = spval
+      vtflx(:,:,:) = spval
+      vsflx(:,:,:) = spval
+      dp(:,:,:) = spval
+      dpu(:,:,:) = spval
+      dpv(:,:,:) = spval
+      temp(:,:,:) = spval
+      saln(:,:,:) = spval
+      sigma(:,:,:) = spval
+
+      cau(:,:,:) = 0._r8
+      cav(:,:,:) = 0._r8
 
    !$omp parallel do private(l, i, k)
       do j = 1, jj + 1
@@ -322,9 +303,6 @@ contains
       call xctilr(vtflx,    1, 2*kk, nbdy, nbdy, halo_vs)
       call xctilr(vsflx,    1, 2*kk, nbdy, nbdy, halo_vs)
       call xctilr(v,        1, 2*kk, nbdy, nbdy, halo_vs)
-
-      cau(:,:,:) = 0._r8
-      cav(:,:,:) = 0._r8
 
       if (csdiag) then
          if (mnproc == 1) then

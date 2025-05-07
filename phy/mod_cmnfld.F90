@@ -82,32 +82,16 @@ module mod_cmnfld
    ! Initialize arrays.
    ! ---------------------------------------------------------------------------
 
-      integer :: i,j,k
-
-      !$omp parallel do private(k, i)
-      do j = 1 - nbdy, jj + nbdy
-         do k = 1, kk + 1
-            do i = 1 - nbdy, ii + nbdy
-               bfsqi(i, j, k) = spval
-               bfsqf(i, j, k) = spval
-               z    (i, j, k) = spval
-            enddo
-         enddo
-         do k = 1, kk
-            do i = 1 - nbdy, ii + nbdy
-               bfsql (i, j, k) = spval
-               nslpx (i, j, k) = spval
-               nslpy (i, j, k) = spval
-               nnslpx(i, j, k) = spval
-               nnslpy(i, j, k) = spval
-               dz    (i, j, k) = spval
-            enddo
-         enddo
-         do i = 1 - nbdy, ii + nbdy
-            mlts(i, j) = spval
-         enddo
-      enddo
-      !$omp end parallel do
+      bfsqi (:,:,:) = spval
+      bfsqf (:,:,:) = spval
+      z     (:,:,:) = spval
+      bfsql (:,:,:) = spval
+      nslpx (:,:,:) = spval
+      nslpy (:,:,:) = spval
+      nnslpx(:,:,:) = spval
+      nnslpy(:,:,:) = spval
+      dz    (:,:,:) = spval
+      mlts  (:,:) = spval
 
    end subroutine inivar_cmnfld
 
