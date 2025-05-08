@@ -7588,32 +7588,6 @@
     <desc>High C terrestrial dissolved organic carbon-C13 (tdoc_hc13) [mol C m-3]</desc>
   </entry>
 
-  <entry id="lyr_tdoc_lc14">
-    <type>integer(3)</type>
-    <category>diabgc</category>
-    <group>diabgc</group>
-    <values>
-      <value>0,0,2</value>
-      <value is_test="yes">0,0,2</value>
-      <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value hamocc_output_size="spinup">0,2</value>
-    </values>
-    <desc>Low C terrestrial dissolved organic carbon-C14 (tdoc_lc14) [mol C m-3]</desc>
-  </entry>
-
-  <entry id="lyr_tdoc_hc14">
-    <type>integer(3)</type>
-    <category>diabgc</category>
-    <group>diabgc</group>
-    <values>
-      <value>0,0,2</value>
-      <value is_test="yes">0,0,2</value>
-      <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value hamocc_output_size="spinup">0,2</value>
-    </values>
-    <desc>High C terrestrial dissolved organic carbon-C14 (tdoc_hc14) [mol C m-3]</desc>
-  </entry>
-
   <entry id="lyr_dicsat">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -8817,32 +8791,6 @@
       <value hamocc_output_size="spinup">0,2</value>
     </values>
     <desc>High C terrestrial dissolved organic carbon-C13 (tdoc_hc13) [mol C m-3]</desc>
-  </entry>
-
-  <entry id="lvl_tdoc_lc14">
-    <type>integer(3)</type>
-    <category>diabgc</category>
-    <group>diabgc</group>
-    <values>
-      <value>0,0,2</value>
-      <value is_test="yes">4,2,2</value>
-      <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value hamocc_output_size="spinup">0,2</value>
-    </values>
-    <desc>Low C terrestrial dissolved organic carbon-C14 (tdoc_lc14) [mol C m-3]</desc>
-  </entry>
-
-  <entry id="lvl_tdoc_hc14">
-    <type>integer(3)</type>
-    <category>diabgc</category>
-    <group>diabgc</group>
-    <values>
-      <value>0,0,2</value>
-      <value is_test="yes">4,2,2</value>
-      <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value hamocc_output_size="spinup">0,2</value>
-    </values>
-    <desc>High C terrestrial dissolved organic carbon-C14 (tdoc_hc14) [mol C m-3]</desc>
   </entry>
 
   <entry id="lvl_dicsat">

@@ -632,7 +632,6 @@ contains
           call acclvl(jlvltdoc_lc,ocetra(1,1,1,itdoc_lc),k,ind1,ind2,wghts)
           call acclvl(jlvltdoc_hc,ocetra(1,1,1,itdoc_hc),k,ind1,ind2,wghts)
         endif
-
         if (use_M4AGO) then
           !M4AGO
           call acclvl(jlvl_agg_ws,aggregate_diagnostics(1,1,1,kws_agg),k,ind1,ind2,wghts)

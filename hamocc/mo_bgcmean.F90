@@ -134,7 +134,7 @@ module mo_bgcmean
        & FLX_BURSSSTER =0    ,                                            &
        & LYR_PHYTO     =0    ,LYR_GRAZER    =0    ,LYR_DOC       =0    ,  &
        & LYR_TDOC_LC   =0    ,LYR_TDOC_HC   =0    ,LYR_TDOC_LC13 =0    ,  &
-       & LYR_TDOC_HC13 =0                                              ,  &
+       & LYR_TDOC_HC13 =0    ,                                            &
        & LYR_PHOSY     =0    ,LYR_PHOSPH    =0    ,LYR_OXYGEN    =0    ,  &
        & LYR_IRON      =0    ,LYR_ANO3      =0    ,LYR_ALKALI    =0    ,  &
        & LYR_SILICA    =0    ,LYR_DIC       =0    ,LYR_POC       =0    ,  &
@@ -167,8 +167,8 @@ module mo_bgcmean
        & LYR_agg_b     =0    ,LYR_agg_Vrhof =0    ,LYR_agg_Vpor  =0    ,  &
        !========== LVLs
        & LVL_PHYTO     =0    ,LVL_GRAZER    =0    ,LVL_DOC       =0    ,  &
-       & LVL_TDOC_LC   =0    ,LVL_TDOC_HC   =0    ,LVL_TDOC_LC13 =0   ,  &
-       & LVL_TDOC_HC13                                                 ,  &
+       & LVL_TDOC_LC   =0    ,LVL_TDOC_HC   =0    ,LVL_TDOC_LC13 =0    ,  &
+       & LVL_TDOC_HC13 =0    ,                                            &
        & LVL_PHOSY     =0    ,LVL_PHOSPH    =0    ,LVL_OXYGEN    =0    ,  &
        & LVL_IRON      =0    ,LVL_ANO3      =0    ,LVL_ALKALI    =0    ,  &
        & LVL_SILICA    =0    ,LVL_DIC       =0    ,LVL_POC       =0    ,  &
@@ -269,7 +269,8 @@ module mo_bgcmean
        & LYR_EPS           ,LYR_ASIZE         ,LYR_N2O           ,        &
        & LYR_PREFO2        ,LYR_O2SAT         ,LYR_PREFPO4       ,        &
        & LYR_PREFALK       ,LYR_PREFDIC       ,LYR_DICSAT        ,        &
-       & LYR_PREFSILICA    ,LYR_SHELFAGE      ,                           &
+       & LYR_PREFSILICA    ,LYR_SHELFAGE      ,LVL_TDOC_LC       ,        &
+       & LVL_TDOC_HC       ,LVL_TDOC_LC13     ,LVL_TDOC_HC13     ,        &
        & LYR_CFC11         ,LYR_CFC12         ,LYR_SF6           ,        &
        & LYR_NATDIC        ,LYR_NATALKALI     ,LYR_NATCALC       ,        &
        & LYR_NATPH         ,LYR_NATOMEGAA     ,LYR_NATOMEGAC     ,        &
@@ -298,7 +299,8 @@ module mo_bgcmean
        & LVL_ASIZE         ,LVL_N2O           ,LVL_PREFO2        ,        &
        & LVL_O2SAT         ,LVL_PREFPO4       ,LVL_PREFALK       ,        &
        & LVL_PREFDIC       ,LVL_DICSAT        ,LVL_PREFSILICA    ,        &
-       & LVL_SHELFAGE      ,                                              &
+       & LVL_SHELFAGE      ,LVL_TDOC_LC       ,LVL_TDOC_HC       ,        &
+       & LVL_TDOC_LC13     ,LVL_TDOC_HC13     ,                           &
        & LVL_CFC11         ,LVL_CFC12         ,LVL_SF6           ,        &
        & LVL_NATDIC        ,LVL_NATALKALI     ,LVL_NATCALC       ,        &
        & LVL_NATPH         ,LVL_NATOMEGAA     ,LVL_NATOMEGAC     ,        &

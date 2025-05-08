@@ -159,9 +159,10 @@ contains
                               sdm_ssssil,sdm_sssc12,sdm_ssster,jburssso12,                         &
                               bur_sssc12,bur_ssssil,bur_ssster,bur_ssso12,                         &
                               inisdm,inibur,wrtsdm,accbur,accsdm,wrtbur,                           &
-                              jatmco2,jatmn2,jatmo2,srf_atmo2,srf_atmn2,                           &
-                              jtdoc_lc,jtdoc_hc,lyr_tdoc_lc,lyr_tdoc_hc,lvl_tdoc_lc,lvl_tdoc_hc,   &
-                              jlvltdoc_lc,jlvltdoc_hc,                                             &
+                              jatmco2,jatmn2,jatmo2,srf_atmo2,srf_atmn2,jtdoc_lc,jtdoc_hc,         &
+                              lyr_tdoc_lc,lyr_tdoc_hc,lvl_tdoc_lc,lvl_tdoc_hc,jlvltdoc_lc,         &
+                              jlvltdoc_hc,jtdoc_lc13,jtdoc_hc13,lyr_tdoc_lc13,lyr_tdoc_hc13,       &
+                              lvl_tdoc_lc13,lvl_tdoc_hc13,jlvltdoc_lc13,jlvltdoc_hc13,             &
                               lyr_agg_ws,lyr_dynvis,lyr_agg_stick,                                 &
                               lyr_agg_stickf,lyr_agg_dmax,lyr_agg_avdp,                            &
                               lyr_agg_avrhop,lyr_agg_avdC,lyr_agg_df,                              &
@@ -369,6 +370,10 @@ contains
       call finlyr(jcalc13(iogrp),jdp(iogrp))
       call finlyr(jphyto13(iogrp),jdp(iogrp))
       call finlyr(jgrazer13(iogrp),jdp(iogrp))
+      if (use_river2omip) then
+        call finlyr(jtdoc_lc13(iogrp),jdp(iogrp))
+        call finlyr(jtdoc_hc13(iogrp),jdp(iogrp))
+      endif
     endif
     if (use_AGG) then
       call finlyr(jnos(iogrp),jdp(iogrp))
@@ -501,6 +506,10 @@ contains
       call msklvl(jlvlcalc13(iogrp),depths)
       call msklvl(jlvlphyto13(iogrp),depths)
       call msklvl(jlvlgrazer13(iogrp),depths)
+      if (use_river2omip) then
+        call msklvl(jlvltdoc_lc(iogrp),depths)
+        call msklvl(jlvltdoc_hc(iogrp),depths)
+      endif
     endif
     if (use_AGG) then
       call msklvl(jlvlnos(iogrp),depths)
@@ -747,6 +756,10 @@ contains
       call wrtlyr(jcalc13(iogrp),      LYR_CALC13(iogrp),   1e3,            0.,cmpflg,'calc13')
       call wrtlyr(jphyto13(iogrp),     LYR_PHYTO13(iogrp),  1e3,            0.,cmpflg,'phyc13')
       call wrtlyr(jgrazer13(iogrp),    LYR_GRAZER13(iogrp), 1e3,            0.,cmpflg,'zooc13')
+      if (use_river2omip) then
+        call wrtlyr(jtdoc_lc13(iogrp),   LYR_TDOC_LC13(iogrp), 1e3,         0.,cmpflg,'tdoc_lc13')
+        call wrtlyr(jtdoc_hc13(iogrp),   LYR_TDOC_HC13(iogrp), 1e3,         0.,cmpflg,'tdoc_hc13')
+      endif
     endif
     if (use_AGG) then
       call wrtlyr(jnos(iogrp),         LYR_NOS(iogrp),      1.,             0.,cmpflg,'nos')
@@ -843,8 +856,8 @@ contains
       call wrtlvl(jlvlshelfage(iogrp),  LVL_SHELFAGE(iogrp),  rnacc,      0.,cmpflg,'shelfagelvl')
     endif
     if (use_river2omip) then
-      call wrtlvl(jlvltdoc_lc(iogrp),  LVL_TDOC_LC(iogrp),  rnacc*1e3,      0.,cmpflg,'tdoc_lc')
-      call wrtlvl(jlvltdoc_hc(iogrp),  LVL_TDOC_HC(iogrp),  rnacc*1e3,      0.,cmpflg,'tdoc_hc')
+      call wrtlvl(jlvltdoc_lc(iogrp),  LVL_TDOC_LC(iogrp),  rnacc*1e3,      0.,cmpflg,'tdoc_lclvl')
+      call wrtlvl(jlvltdoc_hc(iogrp),  LVL_TDOC_HC(iogrp),  rnacc*1e3,      0.,cmpflg,'tdoc_hclvl')
     endif
     if (use_cisonew) then
       call wrtlvl(jlvldic13(iogrp),    LVL_DIC13(iogrp),    rnacc*1.e3,     0.,cmpflg,'dissic13lvl')
@@ -857,6 +870,10 @@ contains
       call wrtlvl(jlvlcalc13(iogrp),   LVL_CALC13(iogrp),   rnacc*1e3,      0.,cmpflg,'calc13lvl')
       call wrtlvl(jlvlphyto13(iogrp),  LVL_PHYTO13(iogrp),  rnacc*1e3,      0.,cmpflg,'phyc13lvl')
       call wrtlvl(jlvlgrazer13(iogrp), LVL_GRAZER13(iogrp), rnacc*1e3,      0.,cmpflg,'zooc13lvl')
+      if (use_river2omip) then
+        call wrtlvl(jlvltdoc_lc13(iogrp), LVL_TDOC_LC13(iogrp), rnacc*1e3,  0.,cmpflg,'tdoc_lc13lvl')
+        call wrtlvl(jlvltdoc_hc13(iogrp), LVL_TDOC_HC13(iogrp), rnacc*1e3,  0.,cmpflg,'tdoc_hc13lvl')
+      endif
     endif
     if (use_AGG) then
       call wrtlvl(jlvlnos(iogrp),      LVL_NOS(iogrp),      rnacc,          0.,cmpflg,'noslvl')
@@ -1145,6 +1162,10 @@ contains
       call inilyr(jcalc13(iogrp),0.)
       call inilyr(jphyto13(iogrp),0.)
       call inilyr(jgrazer13(iogrp),0.)
+      if (use_river2omip) then
+        call inilyr(jtdoc_lc13(iogrp),0.)
+        call inilyr(jtdoc_hc13(iogrp),0.)
+      endif
     endif
     if (use_AGG) then
       call inilyr(jnos(iogrp),0.)
@@ -1253,6 +1274,10 @@ contains
       call inilvl(jlvlcalc13(iogrp),0.)
       call inilvl(jlvlphyto13(iogrp),0.)
       call inilvl(jlvlgrazer13(iogrp),0.)
+      if (use_river2omip) then
+        call inilvl(jlvltdoc_lc13(iogrp),0.)
+        call inilvl(jlvltdoc_hc13(iogrp),0.)
+      endif
     endif
     if (use_AGG) then
       call inilvl(jlvlnos(iogrp),0.)
@@ -1373,7 +1398,7 @@ contains
                               nctime,ncfcls,ncedef,ncdefvar3d,ndouble
     use mo_control_bgc, only: use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO,                    &
                               use_sedbypass,use_BOXATM,use_extNcycle,use_pref_tracers,use_M4AGO,   &
-                              use_shelfsea_res_time,use_sediment_quality
+                              use_shelfsea_res_time,use_sediment_quality,use_river2omip
     use mo_bgcmean,     only: srf_kwco2,srf_fco2,srf_pco2,srf_xco2,srf_pco2_gex,srf_dmsflux,       &
                               srf_co2fxd,srf_co2fxu,srf_kwco2sol,srf_co2sol,                       &
                               srf_oxflux,srf_niflux,srf_pn2om,srf_dms,srf_dmsprod,                 &
@@ -1421,6 +1446,8 @@ contains
                               sdm_pown2,sdm_powno3,sdm_powasi,sdm_ssso12,sdm_ssssil,               &
                               sdm_sssc12,sdm_ssster,bur_ssso12,bur_sssc12,bur_ssssil,bur_ssster,   &
                               lvl_prefsilica,lvl_shelfage,                                         &
+                              lyr_tdoc_lc,lyr_tdoc_hc,lvl_tdoc_lc,lvl_tdoc_hc,lyr_tdoc_lc13,       &
+                              lyr_tdoc_hc13,lvl_tdoc_lc13,lvl_tdoc_hc13,                           &
                               lyr_agg_ws,lyr_dynvis,lyr_agg_stick,                                 &
                               lyr_agg_stickf,lyr_agg_dmax,lyr_agg_avdp,                            &
                               lyr_agg_avrhop,lyr_agg_avdC,lyr_agg_df,                              &
@@ -1849,6 +1876,12 @@ contains
            &   'phyc13','Phytoplankton13',' ','mol P m-3',1)
       call ncdefvar3d(LYR_GRAZER13(iogrp),cmpflg,'p',                           &
            &   'zooc13','Zooplankton13',' ','mol P m-3',1)
+      if (use_river2omip) then
+        call ncdefvar3d(LYR_TDOC_LC13(iogrp),cmpflg,'p','tdoc_lc13',            &
+             &  'Low-C terrestrial dissolved organic carbon13',' ','mol P m-3',1)
+        call ncdefvar3d(LYR_TDOC_HC13(iogrp),cmpflg,'p','tdoc_hc13',            &
+             &  'High-C terrestrial dissolved organic carbon13',' ','mol P m-3',1)
+      endif
     endif
     if (use_AGG) then
       call ncdefvar3d(LYR_NOS(iogrp),cmpflg,'p',                                &
@@ -1956,6 +1989,12 @@ contains
       call ncdefvar3d(LYR_agg_Vpor(iogrp),cmpflg,'p',                           &
            &  'agg_Vpor','V-weighted aggregate mean porosity',' ','-',1)
     endif
+    if (use_river2omip) then
+      call ncdefvar3d(LYR_TDOC_LC(iogrp),cmpflg,'p','tdoc_lc',                  &
+           &  'Low-C terrestrial dissolved organic carbon',' ','mol P m-3',1)
+      call ncdefvar3d(LYR_TDOC_HC(iogrp),cmpflg,'p','tdoc_hc',                  &
+           &  'High-C terrestrial dissolved organic carbon',' ','mol P m-3',1)
+    endif
     ! --- define 3d level fields
     call ncdefvar3d(LVL_DIC(iogrp),cmpflg,'p',                                  &
          &   'dissiclvl','Dissolved inorganic carbon',' ','mol C m-3',2)
@@ -2042,6 +2081,12 @@ contains
            &   'phyc13lvl','Phytoplankton13',' ','mol P m-3',2)
       call ncdefvar3d(LVL_GRAZER13(iogrp),cmpflg,'p',                           &
            &   'zooc13lvl','Zooplankton13',' ','mol P m-3',2)
+      if (use_river2omip) then
+        call ncdefvar3d(LVL_TDOC_LC13(iogrp),cmpflg,'p','tdoc_lc13lvl',         &
+             &  'Low-C terrestrial dissolved organic carbon13',' ','mol P m-3',2)
+        call ncdefvar3d(LVL_TDOC_HC13(iogrp),cmpflg,'p','tdoc_hc13lvl',         &
+             &  'High-C terrestrial dissolved organic carbon13',' ','mol P m-3',2)
+      endif
     endif
     if (use_AGG) then
       call ncdefvar3d(LVL_NOS(iogrp),cmpflg,'p','noslvl',                       &
@@ -2154,7 +2199,13 @@ contains
            &  'agg_Vrhoflvl','V-weighted aggregate mean density',' ','kg m-3',2)
       call ncdefvar3d(LVL_agg_Vpor(iogrp),cmpflg,'p',                           &
            &  'agg_Vporlvl','V-weighted aggregate mean porosity',' ','-',2)
-  endif
+    endif
+    if (use_river2omip) then
+      call ncdefvar3d(LVL_TDOC_LC(iogrp),cmpflg,'p','tdoc_lclvl',               &
+           &  'Low-C terrestrial dissolved organic carbon',' ','mol P m-3',2)
+      call ncdefvar3d(LVL_TDOC_HC(iogrp),cmpflg,'p','tdoc_hclvl',               &
+           &  'High-C terrestrial dissolved organic carbon',' ','mol P m-3',2)
+    endif
     ! --- define sediment fields
     if (.not. use_sedbypass) then
       call ncdefvar3d(SDM_POWAIC(iogrp),cmpflg,'p',                             &
