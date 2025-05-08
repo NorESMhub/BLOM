@@ -507,8 +507,8 @@ contains
       call msklvl(jlvlphyto13(iogrp),depths)
       call msklvl(jlvlgrazer13(iogrp),depths)
       if (use_river2omip) then
-        call msklvl(jlvltdoc_lc(iogrp),depths)
-        call msklvl(jlvltdoc_hc(iogrp),depths)
+        call msklvl(jlvltdoc_lc13(iogrp),depths)
+        call msklvl(jlvltdoc_hc13(iogrp),depths)
       endif
     endif
     if (use_AGG) then
