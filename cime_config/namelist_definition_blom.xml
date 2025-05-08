@@ -645,6 +645,7 @@
     <group>limits</group>
     <values>
       <value>unset</value>
+      <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx2v1_20250507.nc</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx1v4_20170608.nc</value>
       <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.5v1_20240702.nc</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.25v4_20170623.nc</value>
