@@ -78,21 +78,13 @@ contains
     ! Local variables
     integer :: i,j,k,l
 
-    !$omp parallel do private(i)
-    do j = 1-nbdy,jj+nbdy
-      do i = 1-nbdy,ii+nbdy
-        do k = 1,2
-          ubflx(i,j,k) = spval
-          vbflx(i,j,k) = spval
-          pb_mn(i,j,k) = spval
-          ubflx_mn(i,j,k) = spval
-          vbflx_mn(i,j,k) = spval
-          pvtrop(i,j,k) = spval
-        end do
-        pvtrop_o(i,j) = spval
-      end do
-    end do
-    !$omp end parallel do
+    pvtrop_o(:,:) = spval
+    ubflx(:,:,:) = spval
+    vbflx(:,:,:) = spval
+    pb_mn(:,:,:) = spval
+    ubflx_mn(:,:,:) = spval
+    vbflx_mn(:,:,:) = spval
+    pvtrop(:,:,:) = spval
 
     !$omp parallel do private(l,i,k)
     do j = 1,jj+1

@@ -214,15 +214,7 @@ contains
 
       if (vcoord_tag == vcoord_isopyc_bulkml .or. &
           trim(sigref_spec) == 'inicon') then
-         !$omp parallel do private(i, k)
-         do j = 1-nbdy, jj+nbdy
-            do k = 1, kk
-               do i = 1-nbdy, ii+nbdy
-                  sigmar(i,j,k) = spval
-               enddo
-            enddo
-         enddo
-         !$omp end parallel do
+         sigmar(:,:,:) = spval
       else
          !$omp parallel do private(i, k)
          do j = 1-nbdy, jj+nbdy
