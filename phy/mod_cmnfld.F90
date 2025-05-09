@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2022 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2015-2025 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -18,13 +18,13 @@
 ! ------------------------------------------------------------------------------
 
 module mod_cmnfld
-   ! ------------------------------------------------------------------------------
-   ! This module contains variables and procedures related to common fields used by
-   ! several subsequent routines.
-   ! ------------------------------------------------------------------------------
+! ------------------------------------------------------------------------------
+! This module contains variables and procedures related to common fields used by
+! several subsequent routines.
+! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
-   use mod_constants, only: spval, onem, L_mks2cgs
+   use mod_constants, only: spval, onem
    use mod_xc
 
    implicit none
@@ -34,7 +34,7 @@ module mod_cmnfld
    ! Parameters:
    real(r8) :: &
       sls0 = 10._r8*onem, &      ! Minimum smoothing length scale in the
-                                 ! computation of filtered BFSQ [g cm-1 s-2].
+                                 ! computation of filtered BFSQ [kg m-1 s-2].
       slsmfq = 2._r8, &          ! Factor to be multiplied with the mixed
                                  ! layer depth to find the smoothing length
                                  ! scale at the base of the mixed layer in the
@@ -45,15 +45,15 @@ module mod_cmnfld
                                  ! computation of filtered BFSQ [].
       bfsqmn = 1.e-7_r8, &       ! Minimum value of BFSQ used in the
                                  ! computation of neutral slope [s-2].
-      dbcrit = .0003_r8*L_mks2cgs! Critical buoyancy difference used in the
+      dbcrit = .0003_r8          ! Critical buoyancy difference used in the
                                  ! mixed layer thickness estimation (Levitus,
-                                 ! 1982) [cm s-2].
+                                 ! 1982) [m s-2].
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, kdm + 1) :: &
       bfsqi, &                   ! Interface buoyancy frequency squared [s-2].
       bfsqf, &                   ! Filtered interface buoyancy frequency
                                  ! squared [s-2].
-      z                          ! Interface depth [cm].
+      z                          ! Interface depth [m].
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, kdm) :: &
       bfsql, &                   ! Layer buoyancy frequency squared [s-2].
       nslpx, &                   ! x-component of local neutral slope [].
@@ -62,10 +62,10 @@ module mod_cmnfld
                                  ! buoyancy frequency [s-1].
       nnslpy, &                  ! y-component of local neutral slope times
                                  ! buoyancy frequency [s-1].
-      dz                         ! Layer thickness [cm].
+      dz                         ! Layer thickness [m].
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
       mlts                       ! Mixed layer depth defined by density
-                                 ! criterion [cm].
+                                 ! criterion [m].
 
    public :: sls0, slsmfq, slsels, bfsqmn, dbcrit, &
              bfsqi, bfsqf, z, bfsql, nslpx, nslpy, nnslpx, nnslpy, dz, mlts, &

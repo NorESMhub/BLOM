@@ -4,6 +4,15 @@
 
 <definitions_variables>
 
+  <entry id="BLOM_OUTPUT_SIZE">
+    <type>char</type>
+    <valid_values>spinup,default</valid_values>
+    <default_value>default</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Namelist option to set BLOM output option.</desc>
+  </entry>
+
   <entry id="COMP_OCN">
     <type>char</type>
     <valid_values>blom</valid_values>
@@ -45,15 +54,6 @@
     <group>build_component_blom</group>
     <file>env_build.xml</file>
     <desc>Optional turbulent closure.  Valid values one of: twoeq oneeq. Additional values: advection isodif</desc>
-  </entry>
-
-  <entry id="BLOM_UNIT">
-    <type>char</type>
-    <valid_values>cgs,mks</valid_values>
-    <default_value>mks</default_value>
-    <group>build_component_blom</group>
-    <file>env_build.xml</file>
-    <desc>Unit system.  Valid values one of: cgs mks. </desc>
   </entry>
 
   <entry id="OCN_CO2_TYPE">
@@ -194,11 +194,23 @@
     <valid_values>TRUE,FALSE</valid_values>
     <default_value>FALSE</default_value>
     <values>
-       <value compset="_BGC.*%N2OC%NH3C">TRUE</value>
+       <value compset="_BGC.*%N2OC">TRUE</value>
     </values>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>N2O and NH3 fluxes coupled from atmosphere. Requires module ecosys and extncycle</desc>
+    <desc>N2O fluxes coupled from atmosphere. Requires module ecosys and extncycle</desc>
+  </entry>
+  
+  <entry id="HAMOCC_NH3C">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <values>
+       <value compset="_BGC.*%NH3C">TRUE</value>
+    </values>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>NH3 fluxes coupled from atmosphere. Requires module ecosys and extncycle</desc>
   </entry>
 
   <entry id="HAMOCC_SINKING_SCHEME">
@@ -208,6 +220,15 @@
     <group>run_component_blom</group>
     <file>env_run.xml</file>
     <desc>Namelist option to set sinking scheme. Requires module ecosys</desc>
+  </entry>
+
+  <entry id="HAMOCC_OUTPUT_SIZE">
+    <type>char</type>
+    <valid_values>spinup,default</valid_values>
+    <default_value>default</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Namelist option to set iHAMOCC output option. Requires module ecosys</desc>
   </entry>
 
   <entry id="HAMOCC_PREF_TRACERS">

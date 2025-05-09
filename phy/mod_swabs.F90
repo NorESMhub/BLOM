@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2017-2024 Mats Bentsen, Mariana Vertenstein
+! Copyright (C) 2017-2025 Mats Bentsen, Mariana Vertenstein, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -18,395 +18,581 @@
 ! ------------------------------------------------------------------------------
 
 module mod_swabs
+! ----------------------------------------------------------------------------
+! This module contains routines and specifies arrays related to shortwave
+! radiation absorption.
+!
+! It is assumed that the vertical profile of shortwave radiation flux is
+!
+!   E(z) = E(0)*(swfc1*exp(-z/swal1) + swfc2*exp(-z/swal2))
+!
+! where E(0) is the shortwave radiation flux immediately below the ocean
+! surface, z is the depth, swfc1 and swal1 are the fraction and attenuation
+! length, respectively, of long visible visible wavelengths (also infrared
+! wavelengths in case of Jerlov (1968) water types) and swfc2 and swal2 are the
+! fraction and attenuation length of and short visible and ultraviolet
+! wavelengths. For vcoord_type = 'isopyc_bulkml' it is assumed that the infrared
+! and long visible wavelengths of the radiation is absorbed in the uppermost
+! model layer.
+!
+! References:
+!   Jerlov, N. G., 1968: Optical Oceanography. Elsevier, 194 pp.
+!   Paulson, C. A., and J. J. Simpson, 1977: Irradiance Measurements in the
+!     Upper Ocean. J. Phys. Oceanogr., 7, 952-956.
+!   Morel, A., and D. Antoine, 1994: Heating Rate within the Upper Ocean in
+!     Relation to Its Bio-Optical State. J. Phys. Oceanogr., 24, 1652-1665.
+!   Sweeney, C., A. Gnanadesikan, S. M. Griffies, M. J. Harrison, A. J. Rosati,
+!     and B. L. Samuels, 2005: Impacts of Shortwave Penetration Depth on
+!     Large-Scale Ocean Circulation and Heat Transport. J. Phys. Oceanogr., 35,
+!     1103-1118.
+! ------------------------------------------------------------------------------
 
-  ! ------------------------------------------------------------------
-  ! This module contains routines and specifies arrays related to
-  ! shortwave radiation absorption.
-  !
-  ! It is assumed that the vertical profile of shortwave radiation
-  ! flux is
-  !
-  !   E(z) = E(0)*swbgfc*exp(-z/swbgal)
-  !
-  ! where E(0) is the shortwave radiation flux immediately below the
-  ! ocean surface, z is the depth, swbgfc and swbgal is the fraction
-  ! and attenuation length, respectively, of ultraviolet and short
-  ! visible wavelengths (blue/green). Thus it is assumed that the
-  ! infrared and long visible (red) wavelengths of the radiation is
-  ! absorbed in the uppermost model layer.
-  !
-  ! References:
-  !   Jerlov, N. G., 1968: Optical Oceanography. Elsevier, 194 pp.
-  !   Paulson, C. A., and J. J. Simpson, 1977: Irradiance Measurements
-  !     in the Upper Ocean. J. Phys. Oceanogr., 7, 952-956.
-  !   Morel, A., and D. Antoine, 1994: Heating Rate within the Upper
-  !     Ocean in Relation to Its Bio-Optical State. J. Phys.
-  !     Oceanogr., 24, 1652-1665.
-  !   Sweeney, C., A. Gnanadesikan, S. M. Griffies, M. J. Harrison, A.
-  !     J. Rosati, and B. L. Samuels, 2005: Impacts of Shortwave
-  !     Penetration Depth on Large-Scale Ocean Circulation and Heat
-  !     Transport. J. Phys. Oceanogr., 35, 1103-1118.
-  ! ------------------------------------------------------------------
+   use mod_types,    only: r8
+   use dimensions,   only: idm, jdm, itdm, jtdm
+   use mod_xc,       only: xcstop, xchalt, xcaput, xctilr, &
+                           nbdy, ii, jj, ip, isp, ifp, ilp, lp, &
+                           halo_ps, mnproc
+   use mod_time,     only: xmi, l1mi, l2mi, l3mi, l4mi, l5mi
+   use mod_checksum, only: csdiag, chksummsk
+   use mod_intp1d,   only: intp1d
+   use mod_utility,  only: fnmlen
+   use netcdf
 
-  use dimensions,   only: idm, jdm, itdm, jtdm
-  use mod_xc,       only: xcstop, xchalt, xcaput, xctilr, &
-                          nbdy, ii, jj, ip, isp, ifp, ilp, lp, &
-                          halo_ps, mnproc
-  use mod_time,     only: xmi, l1mi, l2mi, l3mi, l4mi, l5mi
-  use mod_checksum, only: csdiag, chksummsk
-  use mod_intp1d,   only: intp1d
-  use netcdf
+   implicit none
+   private
 
-  implicit none
-  private
+   ! Variables to be set in namelist:
+   !    swamth: Shortwave radiation absorption method. Valid methods:
+   !            'top-layer'          : All radiation absorbed in top model
+   !                                   layer.
+   !            'jerlov'             : Absorption using modified Paulson and
+   !                                   Simpson (1977) transmission
+   !                                   parameterization of Jerlov (1968) water
+   !                                   types.
+   !            'chlorophyll'        : Absorption using modified Morel and
+   !                                   Antoine (1994) chlorophyll concentration
+   !                                   dependent transmission parameterization.
+   !            'spatial_frac_attlen': Read spatially varying spectral band
+   !                                   fractions and attenuation lengths from
+   !                                   file.
+   !   jwtype: Number indicating the Jerlov (1968) water type.
+   !   chlopt: Chlorophyll concentration option. Valid options:
+   !           'climatology': Monthly chlorophyll concentration climatology
+   !                          obtained from SeaWiFS observations during
+   !                          1997-2010.
+   !   ccfile: Name of file containing chlorophyll concentration climatology.
+   !   svfile: Name of file containing spatially varying spectral band fractions
+   !           and attenuation lengths.
+   character (len = 80)     :: swamth, chlopt
+   character (len = fnmlen) :: ccfile, svfile
+   integer                  :: jwtype
 
-  ! Variables to be set in namelist:
-  !   swamth: Shortwave radiation absorption method. Valid methods:
-  !           'top-layer'  : All radiation absorbed in top model
-  !                          layer.
-  !           'jerlov'     : Absorption using modified Paulson and
-  !                          Simpson (1977) transmission
-  !                          parameterization of Jerlov (1968) water
-  !                          types.
-  !           'chlorophyll': Absorption using modified Morel and
-  !                          Antoine (1994) chlorophyll concentration
-  !                          dependent transmission parameterization.
-  !  jwtype: Number indicating the Jerlov (1968) water type.
-  !  chlopt: Chlorophyll concentration option. Valid options:
-  !          'climatology': Monthly chlorophyll concentration
-  !                         climatology obtained from SeaWiFS
-  !                         observations during 1997-2010.
-  !  ccfile: Name of file containing chlorophyll concentration
-  !          climatology.
-  character (len = 80),  public :: swamth,chlopt
-  character (len = 256), public :: ccfile
-  integer,               public :: jwtype
+  ! Parameter arrays related to shortwave radiation absorption following Paulson
+  ! and Simpson's (1977) fit to the data of Jerlov (1968):
+  !    ps77_irfc: Fraction of infrared and long visible wavelengths.
+  !    ps77_al1 : Attenuation length for infrared and long visible wavelengths.
+  !    ps77_al2 : Attenuation length for short visible and ultraviolet
+  !               wavelengths.
+  ! Array index 1 through 5 correspond to Jerlov's classification of water types
+  ! I, IA, IB, II and III, respectively.
+  real(r8), dimension(5), parameter :: &
+     ps77_irfc = [  .58_r8,   .62_r8,   .67_r8,   .77_r8,   .78_r8], &
+     ps77_al1  = [  .35_r8,   .60_r8,  1.00_r8,  1.50_r8,  1.40_r8], &
+     ps77_al2  = [23.00_r8, 20.00_r8, 17.00_r8, 14.00_r8,  7.90_r8]
 
-  ! Parameter arrays related to shortwave radiation absorption
-  ! following Paulson and Simpson's (1977) fit to the data of Jerlov
-  ! (1968):
-  !   ps77rf: The infrared/red fraction absorbed near surface.
-  !   ps77al: Attenuation length for blue/green spectral band.
-  ! Array index 1 through 5 correspond to Jerlov's classification of
-  ! water types I, IA, IB, II and III, respectively.
-  real, dimension(5), parameter :: &
-       ps77rf = (/.58,.62,.67,.77,.78/), &
-       ps77al = (/23.,20.,17.,14.,7.9/)
-
-  ! Parameters related to a modified Morel and Antoine (1994)
-  ! transmission parameterization:
-  !   cl10mn: Minimum value of log10 of chlorophyll concentration.
-  !   cl10mx: Maximum value of log10 of chlorophyll concentration.
-  !   ms94rf: Infrared (750-2500 nm) fraction of shortwave radiation
-  !           that is absorbed in the upper few meter of the ocean.
-  !           The value 0.43 suggested by Sweeney et al. (2005) is
-  !           used here.
-  !   ma94v2: Coefficients of polynomial determining the fraction of
-  !           ultraviolet and visible light (300-750 nm) that belongs
-  !           to ultraviolet and short visible wavelengths
-  !           (blue/green).
-  !   ma94z2: Coefficients of polynomial determining the attenuation
-  !           length of ultraviolet and short visible wavelengths
-  !           (blue/green).
-  real, parameter :: &
-       cl10mn = -2., &
-       cl10mx = 1., &
-       ma94rf = .43
-  real, dimension(6), parameter :: &
-       ma94v2 = (/  .679, -.008, -.132, -.038,  .017,  .007/), &
-       ma94z2 = (/ 7.925,-6.644, 3.662,-1.815, -.218,  .502/)
+  ! Parameters related to a modified Morel and Antoine (1994) transmission
+  ! parameterization:
+  !    chl10_min: Minimum value of log10 of chlorophyll concentration.
+  !    chl10_max: Maximum value of log10 of chlorophyll concentration.
+  !    ma94_irfc: Infrared fraction of shortwave radiation that is absorbed near
+  !               the surface. The value 0.43 suggested by Sweeney et al. (2005)
+  !               is used here.
+  !    ma94_v2  : Coefficients of polynomial determining the fraction of short
+  !               visible and ultraviolet wavelengths.
+  !    ma94_z1  : Coefficients of polynomial determining the attenuation length
+  !               of long visible wavelengths.
+  !    ma94_z2  : Coefficients of polynomial determining the attenuation length
+  !               of short visible and ultraviolet wavelengths.
+  real(r8), parameter :: &
+       chl10_min = -2._r8, &
+       chl10_max = 1._r8, &
+       ma94_irfc = .43_r8
+  real(r8), dimension(6), parameter :: &
+       ma94_v2 = [  .679_r8,  -.008_r8,  -.132_r8, &
+                   -.038_r8,   .017_r8,   .007_r8], &
+       ma94_z1 = [ 1.540_r8,  -.197_r8,   .166_r8, &
+                   -.252_r8,  -.055_r8,   .042_r8], &
+       ma94_z2 = [ 7.925_r8, -6.644_r8,  3.662_r8, &
+                  -1.815_r8,  -.218_r8,   .502_r8]
 
   ! Other parameters:
-  !----   swamxd: Maximum depth of shortwave radiation penetration [m].
-  real, parameter, public ::  swamxd = 200.
+  !    swamxd: Maximum depth of shortwave radiation penetration [m].
+  real(r8), parameter ::  swamxd = 200._r8
 
-  real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12)      :: chl10c
-  real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy)         :: chl10
-  real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), public :: swbgal
-  real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), public :: swbgfc
+  real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12) :: chl10c
+  real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
+     chl10, swfc1, swfc2, swal1, swal2
 
-  ! Public routines
-  public :: iniswa, updswa
+  public :: swamth, chlopt, ccfile, svfile, jwtype, &
+            swamxd, swfc1, swfc2, swal1, swal2, &
+            iniswa, updswa
 
 contains
 
-  ! ------------------------------------------------------------------
+   ! ---------------------------------------------------------------------------
+   ! Public procedures.
+   ! ---------------------------------------------------------------------------
 
-  subroutine iniswa()
+   subroutine iniswa()
+   ! ---------------------------------------------------------------------------
+   ! Initialize shortwave radiation absorption functionality.
+   ! ---------------------------------------------------------------------------
 
-    ! ------------------------------------------------------------------
-    ! Initialize shortwave radiation absorption functionality.
-    ! ------------------------------------------------------------------
+      ! Local variables
+      real(r8), dimension(itdm,jtdm) :: tmp2d
+      integer, dimension(3) :: istart, icount
+      integer :: i, j, l, k, errstat, ncid, dimid, varid
 
-    ! Local variables
-    real, dimension(itdm,jtdm) :: tmp2d
-    integer, dimension(3) :: istart,icount
-    integer :: i,j,l,k,istat,ncid,dimid,varid
+      select case (trim(swamth))
 
-    if     (swamth == 'top-layer') then
+         case ('top-layer')
 
-      ! Set penetrative blue/green shortwave radiation fraction to zero
-      ! to ensure all shortwave radiation is absorbed in the top layer.
-      !$omp parallel do private(l,i)
-      do j = 1,jj
-        do l = 1,isp(j)
-          do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-            swbgfc(i,j) = 0.
-            swbgal(i,j) = swamxd
-          end do
-        end do
-      end do
-      !$omp end parallel do
+            ! Set penetrative shortwave radiation fractions to zero to ensure
+            ! all shortwave radiation is absorbed in the top layer.
 
-    else if (swamth == 'jerlov') then
+            !$omp parallel do private(l, i)
+            do j = 1, jj
+               do l = 1, isp(j)
+               do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                  swfc1(i,j) = 0._r8
+                  swfc2(i,j) = 0._r8
+                  swal1(i,j) = swamxd
+                  swal2(i,j) = swamxd
+               enddo
+               enddo
+            enddo
+            !$omp end parallel do
 
-      ! Set blue/green penetrative shortwave radiation fraction and
-      ! attenuation length according to Jerlov water type.
-      if (jwtype < 1.or.jwtype > 5) then
-        if (mnproc == 1) then
-          write (lp,'(a,i11,a)') ' jwtype = ',jwtype, &
-               ' is outside the valid interval of [1,5]!'
-        end if
-        call xcstop('(iniswa)')
-        stop '(iniswa)'
-      end if
-      !$omp parallel do private(l,i)
-      do j = 1,jj
-        do l = 1,isp(j)
-          do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-            swbgfc(i,j) = 1.-ps77rf(jwtype)
-            swbgal(i,j) = ps77al(jwtype)
-          end do
-        end do
-      end do
-      !$omp end parallel do
+         case ('jerlov')
 
-    else if (swamth == 'chlorophyll') then
+            ! Set penetrative shortwave radiation fractions and attenuation
+            ! lengths according to Jerlov water type.
 
-      ! Initialize functionality for chlorophyll concentration dependent
-      ! shortwave radiation absorption.
-      if     (chlopt == 'climatology') then
+            if (jwtype < 1 .or. jwtype > 5) then
+               if (mnproc == 1) then
+                  write (lp,'(a,i11,a)') ' jwtype = ', jwtype, &
+                     ' is outside the valid interval of [1,5]!'
+               endif
+               call xcstop('(iniswa)')
+                      stop '(iniswa)'
+            endif
+            !$omp parallel do private(l, i)
+            do j = 1, jj
+               do l = 1, isp(j)
+               do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                  swfc1(i,j) = ps77_irfc(jwtype)
+                  swfc2(i,j) = 1._r8 - ps77_irfc(jwtype)
+                  swal1(i,j) = ps77_al1(jwtype)
+                  swal2(i,j) = ps77_al2(jwtype)
+               enddo
+               enddo
+            enddo
+            !$omp end parallel do
 
-        ! Read monthly chlorophyll concentration climatology.
-        if (mnproc == 1) then
-          write (lp,'(2a)') &
-               ' reading chlorophyll concentration climatology from ', &
-               trim(ccfile)
-          call flush(lp)
+         case ('chlorophyll')
 
-          ! ----- Open netCDF file.
-          istat = nf90_open(ccfile,nf90_nowrite,ncid)
-          if (istat /= nf90_noerr) then
-            write(lp,'(4a)') ' nf90_open: ',trim(ccfile),': ', &
-                 nf90_strerror(istat)
-            call xchalt('(iniswa)')
-            stop '(iniswa)'
-          end if
+            ! Initialize functionality for chlorophyll concentration dependent
+            ! shortwave radiation absorption.
 
-          ! Check dimensions.
-          istat = nf90_inq_dimid(ncid,'x',dimid)
-          if (istat /= nf90_noerr) then
-            write(lp,'(2a)') ' nf90_inq_dimid: x: ', &
-                 nf90_strerror(istat)
-            call xchalt('(iniswa)')
-            stop '(iniswa)'
-          end if
-          istat=nf90_inquire_dimension(ncid,dimid,len = i)
-          if (istat /= nf90_noerr) then
-            write(lp,'(2a)') ' nf90_inquire_dimension: x: ', &
-                 nf90_strerror(istat)
-            call xchalt('(iniswa)')
-            stop '(iniswa)'
-          end if
-          istat = nf90_inq_dimid(ncid,'y',dimid)
-          if (istat /= nf90_noerr) then
-            write(lp,'(2a)') ' nf90_inq_dimid: y: ', &
-                 nf90_strerror(istat)
-            call xchalt('(iniswa)')
-            stop '(iniswa)'
-          end if
-          istat=nf90_inquire_dimension(ncid,dimid,len = j)
-          if (istat /= nf90_noerr) then
-            write(lp,'(2a)') ' nf90_inquire_dimension: y: ', &
-                 nf90_strerror(istat)
-            call xchalt('(iniswa)')
-            stop '(iniswa)'
-          end if
-          istat = nf90_inq_dimid(ncid,'time',dimid)
-          if (istat /= nf90_noerr) then
-            write(lp,'(2a)') ' nf90_inq_dimid: time: ', &
-                 nf90_strerror(istat)
-            call xchalt('(iniswa)')
-            stop '(iniswa)'
-          end if
-          istat=nf90_inquire_dimension(ncid,dimid,len = k)
-          if (istat /= nf90_noerr) then
-            write(lp,'(2a)') ' nf90_inquire_dimension: time: ', &
-                 nf90_strerror(istat)
-            call xchalt('(iniswa)')
-            stop '(iniswa)'
-          end if
-          if (i /= itdm.or.j /= jtdm.or.k /= 12) then
-            write (lp,'(2a)') &
-                 ' wrong dimensions in ',trim(ccfile)
-            call xchalt('(iniswa)')
-            stop '(iniswa)'
-          end if
+            if     (chlopt == 'climatology') then
 
-          ! Get variable ID.
-          istat = nf90_inq_varid(ncid,'chlor_a',varid)
-          if (istat /= nf90_noerr) then
-            write(lp,'(2a)') ' nf90_inq_varid: chlor_a: ', &
-                 nf90_strerror(istat)
-            call xchalt('(iniswa)')
-            stop '(iniswa)'
-          end if
+               ! Read monthly chlorophyll concentration climatology.
 
-          ! Set start and count vectors for reading monthly slices of
-          ! data.
-          istart(1) = 1
-          istart(2) = 1
-          icount(1) = itdm
-          icount(2) = jtdm
-          icount(3) = 1
+               if (mnproc == 1) then
+                  write (lp,*) &
+                     'reading chlorophyll concentration climatology from '// &
+                     trim(ccfile)
+                  call flush(lp)
 
-        end if
+                  ! Open netCDF file.
+                  errstat = nf90_open(ccfile, nf90_nowrite, ncid)
+                  if (errstat /= nf90_noerr) then
+                     write(lp,*) 'nf90_open: '//trim(ccfile)//': '// &
+                                 nf90_strerror(errstat)
+                     call xchalt('(iniswa)')
+                            stop '(iniswa)'
+                  endif
 
-        ! Read data on master process and distribute to all processes.
-        do k = 1,12
-          if (mnproc == 1) then
-            istart(3) = k
-            istat = nf90_get_var(ncid,varid,tmp2d,istart,icount)
-            if (istat /= nf90_noerr) then
-              write(lp,'(2a)') ' nf90_get_var: chlor_a: ', &
-                   nf90_strerror(istat)
-              call xchalt('(iniswa)')
-              stop '(iniswa)'
-            end if
-          end if
-          call xcaput(tmp2d,chl10c(1-nbdy,1-nbdy,k),1)
-        end do
+                  ! Check dimensions.
+                  errstat = nf90_inq_dimid(ncid, 'x', dimid)
+                  if (errstat /= nf90_noerr) then
+                     write(lp,*) 'nf90_inq_dimid: x: '// &
+                                 nf90_strerror(errstat)
+                     call xchalt('(iniswa)')
+                            stop '(iniswa)'
+                  endif
+                  errstat=nf90_inquire_dimension(ncid, dimid, len = i)
+                  if (errstat /= nf90_noerr) then
+                     write(lp,*) 'nf90_inquire_dimension: x: '// &
+                                 nf90_strerror(errstat)
+                     call xchalt('(iniswa)')
+                            stop '(iniswa)'
+                  endif
+                  errstat = nf90_inq_dimid(ncid, 'y', dimid)
+                  if (errstat /= nf90_noerr) then
+                     write(lp,*) 'nf90_inq_dimid: y: '// &
+                                 nf90_strerror(errstat)
+                     call xchalt('(iniswa)')
+                            stop '(iniswa)'
+                  endif
+                  errstat=nf90_inquire_dimension(ncid, dimid, len = j)
+                  if (errstat /= nf90_noerr) then
+                     write(lp,*) 'nf90_inquire_dimension: y: '// &
+                                 nf90_strerror(errstat)
+                     call xchalt('(iniswa)')
+                            stop '(iniswa)'
+                  endif
+                  errstat = nf90_inq_dimid(ncid, 'time', dimid)
+                  if (errstat /= nf90_noerr) then
+                     write(lp,*) 'nf90_inq_dimid: time: '// &
+                                 nf90_strerror(errstat)
+                     call xchalt('(iniswa)')
+                            stop '(iniswa)'
+                  endif
+                  errstat=nf90_inquire_dimension(ncid, dimid, len = k)
+                  if (errstat /= nf90_noerr) then
+                     write(lp,*) 'nf90_inquire_dimension: time: '// &
+                                 nf90_strerror(errstat)
+                     call xchalt('(iniswa)')
+                            stop '(iniswa)'
+                  endif
+                  if (i /= itdm .or. j /= jtdm .or. k /= 12) then
+                     write (lp,*) 'wrong dimensions in '//trim(ccfile)
+                     call xchalt('(iniswa)')
+                            stop '(iniswa)'
+                  endif
 
-        ! Close file.
-        if (mnproc == 1) then
-          istat = nf90_close(ncid)
-          if (istat /= nf90_noerr) then
-            write(lp,'(4a)') &
-                 ' nf90_close: ',trim(ccfile),': ',nf90_strerror(istat)
-            call xchalt('(iniswa)')
-            stop '(iniswa)'
-          end if
-        end if
+                  ! Get variable ID.
+                  errstat = nf90_inq_varid(ncid, 'chlor_a', varid)
+                  if (errstat /= nf90_noerr) then
+                     write(lp,*) 'nf90_inq_varid: chlor_a: '// &
+                                 nf90_strerror(errstat)
+                     call xchalt('(iniswa)')
+                            stop '(iniswa)'
+                  endif
 
-        ! Convert to log10 of chlorophyll concentration.
-        !$omp parallel do private(k,l,i)
-        do j = 1,jj
-          do k = 1,12
-            do l = 1,isp(j)
-              do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-                chl10c(i,j,k) = log10(chl10c(i,j,k))
-              end do
-            end do
-          end do
-        end do
-        !$omp end parallel do
+                  ! Set start and count vectors for reading monthly slices of
+                  ! data.
+                  istart(1) = 1
+                  istart(2) = 1
+                  icount(1) = itdm
+                  icount(2) = jtdm
+                  icount(3) = 1
 
-        ! --- Make sure halos are updated.
-        call xctilr(chl10c, 1,12, nbdy,nbdy, halo_ps)
+               endif
 
-      else
-        if (mnproc == 1) then
-          write (lp,'(3a)') ' chlopt = ',trim(chlopt),' is unsupported!'
-        end if
-        call xcstop('(iniswa)')
-        stop '(iniswa)'
-      end if
+               ! Read data on master process and distribute to all processes.
+               do k = 1, 12
+                  if (mnproc == 1) then
+                     istart(3) = k
+                     errstat = nf90_get_var(ncid, varid, tmp2d, istart, icount)
+                     if (errstat /= nf90_noerr) then
+                        write(lp,*) 'nf90_get_var: chlor_a: '// &
+                                    nf90_strerror(errstat)
+                        call xchalt('(iniswa)')
+                               stop '(iniswa)'
+                     endif
+                  endif
+                  call xcaput(tmp2d, chl10c(1-nbdy,1-nbdy,k), 1)
+               enddo
 
-    else
-      if (mnproc == 1) then
-        write (lp,'(3a)') ' swamth = ',trim(swamth),' is unsupported!'
-      end if
-      call xcstop('(iniswa)')
-      stop '(iniswa)'
-    end if
+               ! Close file.
+               if (mnproc == 1) then
+                  errstat = nf90_close(ncid)
+                  if (errstat /= nf90_noerr) then
+                     write(lp,*) 'nf90_close: '//trim(ccfile)//': '// &
+                                 nf90_strerror(errstat)
+                     call xchalt('(iniswa)')
+                            stop '(iniswa)'
+                  endif
+               endif
 
-  end subroutine iniswa
+               ! Convert to log10 of chlorophyll concentration.
+               !$omp parallel do private(k, l, i)
+               do j = 1, jj
+                  do k = 1, 12
+                     do l = 1, isp(j)
+                     do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                        chl10c(i,j,k) = log10(chl10c(i,j,k))
+                     enddo
+                     enddo
+                  enddo
+               enddo
+               !$omp end parallel do
 
-  ! --- ------------------------------------------------------------------
+               ! Make sure halos are updated.
+               call xctilr(chl10c, 1, 12, nbdy, nbdy, halo_ps)
 
-  subroutine updswa()
+            else
+               if (mnproc == 1) then
+                  write (lp,*) 'iniswa: chlopt = '//trim(chlopt)// &
+                               ' is unsupported!'
+               endif
+               call xcstop('(iniswa)')
+                      stop '(iniswa)'
+            endif
 
-    ! ------------------------------------------------------------------
-    ! Update arrays related to shortwave radiation absorption.
-    ! ------------------------------------------------------------------
+         case ('spatial_frac_attlen')
 
-    ! Local variables
-    integer :: i,j,l
-    real :: q
+            ! Initialize functionality for spatially varying spectral band
+            ! fractions and attenuation lengths from file.
 
-    if     (swamth == 'top-layer'.or.swamth == 'jerlov') then
+            if (mnproc == 1) then
+               write (lp,*) &
+                  'reading spatially varying spectral band fractions and '// &
+                  'attenuation lengths from '//trim(svfile)
+               call flush(lp)
 
-      ! Nothing to be done for methods 'top-layer' or 'jerlov'.
-      return
+               ! Open netCDF file.
+               errstat = nf90_open(svfile, nf90_nowrite, ncid)
+               if (errstat /= nf90_noerr) then
+                  write(lp,*) 'nf90_open: '//trim(svfile)//': '// &
+                              nf90_strerror(errstat)
+                  call xchalt('(iniswa)')
+                         stop '(iniswa)'
+               endif
 
-    else if (swamth == 'chlorophyll') then
+               ! Check dimensions.
+               errstat = nf90_inq_dimid(ncid, 'x', dimid)
+               if (errstat /= nf90_noerr) then
+                  write(lp,*) 'nf90_inq_dimid: x: '// &
+                              nf90_strerror(errstat)
+                  call xchalt('(iniswa)')
+                         stop '(iniswa)'
+               endif
+               errstat=nf90_inquire_dimension(ncid, dimid, len = i)
+               if (errstat /= nf90_noerr) then
+                  write(lp,*) 'nf90_inquire_dimension: x: '// &
+                              nf90_strerror(errstat)
+                  call xchalt('(iniswa)')
+                         stop '(iniswa)'
+               endif
+               errstat = nf90_inq_dimid(ncid, 'y', dimid)
+               if (errstat /= nf90_noerr) then
+                  write(lp,*) 'nf90_inq_dimid: y: '// &
+                              nf90_strerror(errstat)
+                  call xchalt('(iniswa)')
+                         stop '(iniswa)'
+               endif
+               errstat=nf90_inquire_dimension(ncid, dimid, len = j)
+               if (errstat /= nf90_noerr) then
+                  write(lp,*) 'nf90_inquire_dimension: y: '// &
+                              nf90_strerror(errstat)
+                  call xchalt('(iniswa)')
+                         stop '(iniswa)'
+               endif
+               if (i /= itdm .or. j /= jtdm) then
+                  write (lp,*) 'wrong dimensions in '//trim(svfile)
+                  call xchalt('(iniswa)')
+                         stop '(iniswa)'
+               endif
 
-      ! Time interpolation of chlorophyll concentration climatology.
-      if     (chlopt == 'climatology') then
-        !$OMP PARALLEL DO PRIVATE(l,i)
-        do j = 1,jj
-          do l = 1,isp(j)
-            do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-              chl10(i,j) = intp1d(chl10c(i,j,l1mi),chl10c(i,j,l2mi), &
-                   chl10c(i,j,l3mi),chl10c(i,j,l4mi), &
-                   chl10c(i,j,l5mi),xmi)
-            end do
-          end do
-        end do
-        !$OMP END PARALLEL DO
+            endif
 
-      else
-        if (mnproc == 1) then
-          write (lp,'(3a)') ' chlopt = ',trim(chlopt),' is unsupported!'
-        end if
-        call xcstop('(updswa)')
-        stop '(updswa)'
-      end if
+            ! Read fraction of infrared and long visible wavelengths.
+            if (mnproc == 1) then
+               errstat = nf90_inq_varid(ncid, 'swfc1', varid)
+               if (errstat /= nf90_noerr) then
+                  write(lp,*) 'nf90_inq_varid: swfc1: '// &
+                              nf90_strerror(errstat)
+                  call xchalt('(iniswa)')
+                         stop '(iniswa)'
+               endif
+               errstat = nf90_get_var(ncid, varid, tmp2d)
+               if (errstat /= nf90_noerr) then
+                  write(lp,*) 'nf90_get_var: swfc1: '// &
+                              nf90_strerror(errstat)
+                  call xchalt('(iniswa)')
+                         stop '(iniswa)'
+               endif
+            endif
+            call xcaput(tmp2d, swfc1, 1)
+            call xctilr(swfc1, 1, 1, nbdy, nbdy, halo_ps)
 
-      !  Compute blue/green penetrative shortwave radiation fraction and
-      !  attenuation length according to modified Morel and Antoine
-      !  (1994) scheme.
-      !$OMP PARALLEL DO PRIVATE(l,i,q)
-      do j = 1,jj
-        do l = 1,isp(j)
-          do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-            q = max(cl10mn,min(cl10mx,chl10(i,j)))
-            swbgfc(i,j) = (1.-ma94rf) &
-                 *(   ma94v2(1)+q*(ma94v2(2)+q*(ma94v2(3) &
-                 +q*(ma94v2(4)+q*(ma94v2(5)+q* ma94v2(6))))))
-            swbgal(i,j)=   ma94z2(1)+q*(ma94z2(2)+q*(ma94z2(3) &
-                 +q*(ma94z2(4)+q*(ma94z2(5)+q* ma94z2(6)))))
-          end do
-        end do
-      end do
-      !$OMP END PARALLEL DO
+            ! Read fraction of short visible and ultraviolet wavelengths.
+            if (mnproc == 1) then
+               errstat = nf90_inq_varid(ncid, 'swfc2', varid)
+               if (errstat /= nf90_noerr) then
+                  write(lp,*) 'nf90_inq_varid: swfc2: '// &
+                              nf90_strerror(errstat)
+                  call xchalt('(iniswa)')
+                         stop '(iniswa)'
+               endif
+               errstat = nf90_get_var(ncid, varid, tmp2d)
+               if (errstat /= nf90_noerr) then
+                  write(lp,*) 'nf90_get_var: swfc2: '// &
+                              nf90_strerror(errstat)
+                  call xchalt('(iniswa)')
+                         stop '(iniswa)'
+               endif
+            endif
+            call xcaput(tmp2d, swfc2, 1)
+            call xctilr(swfc2, 1, 1, nbdy, nbdy, halo_ps)
 
-    else
-      if (mnproc == 1) then
-        write (lp,'(3a)') ' swamth = ',trim(swamth),' is unsupported!'
-      end if
-      call xcstop('(updswa)')
-      stop '(updswa)'
-    end if
+            ! Read attenuation length of infrared and long visible wavelengths.
+            if (mnproc == 1) then
+               errstat = nf90_inq_varid(ncid, 'swal1', varid)
+               if (errstat /= nf90_noerr) then
+                  write(lp,*) 'nf90_inq_varid: swal1: '// &
+                              nf90_strerror(errstat)
+                  call xchalt('(iniswa)')
+                         stop '(iniswa)'
+               endif
+               errstat = nf90_get_var(ncid, varid, tmp2d)
+               if (errstat /= nf90_noerr) then
+                  write(lp,*) 'nf90_get_var: swal1: '// &
+                              nf90_strerror(errstat)
+                  call xchalt('(iniswa)')
+                         stop '(iniswa)'
+               endif
+            endif
+            call xcaput(tmp2d, swal1, 1)
+            call xctilr(swal1, 1, 1, nbdy, nbdy, halo_ps)
 
-    if (csdiag) then
-      if (mnproc == 1) then
-        write (lp,*) 'updswa:'
-      end if
-      call chksummsk(swbgfc,ip,1,'swbgfc')
-      call chksummsk(swbgal,ip,1,'swbgal')
-    end if
+            ! Read attenuation length of short visible and ultraviolet
+            ! wavelengths.
+            if (mnproc == 1) then
+               errstat = nf90_inq_varid(ncid, 'swal2', varid)
+               if (errstat /= nf90_noerr) then
+                  write(lp,*) 'nf90_inq_varid: swal2: '// &
+                              nf90_strerror(errstat)
+                  call xchalt('(iniswa)')
+                         stop '(iniswa)'
+               endif
+               errstat = nf90_get_var(ncid, varid, tmp2d)
+               if (errstat /= nf90_noerr) then
+                  write(lp,*) 'nf90_get_var: swal2: '// &
+                              nf90_strerror(errstat)
+                  call xchalt('(iniswa)')
+                         stop '(iniswa)'
+               endif
+            endif
+            call xcaput(tmp2d, swal2, 1)
+            call xctilr(swal2, 1, 1, nbdy, nbdy, halo_ps)
 
-  end subroutine updswa
+            ! Close file.
+            if (mnproc == 1) then
+               errstat = nf90_close(ncid)
+               if (errstat /= nf90_noerr) then
+                  write(lp,*) 'nf90_close: '//trim(svfile)//': '// &
+                              nf90_strerror(errstat)
+                  call xchalt('(iniswa)')
+                         stop '(iniswa)'
+               endif
+            endif
+
+         case default
+            if (mnproc == 1) &
+               write (lp,'(3a)') ' iniswa: swamth = ', trim(swamth), &
+                                 ' is unsupported!'
+            call xcstop('(iniswa)')
+                   stop '(iniswa)'
+      end select
+
+   end subroutine iniswa
+
+   subroutine updswa()
+   ! ---------------------------------------------------------------------------
+   ! Update arrays related to shortwave radiation absorption.
+   ! ---------------------------------------------------------------------------
+
+      ! Local variables
+      integer :: i, j, l
+      real(r8) :: q, v2
+
+      select case (trim(swamth))
+
+         case ('top-layer', 'jerlov', 'spatial_frac_attlen')
+
+            ! Nothing to be done for methods 'top-layer', 'jerlov' or
+            ! 'spatial_frac_attlen'.
+
+            return
+
+         case ('chlorophyll')
+
+            if     (chlopt == 'climatology') then
+               ! Time interpolation of chlorophyll concentration climatology.
+               !$omp parallel do private(l, i)
+               do j = 1, jj
+                  do l = 1, isp(j)
+                  do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                     chl10(i,j) = intp1d(chl10c(i,j,l1mi), chl10c(i,j,l2mi), &
+                                         chl10c(i,j,l3mi), chl10c(i,j,l4mi), &
+                                         chl10c(i,j,l5mi), xmi)
+                  enddo
+                  enddo
+               enddo
+               !$omp end parallel do
+            else
+               if (mnproc == 1) then
+                  write (lp,'(3a)') ' updswa: chlopt = ', trim(chlopt), &
+                                    ' is unsupported!'
+               endif
+               call xcstop('(updswa)')
+                      stop '(updswa)'
+            endif
+
+            ! Compute penetrative shortwave radiation fractions and attenuation
+            ! lengths according to modified Morel and Antoine (1994) scheme.
+            !$omp parallel do private(l, i, q, v2)
+            do j = 1, jj
+              do l = 1, isp(j)
+                do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                  q = max(chl10_min, min(chl10_max, chl10(i,j)))
+                  v2 = ((((( ma94_v2(6) *q &
+                           + ma94_v2(5))*q &
+                           + ma94_v2(4))*q &
+                           + ma94_v2(3))*q &
+                           + ma94_v2(2))*q &
+                           + ma94_v2(1))
+                  swfc1(i,j) = (1._r8 - ma94_irfc)*(1._r8 - v2)
+                  swfc2(i,j) = (1._r8 - ma94_irfc)*v2
+                  swal1(i,j) = (((( ma94_z1(6) *q &
+                                  + ma94_z1(5))*q &
+                                  + ma94_z1(4))*q &
+                                  + ma94_z1(3))*q &
+                                  + ma94_z1(2))*q &
+                                  + ma94_z1(1)
+                  swal2(i,j) = (((( ma94_z2(6) *q &
+                                  + ma94_z2(5))*q &
+                                  + ma94_z2(4))*q &
+                                  + ma94_z2(3))*q &
+                                  + ma94_z2(2))*q &
+                                  + ma94_z2(1)
+                enddo
+              enddo
+            enddo
+            !$omp end parallel do
+
+         case default
+            if (mnproc == 1) &
+               write (lp,'(3a)') ' updswa: swamth = ', trim(swamth), &
+                                 ' is unsupported!'
+            call xcstop('(updswa)')
+                   stop '(updswa)'
+      end select
+
+      if (csdiag) then
+         if (mnproc == 1) then
+            write (lp,*) 'updswa:'
+         endif
+         call chksummsk(swfc1, ip, 1, 'swfc1')
+         call chksummsk(swfc2, ip, 1, 'swfc2')
+         call chksummsk(swal1, ip, 1, 'swal1')
+         call chksummsk(swal2, ip, 1, 'swal2')
+      endif
+
+   end subroutine updswa
 
 end module mod_swabs

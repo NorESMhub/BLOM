@@ -25,6 +25,8 @@ module mo_read_sedqual
   ! sed_POCage_init holds then the age that can be applied later in mo_sedmnt (ini_sed_qual)
   !*************************************************************************************************
 
+  use mo_kind, only: bgc_fnmlen
+
   implicit none
   private
 
@@ -32,7 +34,7 @@ module mo_read_sedqual
   public :: read_sedqual ! read sediment porosity file
 
   ! Module variables
-  character(len=512), public :: sedqualfile = ''
+  character(len=bgc_fnmlen), public :: sedqualfile = ''
 
 contains
 

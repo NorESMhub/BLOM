@@ -31,12 +31,14 @@ module mo_read_shelfmask
   !
   !*************************************************************************************************
 
+  use mo_kind, only: bgc_fnmlen
+
   implicit none
   private
 
   public :: ini_read_shelfmask
 
-  character(len=512),               public :: shelfsea_maskfile =''
+  character(len=bgc_fnmlen),        public :: shelfsea_maskfile =''
   logical, allocatable,  protected, public :: shelfmask(:,:)
 
 contains

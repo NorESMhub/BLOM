@@ -32,6 +32,7 @@ module mod_forcing
    use mod_tracers, only: ntr
    use mod_ifdefs, only: use_TRC
    use mod_checksum, only: csdiag, chksummsk
+   use mod_utility, only: fnmlen
 
    implicit none
 
@@ -58,7 +59,7 @@ module mod_forcing
       srxlim          ! Maximum absolute value of SSS difference in relaxation
                       ! [g kg-1].
 
-   character(len = 256) :: &
+   character(len = fnmlen) :: &
       scfile, &       ! Name of file containing monthly SSS climatology.
       wavsrc          ! Source of wave fields. Valid source: 'none', 'param',
                       ! 'extern'.
@@ -80,10 +81,10 @@ module mod_forcing
 
    ! Variables for diagnosed relaxation fluxes.
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, 48) :: &
-      tflxap, &       ! Heat flux to be applied [W cm-2].
-      sflxap, &       ! Salt flux to be applied [10e-3 g cm-2 s-1].
-      tflxdi, &       ! Diagnosed heat flux [W cm-2].
-      sflxdi          ! Diagnosed salt flux [10e-3 g cm-2 s-1].
+      tflxap, &       ! Heat flux to be applied [W m-2].
+      sflxap, &       ! Salt flux to be applied [g m-2 s-1].
+      tflxdi, &       ! Diagnosed heat flux [W m-2].
+      sflxdi          ! Diagnosed salt flux [g m-2 s-1].
    integer, dimension(48) :: &
       nflxdi          ! Accumulation counter for diagnosed relaxation fluxes.
 
@@ -100,6 +101,11 @@ module mod_forcing
       sss_stream       ! Sea-surface salinity [g kg-1] from stream data.
 
    logical :: use_stream_relaxation ! If true, use nuopc stream relaxation capability
+
+   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
+        dust_stream              ! iron dust deposition flux (hamocc)
+   logical :: use_stream_dust    ! If true, use nuopc stream dust capability (hamocc only)
+
 
    ! Variables related to balancing the freshwater forcing budget.
    real(r8) :: &
@@ -146,18 +152,18 @@ module mod_forcing
       atmnoydep       ! atmospheric noy deposition [kgN/m2/s]
 
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy) :: &
-      surflx, &       ! Surface thermal energy flux [W cm-2].
-      surrlx, &       ! Surface relaxation thermal energy flux [W cm-2].
-      sswflx, &       ! Surface solar energy flux [W cm-2].
-      salflx, &       ! Surface salinity flux [10e-3 g cm-2 s-1].
-      brnflx, &       ! Surface brine flux [10e-3 g cm-2 s-1].
-      salrlx, &       ! Surface relaxation salinity flux [10e-3 g cm-2 s-1].
-      taux, &         ! u-component of surface stress [g cm-1 s-2].
-      tauy, &         ! v-component of surface stress [g cm-1 s-2].
-      ustar, &        ! Surface friction velocity [cm s-1].
-      ustarb, &       ! Bottom friction velocity [cm s-1].
-      ustar3, &       ! Friction velocity cubed [cm3 s-3].
-      wstar3          ! Convective velocity cubed [cm3 s-3].
+      surflx, &       ! Surface thermal energy flux [W m-2].
+      surrlx, &       ! Surface relaxation thermal energy flux [W m-2].
+      sswflx, &       ! Surface solar energy flux [W m-2].
+      salflx, &       ! Surface salinity flux [g m-2 s-1].
+      brnflx, &       ! Surface brine flux [g m-2 s-1].
+      salrlx, &       ! Surface relaxation salinity flux [g m-2 s-1].
+      taux, &         ! u-component of surface stress [kg m-1 s-2].
+      tauy, &         ! v-component of surface stress [kg m-1 s-2].
+      ustar, &        ! Surface friction velocity [m s-1].
+      ustarb, &       ! Bottom friction velocity [m s-1].
+      ustar3, &       ! Friction velocity cubed [m3 s-3].
+      wstar3          ! Convective velocity cubed [m3 s-3].
 
    ! Correction fields for keeping tracers above zero value (expectation that
    ! this will only occure due to the application of tracer virtual surface
@@ -171,7 +177,7 @@ module mod_forcing
    ! Flux fields at model interfaces.
 
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy, kk + 1) :: &
-      buoyfl, &       ! Buoyancy flux [cm2 s-3].
+      buoyfl, &       ! Buoyancy flux [m2 s-3].
       t_sw_nonloc, &  ! Non-local transport term that is the fraction of
                       ! shortwave flux passing a layer interface [].
       t_rs_nonloc, &  ! Non-local transport term that is the fraction of
@@ -194,7 +200,8 @@ module mod_forcing
              ustar, ustarb, ustar3, wstar3, buoyfl, salt_corr, trc_corr, &
              t_sw_nonloc, t_rs_nonloc, s_br_nonloc, s_rs_nonloc, &
              inivar_forcing, fwbbal, sss_stream, sst_stream, ice_stream, &
-             use_stream_relaxation
+             dust_stream, &
+             use_stream_relaxation, use_stream_dust
 
 contains
 

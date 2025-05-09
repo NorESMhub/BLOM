@@ -24,7 +24,7 @@ module mod_ale_vdiff
 ! ------------------------------------------------------------------------------
 
   use mod_types,     only: r8
-  use mod_constants, only: g, spcifh, alpha0, onem
+  use mod_constants, only: grav, spcifh, alpha0, onem
   use mod_time,      only: delt1
   use mod_xc
   use mod_eos,       only: sig
@@ -36,11 +36,6 @@ module mod_ale_vdiff
                            t_sw_nonloc, t_rs_nonloc, s_br_nonloc, s_rs_nonloc
   use mod_tracers,   only: ntr, trc, trflx ! TRC
   use mod_ifdefs,    only: use_TRC
-
-!TODO
-  use mod_grid, only: scp2
-  use mod_constants, only: M_mks2cgs
-!TODO
 
   implicit none
   private
@@ -68,8 +63,8 @@ contains
     real(r8) :: totscr
 
     cpi = 1._r8/spcifh    ! Multiplicative inverse of specific heat capacity.
-    dtg = delt1*g
-    c = g*g*delt1/(alpha0*alpha0)
+    dtg = delt1*grav
+    c = grav*grav*delt1/(alpha0*alpha0)
 
     do j = 1, jj
       do l = 1, isp(j)
@@ -217,13 +212,13 @@ contains
           do k = 1, kk
             kn = k + nn
             temp(i,j,kn) = temp_1d(k)
-            salt_corr(i,j) = salt_corr(i,j) - min(0._r8, saln_1d(k))*dp_1d(k)/g
+            salt_corr(i,j) = salt_corr(i,j) - min(0._r8, saln_1d(k))*dp_1d(k)/grav
             saln(i,j,kn) = max(0._r8, saln_1d(k))
             sigma(i,j,kn) = sig(temp_1d(k), saln(i,j,kn))
             if (use_TRC) then
               do nt = 1,ntr
                 trc_corr(i,j,nt) = trc_corr(i,j,nt) &
-                                 - min(0._r8, trc_1d(k,nt))*dp_1d(k)/g
+                                 - min(0._r8, trc_1d(k,nt))*dp_1d(k)/grav
                 trc(i,j,kn,nt) = max(0._r8, trc_1d(k,nt))
               enddo
             end if
@@ -258,7 +253,7 @@ contains
     real(r8) :: c, bei
     integer :: i, j, k, l, kn
 
-    c = g*g*delt1/(alpha0*alpha0)
+    c = grav*grav*delt1/(alpha0*alpha0)
 
     call xctilr(Kvisc_m, 1, kk, 1, 1, halo_ps)
 

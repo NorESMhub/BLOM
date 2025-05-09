@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2024 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin,
+! Copyright (C) 2008-2025 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin,
 !                         Mariana Vertenstein
 !
 ! This file is part of BLOM.
@@ -29,8 +29,7 @@ module mod_inicon
   use dimensions,    only: idm, jdm, kdm, itdm, jtdm
   use mod_types,     only: r8
   use mod_config,    only: expcnf
-  use mod_constants, only: g, epsilp, onem, &
-                           L_mks2cgs, M_mks2cgs, P_mks2cgs
+  use mod_constants, only: grav, epsilp, onem
   use mod_time,      only: nstep, delt1, dlt
   use mod_xc,        only: xchalt, xcbcst, xcaput, xcstop, xctilr, &
                            mnproc, lp, ii, jj, kk, isp, ifp, ilp, &
@@ -60,13 +59,14 @@ module mod_inicon
   use mod_pointtest, only: itest, jtest, ptest
   use mod_checksum,  only: csdiag, chksummsk
   use mod_inicon_ben02, only: inicon_ben02
+  use mod_utility,   only: fnmlen
   use netcdf
 
   implicit none
   private
 
   ! Variables to be set in namelist:
-  character(len = 256), public :: &
+  character(len = fnmlen), public :: &
        icfile ! Name of file containing initial conditions, that is
   ! either a valid restart file or 'inicon.nc' if
   ! climatological based initial conditions are desired.
@@ -94,14 +94,14 @@ contains
     real(r8), intent(in) :: &
          s     ! Layer salinity [g kg-1]. &
     real(r8), intent(in) :: &
-         phiu  ! Geopotential at upper interface [cm2 s-2]. &
+         phiu  ! Geopotential at upper interface [m2 s-2]. &
     real(r8), intent(in) :: &
-         phil  ! Geopotential at lower interface [cm2 s-2]. &
+         phil  ! Geopotential at lower interface [m2 s-2]. &
     real(r8), intent(in) :: &
-         pup   ! Pressure at upper interface [g cm-1 s-2].
+         pup   ! Pressure at upper interface [kg m-1 s-2].
 
     ! Function output
-    real(r8) :: plo ! Pressure at lower interface [g cm-1 s-2].
+    real(r8) :: plo ! Pressure at lower interface [kg m-1 s-2].
 
     ! Local variables
     real(r8) :: q,dphi,alpu,alpl
@@ -112,7 +112,7 @@ contains
     ! improve the accuracy of the pressure interface by an
     ! iterative procedure
     q = 1._r8
-    do while (abs(q) > 1.e-5_r8*p_mks2cgs)
+    do while (abs(q) > 1.e-5_r8)
       call delphi(pup,plo,th,s,dphi,alpu,alpl)
       q = (phil-phiu-dphi)/alpl
       plo = plo-q
@@ -136,9 +136,6 @@ contains
     real :: dsig,a0,a1,a2
     integer, dimension(3) :: start,count
     integer :: i,j,kdmic,k,l,status,ncid,dimid,varid,kb
-    real :: iM_mks2cgs
-
-    iM_mks2cgs = 1.0 / M_mks2cgs
 
     if (mnproc == 1) then
       write (lp,'(2a)') ' reading initial condition from ', &
@@ -361,14 +358,12 @@ contains
 
     end if
 
-    ! Construct interface depths [cm] from layer thicknesses [m] and
-    ! convert unit of reference potential density from [kg/m^3] to
-    ! [g/cm^3]
+    ! Construct interface depths [m] from layer thicknesses [m]
     !$omp parallel do private(l,i)
     do j = 1,jj
       do l = 1,isp(j)
         do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-          ! z(i,j,1)=z(i,j,1)*L_mks2cgs
+          ! z(i,j,1)=z(i,j,1)
           z(i,j,1) = 0.
         end do
       end do
@@ -379,8 +374,8 @@ contains
       do k = 1,kdmic
         do l = 1,isp(j)
           do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-            z(i,j,k+1) = min(depths(i,j)*L_mks2cgs, &
-                             z(i,j,k)+dz(i,j,k)*L_mks2cgs)
+            z(i,j,k+1) = min(depths(i,j), &
+                             z(i,j,k)+dz(i,j,k))
           end do
         end do
       end do
@@ -394,34 +389,19 @@ contains
       do k = 2,kk
         do l = 1,isp(j)
           do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-            if (z(i,j,kk+1)-z(i,j,k) < 1.e-6*l_mks2cgs) then
-              z(i,j,k) = depths(i,j)*L_mks2cgs
+            if (z(i,j,kk+1)-z(i,j,k) < 1.e-6) then
+              z(i,j,k) = depths(i,j)
             end if
           end do
         end do
       end do
       do l = 1,isp(j)
         do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-          z(i,j,kk+1) = depths(i,j)*L_mks2cgs
+          z(i,j,kk+1) = depths(i,j)
         end do
       end do
     end do
     !$omp end parallel do
-    if ( vcoord_tag == vcoord_isopyc_bulkml .or. &
-        (vcoord_tag == vcoord_cntiso_hybrid .and. &
-         trim(sigref_spec) == 'inicon')) then
-      !$omp parallel do private(k,l,i)
-      do j = 1,jj
-        do k = 1,kk
-          do l = 1,isp(j)
-            do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-              sigmar(i,j,k) = sigmar(i,j,k)*iM_mks2cgs
-            end do
-          end do
-        end do
-      end do
-      !$omp end parallel do
-    end if
 
     ! compute layer interface geopotential
     !$omp parallel do private(k,l,i)
@@ -429,7 +409,7 @@ contains
       do k = 1,kk+1
         do l = 1,isp(j)
           do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-            phi(i,j,k) = -g*z(i,j,k)
+            phi(i,j,k) = -grav*z(i,j,k)
           end do
         end do
       end do
@@ -948,7 +928,7 @@ contains
       write (lp,103) nstep,i0+i,j0+j, &
            '  init.profile  temp    saln    dens   thkns    dpth', &
            (k,temp(i,j,k),saln(i,j,k), &
-           M_mks2cgs*sig(temp(i,j,k),saln(i,j,k)), &
+           sig(temp(i,j,k),saln(i,j,k)), &
            dp(i,j,k)/onem,p(i,j,k+1)/onem,k = 1,kk)
 103   format (i9,2i5,a/(28x,i3,3f8.2,2f8.1))
     end if

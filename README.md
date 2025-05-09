@@ -12,12 +12,17 @@ permanent release branches. The structure of the branches and naming conventions
 `v#.#.#` correspond to a relase version of BLOM, whereas tags on the format `dev#.#.#.#` correspond to 
 development tags. Currently the following branches are actively maintained:
 
-| branch      | note                          |
-|-------------|-------------------------------|
-| master      | main development branch       |
-| release-1.6 | release version for NorESM2.3 |
-| release-1.5 | release version for NorESM2.1 |
-| release-1.4 | release version for NorESM2.0 |
+| branch      | note                                            |
+|-------------|-------------------------------------------------|
+| master      | main development branch                         |
+| release-1.7 | release version for NorESM2.3.1/NorESM2.5_alpha |
+| release-1.6 | release version for NorESM2.3                   |
+| release-1.5 | release version for NorESM2.1                   |
+| release-1.4 | release version for NorESM2.0                   |
+
+The release-1.7 and current master maintains support for both MCT and NUOPC coupler systems.
+We aim to maintian this dual support also for the upcoming release-1.8 version.
+Further development beyond v1.8.X is likely to be NUOPC only.
 
 
 ## BLOM documentation

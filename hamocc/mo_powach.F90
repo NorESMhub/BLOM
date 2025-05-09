@@ -32,19 +32,22 @@ contains
     ! Modified: S.Legutke,   *MPI-MaD, HH*    10.04.01
     !***********************************************************************************************
 
-    use mo_control_bgc, only: dtbgc,use_cisonew,use_extNcycle,lTO2depremin,use_sediment_quality
+    use mo_control_bgc, only: dtbgc,use_cisonew,use_extNcycle,lTO2depremin,use_sediment_quality,   &
+                            & ldyn_sed_age
     use mo_param1_bgc,  only: ioxygen,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,      &
                               isilica,isssc12,issso12,issssil,issster,ks,ipowc13,ipowc14,isssc13,  &
                               isssc14,issso13,issso14,safediv,ipownh4,issso12_age
     use mo_carbch,      only: co3,keqb,ocetra,sedfluxo,sedfluxb
     use mo_chemcon,     only: calcon
     use mo_param_bgc,   only: rnit,rcar,rdnit1,rdnit2,ro2ut,disso_sil,silsat,disso_poc,sed_denit,  &
-                            & disso_caco3,ro2utammo,sed_alpha_poc,                                 &
+                            & disso_caco3,ro2utammo,sed_alpha_poc,sed_sulf,                        &
                             & POM_remin_q10_sed,POM_remin_Tref_sed,bkox_drempoc_sed,sed_qual_sc,   &
-                            & sec_per_year,sec_per_day
+                            & sec_per_year,sec_per_day,sed_O2thresh_hypoxic,sed_O2thresh_sulf,     &
+                            & sed_NO3thresh_sulf
     use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,seddw,sedhpl,sedlay,       &
                               silpro,pror13,pror14,prca13,prca14,prorca_mavg,sed_reactivity_a,     &
-                              sed_reactivity_k,sed_applied_reminrate
+                              sed_reactivity_k,sed_applied_reminrate,                              &
+                              sed_rem_aerob,sed_rem_denit,sed_rem_sulf
     use mo_vgrid,       only: kbo,bolay
     use mo_powadi,      only: powadi
     use mo_carchm,      only: carchm_solve
@@ -88,6 +91,10 @@ contains
     sedfluxb(:,:,:) = 0.0
     if (use_extNcycle) then
       extNsed_diagnostics(:,:,:,:) = 0.0
+    else
+      sed_rem_aerob(:,:,:) = 0.
+      sed_rem_denit(:,:,:) = 0.
+      sed_rem_sulf(:,:,:)  = 0.
     endif
 
     ! A LOOP OVER J
@@ -221,13 +228,16 @@ contains
             ! units of prorca: kmol P/m2/dt -> prorca_mavg in mmol P/m2/d
             prorca_mavg(i,j) = sed_alpha_poc*prorca(i,j)*1e6*dtbgc/sec_per_day                     &
                              & + (1.-sed_alpha_poc)*prorca_mavg(i,j)
-
-            ! update surface age due to fresh POC sedimentation flux
-            sedlay(i,j,1,issso12_age) = sedlay(i,j,1,issso12) * sedlay(i,j,1,issso12_age)          &
+            if (ldyn_sed_age) then
+              ! update surface age due to fresh POC sedimentation flux
+              sedlay(i,j,1,issso12_age) = sedlay(i,j,1,issso12) * sedlay(i,j,1,issso12_age)          &
                           & / ((prorca(i,j)/(porsol(i,j,1)*seddw(1))) + sedlay(i,j,1,issso12) + eps)
+            endif
             do k = 1, ks
-              ! Update sediment POC age [yrs]
-              sedlay(i,j,k,issso12_age) = sedlay(i,j,k,issso12_age) + dtbgc/sec_per_year
+              if (ldyn_sed_age) then
+                ! Update sediment POC age [yrs]
+                sedlay(i,j,k,issso12_age) = sedlay(i,j,k,issso12_age) + dtbgc/sec_per_year
+              endif
               ! Mean DOU flux [mmol O2/m2/d]
               ! Since reactivity is based on total sediment DOU (incl. nitrification),
               ! we here assume the full oxydation steo and use ro2ut
@@ -364,6 +374,7 @@ contains
             if (.not. use_extNcycle) then
               powtra(i,j,k,ipowno3) = powtra(i,j,k,ipowno3) + posol*rnit*umfa
               aerob(i,k) = posol*umfa     !this has P units: kmol P/m3 of pore water
+              sed_rem_aerob(i,j,k) = posol*umfa ! Output
             else
               powtra(i,j,k,ipownh4) = powtra(i,j,k,ipownh4) + posol*rnit*umfa
               ex_ddic(i,k) = rcar*posol*umfa ! C-units kmol C/m3 of pore water
@@ -391,7 +402,7 @@ contains
         do k = 1, ks
           do i = 1, kpie
             if(omask(i,j) > 0.5) then
-              if(powtra(i,j,k,ipowaox) < 1.e-6) then
+              if(powtra(i,j,k,ipowaox) < sed_O2thresh_hypoxic) then
                 posol = denit * min(0.25*powtra(i,j,k,ipowno3)/rdnit2, sedlay(i,j,k,issso12))
                 umfa = porsol(i,j,k)/porwat(i,j,k)
                 anaerob(i,k) = posol*umfa     !this has P units: kmol P/m3 of pore water
@@ -411,6 +422,7 @@ contains
                   sedlay(i,j,k,issso13) = sedlay(i,j,k,issso13) - poso13
                   sedlay(i,j,k,issso14) = sedlay(i,j,k,issso14) - poso14
                 endif
+                sed_rem_denit(i,j,k) = posol * umfa
               endif
             endif
           enddo
@@ -427,8 +439,8 @@ contains
       do k = 1, ks
         do i = 1, kpie
           if(omask(i,j) > 0.5) then
-            if(powtra(i,j,k,ipowaox) < 3.e-6 .and. powtra(i,j,k,ipowno3) < 3.e-6) then
-              posol = denit * sedlay(i,j,k,issso12)         ! remineralization of poc
+            if(powtra(i,j,k,ipowaox) < sed_O2thresh_sulf .and. powtra(i,j,k,ipowno3) < sed_NO3thresh_sulf) then
+              posol = sed_sulf * sedlay(i,j,k,issso12)         ! remineralization of poc
               umfa = porsol(i,j,k) / porwat(i,j,k)
               sulf(i,k) = posol*umfa      !this has P units: kmol P/m3 of pore water
               if (use_cisonew) then
@@ -448,6 +460,8 @@ contains
               endif
               if (use_extNcycle) then
                 extNsed_diagnostics(i,j,k,ised_remin_sulf) = posol*umfa ! Output
+              else
+                sed_rem_sulf(i,j,k) = posol * umfa
               endif
             endif
           endif

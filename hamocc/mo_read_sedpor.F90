@@ -27,6 +27,8 @@ module mo_read_sedpor
   ! sed_por holds then the porosity that can be applied later in mo_sedmnt (ini_sedmnt_por)
   !*************************************************************************************************
 
+  use mo_kind, only: bgc_fnmlen
+
   implicit none
   private
 
@@ -34,7 +36,7 @@ module mo_read_sedpor
   public :: read_sedpor ! read sediment porosity file
 
   ! Module variables
-  character(len=512), public :: sedporfile = ''
+  character(len=bgc_fnmlen), public :: sedporfile = ''
 
 contains
 

@@ -67,6 +67,11 @@ module mo_sedmnt
   real, dimension (:,:),     allocatable, public :: produs
   real, dimension (:,:,:),   allocatable, public :: burial
 
+  ! Output diagnostics
+  real, dimension (:,:,:),   allocatable, public :: sed_rem_aerob
+  real, dimension (:,:,:),   allocatable, public :: sed_rem_denit
+  real, dimension (:,:,:),   allocatable, public :: sed_rem_sulf
+
   ! values for sediment quality-driven remineralization
   real, dimension(:,:,:),    allocatable, public :: sed_reactivity_a
   real, dimension(:,:,:),    allocatable, public :: sed_reactivity_k
@@ -268,6 +273,7 @@ CONTAINS
     !***********************************************************************************************
     !  Allocate variables in this module
     !***********************************************************************************************
+    use mo_control_bgc, only: use_extNcycle
 
     ! Arguments
     integer, intent(in) :: kpie,kpje
@@ -477,7 +483,39 @@ CONTAINS
       allocate (powtra(kpie,kpje,ks,npowtra),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory powtra'
       powtra(:,:,:,:) = 0.0
-    endif
+
+      if (.not. use_extNcycle) then
+        if (mnproc.eq.1) then
+          write(io_stdo_bgc,*)'Memory allocation for variable sed_rem_aerob ..'
+          write(io_stdo_bgc,*)'First dimension    : ',kpie
+          write(io_stdo_bgc,*)'Second dimension   : ',kpje
+          write(io_stdo_bgc,*)'Third dimension    : ',ks
+        endif
+        allocate (sed_rem_aerob(kpie,kpje,ks),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory sed_rem_aerob'
+        sed_rem_aerob(:,:,:) = 0.0
+
+        if (mnproc.eq.1) then
+          write(io_stdo_bgc,*)'Memory allocation for variable sed_rem_denit ..'
+          write(io_stdo_bgc,*)'First dimension    : ',kpie
+          write(io_stdo_bgc,*)'Second dimension   : ',kpje
+          write(io_stdo_bgc,*)'Third dimension    : ',ks
+        endif
+        allocate (sed_rem_denit(kpie,kpje,ks),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory sed_rem_denit'
+        sed_rem_denit(:,:,:) = 0.0
+
+        if (mnproc.eq.1) then
+          write(io_stdo_bgc,*)'Memory allocation for variable sed_rem_sulf ..'
+          write(io_stdo_bgc,*)'First dimension    : ',kpie
+          write(io_stdo_bgc,*)'Second dimension   : ',kpje
+          write(io_stdo_bgc,*)'Third dimension    : ',ks
+        endif
+        allocate (sed_rem_sulf(kpie,kpje,ks),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory sed_rem_sulf'
+        sed_rem_sulf(:,:,:) = 0.0
+      endif
+    endif ! use_sedbypass
 
   end subroutine alloc_mem_sedmnt
 

@@ -38,11 +38,6 @@ module mod_ifdefs
 #else
   logical :: use_IDLAGE = .false.
 #endif
-#ifdef MKS
-  logical :: use_MKS = .true.
-#else
-  logical :: use_MKS = .false.
-#endif
 #ifdef ARCTIC
   logical :: use_ARCTIC = .true.
 #else

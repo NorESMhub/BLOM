@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2020-2023 Mats Bentsen, Aleksi Nummmelin
+! Copyright (C) 2020-2025 Mats Bentsen, Aleksi Nummmelin
 !
 ! This file is part of BLOM.
 !
@@ -25,13 +25,14 @@ module mod_grid
    use mod_types, only: r8
    use mod_constants, only: spval
    use mod_xc, only: idm, jdm, kdm, nbdy, ii, jj, kk
+   use mod_utility, only: fnmlen
 
    implicit none
 
    private
 
    ! Variable to be set in namelist:
-   character(len = 256) :: &
+   character(len = fnmlen) :: &
       grfile     ! Name of file containing grid specification.
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, 4) :: &
@@ -45,24 +46,24 @@ module mod_grid
       vclat      ! Latitude of v-cell corners [degrees].
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
-      scqx, &    ! Grid size in x-direction centered at q-point [cm].
-      scqy, &    ! Grid size in y-direction centered at q-point [cm].
-      scpx, &    ! Grid size in x-direction centered at p-point [cm].
-      scpy, &    ! Grid size in y-direction centered at p-point [cm].
-      scux, &    ! Grid size in x-direction centered at u-point [cm].
-      scuy, &    ! Grid size in y-direction centered at u-point [cm].
-      scvx, &    ! Grid size in x-direction centered at v-point [cm].
-      scvy, &    ! Grid size in y-direction centered at v-point [cm].
-      scq2, &    ! Area of grid cell centered at q-point [cm2].
-      scp2, &    ! Area of grid cell centered at p-point [cm2].
-      scu2, &    ! Area of grid cell centered at u-point [cm2].
-      scv2, &    ! Area of grid cell centered at v-point [cm2].
-      scq2i, &   ! Multiplicative inverse of scq2 [cm-2].
-      scp2i, &   ! Multiplicative inverse of scp2 [cm-2].
-      scuxi, &   ! Multiplicative inverse of scux [cm-1].
-      scuyi, &   ! Multiplicative inverse of scuy [cm-1].
-      scvxi, &   ! Multiplicative inverse of scvx [cm-1].
-      scvyi, &   ! Multiplicative inverse of scvy [cm-1].
+      scqx, &    ! Grid size in x-direction centered at q-point [m].
+      scqy, &    ! Grid size in y-direction centered at q-point [m].
+      scpx, &    ! Grid size in x-direction centered at p-point [m].
+      scpy, &    ! Grid size in y-direction centered at p-point [m].
+      scux, &    ! Grid size in x-direction centered at u-point [m].
+      scuy, &    ! Grid size in y-direction centered at u-point [m].
+      scvx, &    ! Grid size in x-direction centered at v-point [m].
+      scvy, &    ! Grid size in y-direction centered at v-point [m].
+      scq2, &    ! Area of grid cell centered at q-point [m2].
+      scp2, &    ! Area of grid cell centered at p-point [m2].
+      scu2, &    ! Area of grid cell centered at u-point [m2].
+      scv2, &    ! Area of grid cell centered at v-point [m2].
+      scq2i, &   ! Multiplicative inverse of scq2 [m-2].
+      scp2i, &   ! Multiplicative inverse of scp2 [m-2].
+      scuxi, &   ! Multiplicative inverse of scux [m-1].
+      scuyi, &   ! Multiplicative inverse of scuy [m-1].
+      scvxi, &   ! Multiplicative inverse of scvx [m-1].
+      scvyi, &   ! Multiplicative inverse of scvy [m-1].
       qlon, &    ! Longitude of q-point [degrees].
       qlat, &    ! Latitude of q-point [degrees].
       plon, &    ! Longitude of p-point [degrees].
@@ -75,8 +76,8 @@ module mod_grid
       corioq, &  ! Coriolis parameter at q-point [s-1].
       coriop, &  ! Coriolis parameter at p-point [s-1].
       betafp, &  ! Derivative of Coriolis parameter with respect to meridional
-                 ! distance at p-point [cm-1 s-1].
-      betatp, &  ! Topographic Rhines scale [cm-1 s-1].
+                 ! distance at p-point [m-1 s-1].
+      betatp, &  ! Topographic Rhines scale [m-1 s-1].
       angle, &   ! Local angle between x-direction and eastward direction at
                  ! p-points [radians].
       cosang, &  ! Cosine of local angle between x-direction and eastward
@@ -87,7 +88,7 @@ module mod_grid
                  ! x-direction [radians]
 
    real(r8) :: &
-      area       ! Total grid area [cm2].
+      area       ! Total grid area [m2].
 
    integer :: &
       nwp        ! Number of wet grid cells.

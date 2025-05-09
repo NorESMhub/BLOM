@@ -49,6 +49,8 @@ module mo_read_ndep
   !
   !*************************************************************************************************
 
+  use mo_kind, only: bgc_fnmlen
+
   implicit none
   private
 
@@ -56,7 +58,7 @@ module mo_read_ndep
   public :: get_ndep      ! Read and return n-deposition data for a given month.
   public :: ndepfile
 
-  character(len=512)  :: ndepfile=''
+  character(len=bgc_fnmlen)  :: ndepfile=''
   real,  allocatable  :: noydepread(:,:)
   real,  allocatable  :: nhxdepread(:,:)
   integer             :: startyear,endyear

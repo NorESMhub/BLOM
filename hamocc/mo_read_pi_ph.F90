@@ -17,6 +17,8 @@
 
 module mo_read_pi_ph
 
+  use mo_kind, only: bgc_fnmlen
+
   implicit none
   private
 
@@ -33,7 +35,7 @@ module mo_read_pi_ph
   ! Module variables
 
   ! Path to input data, set through namelist in hamocc_init.F
-  character(len=256) :: pi_ph_file = ''
+  character(len=bgc_fnmlen) :: pi_ph_file = ''
 
   ! Length of surface PI pH record from file
   ! Current implementation only support monthly records.

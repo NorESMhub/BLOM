@@ -46,7 +46,7 @@ contains
                               issso13,issso14,issso12_age,nsedtra_woage
     use mo_carbch,      only: sedfluxb
     use mo_control_bgc, only: use_cisonew,use_sediment_quality,dtbgc,                              &
-                            & do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc
+                            & do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,ldyn_sed_age
 
     ! Arguments
     integer, intent(in) :: kpie
@@ -103,7 +103,7 @@ contains
             if(omask(i,j) > 0.5) then
               !ka          if(bolay(i,j).gt.0.) then
               uebers=wsed(i,j)*sedlay(i,j,k,iv)
-              if (use_sediment_quality .and. iv == issso12) then
+              if (use_sediment_quality .and. iv == issso12 .and. ldyn_sed_age) then
                 sedlay(i,j,k+1,issso12_age) = ( uebers                                             &
                  & *(seddw(k)*porsol(i,j,k))/(seddw(k+1)*porsol(i,j,k+1))*sedlay(i,j,k,issso12_age)&
                  &     + sedlay(i,j,k,issso12)*sedlay(i,j,k,issso12_age))                          &
@@ -150,7 +150,7 @@ contains
           if(omask(i,j) > 0.5) then
             !ka          if(bolay(i,j).gt.0.) then
             uebers=wsed(i,j)*sedlay(i,j,ks,iv)
-            if (use_sediment_quality .and. iv == issso12) then
+            if (use_sediment_quality .and. iv == issso12  .and. ldyn_sed_age) then
               burial(i,j,issso12_age) = (uebers*seddw(ks)*porsol(i,j,ks)*sedlay(i,j,ks,issso12_age)&
                                       &   + burial(i,j,issso12)*burial(i,j,issso12_age))           &
                                       & /(uebers*seddw(ks)*porsol(i,j,ks) + burial(i,j,issso12)+eps)
@@ -237,7 +237,7 @@ contains
           refill=seddef/(buried+1.e-10)
           frac = porsol(i,j,ks)*seddw(ks)
 
-          if (use_sediment_quality) then
+          if (use_sediment_quality  .and. ldyn_sed_age) then
             ! Update burial POC age [yrs] - NOTE that sedshi is called once per day!
             burial(i,j,issso12_age)    = burial(i,j,issso12_age) + sec_per_day/sec_per_year + acc_time
             sedlay(i,j,ks,issso12_age) = (refill*burial(i,j,issso12)/frac * burial(i,j,issso12_age)&
@@ -304,7 +304,7 @@ contains
               !ka        if(bolay(i,j).gt.0.) then
               uebers=sedlay(i,j,k,iv)*wsed(i,j)
               frac=porsol(i,j,k)*seddw(k)/(porsol(i,j,k-1)*seddw(k-1))
-              if (use_sediment_quality .and. iv == issso12) then
+              if (use_sediment_quality .and. iv == issso12 .and. ldyn_sed_age) then
                 sedlay(i,j,k-1,issso12_age) = (uebers*frac*sedlay(i,j,k,issso12_age)               &
                                             &+ sedlay(i,j,k-1,issso12)*sedlay(i,j,k-1,issso12_age))&
                                             & / (uebers*frac + sedlay(i,j,k-1,issso12)+eps)

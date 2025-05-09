@@ -54,7 +54,8 @@ module mo_control_bgc
   ! Variables set via namelist bgcnml
   logical           :: l_3Dvarsedpor          = .false. ! apply spatially variable sediment porosity
   logical           :: do_ndep                = .true.  ! apply n-deposition
-  logical           :: do_n2onh3_coupled      = .false. ! for coupled simulations, use field provided by atmosphere
+  logical           :: do_n2o_coupled         = .false. ! for coupled simulations, use field provided by atmosphere
+  logical           :: do_nh3_coupled         = .false. ! for coupled simulations, use field provided by atmosphere
   logical           :: do_rivinpt             = .true.  ! apply riverine input
   logical           :: do_sedspinup           = .false. ! apply sediment spin-up
   logical           :: do_oalk                = .false. ! apply ocean alkalinization
@@ -62,6 +63,7 @@ module mo_control_bgc
   logical           :: use_M4AGO              = .false. ! run with M4AGO settling scheme
   logical           :: lkwrbioz_off           = .false. ! if true, allow remin and primary prod throughout full water column
   logical           :: lTO2depremin           = .false. ! Temperature- and O2-dependent remineralization of POM
+  logical           :: ldyn_sed_age           = .false. ! switch for dynamic sediment age in combination with use_sediment_quality
   integer           :: sedspin_yr_s           = -1      ! start year for sediment spin-up
   integer           :: sedspin_yr_e           = -1      ! end   year for sediment spin-up
   integer           :: sedspin_ncyc           = -1      ! sediment spin-up sub-cycles
