@@ -40,7 +40,7 @@ module mo_param_bgc
                             do_n2o_coupled,do_nh3_coupled,use_extNcycle,                           &
                             lkwrbioz_off,lTO2depremin,use_shelfsea_res_time,use_sediment_quality,  &
                             use_pref_tracers,use_coupler_ndep
-  use mod_xc,         only: mnproc
+  use mod_xc,         only: mnproc,xchalt
 
   implicit none
   private
@@ -63,6 +63,7 @@ module mo_param_bgc
 
   ! Routines
   public  :: ini_parambgc
+  public  :: ini_bgctimes
   private :: ini_aggregation
   private :: read_bgcnamelist
   private :: calc_param_atm
@@ -129,7 +130,16 @@ module mo_param_bgc
           & mufn2o_sed,POM_remin_q10_sed, POM_remin_Tref_sed,bkox_drempoc_sed,   &
           & max_limiter
 
-
+  ! Time variables
+  public :: sec_per_year,sec_per_day,days_per_year
+  !********************************************************************
+  ! Time parameters
+  !********************************************************************
+  ! NOTE: days_per_year and sec_per_year are updated in ini_bgctimes(!)
+  real, parameter :: sec_per_day   = 86400.           ! [s/d]  seconds per day
+  real, protected :: days_per_year = 365.             ! [d/yr] days per year
+  real, protected :: sec_per_year  = 365.*sec_per_day ! [s/yr] seconds per year
+  logical         :: lini=.true.
   !********************************************************************
   ! Stoichiometry and fixed parameters
   !********************************************************************
@@ -284,18 +294,18 @@ module mo_param_bgc
   !********************************************************************
   ! Remineralization and dissolution parameters
   !********************************************************************
-  real, parameter :: O2thresh_aerob   = 5.e-8  ! Above O2thresh_aerob aerob remineralization takes place
-  real, parameter :: O2thresh_hypoxic = 5.e-7  ! Below O2thresh_hypoxic denitrification and sulfate reduction takes place (default model version)
-  real, parameter :: NO3thresh_sulf   = 3.e-6  ! Below NO3thresh_sulf 'sufate reduction' takes place
-  real, protected :: remido           = 0.004  ! 1/d - remineralization rate (of DOM)
+  real, parameter :: O2thresh_aerob   = 5.e-8    ! Above O2thresh_aerob aerob remineralization takes place
+  real, parameter :: O2thresh_hypoxic = 5.e-7    ! Below O2thresh_hypoxic denitrification and sulfate reduction takes place (default model version)
+  real, parameter :: NO3thresh_sulf   = 3.e-6    ! Below NO3thresh_sulf 'sufate reduction' takes place
+  real, protected :: remido     = 0.004           ! 1/d - remineralization rate (of DOM)
   ! deep sea remineralisation constants
-  real, protected :: drempoc         = 0.025   ! 1/d Aerob remineralization rate detritus
+  real, protected :: drempoc    = 0.025           ! 1/d Aerob remineralization rate detritus
   real, protected :: drempoc_anaerob = 1.25e-3 ! =0.05*drempoc - remin in sub-/anoxic environm. - not be overwritten by M4AGO
   real, protected :: bkox_drempoc    = 1e-7    ! half-saturation constant for oxygen for ammonification (aerobic remin via drempoc)
-  real, protected :: dremopal        = 0.003   ! 1/d Dissolution rate for opal
+  real, protected :: dremopal   = 0.003           ! 1/d Dissolution rate for opal
   real, protected :: dremcalc        = 0.00035 ! 1/d Dissolution rate for CaCO3 (applied if Omega_c < 1)
-  real, protected :: dremn2o         = 0.01    ! 1/d Remineralization rate of detritus on N2O
-  real, protected :: dremsul         = 0.005   ! 1/d Remineralization rate for sulphate reduction
+  real, protected :: dremn2o    = 0.01            ! 1/d Remineralization rate of detritus on N2O
+  real, protected :: dremsul    = 0.005           ! 1/d Remineralization rate for sulphate reduction
   real, protected :: POM_remin_q10   = 2.1     ! Bidle et al. 2002: Regulation of Oceanic Silicon...
   real, protected :: opal_remin_q10  = 2.6     ! Bidle et al. 2002: Regulation of Oceanic Silicon...
   real, protected :: POM_remin_Tref  = 10.     ! [deg C] reference temperatue for Q10-dep. POC remin
@@ -339,7 +349,7 @@ module mo_param_bgc
   real, protected :: q10an2odenit  = 3.       ! Q10 factor for denitrificationj on N2O (-)
   real, protected :: Trefan2odenit = 10.      ! Reference temperature for denitrification on N2O (degr C)
   real, protected :: bkoxan2odenit = 10e-6    ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on N2O (kmol/m3)
-  real, protected :: bkan2odenit   = 0.1e-6   ! Half-saturation constant for denitrification on N2O (kmol/m3)
+  real, protected :: bkan2odenit   = 0.1e-6    ! Half-saturation constant for denitrification on N2O (kmol/m3)
 
   ! === DNRA NO2 -> NH4
   real, protected :: rdnra         = 0.0003   ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
@@ -490,11 +500,11 @@ module mo_param_bgc
   real, protected :: sed_NO3thresh_sulf   = 3.e-6 ! Below sed_NO3thresh_sulf 'sufate reduction' takes place
   real, protected :: sedict      = 1.e-9          ! m2/s Molecular diffusion coefficient
   real, protected :: silsat      = 0.001          ! kmol/m3 Silicate saturation concentration is 1 mol/m3
-  real, protected :: disso_poc   = 0.432 / 86400. ! 1/(kmol O2/m3 s)      Degradation rate constant of POP
+  real, protected :: disso_poc   = 0.432/sec_per_day ! 1/(kmol O2/m3 s)      Degradation rate constant of POP
   real, protected :: disso_sil   = 3.e-8          ! 1/(kmol Si(OH)4/m3 s) Dissolution rate constant of opal
   real, protected :: disso_caco3 = 1.e-7          ! 1/(kmol CO3--/m3 s) Dissolution rate constant of CaCO3
-  real, protected :: sed_denit   = 0.01/86400.    ! 1/s Denitrification rate constant of POP
-  real, protected :: sed_sulf    = 0.01/86400.    ! 1/s "Sulfate reduction" rate constant of POP
+  real, protected :: sed_denit   = 0.01/sec_per_day  ! 1/s Denitrification rate constant of POP
+  real, protected :: sed_sulf    = 0.01/sec_per_day  ! 1/s "Sulfate reduction" rate constant of POP
   real, protected :: sed_alpha_poc = 1./90.       ! 1/d 1/decay time for sediment moving average - assuming ~3 month memory here
   real, protected :: sed_qual_sc = 1.             ! scaling factor for sediment quality-based remineralization
   !********************************************************************
@@ -519,6 +529,27 @@ module mo_param_bgc
   real :: beta13, alpha14, d14cat, d13c_atm
 
 contains
+
+  !********************************************************************
+  subroutine ini_bgctimes(nday_in_year)
+
+    use mod_config, only: expcnf
+    ! NOTE: called also at run time after initialization
+    integer,intent(in) :: nday_in_year
+
+    days_per_year = real(nday_in_year)
+
+    if (nday_in_year /= 365 .and. mnproc==1 .and. lini .eqv. .true.) then
+      write (io_stdo_bgc,*) 'Error: Init iHAMOCC time variables: non-standard calendar selected with [days] ',days_per_year
+      lini=.false.
+      if (.not. expcnf == 'single_column') then
+        call xchalt('(ini_bgctimes)')
+        stop '(ini_bgctimes)'
+      endif
+    endif
+
+    sec_per_year = days_per_year*sec_per_day
+  end subroutine ini_bgctimes
 
   !********************************************************************
   subroutine ini_parambgc()
@@ -667,7 +698,7 @@ contains
     perc_diron = fetune * 0.035 * 0.01 / 55.85
 
     dustd2   = dustd1*dustd1
-    dustsink = (9.81 * 86400. / 18.                 & ! g * sec per day / 18.
+    dustsink = (9.81 * sec_per_day / 18.                 & ! g * sec per day / 18.
                * (claydens - 1025.) / 1.567 * 1000. & ! excess density / dyn. visc.
                * dustd2 * 1.e-4)                      ! m/d
 
