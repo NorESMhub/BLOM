@@ -898,7 +898,7 @@ contains
       call cinfo_add_entry('use_M4AGO',              use_M4AGO)
       call cinfo_add_entry('use_pref_tracers',       use_pref_tracers)
       call cinfo_add_entry('use_coupler_ndep',       use_coupler_ndep)
-      call cinfo_add_entry('use_river2omip',                use_river2omip)
+      call cinfo_add_entry('use_river2omip',         use_river2omip)
       if (use_extNcycle) then
         call cinfo_add_entry('do_n2o_coupled',       do_n2o_coupled)
         call cinfo_add_entry('do_nh3_coupled',       do_nh3_coupled)
