@@ -29,7 +29,8 @@ module mod_cppm
    use mod_time, only: nstep
    use mod_xc, only: idm, jdm, kdm, nbdy, ii, jj, ip, &
                      halo_ps, halo_us, halo_vs, halo_uv, halo_vv, &
-                     lp, mnproc, xctilr, xcstop
+                     lp, mnproc, nproc, jpr, nreg, itdm, i0, &
+                     xctilr, xcstop
    use mod_grid, only: scp2i
    use mod_state, only: dp, temp, saln, uflx, vflx, utflx, vtflx, &
                         usflx, vsflx, p, cau, cav, pbu, pbv
@@ -543,11 +544,11 @@ contains
       real(r8) :: hn, hni
       integer :: i, j, k, km, kn, nt
 
-      call xctilr(dp(1-nbdy,1-nbdy,1+nn), 1, kdm, 4, 0, halo_ps)
-      call xctilr(temp(1-nbdy,1-nbdy,1+nn), 1, kdm, 4, 0, halo_ps)
-      call xctilr(saln(1-nbdy,1-nbdy,1+nn), 1, kdm, 4, 0, halo_ps)
+      call xctilr(dp(1-nbdy,1-nbdy,k1n), 1, kdm, 4, 0, halo_ps)
+      call xctilr(temp(1-nbdy,1-nbdy,k1n), 1, kdm, 4, 0, halo_ps)
+      call xctilr(saln(1-nbdy,1-nbdy,k1n), 1, kdm, 4, 0, halo_ps)
       do nt = 3, ntr_loc
-         call xctilr(trc(1-nbdy,1-nbdy,1+nn,nt-2), 1, kdm, 4, 0, halo_ps)
+         call xctilr(trc(1-nbdy,1-nbdy,k1n,nt-2), 1, kdm, 4, 0, halo_ps)
       enddo
 
       do k = 1, kdm
@@ -650,11 +651,11 @@ contains
       real(r8) :: hn, hni
       integer :: i, j, k, km, kn, nt
 
-      call xctilr(dp(1-nbdy,1-nbdy,1+nn), 1, kdm, 0, 4, halo_ps)
-      call xctilr(temp(1-nbdy,1-nbdy,1+nn), 1, kdm, 0, 4, halo_ps)
-      call xctilr(saln(1-nbdy,1-nbdy,1+nn), 1, kdm, 0, 4, halo_ps)
+      call xctilr(dp(1-nbdy,1-nbdy,k1n), 1, kdm, 0, 4, halo_ps)
+      call xctilr(temp(1-nbdy,1-nbdy,k1n), 1, kdm, 0, 4, halo_ps)
+      call xctilr(saln(1-nbdy,1-nbdy,k1n), 1, kdm, 0, 4, halo_ps)
       do nt = 3, ntr_loc
-         call xctilr(trc(1-nbdy,1-nbdy,1+nn,nt-2), 1, kdm, 0, 4, halo_ps)
+         call xctilr(trc(1-nbdy,1-nbdy,k1n,nt-2), 1, kdm, 0, 4, halo_ps)
       enddo
 
       do k = 1, kdm
@@ -757,11 +758,11 @@ contains
       real(r8) :: hn, hni
       integer :: i, j, k, km, kn, nt
 
-      call xctilr(dp(1-nbdy,1-nbdy,1+nn), 1, kdm, 3, 0, halo_ps)
-      call xctilr(temp(1-nbdy,1-nbdy,1+nn), 1, kdm, 3, 0, halo_ps)
-      call xctilr(saln(1-nbdy,1-nbdy,1+nn), 1, kdm, 3, 0, halo_ps)
+      call xctilr(dp(1-nbdy,1-nbdy,k1n), 1, kdm, 3, 3, halo_ps)
+      call xctilr(temp(1-nbdy,1-nbdy,k1n), 1, kdm, 3, 3, halo_ps)
+      call xctilr(saln(1-nbdy,1-nbdy,k1n), 1, kdm, 3, 3, halo_ps)
       do nt = 3, ntr_loc
-         call xctilr(trc(1-nbdy,1-nbdy,1+nn,nt-2), 1, kdm, 3, 0, halo_ps)
+         call xctilr(trc(1-nbdy,1-nbdy,k1n,nt-2), 1, kdm, 3, 3, halo_ps)
       enddo
 
       do k = 1, kdm
@@ -863,11 +864,11 @@ contains
       real(r8) :: hn, hni
       integer :: i, j, k, km, kn, nt
 
-      call xctilr(dp(1-nbdy,1-nbdy,1+nn), 1, kdm, 0, 3, halo_ps)
-      call xctilr(temp(1-nbdy,1-nbdy,1+nn), 1, kdm, 0, 3, halo_ps)
-      call xctilr(saln(1-nbdy,1-nbdy,1+nn), 1, kdm, 0, 3, halo_ps)
+      call xctilr(dp(1-nbdy,1-nbdy,k1n), 1, kdm, 3, 3, halo_ps)
+      call xctilr(temp(1-nbdy,1-nbdy,k1n), 1, kdm, 3, 3, halo_ps)
+      call xctilr(saln(1-nbdy,1-nbdy,k1n), 1, kdm, 3, 3, halo_ps)
       do nt = 3, ntr_loc
-         call xctilr(trc(1-nbdy,1-nbdy,1+nn,nt-2), 1, kdm, 0, 3, halo_ps)
+         call xctilr(trc(1-nbdy,1-nbdy,k1n,nt-2), 1, kdm, 3, 3, halo_ps)
       enddo
 
       do k = 1, kdm
@@ -968,6 +969,7 @@ contains
 
       integer, dimension(4) :: sm4
       integer, dimension(3) :: sm3
+      real(r8) :: evc_tmp
       integer :: i, j
 
       ! Resolve namelist options.
@@ -1043,6 +1045,38 @@ contains
       call xctilr(srcj_perm, 1, 1, 0, nbdy, halo_ps)
       call xctilr(sccj_perm, 1, 1, 0, nbdy, halo_ps)
       call xctilr(d2mj_perm, 1, 1, 0, nbdy, halo_ps)
+
+      ! With arctic patch, swap the order of of some the edge value
+      ! coefficients.
+      if (nreg == 2 .and. nproc == jpr) then
+         j = jj
+         do i = 1 - nbdy, ii + nbdy
+            evc_tmp = evc1i(i,j)
+            evc1i(i,j) = evc4i(i,j)
+            evc4i(i,j) = evc_tmp
+            evc_tmp = evc2i(i,j)
+            evc2i(i,j) = evc3i(i,j)
+            evc3i(i,j) = evc_tmp
+         enddo
+         do i = max(1, itdm/2 - i0 + 1), ii
+            evc_tmp = evc1j_perm(i,j)
+            evc1j_perm(i,j) = evc4j_perm(i,j)
+            evc4j_perm(i,j) = evc_tmp
+            evc_tmp = evc2j_perm(i,j)
+            evc2j_perm(i,j) = evc3j_perm(i,j)
+            evc3j_perm(i,j) = evc_tmp
+         enddo
+         do j = jj + 1, jj + nbdy
+            do i = 1, ii
+               evc_tmp = evc1j_perm(i,j)
+               evc1j_perm(i,j) = evc4j_perm(i,j)
+               evc4j_perm(i,j) = evc_tmp
+               evc_tmp = evc2j_perm(i,j)
+               evc2j_perm(i,j) = evc3j_perm(i,j)
+               evc3j_perm(i,j) = evc_tmp
+            enddo
+         enddo
+      endif
 
       do j = 1 - nbdy, jdm + nbdy
          do i = 1 - nbdy, idm + nbdy
