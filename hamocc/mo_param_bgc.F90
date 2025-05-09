@@ -40,7 +40,7 @@ module mo_param_bgc
                             do_n2o_coupled,do_nh3_coupled,use_extNcycle,                           &
                             lkwrbioz_off,lTO2depremin,use_shelfsea_res_time,use_sediment_quality,  &
                             use_pref_tracers,use_coupler_ndep
-  use mod_xc,         only: mnproc
+  use mod_xc,         only: mnproc,xchalt
 
   implicit none
   private
@@ -532,14 +532,20 @@ contains
 
   !********************************************************************
   subroutine ini_bgctimes(nday_in_year)
+
+    use mod_config, only: expcnf
     ! NOTE: called also at run time after initialization
     integer,intent(in) :: nday_in_year
 
     days_per_year = real(nday_in_year)
 
     if (nday_in_year /= 365 .and. mnproc==1 .and. lini .eqv. .true.) then
-      write (io_stdo_bgc,*) 'WARNING: Init iHAMOCC time variables: non-standard calendar selected with [days] ',days_per_year
+      write (io_stdo_bgc,*) 'Error: Init iHAMOCC time variables: non-standard calendar selected with [days] ',days_per_year
       lini=.false.
+      if (.not. expcnf == 'single_column') then
+        call xchalt('(ini_bgctimes)')
+        stop '(ini_bgctimes)'
+      endif
     endif
 
     sec_per_year = days_per_year*sec_per_day
