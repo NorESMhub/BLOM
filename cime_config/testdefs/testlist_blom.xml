@@ -107,7 +107,7 @@
       <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
     </machines>
     <options>
-      <option name="wallclock">00:20:00</option>
+      <option name="wallclock">01:00:00</option>
       <option name="comment">restart test; 0.5 degree; hybrid coordinates; JRA forcing</option>
     </options>
   </test>
