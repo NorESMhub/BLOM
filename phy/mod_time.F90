@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2020-2022 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
+! Copyright (C) 2020-2025 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
 !
 ! This file is part of BLOM.
 !
@@ -97,6 +97,8 @@ contains
             calendar = '360_day'
          case ('ben02syn')
             calendar = 'standard'
+         case ('noforcing')
+            calendar = '360_day'
          case ('fuk95')
             calendar = '360_day'
          case ('channel')
