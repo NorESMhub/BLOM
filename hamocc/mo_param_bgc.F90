@@ -542,7 +542,7 @@ contains
     if (nday_in_year /= 365 .and. mnproc==1 .and. lini .eqv. .true.) then
       write (io_stdo_bgc,*) 'Error: Init iHAMOCC time variables: non-standard calendar selected with [days] ',days_per_year
       lini=.false.
-      if (.not. expcnf == 'single_column') then
+      if (.not. (expcnf == 'single_column' .or. expcnf == 'fuk95' .or. expcnf == 'channel')) then
         call xchalt('(ini_bgctimes)')
         stop '(ini_bgctimes)'
       endif
