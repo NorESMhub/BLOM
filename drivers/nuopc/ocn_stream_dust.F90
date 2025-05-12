@@ -14,6 +14,7 @@ module ocn_stream_dust
    use shr_sys_mod       , only : shr_sys_abort
    use mod_forcing       , only : dust_stream
    use mo_intfcblom      , only : omask
+   use mod_config        , only : inst_suffix
    use mod_xc
 
    implicit none
@@ -83,7 +84,7 @@ contains
 
       ! Read stream_dust namelist
       if (mnproc == 1) then
-         filein = "ocn_in"
+         filein = trim("ocn_in"//inst_suffix)
          open( newunit=nu_nml, file=trim(filein), status='old', iostat=nml_error )
          if (nml_error /= 0) then
             call shr_sys_abort(subName//': ERROR opening '//trim(filein)//errMsg(sourcefile, __LINE__))
