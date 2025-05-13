@@ -77,25 +77,11 @@ contains
 
       integer :: i, j, k, l
 
-      !$omp parallel do private(i, k)
-      do j = 1 - nbdy, jj + nbdy
-         do k = 1, 4
-            do i = 1 - nbdy, ii + nbdy
-               uml(i, j, k) = spval
-               vml(i, j, k) = spval
-            enddo
-         enddo
-         do k = 1, 2
-            do i = 1 - nbdy, ii + nbdy
-               umlres(i, j, k) = spval
-               vmlres(i, j, k) = spval
-            enddo
-         enddo
-         do i = 1 - nbdy, ii + nbdy
-            idkedt(i, j) = spval
-         enddo
-      enddo
-      !$omp end parallel do
+      idkedt(:,:) = spval
+      uml(:,:,:) = spval
+      vml(:,:,:) = spval
+      umlres(:,:,:) = spval
+      vmlres(:,:,:) = spval
 
       !$omp parallel do private(k, l, i)
       do j = 1, jj

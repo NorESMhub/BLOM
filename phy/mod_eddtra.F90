@@ -1745,16 +1745,10 @@ contains
 
       integer :: i, j, l
 
-      !$omp parallel do private(i)
-      do j = 1-nbdy, jj+nbdy
-         do i = 1-nbdy, ii+nbdy
-            hbl_tf(i,j) = spval
-            wpup_tf(i,j) = spval
-            hml_tf1(i,j) = spval
-            hml_tf(i,j) = spval
-         enddo
-      enddo
-      !$omp end parallel do
+      hbl_tf(:,:) = spval
+      wpup_tf(:,:) = spval
+      hml_tf1(:,:) = spval
+      hml_tf(:,:) = spval
 
       !$omp parallel do private(l, i)
       do j = 1, jj

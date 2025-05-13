@@ -144,23 +144,10 @@ contains
       ! Allocate tracer arrays
       call allocate_tracers
 
-      !$omp parallel do private(i, k, nt)
-      do j = 1 - nbdy, jj + nbdy
-        do i = 1 - nbdy, ii + nbdy
-          uflux(i, j) = spval
-          vflux(i, j) = spval
-          do nt = 1, ntr
-            trflx(nt, i, j) = spval
-          enddo
-          do k = 1, kk
-            do nt = 1, ntr
-              trc(i ,j ,k     , nt) = spval
-              trc(i ,j ,k + kk, nt) = spval
-            enddo
-          enddo
-        enddo
-      enddo
-      !$omp end parallel do
+      uflux(:,:) = spval
+      vflux(:,:) = spval
+      trflx(:,:,:) = spval
+      trc(:,:,:,:) = spval
 
       ! Initialize uflxtr at points located upstream and downstream (in i
       ! direction) of p-points.
