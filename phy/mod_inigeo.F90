@@ -1,19 +1,19 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2024 Mats Bentsen, Alok Kumar Gupta, Mehmet Ilicak,
+! Copyright (C) 2015-2025 Mats Bentsen, Alok Kumar Gupta, Mehmet Ilicak,
 !                         Aleksi Nummelin, Mariana Vertenstein
-
+!
 ! This file is part of BLOM.
-
+!
 ! BLOM is free software: you can redistribute it and/or modify it under the
 ! terms of the GNU Lesser General Public License as published by the Free
 ! Software Foundation, either version 3 of the License, or (at your option)
 ! any later version.
-
+!
 ! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
 ! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
 ! more details.
-
+!
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
@@ -54,10 +54,9 @@ module mod_inigeo
 contains
 
   subroutine inigeo
-
-    ! ------------------------------------------------------------------
-    ! Initialize the geographic environment
-    ! ------------------------------------------------------------------
+  ! ----------------------------------------------------------------------------
+  ! Initialize the geographic environment.
+  ! ----------------------------------------------------------------------------
 
     ! Local variables
     real :: avgbot
@@ -81,7 +80,7 @@ contains
       case ('cesm')
         call geoenv_file
         call geoenv_cesmextra
-      case ('ben02clim', 'ben02syn', 'isomip1', 'isomip2')
+      case ('ben02clim', 'ben02syn', 'noforcing', 'isomip1', 'isomip2')
         call geoenv_file
       case ('fuk95')
         call geoenv_fuk95
