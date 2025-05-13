@@ -1,0 +1,2 @@
+# configure BLOM/iHAMOCC with CMIP6 settings
+./xmlchange BLOM_UNIT=cgs
