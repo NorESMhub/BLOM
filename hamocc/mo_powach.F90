@@ -230,7 +230,7 @@ contains
                              & + (1.-sed_alpha_poc)*prorca_mavg(i,j)
             if (ldyn_sed_age) then
               ! update surface age due to fresh POC sedimentation flux
-              sedlay(i,j,1,issso12_age) = sedlay(i,j,1,issso12) * sedlay(i,j,1,issso12_age)          &
+              sedlay(i,j,1,issso12_age) = sedlay(i,j,1,issso12) * sedlay(i,j,1,issso12_age)        &
                           & / ((prorca(i,j)/(porsol(i,j,1)*seddw(1))) + sedlay(i,j,1,issso12) + eps)
             endif
             do k = 1, ks
