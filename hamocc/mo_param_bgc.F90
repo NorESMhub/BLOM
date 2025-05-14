@@ -297,19 +297,19 @@ module mo_param_bgc
   real, parameter :: O2thresh_aerob   = 5.e-8    ! Above O2thresh_aerob aerob remineralization takes place
   real, parameter :: O2thresh_hypoxic = 5.e-7    ! Below O2thresh_hypoxic denitrification and sulfate reduction takes place (default model version)
   real, parameter :: NO3thresh_sulf   = 3.e-6    ! Below NO3thresh_sulf 'sufate reduction' takes place
-  real, protected :: remido     = 0.004           ! 1/d - remineralization rate (of DOM)
+  real, protected :: remido           = 0.004    ! 1/d - remineralization rate (of DOM)
   ! deep sea remineralisation constants
-  real, protected :: drempoc    = 0.025           ! 1/d Aerob remineralization rate detritus
-  real, protected :: drempoc_anaerob = 1.25e-3 ! =0.05*drempoc - remin in sub-/anoxic environm. - not be overwritten by M4AGO
-  real, protected :: bkox_drempoc    = 1e-7    ! half-saturation constant for oxygen for ammonification (aerobic remin via drempoc)
-  real, protected :: dremopal   = 0.003           ! 1/d Dissolution rate for opal
-  real, protected :: dremcalc        = 0.00035 ! 1/d Dissolution rate for CaCO3 (applied if Omega_c < 1)
-  real, protected :: dremn2o    = 0.01            ! 1/d Remineralization rate of detritus on N2O
-  real, protected :: dremsul    = 0.005           ! 1/d Remineralization rate for sulphate reduction
-  real, protected :: POM_remin_q10   = 2.1     ! Bidle et al. 2002: Regulation of Oceanic Silicon...
-  real, protected :: opal_remin_q10  = 2.6     ! Bidle et al. 2002: Regulation of Oceanic Silicon...
-  real, protected :: POM_remin_Tref  = 10.     ! [deg C] reference temperatue for Q10-dep. POC remin
-  real, protected :: opal_remin_Tref = 10.     ! [deg C] reference temperature for Q10-dep. opal dissolution
+  real, protected :: drempoc          = 0.025    ! 1/d Aerob remineralization rate detritus
+  real, protected :: drempoc_anaerob  = 1.25e-3  ! =0.05*drempoc - remin in sub-/anoxic environm. - not be overwritten by M4AGO
+  real, protected :: bkox_drempoc     = 1e-7     ! half-saturation constant for oxygen for ammonification (aerobic remin via drempoc)
+  real, protected :: dremopal         = 0.003    ! 1/d Dissolution rate for opal
+  real, protected :: dremcalc         = 0.00035  ! 1/d Dissolution rate for CaCO3 (applied if Omega_c < 1)
+  real, protected :: dremn2o          = 0.01     ! 1/d Remineralization rate of detritus on N2O
+  real, protected :: dremsul          = 0.005    ! 1/d Remineralization rate for sulphate reduction
+  real, protected :: POM_remin_q10    = 2.1      ! Bidle et al. 2002: Regulation of Oceanic Silicon...
+  real, protected :: opal_remin_q10   = 2.6      ! Bidle et al. 2002: Regulation of Oceanic Silicon...
+  real, protected :: POM_remin_Tref   = 10.      ! [deg C] reference temperatue for Q10-dep. POC remin
+  real, protected :: opal_remin_Tref  = 10.      ! [deg C] reference temperature for Q10-dep. opal dissolution
 
   !********************************************************************
   ! Extended nitrogen cycle
