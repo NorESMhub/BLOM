@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2004-2021 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
+! Copyright (C) 2004-2025 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
 !
 ! This file is part of BLOM.
 !
@@ -32,9 +32,9 @@ module mod_sfcstr
 contains
 
   subroutine sfcstr(m, n, mm, nn, k1m, k1n)
-    ! ---------------------------------------------------------------------------
-    ! Get surface stress.
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Get surface stress.
+  ! ---------------------------------------------------------------------------
 
     ! Arguments
     integer, intent(in) :: m, n, mm, nn, k1m, k1n
@@ -44,6 +44,7 @@ contains
       call sfcstr_cesm()
     case ('ben02clim', 'ben02syn', 'single_column')
       call sfcstr_ben02()
+    case ('noforcing')
     case ('fuk95')
     case ('channel')
     case ('isomip1')

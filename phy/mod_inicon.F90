@@ -437,7 +437,7 @@ contains
     ! ------------------------------------------------------------------
 
     select case (trim(expcnf))
-      case ('cesm', 'ben02clim', 'ben02syn', 'single_column')
+      case ('cesm', 'ben02clim', 'ben02syn', 'noforcing', 'single_column')
         call ictsz_file
       case ('fuk95')
         call ictsz_fuk95
