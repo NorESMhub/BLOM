@@ -237,6 +237,7 @@ CONTAINS
     ! use burial age equiv. to oldest sed layer
     !-----------------------------------------------------------------------------------------------
     use mo_param1_bgc,   only: issso12_age
+    use mo_param_bgc,    only: sec_per_day
 
     implicit none
     ! Arguments
@@ -258,7 +259,7 @@ CONTAINS
       do j = 1,kpje
           ! Units: prorca_mavg_init expected to be in [kmol P m-2 s-1]
           !        - needs to be converted to [mmol P m-2 d-1]
-          prorca_mavg(i,j)        = prorca_mavg_init(i,j)*1.0e6/86400.
+          prorca_mavg(i,j)        = prorca_mavg_init(i,j)*1.0e6/sec_per_day
           burial(i,j,issso12_age) = sed_POCage_init(i,j,ks)
         do k = 1,ks
           sedlay(i,j,k,issso12_age) = sed_POCage_init(i,j,k)

@@ -367,7 +367,8 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>geopotential</value>
+      <value>dynamic enthalpy</value>
+      <value blom_vcoord="isopyc_bulkml">geopotential</value>
     </values>
     <desc>Pressure gradient force method. Valid options: 'geopotential', 'dynamic enthalpy'</desc>
   </entry>
@@ -377,21 +378,31 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>uc</value>
-      <value blom_vcoord="cntiso_hybrid">dluc</value>
-      <value blom_vcoord="plevel"       >dluc</value>
+      <value>dluc</value>
+      <value blom_vcoord="isopyc_bulkml">uc</value>
     </values>
     <desc>Baroclinic mass flux correction method. Valid methods:</desc>
   </entry>
 
-  <entry id="rmpmth">
+  <entry id="advmth">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>eitvel</value>
+      <value>cppm</value>
+      <value blom_vcoord="isopyc_bulkml">remap</value>
     </values>
-    <desc>Method of applying eddy-induced transport in the remap</desc>
+    <desc>Advection method. Valid methods: 'remap', 'cppm'.</desc>
+  </entry>
+
+  <entry id="cppm_limiting">
+    <type>char</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>non_oscillatory</value>
+    </values>
+    <desc>CPPM limiting. Valid methods: 'monotonic', 'non_oscillatory'.</desc>
   </entry>
 
   <entry id="mlrmth">
@@ -602,7 +613,8 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>jerlov</value>
+      <value>chlorophyll</value>
+      <value blom_vcoord="isopyc_bulkml">jerlov</value>
     </values>
     <desc>Shortwave radiation absorption method. Valid methods:</desc>
   </entry>
@@ -633,6 +645,7 @@
     <group>limits</group>
     <values>
       <value>unset</value>
+      <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx2v1_20250507.nc</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx1v4_20170608.nc</value>
       <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.5v1_20240702.nc</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.25v4_20170623.nc</value>
@@ -640,6 +653,18 @@
     </values>
     <desc>
       Name of file containing chlorophyll concentration climatology
+    </desc>
+  </entry>
+
+  <entry id="svfile" is_inputdata="yes">
+    <type>char</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>unset</value>
+    </values>
+    <desc>
+      Name of file containing spatially varying spectral band fractions and attenuation lengths
     </desc>
   </entry>
 
@@ -1401,7 +1426,8 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>1.e-5</value>
+      <value>1.5e-5</value>
+      <value blom_vcoord="isopyc_bulkml">1.e-5</value>
     </values>
     <desc>Background diapycnal diffusivity (m**2/s) (f)</desc>
   </entry>
@@ -1411,8 +1437,7 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>.false.</value>
-      <value blom_vcoord="isopyc_bulkml">.true.</value>
+      <value>.true.</value>
     </values>
     <desc>Make the background mixing latitude dependent according to</desc>
   </entry>
@@ -4034,7 +4059,7 @@
     <desc>if .true., use MCT coupler fields from CAM or NUOPC to obtain NDEP (always imported to model).</desc>
   </entry>
 
-  <entry id="do_n2onh3_coupled" modify_via_xml="HAMOCC_N2OC">
+  <entry id="do_n2o_coupled" modify_via_xml="HAMOCC_N2OC">
     <type>logical</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -4042,7 +4067,18 @@
       <value>.false.</value>
       <value hamocc_n2oc="yes" hamocc_extncycle="yes">.true.</value>
     </values>
-    <desc>Switch to couple N2O and NH3 fluxes</desc>
+    <desc>Switch to couple N2O fluxes to atmosphere</desc>
+  </entry>
+  
+  <entry id="do_nh3_coupled" modify_via_xml="HAMOCC_NH3C">
+    <type>logical</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>.false.</value>
+      <value hamocc_nh3c="yes" hamocc_extncycle="yes">.true.</value>
+    </values>
+    <desc>Switch to couple NH3 fluxes to atmosphere</desc>
   </entry>
 
   <entry id="use_m4ago">
@@ -4741,6 +4777,16 @@
       <value>None</value>
     </values>
     <desc>remineralization and dissolution parameter: 1/d Dissolution rate for opal</desc>
+  </entry>
+
+  <entry id="dremcalc">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>remineralization and dissolution parameter: 1/d Dissolution rate for CaCO3 (applied if Omega_c lt 1)</desc>
   </entry>
 
   <entry id="dremn2o">
@@ -7869,6 +7915,84 @@
     <desc>Phytoplankton (phyc) [mol C m-3]</desc>
   </entry>
 
+  <entry id="lvl_nutlim_fe">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
+    </values>
+    <desc>Nutrient limitation Fe - time fraction</desc>
+  </entry>
+
+  <entry id="lvl_nutlim_n">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
+    </values>
+    <desc>Nutrient limitation N - time fraction</desc>
+  </entry>
+
+  <entry id="lvl_nutlim_phosph">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
+    </values>
+    <desc>Nutrient limitation PO4 - time fraction</desc>
+  </entry>
+
+  <entry id="zeu_nutlim_fe">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Euphotic zone nutrient limitation Fe - time fraction</desc>
+  </entry>
+
+  <entry id="zeu_nutlim_n">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Euphotic zone nutrient limitation N - time fraction</desc>
+  </entry>
+
+  <entry id="zeu_nutlim_phosph">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Euphotic zone nutrient limitation PO4 - time fraction</desc>
+  </entry>
+
   <entry id="lvl_grazer">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -9598,6 +9722,17 @@
     <desc>if .true., use NUOPC stream relaxation capability</desc>
   </entry>
 
+  <entry id="use_stream_dust">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.true.</value>
+    </values>
+    <desc>if .true., use NUOPC stream functionality for HAMOOC fedep input </desc>
+  </entry>
+
   <!-- =========================  -->
   <!-- namelist group: stream_sss -->
   <!-- =========================  -->
@@ -9735,6 +9870,75 @@
     </desc>
     <values>
       <value>1</value>
+    </values>
+  </entry>
+
+  <!-- =========================  -->
+  <!-- namelist group: stream_dust -->
+  <!-- =========================  -->
+
+  <entry id="stream_dust_mesh_filename">
+    <type>char</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>stream mesh file</desc>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_T42_ESMFmesh_cdf5.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_data_filename">
+    <type>char(10)</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>
+      file name(s) containing dust deposition data
+    </desc>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_T42.nc</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_varname">
+    <type>char</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>
+      variable name on stream file
+    </desc>
+    <values>
+      <value>dustdep</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_year_first">
+    <type>integer</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>
+      First year in stream to use
+    </desc>
+    <values>
+      <value>1</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_year_last">
+    <type>integer</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>
+      Last year in stream to use
+    </desc>
+    <values>
+      <value>1850</value>
+    </values>
+  </entry>
+  <entry id="stream_dust_year_align">
+    <type>integer</type>
+    <category>stream_dust</category>
+    <group>stream_dust</group>
+    <desc>
+      Align stream_year_first with this model year
+    </desc>
+    <values>
+      <value>1850</value>
     </values>
   </entry>
 

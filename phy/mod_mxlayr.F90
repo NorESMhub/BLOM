@@ -38,7 +38,7 @@ module mod_mxlayr
                            dsigds, dsigds0, p_alpha,p_p_alpha
   use mod_state,     only: u, v, dp, dpu, dpv, temp, saln, sigma, &
                            p, pu, pv, kfpla
-  use mod_swabs,     only: swbgal, swbgfc, swamxd
+  use mod_swabs,     only: swamxd, swfc1, swfc2, swal1, swal2
   use mod_forcing,   only: surflx, surrlx, sswflx, &
                            salflx, brnflx, salrlx, salt_corr, trc_corr, &
                            ustar, ustar3, buoyfl
@@ -114,19 +114,13 @@ contains
     ! Local variables
     integer :: i,j
 
-    !$omp parallel do private(i)
-    do j = 1-nbdy,jj+nbdy
-      do i = 1-nbdy,ii+nbdy
-        mtkeus(i,j) = spval
-        mtkeni(i,j) = spval
-        mtkebf(i,j) = spval
-        mtkers(i,j) = spval
-        mtkepe(i,j) = spval
-        mtkeke(i,j) = spval
-        pbrnda(i,j) = spval
-      end do
-    end do
-    !$omp end parallel do
+    mtkeus(:,:) = spval
+    mtkeni(:,:) = spval
+    mtkebf(:,:) = spval
+    mtkers(:,:) = spval
+    mtkepe(:,:) = spval
+    mtkeke(:,:) = spval
+    pbrnda(:,:) = spval
 
   end subroutine inivar_mxlayr
 
@@ -342,12 +336,12 @@ contains
           bfltot = grav*alpha0*(alfa*surflx(i,j)/spcifh &
                                -beta*(salflx(i,j)-brnflx(i,j)))
           buoyfl(i,j,1) = bfltot
-          bflpsw = grav*alpha0*alfa*swbgfc(i,j)*sswflx(i,j)/spcifh
+          bflpsw = grav*alpha0*alfa*swfc2(i,j)*sswflx(i,j)/spcifh
 
           pmxl = pres(3)
           q = alpha0/grav
           lui = abs(coriop(i,j))*q/(kappa*max(ustmin,ustar(i,j)))
-          lei = 1./(onem*swbgal(i,j))
+          lei = 1./(onem*swal2(i,j))
           cus = rm0*ustar3(i,j)
           cni = niwgf*niwbf*idkedt(i,j)
           cbftot = .5*bfltot*q
@@ -628,13 +622,13 @@ contains
             end if
 
             ! Apply heat forcing to the water column below surface layer
-            pswbas = swbgfc(i,j)*exp(-lei*delp(1))
+            pswbas = swfc2(i,j)*exp(-lei*delp(1))
             pswup = pswbas
-            pswlo = swbgfc(i,j)*exp(-lei*min(pradd,pmxl))
+            pswlo = swfc2(i,j)*exp(-lei*min(pradd,pmxl))
             q = delt1*grav/delp(2)
             ttem(2) = ttem(2)-(pswup-pswlo)*sswflx(i,j)*q/spcifh
             pswup = pswlo
-            pswlo = swbgfc(i,j)*exp(-lei*min(pradd,pres(3)))
+            pswlo = swfc2(i,j)*exp(-lei*min(pradd,pres(3)))
             if (dpfsl > onemu) then
               tfsl = tfsl-(pswup-pswlo)*sswflx(i,j)*delt1*grav/(spcifh*dpfsl)
               pswup = pswlo
@@ -642,7 +636,7 @@ contains
             k = kfpl
             do while (k < kmax)
               if (delp(k) > onemu) then
-                pswlo = swbgfc(i,j)*exp(-lei*min(pradd,pres(k+1)))
+                pswlo = swfc2(i,j)*exp(-lei*min(pradd,pres(k+1)))
                 ttem(k) = ttem(k)-(pswup-pswlo)*sswflx(i,j)*delt1*grav/(spcifh*delp(k))
                 pswup = pswlo
                 kfmax = max(kfmax,k)
@@ -1159,16 +1153,16 @@ contains
             end if
 
             ! Apply heat forcing to the water column below surface layer
-            pswbas = swbgfc(i,j)*exp(-lei*delp(1))
+            pswbas = swfc2(i,j)*exp(-lei*delp(1))
             pswup = pswbas
-            pswlo = swbgfc(i,j)*exp(-lei*min(pradd,pres(3)))
+            pswlo = swfc2(i,j)*exp(-lei*min(pradd,pres(3)))
             q = delt1*grav/delp(2)
             ttem(2) = ttem(2)-(pswup-pswlo)*sswflx(i,j)*q/spcifh
             pswup = pswlo
             k = kfpl
             do while (k < kmax)
               if (delp(k) > onemu) then
-                pswlo = swbgfc(i,j)*exp(-lei*min(pradd,pres(k+1)))
+                pswlo = swfc2(i,j)*exp(-lei*min(pradd,pres(k+1)))
                 ttem(k) = ttem(k)-(pswup-pswlo)*sswflx(i,j)*delt1*grav/(spcifh*delp(k))
                 pswup = pswlo
                 kfmax = max(kfmax,k)

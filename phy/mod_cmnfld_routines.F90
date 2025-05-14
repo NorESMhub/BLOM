@@ -380,9 +380,9 @@ module mod_cmnfld_routines
 
       bfsqi = 0.0_r8
       !$omp parallel do private(l, i, k, pup, tup, sup, kn, plo, tlo, slo)
-      do j = 1, jj
+      do j = 0, jj+1
          do l = 1, isp(j)
-         do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+         do i = max(0, ifp(j, l)), min(ii+1, ilp(j, l))
             bfsqi(i, j, 1) = bfsqmn
             pup = .5_r8*(p(i, j, 1) + p(i, j, 2))
             tup = temp(i, j, 1 + nn)

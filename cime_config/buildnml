@@ -110,7 +110,7 @@ def buildnml(case, caseroot, compname):
 
     # Convert instance number to integer:
     ninst = int(ninst_ocn)
-    
+
     # handle rpointers:
     # after changes to rpointer files, now we can have multiple rpointers with timestamps
     if ninst > 1:
@@ -141,7 +141,7 @@ def buildnml(case, caseroot, compname):
                 timestmp_list[i] = ""
                 prev_inst_list[i] = -1
         # check for instances in rpointers
-        
+
         if all(has_inst):
             if  prev_inst_list:
                 print(prev_inst_list)
@@ -178,7 +178,7 @@ def buildnml(case, caseroot, compname):
         # paramgen has to be initilized for each instance separately.
         xml_fil = os.path.join(srcroot,"components","blom","cime_config","namelist_definition_blom.xml")
         pg_blom = OcnInParamGen.from_namelist_xml(xml_fil)
-        
+
         # -----------------------------------------------------
         # Determine instance string
         # -----------------------------------------------------
@@ -186,7 +186,7 @@ def buildnml(case, caseroot, compname):
         inst_string = ""
         if ninst > 1:
             inst_string = '_%04d' % inst_counter
-        
+
         # -----------------------------------------------------
         # Create blomconf/namelist
         # -----------------------------------------------------
@@ -248,8 +248,8 @@ def buildnml(case, caseroot, compname):
         config["comp_interface"] = comp_interface
         config["hamocc_shelf_res_time"] = "yes" if hamocc_shelf_res_time else "no"
 
-        # Set the sinking scheme in iHAMOCC 
-        # Note: the following part requires to have set options for no/yes 
+        # Set the sinking scheme in iHAMOCC
+        # Note: the following part requires to have set options for no/yes
         # in the namelist_definition_blom.xml for the 'use_XXX' switches
         if hamocc_sinking_scheme == 'WLIN': # current default
            config['use_wlin']  = 'yes'
@@ -263,7 +263,7 @@ def buildnml(case, caseroot, compname):
            config['use_wlin']  = 'no'
            config['use_agg']   = 'yes'
            config['use_m4ago'] = 'no'
-        elif hamocc_sinking_scheme == 'CONST': 
+        elif hamocc_sinking_scheme == 'CONST':
            # if all options are 'no' iHAMOCC falls back to constant sinking velocities
            config['use_wlin']  = 'no'
            config['use_agg']   = 'no'
@@ -297,7 +297,7 @@ def buildnml(case, caseroot, compname):
         #----------------------------------------------------
         # Reset values of some variables
         #----------------------------------------------------
-        
+
 
         icfile_inst = None
         if run_type == 'hybrid' or run_type == 'branch':
@@ -312,7 +312,7 @@ def buildnml(case, caseroot, compname):
                     os.path.join(rundir, icfile_inst))
 
                 icfile=icfile_inst
- 
+
             # since stage_refcase is done within CIME's create_namelists()
             # before component namlist is created
             # we have to make this absolute to make check_inputdata work.
@@ -360,7 +360,8 @@ def buildnml(case, caseroot, compname):
         namelist_file += inst_string
 
         # Create BLOM namelist
-        groups=['limits','diffusion','merdia','secdia','diaphy','stream_sss','stream_sst', 'restart' ]
+        groups=['limits','diffusion','merdia','secdia','diaphy','stream_sss','stream_sst', 'restart',
+                'stream_dust']
 
         groups.append('cwmod')
 

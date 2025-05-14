@@ -220,30 +220,13 @@ contains
     ! Initialize arrays.
     !-----------------------------------------------------------
 
-    ! Local variables
-    integer :: i,j,k
-
-    !$omp parallel do private(i,k)
-    do j = 1-nbdy,jj+nbdy
-      do k = 1,kk+1
-        do i = 1-nbdy,ii+nbdy
-          rig(i,j,k) = spval
-        end do
-      end do
-      do k = 1,kk
-        do i = 1-nbdy,ii+nbdy
-          du2l(i,j,k) = spval
-          drhol(i,j,k) = spval
-          up(i,j,k) = spval
-          vp(i,j,k) = spval
-        end do
-      end do
-      do i = 1-nbdy,ii+nbdy
-        OBLdepth(i,j) = spval
-        hOBL(i,j) = hOBL_static
-      end do
-    end do
-    !$omp end parallel do
+    rig(:,:,:) = spval
+    du2l(:,:,:) = spval
+    drhol(:,:,:) = spval
+    up(:,:,:) = spval
+    vp(:,:,:) = spval
+    OBLdepth(:,:) = spval
+    hOBL(:,:) = hOBL_static
 
   end subroutine inivar_difest
 

@@ -30,11 +30,12 @@ contains
     ! **********************************************************************************************
 
     use mod_xc,         only: idm,jdm,kdm,nbdy
-    use mod_time,       only: date,nday_of_year,nstep,nstep_in_day
+    use mod_time,       only: date,nday_of_year,nstep,nstep_in_day,nday_in_year
     use mod_grid,       only: plat
     use mod_state,      only: temp,saln
-    use mod_forcing,    only: swa,slp,abswnd,atmco2,flxco2,flxdms,atmbrf,flxbrf,                   &
-                              atmn2o,flxn2o,atmnh3,flxnh3,atmnhxdep,atmnoydep
+    use mod_forcing,    only: swa,slp,abswnd,atmco2,flxco2,flxdms,atmbrf,flxbrf, &
+                              atmn2o,flxn2o,atmnh3,flxnh3,atmnhxdep,atmnoydep, &
+                              dust_stream, use_stream_dust
     use mod_seaice,     only: ficem
     use mo_bgcmean,     only: nbgc,bgcwrt, diagfq_bgc,diagmon_bgc,diagann_bgc
     use mo_intfcblom,   only: bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask,blom2hamocc,hamocc2blom
@@ -49,6 +50,7 @@ contains
     use mo_trc_limitc,  only: trc_limitc
     use mo_param1_bgc,  only: nndep
     use mo_read_shelfmask, only: shelfmask
+    use mo_param_bgc,   only: ini_bgctimes
     use mo_sedmnt_spinoff, only: sed_offline_spinup
 
     ! Arguments
@@ -60,6 +62,8 @@ contains
     real    :: dust(idm,jdm)
     real    :: oafx(idm,jdm)
 
+    call ini_bgctimes(nday_in_year) ! update days per year (leap years, restart)
+    
     if (.not. offline_sediment_spinup) then
       call trc_limitc(nn)
     endif
@@ -79,7 +83,11 @@ contains
     enddo
 
     if (.not. offline_sediment_spinup) then
-      call get_fedep(idm,jdm,date%month,dust)
+      if (use_stream_dust) then
+         call get_fedep(idm,jdm,nbdy,date%month,dust,dust_stream=dust_stream)
+      else
+         call get_fedep(idm,jdm,nbdy,date%month,dust)
+      end if
       call get_ndep(idm,jdm,nbdy,date%year,date%month,omask,ndep,atmnhxdep,atmnoydep)
       call get_oafx(idm,jdm,date%year,date%month,omask,oafx)
       if(with_dmsph) call get_pi_ph(idm,jdm,date%month)
@@ -88,7 +96,7 @@ contains
            &          bgc_rho,plat,omask,dust,rivflx,ndep,oafx,pi_ph,swa,ficem,slp,abswnd,         &
            &          temp(1-nbdy,1-nbdy,1+nn),saln(1-nbdy,1-nbdy,1+nn),                           &
            &          atmco2,flxco2,flxdms,atmbrf,flxbrf,                                          &
-           &          atmn2o,flxn2o,atmnh3,flxnh3,shelfmask)
+         &          atmn2o,flxn2o,atmnh3,flxnh3,shelfmask)
     else
       call sed_offline_spinup(idm,jdm,kdm,nbdy,omask,date%year,ldtday,bgc_dp,                      &
                               bgc_rho,saln(1-nbdy,1-nbdy,1+nn),temp(1-nbdy,1-nbdy,1+nn))
@@ -99,6 +107,7 @@ contains
     call accfields(idm,jdm,kdm,bgc_dx,bgc_dy,bgc_dp,omask)
 
     call hamocc2blom(m,n,mm,nn)
+
   end subroutine hamocc_step
 
 end module mo_hamocc_step

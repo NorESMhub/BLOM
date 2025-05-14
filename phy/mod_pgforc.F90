@@ -369,7 +369,7 @@ contains
             if (dp(i-1,j,kn) >= onemm .and. dp(i,j,kn) >= onemm) then
               pgfx(i,j,kn) = pgfx(i,j,kn) &
                            + .5_r8*( (dynh_t(i-1,j,k) + dynh_t(i,j,k)) &
-                                     *(temp   (i,j,k) - temp   (i-1,j,k)) &
+                                     *(temp(i,j,kn) - temp(i-1,j,kn)) &
                                    + (dynh_a(i-1,j,k) + dynh_a(i,j,k)) &
                                      *(alpha_r(i,j,k) - alpha_r(i-1,j,k)))
             endif
@@ -388,7 +388,7 @@ contains
             if (dp(i,j-1,kn) >= onemm .and. dp(i,j,kn) >= onemm) then
               pgfy(i,j,kn) = pgfy(i,j,kn) &
                            + .5_r8*( (dynh_t(i,j-1,k) + dynh_t(i,j,k)) &
-                                     *(temp   (i,j,k) - temp   (i,j-1,k)) &
+                                     *(temp(i,j,kn) - temp(i,j-1,kn)) &
                                    + (dynh_a(i,j-1,k) + dynh_a(i,j,k)) &
                                      *(alpha_r(i,j,k) - alpha_r(i,j-1,k)))
             endif
@@ -415,43 +415,22 @@ contains
   ! Initialize arrays.
   ! ----------------------------------------------------------------------------
 
-    ! Local variables
-    integer :: i,j,k
-
-    !$omp parallel do private(i,k)
-    do j = 1-nbdy, jj+nbdy
-      do k = 1, 2*kk
-        do i = 1-nbdy, ii+nbdy
-          pgfx(i,j,k) = spval
-          pgfy(i,j,k) = spval
-        end do
-      end do
-      do k = 1, kk
-        do i = 1-nbdy, ii+nbdy
-          pgfx_o(i,j,k) = spval
-          pgfy_o(i,j,k) = spval
-        end do
-      end do
-      do k = 1, 2
-        do i = 1-nbdy, ii+nbdy
-          pgfxm(i,j,k) = spval
-          pgfym(i,j,k) = spval
-          xixp(i,j,k) = spval
-          xixm(i,j,k) = spval
-          xiyp(i,j,k) = spval
-          xiym(i,j,k) = spval
-        end do
-      end do
-      do i = 1-nbdy, ii+nbdy
-        pgfxm_o(i,j) = spval
-        pgfym_o(i,j) = spval
-        xixp_o(i,j) = spval
-        xixm_o(i,j) = spval
-        xiyp_o(i,j) = spval
-        xiym_o(i,j) = spval
-      end do
-    end do
-    !$omp end parallel do
+    pgfxm_o(:,:) = spval
+    pgfym_o(:,:) = spval
+    xixp_o(:,:) = spval
+    xixm_o(:,:) = spval
+    xiyp_o(:,:) = spval
+    xiym_o(:,:) = spval
+    pgfx(:,:,:) = spval
+    pgfy(:,:,:) = spval
+    pgfx_o(:,:,:) = spval
+    pgfy_o(:,:,:) = spval
+    pgfxm(:,:,:) = spval
+    pgfym(:,:,:) = spval
+    xixp(:,:,:) = spval
+    xixm(:,:,:) = spval
+    xiyp(:,:,:) = spval
+    xiym(:,:,:) = spval
 
   end subroutine inivar_pgforc
 

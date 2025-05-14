@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2024 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin,
+! Copyright (C) 2015-2025 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin,
 !                         Mariana Vertenstein
 !
 ! This file is part of BLOM.
@@ -35,12 +35,13 @@ module mod_iniphy
 contains
 
   subroutine iniphy
+  ! ----------------------------------------------------------------------------
+  ! Initialize physical parameterizations.
+  ! ----------------------------------------------------------------------------
 
-    ! ------------------------------------------------------------------
-    ! Initialize physical parameterizations
-    ! ------------------------------------------------------------------
-
-    if (expcnf == 'cesm'.or. expcnf == 'ben02clim'.or.expcnf == 'ben02syn') then
+    if (expcnf == 'cesm' .or. &
+        expcnf == 'ben02clim' .or. expcnf == 'ben02syn' .or. &
+        expcnf == 'noforcing') then
       call read_tidaldissip
     else if (expcnf == 'channel') then
     else if (expcnf == 'fuk95') then

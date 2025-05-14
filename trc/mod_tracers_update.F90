@@ -37,6 +37,7 @@ module mod_tracers_update
   use mod_dia,             only: iotype, rstfmt, rstcmp
   use mod_config,          only: expcnf
   use mod_ifdefs,          only: use_ATRC, use_IDLAGE
+  use mod_utility,         only: fnmlen
   use mod_nctools
   use mod_xc
 
@@ -181,8 +182,8 @@ contains
 
     ! Local variables
     logical :: error
-    character(len=256) :: rstfnm_ocntrc
-    character(len=256) :: rstfnm_hamocc
+    character(len=fnmlen) :: rstfnm_ocntrc
+    character(len=fnmlen) :: rstfnm_hamocc
 
     ! ------------------------------------------------------------------
     ! Generate file name
@@ -244,8 +245,8 @@ contains
 
     ! Local variables
     logical :: error
-    character(len=256) :: rstfnm_ocntrc
-    character(len=256) :: rstfnm_hamocc
+    character(len=fnmlen) :: rstfnm_ocntrc
+    character(len=fnmlen) :: rstfnm_hamocc
 
     ! ------------------------------------------------------------------
     ! Generate file name
@@ -305,7 +306,7 @@ contains
 
     ! Local variables
     integer :: nt,nat
-    character(len = 256) :: trcnm
+    character(len=fnmlen) :: trcnm
 
     ! ------------------------------------------------------------------
     ! if no ocean tracers are defined, return
@@ -414,7 +415,7 @@ contains
     integer :: nt,nat
     real :: time0r,timer
     logical :: fexist
-    character(len = 256) :: trcnm
+    character(len=fnmlen) :: trcnm
 
     ! ------------------------------------------------------------------
     ! If no ocean tracers are defined, return

@@ -81,20 +81,11 @@ contains
 
     integer :: i,j,k,l
 
-    !$omp parallel do private(i,k)
-    do j = 1-nbdy,jj+nbdy
-      do i = 1-nbdy,ii+nbdy
-        do k = 1,kk
-          dpold(i,j,k   ) = spval
-          dpold(i,j,k+kk) = spval
-          dpuold(i,j,k) = spval
-          dpvold(i,j,k) = spval
-          told(i,j,k) = spval
-          sold(i,j,k) = spval
-        end do
-      end do
-    end do
-    !$omp end parallel do
+    dpold(:,:,:) = spval
+    dpuold(:,:,:) = spval
+    dpvold(:,:,:) = spval
+    told(:,:,:) = spval
+    sold(:,:,:) = spval
 
     ! initialize  dpuold  upstream and downstream of p-points as well as
     ! at lateral neighbors of interior u-points.

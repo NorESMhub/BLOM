@@ -40,8 +40,9 @@
 ! BMCMTH   : Baroclinic mass flux correction method. Valid methods:
 !            'uc' (upstream column), 'dluc' (depth limited upstream
 !            column) (a)
-! RMPMTH   : Method of applying eddy-induced transport in the remap
-!            transport algorithm. Valid methods: 'eitvel', 'eitflx' (a)
+! ADVMTH   : Advection method. Valid methods: 'remap', 'cppm' (a)
+! CPPM_LIMITING : CPPM limiting. Valid methods: 'monotonic',
+!                 'non_oscillatory' (a)
 ! MLRMTH   : Mixed layer restratification method. Valid methods: 'none',
 !            'fox08','bod23' (a)
 ! CE       : Efficiency factor for the restratification by mixed layer
@@ -83,11 +84,13 @@
 ! NIWLF    : Fraction of near-inertial energy dissipated locally beneath
 !            the boundary layer () (f)
 ! SWAMTH   : Shortwave radiation absorption method. Valid methods:
-!            'top-layer', 'jerlov', 'chlorophyll' (a)
+!            'top-layer', 'jerlov', 'chlorophyll', 'spatial_frac_attlen' (a)
 ! JWTYPE   : Number indicating the Jerlov (1968) water type (i)
 ! CHLOPT   : Chlorophyll concentration option. Valid options:
 !            'climatology' (a)
 ! CCFILE   : Name of file containing chlorophyll concentration climatology (a)
+! SVFILE   : Name of file containing spatially varying spectral band fractions
+!            and attenuation lengths (a)
 ! TRXDAY   : e-folding time scale (days) for SST relax., if 0 no relax. (f)
 ! SRXDAY   : e-folding time scale (days) for SSS relax., if 0 no relax. (f)
 ! TRXDPT   : Maximum mixed layer depth for e-folding SST relaxation (m) (f)

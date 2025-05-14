@@ -49,6 +49,7 @@ module mo_Gdata_read
                             nf90_inquire_variable,nf90_get_att,nf90_close,nf90_open
   use mod_xc,         only: mnproc,xchalt
   use mo_control_bgc, only: io_stdo_bgc
+  use mo_kind,        only: bgc_fnmlen
 
   implicit none
   private
@@ -89,16 +90,16 @@ module mo_Gdata_read
   real,             parameter :: fillval = -1.e+32
 
   ! Input file names (incl. full path) set through namelist
-  character(len=256) :: inidic  = ''
-  character(len=256) :: inialk  = ''
-  character(len=256) :: inipo4  = ''
-  character(len=256) :: inioxy  = ''
-  character(len=256) :: inino3  = ''
-  character(len=256) :: inisil  = ''
-  character(len=256) :: inid13c = ''
-  character(len=256) :: inid14c = ''
-  character(len=256) :: inic13 = ''   ! currently not used
-  character(len=256) :: inic14 = ''   ! currently not used
+  character(len=bgc_fnmlen) :: inidic  = ''
+  character(len=bgc_fnmlen) :: inialk  = ''
+  character(len=bgc_fnmlen) :: inipo4  = ''
+  character(len=bgc_fnmlen) :: inioxy  = ''
+  character(len=bgc_fnmlen) :: inino3  = ''
+  character(len=bgc_fnmlen) :: inisil  = ''
+  character(len=bgc_fnmlen) :: inid13c = ''
+  character(len=bgc_fnmlen) :: inid14c = ''
+  character(len=bgc_fnmlen) :: inic13 = ''   ! currently not used
+  character(len=bgc_fnmlen) :: inic14 = ''   ! currently not used
 
   ! Variables set by call to Gdata_set
   integer                               :: nz
@@ -108,7 +109,7 @@ module mo_Gdata_read
   real, dimension(:, :, :), allocatable :: rvar,gdata
   character(len=16)                     :: var,ncname
   character(len=3)                      :: dsrc
-  character(len=256)                    :: infile
+  character(len=bgc_fnmlen)             :: infile
 
   logical :: lset  = .false.
 

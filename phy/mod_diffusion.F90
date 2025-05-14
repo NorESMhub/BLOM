@@ -27,6 +27,7 @@ module mod_diffusion
    use mod_constants, only: spval, epsilk
    use mod_xc
    use mod_forcing, only: wavsrc_opt, wavsrc_none, wavsrc_param, wavsrc_extern
+   use mod_utility, only: fnmlen
 
    implicit none
    private
@@ -72,7 +73,7 @@ module mod_diffusion
                 ! according to Gregg et al. (2003).
       smobld    ! If true, apply lateral smoothing of CVMix estimated boundary
                 ! layer depth.
-   character(len = 256) :: &
+   character(len = fnmlen) :: &
       tbfile    ! Name of file containing topographic beta parameter.
    character(len = 80) :: &
       lngmtp, & ! Type of Langmuir turbulence parameterization. Valid types:
@@ -381,53 +382,35 @@ contains
 
       integer :: i, j, k, l
 
-      !$omp parallel do private(i, k)
-      do j = 1 - nbdy, jj + nbdy
-         do i = 1 - nbdy, ii + nbdy
-            difmxp(i, j) = spval
-            difmxq(i, j) = spval
-            difwgt(i, j) = spval
-         enddo
-         do k = 1, kk
-            do i = 1 - nbdy, ii + nbdy
-               difint(i, j, k) = spval
-               difiso(i, j, k) = spval
-               difdia(i, j, k) = spval
-            enddo
-         enddo
-         do k = 1, 2*kk
-            do i = 1 - nbdy, ii + nbdy
-               umfltd(i, j, k) = spval
-               vmfltd(i, j, k) = spval
-               umflsm(i, j, k) = spval
-               vmflsm(i, j, k) = spval
-               utfltd(i, j, k) = spval
-               vtfltd(i, j, k) = spval
-               utflsm(i, j, k) = spval
-               vtflsm(i, j, k) = spval
-               utflld(i, j, k) = spval
-               vtflld(i, j, k) = spval
-               usfltd(i, j, k) = spval
-               vsfltd(i, j, k) = spval
-               usflsm(i, j, k) = spval
-               vsflsm(i, j, k) = spval
-               usflld(i, j, k) = spval
-               vsflld(i, j, k) = spval
-            enddo
-         enddo
-         do k = 1, kk+1
-            do i = 1 - nbdy, ii + nbdy
-               Kvisc_m(i, j, k) = epsilk
-               Kdiff_t(i, j, k) = epsilk
-               Kdiff_s(i, j, k) = epsilk
-               t_ns_nonloc(i, j, k) = spval
-               s_nb_nonloc(i, j, k) = spval
-               mu_nonloc(i, j, k) = spval
-               mv_nonloc(i, j, k) = spval
-            enddo
-         enddo
-      enddo
-      !$omp end parallel do
+      difmxp(:,:) = spval
+      difmxq(:,:) = spval
+      difwgt(:,:) = spval
+      difint(:,:,:) = spval
+      difiso(:,:,:) = spval
+      difdia(:,:,:) = spval
+      umfltd(:,:,:) = spval
+      vmfltd(:,:,:) = spval
+      umflsm(:,:,:) = spval
+      vmflsm(:,:,:) = spval
+      utfltd(:,:,:) = spval
+      vtfltd(:,:,:) = spval
+      utflsm(:,:,:) = spval
+      vtflsm(:,:,:) = spval
+      utflld(:,:,:) = spval
+      vtflld(:,:,:) = spval
+      usfltd(:,:,:) = spval
+      vsfltd(:,:,:) = spval
+      usflsm(:,:,:) = spval
+      vsflsm(:,:,:) = spval
+      usflld(:,:,:) = spval
+      vsflld(:,:,:) = spval
+      Kvisc_m(:,:,:) = epsilk
+      Kdiff_t(:,:,:) = epsilk
+      Kdiff_s(:,:,:) = epsilk
+      t_ns_nonloc(:,:,:) = spval
+      s_nb_nonloc(:,:,:) = spval
+      mu_nonloc(:,:,:) = spval
+      mv_nonloc(:,:,:) = spval
 
       ! Initialize isopycnal diffusivity.
       !$omp parallel do private(k, l, i)

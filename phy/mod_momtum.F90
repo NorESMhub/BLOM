@@ -152,24 +152,14 @@ contains
 
     integer :: i,j,k,l
 
-    !$omp parallel do private(k,i)
-    do j = 1-nbdy,jj+nbdy
-      do k = 1,2*kk
-        do i = 1-nbdy,ii+nbdy
-          absvor(i,j,k) = spval
-          dpvor(i,j,k) = spval
-        end do
-      end do
-      do i = 1-nbdy,ii+nbdy
-        defor1(i,j) = spval
-        defor2(i,j) = spval
-        uja(i,j) = spval
-        ujb(i,j) = spval
-        via(i,j) = spval
-        vib(i,j) = spval
-      end do
-    end do
-    !$omp end parallel do
+    defor1(:,:) = spval
+    defor2(:,:) = spval
+    uja(:,:) = spval
+    ujb(:,:) = spval
+    via(:,:) = spval
+    vib(:,:) = spval
+    absvor(:,:,:) = spval
+    dpvor(:,:,:) = spval
 
     !$omp parallel do private(l,i)
     do j = 1,jj

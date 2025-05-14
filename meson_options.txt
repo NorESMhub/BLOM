@@ -12,7 +12,7 @@ option('vcoord', type: 'combo',
        description: 'Vertical coordinate', value: 'isopyc_bulkml')
 # Which executable driver should be built
 option('driver', type: 'combo',
-       choices: ['nocoupler', 'noforc'], value: 'nocoupler')
+       choices: ['nocoupler'], value: 'nocoupler')
 # List of BLOM options
 option('turbclo', type: 'array',
        choices: ['oneeq', 'twoeq', 'advection', 'isodif'],

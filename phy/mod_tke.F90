@@ -98,18 +98,12 @@ contains
 
       ! Initialize fields holding turbulent kinetic energy, generic length
       ! scale, and other fields used in the turbulence closure.
-      !$omp parallel do private(i, k)
-      do j = 1 - nbdy, jj + nbdy
-        do i = 1 - nbdy, ii + nbdy
-          do k = 1, kk
-            Prod(i ,j ,k) = spval
-            Buoy(i ,j ,k) = spval
-            Shear2(i ,j ,k) = spval
-            L_scale(i ,j ,k) = spval
-          enddo
-        enddo
-      enddo
-      !$omp end parallel do
+
+      Prod(:,:,:) = spval
+      Buoy(:,:,:) = spval
+      Shear2(:,:,:) = spval
+      L_scale(:,:,:) = spval
+
       !$omp parallel do private(k, l, i)
       do j = 1 - nbdy, jj + nbdy
         do k = 1, 2*kdm

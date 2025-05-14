@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2024 Mats Bentsen, Mehmet Ilicak, Ingo Bethke,
+! Copyright (C) 2008-2025 Mats Bentsen, Mehmet Ilicak, Ingo Bethke,
 !                         Ping-Gin Chiu, Aleksi Nummelin, Mariana Vertenstein
 !
 ! This file is part of BLOM.
@@ -32,7 +32,8 @@ module mod_rdlim
   use mod_grid,        only: grfile
   use mod_eos,         only: pref
   use mod_inicon,      only: icfile
-  use mod_advect,      only: rmpmth
+  use mod_advect,      only: advmth
+  use mod_cppm,        only: cppm_limiting
   use mod_pbcor,       only: bmcmth
   use mod_momtum,      only: mdv2hi, mdv2lo, mdv4hi, mdv4lo, mdc2hi, &
                              mdc2lo, vsc2hi, vsc2lo, vsc4hi, vsc4lo, &
@@ -44,9 +45,9 @@ module mod_rdlim
                              wavsrc, wavsrc_opt, wavsrc_none, &
                              wavsrc_param, wavsrc_extern, &
                              trxday, srxday, trxdpt, srxdpt, trxlim, &
-                             srxlim, srxbal, sprfac, &
-                             srxlim, srxbal, sprfac, use_stream_relaxation
-  use mod_swabs,       only: swamth, jwtype, chlopt, ccfile
+                             srxlim, srxbal, sprfac, use_stream_relaxation, &
+                             use_stream_dust
+  use mod_swabs,       only: swamth, jwtype, chlopt, ccfile, svfile
   use mod_diffusion,   only: readnml_diffusion
   use mod_eddtra,      only: mlrmth, ce, cl, tau_mlr, tau_growing_hbl, &
                              tau_decaying_hbl, tau_growing_hml, &
@@ -109,6 +110,7 @@ module mod_rdlim
   use mod_checksum,    only: csdiag
   use mod_nctools,     only: ncfopn, ncgeti, ncgetr, ncfcls
   use mod_ifdefs,      only: use_diag
+  use mod_utility,     only: fnmlen
 
   implicit none
   private
@@ -124,8 +126,8 @@ contains
 
     ! Local variables
     type(date_type) :: date0_rest
-    character(len = 256) :: nlfnm,rstfnm
-    character(len = 256) :: l_rpfile
+    character(len = fnmlen) :: nlfnm,rstfnm
+    character(len = fnmlen) :: l_rpfile
     logical :: fexist
     integer :: m,n,idate,idate0,nfu,ios
 
@@ -133,11 +135,11 @@ contains
          grfile,icfile,pref,baclin,batrop, &
          mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo, &
          vsc2hi,vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls, &
-         mommth,pgfmth,bmcmth,rmpmth, &
+         mommth,pgfmth,bmcmth,advmth,cppm_limiting, &
          mlrmth,ce,cl,tau_mlr,tau_growing_hbl,tau_decaying_hbl, &
          tau_growing_hml,tau_decaying_hml,lfmin,mstar,nstar,wpup_min, &
          mlrttp,rm0,rm5,tdfile,niwgf,niwbf,niwlf, &
-         swamth,jwtype,chlopt,ccfile, &
+         swamth,jwtype,chlopt,ccfile,svfile, &
          trxday,srxday,trxdpt,srxdpt,trxlim,srxlim, &
          aptflx,apsflx,ditflx,disflx,srxbal,scfile, &
          wavsrc,smtfrc,sprfac, &
@@ -146,6 +148,7 @@ contains
          cnsvdi, &
          csdiag, &
          rstfrq,rstfmt,rstcmp,iotype,use_stream_relaxation, &
+         use_stream_dust, &
          use_diag
 
     ! read limits namelist
@@ -204,7 +207,8 @@ contains
       write (lp,*) 'MOMMTH ',trim(MOMMTH)
       write (lp,*) 'PGFMTH ',trim(PGFMTH)
       write (lp,*) 'BMCMTH ',trim(BMCMTH)
-      write (lp,*) 'RMPMTH ',trim(RMPMTH)
+      write (lp,*) 'ADVMTH ',trim(ADVMTH)
+      write (lp,*) 'CPPM_LIMITING ',trim(CPPM_LIMITING)
       write (lp,*) 'MLRMTH ',trim(MLRMTH)
       write (lp,*) 'CE',CE
       write (lp,*) 'CL',CL
@@ -228,6 +232,7 @@ contains
       write (lp,*) 'JWTYPE',JWTYPE
       write (lp,*) 'CHLOPT ',trim(CHLOPT)
       write (lp,*) 'CCFILE ',trim(CCFILE)
+      write (lp,*) 'SVFILE ',trim(SVFILE)
       write (lp,*) 'TRXDAY',TRXDAY
       write (lp,*) 'SRXDAY',SRXDAY
       write (lp,*) 'TRXDPT',TRXDPT
@@ -253,6 +258,7 @@ contains
       write (lp,*) 'RSTCMP',RSTCMP
       write (lp,*) 'IOTYPE',IOTYPE
       write (lp,*) 'USE_STREAM_RELAXATION',use_stream_relaxation
+      write (lp,*) 'USE_STREAM_DUST',use_stream_dust
       write (lp,*) 'USE_DIAG',use_diag
       write (lp,*)
 
@@ -290,7 +296,8 @@ contains
     call xcbcst(mommth)
     call xcbcst(pgfmth)
     call xcbcst(bmcmth)
-    call xcbcst(rmpmth)
+    call xcbcst(advmth)
+    call xcbcst(cppm_limiting)
     call xcbcst(mlrmth)
     call xcbcst(ce)
     call xcbcst(cl)
@@ -314,6 +321,7 @@ contains
     call xcbcst(jwtype)
     call xcbcst(chlopt)
     call xcbcst(ccfile)
+    call xcbcst(svfile)
     call xcbcst(trxday)
     call xcbcst(srxday)
     call xcbcst(trxdpt)
@@ -339,6 +347,7 @@ contains
     call xcbcst(rstcmp)
     call xcbcst(iotype)
     call xcbcst(use_stream_relaxation)
+    call xcbcst(use_stream_dust)
     call xcbcst(use_diag)
 
     ! resolve options
@@ -1023,7 +1032,7 @@ contains
         call ncfcls
         nday1 = nint(time-time0)
         n = 1
-        do while (n < 256.and.rstfnm(n:n) /= ' ')
+        do while (n < fnmlen.and.rstfnm(n:n) /= ' ')
           n = n+1
         end do
         n = n-1

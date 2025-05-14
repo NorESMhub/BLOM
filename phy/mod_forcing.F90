@@ -32,6 +32,7 @@ module mod_forcing
    use mod_tracers, only: ntr
    use mod_ifdefs, only: use_TRC
    use mod_checksum, only: csdiag, chksummsk
+   use mod_utility, only: fnmlen
 
    implicit none
 
@@ -58,7 +59,7 @@ module mod_forcing
       srxlim          ! Maximum absolute value of SSS difference in relaxation
                       ! [g kg-1].
 
-   character(len = 256) :: &
+   character(len = fnmlen) :: &
       scfile, &       ! Name of file containing monthly SSS climatology.
       wavsrc          ! Source of wave fields. Valid source: 'none', 'param',
                       ! 'extern'.
@@ -100,6 +101,11 @@ module mod_forcing
       sss_stream       ! Sea-surface salinity [g kg-1] from stream data.
 
    logical :: use_stream_relaxation ! If true, use nuopc stream relaxation capability
+
+   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
+        dust_stream              ! iron dust deposition flux (hamocc)
+   logical :: use_stream_dust    ! If true, use nuopc stream dust capability (hamocc only)
+
 
    ! Variables related to balancing the freshwater forcing budget.
    real(r8) :: &
@@ -194,7 +200,8 @@ module mod_forcing
              ustar, ustarb, ustar3, wstar3, buoyfl, salt_corr, trc_corr, &
              t_sw_nonloc, t_rs_nonloc, s_br_nonloc, s_rs_nonloc, &
              inivar_forcing, fwbbal, sss_stream, sst_stream, ice_stream, &
-             use_stream_relaxation
+             dust_stream, &
+             use_stream_relaxation, use_stream_dust
 
 contains
 
@@ -205,57 +212,56 @@ contains
 
       integer :: i, j, k, l, errstat, nt
 
-   !$omp parallel do private(i)
-      do j = 1 - nbdy, jj + nbdy
-         do i = 1 - nbdy, ii + nbdy
-            eiacc(i, j) = spval
-            pracc(i, j) = spval
-            swa(i, j) = spval
-            nsf(i, j) = spval
-            hmltfz(i, j) = spval
-            lip(i, j) = spval
-            sop(i, j) = spval
-            eva(i, j) = spval
-            rnf(i, j) = spval
-            rfi(i, j) = spval
-            fmltfz(i, j) = spval
-            sfl(i, j) = spval
-            ztx(i, j) = spval
-            mty(i, j) = spval
-            ustarw(i, j) = spval
-            slp(i, j) = spval
-            abswnd(i, j) = spval
-            lamult(i, j) = spval
-            lasl(i, j) = spval
-            ustokes(i, j) = spval
-            vstokes(i, j) = spval
-            atmco2(i, j) = spval
-            flxco2(i, j) = spval
-            flxdms(i, j) = spval
-            atmbrf(i, j) = spval
-            flxbrf(i, j) = spval
-            atmn2o(i, j) = -spval
-            flxn2o(i, j) = spval
-            atmnh3(i, j) = -spval
-            flxnh3(i, j) = spval
-            atmnhxdep(i, j) = spval
-            atmnoydep(i, j) = spval
-            surflx(i, j) = spval
-            surrlx(i, j) = spval
-            sswflx(i, j) = spval
-            salflx(i, j) = spval
-            brnflx(i, j) = spval
-            salrlx(i, j) = spval
-            taux(i, j) = spval
-            tauy(i, j) = spval
-            ustar(i, j) = spval
-            ustarb(i, j) = spval
-            ustar3(i, j) = spval
-            wstar3(i, j) = spval
-            salt_corr(i, j) = spval
-         enddo
-      enddo
-   !$omp end parallel do
+      eiacc(:,:) = spval
+      pracc(:,:) = spval
+      swa(:,:) = spval
+      nsf(:,:) = spval
+      hmltfz(:,:) = spval
+      lip(:,:) = spval
+      sop(:,:) = spval
+      eva(:,:) = spval
+      rnf(:,:) = spval
+      rfi(:,:) = spval
+      fmltfz(:,:) = spval
+      sfl(:,:) = spval
+      ztx(:,:) = spval
+      mty(:,:) = spval
+      ustarw(:,:) = spval
+      slp(:,:) = spval
+      abswnd(:,:) = spval
+      lamult(:,:) = spval
+      lasl(:,:) = spval
+      ustokes(:,:) = spval
+      vstokes(:,:) = spval
+      atmco2(:,:) = spval
+      flxco2(:,:) = spval
+      flxdms(:,:) = spval
+      atmbrf(:,:) = spval
+      flxbrf(:,:) = spval
+      atmn2o(:,:) = -spval
+      flxn2o(:,:) = spval
+      atmnh3(:,:) = -spval
+      flxnh3(:,:) = spval
+      atmnhxdep(:,:) = spval
+      atmnoydep(:,:) = spval
+      surflx(:,:) = spval
+      surrlx(:,:) = spval
+      sswflx(:,:) = spval
+      salflx(:,:) = spval
+      brnflx(:,:) = spval
+      salrlx(:,:) = spval
+      taux(:,:) = spval
+      tauy(:,:) = spval
+      ustar(:,:) = spval
+      ustarb(:,:) = spval
+      ustar3(:,:) = spval
+      wstar3(:,:) = spval
+      salt_corr(:,:) = spval
+      buoyfl(:,:,:) = spval
+      t_sw_nonloc(:,:,:) = spval
+      t_rs_nonloc(:,:,:) = spval
+      s_br_nonloc(:,:,:) = spval
+      s_rs_nonloc(:,:,:) = spval
 
       if (use_TRC) then
          allocate(trc_corr(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ntr), stat = errstat)
@@ -264,30 +270,8 @@ contains
             call xchalt('(inivar_forcing)')
             stop '(inivar_forcing)'
          endif
-      !$omp parallel do private(nt, i)
-         do j = 1 - nbdy, jj + nbdy
-            do nt = 1, ntr
-               do i = 1 - nbdy, ii + nbdy
-                  trc_corr(i, j, nt) = spval
-               enddo
-            enddo
-         enddo
-      !$omp end parallel do
+         trc_corr(:,:,:) = spval
       endif
-
-   !$omp parallel do private(k, i)
-      do j = 1 - nbdy, jj + nbdy
-         do k = 1, kk + 1
-            do i = 1 - nbdy, ii + nbdy
-               buoyfl(i, j, k) = spval
-               t_sw_nonloc(i, j, k) = spval
-               t_rs_nonloc(i, j, k) = spval
-               s_br_nonloc(i, j, k) = spval
-               s_rs_nonloc(i, j, k) = spval
-            enddo
-         enddo
-      enddo
-   !$omp end parallel do
 
    !$omp parallel do private(l, i, k)
       do j = 1, jj

@@ -47,6 +47,7 @@ module mod_blom_init
   use mod_inivar,          only: inivar
   use mod_vcoord,          only: vcoord_tag, vcoord_isopyc_bulkml, sigmar
   use mod_ale_regrid_remap, only: init_ale_regrid_remap
+  use mod_cppm,            only: init_cppm
   use mod_inigeo,          only: inigeo
   use mod_iniphy,          only: iniphy
   use mod_restart,         only: restart_read
@@ -62,6 +63,9 @@ module mod_blom_init
 contains
 
   subroutine blom_init()
+  ! ------------------------------------------------------------------
+  ! initialize the model
+  ! ------------------------------------------------------------------
 
     ! Local variables
     integer :: istat,ncid,varid,i,j,k,l,m,n,mm,nn,k1m,k1n,mt,mmt,kn,km
@@ -91,11 +95,6 @@ contains
     ! ------------------------------------------------------------------
 
     call crcinit
-
-  ! ------------------------------------------------------------------
-  ! initialize the model
-  ! ------------------------------------------------------------------
-
 
     ! ------------------------------------------------------------------
     ! Read limits file
@@ -139,6 +138,12 @@ contains
     ! ------------------------------------------------------------------
 
     call iniphy
+
+    ! ------------------------------------------------------------------
+    ! Initialize CPPM
+    ! ------------------------------------------------------------------
+
+    call init_cppm
 
     ! ------------------------------------------------------------------
     ! Initialize forcing

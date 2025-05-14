@@ -67,6 +67,7 @@ subdir('phy')
 subdir('drivers')
 subdir('ben02')
 subdir('cesm')
+subdir('noforcing')
 subdir('fuk95')
 subdir('channel')
 subdir('single_column')
@@ -140,6 +141,10 @@ if get_option('parallel_netcdf')
   if not get_option('mpi')
     warning('MPI must be enabled for parallel NetCDF to work')
   endif
+endif
+
+if nreg == '2'
+  add_project_arguments('-DARCTIC', language: 'fortran')
 endif
 
 # Handle Unit Testing

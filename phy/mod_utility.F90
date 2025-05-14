@@ -22,7 +22,7 @@ module mod_utility
 ! This module contains various utility variables.
 ! ------------------------------------------------------------------------------
 
-   use mod_types, only: r8
+   use mod_types, only: r8, blom_char_x
    use mod_constants, only: spval
    use mod_xc
    use mod_checksum, only: csdiag, chksummsk
@@ -49,11 +49,14 @@ module mod_utility
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
       util1, util2, util3, util4
 
+   ! Default length of character variables for filenames
+   integer,parameter :: fnmlen = blom_char_x
+
    public :: utotm, vtotm, utotn, vtotn, &
              uflux, vflux, uflux2, vflux2, uflux3, vflux3, &
              umax, vmax, &
              util1, util2, util3, util4, &
-             inivar_utility
+             inivar_utility, fnmlen
    
 contains
 
@@ -64,28 +67,22 @@ contains
 
       integer :: i, j, l
 
-   !$omp parallel do private(i)
-      do j = 1 - nbdy, jj + nbdy
-         do i = 1 - nbdy, ii + nbdy
-            utotm (i, j) = spval
-            vtotm (i, j) = spval
-            utotn (i, j) = spval
-            vtotn (i, j) = spval
-            uflux (i, j) = spval
-            vflux (i, j) = spval
-            uflux2(i, j) = spval
-            vflux2(i, j) = spval
-            uflux3(i, j) = spval
-            vflux3(i, j) = spval
-            umax  (i, j) = spval
-            vmax  (i, j) = spval
-            util1 (i, j) = spval
-            util2 (i, j) = spval
-            util3 (i, j) = spval
-            util4 (i, j) = spval
-         enddo
-      enddo
-   !$omp end parallel do
+      utotm (:,:) = spval
+      vtotm (:,:) = spval
+      utotn (:,:) = spval
+      vtotn (:,:) = spval
+      uflux (:,:) = spval
+      vflux (:,:) = spval
+      uflux2(:,:) = spval
+      vflux2(:,:) = spval
+      uflux3(:,:) = spval
+      vflux3(:,:) = spval
+      umax  (:,:) = spval
+      vmax  (:,:) = spval
+      util1 (:,:) = spval
+      util2 (:,:) = spval
+      util3 (:,:) = spval
+      util4 (:,:) = spval
 
       ! Initialize 'utotm', 'uflux', 'uflux2', 'uflux3' at points located
       ! upstream and downstream (in i-direction) of p-points. Initialize 'utotn'
