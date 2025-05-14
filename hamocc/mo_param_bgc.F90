@@ -40,7 +40,7 @@ module mo_param_bgc
                             do_n2o_coupled,do_nh3_coupled,use_extNcycle,                           &
                             lkwrbioz_off,lTO2depremin,use_shelfsea_res_time,use_sediment_quality,  &
                             use_pref_tracers,use_coupler_ndep
-  use mod_xc,         only: mnproc
+  use mod_xc,         only: mnproc,xchalt
 
   implicit none
   private
@@ -63,6 +63,7 @@ module mo_param_bgc
 
   ! Routines
   public  :: ini_parambgc
+  public  :: ini_bgctimes
   private :: ini_aggregation
   private :: read_bgcnamelist
   private :: calc_param_atm
@@ -129,7 +130,16 @@ module mo_param_bgc
           & mufn2o_sed,POM_remin_q10_sed, POM_remin_Tref_sed,bkox_drempoc_sed,   &
           & max_limiter
 
-
+  ! Time variables
+  public :: sec_per_year,sec_per_day,days_per_year
+  !********************************************************************
+  ! Time parameters
+  !********************************************************************
+  ! NOTE: days_per_year and sec_per_year are updated in ini_bgctimes(!)
+  real, parameter :: sec_per_day   = 86400.           ! [s/d]  seconds per day
+  real, protected :: days_per_year = 365.             ! [d/yr] days per year
+  real, protected :: sec_per_year  = 365.*sec_per_day ! [s/yr] seconds per year
+  logical         :: lini=.true.
   !********************************************************************
   ! Stoichiometry and fixed parameters
   !********************************************************************
@@ -490,11 +500,11 @@ module mo_param_bgc
   real, protected :: sed_NO3thresh_sulf   = 3.e-6 ! Below sed_NO3thresh_sulf 'sufate reduction' takes place
   real, protected :: sedict      = 1.e-9          ! m2/s Molecular diffusion coefficient
   real, protected :: silsat      = 0.001          ! kmol/m3 Silicate saturation concentration is 1 mol/m3
-  real, protected :: disso_poc   = 0.432 / 86400. ! 1/(kmol O2/m3 s)      Degradation rate constant of POP
+  real, protected :: disso_poc   = 0.432/sec_per_day ! 1/(kmol O2/m3 s)      Degradation rate constant of POP
   real, protected :: disso_sil   = 3.e-8          ! 1/(kmol Si(OH)4/m3 s) Dissolution rate constant of opal
   real, protected :: disso_caco3 = 1.e-7          ! 1/(kmol CO3--/m3 s) Dissolution rate constant of CaCO3
-  real, protected :: sed_denit   = 0.01/86400.    ! 1/s Denitrification rate constant of POP
-  real, protected :: sed_sulf    = 0.01/86400.    ! 1/s "Sulfate reduction" rate constant of POP
+  real, protected :: sed_denit   = 0.01/sec_per_day  ! 1/s Denitrification rate constant of POP
+  real, protected :: sed_sulf    = 0.01/sec_per_day  ! 1/s "Sulfate reduction" rate constant of POP
   real, protected :: sed_alpha_poc = 1./90.       ! 1/d 1/decay time for sediment moving average - assuming ~3 month memory here
   real, protected :: sed_qual_sc = 1.             ! scaling factor for sediment quality-based remineralization
   !********************************************************************
@@ -519,6 +529,31 @@ module mo_param_bgc
   real :: beta13, alpha14, d14cat, d13c_atm
 
 contains
+
+  !********************************************************************
+  subroutine ini_bgctimes(nday_in_year)
+
+    use mod_config, only: expcnf
+    ! NOTE: called also at run time after initialization
+    integer,intent(in) :: nday_in_year
+
+    days_per_year = real(nday_in_year)
+
+    if (nday_in_year /= 365 .and. mnproc==1 .and. lini .eqv. .true.) then
+      lini=.false.
+      if (.not. (expcnf == 'single_column' .or. expcnf == 'fuk95' .or. expcnf == 'channel' .or. expcnf == 'noforcing')) then
+        ! for production runs, issue an error and stop
+        write (io_stdo_bgc,*) 'Error: Init iHAMOCC time variables: non-standard calendar selected with [days] ',days_per_year
+        call xchalt('(ini_bgctimes)')
+        stop '(ini_bgctimes)'
+      else
+        ! for test cases, pass, but issue a warning
+        write (io_stdo_bgc,*) 'WARNING: Init iHAMOCC time variables: non-standard calendar selected with [days] ',days_per_year
+      endif
+    endif
+
+    sec_per_year = days_per_year*sec_per_day
+  end subroutine ini_bgctimes
 
   !********************************************************************
   subroutine ini_parambgc()
@@ -667,7 +702,7 @@ contains
     perc_diron = fetune * 0.035 * 0.01 / 55.85
 
     dustd2   = dustd1*dustd1
-    dustsink = (9.81 * 86400. / 18.                 & ! g * sec per day / 18.
+    dustsink = (9.81 * sec_per_day / 18.                 & ! g * sec per day / 18.
                * (claydens - 1025.) / 1.567 * 1000. & ! excess density / dyn. visc.
                * dustd2 * 1.e-4)                      ! m/d
 
