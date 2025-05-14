@@ -533,10 +533,10 @@ contains
            &    1,'d',25,'Shelfwater residence time',rmissing,56,io_stdo_bgc)
     endif
     if (use_river2omip) then
-      call NETCDF_DEF_VARDB(ncid,9,'tdoc_lc',3,ncdimst,ncvarid,                                    &
+      call NETCDF_DEF_VARDB(ncid,7,'tdoc_lc',3,ncdimst,ncvarid,                                    &
            &    6,'mol/kg',52,'Terrestrial dissolved organic carbon (low C content)',              &
            &    rmissing,57,io_stdo_bgc)
-      call NETCDF_DEF_VARDB(ncid,9,'tdoc_hc',3,ncdimst,ncvarid,                                    &
+      call NETCDF_DEF_VARDB(ncid,7,'tdoc_hc',3,ncdimst,ncvarid,                                    &
            &    6,'mol/kg',53,'Terrestrial dissolved organic carbon (high C content)',             &
            &    rmissing,58,io_stdo_bgc)
       if (use_cisonew) then

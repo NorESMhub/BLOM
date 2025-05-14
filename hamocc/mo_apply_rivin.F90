@@ -59,6 +59,7 @@ contains
     !***********************************************************************************************
 
     use mo_control_bgc, only: dtb,do_rivinpt,use_cisonew,use_river2omip
+    use mo_param_bgc,   only: rcar
     use mo_param1_bgc,  only: nriv,irdin,irdip,irsi,iralk,iriron,irdoc,irtdoc,irdet,               &
                               iano3,iphosph,isilica,isco212,iiron,idoc,itdoc_lc,itdoc_hc,idet,     &
                               ialkali,inatsco212,inatalkali,itdoc_lc13,itdoc_hc13,itdoc_lc14,      &
@@ -111,7 +112,7 @@ contains
                    &                             + ocetra(i,j,1:kmle(i,j),isco214)                 &
                    &                             /(ocetra(i,j,1:kmle(i,j),isco212)+safediv)        &
                    &                             * (rivin(i,j,iralk)*fdt/volij                     &
-                   &                             + rivin(i,j,irdoc)*fdt/volij)
+                   &                             + rivin(i,j,irdoc)*rcar*fdt/volij)
               ocetra(i,j,1:kmle(i,j),itdoc_lc13) = ocetra(i,j,1:kmle(i,j),itdoc_lc13)              &
                                                  + ocetra(i,j,1:kmle(i,j),itdoc_lc13)              &
                                                  /(ocetra(i,j,1:kmle(i,j),itdoc_lc)+safediv)       &
@@ -188,17 +189,17 @@ contains
                  &                           + rivin(i,j,irtdoc)*fdt/volij
             ocetra(i,j,1:kmle(i,j),isco212)  = ocetra(i,j,1:kmle(i,j),isco212)                     &
                  &                           + rivin(i,j,iralk)*fdt/volij                          &
-                 &                           + rivin(i,j,irdoc)*fdt/volij ! Alkalinity changes from instantaneous DOC
-                                                                          ! remineralisation are ignored.
+                 &                           + rivin(i,j,irdoc)*rcar*fdt/volij ! Alkalinity changes from instantaneous DOC
+                                                                               ! remineralisation are ignored.
             if (use_natDIC) then
               ocetra(i,j,1:kmle(i,j),inatsco212) = ocetra(i,j,1:kmle(i,j),inatsco212)              &
                    &                             + rivin(i,j,iralk)*fdt/volij                      &
-                   &                             + rivin(i,j,irdoc)*fdt/volij
+                   &                             + rivin(i,j,irdoc)*rcar*fdt/volij
               ocetra(i,j,1:kmle(i,j),inatalkali) = ocetra(i,j,1:kmle(i,j),inatalkali)              &
                    &                             + rivin(i,j,iralk)*fdt/volij
             endif
           else
-            ! DIC is updated using the assumtions that a_t=a_c+a_n and DIC=a_c (a_t: total
+            ! DIC is updated using the assumptions that a_t=a_c+a_n and DIC=a_c (a_t: total
             ! alkalinity, a_c: carbonate alkalinity, a_n: contribution of nutrients to a_t).
             ocetra(i,j,1:kmle(i,j),idoc)    = ocetra(i,j,1:kmle(i,j),idoc)                         &
                  &                          + rivin(i,j,irdoc)*fdt/volij
@@ -227,7 +228,7 @@ contains
           if (use_river2omip) then
             rivinflx(i,j,irtdoc) = rivin(i,j,irtdoc)*fdt
           else
-            rivinflx(i,j,irtdoc) = 0
+            rivinflx(i,j,irtdoc) = 0.
           endif
           rivinflx(i,j,irdet)  = rivin(i,j,irdet)*fdt
         endif

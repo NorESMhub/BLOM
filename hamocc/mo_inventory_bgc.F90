@@ -467,11 +467,11 @@ contains
 
     if (use_river2omip) then
       totalcarbon = totalcarbon + zocetratot(itdoc_lc)*rcar_tdoclc        &
-                                + zocetratot(itdoc_hc)*rcar_tdoclc
+                                + zocetratot(itdoc_hc)*rcar_tdochc
       totalnitr   = totalnitr   + zocetratot(itdoc_lc)*rnit_tdoclc        &
-                                + zocetratot(itdoc_hc)*rnit_tdoclc
+                                + zocetratot(itdoc_hc)*rnit_tdochc
       totaloxy   = totaloxy     + zocetratot(itdoc_lc)*roxy_tdoclc        &
-                                + zocetratot(itdoc_hc)*roxy_tdoclc
+                                + zocetratot(itdoc_hc)*roxy_tdochc
       totalphos  = totalphos + zocetratot(itdoc_lc) + zocetratot(itdoc_hc)
     endif
 
@@ -485,7 +485,7 @@ contains
         totalphos   = totalphos  - srivflux(irdoc)-srivflux(irtdoc)-srivflux(irdet)-srivflux(irdip)
                                  ! For O2, not sure about substracting or adding rdet (->tDOC_lc)
         totaloxy    = totaloxy   - (srivflux(irdoc)-srivflux(irtdoc)*roxy_tdochc                   &
-             &                   - srivflux(irdet))*roxy_tdoclc                                   &
+             &                   - srivflux(irdet))*roxy_tdoclc                                    &
              &                   - srivflux(irdin)*1.5 - srivflux(irdip)*2.                        &
              &                   - (srivflux(iralk)+srivflux(irdin)+srivflux(irdip))
 
