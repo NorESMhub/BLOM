@@ -830,9 +830,9 @@ contains
                 phyrem14 = phyrem*rphy14
                 if (use_river2omip) then
                   tdoclc_rem13 = tdoclc_rem*rtdoclc13
-                  tdochc_rem13 = tdochc_rem*rtdoclc13
+                  tdochc_rem13 = tdochc_rem*rtdochc13
                   tdoclc_rem14 = tdoclc_rem*rtdoclc14
-                  tdochc_rem14 = tdochc_rem*rtdoclc14
+                  tdochc_rem14 = tdochc_rem*rtdochc14
                 endif
               endif
             else
