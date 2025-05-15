@@ -62,6 +62,7 @@ module ocn_comp_nuopc
 #ifdef HAMOCC
    use mo_control_bgc,    only: use_BROMO
    use ocn_stream_dust,   only: ocn_stream_dust_init, ocn_stream_dust_interp
+   use ocn_map_woa18,     only: map_woa18
    use mod_forcing,       only: use_stream_dust
 #endif
 
@@ -752,6 +753,12 @@ contains
          call ocn_stream_sst_init(Emesh, clock, rc)
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
       end if
+
+      ! map woa13 to blom mesh
+#ifdef HAMOCC
+      call map_woa18(Emesh, rc)
+      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+#endif
 
       ! Find if restart is needed at the end of the run
 
