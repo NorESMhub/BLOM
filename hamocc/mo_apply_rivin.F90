@@ -106,8 +106,8 @@ contains
                    &                             + ocetra(i,j,1:kmle(i,j),isco213)                 &
                    &                             /(ocetra(i,j,1:kmle(i,j),isco212)+safediv)        &
                    &                             * (rivin(i,j,iralk)*fdt/volij                     &
-                   &                             +  rivin(i,j,irdoc)*fdt/volij) ! Alkalinity changes from instantaneous riverine
-                                                                                ! DOC remineralisation are ignored.
+                   &                             +  rivin(i,j,irdoc)*rcar*fdt/volij) ! Alkalinity changes from instantaneous riverine
+                                                                                     ! DOC remineralisation are ignored.
               ocetra(i,j,1:kmle(i,j),isco214)    = ocetra(i,j,1:kmle(i,j),isco214)                 &
                    &                             + ocetra(i,j,1:kmle(i,j),isco214)                 &
                    &                             /(ocetra(i,j,1:kmle(i,j),isco212)+safediv)        &
