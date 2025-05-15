@@ -5830,7 +5830,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>Phytoplankton (phyc) [mol C m-3]</desc>
+    <desc>Phytoplankton (phyc) [mol P m-3]</desc>
   </entry>
 
   <entry id="srf_ph">
@@ -7806,7 +7806,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>13C of phytoplankton biomass (phyc13) [mol C m-3]</desc>
+    <desc>13C of phytoplankton biomass (phyc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lyr_grazer13">
@@ -7819,7 +7819,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>13C of zootoplankton biomass (zooc13) [mol C m-3]</desc>
+    <desc>13C of zootoplankton biomass (zooc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lyr_cfc11">
@@ -7960,7 +7960,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
     </values>
-    <desc>Phytoplankton (phyc) [mol C m-3]</desc>
+    <desc>Phytoplankton (phyc) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_nutlim_fe">
@@ -8051,7 +8051,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
     </values>
-    <desc>Zooplankton (zooc) [mol C m-3]</desc>
+    <desc>Zooplankton (zooc) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_doc">
@@ -8985,7 +8985,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>13C of phytoplankton biomass (phyc13) [mol C m-3]</desc>
+    <desc>13C of phytoplankton biomass (phyc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_grazer13">
@@ -8998,7 +8998,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>13C of zootoplankton biomass (zooc13) [mol C m-3]</desc>
+    <desc>13C of zootoplankton biomass (zooc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_cfc11">
