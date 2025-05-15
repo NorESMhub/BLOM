@@ -189,8 +189,8 @@ module mo_param_bgc
   real, parameter :: roxy_tdoclc  = rcar_tdoclc + 4.                 ! mol O per mol P in low-C tDOC
   real, parameter :: ro2ut_tdoclc = (4.*rcar_tdoclc+rhyd_tdoclc-2.*roxy_tdoclc+5.*rnit_tdoclc+5.)  &
                                   & /4. ! Oxygen utilization per mol tDOClc during remineralisation
-  real, parameter :: ro2utammo_tdoclc = (4.*rcar_tdoclc+rhyd_tdoclc-2.*roxy_tdoclc-3               &
-                                  & *rnit_tdoclc+5.)/4. ! Oxygen utilization per mol tDOClc during ammonification
+  real, parameter :: ro2utammo_tdoclc = (4.*rcar_tdoclc+rhyd_tdoclc-2.*roxy_tdoclc                 &
+                                  & -3.*rnit_tdoclc+5.)/4. ! Oxygen utilization per mol tDOClc during ammonification
   ! High-carbon tDOC
   real, parameter :: rcar_tdochc  = 2583.                            ! mol C per mol P
   real, parameter :: rnit_tdochc  = 103.                             ! mol N per mol P
@@ -198,8 +198,8 @@ module mo_param_bgc
   real, parameter :: roxy_tdochc  = rcar_tdochc + 4.              ! mol O per mol P
   real, parameter :: ro2ut_tdochc = (4.*rcar_tdochc+rhyd_tdochc-2.*roxy_tdochc+5.*rnit_tdochc+5.)  &
                                   & /4. ! Oxygen utilization per mol tDOChc during remineralisation
-  real, parameter :: ro2utammo_tdochc = (4.*rcar_tdochc+rhyd_tdochc-2.*roxy_tdochc-3               &
-                                  & *rnit_tdochc+5.)/4. ! Oxygen utilization per mol tDOChc during ammonification
+  real, parameter :: ro2utammo_tdochc = (4.*rcar_tdochc+rhyd_tdochc-2.*roxy_tdochc                 &
+                                  & -3.*rnit_tdochc+5.)/4. ! Oxygen utilization per mol tDOChc during ammonification
 
   !********************************************************************
   ! Atmosphere:
