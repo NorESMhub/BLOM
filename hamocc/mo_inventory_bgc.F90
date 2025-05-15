@@ -465,18 +465,17 @@ contains
       totaloxy = totaloxy + zocetratot(iano2)+zpowtratot(ipown2o)*0.5+zpowtratot(ipowno2)
     endif
 
-    if (use_river2omip) then
-      totalcarbon = totalcarbon + zocetratot(itdoc_lc)*rcar_tdoclc        &
-                                + zocetratot(itdoc_hc)*rcar_tdochc
-      totalnitr   = totalnitr   + zocetratot(itdoc_lc)*rnit_tdoclc        &
-                                + zocetratot(itdoc_hc)*rnit_tdochc
-      totaloxy   = totaloxy     + zocetratot(itdoc_lc)*roxy_tdoclc        &
-                                + zocetratot(itdoc_hc)*roxy_tdochc
-      totalphos  = totalphos + zocetratot(itdoc_lc) + zocetratot(itdoc_hc)
-    endif
-
     if (do_rivinpt) then
       if (use_river2omip) then
+
+        totalcarbon = totalcarbon + zocetratot(itdoc_lc)*rcar_tdoclc                               &
+                                  + zocetratot(itdoc_hc)*rcar_tdochc
+        totalnitr   = totalnitr   + zocetratot(itdoc_lc)*rnit_tdoclc                               &
+                                  + zocetratot(itdoc_hc)*rnit_tdochc
+        totaloxy    = totaloxy    + zocetratot(itdoc_lc)*roxy_tdoclc                               &
+                                  + zocetratot(itdoc_hc)*roxy_tdochc
+        totalphos   = totalphos   + zocetratot(itdoc_lc) + zocetratot(itdoc_hc)
+
         totalcarbon = totalcarbon- srivflux(irdoc)*rcar-srivflux(irtdoc)*rcar_tdochc               &
              &                   - srivflux(irdet)*rcar_tdoclc                                     &
              &                   - srivflux(iralk)-srivflux(irdin)-srivflux(irdip)   ! =sco212
