@@ -7780,7 +7780,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>Dissolved organic carbon 13 (dissoc13) [mol C m-3]</desc>
+    <desc>Dissolved organic carbon 13 (dissoc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lyr_calc13">
