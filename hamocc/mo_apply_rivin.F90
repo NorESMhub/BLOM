@@ -174,7 +174,8 @@ contains
                &                          + rivin(i,j,iralk)*fdt/volij
 
           if (use_river2omip) then
-            ! Riverine labile DOC (riv_lDOC) instantaneously degraded as DIC.
+            ! Riverine labile DOC (riv_lDOC) instantaneously degraded as DIC assuming the same
+            ! stoichiometry as the model DOC. The resulting alkalinity changes are ignored.
             ! DIC <= riv_DIC + riv_lDOC
             ! Riverine DIN and DIP from remineralized riv_lDOC are already included in the
             ! dataset using C:N:P 2583:103:1.
@@ -189,8 +190,7 @@ contains
                  &                           + rivin(i,j,irtdoc)*fdt/volij
             ocetra(i,j,1:kmle(i,j),isco212)  = ocetra(i,j,1:kmle(i,j),isco212)                     &
                  &                           + rivin(i,j,iralk)*fdt/volij                          &
-                 &                           + rivin(i,j,irdoc)*rcar*fdt/volij ! Alkalinity changes from instantaneous DOC
-                                                                               ! remineralisation are ignored.
+                 &                           + rivin(i,j,irdoc)*rcar*fdt/volij
             if (use_natDIC) then
               ocetra(i,j,1:kmle(i,j),inatsco212) = ocetra(i,j,1:kmle(i,j),inatsco212)              &
                    &                             + rivin(i,j,iralk)*fdt/volij                      &
