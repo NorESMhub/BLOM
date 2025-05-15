@@ -6870,7 +6870,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>Primary production [mol C m-3]</desc>
+    <desc>Primary production [mol C m-3 s-1]</desc>
   </entry>
 
   <entry id="lyr_phosph">
