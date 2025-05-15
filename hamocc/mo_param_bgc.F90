@@ -326,8 +326,8 @@ module mo_param_bgc
   real, parameter :: O2thresh_hypoxic = 5.e-7  ! Below O2thresh_hypoxic denitrification and sulfate reduction takes place (default model version)
   real, parameter :: NO3thresh_sulf   = 3.e-6  ! Below NO3thresh_sulf 'sufate reduction' takes place
   real, protected :: remido     = 0.004        ! 1/d - remineralization rate (of DOM)
-  real, protected :: rem_tdoclc = 1./(1.5*days_per_year) ! 1/d Degradation time scale of low-C tDOC (1.5 yr)
-  real, protected :: rem_tdochc = 1./(1.5*days_per_year) ! 1/d Degradation time scale of high-C tDOC (1.5 yr)
+  real, protected :: rem_tdoclc = 1./(1.5*365) ! 1/d Degradation time scale of low-C tDOC (1.5 yr)
+  real, protected :: rem_tdochc = 1./(1.5*365) ! 1/d Degradation time scale of high-C tDOC (1.5 yr)
   ! deep sea remineralisation constants
   real, protected :: drempoc         = 0.025   ! 1/d Aerob remineralization rate detritus
   real, protected :: drempoc_anaerob = 1.25e-3 ! =0.05*drempoc - remin in sub-/anoxic environm. - not be overwritten by M4AGO
