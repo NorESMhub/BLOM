@@ -7546,7 +7546,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
     </values>
-    <desc>Low C terrestrial dissolved organic carbon (tdoc_lc) [mol C m-3]</desc>
+    <desc>Low C terrestrial dissolved organic carbon (tdoc_lc) [mol P m-3]</desc>
   </entry>
 
   <entry id="lyr_tdoc_hc">
@@ -7559,7 +7559,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
     </values>
-    <desc>High C terrestrial dissolved organic carbon (tdoc_hc) [mol C m-3]</desc>
+    <desc>High C terrestrial dissolved organic carbon (tdoc_hc) [mol P m-3]</desc>
   </entry>
 
   <entry id="lyr_tdoc_lc13">
@@ -7572,7 +7572,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
     </values>
-    <desc>Low C terrestrial dissolved organic carbon-C13 (tdoc_lc13) [mol C m-3]</desc>
+    <desc>Low C terrestrial dissolved organic carbon-C13 (tdoc_lc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lyr_tdoc_hc13">
@@ -7585,7 +7585,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
     </values>
-    <desc>High C terrestrial dissolved organic carbon-C13 (tdoc_hc13) [mol C m-3]</desc>
+    <desc>High C terrestrial dissolved organic carbon-C13 (tdoc_hc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lyr_dicsat">
@@ -8064,7 +8064,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
     </values>
-    <desc>Dissolved organic carbon (dissoc) [mol C m-3]</desc>
+    <desc>Dissolved organic carbon (dissoc) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_phosy">
@@ -8751,7 +8751,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
     </values>
-    <desc>Low C terrestrial dissolved organic carbon (tdoc_lc) [mol C m-3]</desc>
+    <desc>Low C terrestrial dissolved organic carbon (tdoc_lc) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_tdoc_hc">
@@ -8764,7 +8764,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
     </values>
-    <desc>High C terrestrial dissolved organic carbon (tdoc_hc) [mol C m-3]</desc>
+    <desc>High C terrestrial dissolved organic carbon (tdoc_hc) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_tdoc_lc13">
@@ -8777,7 +8777,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
     </values>
-    <desc>Low C terrestrial dissolved organic carbon-C13 (tdoc_lc13) [mol C m-3]</desc>
+    <desc>Low C terrestrial dissolved organic carbon-C13 (tdoc_lc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_tdoc_hc13">
@@ -8790,7 +8790,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
     </values>
-    <desc>High C terrestrial dissolved organic carbon-C13 (tdoc_hc13) [mol C m-3]</desc>
+    <desc>High C terrestrial dissolved organic carbon-C13 (tdoc_hc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_dicsat">
@@ -8959,7 +8959,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>Dissolved organic carbon 13 (dissoc13) [mol C m-3]</desc>
+    <desc>Dissolved organic carbon 13 (dissoc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_calc13">
