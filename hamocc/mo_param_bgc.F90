@@ -192,7 +192,7 @@ module mo_param_bgc
   real, parameter :: rnh4dnrai     = 1./rnh4dnra     ! inverse
   real, parameter :: rnm1          = rnit - 1.
 
-  ! Terrestrial dissolved organic carbon tDOC (river2oceanmip) 
+  ! Terrestrial dissolved organic carbon tDOC (river2oceanmip)
   ! Low-carbon tDOC
   real, parameter :: rcar_tdoclc  = 276.                             ! mol C per mol P
   real, parameter :: rnit_tdoclc  = 25.                              ! mol N per mol P
@@ -312,7 +312,13 @@ module mo_param_bgc
   real, protected :: zinges                       ! dimensionless fraction - assimilation efficiency
   real, protected :: epsher                       ! dimensionless fraction - fraction of grazing egested
 
-  real, protected :: gammapsl, gammazsl, alphasl, alphasr
+  !*************************************************
+  ! Extended DOM parameters
+  !*************************************************
+  real, protected :: gammapsl  = 0.02        ! DOC_sl exudation rate [day-1]
+  real, protected :: gammazsl  = 0.03        ! DOC_sl excretion rate [day-1]
+  real, protected :: alphasl   = 0.18        ! fraction of DOC_sl converted to DOC_sr []
+  real, protected :: alphasr   = 0.19        ! fraction of DOC_sr converted to DOC_r  []
 
   !********************************************************************
   ! Shell production (CaCO3 and opal) parameters
@@ -671,6 +677,14 @@ contains
       drempoc  = 0.12
       dremopal = 0.023
     endif
+
+    if (use_dom) then
+      gammap      = 0.10        ! DOC_l exudation rate [day-1]
+      gammaz      = 0.06        ! DOC_l excretion rate [day-1]
+      wcal_const  = 33.
+      wmin        = 5.
+      bkphy       = 3.5e-8
+    endif
   end subroutine ini_param_biol
 
   !********************************************************************
@@ -751,17 +765,6 @@ contains
     endif
     if (use_M4AGO) lTO2depremin = .true.
 
-    !*************************************************
-    !     DOM parameters
-    !*************************************************
-    if (use_dom) then
-      gammap   = 0.10        ! DOC_l exudation rate [day-1]
-      gammapsl = 0.02        ! DOC_sl exudation rate [day-1]
-      gammaz   = 0.06        ! DOC_l excretion rate [day-1]
-      gammazsl = 0.03        ! DOC_sl excretion rate [day-1]
-      alphasl  = 0.18        ! fraction of DOC_sl converted to DOC_sr []
-      alphasr  = 0.19        ! fraction of DOC_sr converted to DOC_r  []
-    endif
   end subroutine calc_param_biol
 
   !********************************************************************
@@ -957,6 +960,7 @@ contains
       call cinfo_add_entry('use_pref_tracers',       use_pref_tracers)
       call cinfo_add_entry('use_coupler_ndep',       use_coupler_ndep)
       call cinfo_add_entry('use_river2omip',         use_river2omip)
+      call cinfo_add_entry('use_dom',                use_dom)
       if (use_extNcycle) then
         call cinfo_add_entry('do_n2o_coupled',       do_n2o_coupled)
         call cinfo_add_entry('do_nh3_coupled',       do_nh3_coupled)
@@ -998,6 +1002,12 @@ contains
       call pinfo_add_entry('spemor',      spemor*dtbinv)
       call pinfo_add_entry('gammap',      gammap*dtbinv)
       call pinfo_add_entry('gammaz',      gammaz*dtbinv)
+      if (use_dom) then
+        call pinfo_add_entry('gammapsl',      gammapsl*dtbinv)
+        call pinfo_add_entry('gammazsl',      gammazsl*dtbinv)
+        call pinfo_add_entry('alphasl',       alphasl)
+        call pinfo_add_entry('alphasr',       alphasr)
+      endif
       call pinfo_add_entry('ecan',        ecan)
       call pinfo_add_entry('pi_alpha',    pi_alpha)
       call pinfo_add_entry('bkphy',       bkphy)
