@@ -372,7 +372,7 @@ contains
             sedlay(i,j,k,issso12) = sedlay(i,j,k,issso12) - posol
             powtra(i,j,k,ipowaph) = powtra(i,j,k,ipowaph) + posol*umfa
             if (.not. use_extNcycle) then
-            powtra(i,j,k,ipowno3) = powtra(i,j,k,ipowno3) + posol*rnit*umfa
+              powtra(i,j,k,ipowno3) = powtra(i,j,k,ipowno3) + posol*rnit*umfa
               aerob(i,k) = posol*umfa     !this has P units: kmol P/m3 of pore water
               sed_rem_aerob(i,j,k) = posol*umfa ! Output
             else
