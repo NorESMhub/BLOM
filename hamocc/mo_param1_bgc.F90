@@ -25,6 +25,8 @@ module mo_param1_bgc
   !
   !  Modified
   !  J.Schwinger,        *NORCE Climate, Bergen*    2020-05-26
+  !  T. Bourgeois,     *NORCE climate, Bergen*   2025-04-14
+  !  - implement R2OMIP protocol
   !*************************************************************************************************
 
   use mo_control_bgc, only: use_BROMO, use_AGG, use_WLIN, use_natDIC, use_CFC,                     &
@@ -114,6 +116,15 @@ module mo_param1_bgc
   integer, protected :: i_shelfage
   integer, protected :: ishelfage
 
+  ! Indices for the R2O riverine terrestrial DOC
+  integer, protected :: i_r2o
+  integer, protected :: itdoc_lc
+  integer, protected :: itdoc_hc
+  integer, protected :: itdoc_lc13
+  integer, protected :: itdoc_hc13
+  integer, protected :: itdoc_lc14
+  integer, protected :: itdoc_hc14
+
   ! total number of advected tracers (set by allocate_tracers in mod_tracers.F90)
   integer :: nocetra
 
@@ -171,6 +182,7 @@ module mo_param1_bgc
   integer, protected :: iralk  ! alkalinity
   integer, protected :: iriron ! dissolved bioavailable iron
   integer, protected :: irdoc  ! dissolved organic carbon
+  integer, protected :: irtdoc ! terrestrial semi-labile DOC
   integer, protected :: irdet  ! particulate carbon
 
   ! ------------------
@@ -252,14 +264,15 @@ contains
     use mo_control_bgc, only: use_BROMO,use_AGG,use_WLIN,use_natDIC,use_CFC,use_cisonew,           &
                               use_sedbypass,use_PBGC_OCNP_TIMESTEP,use_PBGC_CK_TIMESTEP,           &
                               use_FB_BGC_OCE, use_BOXATM,use_extNcycle,use_pref_tracers,           &
-                              use_coupler_ndep,use_shelfsea_res_time
+                              use_coupler_ndep,use_shelfsea_res_time,use_river2omip
 
     integer :: iounit
 
     namelist / config_bgc / use_BROMO,use_AGG,use_WLIN,use_natDIC,use_CFC,use_cisonew,             &
                             use_sedbypass,use_PBGC_OCNP_TIMESTEP,use_PBGC_CK_TIMESTEP,             &
                             use_FB_BGC_OCE,use_BOXATM,use_extNcycle,use_pref_tracers,              &
-                            use_coupler_ndep,use_shelfsea_res_time,use_sediment_quality
+                            use_coupler_ndep,use_shelfsea_res_time,use_sediment_quality,           &
+                            use_river2omip
 
     io_stdo_bgc = lp              !  standard out.
 
@@ -392,9 +405,30 @@ contains
       i_shelfage = 0
       ishelfage  = -1
     endif
+    if (use_river2omip) then
+      itdoc_lc  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+1
+      itdoc_hc  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+2
+      if (use_cisonew) then
+        i_r2o = 6
+        itdoc_lc13  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+3
+        itdoc_hc13  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+4
+        itdoc_lc14  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+5
+        itdoc_hc14  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+6
+      else
+        i_r2o = 2
+        itdoc_lc13  = -1
+        itdoc_hc13  = -1
+        itdoc_lc14  = -1
+        itdoc_hc14  = -1
+      endif
+    else
+      i_r2o = 0
+      itdoc_lc  = -1
+      itdoc_hc  = -1
+    endif
 
     ! total number of advected tracers
-    nocetra=i_base+i_iso+i_cfc+i_agg+i_nat_dic +i_bromo+i_extn+i_pref+i_shelfage
+    nocetra=i_base+i_iso+i_cfc+i_agg+i_nat_dic +i_bromo+i_extn+i_pref+i_shelfage+i_r2o
 
     ! ATMOSPHERE
     i_base_atm=5
@@ -460,14 +494,15 @@ contains
     endif
 
     ! rivers
-    nriv   =7
+    nriv   =8
     irdin  =1
     irdip  =2
     irsi   =3
     iralk  =4
     iriron =5
     irdoc  =6
-    irdet  =7
+    irtdoc =7
+    irdet  =8
 
     ! ---  sediment
     ! sediment solid components

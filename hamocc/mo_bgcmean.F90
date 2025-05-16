@@ -41,6 +41,8 @@ module mo_bgcmean
   ! - removed output of AOU and added O2_sat instead
   ! - added output of omegaA
   ! - added sediment bypass preprocessor option
+  !  T. Bourgeois,     *NORCE climate, Bergen*   2025-04-14
+  !  - implement R2OMIP protocol
   !*************************************************************************************************
 
   use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,ifp,isp,ilp,mnproc,ip
@@ -50,7 +52,7 @@ module mo_bgcmean
   use mo_param1_bgc,  only: ks
   use mo_control_bgc, only: use_sedbypass,use_cisonew,use_CFC,use_natDIC,use_BROMO,use_BOXATM,     &
                             use_AGG,use_M4AGO,use_extNcycle,use_pref_tracers,use_shelfsea_res_time,&
-                            use_sediment_quality
+                            use_sediment_quality,use_river2omip
 
   implicit none
 
@@ -131,6 +133,8 @@ module mo_bgcmean
        & FLX_BURSSO12  =0    ,FLX_BURSSSC12 =0    ,FLX_BURSSSSIL =0    ,  &
        & FLX_BURSSSTER =0    ,                                            &
        & LYR_PHYTO     =0    ,LYR_GRAZER    =0    ,LYR_DOC       =0    ,  &
+       & LYR_TDOC_LC   =0    ,LYR_TDOC_HC   =0    ,LYR_TDOC_LC13 =0    ,  &
+       & LYR_TDOC_HC13 =0    ,                                            &
        & LYR_PHOSY     =0    ,LYR_PHOSPH    =0    ,LYR_OXYGEN    =0    ,  &
        & LYR_IRON      =0    ,LYR_ANO3      =0    ,LYR_ALKALI    =0    ,  &
        & LYR_SILICA    =0    ,LYR_DIC       =0    ,LYR_POC       =0    ,  &
@@ -163,6 +167,8 @@ module mo_bgcmean
        & LYR_agg_b     =0    ,LYR_agg_Vrhof =0    ,LYR_agg_Vpor  =0    ,  &
        !========== LVLs
        & LVL_PHYTO     =0    ,LVL_GRAZER    =0    ,LVL_DOC       =0    ,  &
+       & LVL_TDOC_LC   =0    ,LVL_TDOC_HC   =0    ,LVL_TDOC_LC13 =0    ,  &
+       & LVL_TDOC_HC13 =0    ,                                            &
        & LVL_PHOSY     =0    ,LVL_PHOSPH    =0    ,LVL_OXYGEN    =0    ,  &
        & LVL_IRON      =0    ,LVL_ANO3      =0    ,LVL_ALKALI    =0    ,  &
        & LVL_SILICA    =0    ,LVL_DIC       =0    ,LVL_POC       =0    ,  &
@@ -263,7 +269,8 @@ module mo_bgcmean
        & LYR_EPS           ,LYR_ASIZE         ,LYR_N2O           ,        &
        & LYR_PREFO2        ,LYR_O2SAT         ,LYR_PREFPO4       ,        &
        & LYR_PREFALK       ,LYR_PREFDIC       ,LYR_DICSAT        ,        &
-       & LYR_PREFSILICA    ,LYR_SHELFAGE      ,                           &
+       & LYR_PREFSILICA    ,LYR_SHELFAGE      ,LYR_TDOC_LC       ,        &
+       & LYR_TDOC_HC       ,LYR_TDOC_LC13     ,LYR_TDOC_HC13     ,        &
        & LYR_CFC11         ,LYR_CFC12         ,LYR_SF6           ,        &
        & LYR_NATDIC        ,LYR_NATALKALI     ,LYR_NATCALC       ,        &
        & LYR_NATPH         ,LYR_NATOMEGAA     ,LYR_NATOMEGAC     ,        &
@@ -292,7 +299,8 @@ module mo_bgcmean
        & LVL_ASIZE         ,LVL_N2O           ,LVL_PREFO2        ,        &
        & LVL_O2SAT         ,LVL_PREFPO4       ,LVL_PREFALK       ,        &
        & LVL_PREFDIC       ,LVL_DICSAT        ,LVL_PREFSILICA    ,        &
-       & LVL_SHELFAGE      ,                                              &
+       & LVL_SHELFAGE      ,LVL_TDOC_LC       ,LVL_TDOC_HC       ,        &
+       & LVL_TDOC_LC13     ,LVL_TDOC_HC13     ,                           &
        & LVL_CFC11         ,LVL_CFC12         ,LVL_SF6           ,        &
        & LVL_NATDIC        ,LVL_NATALKALI     ,LVL_NATCALC       ,        &
        & LVL_NATPH         ,LVL_NATOMEGAA     ,LVL_NATOMEGAC     ,        &
@@ -357,10 +365,11 @@ module mo_bgcmean
        &          jiralk    =20,                                          &
        &          jiriron   =21,                                          &
        &          jirdoc    =22,                                          &
-       &          jirdet    =23,                                          &
-       &          jnh3flux  =24,                                          &
-       &          jndepnhx  =25,                                          &
-       &          nbgct2d   =25
+       &          jirtdoc   =23,                                          &
+       &          jirdet    =24,                                          &
+       &          jnh3flux  =25,                                          &
+       &          jndepnhx  =26,                                          &
+       &          nbgct2d   =27
 
   !----------------------------------------------------------------
   integer :: i_bsc_m2d
@@ -494,6 +503,8 @@ module mo_bgcmean
        &          jphyto     = 0 ,                                        &
        &          jgrazer    = 0 ,                                        &
        &          jdoc       = 0 ,                                        &
+       &          jtdoc_lc   = 0 ,                                        &
+       &          jtdoc_hc   = 0 ,                                        &
        &          jphosy     = 0 ,                                        &
        &          jphosph    = 0 ,                                        &
        &          joxygen    = 0 ,                                        &
@@ -527,6 +538,8 @@ module mo_bgcmean
        &          jlvlnutlim_phosph=0,                                    &
        &          jlvlgrazer = 0 ,                                        &
        &          jlvldoc    = 0 ,                                        &
+       &          jlvltdoc_lc = 0 ,                                       &
+       &          jlvltdoc_hc = 0 ,                                       &
        &          jlvlphosy  = 0 ,                                        &
        &          jlvlphosph = 0 ,                                        &
        &          jlvloxygen = 0 ,                                        &
@@ -563,6 +576,8 @@ module mo_bgcmean
        &          jbigd14c   = 0 ,                                        &
        &          jpoc13     = 0 ,                                        &
        &          jdoc13     = 0 ,                                        &
+       &          jtdoc_lc13 = 0 ,                                        &
+       &          jtdoc_hc13 = 0 ,                                        &
        &          jcalc13    = 0 ,                                        &
        &          jphyto13   = 0 ,                                        &
        &          jgrazer13  = 0 ,                                        &
@@ -573,6 +588,8 @@ module mo_bgcmean
        &          jlvlbigd14c= 0 ,                                        &
        &          jlvlpoc13  = 0 ,                                        &
        &          jlvldoc13  = 0 ,                                        &
+       &          jlvltdoc_lc13 = 0 ,                                     &
+       &          jlvltdoc_hc13 = 0 ,                                     &
        &          jlvlcalc13 = 0 ,                                        &
        &          jlvlphyto13 = 0,                                        &
        &          jlvlgrazer13= 0
@@ -1110,6 +1127,12 @@ CONTAINS
         if (LYR_SHELFAGE(n) > 0) i_bsc_m3d=i_bsc_m3d+1
         jshelfage(n)=i_bsc_m3d*min(1,LYR_SHELFAGE(n))
       endif
+      if (use_river2omip) then
+        if (LYR_TDOC_LC(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jtdoc_lc(n)=i_bsc_m3d*min(1,LYR_TDOC_LC(n))
+        if (LYR_TDOC_HC(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jtdoc_hc(n)=i_bsc_m3d*min(1,LYR_TDOC_HC(n))
+      endif
       if (use_CFC) then
         if (LYR_CFC11(n) > 0) i_bsc_m3d=i_bsc_m3d+1
         jcfc11(n)=i_bsc_m3d*min(1,LYR_CFC11(n))
@@ -1139,6 +1162,12 @@ CONTAINS
         jphyto13(n)=i_bsc_m3d*min(1,LYR_PHYTO13(n))
         if (LYR_GRAZER13(n) > 0) i_bsc_m3d=i_bsc_m3d+1
         jgrazer13(n)=i_bsc_m3d*min(1,LYR_GRAZER13(n))
+        if (use_river2omip) then
+          if (LYR_TDOC_LC13(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+          jtdoc_lc13(n)=i_bsc_m3d*min(1,LYR_TDOC_LC13(n))
+          if (LYR_TDOC_HC13(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+          jtdoc_hc13(n)=i_bsc_m3d*min(1,LYR_TDOC_HC13(n))
+        endif
       endif
       if (use_AGG) then
         if (LYR_NOS(n) > 0) i_bsc_m3d=i_bsc_m3d+1
@@ -1299,6 +1328,12 @@ CONTAINS
         if (LVL_SHELFAGE(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlshelfage(n)=ilvl_bsc_m3d*min(1,LVL_SHELFAGE(n))
       endif
+      if (use_river2omip) then
+        if (LVL_TDOC_LC(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvltdoc_lc(n)=ilvl_bsc_m3d*min(1,LVL_TDOC_LC(n))
+        if (LVL_TDOC_HC(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvltdoc_hc(n)=ilvl_bsc_m3d*min(1,LVL_TDOC_HC(n))
+      endif
       if (use_CFC) then
         if (LVL_CFC11(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlcfc11(n)=ilvl_bsc_m3d*min(1,LVL_CFC11(n))
@@ -1328,6 +1363,12 @@ CONTAINS
         jlvlphyto13(n)=ilvl_bsc_m3d*min(1,LVL_PHYTO13(n))
         if (LVL_GRAZER13(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlgrazer13(n)=ilvl_bsc_m3d*min(1,LVL_GRAZER13(n))
+        if (use_river2omip) then
+          if (LVL_TDOC_LC13(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+          jlvltdoc_lc13(n)=ilvl_bsc_m3d*min(1,LVL_TDOC_LC13(n))
+          if (LVL_TDOC_HC13(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+          jlvltdoc_hc13(n)=ilvl_bsc_m3d*min(1,LVL_TDOC_HC13(n))
+        endif
       endif
       if (use_AGG) then
         if (LVL_NOS(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1

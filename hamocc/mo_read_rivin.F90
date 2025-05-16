@@ -48,6 +48,8 @@ module mo_read_rivin
   !  J. Schwinger,     *NORCE climate, Bergen*   2022-05-18
   !   - re-structured and renamed this module such that reading and application of
   !     data are seperated into two distinct modules
+  !  T. Bourgeois,     *NORCE climate, Bergen*   2025-04-14
+  !  - implement R2OMIP protocol
   !*************************************************************************************************
 
   use dimensions, only: idm,jdm
@@ -72,6 +74,7 @@ module mo_read_rivin
   real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DFe2d
   real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_idet2d
   real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_idoc2d
+  real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_itdoc2d
 
 contains
 
@@ -84,7 +87,8 @@ contains
     use mod_dia,        only: iotype
     use mod_nctools,    only: ncfopn,ncread,ncfcls
     use mo_control_bgc, only: io_stdo_bgc,do_rivinpt
-    use mo_param1_bgc,  only: nriv,irdin,irdip,irsi,iralk,iriron,irdoc,irdet
+    use mo_param1_bgc,  only: nriv,irdin,irdip,irsi,iralk,iriron,irdoc,irtdoc,irdet
+    use mo_control_bgc, only: use_river2omip
 
     ! Arguments
     integer,  intent(in) :: kpie             ! 1st dimension of model grid.
@@ -134,6 +138,11 @@ contains
     call ncread('DIC',riv_DIC2d,dummymask,0,0.) ! It is actually alkalinity that is observed
     call ncread('Fe' ,riv_DFe2d,dummymask,0,0.)
     call ncread('DOC',riv_idoc2d,dummymask,0,0.)
+    if (use_river2omip) then
+      call ncread('slDOC',riv_itdoc2d,dummymask,0,0.)
+    else
+      riv_itdoc2d = 0
+    endif
     call ncread('DET',riv_idet2d,dummymask,0,0.)
     call ncfcls
 
@@ -147,6 +156,7 @@ contains
           rivflx(i,j,iralk)  = riv_DIC2d(i,j)
           rivflx(i,j,iriron) = riv_DFe2d(i,j)
           rivflx(i,j,irdoc)  = riv_idoc2d(i,j)
+          rivflx(i,j,irtdoc)  = riv_itdoc2d(i,j)
           rivflx(i,j,irdet)  = riv_idet2d(i,j)
 
         endif
