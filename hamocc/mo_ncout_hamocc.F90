@@ -36,7 +36,7 @@ contains
     use mod_dia,        only: diafnm,sigmar1,iotype,ddm,depthslev,depthslev_bnds
     use mo_control_bgc, only: dtbgc,use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO,              &
                               use_sedbypass,use_BOXATM,use_M4AGO,use_extNcycle,use_pref_tracers,   &
-                              use_shelfsea_res_time,use_sediment_quality,use_dom
+                              use_shelfsea_res_time,use_sediment_quality,use_river2omip,use_dom
     use mo_vgrid,       only: k0100,k0500,k1000,k2000,k4000
     use mo_param1_bgc,  only: ks
     use mod_nctools,    only: ncwrt1,ncdims,nctime,ncfcls,ncfopn,ncdimc,ncputr,ncputi,ncwrtr
@@ -169,7 +169,10 @@ contains
                               sdm_ssssil,sdm_sssc12,sdm_ssster,jburssso12,                         &
                               bur_sssc12,bur_ssssil,bur_ssster,bur_ssso12,                         &
                               inisdm,inibur,wrtsdm,accbur,accsdm,wrtbur,                           &
-                              jatmco2,jatmn2,jatmo2,srf_atmo2,srf_atmn2,                           &
+                              jatmco2,jatmn2,jatmo2,srf_atmo2,srf_atmn2,jtdoc_lc,jtdoc_hc,         &
+                              lyr_tdoc_lc,lyr_tdoc_hc,lvl_tdoc_lc,lvl_tdoc_hc,jlvltdoc_lc,         &
+                              jlvltdoc_hc,jtdoc_lc13,jtdoc_hc13,lyr_tdoc_lc13,lyr_tdoc_hc13,       &
+                              lvl_tdoc_lc13,lvl_tdoc_hc13,jlvltdoc_lc13,jlvltdoc_hc13,             &
                               lyr_agg_ws,lyr_dynvis,lyr_agg_stick,                                 &
                               lyr_agg_stickf,lyr_agg_dmax,lyr_agg_avdp,                            &
                               lyr_agg_avrhop,lyr_agg_avdC,lyr_agg_df,                              &
@@ -353,14 +356,18 @@ contains
     call finlyr(jo2sat(iogrp),jdp(iogrp))
     call finlyr(jdicsat(iogrp),jdp(iogrp))
     if (use_pref_tracers) then
-    call finlyr(jprefo2(iogrp),jdp(iogrp))
-    call finlyr(jprefpo4(iogrp),jdp(iogrp))
+      call finlyr(jprefo2(iogrp),jdp(iogrp))
+      call finlyr(jprefpo4(iogrp),jdp(iogrp))
       call finlyr(jprefsilica(iogrp),jdp(iogrp))
-    call finlyr(jprefalk(iogrp),jdp(iogrp))
-    call finlyr(jprefdic(iogrp),jdp(iogrp))
+      call finlyr(jprefalk(iogrp),jdp(iogrp))
+      call finlyr(jprefdic(iogrp),jdp(iogrp))
     endif
     if (use_shelfsea_res_time) then
       call finlyr(jshelfage(iogrp),jdp(iogrp))
+    endif
+    if (use_river2omip) then
+      call finlyr(jtdoc_lc(iogrp),jdp(iogrp))
+      call finlyr(jtdoc_hc(iogrp),jdp(iogrp))
     endif
     if (use_cisonew) then
       call finlyr(jdic13(iogrp),jdp(iogrp))
@@ -373,6 +380,10 @@ contains
       call finlyr(jcalc13(iogrp),jdp(iogrp))
       call finlyr(jphyto13(iogrp),jdp(iogrp))
       call finlyr(jgrazer13(iogrp),jdp(iogrp))
+      if (use_river2omip) then
+        call finlyr(jtdoc_lc13(iogrp),jdp(iogrp))
+        call finlyr(jtdoc_hc13(iogrp),jdp(iogrp))
+      endif
     endif
     if (use_AGG) then
       call finlyr(jnos(iogrp),jdp(iogrp))
@@ -490,14 +501,18 @@ contains
     call msklvl(jlvlo2sat(iogrp),depths)
     call msklvl(jlvldicsat(iogrp),depths)
     if (use_pref_tracers) then
-    call msklvl(jlvlprefo2(iogrp),depths)
-    call msklvl(jlvlprefpo4(iogrp),depths)
+      call msklvl(jlvlprefo2(iogrp),depths)
+      call msklvl(jlvlprefpo4(iogrp),depths)
       call msklvl(jlvlprefsilica(iogrp),depths)
-    call msklvl(jlvlprefalk(iogrp),depths)
-    call msklvl(jlvlprefdic(iogrp),depths)
+      call msklvl(jlvlprefalk(iogrp),depths)
+      call msklvl(jlvlprefdic(iogrp),depths)
     endif
     if (use_shelfsea_res_time) then
       call msklvl(jlvlshelfage(iogrp),depths)
+    endif
+    if (use_river2omip) then
+      call msklvl(jlvltdoc_lc(iogrp),depths)
+      call msklvl(jlvltdoc_hc(iogrp),depths)
     endif
     if (use_cisonew) then
       call msklvl(jlvldic13(iogrp),depths)
@@ -510,6 +525,10 @@ contains
       call msklvl(jlvlcalc13(iogrp),depths)
       call msklvl(jlvlphyto13(iogrp),depths)
       call msklvl(jlvlgrazer13(iogrp),depths)
+      if (use_river2omip) then
+        call msklvl(jlvltdoc_lc13(iogrp),depths)
+        call msklvl(jlvltdoc_hc13(iogrp),depths)
+      endif
     endif
     if (use_AGG) then
       call msklvl(jlvlnos(iogrp),depths)
@@ -751,14 +770,18 @@ contains
     call wrtlyr(jo2sat(iogrp),       LYR_O2SAT(iogrp),    1e3,            0.,cmpflg,'satoxy')
     call wrtlyr(jdicsat(iogrp),      LYR_DICSAT(iogrp),   1e3,            0.,cmpflg,'sat_dic')
     if (use_pref_tracers) then
-    call wrtlyr(jprefo2(iogrp),      LYR_PREFO2(iogrp),   1e3,            0.,cmpflg,'p_o2')
-    call wrtlyr(jprefpo4(iogrp),     LYR_PREFPO4(iogrp),  1e3,            0.,cmpflg,'p_po4')
+      call wrtlyr(jprefo2(iogrp),      LYR_PREFO2(iogrp),   1e3,            0.,cmpflg,'p_o2')
+      call wrtlyr(jprefpo4(iogrp),     LYR_PREFPO4(iogrp),  1e3,            0.,cmpflg,'p_po4')
       call wrtlyr(jprefsilica(iogrp),  LYR_PREFSILICA(iogrp), 1e3,          0.,cmpflg,'p_silica')
-    call wrtlyr(jprefalk(iogrp),     LYR_PREFALK(iogrp),  1e3,            0.,cmpflg,'p_talk')
-    call wrtlyr(jprefdic(iogrp),     LYR_PREFDIC(iogrp),  1e3,            0.,cmpflg,'p_dic')
+      call wrtlyr(jprefalk(iogrp),     LYR_PREFALK(iogrp),  1e3,            0.,cmpflg,'p_talk')
+      call wrtlyr(jprefdic(iogrp),     LYR_PREFDIC(iogrp),  1e3,            0.,cmpflg,'p_dic')
     endif
     if (use_shelfsea_res_time) then
       call wrtlyr(jshelfage(iogrp),     LYR_SHELFAGE(iogrp),  rnacc,        0.,cmpflg,'shelfage')
+    endif
+    if (use_river2omip) then
+      call wrtlyr(jtdoc_lc(iogrp),     LYR_TDOC_LC(iogrp),  1e3,            0.,cmpflg,'tdoc_lc')
+      call wrtlyr(jtdoc_hc(iogrp),     LYR_TDOC_HC(iogrp),  1e3,            0.,cmpflg,'tdoc_hc')
     endif
     if (use_cisonew) then
       call wrtlyr(jdic13(iogrp),       LYR_DIC13(iogrp),    1.e3,           0.,cmpflg,'dissic13')
@@ -771,6 +794,10 @@ contains
       call wrtlyr(jcalc13(iogrp),      LYR_CALC13(iogrp),   1e3,            0.,cmpflg,'calc13')
       call wrtlyr(jphyto13(iogrp),     LYR_PHYTO13(iogrp),  1e3,            0.,cmpflg,'phyc13')
       call wrtlyr(jgrazer13(iogrp),    LYR_GRAZER13(iogrp), 1e3,            0.,cmpflg,'zooc13')
+      if (use_river2omip) then
+        call wrtlyr(jtdoc_lc13(iogrp),   LYR_TDOC_LC13(iogrp), 1e3,         0.,cmpflg,'tdoc_lc13')
+        call wrtlyr(jtdoc_hc13(iogrp),   LYR_TDOC_HC13(iogrp), 1e3,         0.,cmpflg,'tdoc_hc13')
+      endif
     endif
     if (use_AGG) then
       call wrtlyr(jnos(iogrp),         LYR_NOS(iogrp),      1.,             0.,cmpflg,'nos')
@@ -866,14 +893,18 @@ contains
     call wrtlvl(jlvlnutlim_n(iogrp), LVL_NUTLIM_N(iogrp), rnacc    ,      0.,cmpflg,'nlim_nlvl')
     call wrtlvl(jlvlnutlim_phosph(iogrp),LVL_NUTLIM_PHOSPH(iogrp),rnacc,  0.,cmpflg,'nlim_po4lvl')
     if (use_pref_tracers) then
-    call wrtlvl(jlvlprefo2(iogrp),   LVL_PREFO2(iogrp),   rnacc*1e3,      0.,cmpflg,'p_o2lvl')
-    call wrtlvl(jlvlprefpo4(iogrp),  LVL_PREFPO4(iogrp),  rnacc*1e3,      0.,cmpflg,'p_po4lvl')
+      call wrtlvl(jlvlprefo2(iogrp),   LVL_PREFO2(iogrp),   rnacc*1e3,      0.,cmpflg,'p_o2lvl')
+      call wrtlvl(jlvlprefpo4(iogrp),  LVL_PREFPO4(iogrp),  rnacc*1e3,      0.,cmpflg,'p_po4lvl')
       call wrtlvl(jlvlprefsilica(iogrp),LVL_PREFSILICA(iogrp), rnacc*1e3,   0.,cmpflg,'p_silicalvl')
-    call wrtlvl(jlvlprefalk(iogrp),  LVL_PREFALK(iogrp),  rnacc*1e3,      0.,cmpflg,'p_talklvl')
-    call wrtlvl(jlvlprefdic(iogrp),  LVL_PREFDIC(iogrp),  rnacc*1e3,      0.,cmpflg,'p_diclvl')
+      call wrtlvl(jlvlprefalk(iogrp),  LVL_PREFALK(iogrp),  rnacc*1e3,      0.,cmpflg,'p_talklvl')
+      call wrtlvl(jlvlprefdic(iogrp),  LVL_PREFDIC(iogrp),  rnacc*1e3,      0.,cmpflg,'p_diclvl')
     endif
     if (use_shelfsea_res_time) then
       call wrtlvl(jlvlshelfage(iogrp),  LVL_SHELFAGE(iogrp),  rnacc,      0.,cmpflg,'shelfagelvl')
+    endif
+    if (use_river2omip) then
+      call wrtlvl(jlvltdoc_lc(iogrp),  LVL_TDOC_LC(iogrp),  rnacc*1e3,      0.,cmpflg,'tdoc_lclvl')
+      call wrtlvl(jlvltdoc_hc(iogrp),  LVL_TDOC_HC(iogrp),  rnacc*1e3,      0.,cmpflg,'tdoc_hclvl')
     endif
     if (use_cisonew) then
       call wrtlvl(jlvldic13(iogrp),    LVL_DIC13(iogrp),    rnacc*1.e3,     0.,cmpflg,'dissic13lvl')
@@ -886,6 +917,10 @@ contains
       call wrtlvl(jlvlcalc13(iogrp),   LVL_CALC13(iogrp),   rnacc*1e3,      0.,cmpflg,'calc13lvl')
       call wrtlvl(jlvlphyto13(iogrp),  LVL_PHYTO13(iogrp),  rnacc*1e3,      0.,cmpflg,'phyc13lvl')
       call wrtlvl(jlvlgrazer13(iogrp), LVL_GRAZER13(iogrp), rnacc*1e3,      0.,cmpflg,'zooc13lvl')
+      if (use_river2omip) then
+        call wrtlvl(jlvltdoc_lc13(iogrp), LVL_TDOC_LC13(iogrp), rnacc*1e3,  0.,cmpflg,'tdoc_lc13lvl')
+        call wrtlvl(jlvltdoc_hc13(iogrp), LVL_TDOC_HC13(iogrp), rnacc*1e3,  0.,cmpflg,'tdoc_hc13lvl')
+      endif
     endif
     if (use_AGG) then
       call wrtlvl(jlvlnos(iogrp),      LVL_NOS(iogrp),      rnacc,          0.,cmpflg,'noslvl')
@@ -1168,14 +1203,18 @@ contains
     call inilyr(jo2sat(iogrp),0.)
     call inilyr(jdicsat(iogrp),0.)
     if (use_pref_tracers) then
-    call inilyr(jprefo2(iogrp),0.)
-    call inilyr(jprefpo4(iogrp),0.)
+      call inilyr(jprefo2(iogrp),0.)
+      call inilyr(jprefpo4(iogrp),0.)
       call inilyr(jprefsilica(iogrp),0.)
-    call inilyr(jprefalk(iogrp),0.)
-    call inilyr(jprefdic(iogrp),0.)
+      call inilyr(jprefalk(iogrp),0.)
+      call inilyr(jprefdic(iogrp),0.)
     endif
     if (use_shelfsea_res_time) then
       call inilyr(jshelfage(iogrp),0.)
+    endif
+    if (use_river2omip) then
+      call inilyr(jtdoc_lc(iogrp),0.)
+      call inilyr(jtdoc_hc(iogrp),0.)
     endif
     if (use_cisonew) then
       call inilyr(jdic13(iogrp),0.)
@@ -1188,6 +1227,10 @@ contains
       call inilyr(jcalc13(iogrp),0.)
       call inilyr(jphyto13(iogrp),0.)
       call inilyr(jgrazer13(iogrp),0.)
+      if (use_river2omip) then
+        call inilyr(jtdoc_lc13(iogrp),0.)
+        call inilyr(jtdoc_hc13(iogrp),0.)
+      endif
     endif
     if (use_AGG) then
       call inilyr(jnos(iogrp),0.)
@@ -1281,14 +1324,18 @@ contains
     call inilvl(jlvlo2sat(iogrp),0.)
     call inilvl(jlvldicsat(iogrp),0.)
     if (use_pref_tracers) then
-    call inilvl(jlvlprefo2(iogrp),0.)
-    call inilvl(jlvlprefpo4(iogrp),0.)
+      call inilvl(jlvlprefo2(iogrp),0.)
+      call inilvl(jlvlprefpo4(iogrp),0.)
       call inilvl(jlvlprefsilica(iogrp),0.)
-    call inilvl(jlvlprefalk(iogrp),0.)
-    call inilvl(jlvlprefdic(iogrp),0.)
+      call inilvl(jlvlprefalk(iogrp),0.)
+      call inilvl(jlvlprefdic(iogrp),0.)
     endif
     if (use_shelfsea_res_time) then
       call inilvl(jlvlshelfage(iogrp),0.)
+    endif
+    if (use_river2omip) then
+      call inilvl(jlvltdoc_lc(iogrp),0.)
+      call inilvl(jlvltdoc_hc(iogrp),0.)
     endif
     if (use_cisonew) then
       call inilvl(jlvldic13(iogrp),0.)
@@ -1301,6 +1348,10 @@ contains
       call inilvl(jlvlcalc13(iogrp),0.)
       call inilvl(jlvlphyto13(iogrp),0.)
       call inilvl(jlvlgrazer13(iogrp),0.)
+      if (use_river2omip) then
+        call inilvl(jlvltdoc_lc13(iogrp),0.)
+        call inilvl(jlvltdoc_hc13(iogrp),0.)
+      endif
     endif
     if (use_AGG) then
       call inilvl(jlvlnos(iogrp),0.)
@@ -1408,7 +1459,7 @@ contains
         call inisdm(jsdm_rem_aerob(iogrp),0.)
         call inisdm(jsdm_rem_denit(iogrp),0.)
         call inisdm(jsdm_rem_sulf(iogrp),0.)
-    endif
+      endif
       if (use_sediment_quality) then
         call inisdm(jsdm_qual_a(iogrp),0.)
         call inisdm(jsdm_qual_k(iogrp),0.)
@@ -1430,7 +1481,7 @@ contains
                               nctime,ncfcls,ncedef,ncdefvar3d,ndouble
     use mo_control_bgc, only: use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO,                    &
                               use_sedbypass,use_BOXATM,use_extNcycle,use_pref_tracers,use_M4AGO,   &
-                              use_shelfsea_res_time,use_sediment_quality,use_dom
+                              use_shelfsea_res_time,use_sediment_quality,use_river2omip,use_dom
     use mo_bgcmean,     only: srf_kwco2,srf_fco2,srf_pco2,srf_xco2,srf_pco2_gex,srf_dmsflux,       &
                               srf_co2fxd,srf_co2fxu,srf_kwco2sol,srf_co2sol,                       &
                               srf_oxflux,srf_niflux,srf_pn2om,srf_dms,srf_dmsprod,                 &
@@ -1483,6 +1534,8 @@ contains
                               sdm_pown2,sdm_powno3,sdm_powasi,sdm_ssso12,sdm_ssssil,               &
                               sdm_sssc12,sdm_ssster,bur_ssso12,bur_sssc12,bur_ssssil,bur_ssster,   &
                               lvl_prefsilica,lvl_shelfage,                                         &
+                              lyr_tdoc_lc,lyr_tdoc_hc,lvl_tdoc_lc,lvl_tdoc_hc,lyr_tdoc_lc13,       &
+                              lyr_tdoc_hc13,lvl_tdoc_lc13,lvl_tdoc_hc13,                           &
                               lyr_agg_ws,lyr_dynvis,lyr_agg_stick,                                 &
                               lyr_agg_stickf,lyr_agg_dmax,lyr_agg_avdp,                            &
                               lyr_agg_avrhop,lyr_agg_avdC,lyr_agg_df,                              &
@@ -1896,13 +1949,13 @@ contains
       call ncdefvar3d(LYR_PREFO2(iogrp),cmpflg,'p',                             &
            &   'p_o2','Preformed oxygen',' ','mol O2 m-3',1)
       call ncdefvar3d(LYR_PREFPO4(iogrp),cmpflg,'p',                            &
-         &   'p_po4','Preformed phosphorus',' ','mol P m-3',1)
+           &   'p_po4','Preformed phosphorus',' ','mol P m-3',1)
       call ncdefvar3d(LYR_PREFSILICA(iogrp),cmpflg,'p',                         &
          &   'p_silica','Preformed silica',' ','mol Si m-3',1)
       call ncdefvar3d(LYR_PREFALK(iogrp),cmpflg,'p',                            &
-         &   'p_talk','Preformed alkalinity',' ','eq m-3',1)
+           &   'p_talk','Preformed alkalinity',' ','eq m-3',1)
       call ncdefvar3d(LYR_PREFDIC(iogrp),cmpflg,'p',                            &
-         &   'p_dic','Preformed DIC',' ','mol C m-3',1)
+           &   'p_dic','Preformed DIC',' ','mol C m-3',1)
     endif
     if (use_shelfsea_res_time) then
       call ncdefvar3d(LYR_SHELFAGE(iogrp),cmpflg,'p',                           &
@@ -1929,6 +1982,12 @@ contains
            &   'phyc13','Phytoplankton13',' ','mol P m-3',1)
       call ncdefvar3d(LYR_GRAZER13(iogrp),cmpflg,'p',                           &
            &   'zooc13','Zooplankton13',' ','mol P m-3',1)
+      if (use_river2omip) then
+        call ncdefvar3d(LYR_TDOC_LC13(iogrp),cmpflg,'p','tdoc_lc13',            &
+             &  'Low-C terrestrial dissolved organic carbon13',' ','mol P m-3',1)
+        call ncdefvar3d(LYR_TDOC_HC13(iogrp),cmpflg,'p','tdoc_hc13',            &
+             &  'High-C terrestrial dissolved organic carbon13',' ','mol P m-3',1)
+      endif
     endif
     if (use_AGG) then
       call ncdefvar3d(LYR_NOS(iogrp),cmpflg,'p',                                &
@@ -2036,6 +2095,12 @@ contains
       call ncdefvar3d(LYR_agg_Vpor(iogrp),cmpflg,'p',                           &
            &  'agg_Vpor','V-weighted aggregate mean porosity',' ','-',1)
     endif
+    if (use_river2omip) then
+      call ncdefvar3d(LYR_TDOC_LC(iogrp),cmpflg,'p','tdoc_lc',                  &
+           &  'Low-C terrestrial dissolved organic carbon',' ','mol P m-3',1)
+      call ncdefvar3d(LYR_TDOC_HC(iogrp),cmpflg,'p','tdoc_hc',                  &
+           &  'High-C terrestrial dissolved organic carbon',' ','mol P m-3',1)
+    endif
     if (use_dom) then
       call ncdefvar3d(LYR_DOCSL(iogrp),cmpflg,'p',                              &
            &   'dissocsl','DOC semi-labile',' ','mol P m-3',1)
@@ -2052,7 +2117,6 @@ contains
       call ncdefvar3d(LYR_PREFDOCR(iogrp),cmpflg,'p',                           &
            &   'p_docr','Preformed refractory DOC',' ','mol P m-3',1)
     endif
-
     ! --- define 3d level fields
     call ncdefvar3d(LVL_DIC(iogrp),cmpflg,'p',                                  &
          &   'dissiclvl','Dissolved inorganic carbon',' ','mol C m-3',2)
@@ -2103,16 +2167,16 @@ contains
     call ncdefvar3d(LVL_DICSAT(iogrp),cmpflg,'p',                               &
          &   'sat_diclvl','Saturated DIC',' ','mol C m-3',2)
     if (use_pref_tracers) then
-    call ncdefvar3d(LVL_PREFO2(iogrp),cmpflg,'p',                               &
-         &   'p_o2lvl','Preformed oxygen',' ','mol O2 m-3',2)
-    call ncdefvar3d(LVL_PREFPO4(iogrp),cmpflg,'p',                              &
-         &   'p_po4lvl','Preformed phosphorus',' ','mol P m-3',2)
+      call ncdefvar3d(LVL_PREFO2(iogrp),cmpflg,'p',                               &
+           &   'p_o2lvl','Preformed oxygen',' ','mol O2 m-3',2)
+      call ncdefvar3d(LVL_PREFPO4(iogrp),cmpflg,'p',                              &
+           &   'p_po4lvl','Preformed phosphorus',' ','mol P m-3',2)
       call ncdefvar3d(LVL_PREFSILICA(iogrp),cmpflg,'p',                           &
            &   'p_silicalvl','Preformed silica',' ','mol N m-3',2)
-    call ncdefvar3d(LVL_PREFALK(iogrp),cmpflg,'p',                              &
-         &   'p_talklvl','Preformed alkalinity',' ','eq m-3',2)
-    call ncdefvar3d(LVL_PREFDIC(iogrp),cmpflg,'p',                              &
-         &   'p_diclvl','Preformed DIC',' ','mol C m-3',2)
+      call ncdefvar3d(LVL_PREFALK(iogrp),cmpflg,'p',                              &
+           &   'p_talklvl','Preformed alkalinity',' ','eq m-3',2)
+      call ncdefvar3d(LVL_PREFDIC(iogrp),cmpflg,'p',                              &
+           &   'p_diclvl','Preformed DIC',' ','mol C m-3',2)
     endif
     if (use_shelfsea_res_time) then
       call ncdefvar3d(LVL_SHELFAGE(iogrp),cmpflg,'p',                           &
@@ -2139,6 +2203,12 @@ contains
            &   'phyc13lvl','Phytoplankton13',' ','mol P m-3',2)
       call ncdefvar3d(LVL_GRAZER13(iogrp),cmpflg,'p',                           &
            &   'zooc13lvl','Zooplankton13',' ','mol P m-3',2)
+      if (use_river2omip) then
+        call ncdefvar3d(LVL_TDOC_LC13(iogrp),cmpflg,'p','tdoc_lc13lvl',         &
+             &  'Low-C terrestrial dissolved organic carbon13',' ','mol P m-3',2)
+        call ncdefvar3d(LVL_TDOC_HC13(iogrp),cmpflg,'p','tdoc_hc13lvl',         &
+             &  'High-C terrestrial dissolved organic carbon13',' ','mol P m-3',2)
+      endif
     endif
     if (use_AGG) then
       call ncdefvar3d(LVL_NOS(iogrp),cmpflg,'p','noslvl',                       &
@@ -2251,6 +2321,12 @@ contains
            &  'agg_Vrhoflvl','V-weighted aggregate mean density',' ','kg m-3',2)
       call ncdefvar3d(LVL_agg_Vpor(iogrp),cmpflg,'p',                           &
            &  'agg_Vporlvl','V-weighted aggregate mean porosity',' ','-',2)
+    endif
+    if (use_river2omip) then
+      call ncdefvar3d(LVL_TDOC_LC(iogrp),cmpflg,'p','tdoc_lclvl',               &
+           &  'Low-C terrestrial dissolved organic carbon',' ','mol P m-3',2)
+      call ncdefvar3d(LVL_TDOC_HC(iogrp),cmpflg,'p','tdoc_hclvl',               &
+           &  'High-C terrestrial dissolved organic carbon',' ','mol P m-3',2)
     endif
     if (use_dom) then
       call ncdefvar3d(LVL_DOCSL(iogrp),cmpflg,'p',                              &

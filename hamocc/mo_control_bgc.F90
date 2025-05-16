@@ -26,6 +26,8 @@ module mo_control_bgc
   ! Modified
   ! J.Schwinger,      *Uni Research, Bergen*   2018-04-12
   ! - removed unused variables
+  !  T. Bourgeois,     *NORCE climate, Bergen*   2025-04-14
+  !  - implement R2OMIP protocol
   !*************************************************************************************************
 
   implicit none
@@ -68,7 +70,7 @@ module mo_control_bgc
   integer           :: sedspin_yr_e           = -1      ! end   year for sediment spin-up
   integer           :: sedspin_ncyc           = -1      ! sediment spin-up sub-cycles
   character(len=64) :: ocn_co2_type                     ! indicates co2 coupling to an active atm
-                                                        ! model if set to 'diagnostic' 
+                                                        ! model if set to 'diagnostic'
                                                         ! or 'prognostic'
 
   ! Logical switches set via namelist config_bgc
@@ -88,6 +90,7 @@ module mo_control_bgc
   logical           :: use_pref_tracers       = .true.
   logical           :: use_shelfsea_res_time  = .false.
   logical           :: use_sediment_quality   = .false.
+  logical           :: use_river2omip         = .false.
   logical           :: use_dom                = .false.
 
 contains

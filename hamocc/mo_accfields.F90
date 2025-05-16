@@ -32,6 +32,8 @@ contains
     !
     !     Modified
     !     --------
+    !  T. Bourgeois,     *NORCE climate, Bergen*   2025-04-14
+    !  - implement R2OMIP protocol
     !
     !     Purpose
     !     -------
@@ -75,15 +77,16 @@ contains
                                 jsediffn2,jsediffno3,jsediffsi,jco2flux,                           &
                                 jco2fxd,jco2fxu,jco3,jdic,jdicsat,                                 &
                                 jdms,jdms_bac,jdms_uv,jdmsflux,                                    &
-                                jdmsprod,jdoc,jdp,jeps,jexpoca,                                    &
+                                jdmsprod,jdoc,jdp,jeps,jexpoca,jtdoc_lc,jtdoc_hc,                  &
                                 jexport,jexposi,jgrazer,jintdnit,jintnfix,jintphosy,               &
+                                jiralk,jirdet,jirdin,jirdip,jirdoc,jirtdoc,jiriron,                &
                                 jintexudl,jintexudsl,jintexcrl,jintexcrsl,jintdocl_rem,            &
                                 jintdocsl_rem,jintdocsr_rem,jintdocr_rem,                          &
-                                jiralk,jirdet,jirdin,jirdip,jirdoc,jiriron,                        &
                                 jiron,jirsi,jkwco2,jlvlalkali,jlvlano3,jlvlasize,                  &
                                 jlvlbigd14c,jlvlbromo,jlvlcalc,jlvlcalc13,                         &
                                 jlvlcfc11,jlvlcfc12,jlvlco3,jlvld13c,jlvld14c,                     &
                                 jlvldic,jlvldic13,jlvldic14,jlvldicsat,jlvldoc,                    &
+                                jlvltdoc_lc,jlvltdoc_hc,jlvltdoc_lc13,jlvltdoc_hc13,               &
                                 jlvldoc13,jlvleps,jlvlgrazer,jlvlgrazer13,jlvliron,                &
                                 jlvln2o,jlvlnatalkali,jlvlnatcalc,jlvlnatco3,                      &
                                 jlvlnatdic,jlvlnatomegaa,jlvlnatomegac,jlvlnos,                    &
@@ -108,7 +111,7 @@ contains
                                 jcfc11,jcfc11fx,jcfc12,jcfc12fx,jsf6,jsf6fx,                       &
                                 jatmc13,jatmc14,jbigd14c,jcalc13,jco213fxd,jco213fxu,              &
                                 jco214fxd,jco214fxu,jd13c,jd14c,jdic13,jdic14,                     &
-                                jdoc13,jgrazer13,jphyto13,jpoc13,                                  &
+                                jdoc13,jgrazer13,jphyto13,jpoc13,jtdoc_lc13,jtdoc_hc13,            &
                                 jlvlnatph,jnatalkali,jnatcalc,jnatco2fx,jnatco3,                   &
                                 jnatdic,jnatomegaa,jnatomegac,jnatpco2,jnatph,                     &
                                 jsrfnatalk,jsrfnatdic,jsrfnatph,                                   &
@@ -146,16 +149,16 @@ contains
     use mo_control_bgc,   only: io_stdo_bgc,dtb,use_BROMO,use_AGG,use_WLIN,use_natDIC,             &
                                 use_CFC,use_sedbypass,use_cisonew,use_BOXATM,use_M4AGO,            &
                                 use_extNcycle,use_pref_tracers,use_shelfsea_res_time,              &
-                                use_sediment_quality,use_dom
+                                use_sediment_quality,use_river2omip,use_dom
     use mo_param1_bgc,    only: ialkali,ian2o,iano3,iatmco2,iatmdms,iatmn2,iatmn2o,iatmo2,         &
-                                icalc,idet,idms,idicsat,idoc,iiron,iopal,                          &
+                                icalc,idet,idms,idicsat,idoc,iiron,iopal,itdoc_lc,itdoc_hc,        &
                                 ioxygen,iphosph,iphy,iprefalk,iprefdic,                            &
                                 iprefpo4,iprefo2,isco212,isilica,izoo,                             &
                                 iprefdoc,iprefdocsl,iprefdocsr,iprefdocr,                          &
                                 irdin,irdip,irsi,iralk,iriron,irdoc,irdet,inos,iatmbromo,ibromo,   &
-                                iatmf11,iatmf12,iatmsf6,icfc11,icfc12,isf6,                        &
+                                iatmf11,iatmf12,iatmsf6,icfc11,icfc12,isf6,irtdoc,                 &
                                 iatmc13,iatmc14,icalc13,idet13,idoc13,iphy13,isco213,isco214,      &
-                                izoo13,safediv,                                                    &
+                                izoo13,safediv,itdoc_lc13,itdoc_hc13,                              &
                                 idocsl,idocsr,idocr,                                               &
                                 iatmnco2,inatalkali,inatcalc,inatsco212,                           &
                                 ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,                           &
@@ -255,6 +258,7 @@ contains
           bgct2d(i,j,jiralk)   = bgct2d(i,j,jiralk)   + rivinflx(i,j,iralk)/2.0
           bgct2d(i,j,jiriron)  = bgct2d(i,j,jiriron)  + rivinflx(i,j,iriron)/2.0
           bgct2d(i,j,jirdoc)   = bgct2d(i,j,jirdoc)   + rivinflx(i,j,irdoc)/2.0
+          bgct2d(i,j,jirtdoc)  = bgct2d(i,j,jirtdoc)  + rivinflx(i,j,irtdoc)/2.0
           bgct2d(i,j,jirdet)   = bgct2d(i,j,jirdet)   + rivinflx(i,j,irdet)/2.0
 
         endif
@@ -411,7 +415,7 @@ contains
         call accsrf(jsediffnh4,sedfluxo(1,1,ipownh4),omask,0)
         call accsrf(jsediffn2o,sedfluxo(1,1,ipown2o),omask,0)
         call accsrf(jsediffno2,sedfluxo(1,1,ipowno2),omask,0)
-    endif
+      endif
       if (use_sediment_quality) then
         call accsrf(jsed_mavg_prorca,prorca_mavg(1,1),omask,0)
       endif
@@ -440,11 +444,11 @@ contains
     call acclyr(jo2sat,satoxy,pddpo,1)
     call acclyr(jdicsat,ocetra(1,1,1,idicsat),pddpo,1)
     if (use_pref_tracers) then
-    call acclyr(jprefo2,ocetra(1,1,1,iprefo2),pddpo,1)
-    call acclyr(jprefpo4,ocetra(1,1,1,iprefpo4),pddpo,1)
+      call acclyr(jprefo2,ocetra(1,1,1,iprefo2),pddpo,1)
+      call acclyr(jprefpo4,ocetra(1,1,1,iprefpo4),pddpo,1)
       call acclyr(jprefsilica,ocetra(1,1,1,iprefsilica),pddpo,1)
-    call acclyr(jprefalk,ocetra(1,1,1,iprefalk),pddpo,1)
-    call acclyr(jprefdic,ocetra(1,1,1,iprefdic),pddpo,1)
+      call acclyr(jprefalk,ocetra(1,1,1,iprefalk),pddpo,1)
+      call acclyr(jprefdic,ocetra(1,1,1,iprefdic),pddpo,1)
     endif
     if (use_shelfsea_res_time) then
       call acclyr(jshelfage,ocetra(1,1,1,ishelfage),pddpo,1)
@@ -469,6 +473,10 @@ contains
       call acclyr(jcalc13,ocetra(1,1,1,icalc13),pddpo,1)
       call acclyr(jphyto13,ocetra(1,1,1,iphy13),pddpo,1)
       call acclyr(jgrazer13,ocetra(1,1,1,izoo13),pddpo,1)
+      if (use_river2omip) then
+        call acclyr(jtdoc_lc13,ocetra(1,1,1,itdoc_lc13),pddpo,1)
+        call acclyr(jtdoc_hc13,ocetra(1,1,1,itdoc_hc13),pddpo,1)
+      endif
     endif
     if (use_AGG) then
       call acclyr(jnos,ocetra(1,1,1,inos),pddpo,1)
@@ -504,6 +512,10 @@ contains
       call acclyr(jremin_aerob,remin_aerob,pddpo,1)
       call acclyr(jremin_sulf,remin_sulf,pddpo,1)
     endif
+    if (use_river2omip) then
+      call acclyr(jtdoc_lc,ocetra(1,1,1,itdoc_lc),pddpo,1)
+      call acclyr(jtdoc_hc,ocetra(1,1,1,itdoc_hc),pddpo,1)
+    endif
     if (use_M4AGO) then
       ! M4AGO
       call acclyr(jagg_ws,aggregate_diagnostics(1,1,1,kws_agg),pddpo,1)
@@ -534,22 +546,23 @@ contains
          &  jlvlano3+jlvlalkali+jlvlsilica+jlvldic+jlvldoc+jlvlpoc+jlvlcalc+ &
          &  jlvlopal+jlvln2o+jlvlco3+jlvlph+jlvlomegaa+jlvlomegac+jlvlphosy+ &
          &  jlvlo2sat+jlvlprefo2+jlvlprefpo4+jlvlprefalk+jlvlprefdic+        &
-         &  jlvlprefsilica+jlvlshelfage+                                     &
+         &  jlvlprefsilica+jlvlshelfage+jlvltdoc_lc+jlvltdoc_hc+             &
+         &  jlvltdoc_lc13+jlvltdoc_hc13+                                     &
          &  jlvldicsat+jlvlnatdic+jlvlnatalkali+jlvlnatcalc+jlvlnatco3+      &
          &  jlvlnatomegaa+jlvlnatomegac+jlvldic13+jlvldic14+jlvld13c+        &
          &  jlvld14c+jlvlbigd14c+jlvlpoc13+jlvldoc13+jlvlcalc13+jlvlphyto13+ &
          &  jlvlgrazer13+jlvlnos+jlvlwphy+jlvlwnos+jlvleps+jlvlasize+        &
-         &  jlvlcfc11+jlvlcfc12+jlvlsf6+jlvlbromo+jlvlanh4+jlvlano2+        &
-         &  jlvl_nitr_NH4+jlvl_nitr_NO2+jlvl_nitr_N2O_prod+jlvl_nitr_NH4_OM+&
-         &  jlvl_nitr_NO2_OM+jlvl_denit_NO3+jlvl_denit_NO2+jlvl_denit_N2O+  &
-         &  jlvl_DNRA_NO2+jlvl_anmx_N2_prod+jlvl_anmx_OM_prod+              &
-         &  jlvl_phosy_NH4+jlvl_phosy_NO3+jlvl_remin_aerob+jlvl_remin_sulf+ &
-         &  jlvl_agg_ws+jlvl_dynvis+jlvl_agg_stick+jlvl_agg_stickf+         &
-         &  jlvl_agg_dmax+jlvl_agg_avdp+jlvl_agg_avrhop+jlvl_agg_avdC+      &
-         &  jlvl_agg_df+jlvl_agg_b+jlvl_agg_Vrhof+jlvl_agg_Vpor+            &
-         &  jlvlnutlim_fe+jlvlnutlim_n+jlvlnutlim_phosph+                   &
-         &  jlvldocsl+jlvldocsr+jlvldocr+jlvlprefdoc+jlvlprefdocsl+         &
-         &  jlvlprefdocsr+jlvlprefdocr                                      &
+         &  jlvlcfc11+jlvlcfc12+jlvlsf6+jlvlbromo+jlvlanh4+jlvlano2+         &
+         &  jlvl_nitr_NH4+jlvl_nitr_NO2+jlvl_nitr_N2O_prod+jlvl_nitr_NH4_OM+ &
+         &  jlvl_nitr_NO2_OM+jlvl_denit_NO3+jlvl_denit_NO2+jlvl_denit_N2O+   &
+         &  jlvl_DNRA_NO2+jlvl_anmx_N2_prod+jlvl_anmx_OM_prod+               &
+         &  jlvl_phosy_NH4+jlvl_phosy_NO3+jlvl_remin_aerob+jlvl_remin_sulf+  &
+         &  jlvl_agg_ws+jlvl_dynvis+jlvl_agg_stick+jlvl_agg_stickf+          &
+         &  jlvl_agg_dmax+jlvl_agg_avdp+jlvl_agg_avrhop+jlvl_agg_avdC+       &
+         &  jlvl_agg_df+jlvl_agg_b+jlvl_agg_Vrhof+jlvl_agg_Vpor+             &
+         &  jlvlnutlim_fe+jlvlnutlim_n+jlvlnutlim_phosph+                    &
+         &  jlvldocsl+jlvldocsr+jlvldocr+jlvlprefdoc+jlvlprefdocsl+          &
+         &  jlvlprefdocsr+jlvlprefdocr                                       &
          &  ) /= 0) then
       do k=1,kpke
         call bgczlv(pddpo,k,ind1,ind2,wghts)
@@ -578,11 +591,11 @@ contains
         call acclvl(jlvlo2sat,satoxy,k,ind1,ind2,wghts)
         call acclvl(jlvldicsat,ocetra(1,1,1,idicsat),k,ind1,ind2,wghts)
         if (use_pref_tracers) then
-        call acclvl(jlvlprefo2,ocetra(1,1,1,iprefo2),k,ind1,ind2,wghts)
-        call acclvl(jlvlprefpo4,ocetra(1,1,1,iprefpo4),k,ind1,ind2,wghts)
+          call acclvl(jlvlprefo2,ocetra(1,1,1,iprefo2),k,ind1,ind2,wghts)
+          call acclvl(jlvlprefpo4,ocetra(1,1,1,iprefpo4),k,ind1,ind2,wghts)
           call acclvl(jlvlprefsilica,ocetra(1,1,1,iprefsilica),k,ind1,ind2,wghts)
-        call acclvl(jlvlprefalk,ocetra(1,1,1,iprefalk),k,ind1,ind2,wghts)
-        call acclvl(jlvlprefdic,ocetra(1,1,1,iprefdic),k,ind1,ind2,wghts)
+          call acclvl(jlvlprefalk,ocetra(1,1,1,iprefalk),k,ind1,ind2,wghts)
+          call acclvl(jlvlprefdic,ocetra(1,1,1,iprefdic),k,ind1,ind2,wghts)
         endif
         if (use_shelfsea_res_time) then
           call acclvl(jlvlshelfage,ocetra(1,1,1,ishelfage),k,ind1,ind2,wghts)
@@ -607,6 +620,10 @@ contains
           call acclvl(jlvlcalc13,ocetra(1,1,1,icalc13),k,ind1,ind2,wghts)
           call acclvl(jlvlphyto13,ocetra(1,1,1,iphy13),k,ind1,ind2,wghts)
           call acclvl(jlvlgrazer13,ocetra(1,1,1,izoo13),k,ind1,ind2,wghts)
+          if (use_river2omip) then
+            call acclvl(jlvltdoc_lc13,ocetra(1,1,1,itdoc_lc13),k,ind1,ind2,wghts)
+            call acclvl(jlvltdoc_hc13,ocetra(1,1,1,itdoc_hc13),k,ind1,ind2,wghts)
+          endif
         endif
         if (use_AGG) then
           call acclvl(jlvlnos,ocetra(1,1,1,inos),k,ind1,ind2,wghts)
@@ -641,6 +658,10 @@ contains
           call acclvl(jlvl_phosy_NO3,phosy_NO3,k,ind1,ind2,wghts)
           call acclvl(jlvl_remin_aerob,remin_aerob,k,ind1,ind2,wghts)
           call acclvl(jlvl_remin_sulf,remin_sulf,k,ind1,ind2,wghts)
+        endif
+        if (use_river2omip) then
+          call acclvl(jlvltdoc_lc,ocetra(1,1,1,itdoc_lc),k,ind1,ind2,wghts)
+          call acclvl(jlvltdoc_hc,ocetra(1,1,1,itdoc_hc),k,ind1,ind2,wghts)
         endif
         if (use_M4AGO) then
           !M4AGO

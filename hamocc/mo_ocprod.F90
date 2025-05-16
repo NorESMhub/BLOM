@@ -58,6 +58,8 @@ contains
     !  J.Schwinger,      *NORCE Climate, Bergen*   2020-05-29
     !   - Cleaned up parameter list
     !   - Dust deposition field now passed as an argument
+    !  T. Bourgeois,     *NORCE climate, Bergen*   2025-04-14
+    !  - implement R2OMIP protocol
     !***********************************************************************************************
 
     use mod_xc,           only: mnproc
@@ -80,7 +82,10 @@ contains
                                 gammapsl,gammazsl,alphasl,alphasr,                                 &
                                 POM_remin_q10,POM_remin_Tref,opal_remin_q10,opal_remin_Tref,       &
                                 bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo,max_limiter,         &
-                                O2thresh_aerob,O2thresh_hypoxic,NO3thresh_sulf
+                                O2thresh_aerob,O2thresh_hypoxic,NO3thresh_sulf,                    &
+                                rcar_tdoclc,rcar_tdochc,rnit_tdoclc,rnit_tdochc,ro2ut_tdoclc,      &
+                                ro2ut_tdochc,ro2utammo_tdoclc,ro2utammo_tdochc,rem_tdoclc,         &
+                                rem_tdochc
     use mo_biomod,        only: bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,bsiflx_bot, &
                                 calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot, &
                                 carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,carflx_bot, &
@@ -91,8 +96,9 @@ contains
                                 int_exudl,int_exudsl,int_excrl,int_excrsl,                         &
                                 int_docl_rem,int_docsl_rem,int_docsr_rem,int_docr_rem,             &
                                 phosy3d,abs_oce,strahl,asize3d,wmass,wnumb,eps3d,phosy_NH4,        &
-                                phosy_NO3, remin_aerob,remin_sulf
+                                phosy_NO3,remin_aerob,remin_sulf
     use mo_param1_bgc,    only: ialkali,ian2o,iano3,icalc,idet,idms,idoc,ifdust,                   &
+                                itdoc_lc,itdoc_hc,itdoc_lc13,itdoc_hc13,itdoc_lc14,itdoc_hc14,     &
                                 igasnit,iiron,iopal,ioxygen,iphosph,iphy,isco212,                  &
                                 isilica,izoo,iadust,inos,ibromo,                                   &
                                 icalc13,icalc14,idet13,idet14,idoc13,idoc14,                       &
@@ -101,7 +107,7 @@ contains
     use mo_control_bgc,   only: dtb,io_stdo_bgc,with_dmsph,                                        &
                                 use_BROMO,use_AGG,use_PBGC_OCNP_TIMESTEP,use_FB_BGC_OCE,           &
                                 use_AGG,use_cisonew,use_natDIC, use_WLIN,use_sedbypass,use_M4AGO,  &
-                                use_extNcycle,lkwrbioz_off,lTO2depremin,use_dom
+                                use_extNcycle,lkwrbioz_off,lTO2depremin,use_river2omip,use_dom
     use mo_vgrid,         only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000,kwrbioz,ptiestu
     use mo_vgrid,         only: kmle
     use mo_clim_swa,      only: swa_clim
@@ -135,7 +141,7 @@ contains
     real :: avgra,grazing,avsil,avdic,graton
     real :: gratpoc,grawa,bacfra,phymor,zoomor,excdoc,exud
     real :: export, delsil, delcar, sterph, sterzo, remin
-    real :: docrem, opalrem, remin2o, aou,refra,pocrem,phyrem
+    real :: docrem,opalrem,remin2o,aou,refra,pocrem,phyrem,tdoclc_rem,tdochc_rem
     real :: zoothresh,phythresh
     real :: temp,temfa,phofa                  ! temperature and irradiation factor for photosynthesis
     real :: absorption,absorption_uv
@@ -171,9 +177,11 @@ contains
     real :: sterzo13,sterzo14
     real :: pocrem13,pocrem14
     real :: docrem13,docrem14
+    real :: tdoclc_rem13,tdochc_rem13,tdoclc_rem14,tdochc_rem14
     real :: phyrem13,phyrem14
     real :: rem13,rem14
     real :: rco213,rco214,rdoc13,rdoc14,rdet13,rdet14
+    real :: rtdoclc13,rtdochc13,rtdoclc14,rtdochc14
     real :: rphy13,rphy14,rzoo13,rzoo14
     ! sedbypass
     real :: flor13,flor14,flca13,flca14
@@ -325,7 +333,8 @@ contains
     !$OMP  ,phosy,ya,yn,grazing,graton,gratpoc,grawa,bacfra,phymor        &
     !$OMP  ,zoomor,excdoc,exud,export,delsil,delcar,dmsprod               &
     !$OMP  ,dms_bac,dms_uv,dtr,phofa,temfa,zoothresh,dms_ph,dz,opalrem    &
-    !$OMP  ,avmass,avnos,zmornos                                          &
+    !$OMP  ,avmass,avnos,zmornos,tdoclc_rem,tdochc_rem                    &
+    !$OMP  ,tdoclc_rem13,tdochc_rem13,tdoclc_rem14,tdochc_rem14           &
     !$OMP  ,exudsl,excdocsl,bacfrasl                                      &
     !$OMP  ,rco213,rco214,rphy13,rphy14,rzoo13,rzoo14,grazing13,grazing14 &
     !$OMP  ,graton13,graton14,gratpoc13,gratpoc14,grawa13,grawa14         &
@@ -391,11 +400,11 @@ contains
                   nutlim_diag(i,j,k,inutlim_n)      = 1.
               endif
             else
-            avanut = max(0.,min(ocetra(i,j,k,iphosph),rnoi*ocetra(i,j,k,iano3)))
-            avanfe = max(0.,min(avanut,ocetra(i,j,k,iiron)/riron))
-            xa = avanfe
-            xn = xa/(1.+pho*avphy/(xa+bkphy))
-            phosy = max(0.,xa-xn)
+              avanut = max(0.,min(ocetra(i,j,k,iphosph),rnoi*ocetra(i,j,k,iano3)))
+              avanfe = max(0.,min(avanut,ocetra(i,j,k,iiron)/riron))
+              xa = avanfe
+              xn = xa/(1.+pho*avphy/(xa+bkphy))
+              phosy = max(0.,xa-xn)
               if (abs(avanfe - ocetra(i,j,k,iiron)/riron) < tiny_val) then
                 nutlim_diag(i,j,k,inutlim_fe)     = 1.
                 nutlim_diag(i,j,k,inutlim_phosph) = 0.
@@ -417,12 +426,15 @@ contains
             graton = epsher*(1.-zinges)*grazing
             gratpoc = (1.-epsher)*grazing
             grawa = epsher*zinges*grazing
-
             phythresh = max(0.,(ocetra(i,j,k,iphy)-2.*phytomi))
             phymor = dyphy*phythresh
             zoothresh = max(0.,(ocetra(i,j,k,izoo)-2.*grami))
             if (lkwrbioz_off) then
               bacfra = 0.
+              if (use_river2omip) then
+                tdoclc_rem = 0.
+                tdochc_rem = 0.
+              endif
             else
               if (use_dom) then
               ! Lønborg et al. 2018 (Frontiers):
@@ -447,6 +459,10 @@ contains
                 excdocsl = gammazsl*zoothresh
               else
                 bacfra = remido*ocetra(i,j,k,idoc)
+                if (use_river2omip) then
+                  tdoclc_rem = rem_tdoclc*ocetra(i,j,k,itdoc_lc)
+                  tdochc_rem = rem_tdochc*ocetra(i,j,k,itdoc_hc)
+                endif
               endif
             endif
             exud = gammap*phythresh
@@ -494,9 +510,21 @@ contains
               if (lkwrbioz_off) then
                 bacfra13 = 0.
                 bacfra14 = 0.
+                if (use_river2omip) then
+                  tdoclc_rem13 = 0.
+                  tdochc_rem13 = 0.
+                  tdoclc_rem14 = 0.
+                  tdochc_rem14 = 0.
+                endif
               else
                 bacfra13 = remido*ocetra(i,j,k,idoc13)
                 bacfra14 = remido*ocetra(i,j,k,idoc14)
+                if (use_river2omip) then
+                  tdoclc_rem13 = rem_tdoclc*ocetra(i,j,k,itdoc_lc13)
+                  tdochc_rem13 = rem_tdochc*ocetra(i,j,k,itdoc_hc13)
+                  tdoclc_rem14 = rem_tdoclc*ocetra(i,j,k,itdoc_lc14)
+                  tdochc_rem14 = rem_tdochc*ocetra(i,j,k,itdoc_hc14)
+                endif
               endif
 
               phymor13 = phymor*rphy13
@@ -537,8 +565,8 @@ contains
             if (lkwrbioz_off) then
                dms_bac = 0.
             else
-            dms_bac = dmsp3*abs(temp+3.)*ocetra(i,j,k,idms)                 &
-                 &             *(ocetra(i,j,k,idms)/(dmsp6+ocetra(i,j,k,idms)))
+               dms_bac = dmsp3*abs(temp+3.)*ocetra(i,j,k,idms)                 &
+                       &             *(ocetra(i,j,k,idms)/(dmsp6+ocetra(i,j,k,idms)))
             endif
             dms_uv  = dmsp2*phofa/pi_alpha*ocetra(i,j,k,idms)
 
@@ -550,7 +578,7 @@ contains
 
             ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+dtr
             if (.not. use_extNcycle) then
-            ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)+dtr*rnit
+              ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)+dtr*rnit
               ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)-2.*delcar-(rnit+1)*dtr
               ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen)-dtr*ro2ut
             else
@@ -567,12 +595,39 @@ contains
               phosy_NO3(i,j,k)   = (1.-nh4uptfrac)*phosy*rnit  ! kmol N/m3/dtb - NO3 uptake during PP growth
               remin_aerob(i,j,k) = (dtr+phosy)*rnit            ! kmol N/m3/dtb - Aerob remin to ammonium  (var. sources)
             endif
+            if (use_river2omip) then
+              ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + tdoclc_rem+tdochc_rem
+              if (.not. use_extNcycle) then
+                ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)   + tdoclc_rem*rnit_tdoclc             &
+                                      &                       + tdochc_rem*rnit_tdochc
+                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - tdoclc_rem*(rnit_tdoclc+1.)        &
+                                      &                       - tdochc_rem*(rnit_tdochc+1.)
+                ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - tdoclc_rem*ro2ut_tdoclc            &
+                                      &                       - tdochc_rem*ro2ut_tdochc
+              else
+                ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   + tdoclc_rem*rnit_tdoclc             &
+                                      &                       + tdochc_rem*rnit_tdochc
+                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + tdoclc_rem*(rnit_tdoclc-1.)        &
+                                      &                       + tdochc_rem*(rnit_tdochc-1.)
+                ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - tdoclc_rem*ro2utammo_tdoclc        &
+                                                              - tdochc_rem*ro2utammo_tdochc
+                remin_aerob(i,j,k)    = remin_aerob(i,j,k)    + tdoclc_rem*rnit_tdoclc             &
+                                      &                       + tdochc_rem*rnit_tdochc
+              endif
+              ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + tdoclc_rem*rcar_tdoclc               &
+                                    &                       + tdochc_rem*rcar_tdochc
+              ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + (tdoclc_rem+tdochc_rem)*riron
+            endif
             ocetra(i,j,k,idet) = ocetra(i,j,k,idet)+export
             ocetra(i,j,k,idms) = ocetra(i,j,k,idms)+dmsprod-dms_bac-dms_uv
             ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)-delcar+rcar*dtr
             ocetra(i,j,k,iphy) = ocetra(i,j,k,iphy)+phosy-grazing-phymor-exud
             ocetra(i,j,k,izoo) = ocetra(i,j,k,izoo)+grawa-excdoc-zoomor
             ocetra(i,j,k,idoc) = ocetra(i,j,k,idoc)-bacfra+excdoc+exud
+            if (use_river2omip) then
+              ocetra(i,j,k,itdoc_lc) = ocetra(i,j,k,itdoc_lc)-tdoclc_rem
+              ocetra(i,j,k,itdoc_hc) = ocetra(i,j,k,itdoc_hc)-tdochc_rem
+            endif
             if (use_dom) then
               ocetra(i,j,k,iphy) = ocetra(i,j,k,iphy)-exudsl
               ocetra(i,j,k,izoo) = ocetra(i,j,k,izoo)-excdocsl
@@ -597,6 +652,16 @@ contains
               ocetra(i,j,k,idoc14) = ocetra(i,j,k,idoc14)-bacfra14+excdoc14+exud14
               ocetra(i,j,k,icalc13) = ocetra(i,j,k,icalc13)+delcar13
               ocetra(i,j,k,icalc14) = ocetra(i,j,k,icalc14)+delcar14
+              if (use_river2omip) then
+                ocetra(i,j,k,isco213) = ocetra(i,j,k,isco213) + tdoclc_rem13*rcar_tdoclc           &
+                                      &                       + tdochc_rem13*rcar_tdochc
+                ocetra(i,j,k,isco214) = ocetra(i,j,k,isco214) + tdoclc_rem14*rcar_tdoclc           &
+                                      &                       + tdochc_rem14*rcar_tdochc    
+                ocetra(i,j,k,itdoc_lc13) = ocetra(i,j,k,itdoc_lc13)-tdoclc_rem13
+                ocetra(i,j,k,itdoc_hc13) = ocetra(i,j,k,itdoc_hc13)-tdochc_rem13
+                ocetra(i,j,k,itdoc_lc14) = ocetra(i,j,k,itdoc_lc14)-tdoclc_rem14
+                ocetra(i,j,k,itdoc_hc14) = ocetra(i,j,k,itdoc_hc14)-tdochc_rem14
+              endif
             endif
             if (use_natDIC) then
               ocetra(i,j,k,inatsco212) = ocetra(i,j,k,inatsco212)-delcar+rcar*dtr
@@ -726,7 +791,9 @@ contains
 
     !$OMP PARALLEL DO PRIVATE(phythresh,zoothresh,sterph,sterzo,remin     &
     !$OMP  ,opalrem,aou,refra,dms_bac,pocrem,docrem,phyrem,dz,o2lim       &
-    !$OMP  ,avmass,avnos,zmornos                                          &
+    !$OMP  ,avmass,avnos,zmornos,tdoclc_rem,tdochc_rem                    &
+    !$OMP  ,tdoclc_rem13,tdochc_rem13,tdoclc_rem14,tdochc_rem14           &
+    !$OMP  ,rtdoclc13,rtdochc13,rtdoclc14,rtdochc14                       &
     !$OMP  ,docremsl,docremr,docremsr,alphasl,slphasr                     &
     !$OMP  ,rphy13,rphy14,rzoo13,rzoo14,rdet13,rdet14,rdoc13,rdoc14       &
     !$OMP  ,sterph13,sterph14,sterzo13,sterzo14,pocrem13,pocrem14         &
@@ -755,7 +822,12 @@ contains
               rdet14 = ocetra(i,j,k,idet14)/(ocetra(i,j,k,idet)+safediv)
               rdoc13 = ocetra(i,j,k,idoc13)/(ocetra(i,j,k,idoc)+safediv)
               rdoc14 = ocetra(i,j,k,idoc14)/(ocetra(i,j,k,idoc)+safediv)
-
+              if (use_river2omip) then
+                rtdoclc13 = ocetra(i,j,k,itdoc_lc13)/(ocetra(i,j,k,itdoc_lc)+safediv)
+                rtdochc13 = ocetra(i,j,k,itdoc_hc13)/(ocetra(i,j,k,itdoc_hc)+safediv)
+                rtdoclc14 = ocetra(i,j,k,itdoc_lc14)/(ocetra(i,j,k,itdoc_lc)+safediv)
+                rtdochc14 = ocetra(i,j,k,itdoc_hc14)/(ocetra(i,j,k,itdoc_hc)+safediv)
+              endif 
               sterph13 = sterph*rphy13
               sterph14 = sterph*rphy14
               sterzo13 = sterzo*rzoo13
@@ -813,6 +885,17 @@ contains
                 phyrem = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
               endif
 
+              if (use_river2omip) then
+                tdoclc_rem = rem_tdoclc*ocetra(i,j,k,itdoc_lc)
+                tdochc_rem = rem_tdochc*ocetra(i,j,k,itdoc_hc)
+                tdoclc_rem = min(rem_tdoclc*ocetra(i,j,k,idoc), 0.33*ocetra(i,j,k,ioxygen)         &
+                           & /merge(ro2utammo_tdoclc,ro2ut_tdoclc,use_extNcycle))
+                tdochc_rem = min(rem_tdochc*ocetra(i,j,k,idoc), 0.33*ocetra(i,j,k,ioxygen)         &
+                           & /merge(ro2utammo_tdochc,ro2ut_tdochc,use_extNcycle)) 
+                ocetra(i,j,k,itdoc_lc) = ocetra(i,j,k,itdoc_lc) - tdoclc_rem
+                ocetra(i,j,k,itdoc_hc) = ocetra(i,j,k,itdoc_hc) - tdochc_rem
+              endif
+
               if (lkwrbioz_off) then ! dying before in PP loop
                 phyrem = 0.
               endif
@@ -824,11 +907,21 @@ contains
                 docrem14 = docrem*rdoc14
                 phyrem13 = phyrem*rphy13
                 phyrem14 = phyrem*rphy14
+                if (use_river2omip) then
+                  tdoclc_rem13 = tdoclc_rem*rtdoclc13
+                  tdochc_rem13 = tdochc_rem*rtdochc13
+                  tdoclc_rem14 = tdoclc_rem*rtdoclc14
+                  tdochc_rem14 = tdochc_rem*rtdochc14
+                endif
               endif
             else
               pocrem = 0.
               docrem = 0.
               phyrem = 0.
+              if (use_river2omip) then
+                tdoclc_rem = 0.
+                tdochc_rem = 0.
+              endif
               if (use_dom) then
                 docremsl = 0.
                 docremsr = 0.
@@ -841,6 +934,12 @@ contains
                 pocrem14 = 0.
                 docrem14 = 0.
                 phyrem14 = 0.
+                if (use_river2omip) then
+                  tdoclc_rem13 = 0.
+                  tdochc_rem13 = 0.
+                  tdoclc_rem14 = 0.
+                  tdochc_rem14 = 0.
+                endif
               endif
             endif
 
@@ -852,15 +951,13 @@ contains
               ocetra(i,j,k,idocsl) = ocetra(i,j,k,idocsl) - docremsl/(1.-alphasl)
               ocetra(i,j,k,idocsr) = ocetra(i,j,k,idocsr) - docremsr/(1.-alphasr) + docremsl*(alphasl/(1.-alphasl))
               ocetra(i,j,k,idocr ) = ocetra(i,j,k,idocr ) - docremr               + docremsr*(alphasr/(1.-alphasr))
-            endif
-
-            if (use_dom) then
               remin = pocrem + docrem + docremsl + docremsr + docremr + phyrem
             else
               remin = pocrem + docrem + phyrem
             endif
 
             ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+remin
+
             if (.not. use_extNcycle) then
               ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)+remin*rnit
               ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)-(rnit+1)*remin
@@ -871,6 +968,31 @@ contains
               ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - ro2utammo*remin
               remin_aerob(i,j,k)  = remin_aerob(i,j,k)+remin*rnit ! kmol/NH4/dtb - remin to NH4 from various sources
             endif
+            
+            if (use_river2omip) then
+              ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + tdoclc_rem + tdochc_rem
+              if (.not. use_extNcycle) then
+                ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)   + tdoclc_rem*rnit_tdoclc             &
+                                      &                       + tdochc_rem*rnit_tdochc
+                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - tdoclc_rem*(rnit_tdoclc+1.)        &
+                                      &                       - tdochc_rem*(rnit_tdochc+1.)
+                ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - tdoclc_rem*ro2ut_tdoclc            &
+                                      &                       - tdochc_rem*ro2ut_tdochc
+              else
+                ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   + tdoclc_rem*rnit_tdoclc             &
+                                      &                       + tdochc_rem*rnit_tdochc
+                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + tdoclc_rem*(rnit_tdoclc-1.)        &
+                                      &                       + tdochc_rem*(rnit_tdochc-1.)
+                ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - tdoclc_rem*ro2utammo_tdoclc        &
+                                                              - tdochc_rem*ro2utammo_tdochc
+                remin_aerob(i,j,k)    = remin_aerob(i,j,k)    + tdoclc_rem*rnit_tdoclc             &
+                                      &                       + tdochc_rem*rnit_tdochc
+              endif
+              ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + tdoclc_rem*rcar_tdoclc               &
+                                    &                       + tdochc_rem*rcar_tdochc
+              ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)     + (tdoclc_rem+tdochc_rem)*riron
+            endif
+            
             ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+rcar*remin
             ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+remin*riron           &
                  &             -relaxfe*max(ocetra(i,j,k,iiron)-fesoly,0.)
@@ -888,6 +1010,12 @@ contains
 
               ocetra(i,j,k,isco213) = ocetra(i,j,k,isco213)+rcar*(pocrem13+docrem13+phyrem13)
               ocetra(i,j,k,isco214) = ocetra(i,j,k,isco214)+rcar*(pocrem14+docrem14+phyrem14)
+              if (use_river2omip) then
+                ocetra(i,j,k,itdoc_lc13) = ocetra(i,j,k,itdoc_lc13)-tdoclc_rem13
+                ocetra(i,j,k,itdoc_hc13) = ocetra(i,j,k,itdoc_hc13)-tdochc_rem13
+                ocetra(i,j,k,itdoc_lc14) = ocetra(i,j,k,itdoc_lc14)-tdoclc_rem14
+                ocetra(i,j,k,itdoc_hc14) = ocetra(i,j,k,itdoc_hc14)-tdochc_rem14
+              endif
             endif
             !***********************************************************************
             ! as ragueneau (2000) notes, Si(OH)4sat is about 1000 umol, but
@@ -898,21 +1026,21 @@ contains
             if (use_M4AGO) then
               opalrem = dremopal*opal_remin_q10**((ptho(i,j,k)-opal_remin_Tref)/10.)*ocetra(i,j,k,iopal)
             else
-            opalrem = dremopal*0.1*(temp+3.)*ocetra(i,j,k,iopal)
+              opalrem = dremopal*0.1*(temp+3.)*ocetra(i,j,k,iopal)
             endif
             ocetra(i,j,k,iopal) = ocetra(i,j,k,iopal)-opalrem
             ocetra(i,j,k,isilica) = ocetra(i,j,k,isilica)+opalrem
 
             if (.not. use_extNcycle) then
-            !***********************************************************************
-            !           There is about 1.e4 O2 on 1 N2O molecule (Broeker&Peng)
-            !           refra : Tim Rixton, private communication
-            !***********************************************************************
-            aou = satoxy(i,j,k)-ocetra(i,j,k,ioxygen)
-            refra = 1.+3.*(0.5+sign(0.5,aou-1.97e-4))
-            ocetra(i,j,k,ian2o) = ocetra(i,j,k,ian2o)+remin*1.e-4*ro2ut*refra
-            ocetra(i,j,k,igasnit) = ocetra(i,j,k,igasnit)-remin*1.e-4*ro2ut*refra
-            ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen)-remin*1.e-4*ro2ut*refra*0.5
+              !***********************************************************************
+              !           There is about 1.e4 O2 on 1 N2O molecule (Broeker&Peng)
+              !           refra : Tim Rixton, private communication
+              !***********************************************************************
+              aou = satoxy(i,j,k)-ocetra(i,j,k,ioxygen)
+              refra = 1.+3.*(0.5+sign(0.5,aou-1.97e-4))
+              ocetra(i,j,k,ian2o) = ocetra(i,j,k,ian2o)+remin*1.e-4*ro2ut*refra
+              ocetra(i,j,k,igasnit) = ocetra(i,j,k,igasnit)-remin*1.e-4*ro2ut*refra
+              ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen)-remin*1.e-4*ro2ut*refra*0.5
             endif
 
             dms_bac = dmsp3 * abs(temp+3.) * ocetra(i,j,k,idms)                     &
@@ -964,71 +1092,71 @@ contains
 
     if (.not. use_extNcycle) then
       ! =====>>>> Regular CMIP6 iHAMOCC version for denitrification wo extended nitrogen cycle =====>>>>
-    !$OMP PARALLEL DO PRIVATE(remin,remin2o,dz,avmass,avnos,rem13,rem14,i,k)
-    loop3: do j = 1,kpje
-      do i = 1,kpie
+      !$OMP PARALLEL DO PRIVATE(remin,remin2o,dz,avmass,avnos,rem13,rem14,i,k)
+      loop3: do j = 1,kpje
+        do i = 1,kpie
           do k = merge(1,kwrbioz(i,j)+1,lkwrbioz_off),kpke
-          if(omask(i,j) > 0.5) then
+            if(omask(i,j) > 0.5) then
               if(ocetra(i,j,k,ioxygen) < O2thresh_hypoxic .and. pddpo(i,j,k) > dp_min) then
-              if (use_AGG) then
-                avmass = ocetra(i,j,k,iphy) + ocetra(i,j,k,idet)
-              endif
+                if (use_AGG) then
+                  avmass = ocetra(i,j,k,iphy) + ocetra(i,j,k,idet)
+                endif
 
                 remin   = drempoc_anaerob*min(ocetra(i,j,k,idet),0.5   *ocetra(i,j,k,iano3)/rdnit1)
-              remin2o =      dremn2o*min(ocetra(i,j,k,idet),0.003 *ocetra(i,j,k,ian2o)/rdn2o1)
+                remin2o =      dremn2o*min(ocetra(i,j,k,idet),0.003 *ocetra(i,j,k,ian2o)/rdn2o1)
 
-              if (use_cisonew) then
-                rem13 = (remin+remin2o)*ocetra(i,j,k,idet13)/(ocetra(i,j,k,idet)+safediv)
-                rem14 = (remin+remin2o)*ocetra(i,j,k,idet14)/(ocetra(i,j,k,idet)+safediv)
-              endif
-              ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)+(rdnit1-1)*remin-remin2o
-              ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+rcar*(remin+remin2o)
-              ocetra(i,j,k,idet) = ocetra(i,j,k,idet)-(remin+remin2o)
-              ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+(remin+remin2o)
-              ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)-rdnit1*remin
-              ocetra(i,j,k,igasnit) = ocetra(i,j,k,igasnit)+rdnit2*remin+rdn2o2*remin2o
-              ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+riron*(remin+remin2o)
-              ocetra(i,j,k,ian2o) = ocetra(i,j,k,ian2o)-rdn2o1*remin2o
-              if (use_natDIC) then
-                ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)+(rdnit1-1)*remin-remin2o
-                ocetra(i,j,k,inatsco212) = ocetra(i,j,k,inatsco212)+rcar*(remin+remin2o)
-              endif
-              if (use_cisonew) then
-                ocetra(i,j,k,isco213) = ocetra(i,j,k,isco213)+rcar*rem13
-                ocetra(i,j,k,isco214) = ocetra(i,j,k,isco214)+rcar*rem14
-                ocetra(i,j,k,idet13) = ocetra(i,j,k,idet13)-rem13
-                ocetra(i,j,k,idet14) = ocetra(i,j,k,idet14)-rem14
-              endif
-
-              ! nitrate loss through denitrification in kmol N m-2
-              dz = pddpo(i,j,k)
-              intdnit(i,j) = intdnit(i,j) + rdnit0*remin*dz
-
-              if (use_AGG) then
-                !***********************************************************************
-                ! loss of snow numbers due to remineralization of poc
-                ! NOTE that remin is in kmol/m3. Thus divide by avmass (kmol/m3)
-                !***********************************************************************
-                if(avmass > 0.) then
-                  avnos = ocetra(i,j,k,inos)
-                  ocetra(i,j,k,inos) = ocetra(i,j,k,inos)-(remin+remin2o)*avnos/avmass
+                if (use_cisonew) then
+                  rem13 = (remin+remin2o)*ocetra(i,j,k,idet13)/(ocetra(i,j,k,idet)+safediv)
+                  rem14 = (remin+remin2o)*ocetra(i,j,k,idet14)/(ocetra(i,j,k,idet)+safediv)
                 endif
-              endif/*AGG*/
+                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)+(rdnit1-1)*remin-remin2o
+                ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+rcar*(remin+remin2o)
+                ocetra(i,j,k,idet) = ocetra(i,j,k,idet)-(remin+remin2o)
+                ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+(remin+remin2o)
+                ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)-rdnit1*remin
+                ocetra(i,j,k,igasnit) = ocetra(i,j,k,igasnit)+rdnit2*remin+rdn2o2*remin2o
+                ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+riron*(remin+remin2o)
+                ocetra(i,j,k,ian2o) = ocetra(i,j,k,ian2o)-rdn2o1*remin2o
+                if (use_natDIC) then
+                  ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)+(rdnit1-1)*remin-remin2o
+                  ocetra(i,j,k,inatsco212) = ocetra(i,j,k,inatsco212)+rcar*(remin+remin2o)
+                endif
+                if (use_cisonew) then
+                  ocetra(i,j,k,isco213) = ocetra(i,j,k,isco213)+rcar*rem13
+                  ocetra(i,j,k,isco214) = ocetra(i,j,k,isco214)+rcar*rem14
+                  ocetra(i,j,k,idet13) = ocetra(i,j,k,idet13)-rem13
+                  ocetra(i,j,k,idet14) = ocetra(i,j,k,idet14)-rem14
+                endif
 
+                ! nitrate loss through denitrification in kmol N m-2
+                dz = pddpo(i,j,k)
+                intdnit(i,j) = intdnit(i,j) + rdnit0*remin*dz
+
+                if (use_AGG) then
+                  !***********************************************************************
+                  ! loss of snow numbers due to remineralization of poc
+                  ! NOTE that remin is in kmol/m3. Thus divide by avmass (kmol/m3)
+                  !***********************************************************************
+                  if(avmass > 0.) then
+                    avnos = ocetra(i,j,k,inos)
+                    ocetra(i,j,k,inos) = ocetra(i,j,k,inos)-(remin+remin2o)*avnos/avmass
+                  endif
+                endif/*AGG*/
+
+              endif
             endif
-          endif
+          enddo
         enddo
-      enddo
-    enddo loop3
-    !$OMP END PARALLEL DO
+      enddo loop3
+      !$OMP END PARALLEL DO
 
-    if (use_PBGC_OCNP_TIMESTEP) then
-      if (mnproc == 1) then
-        write(io_stdo_bgc,*)' '
-        write(io_stdo_bgc,*)'in OCRPOD after remin n2o'
+      if (use_PBGC_OCNP_TIMESTEP) then
+        if (mnproc == 1) then
+          write(io_stdo_bgc,*)' '
+          write(io_stdo_bgc,*)'in OCRPOD after remin n2o'
+        endif
+        call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
       endif
-      call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-    endif
       ! <<<<===== end of CMIP6 version denitrification processes without extended nitrogen cycle <<<<=====
     else
       !======>>>> extended nitrogen cycle processes (aerobic and anaerobic) that follow ammonification
