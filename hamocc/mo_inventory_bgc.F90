@@ -482,9 +482,8 @@ contains
         totalnitr   = totalnitr  - srivflux(irdoc)*rnit-srivflux(irtdoc)*rnit_tdochc               &
              &                   - srivflux(irdet)*rnit_tdoclc - srivflux(irdin)
         totalphos   = totalphos  - srivflux(irdoc)-srivflux(irtdoc)-srivflux(irdet)-srivflux(irdip)
-                                 ! For O2, not sure about substracting or adding rdet (->tDOC_lc)
-        totaloxy    = totaloxy   - (srivflux(irdoc)-srivflux(irtdoc)*roxy_tdochc                   &
-             &                   - srivflux(irdet))*roxy_tdoclc                                    &
+        totaloxy    = totaloxy   - srivflux(irdoc)*(-24.) - srivflux(irtdoc)*(-49.5)               &
+             &                   - srivflux(irdet)*(-10.5)                                         &
              &                   - srivflux(irdin)*1.5 - srivflux(irdip)*2.                        &
              &                   - (srivflux(iralk)+srivflux(irdin)+srivflux(irdip))
 
@@ -494,7 +493,7 @@ contains
         totalnitr   = totalnitr  - (srivflux(irdoc)+srivflux(irdet))*rnit - srivflux(irdin)
         totalphos   = totalphos  - (srivflux(irdoc)+srivflux(irdet)+srivflux(irdip))
         totaloxy    = totaloxy   - (srivflux(irdoc)+srivflux(irdet))*(-24.)                        &
-             &                   -  srivflux(irdin)*1.5 - srivflux(irdip)*2.                       &
+             &                   - srivflux(irdin)*1.5 - srivflux(irdip)*2.                        &
              &                   - (srivflux(iralk)+srivflux(irdin)+srivflux(irdip))
       endif
       totalsil    = totalsil   -  srivflux(irsi)
