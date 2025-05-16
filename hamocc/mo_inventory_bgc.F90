@@ -478,7 +478,9 @@ contains
 
         totalcarbon = totalcarbon- srivflux(irdoc)*rcar-srivflux(irtdoc)*rcar_tdochc               &
              &                   - srivflux(irdet)*rcar_tdoclc                                     &
-             &                   - srivflux(iralk)-srivflux(irdin)-srivflux(irdip)   ! =sco212
+             &                   - srivflux(iralk) ! no DIN & DIP substraction because alkalinity
+                                                   ! changes due to instantaneous remineralisation 
+                                                   ! of riverine DOC are ignored
         totalnitr   = totalnitr  - srivflux(irdoc)*rnit-srivflux(irtdoc)*rnit_tdochc               &
              &                   - srivflux(irdet)*rnit_tdoclc - srivflux(irdin)
         totalphos   = totalphos  - srivflux(irdoc)-srivflux(irtdoc)-srivflux(irdet)-srivflux(irdip)
