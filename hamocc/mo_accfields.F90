@@ -52,6 +52,8 @@ contains
                                 carflx0500,carflx1000,carflx2000,carflx4000,                       &
                                 expoca,expoor,exposi,intdms_bac,intdms_uv,intdmsprod,              &
                                 intdnit,intnfix,intphosy,phosy3d,                                  &
+                                int_exudl,int_exudsl,int_excrl,int_excrsl,                         &
+                                int_docl_rem,int_docsl_rem,int_docsr_rem,int_docr_rem,             &
                                 int_chbr3_prod,int_chbr3_uv,asize3d,eps3d,wnumb,wmass
     use mo_param_bgc,     only: c14fac,re1312,re14to
     use mo_bgcmean,       only: domassfluxes,jalkali,jano3,jasize,jatmco2,                         &
@@ -66,6 +68,8 @@ contains
                                 jdms,jdms_bac,jdms_uv,jdmsflux,                                    &
                                 jdmsprod,jdoc,jdp,jeps,jexpoca,                                    &
                                 jexport,jexposi,jgrazer,jintdnit,jintnfix,jintphosy,               &
+                                jintexudl,jintexudsl,jintexcrl,jintexcrsl,jintdocl_rem,            &
+                                jintdocsl_rem,jintdocsr_rem,jintdocr_rem,                          &
                                 jiralk,jirdet,jirdin,jirdip,jirdoc,jiriron,                        &
                                 jiron,jirsi,jkwco2,jlvlalkali,jlvlano3,jlvlasize,                  &
                                 jlvlbigd14c,jlvlbromo,jlvlcalc,jlvlcalc13,                         &
@@ -78,6 +82,7 @@ contains
                                 jlvlph,jlvlphosph,jlvlphosy,jlvlphyto,jlvlphyto13,                 &
                                 jlvlpoc,jlvlpoc13,jlvlprefalk,jlvlprefdic,                         &
                                 jlvlprefo2,jlvlprefpo4,jlvlsf6,jlvlsilica,                         &
+                                jlvlprefdoc,jlvlprefdocsl,jlvlprefdocsr,jlvlprefdocr,              &
                                 jlvlwnos,jlvlwphy,jn2flux,jn2o,jn2oflux,jn2ofx,                    &
                                 jprorca,jprcaca,jsilpro,jpodiic,jpodial,jpodiph,                   &
                                 jpodiox,jpodin2,jpodino3,jpodisi,jndep,joalk,                      &
@@ -85,6 +90,7 @@ contains
                                 joxflux,joxygen,jpco2,jpco2m,jkwco2khm,jco2khm,                    &
                                 jco2kh,jph,jphosph,jphosy,jphyto,jpoc,jprefalk,                    &
                                 jprefdic,jprefo2,jprefpo4,jsilica,jsrfalkali,                      &
+                                jprefdoc,jprefdocsl,jprefdocsr,jprefdocr,                          &
                                 jsrfano3,jsrfdic,jsrfiron,jsrfoxygen,jsrfphosph,                   &
                                 jsrfphyto,jsrfsilica,jsrfph,jwnos,jwphy,jndepfx,                   &
                                 joalkfx,nbgc,nacc_bgc,bgcwrt,glb_inventory,                        &
@@ -97,20 +103,23 @@ contains
                                 jlvlnatph,jnatalkali,jnatcalc,jnatco2fx,jnatco3,                   &
                                 jnatdic,jnatomegaa,jnatomegac,jnatpco2,jnatph,                     &
                                 jsrfnatalk,jsrfnatdic,jsrfnatph,                                   &
+                                jdocsl,jdocsr,jdocr,jlvldocsl,jlvldocsr,jlvldocr,                  &
                                 jbursssc12,jburssso12,jburssssil,jburssster,                       &
                                 jpowaal,jpowaic,jpowaox,jpowaph,jpowaph,jpowasi,jpown2,            &
                                 jpowno3,jsssc12,jssso12,jssssil,jssster,accbur,accsdm,             &
                                 jatmco2,jatmn2,jatmo2
     use mo_control_bgc,   only: io_stdo_bgc,dtb,use_BROMO,use_AGG,use_WLIN,use_natDIC,             &
-                                use_CFC,use_sedbypass,use_cisonew,use_BOXATM
+                                use_CFC,use_sedbypass,use_cisonew,use_BOXATM,use_dom
     use mo_param1_bgc,    only: ialkali,ian2o,iano3,iatmco2,iatmdms,iatmn2,iatmn2o,iatmo2,         &
                                 icalc,idet,idms,idicsat,idoc,iiron,iopal,                          &
                                 ioxygen,iphosph,iphy,iprefalk,iprefdic,                            &
                                 iprefpo4,iprefo2,isco212,isilica,izoo,                             &
+                                iprefdoc,iprefdocsl,iprefdocsr,iprefdocr,                          &
                                 irdin,irdip,irsi,iralk,iriron,irdoc,irdet,inos,iatmbromo,ibromo,   &
                                 iatmf11,iatmf12,iatmsf6,icfc11,icfc12,isf6,                        &
                                 iatmc13,iatmc14,icalc13,idet13,idoc13,iphy13,isco213,isco214,      &
                                 izoo13,safediv,                                                    &
+                                idocsl,idocsr,idocr,                                               &
                                 iatmnco2,inatalkali,inatcalc,inatsco212,                           &
                                 ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,                           &
                                 ipown2,ipowno3,isssc12,issso12,issssil,issster
@@ -274,6 +283,16 @@ contains
       call accsrf(jbromo_prod,int_chbr3_prod,omask,0)
       call accsrf(jbromo_uv,int_chbr3_uv,omask,0)
     endif
+    if (use_dom) then
+      call accsrf(jintexudl,int_exudl,omask,0)
+      call accsrf(jintexudsl,int_exudsl,omask,0)
+      call accsrf(jintexcrl,int_excrl,omask,0)
+      call accsrf(jintexcrsl,int_excrsl,omask,0)
+      call accsrf(jintdocl_rem,int_docl_rem,omask,0)
+      call accsrf(jintdocsl_rem,int_docsl_rem,omask,0)
+      call accsrf(jintdocsr_rem,int_docsr_rem,omask,0)
+      call accsrf(jintdocr_rem,int_docr_rem,omask,0)
+    endif
 
     ! Accumulate fluxes due to N-deposition, ocean alkalinization
     call accsrf(jndepfx,ndepflx,omask,0)
@@ -375,6 +394,15 @@ contains
     if (use_BROMO) then
       call acclyr(jbromo,ocetra(1,1,1,ibromo),pddpo,1)
     endif
+    if (use_dom) then
+      call acclyr(jdocsl,ocetra(1,1,1,idocsl),pddpo,1)
+      call acclyr(jdocsr,ocetra(1,1,1,idocsr),pddpo,1)
+      call acclyr(jdocr ,ocetra(1,1,1,idocr ),pddpo,1)
+      call acclyr(jprefdoc,ocetra(1,1,1,iprefdoc),pddpo,1)
+      call acclyr(jprefdocsl,ocetra(1,1,1,iprefdocsl),pddpo,1)
+      call acclyr(jprefdocsr,ocetra(1,1,1,iprefdocsr),pddpo,1)
+      call acclyr(jprefdocr,ocetra(1,1,1,iprefdocr),pddpo,1)
+    endif
 
     ! Accumulate level diagnostics
     if (SUM(jlvlphyto+jlvlgrazer+jlvlphosph+jlvloxygen+jlvliron+             &
@@ -385,7 +413,9 @@ contains
          &  jlvlnatomegaa+jlvlnatomegac+jlvldic13+jlvldic14+jlvld13c+        &
          &  jlvld14c+jlvlbigd14c+jlvlpoc13+jlvldoc13+jlvlcalc13+jlvlphyto13+ &
          &  jlvlgrazer13+jlvlnos+jlvlwphy+jlvlwnos+jlvleps+jlvlasize+        &
-         &  jlvlcfc11+jlvlcfc12+jlvlsf6+jlvlbromo) /= 0) then
+         &  jlvlcfc11+jlvlcfc12+jlvlsf6+jlvlbromo+                           &
+         &  jlvldocsl+jlvldocsr+jlvldocr+jlvlprefdoc+jlvlprefdocsl+          &
+         &  jlvlprefdocsr+jlvlprefdocr) /= 0) then
       do k=1,kpke
         call bgczlv(pddpo,k,ind1,ind2,wghts)
         call acclvl(jlvlphyto,ocetra(1,1,1,iphy),k,ind1,ind2,wghts)
@@ -448,6 +478,15 @@ contains
         endif
         if (use_BROMO) then
           call acclvl(jlvlbromo,ocetra(1,1,1,ibromo),k,ind1,ind2,wghts)
+        endif
+        if (use_dom) then
+          call acclvl(jlvldocsl,ocetra(1,1,1,idocsl),k,ind1,ind2,wghts)
+          call acclvl(jlvldocsr,ocetra(1,1,1,idocsr),k,ind1,ind2,wghts)
+          call acclvl(jlvldocr ,ocetra(1,1,1,idocr ),k,ind1,ind2,wghts)
+          call acclvl(jlvlprefdoc,ocetra(1,1,1,iprefdoc),k,ind1,ind2,wghts)
+          call acclvl(jlvlprefdocsl,ocetra(1,1,1,iprefdocsl),k,ind1,ind2,wghts)
+          call acclvl(jlvlprefdocsr,ocetra(1,1,1,iprefdocsr),k,ind1,ind2,wghts)
+          call acclvl(jlvlprefdocr,ocetra(1,1,1,iprefdocr),k,ind1,ind2,wghts)
         endif
       enddo
     endif

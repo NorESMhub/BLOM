@@ -74,22 +74,25 @@ contains
                                 fse,fsh,nmldmin,plower,pupper,sinkexp,stick,tmfac,                 &
                                 tsfac,vsmall,zdis,wmin,wmax,wlin,rbro,                             &
                                 dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma,                     &
-                                fbro1,fbro2,atten_f,atten_c,atten_uv,atten_w,bkopal,bkphy,bkzoo
+                                fbro1,fbro2,atten_f,atten_c,atten_uv,atten_w,bkopal,bkphy,bkzoo,   &
+                                gammapsl,gammazsl,alphasl,alphasr
     use mo_biomod,        only: bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,bsiflx_bot, &
                                 calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot, &
                                 carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,carflx_bot, &
                                 expoor,exposi,expoca,intdnit,intdms_bac,intdmsprod,intdms_uv,      &
                                 intphosy,int_chbr3_prod,int_chbr3_uv,                              &
+                                int_exudl,int_exudsl,int_excrl,int_excrsl,                         &
+                                int_docl_rem,int_docsl_rem,int_docsr_rem,int_docr_rem,             &
                                 phosy3d,abs_oce,strahl,asize3d,wmass,wnumb,eps3d
     use mo_param1_bgc,    only: ialkali,ian2o,iano3,icalc,idet,idms,idoc,ifdust,                   &
                                 igasnit,iiron,iopal,ioxygen,iphosph,iphy,isco212,                  &
                                 isilica,izoo,iadust,inos,ibromo,                                   &
                                 icalc13,icalc14,idet13,idet14,idoc13,idoc14,                       &
                                 iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv,               &
-                                inatalkali,inatcalc,inatsco212
+                                inatalkali,inatcalc,inatsco212,idocsl,idocsr,idocr
     use mo_control_bgc,   only: dtb,io_stdo_bgc,with_dmsph,                                        &
                                 use_BROMO,use_AGG,use_PBGC_OCNP_TIMESTEP,use_FB_BGC_OCE,           &
-                                use_AGG,use_cisonew,use_natDIC, use_WLIN,use_sedbypass
+                                use_AGG,use_cisonew,use_natDIC, use_WLIN,use_sedbypass, use_dom
     use mo_vgrid,         only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000,kwrbioz,ptiestu
     use mo_vgrid,         only: kmle
     use mo_clim_swa,      only: swa_clim
@@ -125,6 +128,8 @@ contains
     real :: dtr,dz
     real :: wpocd,wcald,wopald,wdustd,dagg
     real :: wcal,wdust,wopal,wpoc
+    ! DOM      
+    real :: exudsl,excdocsl,bacfrasl,docremsl,bacfrasr,docremsr,bacfrar,docremr
     ! sedbypass
     real :: florca,flcaca,flsil
     ! cisonew
@@ -191,6 +196,17 @@ contains
     intdms_bac(:,:) = 0.
     intdms_uv (:,:) = 0.
     phosy3d (:,:,:) = 0.
+
+    if (use_dom) then
+      int_exudl    (:,:) = 0.
+      int_exudsl   (:,:) = 0.
+      int_excrl    (:,:) = 0.
+      int_excrsl   (:,:) = 0.
+      int_docl_rem (:,:) = 0.
+      int_docsl_rem(:,:) = 0.
+      int_docsr_rem(:,:) = 0.
+      int_docr_rem (:,:) = 0.
+    endif
 
     if (use_BROMO) then
       int_chbr3_uv  (:,:) = 0.
@@ -268,6 +284,7 @@ contains
     !$OMP  ,zoomor,excdoc,exud,export,delsil,delcar,dmsprod               &
     !$OMP  ,dms_bac,dms_uv,dtr,phofa,temfa,zoothresh,dms_ph,dz            &
     !$OMP  ,avmass,avnos,zmornos                                          &
+    !$OMP  ,exudsl,excdocsl,bacfrasl                                      &
     !$OMP  ,rco213,rco214,rphy13,rphy14,rzoo13,rzoo14,grazing13,grazing14 &
     !$OMP  ,graton13,graton14,gratpoc13,gratpoc14,grawa13,grawa14         &
     !$OMP  ,phosy13,phosy14,bacfra13,bacfra14,phymor13,phymor14,zoomor13  &
@@ -311,7 +328,6 @@ contains
             graton = epsher*(1.-zinges)*grazing
             gratpoc = (1.-epsher)*grazing
             grawa = epsher*zinges*grazing
-            bacfra=remido*ocetra(i,j,k,idoc)
 
             phythresh = max(0.,(ocetra(i,j,k,iphy)-2.*phytomi))
             zoothresh = max(0.,(ocetra(i,j,k,izoo)-2.*grami))
@@ -320,6 +336,32 @@ contains
             zoomor = spemor*zoothresh*zoothresh           ! *10 compared to linear in tropics (tinka)
             excdoc = gammaz*zoothresh                     ! excretion of doc by zooplankton
             export = zoomor*(1.-ecan) + phymor + gratpoc  ! ecan=.95, gratpoc= .2*grazing
+
+            if (use_dom) then
+            ! Lønborg et al. 2018 (Frontiers):
+            ! A=2.96e6 (day-1) (Theoretical Kc in the absence of Ea)
+            ! R=8.314 J/mol/K (Universal gas constant)
+            ! Ea=38kJ/mol (Activation energy for DOC_L decay)
+            ! A_sl=7.96e9 (day-1) (Theoretical Kc in the absence of Ea)
+            ! R=8.314 J/mol/K (Universal gas constant)
+            ! Ea_sl=58kJ/mol (Activation energy for DOC_L decay)
+                bacfra=1.5e6*dtb*exp(-38.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idoc) !increased from 2e5 13082024
+                !JT if (ocetra(i,j,k,iphosph) >5.e-8) then ! Nutrient thresholds for surface bacteria activity (Anton Salgado, pers. comm.)
+                 bacfrasl=5.0e7*dtb*exp(-58.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocsl)
+                 bacfrasr = 1.7e17*dtb*exp(-116.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocsr) 
+                 bacfrar  = 5.0e26*dtb*exp(-179.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocr)  
+                !JT else
+                !JT !jt bacfra  = 0.
+                !JT  bacfrasl = 0.
+                !JT  bacfrasr = 0.
+                !JT  bacfrar  = 0.
+                !JT endif
+   
+                exudsl = gammapsl*phythresh
+                excdocsl = gammazsl*zoothresh
+            else
+                bacfra=remido*ocetra(i,j,k,idoc)
+            endif
 
             if (use_cisonew) then
               ! calculation of isotope fractionation during photosynthesis (Laws 1997)
@@ -400,7 +442,11 @@ contains
                  &             *(ocetra(i,j,k,idms)/(dmsp6+ocetra(i,j,k,idms)))
             dms_uv  = dmsp2*phofa/pi_alpha*ocetra(i,j,k,idms)
 
-            dtr = bacfra-phosy+graton+ecan*zoomor
+            if (use_dom) then
+              dtr = bacfra+(1-alphasl)*bacfrasl+(1-alphasr)*bacfrasr+bacfrar-phosy+graton+ecan*zoomor
+            else
+              dtr = bacfra-phosy+graton+ecan*zoomor
+            endif
 
             ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+dtr
             ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)+dtr*rnit
@@ -412,6 +458,13 @@ contains
             ocetra(i,j,k,iphy) = ocetra(i,j,k,iphy)+phosy-grazing-phymor-exud
             ocetra(i,j,k,izoo) = ocetra(i,j,k,izoo)+grawa-excdoc-zoomor
             ocetra(i,j,k,idoc) = ocetra(i,j,k,idoc)-bacfra+excdoc+exud
+            if (use_dom) then
+              ocetra(i,j,k,iphy) = ocetra(i,j,k,iphy)-exudsl
+              ocetra(i,j,k,izoo) = ocetra(i,j,k,izoo)-excdocsl
+              ocetra(i,j,k,idocsl) = ocetra(i,j,k,idocsl)-bacfrasl+excdocsl+exudsl
+              ocetra(i,j,k,idocsr) = ocetra(i,j,k,idocsr)-bacfrasr+alphasl*bacfrasl
+              ocetra(i,j,k,idocr)  = ocetra(i,j,k,idocr)-bacfrar+alphasr*bacfrasr
+            endif
             ocetra(i,j,k,icalc) = ocetra(i,j,k,icalc)+delcar
             if (use_cisonew) then
               dtr13 = bacfra13-phosy13+graton13+ecan*zoomor13
@@ -473,7 +526,11 @@ contains
 
               if(avmass > 0.) then
                 avnos = ocetra(i,j,k,inos)
-                anosloss = (phosy-exud-graton-grawa)*avnos/avmass
+                if (use_dom) then
+                  anosloss = (phosy-exud-exudsl-graton-grawa)*avnos/avmass
+                else
+                  anosloss = (phosy-exud-graton-grawa)*avnos/avmass
+                endif
                 ocetra(i,j,k,inos) = ocetra(i,j,k,inos)+anosloss
               endif
 
@@ -505,6 +562,16 @@ contains
             intphosy(i,j)   = intphosy(i,j)  +phosy*rcar*dz  ! primary production in kmol C m-2
             phosy3d(i,j,k)  = phosy*rcar                     ! primary production in kmol C m-3
 
+            if (use_dom) then
+              int_exudl    (i,j) = int_exudl    (i,j)+exud*rcar*dz  ! PHY exudation to DOC-L in kmol C m-2
+              int_exudsl   (i,j) = int_exudsl   (i,j)+exudsl*rcar*dz
+              int_excrl    (i,j) = int_excrl    (i,j)+excdoc*rcar*dz
+              int_excrsl   (i,j) = int_excrsl   (i,j)+excdocsl*rcar*dz
+              int_docl_rem (i,j) = int_docl_rem (i,j)+bacfra*rcar*dz
+              int_docsl_rem(i,j) = int_docsl_rem(i,j)+bacfrasl*rcar*dz
+              int_docsr_rem(i,j) = int_docsr_rem(i,j)+bacfrasr*rcar*dz
+              int_docr_rem (i,j) = int_docr_rem (i,j)+bacfrar*rcar*dz
+            endif
 
           endif         ! pddpo(i,j,k) > dp_min
         enddo         ! kwrbioz
@@ -524,6 +591,7 @@ contains
     !$OMP PARALLEL DO PRIVATE(phythresh,zoothresh,sterph,sterzo,remin     &
     !$OMP  ,opalrem,aou,refra,dms_bac,pocrem,docrem,phyrem,dz             &
     !$OMP  ,avmass,avnos,zmornos                                          &
+    !$OMP  ,docremsl,docremr,docremsr,alphasl,slphasr                     &
     !$OMP  ,rphy13,rphy14,rzoo13,rzoo14,rdet13,rdet14,rdoc13,rdoc14       &
     !$OMP  ,sterph13,sterph14,sterzo13,sterzo14,pocrem13,pocrem14         &
     !$OMP  ,docrem13,docrem14,phyrem13,phyrem14                           &
@@ -567,9 +635,19 @@ contains
             endif
 
             if(ocetra(i,j,k,ioxygen) > 5.e-8) then
-              pocrem = min(drempoc*ocetra(i,j,k,idet),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-              docrem = min( remido*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-              phyrem = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+              if (use_dom) then
+                pocrem   = min(drempoc*ocetra(i,j,k,idet),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+                phyrem   = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+                !fractions of doc(s) remineralized into nutrients
+                docrem   = min(1.5e6*dtb*exp(-38.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idoc), 0.083*ocetra(i,j,k,ioxygen)/ro2ut)
+                docremsl = (1.-alphasl)*min(5.0e7*dtb*exp(-58.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocsl), 0.083*ocetra(i,j,k,ioxygen)/ro2ut) 
+                docremsr = (1.-alphasr)*min(1.7e17*dtb*exp(-116.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocsr), 0.083*ocetra(i,j,k,ioxygen)/ro2ut) 
+                docremr  = min(5.0e26*dtb*exp(-179.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocr), 0.083*ocetra(i,j,k,ioxygen)/ro2ut) 
+              else
+                pocrem = min(drempoc*ocetra(i,j,k,idet),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+                phyrem = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+                docrem = min( remido*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+              endif
               if (use_cisonew) then
                 pocrem13 = pocrem*rdet13
                 pocrem14 = pocrem*rdet14
@@ -582,6 +660,11 @@ contains
               pocrem = 0.
               docrem = 0.
               phyrem = 0.
+              if (use_dom) then
+                docremsl = 0.
+                docremsr = 0.
+                docremr  = 0.
+              endif
               if (use_cisonew) then
                 pocrem13 = 0.
                 docrem13 = 0.
@@ -595,8 +678,18 @@ contains
             ocetra(i,j,k,idet) = ocetra(i,j,k,idet) - pocrem + sterph + sterzo
             ocetra(i,j,k,idoc) = ocetra(i,j,k,idoc) - docrem
             ocetra(i,j,k,iphy) = ocetra(i,j,k,iphy) - phyrem
+            
+            if (use_dom) then
+              ocetra(i,j,k,idocsl) = ocetra(i,j,k,idocsl) - docremsl/(1.-alphasl)
+              ocetra(i,j,k,idocsr) = ocetra(i,j,k,idocsr) - docremsr/(1.-alphasr) + docremsl*(alphasl/(1.-alphasl))
+              ocetra(i,j,k,idocr ) = ocetra(i,j,k,idocr ) - docremr               + docremsr*(alphasr/(1.-alphasr))
+            endif
 
-            remin = pocrem + docrem + phyrem
+            if (use_dom) then
+              remin = pocrem + docrem + docremsl + docremsr + docremr + phyrem
+            else
+              remin = pocrem + docrem + phyrem
+            endif
 
             ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+remin
             ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)+remin*rnit
@@ -645,6 +738,13 @@ contains
 
             dz = pddpo(i,j,k)
             intdms_bac(i,j) =  intdms_bac(i,j)+dms_bac*dz
+
+            if (use_dom) then
+              int_docl_rem (i,j) = int_docl_rem (i,j)+docrem*rcar*dz
+              int_docsl_rem(i,j) = int_docsl_rem(i,j)+docremsl/(1.-alphasl)*rcar*dz
+              int_docsr_rem(i,j) = int_docsr_rem(i,j)+docremsr/(1.-alphasr)*rcar*dz
+              int_docr_rem (i,j) = int_docr_rem (i,j)+docremr*rcar*dz
+            endif
 
             if (use_AGG) then
               !***********************************************************************

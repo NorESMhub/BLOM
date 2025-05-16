@@ -32,7 +32,7 @@ module mo_param_bgc
   !*************************************************************************************************
 
   use mo_carbch,      only: atm_co2
-  use mo_control_bgc, only: io_stdo_bgc,bgc_namelist,use_AGG,use_natDIC,                           &
+  use mo_control_bgc, only: io_stdo_bgc,bgc_namelist,use_AGG,use_natDIC,use_dom,                   &
                             use_BROMO,use_cisonew,use_WLIN,use_FB_BGC_OCE,                         &
                             do_ndep,do_oalk,do_rivinpt,do_sedspinup,l_3Dvarsedpor,                 &
                             use_BOXATM,use_CFC,use_PBGC_CK_TIMESTEP,                               &
@@ -94,6 +94,7 @@ module mo_param_bgc
   public :: sed_denit,calcwei,opalwei,orgwei
   public :: calcdens,opaldens,orgdens,claydens
   public :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma
+  public :: gammapsl,gammazsl,alphasl,alphasr
 
   !********************************************************************
   ! Stoichiometry and fixed parameters
@@ -180,7 +181,7 @@ module mo_param_bgc
   !********************************************************************
   real, protected :: phytomi    = 1.e-11          ! kmol/m3 - i.e. 1e-5 mmol P/m3 minimum concentration of phyto plankton (?js)
   real, protected :: pi_alpha   = 0.02*0.4        ! initial slope of production vs irradiance curve (alpha) (0.002 for 10 steps per day)
-  real, protected :: bkphy      = 4.e-8           ! kmol/m3 - i.e. 0.04 mmol P/m3 half saturation constant
+  real, protected :: bkphy      = 3.5e-8           ! kmol/m3 - i.e. 0.04 mmol P/m3 half saturation constant
   real, protected :: dyphy      = 0.004           ! 1/d -mortality rate of phytoplankton
 
   ! Initial fractionation during photosynthesis
@@ -215,6 +216,8 @@ module mo_param_bgc
   real, protected :: ecan       = 0.95            ! fraction of mortality as PO_4
   real, protected :: zinges                       ! dimensionless fraction - assimilation efficiency
   real, protected :: epsher                       ! dimensionless fraction - fraction of grazing egested
+
+  real :: gammapsl, gammazsl, alphasl, alphasr
 
   !********************************************************************
   ! Shell production (CaCO3 and opal) parameters
@@ -259,11 +262,11 @@ module mo_param_bgc
   !********************************************************************
   ! Sinking parameters
   !********************************************************************
-  real, protected :: wpoc_const  =  5.             ! m/d   Sinking speed of detritus iris : 5.
-  real, protected :: wcal_const  = 30.             ! m/d   Sinking speed of CaCO3 shell material
+  real, protected :: wpoc_const  =  5.0            ! m/d   Sinking speed of detritus iris : 5.
+  real, protected :: wcal_const  = 33.             ! m/d   Sinking speed of CaCO3 shell material
   real, protected :: wopal_const = 30.             ! m/d   Sinking speed of opal iris : 60
   real, protected :: wdust_const                             ! m/d   Sinking speed of dust
-  real, protected :: wmin        =  1.             ! m/d   minimum sinking speed
+  real, protected :: wmin        =  5.             ! m/d   minimum sinking speed
   real, protected :: wmax        = 60.             ! m/d   maximum sinking speed
   real, protected :: wlin        = 60./2400.       ! m/d/m constant describing incr. with depth, r/a=1.0
   real, protected :: dustd1      = 0.0001          ! cm = 1 um, boundary between clay and silt
@@ -436,6 +439,18 @@ contains
                * (claydens - 1025.) / 1.567 * 1000. & ! excess density / dyn. visc.
                * dustd2 * 1.e-4)                      ! m/d
 
+
+    !*************************************************
+    !     DOM parameters
+    !*************************************************
+    if (use_dom) then
+      gammap   = 0.10        ! DOC_l exudation rate [day-1]
+      gammapsl = 0.02        ! DOC_sl exudation rate [day-1]
+      gammaz   = 0.06        ! DOC_l excretion rate [day-1]
+      gammazsl = 0.03        ! DOC_sl excretion rate [day-1]
+      alphasl  = 0.18        ! fraction of DOC_sl converted to DOC_sr []
+      alphasr  = 0.19        ! fraction of DOC_sr converted to DOC_r  []
+    endif
   end subroutine calc_param_biol
 
   !********************************************************************
@@ -457,13 +472,20 @@ contains
       c14dec = 1.-(log(2.)/c14_t_half)*dtb   ! lambda [1/day]; c14dec[-]
     endif
 
+    gammap   = gammap*dtb      ! 1/d to 1/time step - exudation rate
+    if (use_dom) then
+        gammapsl   = gammapsl*dtb      ! 1/d to 1/time step - exudation rate
+    endif
+
     !********************************************************************
     !     Zooplankton parameters
     !********************************************************************
     grazra   = grazra*dtb      ! 1/d to 1/time step - grazing rate
     spemor   = spemor*dtb      ! 1/d to 1/time step - mortality rate
-    gammap   = gammap*dtb      ! 1/d to 1/time step - exudation rate
     gammaz   = gammaz*dtb      ! 1/d to 1/time step - excretion rate
+    if (use_dom) then
+        gammazsl   = gammazsl*dtb      ! 1/d to 1/time step - exudation rate
+    endif
 
     !********************************************************************
     !     Remineralization and dissolution parameters

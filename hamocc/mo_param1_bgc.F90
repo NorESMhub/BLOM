@@ -100,6 +100,16 @@ module mo_param1_bgc
   integer, protected :: i_bromo
   integer, protected :: ibromo
 
+  ! Indices for DOM tracer
+  integer, protected :: i_dom 
+  integer, protected :: idocsl
+  integer, protected :: idocr
+  integer, protected :: idocsr
+  integer, protected :: iprefdoc
+  integer, protected :: iprefdocsl
+  integer, protected :: iprefdocsr
+  integer, protected :: iprefdocr
+
   ! total number of advected tracers (set by allocate_tracers in mod_tracers.F90)
   integer :: nocetra
 
@@ -210,12 +220,12 @@ contains
     use mo_control_bgc, only: bgc_namelist,get_bgc_namelist, io_stdo_bgc
     use mo_control_bgc, only: use_BROMO,use_AGG,use_WLIN,use_natDIC,use_CFC,use_cisonew,           &
                               use_sedbypass,use_PBGC_OCNP_TIMESTEP,use_PBGC_CK_TIMESTEP,           &
-                              use_FB_BGC_OCE, use_BOXATM
+                              use_FB_BGC_OCE, use_BOXATM, use_dom
     integer :: iounit
 
     namelist / config_bgc / use_BROMO,use_AGG,use_WLIN,use_natDIC,use_CFC,use_cisonew,             &
                             use_sedbypass,use_PBGC_OCNP_TIMESTEP,use_PBGC_CK_TIMESTEP,             &
-                            use_FB_BGC_OCE,use_BOXATM
+                            use_FB_BGC_OCE,use_BOXATM,use_dom
 
     io_stdo_bgc = lp              !  standard out.
 
@@ -321,9 +331,24 @@ contains
       i_bromo=0
       ibromo=-1
     endif
+    if (use_dom) then
+      i_dom=7
+      idocsl=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+1
+      idocr =i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+2
+      idocsr=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+3
+      iprefdoc=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+4
+      iprefdocsl=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+5
+      iprefdocsr=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+6
+      iprefdocr=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+7
+    else
+      i_dom=0
+      idocsl=-1
+      idocr =-1
+      idocsr=-1
+    endif
 
     ! total number of advected tracers
-    nocetra=i_base+i_iso+i_cfc+i_agg+i_nat_dic +i_bromo
+    nocetra=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_dom
 
     ! ATMOSPHERE
     i_base_atm=5

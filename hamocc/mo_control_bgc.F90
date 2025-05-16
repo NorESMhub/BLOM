@@ -77,6 +77,7 @@ module mo_control_bgc
   logical           :: use_FB_BGC_OCE         = .false.
   logical           :: use_BOXATM             = .false.
   logical           :: use_sedbypass          = .false.
+  logical           :: use_dom                = .false.
 
 contains
 

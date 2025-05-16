@@ -75,7 +75,7 @@ contains
     use mod_dia,        only: iotype
     use mo_carbch,      only: co2star,co3,hi,satoxy,nathi
     use mo_control_bgc, only: io_stdo_bgc,ldtbgc,rmasks,rmasko,use_cisonew,use_AGG,use_BOXATM,     &
-                              use_BROMO,use_CFC,use_natDIC,use_sedbypass
+                              use_BROMO,use_CFC,use_natDIC,use_sedbypass,use_dom
     use mo_sedmnt,      only: sedhpl
     use mo_intfcblom,   only: sedlay2,powtra2,burial2,atm2
     use mo_param1_bgc,  only: ialkali, ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,    &
@@ -85,7 +85,8 @@ contains
                               idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,issso13,issso14,  &
                               isssc13,isssc14,ipowc13,ipowc14,iatmnco2,iatmc13,iatmc14,inatalkali, &
                               inatcalc,inatsco212,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,  &
-                              ipowno3,isssc12,issso12,issssil,issster
+                              ipowno3,isssc12,issso12,issssil,issster,idocsl,idocsr,idocr,iprefdoc,&
+                              iprefdocsl,iprefdocsr,iprefdocr     
     use mo_netcdf_bgcrw,only: write_netcdf_var,netcdf_def_vardb
 
     ! Arguments
@@ -511,9 +512,32 @@ contains
     endif
     if (use_BROMO) then
       call NETCDF_DEF_VARDB(ncid,5,'bromo',3,ncdimst,ncvarid,                                      &
-           &    6,'mol/kg',9,'Bromoform',rmissing,47,io_stdo_bgc)
+           &    6,'mol/kg',9,'Bromoform',rmissing,53,io_stdo_bgc)
     endif
+    if (use_dom) then
+      call NETCDF_DEF_VARDB(ncid,5,'docsl',3,ncdimst,ncvarid,                                      &
+           &    6,'mol/kg',36,'Semi labile dissolved organic carbon',rmissing,54,io_stdo_bgc)
 
+      call NETCDF_DEF_VARDB(ncid,5,'docsr',3,ncdimst,ncvarid,                                      &
+           &    6,'mol/kg',40,'Semi refractory dissolved organic carbon',rmissing,55,io_stdo_bgc)
+
+      call NETCDF_DEF_VARDB(ncid,4,'docr',3,ncdimst,ncvarid,                                       &
+           &    6,'mol/kg',35,'Refractory dissolved organic carbon',rmissing,56,io_stdo_bgc)
+
+      call NETCDF_DEF_VARDB(ncid,7,'prefdoc',3,ncdimst,ncvarid,                                      &
+           &    6,'mol/kg',20,'Preformed labile doc',rmissing,57,io_stdo_bgc)
+
+      call NETCDF_DEF_VARDB(ncid,9,'prefdocsl',3,ncdimst,ncvarid,                                      &
+           &    6,'mol/kg',25,'Preformed semi-labile doc',rmissing,58,io_stdo_bgc)
+
+      call NETCDF_DEF_VARDB(ncid,9,'prefdocsr',3,ncdimst,ncvarid,                                      &
+           &    6,'mol/kg',29,'Preformed semi-refractory doc',rmissing,59,io_stdo_bgc)
+
+      call NETCDF_DEF_VARDB(ncid,8,'prefdocr',3,ncdimst,ncvarid,                                      &
+           &    6,'mol/kg',23,'Preformed refactory doc',rmissing,60,io_stdo_bgc)
+
+    endif
+ 
     !
     ! Define variables : diagnostic ocean fields
     ! ----------------------------------------------------------------------
@@ -776,6 +800,15 @@ contains
     endif
     if (use_BROMO) then
       call write_netcdf_var(ncid,'bromo',locetra(1,1,1,ibromo),2*kpke,0)
+    endif
+    if (use_dom) then
+      call write_netcdf_var(ncid,'docsl',locetra(1,1,1,idocsl),2*kpke,0)
+      call write_netcdf_var(ncid,'docsr',locetra(1,1,1,idocsr),2*kpke,0)
+      call write_netcdf_var(ncid,'docr' ,locetra(1,1,1,idocr),2*kpke,0)
+      call write_netcdf_var(ncid,'prefdoc',locetra(1,1,1,iprefdoc),2*kpke,0)
+      call write_netcdf_var(ncid,'prefdocsl',locetra(1,1,1,iprefdocsl),2*kpke,0)
+      call write_netcdf_var(ncid,'prefdocsr',locetra(1,1,1,iprefdocsr),2*kpke,0)
+      call write_netcdf_var(ncid,'prefdocr',locetra(1,1,1,iprefdocr),2*kpke,0)
     endif
 
     !

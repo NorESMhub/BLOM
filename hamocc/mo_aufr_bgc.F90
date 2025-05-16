@@ -81,11 +81,12 @@ CONTAINS
     use mod_dia,            only: iotype
     use mo_carbch,          only: co2star,co3,hi,satoxy,ocetra,atm,nathi
     use mo_control_bgc,     only: io_stdo_bgc,ldtbgc,use_cisonew,use_AGG,                          &
-                                  use_BOXATM,use_BROMO,use_CFC,use_natDIC,use_sedbypass
+                                  use_BOXATM,use_BROMO,use_CFC,use_natDIC,use_sedbypass,use_dom
     use mo_param1_bgc,      only: ialkali,ian2o,iano3,icalc,idet,idicsat,                          &
                                   idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,       &
                                   iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo,nocetra, &
                                   iadust,inos,iatmco2,iatmn2,iatmo2,ibromo,icfc11,icfc12,isf6,     &
+                                  idocsl,idocsr,idocr,iprefdoc,iprefdocsl,iprefdocsr,iprefdocr,    &
                                   icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,       &
                                   isco213,isco214,izoo13,izoo14,safediv,                           &
                                   issso13,issso14,isssc13,isssc14,ipowc13,ipowc14,                 &
@@ -344,11 +345,11 @@ CONTAINS
     !
     call read_netcdf_var(ncid,'sco212',locetra(1,1,1,isco212),2*kpke,0,iotype)
     call read_netcdf_var(ncid,'alkali',locetra(1,1,1,ialkali),2*kpke,0,iotype)
-    call read_netcdf_var(ncid,'phosph',locetra(1,1,1,iphosph),2*kpke,0,iotype)
+    call read_netcdf_var(ncid,'phosph',locetra(1,1,1,iphosph),2*kpke,0,iotype) !jt
     call read_netcdf_var(ncid,'oxygen',locetra(1,1,1,ioxygen),2*kpke,0,iotype)
     call read_netcdf_var(ncid,'gasnit',locetra(1,1,1,igasnit),2*kpke,0,iotype)
-    call read_netcdf_var(ncid,'ano3',locetra(1,1,1,iano3),2*kpke,0,iotype)
-    call read_netcdf_var(ncid,'silica',locetra(1,1,1,isilica),2*kpke,0,iotype)
+    call read_netcdf_var(ncid,'ano3',locetra(1,1,1,iano3),2*kpke,0,iotype) !jt
+    call read_netcdf_var(ncid,'silica',locetra(1,1,1,isilica),2*kpke,0,iotype) !jt
     call read_netcdf_var(ncid,'doc',locetra(1,1,1,idoc),2*kpke,0,iotype)
     call read_netcdf_var(ncid,'phyto',locetra(1,1,1,iphy),2*kpke,0,iotype)
     call read_netcdf_var(ncid,'grazer',locetra(1,1,1,izoo),2*kpke,0,iotype)
@@ -403,6 +404,15 @@ CONTAINS
     endif
     if (use_BROMO .and. lread_bro) then
       call read_netcdf_var(ncid,'bromo',locetra(1,1,1,ibromo),2*kpke,0,iotype)
+    endif
+    if (use_dom) then
+      call read_netcdf_var(ncid,'docsl',locetra(1,1,1,idocsl),2*kpke,0,iotype)
+      call read_netcdf_var(ncid,'docsr',locetra(1,1,1,idocsr),2*kpke,0,iotype)
+      call read_netcdf_var(ncid,'docr' ,locetra(1,1,1,idocr),2*kpke,0,iotype)
+      call read_netcdf_var(ncid,'prefdoc',locetra(1,1,1,iprefdoc),2*kpke,0,iotype)
+      call read_netcdf_var(ncid,'prefdocsl',locetra(1,1,1,iprefdocsl),2*kpke,0,iotype)
+      call read_netcdf_var(ncid,'prefdocsr',locetra(1,1,1,iprefdocsr),2*kpke,0,iotype)
+      call read_netcdf_var(ncid,'prefdocr',locetra(1,1,1,iprefdocr),2*kpke,0,iotype)
     endif
     !
     ! Read restart data : diagnostic ocean fields (needed for bit to bit reproducability)

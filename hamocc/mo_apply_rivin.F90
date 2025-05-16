@@ -56,10 +56,10 @@ contains
     !  Apply riverine input to oceanic tracer fields
     !***********************************************************************************************
 
-    use mo_control_bgc, only: dtb,do_rivinpt,use_cisonew
+    use mo_control_bgc, only: dtb,do_rivinpt,use_cisonew,use_dom
     use mo_param1_bgc,  only: nriv,irdin,irdip,irsi,iralk,iriron,irdoc,irdet,                      &
                               iano3,iphosph,isilica,isco212,iiron,idoc,idet,                       &
-                              ialkali,inatsco212,inatalkali
+                              ialkali,inatsco212,inatalkali,idocsl,idocsr,idocr
     use mo_param1_bgc,  only: idet13,idet14,idoc13,idoc14,isco213,isco214,safediv
     use mo_vgrid,       only: kmle
     use mo_carbch,      only: ocetra,rivinflx
@@ -137,8 +137,22 @@ contains
                &                          + rivin(i,j,irsi) *fdt/volij
           ocetra(i,j,1:kmle(i,j),iiron)   = ocetra(i,j,1:kmle(i,j),iiron)                          &
                &                          + rivin(i,j,iriron)*fdt/volij*dFe_frac
-          ocetra(i,j,1:kmle(i,j),idoc)    = ocetra(i,j,1:kmle(i,j),idoc)                           &
+          if (use_dom) then
+          ! JT Here assume 10% (labile), 10% (semi-labile), 40% (semi-refractory), and 
+          ! 40% (refractory) distribution following Kulinski et al. (2016)
+          ! https://doi.org/10.1016/j.marchem.2016.03.002
+            ocetra(i,j,1:kmle(i,j),idoc)  = ocetra(i,j,1:kmle(i,j),idoc)                           &
+               &                          + 0.1*rivin(i,j,irdoc)*fdt/volij
+            ocetra(i,j,1:kmle(i,j),idocsl)= ocetra(i,j,1:kmle(i,j),idocsl)                         &
+               &                          + 0.1*rivin(i,j,irdoc)*fdt/volij
+            ocetra(i,j,1:kmle(i,j),idocsr)= ocetra(i,j,1:kmle(i,j),idocsr)                         &
+               &                          + 0.4*rivin(i,j,irdoc)*fdt/volij
+            ocetra(i,j,1:kmle(i,j),idocr) = ocetra(i,j,1:kmle(i,j),idocr)                          &
+               &                          + 0.4*rivin(i,j,irdoc)*fdt/volij
+          else
+            ocetra(i,j,1:kmle(i,j),idoc)  = ocetra(i,j,1:kmle(i,j),idoc)                           &
                &                          + rivin(i,j,irdoc)*fdt/volij
+          endif
           ocetra(i,j,1:kmle(i,j),idet)    = ocetra(i,j,1:kmle(i,j),idet)                           &
                &                          + rivin(i,j,irdet)*fdt/volij
           ocetra(i,j,1:kmle(i,j),isco212) = ocetra(i,j,1:kmle(i,j),isco212)                        &

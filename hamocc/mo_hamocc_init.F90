@@ -44,7 +44,8 @@ contains
                               dtb,dtbgc,io_stdo_bgc,ldtbgc,                                        &
                               ldtrunbgc,ndtdaybgc,with_dmsph,l_3Dvarsedpor,                        &
                               ocn_co2_type, use_sedbypass, use_BOXATM, use_BROMO
-    use mo_param1_bgc,  only: ks,init_por2octra_mapping
+    use mo_param1_bgc,  only: ks,init_por2octra_mapping                                            &
+                              ,iphosph,iano3,isilica
     use mo_param_bgc,   only: ini_parambgc
     use mo_carbch,      only: alloc_mem_carbch,ocetra,atm,atm_co2
     use mo_biomod,      only: alloc_mem_biomod
@@ -199,6 +200,12 @@ contains
     if (read_rest.eq.1) then
       call AUFR_BGC(idm,jdm,kdm,ntr,ntrbgc,itrbgc,trc,                           &
            &   date%year,date%month,date%day,omask,rstfnm_hamocc)
+    !jt   trc(1:idm,1:jdm,1    :kdm,  itrbgc-1+iphosph) = ocetra(:,:,:,iphosph) !jt
+    !jt   trc(1:idm,1:jdm,kdm+1:2*kdm,itrbgc-1+iphosph) = ocetra(:,:,:,iphosph) !jt
+    !jt   trc(1:idm,1:jdm,1    :kdm,  itrbgc-1+iano3)   = ocetra(:,:,:,iano3)   !jt
+    !jt   trc(1:idm,1:jdm,kdm+1:2*kdm,itrbgc-1+iano3)   = ocetra(:,:,:,iano3)   !jt
+    !jt   trc(1:idm,1:jdm,1    :kdm,  itrbgc-1+isilica) = ocetra(:,:,:,isilica) !jt
+    !jt   trc(1:idm,1:jdm,kdm+1:2*kdm,itrbgc-1+isilica) = ocetra(:,:,:,isilica) !jt
     else
       trc(1:idm,1:jdm,1    :kdm,  itrbgc:itrbgc+ntrbgc-1) = ocetra(:,:,:,:)
       trc(1:idm,1:jdm,kdm+1:2*kdm,itrbgc:itrbgc+ntrbgc-1) = ocetra(:,:,:,:)

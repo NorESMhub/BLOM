@@ -48,6 +48,7 @@ contains
     use mo_param1_bgc,  only: ialkali,ian2o,iano3,iatmco2,iatmn2,iatmn2o,iatmo2,icalc,idet,idoc,   &
                               igasnit,iopal,ioxygen,iphosph,iphy,ipowaic,ipowaox,ipowaph,ipowasi,  &
                               ipown2,ipowno3,isco212,isilica,isssc12,issso12,issssil,izoo,         &
+                              idocsl,idocsr,idocr,                                                 &
                               irdin,irdip,irsi,iralk,irdoc,irdet,nocetra,npowtra,nsedtra,nriv
     use mo_vgrid,       only: dp_min
 
@@ -55,7 +56,7 @@ contains
     use mo_param1_bgc,  only: ks
     use mo_sedmnt,      only: porwat,seddw,sedlay,burial,sedhpl,powtra,porsol
     use mo_control_bgc, only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,   &
-                              use_CFC,use_natDIC,use_BROMO
+                              use_CFC,use_natDIC,use_BROMO,use_dom
 
     ! Arguments
     integer, intent(in) :: kpie,kpje,kpke
@@ -344,12 +345,16 @@ contains
          + zocetratot(izoo))*rcar+zocetratot(isco212)+zocetratot(icalc)   &
          + zpowtratot(ipowaic)+zsedlayto(isssc12)+zsedlayto(issso12)*rcar &
          + zburial(isssc12)+zburial(issso12)*rcar                         &
-         + zprorca*rcar+zprcaca
+         + zprorca*rcar+zprcaca 
 
     if (use_BOXATM) then
       totalcarbon = totalcarbon + zatmco2*ppm2con
     else
       totalcarbon = totalcarbon + co2flux
+    endif
+    if (use_dom) then
+      totalcarbon = totalcarbon + (zocetratot(idocsl)+zocetratot(idocsr)  & 
+                    + zocetratot(idocr))*rcar
     endif
 
     totalnitr=                                                            &
@@ -366,6 +371,10 @@ contains
     else
       totalnitr = totalnitr + sn2flux*2+sn2oflux*2
     endif
+    if (use_dom) then
+      totalnitr = totalnitr + (zocetratot(idocsl)+zocetratot(idocsr)      & 
+                    + zocetratot(idocr))*rnit 
+    endif
 
     totalphos=                                                            &
          zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)               &
@@ -373,6 +382,10 @@ contains
          + zpowtratot(ipowaph)+zsedlayto(issso12)                         &
          + zburial(issso12)                                               &
          + zprorca
+    if (use_dom) then
+      totalphos = totalphos + zocetratot(idocsl)+zocetratot(idocsr)       & 
+                    + zocetratot(idocr) 
+    endif
 
     totalsil=                                                             &
          zocetratot(isilica)+zocetratot(iopal)                            &
@@ -395,6 +408,10 @@ contains
       totaloxy = totaloxy + zatmo2*ppm2con+zatmco2*ppm2con
     else
       totaloxy = totaloxy + so2flux+sn2oflux*0.5+co2flux
+    endif
+    if (use_dom) then
+      totaloxy = totaloxy + (zocetratot(idocsl)+zocetratot(idocsr)        & 
+                    + zocetratot(idocr))*(-24.)
     endif
 
     if (do_rivinpt) then
@@ -647,9 +664,9 @@ contains
       use mo_param1_bgc, only: idicsat,idms,ifdust,iiron,iprefalk,iprefdic,iprefo2,iprefpo4,       &
                                iadust,inos,ibromo,icfc11,icfc12,isf6,icalc13,icalc14,idet13,       &
                                idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,   &
-                               inatalkali,inatcalc,inatsco212
+                               inatalkali,inatcalc,inatsco212,iprefdoc,iprefdocsl,iprefdocsr,iprefdocr
       use mo_control_bgc,only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,  &
-                               use_CFC,use_natDIC,use_BROMO
+                               use_CFC,use_natDIC,use_BROMO,use_dom
 
       implicit none
 
@@ -750,6 +767,15 @@ contains
 
       ! BROMO
       integer :: zt_bromo_varid,     zc_bromo_varid       ! Bromoform
+
+      ! DOM
+      integer :: zt_docsl_varid,     zc_docsl_varid       ! DOC semi-labile
+      integer :: zt_docsr_varid,     zc_docsr_varid       ! DOC semi-refractory
+      integer :: zt_docr_varid,      zc_docr_varid        ! DOC refractory
+      integer :: zt_prefdoc_varid,   zc_prefdoc_varid     ! Preformed DOC-L
+      integer :: zt_prefdocsl_varid, zc_prefdocsl_varid   ! Preformed DOC-SL
+      integer :: zt_prefdocsr_varid, zc_prefdocsr_varid   ! Preformed DOC-SR
+      integer :: zt_prefdocr_varid,  zc_prefdocr_varid    ! Preformed DOC-R
 
       !--- sum of inventory
       integer :: totcarb_varid, totphos_varid, totsili_varid, totnitr_varid
@@ -1387,6 +1413,92 @@ contains
           call nccheck( NF90_PUT_ATT(ncid, zc_bromo_varid, 'units', 'kmol/m^3') )
         endif
 
+        if (use_dom) then
+          call nccheck( NF90_DEF_VAR(ncid, 'zt_docsl', NF90_DOUBLE,                 &
+               &    time_dimid, zt_docsl_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zt_docsl_varid, 'long_name',             &
+               &    'Total semi-labile dom tracer') )
+          call nccheck( NF90_PUT_ATT(ncid, zt_docsl_varid, 'units', 'kmol') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zc_docsl', NF90_DOUBLE,                 &
+               &    time_dimid, zc_docsl_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zc_docsl_varid, 'long_name',             &
+               &    'Mean semi-labile dom concentration') )
+          call nccheck( NF90_PUT_ATT(ncid, zc_docsl_varid, 'units', 'kmol/m^3') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zt_docsr', NF90_DOUBLE,                 &
+               &    time_dimid, zt_docsr_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zt_docsr_varid, 'long_name',             &
+               &    'Total semi-refractory dom tracer') )
+          call nccheck( NF90_PUT_ATT(ncid, zt_docsr_varid, 'units', 'kmol') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zc_docsr', NF90_DOUBLE,                 &
+               &    time_dimid, zc_docsr_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zc_docsr_varid, 'long_name',             &
+               &    'Mean semi-refractory dom concentration') )
+          call nccheck( NF90_PUT_ATT(ncid, zc_docsl_varid, 'units', 'kmol/m^3') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zt_docr', NF90_DOUBLE,                  &
+               &    time_dimid, zt_docr_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zt_docr_varid, 'long_name',              &
+               &    'Total refractory dom tracer') )
+          call nccheck( NF90_PUT_ATT(ncid, zt_docr_varid, 'units', 'kmol') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zc_docr', NF90_DOUBLE,                  &
+               &    time_dimid, zc_docr_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zc_docr_varid, 'long_name',              &
+               &    'Mean refractory dom concentration') )
+          call nccheck( NF90_PUT_ATT(ncid, zc_docr_varid, 'units', 'kmol/m^3') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zt_prefdoc', NF90_DOUBLE,               &
+               &    time_dimid, zt_prefdoc_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zt_prefdoc_varid, 'long_name',           &
+               &    'Total preformed DOC-L tracer') )
+          call nccheck( NF90_PUT_ATT(ncid, zt_prefdoc_varid, 'units', 'kmol') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zc_prefdoc', NF90_DOUBLE,               &
+               &    time_dimid, zc_prefdoc_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zc_prefdoc_varid, 'long_name',           &
+               &    'Mean preformed DOC-L concentration') )
+          call nccheck( NF90_PUT_ATT(ncid, zc_prefdoc_varid, 'units', 'kmol/m^3') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zt_prefdocsl', NF90_DOUBLE,               &
+               &    time_dimid, zt_prefdocsl_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zt_prefdocsl_varid, 'long_name',           &
+               &    'Total preformed DOC-SL tracer') )
+          call nccheck( NF90_PUT_ATT(ncid, zt_prefdocsl_varid, 'units', 'kmol') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zc_prefdocsl', NF90_DOUBLE,               &
+               &    time_dimid, zc_prefdocsl_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zc_prefdocsl_varid, 'long_name',           &
+               &    'Mean preformed DOC-SL concentration') )
+          call nccheck( NF90_PUT_ATT(ncid, zc_prefdocsl_varid, 'units', 'kmol/m^3') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zt_prefdocsr', NF90_DOUBLE,               &
+               &    time_dimid, zt_prefdocsr_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zt_prefdocsr_varid, 'long_name',           &
+               &    'Total preformed DOC-SR tracer') )
+          call nccheck( NF90_PUT_ATT(ncid, zt_prefdocsr_varid, 'units', 'kmol') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zc_prefdocsr', NF90_DOUBLE,               &
+               &    time_dimid, zc_prefdocsr_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zc_prefdocsr_varid, 'long_name',           &
+               &    'Mean preformed DOC-SR concentration') )
+          call nccheck( NF90_PUT_ATT(ncid, zc_prefdocsr_varid, 'units', 'kmol/m^3') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zt_prefdocr', NF90_DOUBLE,               &
+               &    time_dimid, zt_prefdocr_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zt_prefdocr_varid, 'long_name',           &
+               &    'Total preformed DOC-R tracer') )
+          call nccheck( NF90_PUT_ATT(ncid, zt_prefdocr_varid, 'units', 'kmol') )
+
+          call nccheck( NF90_DEF_VAR(ncid, 'zc_prefdocr', NF90_DOUBLE,               &
+               &    time_dimid, zc_prefdocr_varid) )
+          call nccheck( NF90_PUT_ATT(ncid, zc_prefdocr_varid, 'long_name',           &
+               &    'Mean preformed DOC-R concentration') )
+          call nccheck( NF90_PUT_ATT(ncid, zc_prefdocr_varid, 'units', 'kmol/m^3') )
+        endif
+
         !--- Define variables : sum of inventory
         call nccheck( NF90_DEF_VAR(ncid, 'totcarb', NF90_DOUBLE, time_dimid,      &
              &    totcarb_varid) )
@@ -1580,6 +1692,22 @@ contains
         if (use_BROMO) then
           call nccheck( NF90_INQ_VARID(ncid, "zt_bromo", zt_bromo_varid) )
           call nccheck( NF90_INQ_VARID(ncid, "zc_bromo", zc_bromo_varid) )
+        endif
+        if (use_dom) then
+          call nccheck( NF90_INQ_VARID(ncid, "zt_docsl", zt_docsl_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zc_docsl", zc_docsl_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zt_docsr", zt_docsr_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zc_docsr", zc_docsr_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zt_docr", zt_docr_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zc_docr", zc_docr_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zt_prefdoc", zt_prefdoc_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zc_prefdoc", zc_prefdoc_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zt_prefdocsl", zt_prefdocsl_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zc_prefdocsl", zc_prefdocsl_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zt_prefdocsr", zt_prefdocsr_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zc_prefdocsr", zc_prefdocsr_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zt_prefdocr", zt_prefdocr_varid) )
+          call nccheck( NF90_INQ_VARID(ncid, "zc_prefdocr", zc_prefdocr_varid) )
         endif
         !--- Inquire varid : sum of inventory
         call nccheck( NF90_INQ_VARID(ncid, "totcarb", totcarb_varid) )
@@ -1809,6 +1937,36 @@ contains
              &    zocetratot(ibromo), start = wrstart) )
         call nccheck( NF90_PUT_VAR(ncid, zc_bromo_varid,                             &
              &    zocetratoc(ibromo), start = wrstart) )
+      endif
+      if (use_dom) then
+        call nccheck( NF90_PUT_VAR(ncid, zt_docsl_varid,                             &
+             &    zocetratot(idocsl), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zc_docsl_varid,                             &
+             &    zocetratoc(idocsl), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zt_docsr_varid,                             &
+             &    zocetratot(idocsr), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zc_docsr_varid,                             &
+             &    zocetratoc(idocsr), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zt_docr_varid,                              &
+             &    zocetratot(idocr), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zc_docr_varid,                              &
+             &    zocetratoc(idocr), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zt_prefdoc_varid,                           &
+             &    zocetratot(iprefdoc), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zc_prefdoc_varid,                           &
+             &    zocetratoc(iprefdoc), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zt_prefdocsl_varid,                         &
+             &    zocetratot(iprefdocsl), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zc_prefdocsl_varid,                         &
+             &    zocetratoc(iprefdocsl), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zt_prefdocsr_varid,                         &
+             &    zocetratot(iprefdocsr), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zc_prefdocsr_varid,                         &
+             &    zocetratoc(iprefdocsr), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zt_prefdocr_varid,                          &
+             &    zocetratot(iprefdocr), start = wrstart) )
+        call nccheck( NF90_PUT_VAR(ncid, zc_prefdocr_varid,                          &
+             &    zocetratoc(iprefdocr), start = wrstart) )
       endif
       !--- Write data : sum of inventory
       call nccheck( NF90_PUT_VAR(ncid, totcarb_varid, totalcarbon,                 &

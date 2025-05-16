@@ -82,7 +82,7 @@ contains
 
     !$OMP PARALLEL DO                                                       &
     !$OMP&PRIVATE(sedb1,sediso,solrat,powcar,aerob,anaerob,                 &
-    !$OMP&        dissot,undsa,posol,                                       &
+    !$OMP&        dissot,undsa,posol,sulf,                                  &
     !$OMP&        umfa,denit,saln,rrho,alk,c,sit,pt,                        &
     !$OMP&        K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,                       &
     !$OMP&        ah1,ac,cu,cb,cc,satlev,                                   &

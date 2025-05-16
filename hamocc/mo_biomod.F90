@@ -70,6 +70,14 @@ module mo_biomod
   real, dimension (:,:),   allocatable, public :: calflx4000
   real, dimension (:,:),   allocatable, public :: calflx_bot
   real, dimension (:,:,:), allocatable, public :: phosy3d
+  real, dimension (:,:),   allocatable, public :: int_exudl
+  real, dimension (:,:),   allocatable, public :: int_exudsl
+  real, dimension (:,:),   allocatable, public :: int_excrl
+  real, dimension (:,:),   allocatable, public :: int_excrsl
+  real, dimension (:,:),   allocatable, public :: int_docl_rem
+  real, dimension (:,:),   allocatable, public :: int_docsl_rem
+  real, dimension (:,:),   allocatable, public :: int_docr_rem
+  real, dimension (:,:),   allocatable, public :: int_docsr_rem
 
   ! Variables for interactive phytoplanktion absorption (use_FB_BGC_OCE=.true.)
   real, dimension (:,:,:), allocatable, public :: abs_oce
@@ -92,7 +100,7 @@ CONTAINS
     !******************************************************************************
     use mod_xc,         only: mnproc
     use mo_control_bgc, only: io_stdo_bgc
-    use mo_control_bgc, only: use_FB_BGC_OCE,use_AGG,use_BROMO
+    use mo_control_bgc, only: use_FB_BGC_OCE,use_AGG,use_BROMO,use_dom
 
     ! Arguments
     integer, intent(in) :: kpie
@@ -338,6 +346,88 @@ CONTAINS
       if(errstat.ne.0) stop 'not enough memory int_chbr3_prod, int_chbr3_uv'
       int_chbr3_prod(:,:) = 0.0
       int_chbr3_uv(:,:) = 0.0
+    endif
+
+    if (use_dom) then
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable int_exudl ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      endif
+
+      allocate (int_exudl(kpie,kpje),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory int_exudl'
+      int_exudl(:,:) = 0.0
+
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable int_exudsl ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      endif
+
+      allocate (int_exudsl(kpie,kpje),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory int_exudsl'
+      int_exudsl(:,:) = 0.0
+
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable int_excrl ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      endif
+
+      allocate (int_excrl(kpie,kpje),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory int_excrl'
+      int_excrl(:,:) = 0.0
+
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable int_excrsl ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      endif
+
+      allocate (int_excrsl(kpie,kpje),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory intexcrsl'
+      int_excrsl(:,:) = 0.0
+
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable int_docl_rem ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      endif
+
+      allocate (int_docl_rem(kpie,kpje),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory int_docl_rem'
+      int_docl_rem(:,:) = 0.0
+
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable int_docsl_rem ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      endif
+
+      allocate (int_docsl_rem(kpie,kpje),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory int_docsl_rem'
+      int_docsl_rem(:,:) = 0.0
+
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable int_docsr_rem ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      endif
+
+      allocate (int_docsr_rem(kpie,kpje),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory int_docsr_rem'
+      int_docsr_rem(:,:) = 0.0
+
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable int_docr_rem ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      endif
+
+      allocate (int_docr_rem(kpie,kpje),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory int_docr_rem'
+      int_docr_rem(:,:) = 0.0
     endif
 
   end subroutine alloc_mem_biomod
