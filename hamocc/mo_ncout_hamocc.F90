@@ -443,7 +443,7 @@ contains
       call finlyr(jagg_Vrhof(iogrp),jdp(iogrp))
       call finlyr(jagg_Vpor(iogrp),jdp(iogrp))
     endif
-   if (use_dom) then
+    if (use_dom) then
       call finlyr(jdocsl(iogrp),jdp(iogrp))
       call finlyr(jdocsr(iogrp),jdp(iogrp))
       call finlyr(jdocr(iogrp),jdp(iogrp))

@@ -213,10 +213,10 @@ contains
     ! --- Initialise reading of input data (dust, n-deposition, river, etc.)
     !
     if (.not. use_stream_dust) then
-    call ini_read_fedep(idm,jdm,omask)
+      call ini_read_fedep(idm,jdm,omask)
     end if
     if (.not. use_coupler_ndep) then
-    call ini_read_ndep(idm,jdm)
+      call ini_read_ndep(idm,jdm)
     end if
     call ini_read_rivin(idm,jdm,omask)
     call ini_read_shelfmask(idm,jdm,nbdy,depths,omask)
