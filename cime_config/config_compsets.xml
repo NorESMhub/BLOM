@@ -11,22 +11,6 @@
 
     The notation for the compset longname is
     TIME_ATM[%phys]_LND[%phys]_ICE[%phys]_OCN[%phys]_ROF[%phys]_GLC[%phys]_WAV[%phys][_BGC%phys]
-    Where for the CAM specific compsets below the following is supported
-    TIME = Time period (e.g. 2000, HIST, RCP8...)
-    ATM  = [CAM4, CAM5]
-    LND  = [CLM40, CLM45, CLM50, SLND]
-    ICE  = [CICE, DICE, SICE]
-    OCN  = [DOCN, ,AQUAP, SOCN]
-    ROF  = [RTM, SROF]
-    GLC  = [CISM1, CISM2, SGLC]
-    WAV  = [SWAV]
-    BGC  = optional BGC scenario
-
-    The OPTIONAL %phys attributes specify submodes of the given system
-    For example DOCN%DOM is the data ocean model for DOCN
-    ALL the possible %phys choices for each component are listed
-    with the -list command for create_newcase
-    ALL data models must have a %phys option that corresponds to the data  model mode
 
     Each compset node is associated with the following elements
     - lname
@@ -36,71 +20,145 @@
     - grid  (optional regular expression match for grid to work with the compset)
   </help>
 
+  <!-- Normal year forcing - with prognostic wave -->
+
   <compset>
     <alias>NOINY_WW3</alias>
-    <lname>2000_DATM%NYF_SLND_CICE_BLOM_DROF%NYF_SGLC_WW3DEV</lname>
+    <lname>2000_DATM%NYF_SLND_CICE_BLOM%HYB_DROF%NYF_SGLC_WW3</lname>
   </compset>
 
   <compset>
     <alias>NOINYOC_WW3</alias>
-    <lname>2000_DATM%NYF_SLND_CICE_BLOM%ECO_DROF%NYF_SGLC_WW3DEV</lname>
+    <lname>2000_DATM%NYF_SLND_CICE_BLOM%HYB%ECO_DROF%NYF_SGLC_WW3</lname>
   </compset>
+
+  <!-- Normal year forcing - no prognostic wave -->
 
   <compset>
     <alias>NOINY</alias>
-    <lname>2000_DATM%NYF_SLND_CICE_BLOM_DROF%NYF_SGLC_SWAV</lname>
+    <lname>2000_DATM%NYF_SLND_CICE_BLOM%HYB_DROF%NYF_SGLC_SWAV</lname>
   </compset>
 
   <compset>
     <alias>NOINYOC</alias>
+    <lname>1850_DATM%NYF_SLND_CICE_BLOM%HYB%ECO_DROF%NYF_SGLC_SWAV</lname>
+  </compset>
+  <compset>
+    <!-- not valid for noresm2.5 -->
+    <alias>N2NOINYOC</alias>
     <lname>1850_DATM%NYF_SLND_CICE_BLOM%ECO_DROF%NYF_SGLC_SWAV</lname>
   </compset>
 
   <compset>
     <alias>NOIIA</alias>
+    <lname>2000_DATM%IAF_SLND_CICE_BLOM%HYB_DROF%IAF_SGLC_SWAV</lname>
+  </compset>
+  <compset>
+    <!-- not valid for noresm2.5 -->
+    <alias>N2NOIIA</alias>
     <lname>2000_DATM%IAF_SLND_CICE%NORESM-CMIP6_BLOM_DROF%IAF_SGLC_SWAV</lname>
   </compset>
 
   <compset>
     <alias>NOIIAOC</alias>
+    <lname>2000_DATM%IAF_SLND_CICE_BLOM%HYB%ECO_DROF%IAF_SGLC_SWAV</lname>
+  </compset>
+  <compset>
+    <!-- not valid for noresm2.5 -->
+    <alias>N2NOIIAOC</alias>
     <lname>2000_DATM%IAF_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%IAF_SGLC_SWAV</lname>
   </compset>
 
   <compset>
     <alias>NOIIAOC20TR</alias>
+    <lname>20TR_DATM%IAF_SLND_CICE_BLOM%HYB%ECO_DROF%IAF_SGLC_SWAV</lname>
+  </compset>
+  <compset>
+    <!-- not valid for noresm2.5 -->
+    <alias>N2NOIIAOC20TR</alias>
     <lname>20TR_DATM%IAF_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%IAF_SGLC_SWAV</lname>
   </compset>
 
+  <!-- JRA forcing - no prognostic wave -->
+
   <compset>
     <alias>NOIIAJRA</alias>
+    <lname>2000_DATM%JRA-1p4-2018_SLND_CICE_BLOM%HYB_DROF%JRA-1p4-2018_SGLC_SWAV</lname>
+  </compset>
+  <compset>
+    <!-- not valid for noresm2.5 -->
+    <alias>N2NOIIAJRA</alias>
     <lname>2000_DATM%JRA_SLND_CICE%NORESM-CMIP6_BLOM_DROF%JRA_SGLC_SWAV</lname>
   </compset>
 
   <compset>
     <alias>NOIIAJRAOC</alias>
+    <lname>2000_DATM%JRA-1p4-2018_SLND_CICE_BLOM%HYB%ECO_DROF%JRA-1p4-2018_SGLC_SWAV</lname>
+  </compset>
+  <compset>
+    <!-- not valid for noresm2.5 -->
+    <alias>N2NOIIAJRAOC</alias>
     <lname>2000_DATM%JRA_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%JRA_SGLC_SWAV</lname>
   </compset>
 
   <compset>
-    <alias>NOIIAJRAOC20TR</alias>
-    <lname>20TR_DATM%JRA_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%JRA_SGLC_SWAV</lname>
+    <alias>NOIIAJRAOC1850</alias>
+    <lname>1850_DATM%JRA-1p4-2018_SLND_CICE_BLOM%HYB%ECO_DROF%JRA-1p4-2018_SGLC_SWAV</lname>
+  </compset>
+  <compset>
+    <!-- not valid for noresm2.5 -->
+    <alias>N2NOIIAJRAOC1850</alias>
+    <lname>1850_DATM%JRA_SLND_CICE_BLOM%ECO_DROF%JRA_SGLC_SWAV</lname>
   </compset>
 
   <compset>
-    <alias>NOICPLHISTOC</alias>
-    <lname>1850_DATM%CPLHIST_SLND_CICE_BLOM%ECO_DROF%CPLHIST_SGLC_SWAV</lname>
+    <alias>NOIIAJRAOC20TR</alias>
+    <lname>20TR_DATM%JRA-1p4-2018_SLND_CICE_BLOM%HYB%ECO_DROF%JRA-1p4-2018_SGLC_SWAV</lname>
+  </compset>
+  <compset>
+    <!-- not valid for noresm2.5 -->
+    <alias>N2NOIIAJRAOC20TR</alias>
+    <lname>20TR_DATM%JRA_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%JRA_SGLC_SWAV</lname>
   </compset>
 
 
-  <entries>
+  <!-- JRA repeat year forcing - no prognostic wave -->
+  
+  <compset>
+    <alias>NOINYJRARYF1961OC</alias>
+    <lname>1850_DATM%JRARYF1961_SLND_CICE_BLOM%HYB%ECO_DROF%JRARYF1961_SGLC_SWAV</lname>
+  </compset>
+  <compset>
+    <!-- not valid for noresm2.5 -->
+    <alias>N2NOINYJRARYF1961OC</alias>
+    <lname>1850_DATM%JRARYF1961_SLND_CICE_BLOM%ECO_DROF%JRARYF1961_SGLC_SWAV</lname>
+  </compset>
+  <compset>
+    <alias>NOIIAJRARYF6162OC</alias>
+    <lname>1850_DATM%JRA-RYF6162_SLND_CICE_BLOM%HYB%ECO_DROF%JRA-RYF6162_SGLC_SWAV</lname>
+  </compset>
+  <compset>
+    <alias>NOIIAJRARYF8485OC</alias>
+    <lname>1850_DATM%JRA-RYF8485_SLND_CICE_BLOM%HYB%ECO_DROF%JRA-RYF8485_SGLC_SWAV</lname>
+  </compset>
 
+  
+  <!-- CPLHIST forcing - no prognostic wave -->
+
+  <compset>
+    <alias>NOICPLHISTOC</alias>
+    <lname>1850_DATM%CPLHIST_SLND_CICE_BLOM%HYB%ECO_DROF%CPLHIST_SGLC_SWAV</lname>
+  </compset>
+
+  <entries>
     <entry id="RUN_STARTDATE">
       <values match="last">
         <value  compset="20TR_DATM%IAF_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%IAF_SGLC_SWAV">1700-01-01</value>
         <value  compset="20TR_DATM%JRA_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%JRA_SGLC_SWAV">1653-01-01</value>
+        <value  compset="20TR_DATM%IAF_SLND_CICE_BLOM%HYB%ECO_DROF%IAF_SGLC_SWAV">1700-01-01</value>
+        <value  compset="20TR_DATM%JRA-1p4-2018_SLND_CICE_BLOM%HYB%ECO_DROF%JRA-1p4-2018_SGLC_SWAV">1653-01-01</value>
       </values>
     </entry>
-
   </entries>
 
 </compsets>

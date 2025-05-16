@@ -3,7 +3,8 @@
 """
 build blom library
 """
-import os, shutil, sys, glob, imp
+import os, shutil, sys, glob
+from importlib.machinery import SourceFileLoader
 
 _CIMEROOT = os.environ.get("CIMEROOT")
 if _CIMEROOT is None:
@@ -33,7 +34,7 @@ def _main_func():
         cmd = os.path.join(os.path.join(comp_root_dir_ocn, "cime_config", "buildcpp"))
         logger.info("     ...calling blom buildcpp to set build time options")
         try:
-            mod = imp.load_source("buildcpp", cmd)
+            mod = SourceFileLoader("buildcpp", cmd).load_module()
             blom_cppdefs = mod.buildcpp(case)
         except:
             raise
@@ -54,7 +55,6 @@ def _main_func():
 
             objroot = case.get_value("OBJROOT")
             comp_root_dir_ocn = case.get_value("COMP_ROOT_DIR_OCN")
-            turbclo = case.get_value("BLOM_TURBULENT_CLOSURE")
             tracers = case.get_value("BLOM_TRACER_MODULES")
             driver = case.get_value("COMP_INTERFACE")
 
@@ -62,21 +62,22 @@ def _main_func():
                      os.path.join(objroot, "ocn", "src"),
                      os.path.join(comp_root_dir_ocn, "ben02"),
                      os.path.join(comp_root_dir_ocn, "cesm"),
+                     os.path.join(comp_root_dir_ocn, "noforcing"),
                      os.path.join(comp_root_dir_ocn, "fuk95"),
                      os.path.join(comp_root_dir_ocn, "channel"),
                      os.path.join(comp_root_dir_ocn, "single_column"),
                      os.path.join(comp_root_dir_ocn, "pkgs", "CVMix-src", "src", "shared"),
-                     os.path.join(comp_root_dir_ocn, "phy")]
-
-            if turbclo != 0 and tracers != 0:
-                paths.append(os.path.join(comp_root_dir_ocn, "trc"))
+                     os.path.join(comp_root_dir_ocn, "phy"),
+                     os.path.join(comp_root_dir_ocn, "trc"),
+                     os.path.join(comp_root_dir_ocn, "idlage")]
 
             if tracers != 0:
                 for module in tracers.split():
                     if module == "iage":
-                        paths.append(os.path.join(comp_root_dir_ocn, "idlage"))
+                        continue
                     elif module == "ecosys":
                         paths.append(os.path.join(comp_root_dir_ocn, "hamocc"))
+                        paths.append(os.path.join(comp_root_dir_ocn, "pkgs", "M4AGO-sinking-scheme", "src"))
                     else:
                         expect(False, "tracer module {} is not recognized".format(module))
 

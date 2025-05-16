@@ -1,5 +1,6 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2020 Mats Bentsen, Alok Kumar Gupta, Ping-Gin Chiu
+! Copyright (C) 2008-2025 Mats Bentsen, Alok Kumar Gupta, Ping-Gin Chiu,
+!                         Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -23,41 +24,54 @@ module ocn_comp_mct
    ! BLOM interface module for the cesm cpl7 mct system
    ! -------------------------------------------------------------------
 
-   ! CESM  modules
    use mct_mod
-   use esmf, only: ESMF_Clock
-   use seq_cdata_mod, only: seq_cdata, seq_cdata_setptrs
-   use seq_infodata_mod, only: &
-      seq_infodata_type, seq_infodata_getdata, &
-      seq_infodata_putdata, seq_infodata_start_type_cont, &
-      seq_infodata_start_type_brnch, seq_infodata_start_type_start
+   use esmf,             only: ESMF_Clock
+   use seq_cdata_mod,    only: seq_cdata, seq_cdata_setptrs
+   use seq_infodata_mod, only: seq_infodata_type, seq_infodata_getdata, &
+                               seq_infodata_putdata, seq_infodata_start_type_cont, &
+                               seq_infodata_start_type_brnch, seq_infodata_start_type_start
    use seq_flds_mod
-   use seq_timemgr_mod, only: &
-      seq_timemgr_EClockGetData, seq_timemgr_RestartAlarmIsOn, &
-      seq_timemgr_EClockDateInSync,seq_timemgr_pauseAlarmIsOn
-   use seq_comm_mct, only: seq_comm_suffix, seq_comm_inst, seq_comm_name
-   use shr_file_mod, only: &
-      shr_file_getUnit, shr_file_setIO, &
-      shr_file_getLogUnit, shr_file_getLogLevel, &
-      shr_file_setLogUnit, shr_file_setLogLevel, &
-      shr_file_freeUnit
-   use shr_cal_mod, only: shr_cal_date2ymd
-   use shr_sys_mod, only: shr_sys_abort, shr_sys_flush
-   use perf_mod, only: t_startf, t_stopf
+   use seq_timemgr_mod,  only: seq_timemgr_EClockGetData, &
+                               seq_timemgr_RestartAlarmIsOn, &
+                               seq_timemgr_EClockDateInSync,seq_timemgr_pauseAlarmIsOn
+   use seq_comm_mct,     only: seq_comm_suffix, seq_comm_inst, seq_comm_name
+   use shr_file_mod,     only: shr_file_getUnit, shr_file_setIO, &
+                               shr_file_getLogUnit, shr_file_getLogLevel, &
+                               shr_file_setLogUnit, shr_file_setLogLevel, &
+                               shr_file_freeUnit
+   use shr_cal_mod,      only: shr_cal_date2ymd
+   use shr_sys_mod,      only: shr_sys_abort, shr_sys_flush
+   use shr_const_mod,    only: SHR_CONST_REARTH
+   use perf_mod,         only: t_startf, t_stopf
 
-   use mod_types, only: r8
-   use mod_config, only: inst_index, inst_name, inst_suffix, resume_flag
-   use mod_time, only: blom_time
-   use mod_cesm, only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
-   use mod_xc
+   ! BLOM modules
+   use dimensions,       only: idm, jdm, nreg, itdm, jtdm
+   use mod_types,        only: r8
+   use mod_config,       only: inst_index, inst_name, inst_suffix, resume_flag
+   use mod_time,         only: blom_time, nstep, baclin, delt1, dlt
+   use mod_cesm,         only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
+   use mod_xc,           only: mnproc, mpicom_external, xctilr, lp, nbdy, &
+                               ii, jj, kk, i0, j0, nproc, jpr, cplmsk, halo_ps, &
+                               ifu, ilu, isv, ifv, ilv, isp, ifp, ilp, isu
+   use mod_blom_init,    only: blom_init
+   use mod_restart,      only: restart_write, restart_read
+   use mod_blom_step,    only: blom_step
+   use mod_fill_global,  only: fill_global
+   use mod_forcing,      only: sprfac, prfac, flxco2, flxdms, flxbrf, flxn2o, flxnh3
+   use mod_grid,         only: scp2, plon, plat, scuy, scvx, scuxi, scvyi
+   use mod_state,        only: u, v, temp, saln, pbu, pbv, ubflxs, vbflxs, sealv
+   use mod_cesm,         only: frzpot
+   use mod_utility,      only: fnmlen
    use blom_cpl_indices
 
    implicit none
-
-   public :: ocn_init_mct, ocn_run_mct, ocn_final_mct
-   private :: ocn_SetGSMap_mct
-
    private
+
+   public  :: ocn_init_mct, ocn_run_mct, ocn_final_mct
+   private :: ocn_SetGSMap_mct
+   private :: domain_mct
+   private :: getprecipfact_mct
+   private :: sumsbuff_mct
 
    integer, dimension(:), allocatable ::  &
       perm              ! Permutation array to reorder points
@@ -65,7 +79,6 @@ module ocn_comp_mct
    real(r8), dimension(:,:,:), allocatable :: &
       sbuff             ! Accumulated sum of send buffer quantities for
                         ! averaging before being sent
-
    integer :: &
       lsize, &          ! Size of attribute vector
       jjcpl, &          ! y-dimension of local ocean domain to send/receive
@@ -80,19 +93,17 @@ module ocn_comp_mct
    logical :: &
       lsend_precip_fact ! Flag for sending precipitation/runoff factor
 
-   contains
-
+ contains
 
    subroutine ocn_init_mct(EClock, cdata_o, x2o_o, o2x_o, NLFilename)
 
       ! Input/output arguments
-
       type(ESMF_Clock)            , intent(inout)    :: EClock
       type(seq_cdata)             , intent(inout) :: cdata_o
       type(mct_aVect)             , intent(inout) :: x2o_o, o2x_o
       character (len=*), optional , intent(in)    :: NLFilename ! Namelist filename
-      ! Local variables
 
+      ! Local variables
       type(mct_gsMap), pointer :: gsMap_ocn
       type(mct_gGrid), pointer :: dom_ocn
       type(seq_infodata_type), pointer :: infodata   ! Input init object
@@ -109,9 +120,6 @@ module ocn_comp_mct
       ! Set communicator to be used by blom
       mpicom_external = mpicom_ocn
 
-      ! Get file unit
-      nfu = shr_file_getUnit()
-
       ! Get multiple instance data
       inst_name   = seq_comm_name(OCNID)
       inst_index  = seq_comm_inst(OCNID)
@@ -124,7 +132,7 @@ module ocn_comp_mct
       call blom_cpl_indices_set()
 
       call seq_infodata_GetData( infodata, case_name = runid_cesm )
-   
+
       call seq_infodata_GetData( infodata, start_type = starttype)
 
       if     (trim(starttype) == trim(seq_infodata_start_type_start)) then
@@ -197,15 +205,15 @@ module ocn_comp_mct
       if (mnproc == 1) then
          write (lp, *) 'blom: ocn_init_mct: lsize', lsize
       endif
-   
+
       call domain_mct(gsMap_ocn, dom_ocn, lsize, perm, jjcpl)
-   
+
       ! Inialize mct attribute vectors
 
       call mct_aVect_init(x2o_o, rList = seq_flds_x2o_fields, lsize = lsize)
       call mct_aVect_zero(x2o_o)
-   
-      call mct_aVect_init(o2x_o, rList = seq_flds_o2x_fields, lsize = lsize) 
+
+      call mct_aVect_init(o2x_o, rList = seq_flds_o2x_fields, lsize = lsize)
       call mct_aVect_zero(o2x_o)
 
       nsend = mct_avect_nRattr(o2x_o)
@@ -264,6 +272,8 @@ module ocn_comp_mct
       ! Local variables
       type(seq_infodata_type), pointer :: infodata   ! Input init object
       integer :: shrlogunit, shrloglev, ymd, tod, ymd_sync, tod_sync
+      integer :: nfu
+      character(len = fnmlen) :: restartfn
 
       ! ----------------------------------------------------------------
       ! Reset shr logging to my log file
@@ -280,7 +290,7 @@ module ocn_comp_mct
              call blom_time(ymd, tod)
              write(lp,*)'Resume from restart: ymd=',ymd,' tod= ',tod
           endif
-         call restart_rd  !! resume_flag is applied
+         call restart_read  !! resume_flag is applied
          resume_flag = .false.
       end if
       !-----------------------------------------------------------------
@@ -293,7 +303,7 @@ module ocn_comp_mct
             ! Obtain import state from driver
             call import_mct(x2o_o, lsize, perm, jjcpl)
          endif
-      
+
          ! Advance the model a time step
          call blom_step
 
@@ -322,8 +332,16 @@ module ocn_comp_mct
       ! if requested, write restart file
       !-----------------------------------------------------------------
 
-      if (seq_timemgr_RestartAlarmIsOn(EClock).or.seq_timemgr_pauseAlarmIsOn(EClock)) then
-         call restart_wt
+      if (seq_timemgr_RestartAlarmIsOn(EClock) .or. &
+          seq_timemgr_pauseAlarmIsOn(EClock)) then
+         call restart_write (restartfn)
+        ! Write restart filename to rpointer.ocn.
+        ! we do not use rpoint variable, since it's only for restart read
+         if (mnproc == 1) then
+            open(newunit = nfu, file = 'rpointer.ocn'//trim(inst_suffix))
+            write(nfu, '(a)') restartfn
+            close(unit = nfu)
+         endif
       endif
       if (seq_timemgr_pauseAlarmIsOn(EClock)) resume_flag = .true.
 
@@ -426,5 +444,254 @@ module ocn_comp_mct
 
    end subroutine ocn_SetGSMap_mct
 
+   subroutine domain_mct(gsMap_ocn, dom_ocn, lsize, perm, jjcpl)
 
-end module ocn_comp_mct
+     ! Arguments
+     type(mct_gsMap)          , intent(in)    :: gsMap_ocn
+     type(mct_ggrid)          , intent(inout) :: dom_ocn
+     integer                  , intent(in)    :: lsize
+     integer, dimension(lsize), intent(in)    :: perm
+     integer                  , intent(in)    :: jjcpl
+
+     ! Local variables
+     integer, pointer :: idata(:)
+     real(r8), pointer :: rdata(:)
+     integer i, j, n
+     real(r8) :: radius
+
+     ! ----------------------------------------------------------------
+     ! Initialize mct domain type
+     ! lat/lon in degrees,  area in radians^2, mask is 1 (ocean),
+     ! 0 (non-ocean)
+     ! ----------------------------------------------------------------
+
+     call mct_gGrid_init(GGrid = dom_ocn, &
+                         CoordChars = trim(seq_flds_dom_coord), &
+                         OtherChars = trim(seq_flds_dom_other), &
+                         lsize = lsize)
+     allocate(rdata(lsize))
+
+     ! ----------------------------------------------------------------
+     ! Determine global gridpoint number attribute, GlobGridNum, which
+     ! is set automatically by MCT
+     ! ----------------------------------------------------------------
+
+     call mct_gsMap_orderedPoints(gsMap_ocn, mnproc - 1, idata)
+     call mct_gGrid_importIAttr(dom_ocn, 'GlobGridNum', idata, lsize)
+
+     ! ----------------------------------------------------------------
+     ! Determine domain (numbering scheme is: West to East and South to
+     ! North to South pole)
+     ! Initialize attribute vector with special value
+     ! ----------------------------------------------------------------
+
+     rdata(:) = -9999.0_r8
+     call mct_gGrid_importRAttr(dom_ocn, "lat"  , rdata, lsize)
+     call mct_gGrid_importRAttr(dom_ocn, "lon"  , rdata, lsize)
+     call mct_gGrid_importRAttr(dom_ocn, "area" , rdata, lsize)
+     call mct_gGrid_importRAttr(dom_ocn, "aream", rdata, lsize)
+     rdata(:) = 0.0_r8
+     call mct_gGrid_importRAttr(dom_ocn, "mask", rdata, lsize)
+     call mct_gGrid_importRAttr(dom_ocn, "frac", rdata, lsize)
+
+     ! ----------------------------------------------------------------
+     ! Fill in correct values for domain components
+     ! ----------------------------------------------------------------
+
+     ! A correction for north pole mapping of velocity fields in the
+     ! coupler requires longitudes in the range [0, 360) degrees to
+     ! work.
+     n = 0
+     do j = 1, jjcpl
+       do i = 1, ii
+         n = n + 1
+         rdata(n) = modulo(plon(i,j), 360._r8)
+       enddo
+     enddo
+     call mct_gGrid_importRattr(dom_ocn, "lon", rdata, lsize)
+
+     n = 0
+     do j = 1, jjcpl
+       do i = 1, ii
+         n = n + 1
+         rdata(n) = plat(i,j)
+       enddo
+     enddo
+     call mct_gGrid_importRattr(dom_ocn, "lat", rdata, lsize)
+
+     radius = SHR_CONST_REARTH ! Earth's radius in m
+
+     n = 0
+     do j = 1, jjcpl
+       do i = 1, ii
+         n = n + 1
+         rdata(n) = scp2(i,j)/(radius*radius)
+       enddo
+     enddo
+     call mct_gGrid_importRattr(dom_ocn, "area", rdata, lsize)
+
+     n = 0
+     do j = 1, jjcpl
+       do i = 1, ii
+         n = n + 1
+         rdata(n) = real(cplmsk(i,j), kind = r8)
+       enddo
+     enddo
+     call mct_gGrid_importRattr(dom_ocn, "mask", rdata, lsize)
+     call mct_gGrid_importRattr(dom_ocn, "frac", rdata, lsize)
+
+     !-----------------------------------------------------------------
+     ! Permute dom_ocn to have ascending order
+     !-----------------------------------------------------------------
+
+     call mct_gGrid_permute(dom_ocn, perm)
+     deallocate(rdata)
+
+   end subroutine domain_mct
+
+   subroutine getprecipfact_mct(lsend_precip_fact, precip_fact)
+     logical, intent(out)  :: lsend_precip_fact
+     real(r8), intent(out) :: precip_fact
+
+     lsend_precip_fact = sprfac
+     precip_fact = prfac
+
+   end subroutine getprecipfact_mct
+
+   subroutine sumsbuff_mct(nsend, sbuff, tlast_coupled)
+
+     ! Arguments
+     integer, intent(in) :: nsend
+     real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nsend), intent(inout) :: sbuff
+     real(r8), intent(inout) :: tlast_coupled
+
+     ! Local variables
+     integer i, j, l, k, m, n, mm, nn, k1m, k1n
+
+     !-----------------------------------------------------------------
+     ! Set send buffer to zero if this is the first call after a
+     ! coupling interval
+     !-----------------------------------------------------------------
+
+     if (tlast_coupled == 0._r8) then
+       do k = 1, nsend
+         do j = 1-nbdy, jdm+nbdy
+           do i = 1-nbdy, idm+nbdy
+             sbuff(i,j,k) = 0._r8
+           enddo
+         enddo
+       enddo
+     endif
+
+     !-----------------------------------------------------------------
+     ! Accumulate fields in send buffer
+     !-----------------------------------------------------------------
+
+     m   = mod(nstep+1,2)+1
+     n   = mod(nstep  ,2)+1
+     mm  = (m-1)*kk
+     nn  = (n-1)*kk
+     k1m = 1+mm
+     k1n = 1+nn
+
+     call xctilr(sealv, 1,1, 1,1, halo_ps)
+
+     do j = 1, jj
+       do l = 1, isu(j)
+         do i = max(1,ifu(j,l)), min(ii,ilu(j,l))
+           sbuff(i,j,index_o2x_So_u) = sbuff(i,j,index_o2x_So_u) &
+                + ( u(i,j,k1n)+ (ubflxs(i,j,m) + ubflxs(i,j,n))*dlt &
+                /(pbu(i,j,n)*scuy(i,j)*delt1))*baclin
+
+           sbuff(i,j,index_o2x_So_dhdx) = sbuff(i,j,index_o2x_So_dhdx) &
+                + (sealv(i,j)-sealv(i-1,j))*scuxi(i,j)*baclin
+         enddo
+       enddo
+     enddo
+
+     do j = 1, jj
+       do l = 1, isv(j)
+         do i = max(1,ifv(j,l)), min(ii,ilv(j,l))
+           sbuff(i,j,index_o2x_So_v) = sbuff(i,j,index_o2x_So_v) &
+                + ( v(i,j,k1n) + (vbflxs(i,j,m) + vbflxs(i,j,n))*dlt &
+                / (pbv(i,j,n)*scvx(i,j)*delt1))*baclin
+           sbuff(i,j,index_o2x_So_dhdy) = sbuff(i,j,index_o2x_So_dhdy) &
+                + (sealv(i,j)-sealv(i,j-1))*scvyi(i,j)*baclin
+         enddo
+       enddo
+     enddo
+
+     do j = 1, jj
+       do l = 1, isp(j)
+         do i = max(1,ifp(j,l)), min(ii,ilp(j,l))
+           sbuff(i,j,index_o2x_So_t) = sbuff(i,j,index_o2x_So_t) + temp(i,j,k1n)*baclin
+           sbuff(i,j,index_o2x_So_s) = sbuff(i,j,index_o2x_So_s) + saln(i,j,k1n)*baclin
+           sbuff(i,j,index_o2x_Fioo_q) = sbuff(i,j,index_o2x_Fioo_q) + frzpot(i,j)
+         enddo
+       enddo
+     enddo
+
+     if (index_o2x_Faoo_fco2_ocn > 0) then
+       do j = 1, jj
+         do l = 1, isp(j)
+           do i = max(1,ifp(j,l)), min(ii,ilp(j,l))
+             sbuff(i,j,index_o2x_Faoo_fco2_ocn) = sbuff(i,j,index_o2x_Faoo_fco2_ocn) &
+                  + flxco2(i,j)*baclin
+           enddo
+         enddo
+       enddo
+     endif
+
+     if (index_o2x_Faoo_fdms_ocn > 0) then
+       do j = 1, jj
+         do l = 1, isp(j)
+           do i = max(1,ifp(j,l)), min(ii,ilp(j,l))
+             sbuff(i,j,index_o2x_Faoo_fdms_ocn) = sbuff(i,j,index_o2x_Faoo_fdms_ocn) &
+                  + flxdms(i,j)*baclin
+           enddo
+         enddo
+       enddo
+     endif
+
+     if (index_o2x_Faoo_fbrf_ocn > 0) then
+       do j = 1, jj
+         do l = 1, isp(j)
+           do i = max(1,ifp(j,l)), min(ii,ilp(j,l))
+             sbuff(i,j,index_o2x_Faoo_fbrf_ocn) = sbuff(i,j,index_o2x_Faoo_fbrf_ocn) &
+                  + flxbrf(i,j)*baclin
+           enddo
+         enddo
+       enddo
+     endif
+
+      if (index_o2x_Faoo_fn2o_ocn > 0) then
+         do j = 1, jj
+            do l = 1, isp(j)
+            do i = max(1,ifp(j,l)), min(ii,ilp(j,l))
+               sbuff(i,j,index_o2x_Faoo_fn2o_ocn) = sbuff(i,j,index_o2x_Faoo_fn2o_ocn) &
+                    + flxn2o(i,j)*baclin
+            enddo
+            enddo
+         enddo
+      endif
+
+      if (index_o2x_Faoo_fnh3_ocn > 0) then
+         do j = 1, jj
+            do l = 1, isp(j)
+            do i = max(1,ifp(j,l)), min(ii,ilp(j,l))
+               sbuff(i,j,index_o2x_Faoo_fnh3_ocn) = sbuff(i,j,index_o2x_Faoo_fnh3_ocn) &
+                    + flxnh3(i,j)*baclin
+            enddo
+            enddo
+         enddo
+      endif
+
+     !-----------------------------------------------------------------
+     ! Increment time since last coupling
+     !-----------------------------------------------------------------
+
+     tlast_coupled = tlast_coupled + baclin
+
+   end subroutine sumsbuff_mct
+
+ end module ocn_comp_mct

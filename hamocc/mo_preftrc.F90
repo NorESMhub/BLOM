@@ -39,24 +39,25 @@ contains
     !***********************************************************************************************
 
     use mo_carbch,     only: ocetra
-    use mo_param1_bgc, only: ialkali,ioxygen,iphosph,iprefalk,iprefdic,iprefo2,iprefpo4,isco212,    &
+    use mo_param1_bgc, only: ialkali,ioxygen,iphosph,isilica,iprefalk,iprefdic,iprefo2,iprefpo4,isco212,iprefsilica,&
                              idoc,idocsl,idocsr,idocr,iprefdoc,iprefdocsl,iprefdocsr,iprefdocr
     use mo_vgrid,      only: kmle
     use mo_control_bgc,only: use_dom
 
     ! Arguments
-    integer :: kpie ! 1st dimension of model grid.
-    integer :: kpje ! 2nd dimension of model grid.
-    real    :: omask(kpie,kpje)
+    integer, intent(in) :: kpie ! 1st dimension of model grid.
+    integer, intent(in) :: kpje ! 2nd dimension of model grid.
+    real,    intent(in) :: omask(kpie,kpje) ! land-ocean mask
 
     ! Local variables
     integer :: i,j
 
     do j=1,kpje
       do i=1,kpie
-        if (omask(i,j) .gt. 0.5 ) then
+        if (omask(i,j) > 0.5 ) then
           ocetra(i,j,1:kmle(i,j),iprefo2)  = ocetra(i,j,1:kmle(i,j),ioxygen)
           ocetra(i,j,1:kmle(i,j),iprefpo4) = ocetra(i,j,1:kmle(i,j),iphosph)
+          ocetra(i,j,1:kmle(i,j),iprefsilica)= ocetra(i,j,1:kmle(i,j),isilica)
           ocetra(i,j,1:kmle(i,j),iprefalk) = ocetra(i,j,1:kmle(i,j),ialkali)
           ocetra(i,j,1:kmle(i,j),iprefdic) = ocetra(i,j,1:kmle(i,j),isco212)
           if (use_dom) then

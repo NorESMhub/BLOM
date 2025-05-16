@@ -22,41 +22,53 @@ module ocn_comp_nuopc
 ! This module contains the NUOPC cap for BLOM.
 ! ------------------------------------------------------------------------------
 
-   use ESMF ! TODO MOM6 uses "only" statements, while POP and CICE omits this.
-   use NUOPC, only: NUOPC_CompDerive, NUOPC_CompSetEntryPoint, &
-                    NUOPC_CompSpecialize, NUOPC_CompFilterPhaseMap, &
-                    NUOPC_IsUpdated, NUOPC_IsAtTime, NUOPC_CompAttributeGet, &
-                    NUOPC_Advertise, NUOPC_SetAttribute, &
-                    NUOPC_CompAttributeGet, NUOPC_CompAttributeSet, &
-                    NUOPC_IsConnected, NUOPC_Realize
-   use NUOPC_Model, only: NUOPC_ModelGet, SetVM, &
-                          model_routine_SS           => SetServices, &
-                          model_label_Advance        => label_Advance, &
-                          model_label_DataInitialize => label_DataInitialize, &
-                          model_label_SetRunClock    => label_SetRunClock, &
-                          model_label_Finalize       => label_Finalize
-   use nuopc_shr_methods, only : ChkErr, set_component_logging, &
-                                 get_component_instance, state_setscalar, &
-                                 alarmInit
-   use shr_file_mod, only: shr_file_getUnit, shr_file_getLogUnit, &
-                           shr_file_setLogUnit
-   use shr_cal_mod, only : shr_cal_ymd2date
-   use mod_nuopc_methods, only: fldlist_type, fldsMax, tlast_coupled, &
+   use ESMF  ! TODO add " only" statements
+   use NUOPC,             only: NUOPC_CompDerive, NUOPC_CompSetEntryPoint, &
+                                NUOPC_CompSpecialize, NUOPC_CompFilterPhaseMap, &
+                                NUOPC_IsUpdated, NUOPC_IsAtTime, NUOPC_CompAttributeGet, &
+                                NUOPC_Advertise, NUOPC_SetAttribute, &
+                                NUOPC_CompAttributeGet, NUOPC_CompAttributeSet, &
+                                NUOPC_IsConnected, NUOPC_Realize
+   use NUOPC_Model,       only: NUOPC_ModelGet, SetVM, &
+                                model_routine_SS           => SetServices, &
+                                model_label_Advance        => label_Advance, &
+                                model_label_DataInitialize => label_DataInitialize, &
+                                model_label_SetRunClock    => label_SetRunClock, &
+                                model_label_Finalize       => label_Finalize
+   use nuopc_shr_methods, only: ChkErr, set_component_logging, &
+                                get_component_instance, state_setscalar, &
+                                alarmInit, shr_get_rpointer_name
+   use shr_cal_mod,       only: shr_cal_ymd2date
+   use shr_log_mod,       only: shr_log_getLogUnit, shr_log_setLogUnit
+   use ocn_import_export, only: fldlist_type, fldsMax, tlast_coupled, &
                                 blom_logwrite, blom_getgindex, blom_checkmesh, &
                                 blom_setareacor, blom_getglobdim, &
                                 blom_getprecipfact, blom_accflds, &
                                 blom_importflds, blom_exportflds, &
                                 blom_advertise_imports, blom_advertise_exports
-   use mod_xc, only: mpicom_external, lp, nfu
-   use mod_cesm, only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
-   use mod_config, only: inst_index, inst_name, inst_suffix
-   use mod_time, only: blom_time
+   use mod_xc,            only: mpicom_external, lp, xchalt, mnproc
+   use mod_cesm,          only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
+   use mod_config,        only: inst_index, inst_name, inst_suffix, runtyp
+   use mod_time,          only: blom_time
+   use mod_forcing,       only: srxday, trxday
+   use mod_constants,     only: epsilt
+   use mod_blom_init,     only: blom_init
+   use mod_blom_step,     only: blom_step
+   use mod_fill_global,   only: fill_global
+   use mod_restart,       only: restart_write
+   use ocn_stream_sss,    only: ocn_stream_sss_init, ocn_stream_sss_interp
+   use ocn_stream_sst,    only: ocn_stream_sst_init, ocn_stream_sst_interp
+   use mod_utility,       only: fnmlen
+#ifdef HAMOCC
+   use mo_control_bgc,    only: use_BROMO
+   use ocn_stream_dust,   only: ocn_stream_dust_init, ocn_stream_dust_interp
+   use mod_forcing,       only: use_stream_dust
+#endif
 
    implicit none
 
    private
 
-   integer, parameter :: cslen = 80  ! Short character string length.
    integer, parameter :: cllen = 265 ! Long character string length.
    character(len=*), parameter :: modname = '(ocn_comp_nuopc)'
    character(len=*), parameter :: u_FILE_u = &
@@ -73,14 +85,16 @@ module ocn_comp_nuopc
    integer              :: flds_scalar_index_ny = 0
    integer              :: flds_scalar_index_precip_factor = 0
 
-   logical              :: ocn2glc_coupling, flds_dms_med
-
    integer :: dbug = 0
    logical :: profile_memory = .false.
 
+   logical:: write_restart_at_endofrun = .false.
+
    public :: SetServices, SetVM
 
+!================================================================================
 contains
+!================================================================================
 
    ! ---------------------------------------------------------------------------
    ! Private procedures.
@@ -125,6 +139,8 @@ contains
                call ESMF_LogWrite(subname//trim(tag)//" Field = "// &
                                   trim(stdname)//" is connected on root pe", &
                                   ESMF_LOGMSG_INFO)
+               call blom_logwrite(subname//trim(tag)//" Field = "// &
+                                  trim(stdname)//" is connected on root pe")
                DistGrid = ESMF_DistGridCreate(minIndex=(/1/), maxIndex=(/1/), rc=rc)
                if (ChkErr(rc, __LINE__, u_FILE_u)) return
                grid = ESMF_GridCreate(DistGrid, rc=rc)
@@ -152,6 +168,7 @@ contains
                      subname//trim(tag)//" Field = "//trim(stdname)// &
                      " is connected using mesh with lbound, ubound = ", &
                      fldlist(n)%ungridded_lbound, fldlist(n)%ungridded_ubound
+                  call blom_logwrite(trim(msg))
                   call ESMF_LogWrite(msg, ESMF_LOGMSG_INFO)
                else
                   field = ESMF_FieldCreate(mesh, ESMF_TYPEKIND_R8, &
@@ -161,6 +178,7 @@ contains
                   write(msg,'(a)') &
                      subname//trim(tag)//" Field = "//trim(stdname)// &
                      " is connected using mesh without ungridded dimension"
+                  call blom_logwrite(trim(msg))
                   call ESMF_LogWrite(msg, ESMF_LOGMSG_INFO)
                endif
 
@@ -190,6 +208,8 @@ contains
 
    end subroutine fldlist_realize
 
+   !================================================================================
+
    subroutine ocn_import(importState, rc)
    ! ---------------------------------------------------------------------------
    ! Import data from the mediator to ocean.
@@ -213,17 +233,20 @@ contains
       ! Get data pointers for the fields to be imported.
       do n = 1, fldsToOcn_num
          if (fldsToOcn(n)%stdname == trim(flds_scalar_name)) cycle
-         call ESMF_StateGet(importState, trim(fldsToOcn(n)%stdname), &
-                            itemType, rc=rc)
+         call ESMF_StateGet(importState, trim(fldsToOcn(n)%stdname), itemType, rc=rc)
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
          if (itemType == ESMF_STATEITEM_NOTFOUND) then
             fldsToOcn(n)%dataptr => null()
          else
-            call ESMF_StateGet(importState, trim(fldsToOcn(n)%stdname), &
-                               field=field, rc=rc)
+            call ESMF_StateGet(importState, trim(fldsToOcn(n)%stdname), field=field, rc=rc)
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
-            call ESMF_FieldGet(field, farrayPtr=fldsToOcn(n)%dataptr, rc=rc)
-            if (ChkErr(rc, __LINE__, u_FILE_u)) return
+            if (fldsToOcn(n)%ungridded_lbound > 0 .and. fldsToOcn(n)%ungridded_ubound > 0) then
+              call ESMF_FieldGet(field, farrayPtr=fldsToOcn(n)%dataptr2d, rc=rc)
+              if (ChkErr(rc, __LINE__, u_FILE_u)) return
+            else
+              call ESMF_FieldGet(field, farrayPtr=fldsToOcn(n)%dataptr, rc=rc)
+              if (ChkErr(rc, __LINE__, u_FILE_u)) return
+            end if
          endif
       enddo
 
@@ -231,6 +254,8 @@ contains
       call blom_importflds(fldsToOcn_num, fldsToOcn)
 
    end subroutine ocn_import
+
+   !================================================================================
 
    subroutine ocn_export(exportState, rc)
    ! ---------------------------------------------------------------------------
@@ -257,17 +282,20 @@ contains
       ! Get data pointers for the fields to be exported.
       do n = 1, fldsFrOcn_num
          if (fldsFrOcn(n)%stdname == trim(flds_scalar_name)) cycle
-         call ESMF_StateGet(exportState, trim(fldsFrOcn(n)%stdname), &
-                            itemType, rc=rc)
+         call ESMF_StateGet(exportState, trim(fldsFrOcn(n)%stdname), itemType, rc=rc)
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
          if (itemType == ESMF_STATEITEM_NOTFOUND) then
             fldsFrOcn(n)%dataptr => null()
          else
-            call ESMF_StateGet(exportState, trim(fldsFrOcn(n)%stdname), &
-                               field=field, rc=rc)
+            call ESMF_StateGet(exportState, trim(fldsFrOcn(n)%stdname), field=field, rc=rc)
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
-            call ESMF_FieldGet(field, farrayPtr=fldsFrOcn(n)%dataptr, rc=rc)
-            if (ChkErr(rc, __LINE__, u_FILE_u)) return
+            if (fldsFrOcn(n)%ungridded_lbound > 0 .and. fldsFrOcn(n)%ungridded_ubound > 0) then
+              call ESMF_FieldGet(field, farrayPtr=fldsFrOcn(n)%dataptr2d, rc=rc)
+              if (ChkErr(rc, __LINE__, u_FILE_u)) return
+            else
+              call ESMF_FieldGet(field, farrayPtr=fldsFrOcn(n)%dataptr, rc=rc)
+              if (ChkErr(rc, __LINE__, u_FILE_u)) return
+            end if
          endif
       enddo
 
@@ -290,6 +318,8 @@ contains
 
    end subroutine ocn_export
 
+   !================================================================================
+
    subroutine InitializeP0(gcomp, importState, exportState, clock, rc)
    ! ---------------------------------------------------------------------------
    ! Set which version of the Initialize Phase Definition (IPD) to use.
@@ -307,7 +337,7 @@ contains
 
       ! Local variables.
       logical :: isPresent, isSet
-      character(len=cslen) :: cvalue
+      character(len=cllen) :: cvalue
 
       ! Switch to IPDv01 by filtering all other PhaseMap entries
       call NUOPC_CompFilterPhaseMap(gcomp, ESMF_METHOD_INITIALIZE, &
@@ -324,6 +354,8 @@ contains
                          ESMF_LOGMSG_INFO)
 
    end subroutine InitializeP0
+
+   !================================================================================
 
    subroutine InitializeAdvertise(gcomp, importState, exportState, clock, rc)
    ! ---------------------------------------------------------------------------
@@ -346,11 +378,26 @@ contains
       ! local variables
       type(ESMF_VM) :: vm
       type(ESMF_TimeInterval) :: timeStep
+      type(ESMF_Time) :: currtime
       integer :: localPet, nthrds, shrlogunit, n
-      character(len=cslen) :: starttype, stdname, cvalue, cname
-      character(len=cllen) :: msg
+      integer :: yy, mm, dd, ymd, tod
+      character(len=cllen) :: rpfile
+      character(len=cllen) :: starttype, stdname
+      character(len=cllen) :: msg, cvalue
       logical :: isPresent, isSet
-      logical :: flds_co2a, flds_co2c
+      logical :: ocn2glc_coupling
+      logical :: flds_co2a, flds_co2c, flds_dms, flds_brf
+      logical :: hamocc_defined
+#ifndef HAMOCC
+      logical :: use_BROMO
+#endif
+
+#ifdef HAMOCC
+      hamocc_defined = .true.
+#else
+      hamocc_defined = .false.
+      use_BROMO = .false.
+#endif
 
       ! Get debug flag.
       call NUOPC_CompAttributeGet(gcomp, name='dbug_flag', value=cvalue, &
@@ -375,18 +422,10 @@ contains
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
          read(cvalue,*) nthrds
       endif
-!$    call omp_set_num_threads(nthrds)
 
       ! Reset shr logging to components log file.
       call set_component_logging(gcomp, localPet==0, lp, shrlogunit, rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
-
-      ! Get generic file unit for master task.
-      if (localPet == 0) then
-         nfu = shr_file_getUnit()
-      else
-         nfu = -1
-      endif
 
       ! Get case name.
       call NUOPC_CompAttributeGet(gcomp, name='case_name', value=cvalue, rc=rc)
@@ -503,14 +542,53 @@ contains
       read(cvalue,*) ocn2glc_coupling
       write(msg,'(a,l1)') subname//': ocn2glc coupling is ', ocn2glc_coupling
       call blom_logwrite(msg)
-      if (ocn2glc_coupling) then
-         call ESMF_LogSetError(ESMF_RC_NOT_IMPL, &
-            msg=subname//": ocn2glc coupling not implemented", &
-            line=__LINE__, file=u_FILE_u, rcToReturn=rc)
-         return
-      endif
 
       !NOTE: Nitrogen deposition is always sent from atm now (either CAM or DATM)
+
+      ! Determine if will export dms
+      call NUOPC_CompAttributeGet(gcomp, name='flds_dms', value=cvalue, &
+           ispresent=ispresent, isset=isset, rc=rc)
+      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      if (isPresent .and. isSet) then
+         read(cvalue,*) flds_dms
+         if (.not. hamocc_defined) then
+            ! if not defined HAMOCC and request to export dms, abort
+            if (flds_dms) then
+               write(lp,'(a)') subname//' cannot export dms with out HAMOCC defined'
+               call xchalt(subname)
+               stop subname
+            end if
+         end if
+      else
+         flds_dms = .false.
+      end if
+      write(msg,'(a,l1)') subname//': export dms ', flds_dms
+      call blom_logwrite(msg)
+
+      ! Determine if will export bromoform
+      call NUOPC_CompAttributeGet(gcomp, name="flds_brf", value=cvalue, &
+           ispresent=ispresent, isset=isset, rc=rc)
+      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      if (isPresent .and. isSet) then
+         read(cvalue,*) flds_brf
+         if (hamocc_defined) then
+            ! make sure that use_BROMO is true if ask for bromoform to be sent to mediator
+            if (flds_brf .and. .not. use_BROMO) then
+               write(lp,'(a)') subname//' cannot export bromoform if use_BROMO is not true'
+               call xchalt(subname)
+               stop subname
+            end if
+         else
+            ! if not defined HAMOCC and request to export brf, abort
+            if (flds_brf) then
+               write(lp,'(a)') subname//' cannot export bromoform with out HAMOCC defined'
+               call xchalt(subname)
+               stop subname
+            end if
+         end if
+      end if
+      write(msg,'(a,l1)') subname//': export brf ', flds_brf
+      call blom_logwrite(msg)
 
       ! ------------------------------------------------------------------------
       ! Advertise import fields.
@@ -529,7 +607,8 @@ contains
       ! Advertise export fields.
       ! ------------------------------------------------------------------------
 
-      call blom_advertise_exports(flds_scalar_name, fldsFrOcn_num, fldsFrOcn)
+      call blom_advertise_exports(flds_scalar_name, fldsFrOcn_num, fldsFrOcn, ocn2glc_coupling, &
+            flds_dms, flds_brf)
 
       do n = 1,fldsFrOcn_num
          call NUOPC_Advertise(exportState, standardName=fldsFrOcn(n)%stdname, &
@@ -540,6 +619,8 @@ contains
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
 
    end subroutine InitializeAdvertise
+
+   !================================================================================
 
    subroutine InitializeRealize(gcomp, importState, exportState, clock, rc)
    ! ---------------------------------------------------------------------------
@@ -568,7 +649,8 @@ contains
       integer(ESMF_KIND_I4), dimension(:), pointer :: maskMesh(:)
       integer, allocatable, dimension(:) :: gindex
       integer :: n, spatialDim, numOwnedElements, nx_global, ny_global
-      character(len=cslen)  :: cvalue
+      character(len=cllen)  :: cvalue
+      logical :: isPresent, isSet
 
       if (dbug > 5) call ESMF_LogWrite(subname//': called', ESMF_LOGMSG_INFO)
 
@@ -659,9 +741,39 @@ contains
                            flds_scalar_name, flds_scalar_num, rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
 
+      ! Initialize sdat for relaxation to sss if appropriate
+      if (srxday > epsilt) then
+         call ocn_stream_sss_init(Emesh, clock, rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      end if
+
+      ! Initialize sdat for relaxation to sst/ice if appropriate
+      if (trxday > epsilt) then
+         call ocn_stream_sst_init(Emesh, clock, rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      end if
+
+      ! Find if restart is needed at the end of the run
+
+      call NUOPC_CompAttributeGet(gcomp, name="write_restart_at_endofrun", value=cvalue, isPresent=isPresent, isSet=isSet, rc=rc)
+      if (ChkErr(rc,__LINE__,u_FILE_u)) return
+      if (isPresent .and. isSet) then
+         if (trim(cvalue) .eq. '.true.') write_restart_at_endofrun = .true.
+      end if
+
+#ifdef HAMOCC
+      ! Initialize sdat for dust deposition climatology if appropriate
+      if (use_stream_dust) then
+         call ocn_stream_dust_init(Emesh, clock, rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      end if
+#endif
+
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
 
    end subroutine InitializeRealize
+
+   !================================================================================
 
    subroutine DataInitialize(gcomp, rc)
    ! ---------------------------------------------------------------------------
@@ -717,6 +829,8 @@ contains
 
    end subroutine DataInitialize
 
+   !================================================================================
+
    subroutine ModelAdvance(gcomp, rc)
    ! ---------------------------------------------------------------------------
    ! Called by NUOPC to advance the model a single timestep.
@@ -733,12 +847,15 @@ contains
       ! Local variables.
       type(ESMF_State) :: importState, exportState
       type(ESMF_Clock) :: clock
-      type(ESMF_Time) :: currTime
-      type(ESMF_Alarm) :: restart_alarm
+      type(ESMF_Time)  :: currTime
+      type(ESMF_Alarm) :: restart_alarm, stop_alarm
       integer :: shrlogunit, yr_sync, mon_sync, day_sync, tod_sync, ymd_sync, &
                  ymd, tod
-      logical :: first_call = .true., restart_alarm_on
+      logical :: first_call = .true., restart_alarm_on, stop_alarm_on, wrtrst
       character(len=cllen) :: msg
+      integer :: nfu
+      character(len = fnmlen) :: restartfn
+      character(len = fnmlen) :: rpfile
 
       if (dbug > 5) call ESMF_LogWrite(subname//': called', ESMF_LOGMSG_INFO)
 
@@ -748,8 +865,8 @@ contains
       ! Reset shr logging to components log file.
       ! ------------------------------------------------------------------------
 
-      call shr_file_getLogUnit(shrlogunit)
-      call shr_file_setLogUnit(lp)
+      call shr_log_getLogUnit(shrlogunit)
+      call shr_log_setLogUnit(lp)
 
       ! ------------------------------------------------------------------------
       ! Skip first coupling interval for an initial run.
@@ -806,7 +923,25 @@ contains
             call ocn_import(importState, rc)
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
          endif
-      
+
+         ! Advance sss stream relaxation if needed
+         if (srxday > epsilt) then
+            call ocn_stream_sss_interp(clock, rc)
+            if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         end if
+         if (trxday > epsilt) then
+            call ocn_stream_sst_interp(clock, rc)
+            if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         end if
+
+#ifdef HAMOCC
+         ! Advance dust stream input if appropriate
+         if (use_stream_dust) then
+            call ocn_stream_dust_interp(clock, rc)
+            if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         end if
+#endif
+
          ! Advance the model a time step.
          call blom_step
 
@@ -819,10 +954,6 @@ contains
             exit blom_loop
          endif
 
-!        if (mnproc == 1) then
-!           call shr_sys_flush(lp)
-!        endif
-
       enddo blom_loop
 
       ! ------------------------------------------------------------------------
@@ -830,6 +961,21 @@ contains
       ! consider stop alarm?
       ! ------------------------------------------------------------------------
 
+      wrtrst = .false.
+      ! check for stop alarm
+      call ESMF_ClockGetAlarm(clock, alarmname='stop_alarm', &
+                              alarm=stop_alarm, rc=rc)
+      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      stop_alarm_on = ESMF_AlarmIsRinging(stop_alarm, rc=rc)
+      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+
+      if (stop_alarm_on) then
+         if(write_restart_at_endofrun) wrtrst = .true.
+         call ESMF_AlarmRingerOff(stop_alarm, rc=rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      endif
+
+      ! check for restart alarm
       call ESMF_ClockGetAlarm(clock, alarmname='restart_alarm', &
                               alarm=restart_alarm, rc=rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
@@ -837,25 +983,34 @@ contains
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
 
       if (restart_alarm_on) then
-
-         ! Turn off the alarm
+         wrtrst = .true.
          call ESMF_AlarmRingerOff(restart_alarm, rc=rc)
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
-
+      endif
+      if (wrtrst) then
          ! Write BLOM restart files.
-         call restart_wt
-
+         call blom_time(ymd, tod)
+         call restart_write (restartfn)
+         if(mnproc == 1) then
+            ! Write restart filename to rpointer.ocn.
+            call shr_get_rpointer_name(gcomp, 'ocn', ymd, tod, rpfile, 'write', rc=rc)
+            open(newunit = nfu, file = rpfile)
+            write(nfu, '(a)') restartfn
+            close(unit = nfu)
+         endif
       endif
 
       ! ------------------------------------------------------------------------
       ! Reset shr logging to original values.
       ! ------------------------------------------------------------------------
 
-      call shr_file_setLogUnit(shrlogunit)
+      call shr_log_setLogUnit(shrlogunit)
 
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
 
    end subroutine ModelAdvance
+
+   !================================================================================
 
    subroutine ModelSetRunClock(gcomp, rc)
    ! ---------------------------------------------------------------------------
@@ -917,6 +1072,29 @@ contains
          call ESMF_LogWrite(subname//': setting alarms for '//trim(name), &
                             ESMF_LOGMSG_INFO)
 
+         ! Stop alarm.
+
+         call NUOPC_CompAttributeGet(gcomp, name="stop_option", &
+                                     value=stop_option, rc=rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+
+         call NUOPC_CompAttributeGet(gcomp, name="stop_n", &
+                                     value=cvalue, rc=rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         read(cvalue,*) stop_n
+
+         call NUOPC_CompAttributeGet(gcomp, name="stop_ymd", &
+                                     value=cvalue, rc=rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+         read(cvalue,*) stop_ymd
+
+         call alarmInit(mclock, stop_alarm, stop_option, &
+                        opt_n=stop_n, opt_ymd=stop_ymd, RefTime=mcurrTime, &
+                        alarmname='stop_alarm', rc=rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+
+         call ESMF_AlarmSet(stop_alarm, clock=mclock, rc=rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
 
          ! Restart alarm.
 
@@ -942,30 +1120,6 @@ contains
          call ESMF_AlarmSet(restart_alarm, clock=mclock, rc=rc)
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
 
-         ! Stop alarm.
-
-         call NUOPC_CompAttributeGet(gcomp, name="stop_option", &
-                                     value=stop_option, rc=rc)
-         if (ChkErr(rc, __LINE__, u_FILE_u)) return
-
-         call NUOPC_CompAttributeGet(gcomp, name="stop_n", &
-                                     value=cvalue, rc=rc)
-         if (ChkErr(rc, __LINE__, u_FILE_u)) return
-         read(cvalue,*) stop_n
-
-         call NUOPC_CompAttributeGet(gcomp, name="stop_ymd", &
-                                     value=cvalue, rc=rc)
-         if (ChkErr(rc, __LINE__, u_FILE_u)) return
-         read(cvalue,*) stop_ymd
-
-         call alarmInit(mclock, stop_alarm, stop_option, &
-                        opt_n=stop_n, opt_ymd=stop_ymd, RefTime=mcurrTime, &
-                        alarmname='stop_alarm', rc=rc)
-         if (ChkErr(rc, __LINE__, u_FILE_u)) return
-
-         call ESMF_AlarmSet(stop_alarm, clock=mclock, rc=rc)
-         if (ChkErr(rc, __LINE__, u_FILE_u)) return
-
       endif
 
       ! ------------------------------------------------------------------------
@@ -983,6 +1137,8 @@ contains
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
 
    end subroutine ModelSetRunClock
+
+   !================================================================================
 
    subroutine ModelFinalize(gcomp, rc)
    ! ---------------------------------------------------------------------------
@@ -1008,6 +1164,8 @@ contains
    ! ---------------------------------------------------------------------------
    ! Public procedures.
    ! ---------------------------------------------------------------------------
+
+   !================================================================================
 
    subroutine SetServices(gcomp, rc)
    ! ---------------------------------------------------------------------------
@@ -1075,5 +1233,6 @@ contains
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
 
    end subroutine SetServices
+
 
 end module ocn_comp_nuopc

@@ -29,7 +29,8 @@ module mo_param1_bgc
 
   use mo_control_bgc, only: use_BROMO, use_AGG, use_WLIN, use_natDIC, use_CFC,                     &
                             use_cisonew, use_PBGC_OCNP_TIMESTEP, use_PBGC_CK_TIMESTEP,             &
-                            use_FB_BGC_OCE, use_BOXATM, use_sedbypass
+                            use_FB_BGC_OCE, use_BOXATM, use_sedbypass, use_extNcycle,              &
+                            use_pref_tracers,use_sediment_quality
   implicit none
   public
 
@@ -58,11 +59,15 @@ module mo_param1_bgc
   integer, protected :: idms
   integer, protected :: iiron
   integer, protected :: ifdust
+  integer, protected :: idicsat
+
+  ! Indices for preformed tracers
+  integer, protected :: i_pref
   integer, protected :: iprefo2
   integer, protected :: iprefpo4
   integer, protected :: iprefalk
   integer, protected :: iprefdic
-  integer, protected :: idicsat
+  integer, protected :: iprefsilica
 
   ! Indices for C-isotope tracers
   integer, protected :: i_iso
@@ -110,6 +115,15 @@ module mo_param1_bgc
   integer, protected :: iprefdocsr
   integer, protected :: iprefdocr
 
+  ! Indices for extended nitrogen cycle
+  integer, protected :: i_extn
+  integer, protected :: ianh4
+  integer, protected :: iano2
+
+  ! Indices for the age tracer for shelf water residence time
+  integer, protected :: i_shelfage
+  integer, protected :: ishelfage
+
   ! total number of advected tracers (set by allocate_tracers in mod_tracers.F90)
   integer :: nocetra
 
@@ -143,7 +157,18 @@ module mo_param1_bgc
   integer, protected :: i_bromo_atm
   integer, protected :: iatmbromo
 
+  ! Indices for extended nitrogen tracer in atm
+  integer, protected :: i_nh3_atm
+  integer, protected :: iatmnh3
+
   integer, protected :: natm ! total number of atmosphere tracers
+
+  ! --------------------
+  ! Nitrogen deposition
+  ! --------------------
+  integer, protected :: nndep   ! size of N-deposition input field
+  integer, protected :: idepnoy ! index for NOy deposition
+  integer, protected :: idepnhx ! index for NHx deposition
 
   ! ------------------
   ! rivers
@@ -174,7 +199,12 @@ module mo_param1_bgc
   integer, protected :: issso14
   integer, protected :: isssc13
   integer, protected :: isssc14
-  integer, protected :: nsedtra
+
+  ! Indice for POC age
+  integer, protected :: i_sed_age
+  integer, protected :: issso12_age
+  integer, protected :: nsedtra ! total number of solid sediment tracers
+  integer, protected :: nsedtra_woage ! total number of solid sediment tracers without age tracer
 
   ! Indices for tracers in sediment pore water
   integer, protected :: i_pow_base
@@ -191,6 +221,12 @@ module mo_param1_bgc
   integer, protected :: ipowc13
   integer, protected :: ipowc14
   integer, protected :: npowtra ! computed in init_indices
+
+  ! Indices for extended nitrogen cycle
+  integer, protected :: i_pow_extNcycle
+  integer, protected :: ipownh4
+  integer, protected :: ipown2o
+  integer, protected :: ipowno2
 
   ! Mapping between pore water and ocean tracers needed for pore
   ! water diffusion
@@ -211,6 +247,11 @@ contains
       map_por2octra(ipowc13) = isco213
       map_por2octra(ipowc14) = isco214
     endif
+    if (use_extNcycle) then
+        map_por2octra(ipownh4) = ianh4
+        map_por2octra(ipown2o) = ian2o
+        map_por2octra(ipowno2) = iano2
+    endif
   end subroutine init_por2octra_mapping
 
   ! ===========================================================================
@@ -220,12 +261,15 @@ contains
     use mo_control_bgc, only: bgc_namelist,get_bgc_namelist, io_stdo_bgc
     use mo_control_bgc, only: use_BROMO,use_AGG,use_WLIN,use_natDIC,use_CFC,use_cisonew,           &
                               use_sedbypass,use_PBGC_OCNP_TIMESTEP,use_PBGC_CK_TIMESTEP,           &
-                              use_FB_BGC_OCE, use_BOXATM, use_dom
+                              use_FB_BGC_OCE, use_BOXATM,use_extNcycle,use_pref_tracers,           &
+                              use_coupler_ndep,use_shelfsea_res_time,use_dom
+
     integer :: iounit
 
     namelist / config_bgc / use_BROMO,use_AGG,use_WLIN,use_natDIC,use_CFC,use_cisonew,             &
                             use_sedbypass,use_PBGC_OCNP_TIMESTEP,use_PBGC_CK_TIMESTEP,             &
-                            use_FB_BGC_OCE,use_BOXATM,use_dom
+                            use_FB_BGC_OCE,use_BOXATM,use_extNcycle,use_pref_tracers,              &
+                            use_coupler_ndep,use_shelfsea_res_time,use_sediment_quality,use_dom
 
     io_stdo_bgc = lp              !  standard out.
 
@@ -241,7 +285,7 @@ contains
     endif
 
     ! Tracer indices
-    i_base   = 22
+    i_base   = 18
     isco212  = 1
     ialkali  = 2
     iphosph  = 3
@@ -259,11 +303,7 @@ contains
     idms     = 15
     iiron    = 16
     ifdust   = 17
-    iprefo2  = 18
-    iprefpo4 = 19
-    iprefalk = 20
-    iprefdic = 21
-    idicsat  = 22
+    idicsat  = 18
     if (use_cisonew) then
       i_iso    = 12
       isco213  = i_base+1
@@ -331,15 +371,46 @@ contains
       i_bromo=0
       ibromo=-1
     endif
+    if (use_extNcycle) then
+      i_extn = 2
+      iano2  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+1
+      ianh4  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+2
+    else
+      i_extn = 0
+      iano2  = -1
+      ianh4  = -1
+    endif
+    if (use_pref_tracers) then
+      i_pref      = 5
+      iprefo2     = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+1
+      iprefpo4    = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+2
+      iprefalk    = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+3
+      iprefdic    = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+4
+      iprefsilica = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+5
+    else
+      i_pref      = 0
+      iprefo2     = -1
+      iprefpo4    = -1
+      iprefalk    = -1
+      iprefdic    = -1
+      iprefsilica = -1
+    endif
+    if (use_shelfsea_res_time) then
+      i_shelfage = 1
+      ishelfage  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+1
+    else
+      i_shelfage = 0
+      ishelfage  = -1
+    endif
     if (use_dom) then
       i_dom=7
-      idocsl=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+1
-      idocr =i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+2
-      idocsr=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+3
-      iprefdoc=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+4
-      iprefdocsl=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+5
-      iprefdocsr=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+6
-      iprefdocr=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+7
+      idocsl=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+1
+      idocr =i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+2
+      idocsr=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+3
+      iprefdoc=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+4
+      iprefdocsl=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+5
+      iprefdocsr=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+6
+      iprefdocr=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+7
     else
       i_dom=0
       idocsl=-1
@@ -348,7 +419,7 @@ contains
     endif
 
     ! total number of advected tracers
-    nocetra=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_dom
+    nocetra=i_base+i_iso+i_cfc+i_agg+i_nat_dic +i_bromo+i_extn+i_pref+i_shelfage+i_dom
 
     ! ATMOSPHERE
     i_base_atm=5
@@ -391,9 +462,27 @@ contains
       i_bromo_atm=0
       iatmbromo=-1
     endif
+    if (use_extNcycle) then
+      i_nh3_atm = 1
+      iatmnh3 = i_base_atm+i_iso_atm+i_cfc_atm+ i_ndic_atm+i_bromo_atm+1
+    else
+      i_nh3_atm = 0
+      iatmnh3 = -1
+    endif
 
     ! total number of atmosphere tracers
-    natm=i_base_atm+i_iso_atm+i_cfc_atm+i_ndic_atm+i_bromo_atm
+    natm=i_base_atm+i_iso_atm+i_cfc_atm+i_ndic_atm+i_bromo_atm+i_nh3_atm
+
+    ! N-deposition
+    if (use_extNcycle) then
+      nndep   = 2
+      idepnoy = 1
+      idepnhx = 2
+    else
+      nndep   = 1
+      idepnoy = 1
+      idepnhx = -1
+    endif
 
     ! rivers
     nriv   =7
@@ -425,7 +514,18 @@ contains
       isssc13 = -1
       isssc14 = -1
     endif
-    nsedtra = i_sed_base + i_sed_cisonew
+
+    !NOTE: The age tracer currently always needs to be the last sedlay tracer
+    !      - otherwise issues in mo_sedshi.F90!
+    if (use_sediment_quality) then
+      i_sed_age   = 1
+      issso12_age = i_sed_base + i_sed_cisonew +1
+    else
+      i_sed_age   = 0
+      issso12_age = -1
+    endif
+    nsedtra_woage = i_sed_base + i_sed_cisonew ! needed in mo_sedshi.F90
+    nsedtra       = nsedtra_woage + i_sed_age
 
     ! sediment pore water components
     i_pow_base =7
@@ -445,7 +545,19 @@ contains
       ipowc13 = -1
       ipowc14 = -1
     endif
-    npowtra = i_pow_base + i_pow_cisonew
+    if (use_extNcycle) then
+      i_pow_extNcycle = 3
+      ipownh4 = i_pow_base + i_pow_cisonew+1
+      ipown2o = i_pow_base + i_pow_cisonew+2
+      ipowno2 = i_pow_base + i_pow_cisonew+3
+    else
+      i_pow_extNcycle = 0
+      ipownh4 = -1
+      ipown2o = -1
+      ipowno2 = -1
+    endif
+
+    npowtra = i_pow_base + i_pow_cisonew+i_pow_extNcycle
 
     allocate(map_por2octra(-1:npowtra))
 

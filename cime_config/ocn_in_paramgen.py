@@ -1338,6 +1338,22 @@ class OcnInParamGen(ParamGen):
                         line = remove_user_nl_comment(line)
                     #End if
 
+                    #Check if the first character on the line is a hash sign (#):
+                    #This is no longer allowed as a first character, and may indicate
+                    #the use of an old user_nl_blom file
+                    if line.strip()[0] == "#":
+                        emsg = f"Line number {line_num+1} in 'user_nl_blom'"
+                        emsg += " starts with a hash sign (#). This may"
+                        emsg += " indicate an outdated format of your"
+                        emsg += "\nuser_nl_blom file. Current versions of"
+                        emsg += " user_nl_blom file conform to the standard"
+                        emsg += " Fortran namelist syntax, indicating comments"
+                        emsg += "\nwith exclamation mark (!). Please check that"
+                        emsg += " your user_nl_blom file conforms with the"
+                        emsg += " current accepted file format."
+                        raise OcnInParamGenError(emsg)
+                    #End if
+
                     #Check if the first character on the line is a comma (,):
                     if line.strip()[0] == ",":
                         #Is this an array variable:

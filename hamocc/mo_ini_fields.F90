@@ -38,9 +38,9 @@ contains
     !  -split the original BELEG_BGC in two parts, BELEG_PARM (NOW MO_PARAM_BGC) and BELEG_VARS
     !***********************************************************************************************
 
-    use mo_control_bgc, only: use_natDIC,use_cisonew,use_BROMO
-    use mo_param1_bgc,  only: iatmco2,iatmo2,iatmn2,iatmnco2,iatmc13,iatmc14,iatmbromo
-    use mo_param_bgc,   only: atm_o2,atm_n2,atm_co2_nat,atm_c13,atm_c14,c14fac,atm_bromo
+    use mo_control_bgc, only: use_natDIC,use_cisonew,use_BROMO,use_extNcycle
+    use mo_param1_bgc,  only: iatmco2,iatmo2,iatmn2,iatmn2o,iatmnh3,iatmnco2,iatmc13,iatmc14,iatmbromo
+    use mo_param_bgc,   only: atm_o2,atm_n2,atm_co2_nat,atm_c13,atm_c14,c14fac,atm_bromo,atm_n2o,atm_nh3
     use mo_carbch,      only: atm,atm_co2
 
     ! Initialise atmosphere fields. We use a 2D representation of atmospheric
@@ -59,6 +59,7 @@ contains
         atm(i,j,iatmco2)  = atm_co2
         atm(i,j,iatmo2)   = atm_o2
         atm(i,j,iatmn2)   = atm_n2
+        atm(i,j,iatmn2o)  = atm_n2o
         if (use_natDIC) then
           atm(i,j,iatmnco2) = atm_co2_nat
         endif
@@ -68,6 +69,9 @@ contains
         endif
         if (use_BROMO) then
           atm(i,j,iatmbromo)= atm_bromo
+        endif
+        if (use_extNcycle) then
+          atm(i,j,iatmnh3)  = atm_nh3
         endif
       enddo
     enddo
@@ -90,7 +94,8 @@ contains
     use mo_param_bgc,   only: fesoly,cellmass,fractdim,bifr13_ini,bifr14_ini,c14fac,re1312,re14to
     use mo_biomod,      only: abs_oce
     use mo_control_bgc, only: rmasks,use_FB_BGC_OCE,use_cisonew,use_AGG,use_CFC,use_natDIC,        &
-                              use_BROMO, use_sedbypass, use_dom
+                              use_BROMO, use_sedbypass,use_extNcycle,use_pref_tracers,             &
+                              use_shelfsea_res_time,use_sediment_quality,use_dom
     use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,     &
                               iiron,iopal,ioxygen,iphosph,iphy,iprefalk,iprefdic,iprefo2,iprefpo4, &
                               isco212,isilica,izoo,iadust,inos,ibromo,icfc11,icfc12,isf6,          &
@@ -99,7 +104,8 @@ contains
                               idocsl,idocsr,idocr,iprefdoc,iprefdocsl,iprefdocsr,iprefdocr,        &
                               ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,      &
                               issso12,issssil,issster,ks,nsedtra,ipowc13,ipowc13,issso13,issso13,  &
-                              isssc13,ipowc14,isssc14,issso14
+                              isssc13,ipowc14,isssc14,issso14,iprefsilica,iano2,ianh4,ishelfage,   &
+                              issso12_age
     use mo_vgrid,       only: kmle,kbo
     use mo_carbch,      only: nathi,natco3
     use mo_sedmnt,      only: sedhpl,burial,powtra,sedlay
@@ -140,7 +146,7 @@ contains
     call profile_gd(kpie,kpje,kpke,kbnd,pglon,pglat,omask)
 
     ! If this is a restart run initialisation is done in aufr.F90
-    if (kpaufr==1) RETURN  !jt
+    if (kpaufr==1) RETURN
 
     do k=1,kpke
       do j=1,kpje
@@ -187,14 +193,20 @@ contains
             ocetra(i,j,k,idms)   =0.
             ocetra(i,j,k,ifdust) =0.
             ocetra(i,j,k,iiron)  =fesoly
-            ocetra(i,j,k,iprefo2)=0.
-            ocetra(i,j,k,iprefpo4)=0.
-            ocetra(i,j,k,iprefalk)=0.
-            ocetra(i,j,k,iprefdic)=0.
             ocetra(i,j,k,idicsat)=1.e-8
             hi(i,j,k)            =1.e-8
             co3(i,j,k)           =0.
             co2star(i,j,k)       =20.e-6
+            if (use_pref_tracers) then
+              ocetra(i,j,k,iprefo2)     = 0.
+              ocetra(i,j,k,iprefpo4)    = 0.
+              ocetra(i,j,k,iprefsilica) = 0.
+              ocetra(i,j,k,iprefalk)    = 0.
+              ocetra(i,j,k,iprefdic)    = 0.
+            endif
+            if (use_shelfsea_res_time) then
+              ocetra(i,j,k,ishelfage)   = 0.
+            endif
             if (use_AGG) then
               ! calculate initial numbers from mass, to start with appropriate size distribution
               snow = (ocetra(i,j,k,iphy)+ocetra(i,j,k,idet))*1.e+6
@@ -229,6 +241,11 @@ contains
               ! Initialise to 0,01 pmol L-1 (Stemmler et al., 2015) => mol/kg
               ocetra(i,j,k,ibromo)= 1.e-14/prho(i,j,k)
             endif
+            if (use_extNcycle) then
+              ocetra(i,j,k,iano2) =1.e-9   ! expecting fast cycling
+              ocetra(i,j,k,ianh4) =0.5e-9  ! expecting fast cycling
+              ocetra(i,j,k,ian2o) =6.e-9   ! 6 to 8 nmol/kg = ca. value in near surface regions Toyoda et al. 2019, prevent from too long outgassing
+            endif
             if (use_dom) then
               ocetra(i,j,k,idocsl)   =1.e-8
               ocetra(i,j,k,idocsr)   =1.e-8
@@ -243,24 +260,27 @@ contains
       enddo
     enddo
 
-    ! Initialise preformed tracers in the mixed layer; note that the
-    ! whole field has been initialised to zero above
-    do j=1,kpje
-      do i=1,kpie
-        if (omask(i,j) > 0.5) then
-          ocetra(i,j,1:kmle(i,j),iprefo2)  = ocetra(i,j,1:kmle(i,j),ioxygen)
-          ocetra(i,j,1:kmle(i,j),iprefpo4) = ocetra(i,j,1:kmle(i,j),iphosph)
-          ocetra(i,j,1:kmle(i,j),iprefalk) = ocetra(i,j,1:kmle(i,j),ialkali)
-          ocetra(i,j,1:kmle(i,j),iprefdic) = ocetra(i,j,1:kmle(i,j),isco212)
-          if (use_dom) then
-            ocetra(i,j,1:kmle(i,j),iprefdoc) = ocetra(i,j,1:kmle(i,j),idoc)
-            ocetra(i,j,1:kmle(i,j),iprefdocsl) = ocetra(i,j,1:kmle(i,j),idocsl)
-            ocetra(i,j,1:kmle(i,j),iprefdocsr) = ocetra(i,j,1:kmle(i,j),idocsr)
-            ocetra(i,j,1:kmle(i,j),iprefdocr) = ocetra(i,j,1:kmle(i,j),idocr)
+    if (use_pref_tracers) then
+      ! Initialise preformed tracers in the mixed layer; note that the
+      ! whole field has been initialised to zero above
+      do j=1,kpje
+        do i=1,kpie
+          if (omask(i,j) > 0.5) then
+            ocetra(i,j,1:kmle(i,j),iprefo2)  = ocetra(i,j,1:kmle(i,j),ioxygen)
+            ocetra(i,j,1:kmle(i,j),iprefpo4) = ocetra(i,j,1:kmle(i,j),iphosph)
+            ocetra(i,j,1:kmle(i,j),iprefsilica)= ocetra(i,j,1:kmle(i,j),isilica)
+            ocetra(i,j,1:kmle(i,j),iprefalk) = ocetra(i,j,1:kmle(i,j),ialkali)
+            ocetra(i,j,1:kmle(i,j),iprefdic) = ocetra(i,j,1:kmle(i,j),isco212)
+            if (use_dom) then
+              ocetra(i,j,1:kmle(i,j),iprefdoc) = ocetra(i,j,1:kmle(i,j),idoc)
+              ocetra(i,j,1:kmle(i,j),iprefdocsl) = ocetra(i,j,1:kmle(i,j),idocsl)
+              ocetra(i,j,1:kmle(i,j),iprefdocsr) = ocetra(i,j,1:kmle(i,j),idocsr)
+              ocetra(i,j,1:kmle(i,j),iprefdocr) = ocetra(i,j,1:kmle(i,j),idocr)
+            endif
           endif
-        endif
+        enddo
       enddo
-    enddo
+    endif
 
 
     ! Initial values for sediment
@@ -291,6 +311,9 @@ contains
                 sedlay(i,j,k,isssc13)=sedlay(i,j,k,isssc12)*rco213
                 sedlay(i,j,k,isssc14)=sedlay(i,j,k,isssc12)*rco214
               endif
+              if (use_sediment_quality) then
+                sedlay(i,j,k,issso12_age)=0.
+              endif
             else
               powtra(i,j,k,ipowno3)=rmasks
               powtra(i,j,k,ipown2) =rmasks
@@ -312,6 +335,9 @@ contains
                 sedlay(i,j,k,issso14)=rmasks
                 sedlay(i,j,k,isssc13)=rmasks
                 sedlay(i,j,k,isssc14)=rmasks
+              endif
+              if (use_sediment_quality) then
+                sedlay(i,j,k,issso12_age)=rmasks
               endif
             endif
           enddo

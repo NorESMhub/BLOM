@@ -49,7 +49,8 @@ module mo_bgcmean
   use netcdf,         only: nf90_fill_double
   use mo_param1_bgc,  only: ks
   use mo_control_bgc, only: use_sedbypass,use_cisonew,use_CFC,use_natDIC,use_BROMO,use_BOXATM,     &
-                            use_AGG,use_dom
+                            use_AGG,use_M4AGO,use_extNcycle,use_pref_tracers,use_shelfsea_res_time,&
+                            use_sediment_quality,use_dom
 
   implicit none
 
@@ -93,9 +94,9 @@ module mo_bgcmean
 
   ! --- Namelist for diagnostic output
   integer, dimension(nbgcmax) ::                                          &
-       & SRF_KWCO2     =0    ,SRF_PCO2      =0    ,SRF_DMSFLUX   =0    ,  &
-       & SRF_KWCO2KHM  =0    ,SRF_CO2KHM    =0    ,SRF_CO2KH     =0    ,  &
-       & SRF_PCO2M     =0    ,                                            &
+       & SRF_KWCO2     =0    ,SRF_FCO2      =0    ,SRF_PCO2      =0    ,  &
+       & SRF_XCO2      =0    ,SRF_PCO2_GEX  =0    ,                       &
+       & SRF_DMSFLUX   =0    ,SRF_KWCO2SOL  =0    ,SRF_CO2SOL    =0    ,  &
        & SRF_CO2FXD    =0    ,SRF_CO2FXU    =0    ,SRF_CO213FXD  =0    ,  &
        & SRF_CO213FXU  =0    ,SRF_CO214FXD  =0    ,SRF_CO214FXU  =0    ,  &
        & SRF_OXFLUX    =0    ,SRF_NIFLUX    =0    ,SRF_DMS       =0    ,  &
@@ -107,25 +108,31 @@ module mo_bgcmean
        & SRF_SF6       =0    ,SRF_PHOSPH    =0    ,SRF_OXYGEN    =0    ,  &
        & SRF_IRON      =0    ,SRF_ANO3      =0    ,SRF_ALKALI    =0    ,  &
        & SRF_SILICA    =0    ,SRF_DIC       =0    ,SRF_PHYTO     =0    ,  &
-       & SRF_PH        =0    ,                                            &
-       & SRF_NATDIC    =0    ,SRF_NATALKALI =0    ,SRF_NATPCO2   =0    ,  &
-       & SRF_NATCO2FX  =0    ,SRF_NATPH     =0    ,                       &
+       & SRF_PH        =0    ,SRF_NATDIC    =0    ,SRF_NATALKALI =0    ,  &
+       & SRF_NATPCO2   =0    ,SRF_NATCO2FX  =0    ,SRF_NATPH     =0    ,  &
        & SRF_ATMBROMO  =0    ,SRF_BROMO     =0    ,SRF_BROMOFX   =0    ,  &
-       & INT_BROMOPRO  =0    ,INT_BROMOUV   =0    ,                       &
+       & SRF_ANH4      =0    ,SRF_ANO2      =0    ,SRF_ANH3FX    =0    ,  &
+       & SRF_PN2OM     =0    ,SRF_PNH3      =0    ,SRF_ATMNH3    =0    ,  &
+       & SRF_ATMN2O    =0    ,INT_BROMOPRO  =0    ,INT_BROMOUV   =0    ,  &
        & INT_PHOSY     =0    ,INT_NFIX      =0    ,INT_DNIT      =0    ,  &
        & INT_EXUDL     =0    ,INT_EXUDSL    =0    ,INT_EXCRL     =0    ,  &
        & INT_EXCRSL    =0    ,INT_DOCL_REM  =0    ,INT_DOCSL_REM =0    ,  &
        & INT_DOCSR_REM =0    ,INT_DOCR_REM  =0    ,                       &
-       & FLX_NDEP      =0    ,FLX_OALK      =0    ,                       &
+       & FLX_NDEPNOY   =0    ,FLX_NDEPNHX   =0    ,FLX_OALK      =0    ,  &
        & FLX_CAR0100   =0    ,FLX_CAR0500   =0    ,FLX_CAR1000   =0    ,  &
        & FLX_CAR2000   =0    ,FLX_CAR4000   =0    ,FLX_CAR_BOT   =0    ,  &
        & FLX_BSI0100   =0    ,FLX_BSI0500   =0    ,FLX_BSI1000   =0    ,  &
        & FLX_BSI2000   =0    ,FLX_BSI4000   =0    ,FLX_BSI_BOT   =0    ,  &
        & FLX_CAL0100   =0    ,FLX_CAL0500   =0    ,FLX_CAL1000   =0    ,  &
        & FLX_CAL2000   =0    ,FLX_CAL4000   =0    ,FLX_CAL_BOT   =0    ,  &
+       & FLX_DUST0100  =0    ,FLX_DUST0500  =0    ,FLX_DUST1000  =0    ,  &
+       & FLX_DUST2000  =0    ,FLX_DUST4000  =0    ,FLX_DUST_BOT  =0    ,  &
        & FLX_SEDIFFIC  =0    ,FLX_SEDIFFAL  =0    ,FLX_SEDIFFPH  =0    ,  &
        & FLX_SEDIFFOX  =0    ,FLX_SEDIFFN2  =0    ,FLX_SEDIFFNO3 =0    ,  &
-       & FLX_SEDIFFSI  =0    ,                                            &
+       & FLX_SEDIFFSI  =0    ,FLX_SEDIFFNH4 =0    ,FLX_SEDIFFN2O =0    ,  &
+       & FLX_SEDIFFNO2 =0    ,                                            &
+       & FLX_BURSSO12  =0    ,FLX_BURSSSC12 =0    ,FLX_BURSSSSIL =0    ,  &
+       & FLX_BURSSSTER =0    ,                                            &
        & LYR_PHYTO     =0    ,LYR_GRAZER    =0    ,LYR_DOC       =0    ,  &
        & LYR_PHOSY     =0    ,LYR_PHOSPH    =0    ,LYR_OXYGEN    =0    ,  &
        & LYR_IRON      =0    ,LYR_ANO3      =0    ,LYR_ALKALI    =0    ,  &
@@ -137,16 +144,29 @@ module mo_bgcmean
        & LYR_EPS       =0    ,LYR_ASIZE     =0    ,LYR_N2O       =0    ,  &
        & LYR_PREFO2    =0    ,LYR_O2SAT     =0    ,LYR_PREFPO4   =0    ,  &
        & LYR_PREFALK   =0    ,LYR_PREFDIC   =0    ,LYR_DICSAT    =0    ,  &
+       & LYR_PREFSILICA=0    ,LYR_SHELFAGE  =0    ,                       &
        & LYR_CFC11     =0    ,LYR_CFC12     =0    ,LYR_SF6       =0    ,  &
        & LYR_NATDIC    =0    ,LYR_NATALKALI =0    ,LYR_NATCALC   =0    ,  &
        & LYR_NATPH     =0    ,LYR_NATOMEGAA =0    ,LYR_NATOMEGAC =0    ,  &
-       & LYR_NATCO3    =0    ,                                            &
-       & LYR_BROMO     =0    ,                                            &
+       & LYR_NATCO3    =0    ,LYR_BROMO     =0    ,                       &
        & LYR_DOCSL     =0    ,LYR_DOCSR     =0    ,LYR_DOCR      =0    ,  &
        & LYR_D13C      =0    ,LYR_D14C      =0    ,LYR_BIGD14C   =0    ,  &
        & LYR_POC13     =0    ,LYR_DOC13     =0    ,LYR_CALC13    =0    ,  &
        & LYR_PHYTO13   =0    ,LYR_GRAZER13  =0    ,LYR_PREFDOC   =0    ,  &
        & LYR_PREFDOCSL =0    ,LYR_PREFDOCSR =0    ,LYR_PREFDOCR  =0    ,  &
+       ! extNcycle LYR
+       & LYR_ANH4      =0    ,LYR_ANO2      =0    ,                       &
+       & LYR_nitr_NH4  =0    ,LYR_nitr_NO2  =0    ,LYR_nitr_N2O_prod =0,  &
+       & LYR_nitr_NH4_OM =0  ,LYR_nitr_NO2_OM =0  ,LYR_denit_NO3     =0,  &
+       & LYR_denit_NO2 = 0   ,LYR_denit_N2O = 0   ,LYR_DNRA_NO2      =0,  &
+       & LYR_anmx_N2_prod=0  ,LYR_anmx_OM_prod=0  ,LYR_phosy_NH4     =0,  &
+       & LYR_phosy_NO3 = 0   ,LYR_remin_aerob =0  ,LYR_remin_sulf    =0,  &
+       ! M4AGO LYR
+       & LYR_agg_ws    =0    ,LYR_dynvis    =0    ,LYR_agg_stick =0    ,  &
+       & LYR_agg_stickf=0    ,LYR_agg_dmax  =0    ,LYR_agg_avdp  =0    ,  &
+       & LYR_agg_avrhop=0    ,LYR_agg_avdC  =0    ,LYR_agg_df    =0    ,  &
+       & LYR_agg_b     =0    ,LYR_agg_Vrhof =0    ,LYR_agg_Vpor  =0    ,  &
+       !========== LVLs
        & LVL_PHYTO     =0    ,LVL_GRAZER    =0    ,LVL_DOC       =0    ,  &
        & LVL_PHOSY     =0    ,LVL_PHOSPH    =0    ,LVL_OXYGEN    =0    ,  &
        & LVL_IRON      =0    ,LVL_ANO3      =0    ,LVL_ALKALI    =0    ,  &
@@ -158,31 +178,55 @@ module mo_bgcmean
        & LVL_ASIZE     =0    ,LVL_N2O       =0    ,LVL_PREFO2    =0    ,  &
        & LVL_O2SAT     =0    ,LVL_PREFPO4   =0    ,LVL_PREFALK   =0    ,  &
        & LVL_PREFDIC   =0    ,LVL_DICSAT    =0    ,                       &
+       & LVL_PREFSILICA=0    ,LVL_SHELFAGE  =0    ,                       &
        & LVL_CFC11     =0    ,LVL_CFC12     =0    ,LVL_SF6       =0    ,  &
        & LVL_NATDIC    =0    ,LVL_NATALKALI =0    ,LVL_NATCALC   =0    ,  &
        & LVL_NATPH     =0    ,LVL_NATOMEGAA =0    ,LVL_NATOMEGAC =0    ,  &
-       & LVL_NATCO3    =0    ,                                            &
-       & LVL_BROMO     =0    ,                                            &
+       & LVL_NATCO3    =0    ,LVL_BROMO     =0    ,                       &
        & LVL_D13C      =0    ,LVL_D14C      =0    ,LVL_BIGD14C   =0    ,  &
        & LVL_POC13     =0    ,LVL_DOC13     =0    ,LVL_CALC13    =0    ,  &
        & LVL_PHYTO13   =0    ,LVL_GRAZER13  =0    ,                       &
        & LVL_DOCSL     =0    ,LVL_DOCSR     =0    ,LVL_DOCR      =0    ,  &
        & LVL_PREFDOC   =0    ,LVL_PREFDOCSL =0    ,LVL_PREFDOCSR =0    ,  &
        & LVL_PREFDOCR  =0    ,                                            &
+       & LVL_NUTLIM_FE =0    ,LVL_NUTLIM_N  =0    ,LVL_NUTLIM_PHOSPH=0 ,  &
+       & ZEU_NUTLIM_FE =0    ,ZEU_NUTLIM_N  =0    ,ZEU_NUTLIM_PHOSPH=0 ,  &
+       ! extNcycle LVL
+       & LVL_ANH4      =0    ,LVL_ANO2      =0    ,                       &
+       & LVL_nitr_NH4  =0    ,LVL_nitr_NO2  =0    ,LVL_nitr_N2O_prod =0,  &
+       & LVL_nitr_NH4_OM =0  ,LVL_nitr_NO2_OM =0  ,LVL_denit_NO3     =0,  &
+       & LVL_denit_NO2 = 0   ,LVL_denit_N2O = 0   ,LVL_DNRA_NO2      =0,  &
+       & LVL_anmx_N2_prod=0  ,LVL_anmx_OM_prod=0  ,LVL_phosy_NH4     =0,  &
+       & LVL_phosy_NO3 = 0   ,LVL_remin_aerob =0  ,LVL_remin_sulf    =0,  &
+       ! M4AGO LVL
+       & LVL_agg_ws    =0    ,LVL_dynvis    =0    ,LVL_agg_stick =0    ,  &
+       & LVL_agg_stickf=0    ,LVL_agg_dmax  =0    ,LVL_agg_avdp  =0    ,  &
+       & LVL_agg_avrhop=0    ,LVL_agg_avdC  =0    ,LVL_agg_df    =0    ,  &
+       & LVL_agg_b     =0    ,LVL_agg_Vrhof =0    ,LVL_agg_Vpor  =0    ,  &
        & SDM_POWAIC    =0    ,SDM_POWAAL    =0    ,SDM_POWAPH    =0    ,  &
        & SDM_POWAOX    =0    ,SDM_POWN2     =0    ,SDM_POWNO3    =0    ,  &
        & SDM_POWASI    =0    ,SDM_SSSO12    =0    ,SDM_SSSSIL    =0    ,  &
        & SDM_SSSC12    =0    ,SDM_SSSTER    =0                         ,  &
        & BUR_SSSO12    =0    ,BUR_SSSC12    =0    ,BUR_SSSSIL    =0    ,  &
        & BUR_SSSTER    =0                                              ,  &
+       & SDM_rem_aerob =0   , SDM_rem_denit =0    , SDM_rem_sulf =0    ,  &
+       !extNcycle
+       & SDM_POWNH4    =0    ,SDM_POWN2O    =0    ,SDM_POWNO2    =0    ,  &
+       & SDM_nitr_NH4  =0    ,SDM_nitr_NO2  =0    ,SDM_nitr_N2O_prod =0,  &
+       & SDM_nitr_NH4_OM =0  ,SDM_nitr_NO2_OM =0  ,SDM_denit_NO3     =0,  &
+       & SDM_denit_NO2 = 0   ,SDM_denit_N2O = 0   ,SDM_DNRA_NO2      =0,  &
+       & SDM_anmx_N2_prod=0  ,SDM_anmx_OM_prod=0  ,SDM_remin_aerob =0  ,  &
+       & SDM_remin_sulf  =0  ,                                            &
+       & SDM_qual_a    =0    ,SDM_qual_k    =0    ,SDM_qual_app  =0,      &
+       & SDM_MAVG_prorca=0   ,SDM_ssso12_age=0,                           &
        & GLB_AVEPERIO  =0    ,GLB_FILEFREQ  =0    ,GLB_COMPFLAG  =0    ,  &
        & GLB_NCFORMAT  =0    ,GLB_INVENTORY =0
 
   character(len=10), dimension(nbgcmax) :: glb_fnametag
   namelist /diabgc/                                                       &
-       & SRF_KWCO2         ,SRF_PCO2          ,SRF_DMSFLUX       ,        &
-       & SRF_KWCO2KHM      ,SRF_CO2KHM        ,SRF_CO2KH         ,        &
-       & SRF_PCO2M         ,                                              &
+       & SRF_KWCO2         ,SRF_FCO2          ,SRF_PCO2          ,        &
+       & SRF_XCO2          ,SRF_PCO2_GEX      ,                           &
+       & SRF_DMSFLUX       ,SRF_KWCO2SOL      ,SRF_CO2SOL        ,        &
        & SRF_CO2FXD        ,SRF_CO2FXU        ,SRF_CO213FXD      ,        &
        & SRF_CO213FXU      ,SRF_CO214FXD      ,SRF_CO214FXU      ,        &
        & SRF_OXFLUX        ,SRF_NIFLUX        ,SRF_DMS           ,        &
@@ -194,25 +238,31 @@ module mo_bgcmean
        & SRF_SF6           ,SRF_PHOSPH        ,SRF_OXYGEN        ,        &
        & SRF_IRON          ,SRF_ANO3          ,SRF_ALKALI        ,        &
        & SRF_SILICA        ,SRF_DIC           ,SRF_PHYTO         ,        &
-       & SRF_PH            ,                                              &
-       & SRF_NATDIC        ,SRF_NATALKALI     ,SRF_NATPCO2       ,        &
-       & SRF_NATCO2FX      ,SRF_NATPH         ,                           &
+       & SRF_PH            ,SRF_NATDIC        ,SRF_NATALKALI     ,        &
+       & SRF_NATPCO2       ,SRF_NATCO2FX      ,SRF_NATPH         ,        &
        & SRF_ATMBROMO      ,SRF_BROMO         ,SRF_BROMOFX       ,        &
-       & INT_BROMOPRO      ,INT_BROMOUV       ,                           &
+       & SRF_ANH4          ,SRF_ANO2          ,SRF_ANH3FX        ,        &
+       & SRF_PN2OM         ,SRF_PNH3          ,SRF_ATMNH3        ,        &
+       & SRF_ATMN2O        ,INT_BROMOPRO      ,INT_BROMOUV       ,        &
        & INT_PHOSY         ,INT_NFIX          ,INT_DNIT          ,        &
        & INT_EXUDL         ,INT_EXUDSL        ,INT_EXCRL         ,        &
        & INT_EXCRSL        ,INT_DOCL_REM      ,INT_DOCSL_REM     ,        &
        & INT_DOCSL_REM     ,INT_DOCSR_REM     ,INT_DOCR_REM      ,        &
-       & FLX_NDEP          ,FLX_OALK          ,                           &
+       & FLX_NDEPNOY       ,FLX_NDEPNHX       ,FLX_OALK          ,        &
        & FLX_CAR0100       ,FLX_CAR0500       ,FLX_CAR1000       ,        &
        & FLX_CAR2000       ,FLX_CAR4000       ,FLX_CAR_BOT       ,        &
        & FLX_BSI0100       ,FLX_BSI0500       ,FLX_BSI1000       ,        &
        & FLX_BSI2000       ,FLX_BSI4000       ,FLX_BSI_BOT       ,        &
        & FLX_CAL0100       ,FLX_CAL0500       ,FLX_CAL1000       ,        &
        & FLX_CAL2000       ,FLX_CAL4000       ,FLX_CAL_BOT       ,        &
+       & FLX_DUST0100      ,FLX_DUST0500      ,FLX_DUST1000      ,        &
+       & FLX_DUST2000      ,FLX_DUST4000      ,FLX_DUST_BOT      ,        &
        & FLX_SEDIFFIC      ,FLX_SEDIFFAL      ,FLX_SEDIFFPH      ,        &
        & FLX_SEDIFFOX      ,FLX_SEDIFFN2      ,FLX_SEDIFFNO3     ,        &
-       & FLX_SEDIFFSI      ,                                              &
+       & FLX_SEDIFFSI      ,FLX_SEDIFFNH4     ,FLX_SEDIFFN2O     ,        &
+       & FLX_SEDIFFNO2     ,                                              &
+       & FLX_BURSSO12      ,FLX_BURSSSC12     ,FLX_BURSSSSIL     ,        &
+       & FLX_BURSSSTER     ,                                              &
        & LYR_PHYTO         ,LYR_GRAZER        ,LYR_DOC           ,        &
        & LYR_PHOSY         ,LYR_PHOSPH        ,LYR_OXYGEN        ,        &
        & LYR_IRON          ,LYR_ANO3          ,LYR_ALKALI        ,        &
@@ -224,15 +274,25 @@ module mo_bgcmean
        & LYR_EPS           ,LYR_ASIZE         ,LYR_N2O           ,        &
        & LYR_PREFO2        ,LYR_O2SAT         ,LYR_PREFPO4       ,        &
        & LYR_PREFALK       ,LYR_PREFDIC       ,LYR_DICSAT        ,        &
+       & LYR_PREFSILICA    ,LYR_SHELFAGE      ,                           &
        & LYR_CFC11         ,LYR_CFC12         ,LYR_SF6           ,        &
        & LYR_NATDIC        ,LYR_NATALKALI     ,LYR_NATCALC       ,        &
        & LYR_NATPH         ,LYR_NATOMEGAA     ,LYR_NATOMEGAC     ,        &
-       & LYR_NATCO3        ,                                              &
-       & LYR_BROMO         ,                                              &
+       & LYR_NATCO3        ,LYR_BROMO         ,                           &
        & LYR_DOCSL         ,LYR_DOCSR         ,LYR_DOCR          ,        &
        & LYR_D13C          ,LYR_D14C          ,LYR_BIGD14C       ,        &
        & LYR_PHYTO13       ,LYR_GRAZER13      ,LYR_POC13         ,        &
        & LYR_DOC13         ,LYR_CALC13        ,                           &
+       & LYR_ANH4          ,LYR_ANO2          ,                           &
+       & LYR_nitr_NH4      ,LYR_nitr_NO2      ,LYR_nitr_N2O_prod ,        &
+       & LYR_nitr_NH4_OM   ,LYR_nitr_NO2_OM   ,LYR_denit_NO3     ,        &
+       & LYR_denit_NO2     ,LYR_denit_N2O     ,LYR_DNRA_NO2      ,        &
+       & LYR_anmx_N2_prod  ,LYR_anmx_OM_prod  ,LYR_phosy_NH4     ,        &
+       & LYR_phosy_NO3     ,LYR_remin_aerob   ,LYR_remin_sulf    ,        &
+       & LYR_agg_ws        ,LYR_dynvis        ,LYR_agg_stick     ,        &
+       & LYR_agg_stickf    ,LYR_agg_dmax      ,LYR_agg_avdp      ,        &
+       & LYR_agg_avrhop    ,LYR_agg_avdC      ,LYR_agg_df        ,        &
+       & LYR_agg_b         ,LYR_agg_Vrhof     ,LYR_agg_Vpor      ,        &
        & LVL_PHYTO         ,LVL_GRAZER        ,LVL_DOC           ,        &
        & LVL_PHOSY         ,LVL_PHOSPH        ,LVL_OXYGEN        ,        &
        & LVL_IRON          ,LVL_ANO3          ,LVL_ALKALI        ,        &
@@ -243,24 +303,45 @@ module mo_bgcmean
        & LVL_WPHY          ,LVL_WNOS          ,LVL_EPS           ,        &
        & LVL_ASIZE         ,LVL_N2O           ,LVL_PREFO2        ,        &
        & LVL_O2SAT         ,LVL_PREFPO4       ,LVL_PREFALK       ,        &
-       & LVL_PREFDIC       ,LVL_DICSAT        ,                           &
+       & LVL_PREFDIC       ,LVL_DICSAT        ,LVL_PREFSILICA    ,        &
+       & LVL_SHELFAGE      ,                                              &
        & LVL_CFC11         ,LVL_CFC12         ,LVL_SF6           ,        &
        & LVL_NATDIC        ,LVL_NATALKALI     ,LVL_NATCALC       ,        &
        & LVL_NATPH         ,LVL_NATOMEGAA     ,LVL_NATOMEGAC     ,        &
-       & LVL_NATCO3        ,                                              &
-       & LVL_BROMO         ,                                              &
+       & LVL_NATCO3        ,LVL_BROMO         ,                           &
        & LVL_DOCSL         ,LVL_DOCSR         ,LVL_DOCR          ,        &
        & LVL_PREFDOC       ,LVL_PREFDOCSL     ,LVL_PREFDOCSR     ,        &
        & LVL_PREFDOCR      ,                                              &
        & LVL_D13C          ,LVL_D14C          ,LVL_BIGD14C       ,        &
        & LVL_PHYTO13       ,LVL_GRAZER13      ,LVL_POC13         ,        &
        & LVL_DOC13         ,LVL_CALC13        ,                           &
+       & LVL_NUTLIM_FE     ,LVL_NUTLIM_N      ,LVL_NUTLIM_PHOSPH ,        &
+       & ZEU_NUTLIM_FE     ,ZEU_NUTLIM_N      ,ZEU_NUTLIM_PHOSPH ,        &
+       & LVL_ANH4          ,LVL_ANO2          ,                           &
+       & LVL_nitr_NH4      ,LVL_nitr_NO2      ,LVL_nitr_N2O_prod ,        &
+       & LVL_nitr_NH4_OM   ,LVL_nitr_NO2_OM   ,LVL_denit_NO3     ,        &
+       & LVL_denit_NO2     ,LVL_denit_N2O     ,LVL_DNRA_NO2      ,        &
+       & LVL_anmx_N2_prod  ,LVL_anmx_OM_prod  ,LVL_phosy_NH4     ,        &
+       & LVL_phosy_NO3     ,LVL_remin_aerob   ,LVL_remin_sulf    ,        &
+       & LVL_agg_ws        ,LVL_dynvis        ,LVL_agg_stick     ,        &
+       & LVL_agg_stickf    ,LVL_agg_dmax      ,LVL_agg_avdp      ,        &
+       & LVL_agg_avrhop    ,LVL_agg_avdC      ,LVL_agg_df        ,        &
+       & LVL_agg_b         ,LVL_agg_Vrhof     ,LVL_agg_Vpor      ,        &
        & SDM_POWAIC        ,SDM_POWAAL        ,SDM_POWAPH        ,        &
        & SDM_POWAOX        ,SDM_POWN2         ,SDM_POWNO3        ,        &
        & SDM_POWASI        ,SDM_SSSO12        ,SDM_SSSSIL        ,        &
        & SDM_SSSC12        ,SDM_SSSTER                           ,        &
        & BUR_SSSO12        ,BUR_SSSC12        ,BUR_SSSSIL        ,        &
        & BUR_SSSTER                                              ,        &
+       & SDM_rem_aerob     ,SDM_rem_denit     , SDM_rem_sulf     ,        &
+       & SDM_POWNH4        ,SDM_POWN2O        ,SDM_POWNO2        ,        &
+       & SDM_nitr_NH4      ,SDM_nitr_NO2      ,SDM_nitr_N2O_prod ,        &
+       & SDM_nitr_NH4_OM   ,SDM_nitr_NO2_OM   ,SDM_denit_NO3     ,        &
+       & SDM_denit_NO2     ,SDM_denit_N2O     ,SDM_DNRA_NO2      ,        &
+       & SDM_anmx_N2_prod  ,SDM_anmx_OM_prod  ,SDM_remin_aerob   ,        &
+       & SDM_remin_sulf    ,                                              &
+       & SDM_qual_a        ,SDM_qual_k        ,SDM_qual_app      ,        &
+       & SDM_MAVG_prorca   ,SDM_ssso12_age    ,                           &
        & GLB_AVEPERIO      ,GLB_FILEFREQ      ,GLB_COMPFLAG      ,        &
        & GLB_NCFORMAT      ,GLB_FNAMETAG      ,GLB_INVENTORY
 
@@ -283,7 +364,7 @@ module mo_bgcmean
        &          jpodin2   =12,                                          &
        &          jpodino3  =13,                                          &
        &          jpodisi   =14,                                          &
-       &          jndep     =15,                                          &
+       &          jndepnoy  =15,                                          &
        &          joalk     =16,                                          &
        &          jirdin    =17,                                          &
        &          jirdip    =18,                                          &
@@ -292,17 +373,20 @@ module mo_bgcmean
        &          jiriron   =21,                                          &
        &          jirdoc    =22,                                          &
        &          jirdet    =23,                                          &
-       &          nbgct2d   =23
+       &          jnh3flux  =24,                                          &
+       &          jndepnhx  =25,                                          &
+       &          nbgct2d   =25
 
   !----------------------------------------------------------------
   integer :: i_bsc_m2d
   integer, dimension(nbgcmax) ::                                          &
        &          jkwco2     = 0 ,                                        &
-       &          jkwco2khm  = 0 ,                                        &
-       &          jco2kh     = 0 ,                                        &
-       &          jco2khm    = 0 ,                                        &
+       &          jkwco2sol  = 0 ,                                        &
+       &          jco2sol    = 0 ,                                        &
+       &          jfco2      = 0 ,                                        &
        &          jpco2      = 0 ,                                        &
-       &          jpco2m     = 0 ,                                        &
+       &          jxco2      = 0 ,                                        &
+       &          jpco2_gex  = 0 ,                                        &
        &          jdmsflux   = 0 ,                                        &
        &          jco2fxd    = 0 ,                                        &
        &          jco2fxu    = 0 ,                                        &
@@ -343,7 +427,8 @@ module mo_bgcmean
        &          jintdocsl_rem= 0 ,                                      &
        &          jintdocr_rem = 0 ,                                      &
        &          jintdocsr_rem= 0 ,                                      &
-       &          jndepfx    = 0 ,                                        &
+       &          jndepnoyfx = 0 ,                                        &
+       &          jndepnhxfx = 0 ,                                        &
        &          joalkfx    = 0 ,                                        &
        &          jcarflx0100= 0 ,                                        &
        &          jcarflx0500= 0 ,                                        &
@@ -362,7 +447,16 @@ module mo_bgcmean
        &          jcalflx1000= 0 ,                                        &
        &          jcalflx2000= 0 ,                                        &
        &          jcalflx4000= 0 ,                                        &
-       &          jcalflx_bot= 0
+       &          jcalflx_bot= 0 ,                                        &
+       &          jdustflx0100= 0 ,                                       &
+       &          jdustflx0500= 0 ,                                       &
+       &          jdustflx1000= 0 ,                                       &
+       &          jdustflx2000= 0 ,                                       &
+       &          jdustflx4000= 0 ,                                       &
+       &          jdustflx_bot= 0 ,                                       &
+       &          jzeunutlim_fe      = 0 ,                                &
+       &          jzeunutlim_phosph  = 0 ,                                &
+       &          jzeunutlim_n       = 0
 
   integer, dimension(nbgcmax) ::                                          &
        &          jsediffic  = 0 ,                                        &
@@ -371,7 +465,15 @@ module mo_bgcmean
        &          jsediffox  = 0 ,                                        &
        &          jsediffn2  = 0 ,                                        &
        &          jsediffno3 = 0 ,                                        &
-       jsediffsi  = 0
+       &          jsediffsi  = 0 ,                                        &
+       &          jsediffnh4 = 0 ,                                        &
+       &          jsediffn2o = 0 ,                                        &
+       &          jsediffno2 = 0 ,                                        &
+       &          jburflxsso12  = 0 ,                                     &
+       &          jburflxsssc12 = 0 ,                                     &
+       &          jburflxssssil = 0 ,                                     &
+       &          jburflxssster = 0 ,                                     &
+       &          jsed_mavg_prorca=0
 
   integer, dimension(nbgcmax) ::                                          &
        &          jsrfnatdic = 0 ,                                        &
@@ -386,6 +488,13 @@ module mo_bgcmean
        &          jbromo_prod= 0 ,                                        &
        &          jbromo_uv  = 0
 
+  integer, dimension(nbgcmax) ::                                          &
+       &          janh3fx    = 0 ,                                        &
+       &          jsrfanh4   = 0 ,                                        &
+       &          jsrfano2   = 0 ,                                        &
+       &          jsrfpn2om  = 0 ,                                        &
+       &          jsrfpnh3   = 0
+
   integer :: i_atm_m2d
   integer, dimension(nbgcmax) ::                                          &
        &          jatmco2  = 0 ,                                          &
@@ -393,7 +502,9 @@ module mo_bgcmean
        &          jatmn2   = 0 ,                                          &
        &          jatmc13  = 0 ,                                          &
        &          jatmc14  = 0 ,                                          &
-       &          jatmbromo= 0
+       &          jatmbromo= 0 ,                                          &
+       &          jatmnh3  = 0 ,                                          &
+       &          jatmn2o  = 0
 
   integer :: nbgcm2d
 
@@ -425,13 +536,18 @@ module mo_bgcmean
        &          jprefo2    = 0 ,                                        &
        &          jo2sat     = 0 ,                                        &
        &          jprefpo4   = 0 ,                                        &
+       &          jprefsilica= 0 ,                                        &
        &          jprefalk   = 0 ,                                        &
        &          jprefdic   = 0 ,                                        &
+       &          jshelfage  = 0 ,                                        &
        &          jdicsat    = 0 ,                                        &
        &          jcfc11     = 0 ,                                        &
        &          jcfc12     = 0 ,                                        &
        &          jsf6       = 0 ,                                        &
        &          jlvlphyto  = 0 ,                                        &
+       &          jlvlnutlim_fe=0,                                        &
+       &          jlvlnutlim_n =0,                                        &
+       &          jlvlnutlim_phosph=0,                                    &
        &          jlvlgrazer = 0 ,                                        &
        &          jlvldoc    = 0 ,                                        &
        &          jlvlphosy  = 0 ,                                        &
@@ -453,8 +569,10 @@ module mo_bgcmean
        &          jlvlprefo2 = 0 ,                                        &
        &          jlvlo2sat  = 0 ,                                        &
        &          jlvlprefpo4= 0 ,                                        &
+       &          jlvlprefsilica= 0 ,                                     &
        &          jlvlprefalk= 0 ,                                        &
        &          jlvlprefdic= 0 ,                                        &
+       &          jlvlshelfage= 0 ,                                       &
        &          jlvldicsat = 0 ,                                        &
        &          jlvlcfc11  = 0 ,                                        &
        &          jlvlcfc12  = 0 ,                                        &
@@ -515,6 +633,66 @@ module mo_bgcmean
        &          jlvlbromo  = 0
 
   integer, dimension(nbgcmax) ::                                          &
+       &          janh4      = 0 ,                                        &
+       &          jano2      = 0 ,                                        &
+       &          jnitr_NH4          = 0 ,                                &
+       &          jnitr_NO2          = 0 ,                                &
+       &          jnitr_N2O_prod     = 0 ,                                &
+       &          jnitr_NH4_OM       = 0 ,                                &
+       &          jnitr_NO2_OM       = 0 ,                                &
+       &          jdenit_NO3         = 0 ,                                &
+       &          jdenit_NO2         = 0 ,                                &
+       &          jdenit_N2O         = 0 ,                                &
+       &          jDNRA_NO2          = 0 ,                                &
+       &          janmx_N2_prod      = 0 ,                                &
+       &          janmx_OM_prod      = 0 ,                                &
+       &          jphosy_NH4         = 0 ,                                &
+       &          jphosy_NO3         = 0 ,                                &
+       &          jremin_aerob       = 0 ,                                &
+       &          jremin_sulf        = 0 ,                                &
+       &          jagg_ws            = 0 ,                                &
+       &          jdynvis            = 0 ,                                &
+       &          jagg_stick         = 0 ,                                &
+       &          jagg_stickf        = 0 ,                                &
+       &          jagg_dmax          = 0 ,                                &
+       &          jagg_avdp          = 0 ,                                &
+       &          jagg_avrhop        = 0 ,                                &
+       &          jagg_avdC          = 0 ,                                &
+       &          jagg_df            = 0 ,                                &
+       &          jagg_b             = 0 ,                                &
+       &          jagg_Vrhof         = 0 ,                                &
+       &          jagg_Vpor          = 0 ,                                &
+       &          jlvlanh4   = 0 ,                                        &
+       &          jlvlano2   = 0 ,                                        &
+       &          jlvl_nitr_NH4      = 0 ,                                &
+       &          jlvl_nitr_NO2      = 0 ,                                &
+       &          jlvl_nitr_N2O_prod = 0 ,                                &
+       &          jlvl_nitr_NH4_OM   = 0 ,                                &
+       &          jlvl_nitr_NO2_OM   = 0 ,                                &
+       &          jlvl_denit_NO3     = 0 ,                                &
+       &          jlvl_denit_NO2     = 0 ,                                &
+       &          jlvl_denit_N2O     = 0 ,                                &
+       &          jlvl_DNRA_NO2      = 0 ,                                &
+       &          jlvl_anmx_N2_prod  = 0 ,                                &
+       &          jlvl_anmx_OM_prod  = 0 ,                                &
+       &          jlvl_phosy_NH4     = 0 ,                                &
+       &          jlvl_phosy_NO3     = 0 ,                                &
+       &          jlvl_remin_aerob   = 0 ,                                &
+       &          jlvl_remin_sulf    = 0 ,                                &
+       &          jlvl_agg_ws        = 0 ,                                &
+       &          jlvl_dynvis        = 0 ,                                &
+       &          jlvl_agg_stick     = 0 ,                                &
+       &          jlvl_agg_stickf    = 0 ,                                &
+       &          jlvl_agg_dmax      = 0 ,                                &
+       &          jlvl_agg_avdp      = 0 ,                                &
+       &          jlvl_agg_avrhop    = 0 ,                                &
+       &          jlvl_agg_avdC      = 0 ,                                &
+       &          jlvl_agg_df        = 0 ,                                &
+       &          jlvl_agg_b         = 0 ,                                &
+       &          jlvl_agg_Vrhof     = 0 ,                                &
+       &          jlvl_agg_Vpor      = 0
+
+  integer, dimension(nbgcmax) ::                                          &
        &          jdocsl     = 0 ,                                        &
        &          jdocsr     = 0 ,                                        &
        &          jdocr      = 0 ,                                        &
@@ -545,7 +723,30 @@ module mo_bgcmean
        &          jssso12 = 0 ,                                           &
        &          jssssil = 0 ,                                           &
        &          jsssc12 = 0 ,                                           &
-       &          jssster = 0
+       &          jssster = 0 ,                                           &
+       &          jpownh4 = 0 ,                                           &
+       &          jpown2o = 0 ,                                           &
+       &          jpowno2 = 0 ,                                           &
+       &          jsdm_rem_aerob     = 0 ,                                &
+       &          jsdm_rem_denit     = 0 ,                                &
+       &          jsdm_rem_sulf      = 0 ,                                &
+       &          jsdm_nitr_NH4      = 0 ,                                &
+       &          jsdm_nitr_NO2      = 0 ,                                &
+       &          jsdm_nitr_N2O_prod = 0 ,                                &
+       &          jsdm_nitr_NH4_OM   = 0 ,                                &
+       &          jsdm_nitr_NO2_OM   = 0 ,                                &
+       &          jsdm_denit_NO3     = 0 ,                                &
+       &          jsdm_denit_NO2     = 0 ,                                &
+       &          jsdm_denit_N2O     = 0 ,                                &
+       &          jsdm_DNRA_NO2      = 0 ,                                &
+       &          jsdm_anmx_N2_prod  = 0 ,                                &
+       &          jsdm_anmx_OM_prod  = 0 ,                                &
+       &          jsdm_remin_aerob   = 0 ,                                &
+       &          jsdm_remin_sulf    = 0 ,                                &
+       &          jsdm_qual_a        = 0 ,                                &
+       &          jsdm_qual_k        = 0 ,                                &
+       &          jsdm_qual_app      = 0 ,                                &
+       &          jsdm_ssso12_age    = 0
 
 
   integer :: nbgct_sed
@@ -630,16 +831,18 @@ CONTAINS
     do n=1,nbgc
       if (SRF_KWCO2(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jkwco2(n)=i_bsc_m2d*min(1,SRF_KWCO2(n))
-      if (SRF_KWCO2KHM(n) > 0) i_bsc_m2d=i_bsc_m2d+1
-      jkwco2khm(n)=i_bsc_m2d*min(1,SRF_KWCO2KHM(n))
-      if (SRF_CO2KH(n) > 0) i_bsc_m2d=i_bsc_m2d+1
-      jco2kh(n)=i_bsc_m2d*min(1,SRF_CO2KH(n))
-      if (SRF_CO2KHM(n) > 0) i_bsc_m2d=i_bsc_m2d+1
-      jco2khm(n)=i_bsc_m2d*min(1,SRF_CO2KHM(n))
+      if (SRF_KWCO2SOL(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jkwco2sol(n)=i_bsc_m2d*min(1,SRF_KWCO2SOL(n))
+      if (SRF_CO2SOL(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jco2sol(n)=i_bsc_m2d*min(1,SRF_CO2SOL(n))
+      if (SRF_FCO2(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jfco2(n)=i_bsc_m2d*min(1,SRF_FCO2(n))
       if (SRF_PCO2(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jpco2(n)=i_bsc_m2d*min(1,SRF_PCO2(n))
-      if (SRF_PCO2M(n) > 0) i_bsc_m2d=i_bsc_m2d+1
-      jpco2m(n)=i_bsc_m2d*min(1,SRF_PCO2M(n))
+      if (SRF_XCO2(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jxco2(n)=i_bsc_m2d*min(1,SRF_XCO2(n))
+      if (SRF_PCO2_GEX(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jpco2_gex(n)=i_bsc_m2d*min(1,SRF_PCO2_GEX(n))
       if (SRF_DMSFLUX(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jdmsflux(n)=i_bsc_m2d*min(1,SRF_DMSFLUX(n))
       if (SRF_CO2FXD(n) > 0) i_bsc_m2d=i_bsc_m2d+1
@@ -666,6 +869,8 @@ CONTAINS
       jexposi(n)=i_bsc_m2d*min(1,SRF_EXPOSI(n))
       if (SRF_N2OFX(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jn2ofx(n)=i_bsc_m2d*min(1,SRF_N2OFX(n))
+      if (SRF_PN2OM(n) > 0) i_bsc_m2d=i_bsc_m2d+1 
+      jsrfpn2om(n)=i_bsc_m2d*min(1,SRF_PN2OM(n))
       if (SRF_PHOSPH(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jsrfphosph(n)=i_bsc_m2d*min(1,SRF_PHOSPH(n))
       if (SRF_OXYGEN(n) > 0) i_bsc_m2d=i_bsc_m2d+1
@@ -690,8 +895,8 @@ CONTAINS
       jintnfix(n)=i_bsc_m2d*min(1,INT_NFIX(n))
       if (INT_DNIT(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jintdnit(n)=i_bsc_m2d*min(1,INT_DNIT(n))
-      if (FLX_NDEP(n) > 0) i_bsc_m2d=i_bsc_m2d+1
-      jndepfx(n)=i_bsc_m2d*min(1,FLX_NDEP(n))
+      if (FLX_NDEPNOY(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jndepnoyfx(n)=i_bsc_m2d*min(1,FLX_NDEPNOY(n))
       if (FLX_OALK(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       joalkfx(n)=i_bsc_m2d*min(1,FLX_OALK(n))
       if (FLX_CAR0100(n) > 0) i_bsc_m2d=i_bsc_m2d+1
@@ -730,6 +935,25 @@ CONTAINS
       jcalflx4000(n)=i_bsc_m2d*min(1,FLX_CAL4000(n))
       if (FLX_CAL_BOT(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jcalflx_bot(n)=i_bsc_m2d*min(1,FLX_CAL_BOT(n))
+      if (FLX_DUST0100(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jdustflx0100(n)=i_bsc_m2d*min(1,FLX_DUST0100(n))
+      if (FLX_DUST0500(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jdustflx0500(n)=i_bsc_m2d*min(1,FLX_DUST0500(n))
+      if (FLX_DUST1000(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jdustflx1000(n)=i_bsc_m2d*min(1,FLX_DUST1000(n))
+      if (FLX_DUST2000(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jdustflx2000(n)=i_bsc_m2d*min(1,FLX_DUST2000(n))
+      if (FLX_DUST4000(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jdustflx4000(n)=i_bsc_m2d*min(1,FLX_DUST4000(n))
+      if (FLX_DUST_BOT(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jdustflx_bot(n)=i_bsc_m2d*min(1,FLX_DUST_BOT(n))
+      if (ZEU_NUTLIM_FE(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jzeunutlim_fe(n)=i_bsc_m2d*min(1,ZEU_NUTLIM_FE(n))
+      if (ZEU_NUTLIM_PHOSPH(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jzeunutlim_phosph(n)=i_bsc_m2d*min(1,ZEU_NUTLIM_PHOSPH(n))
+      if (ZEU_NUTLIM_N(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jzeunutlim_N(n)=i_bsc_m2d*min(1,ZEU_NUTLIM_N(n))
+
       if (.not. use_sedbypass) then
         if (FLX_SEDIFFIC(n) > 0) i_bsc_m2d=i_bsc_m2d+1
         jsediffic(n)=i_bsc_m2d*min(1,FLX_SEDIFFIC(n))
@@ -745,6 +969,26 @@ CONTAINS
         jsediffno3(n)=i_bsc_m2d*min(1,FLX_SEDIFFNO3(n))
         if (FLX_SEDIFFSI(n) > 0) i_bsc_m2d=i_bsc_m2d+1
         jsediffsi(n)=i_bsc_m2d*min(1,FLX_SEDIFFSI(n))
+        if (FLX_BURSSO12(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        jburflxsso12(n)=i_bsc_m2d*min(1,FLX_BURSSO12(n))
+        if (FLX_BURSSSC12(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        jburflxsssc12(n)=i_bsc_m2d*min(1,FLX_BURSSSC12(n))
+        if (FLX_BURSSSSIL(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        jburflxssssil(n)=i_bsc_m2d*min(1,FLX_BURSSSSIL(n))
+        if (FLX_BURSSSTER(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        jburflxssster(n)=i_bsc_m2d*min(1,FLX_BURSSSTER(n))
+        if (use_extNcycle) then
+          if (FLX_SEDIFFNH4(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+          jsediffnh4(n)=i_bsc_m2d*min(1,FLX_SEDIFFNH4(n))
+          if (FLX_SEDIFFN2O(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+          jsediffn2o(n)=i_bsc_m2d*min(1,FLX_SEDIFFN2O(n))
+          if (FLX_SEDIFFNO2(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+          jsediffno2(n)=i_bsc_m2d*min(1,FLX_SEDIFFNO2(n))
+        endif
+        if (use_sediment_quality) then
+          if (SDM_MAVG_PRORCA(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+          jsed_mavg_prorca(n)=i_bsc_m2d*min(1,SDM_MAVG_PRORCA(n))
+        endif
       endif
       if (use_cisonew) then
         if (SRF_CO213FXD(n) > 0) i_bsc_m2d=i_bsc_m2d+1
@@ -786,6 +1030,18 @@ CONTAINS
         if (INT_BROMOUV(n) > 0) i_bsc_m2d=i_bsc_m2d+1
         jbromo_uv(n)=i_bsc_m2d*min(1,INT_BROMOUV(n))
       endif
+      if (use_extNcycle) then
+        if (SRF_ANH3FX(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        janh3fx(n)=i_bsc_m2d*min(1,SRF_ANH3FX(n))
+        if (SRF_PNH3(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        jsrfpnh3(n)=i_bsc_m2d*min(1,SRF_PNH3(n))
+        if (SRF_ANH4(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        jsrfanh4(n)=i_bsc_m2d*min(1,SRF_ANH4(n))
+        if (SRF_ANO2(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        jsrfano2(n)=i_bsc_m2d*min(1,SRF_ANO2(n))
+        if (FLX_NDEPNHX(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        jndepnhxfx(n)=i_bsc_m2d*min(1,FLX_NDEPNHX(n))
+      endif
       if (use_dom) then
         if (INT_EXUDL(n) > 0) i_bsc_m2d=i_bsc_m2d+1
         jintexudl(n)=i_bsc_m2d*min(1,INT_EXUDL(n))
@@ -812,7 +1068,9 @@ CONTAINS
          jbsiflx0100+jbsiflx0500+jbsiflx1000+ &
          jbsiflx2000+jbsiflx4000+jbsiflx_bot+ &
          jcalflx0100+jcalflx0500+jcalflx1000+ &
-         jcalflx2000+jcalflx4000+jcalflx_bot  > 0)
+         jcalflx2000+jcalflx4000+jcalflx_bot+ &
+         jdustflx0100+jdustflx0500+jdustflx1000+ &
+         jdustflx2000+jdustflx4000+jdustflx_bot > 0)
 
     i_atm_m2d=i_bsc_m2d
     do n=1,nbgc
@@ -833,6 +1091,12 @@ CONTAINS
       if (use_BROMO ) then
         if (SRF_ATMBROMO(n) > 0) i_atm_m2d=i_atm_m2d+1
         jatmbromo(n)=i_atm_m2d*min(1,SRF_ATMBROMO(n))
+      endif
+      if (use_extNcycle) then
+        if (SRF_ATMNH3(n) > 0) i_atm_m2d=i_atm_m2d+1
+        jatmnh3(n)=i_atm_m2d*min(1,SRF_ATMNH3(n))
+        if (SRF_ATMN2O(n) > 0) i_atm_m2d=i_atm_m2d+1
+        jatmn2o(n)=i_atm_m2d*min(1,SRF_ATMN2O(n))
       endif
     enddo
     i_atm_m2d=i_atm_m2d-i_bsc_m2d
@@ -884,16 +1148,24 @@ CONTAINS
       jprefo2(n)=i_bsc_m3d*min(1,LYR_PREFO2(n))
       if (LYR_O2SAT(n) > 0) i_bsc_m3d=i_bsc_m3d+1
       jo2sat(n)=i_bsc_m3d*min(1,LYR_O2SAT(n))
-      if (LYR_PREFPO4(n) > 0) i_bsc_m3d=i_bsc_m3d+1
-      jprefpo4(n)=i_bsc_m3d*min(1,LYR_PREFPO4(n))
-      if (LYR_PREFALK(n) > 0) i_bsc_m3d=i_bsc_m3d+1
-      jprefalk(n)=i_bsc_m3d*min(1,LYR_PREFALK(n))
-      if (LYR_PREFDIC(n) > 0) i_bsc_m3d=i_bsc_m3d+1
-      jprefdic(n)=i_bsc_m3d*min(1,LYR_PREFDIC(n))
       if (LYR_DICSAT(n) > 0) i_bsc_m3d=i_bsc_m3d+1
       jdicsat(n)=i_bsc_m3d*min(1,LYR_DICSAT(n))
       if (LYR_DP(n) > 0) i_bsc_m3d=i_bsc_m3d+1
       jdp(n)=i_bsc_m3d*min(1,LYR_DP(n))
+      if (use_pref_tracers) then
+      if (LYR_PREFPO4(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+      jprefpo4(n)=i_bsc_m3d*min(1,LYR_PREFPO4(n))
+        if (LYR_PREFSILICA(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jprefsilica(n)=i_bsc_m3d*min(1,LYR_PREFSILICA(n))
+      if (LYR_PREFALK(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+      jprefalk(n)=i_bsc_m3d*min(1,LYR_PREFALK(n))
+      if (LYR_PREFDIC(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+      jprefdic(n)=i_bsc_m3d*min(1,LYR_PREFDIC(n))
+      endif
+      if (use_shelfsea_res_time) then
+        if (LYR_SHELFAGE(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jshelfage(n)=i_bsc_m3d*min(1,LYR_SHELFAGE(n))
+      endif
       if (use_CFC) then
         if (LYR_CFC11(n) > 0) i_bsc_m3d=i_bsc_m3d+1
         jcfc11(n)=i_bsc_m3d*min(1,LYR_CFC11(n))
@@ -956,6 +1228,69 @@ CONTAINS
         if (LYR_BROMO(n) > 0) i_bsc_m3d=i_bsc_m3d+1
         jbromo(n)=i_bsc_m3d*min(1,LYR_BROMO(n))
       endif
+      if (use_extNcycle) then
+        if (LYR_ANH4(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        janh4(n)=i_bsc_m3d*min(1,LYR_ANH4(n))
+        if (LYR_ANO2(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jano2(n)=i_bsc_m3d*min(1,LYR_ANO2(n))
+        if (LYR_nitr_NH4(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jnitr_NH4(n)=i_bsc_m3d*min(1,LYR_nitr_NH4(n))
+        if (LYR_nitr_NO2(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jnitr_NO2(n)=i_bsc_m3d*min(1,LYR_nitr_NO2(n))
+        if (LYR_nitr_N2O_prod(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jnitr_N2O_prod(n)=i_bsc_m3d*min(1,LYR_nitr_N2O_prod(n))
+        if (LYR_nitr_NH4_OM(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jnitr_NH4_OM(n)=i_bsc_m3d*min(1,LYR_nitr_NH4_OM(n))
+        if (LYR_nitr_NO2_OM(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jnitr_NO2_OM(n)=i_bsc_m3d*min(1,LYR_nitr_NO2_OM(n))
+        if (LYR_denit_NO3(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jdenit_NO3(n)=i_bsc_m3d*min(1,LYR_denit_NO3(n))
+        if (LYR_denit_NO2(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jdenit_NO2(n)=i_bsc_m3d*min(1,LYR_denit_NO2(n))
+        if (LYR_denit_N2O(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jdenit_N2O(n)=i_bsc_m3d*min(1,LYR_denit_N2O(n))
+        if (LYR_DNRA_NO2(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jDNRA_NO2(n)=i_bsc_m3d*min(1,LYR_DNRA_NO2(n))
+        if (LYR_anmx_N2_prod(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        janmx_N2_prod(n)=i_bsc_m3d*min(1,LYR_anmx_N2_prod(n))
+        if (LYR_anmx_OM_prod(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        janmx_OM_prod(n)=i_bsc_m3d*min(1,LYR_anmx_OM_prod(n))
+        if (LYR_phosy_NH4(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jphosy_NH4(n)=i_bsc_m3d*min(1,LYR_phosy_NH4(n))
+        if (LYR_phosy_NO3(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jphosy_NO3(n)=i_bsc_m3d*min(1,LYR_phosy_NO3(n))
+        if (LYR_remin_aerob(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jremin_aerob(n)=i_bsc_m3d*min(1,LYR_remin_aerob(n))
+        if (LYR_remin_sulf(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jremin_sulf(n)=i_bsc_m3d*min(1,LYR_remin_sulf(n))
+      endif
+      if (use_M4AGO) then
+        ! M4AGO
+        if (LYR_agg_ws(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_ws(n)=i_bsc_m3d*min(1,LYR_agg_ws(n))
+        if (LYR_dynvis(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jdynvis(n)=i_bsc_m3d*min(1,LYR_dynvis(n))
+        if (LYR_agg_stick(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_stick(n)=i_bsc_m3d*min(1,LYR_agg_stick(n))
+        if (LYR_agg_stickf(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_stickf(n)=i_bsc_m3d*min(1,LYR_agg_stickf(n))
+        if (LYR_agg_dmax(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_dmax(n)=i_bsc_m3d*min(1,LYR_agg_dmax(n))
+        if (LYR_agg_avdp(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_avdp(n)=i_bsc_m3d*min(1,LYR_agg_avdp(n))
+        if (LYR_agg_avrhop(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_avrhop(n)=i_bsc_m3d*min(1,LYR_agg_avrhop(n))
+        if (LYR_agg_avdC(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_avdC(n)=i_bsc_m3d*min(1,LYR_agg_avdC(n))
+        if (LYR_agg_df(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_df(n)=i_bsc_m3d*min(1,LYR_agg_df(n))
+        if (LYR_agg_b(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_b(n)=i_bsc_m3d*min(1,LYR_agg_b(n))
+        if (LYR_agg_Vrhof(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_Vrhof(n)=i_bsc_m3d*min(1,LYR_agg_Vrhof(n))
+        if (LYR_agg_Vpor(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_Vpor(n)=i_bsc_m3d*min(1,LYR_agg_Vpor(n))
+      endif
       if (use_dom) then
         if (LYR_DOCSL(n) > 0) i_bsc_m3d=i_bsc_m3d+1
         jdocsl(n)=i_bsc_m3d*min(1,LYR_DOCSL(n))
@@ -975,6 +1310,12 @@ CONTAINS
 
       if (LVL_PHYTO(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
       jlvlphyto(n)=ilvl_bsc_m3d*min(1,LVL_PHYTO(n))
+      if (LVL_NUTLIM_FE(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+      jlvlnutlim_fe(n)=ilvl_bsc_m3d*min(1,LVL_NUTLIM_FE(n))
+      if (LVL_NUTLIM_N(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+      jlvlnutlim_n(n)=ilvl_bsc_m3d*min(1,LVL_NUTLIM_N(n))
+      if (LVL_NUTLIM_PHOSPH(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+      jlvlnutlim_phosph(n)=ilvl_bsc_m3d*min(1,LVL_NUTLIM_PHOSPH(n))
       if (LVL_GRAZER(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
       jlvlgrazer(n)=ilvl_bsc_m3d*min(1,LVL_GRAZER(n))
       if (LVL_DOC(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
@@ -1015,14 +1356,22 @@ CONTAINS
       jlvlprefo2(n)=ilvl_bsc_m3d*min(1,LVL_PREFO2(n))
       if (LVL_O2SAT(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
       jlvlo2sat(n)=ilvl_bsc_m3d*min(1,LVL_O2SAT(n))
+      if (LVL_DICSAT(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+      jlvldicsat(n)=ilvl_bsc_m3d*min(1,LVL_DICSAT(n))
+      if (use_pref_tracers) then
       if (LVL_PREFPO4(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
       jlvlprefpo4(n)=ilvl_bsc_m3d*min(1,LVL_PREFPO4(n))
+        if (LVL_PREFSILICA(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlprefsilica(n)=ilvl_bsc_m3d*min(1,LVL_PREFSILICA(n))
       if (LVL_PREFALK(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
       jlvlprefalk(n)=ilvl_bsc_m3d*min(1,LVL_PREFALK(n))
       if (LVL_PREFDIC(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
       jlvlprefdic(n)=ilvl_bsc_m3d*min(1,LVL_PREFDIC(n))
-      if (LVL_DICSAT(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
-      jlvldicsat(n)=ilvl_bsc_m3d*min(1,LVL_DICSAT(n))
+      endif
+      if (use_shelfsea_res_time) then
+        if (LVL_SHELFAGE(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlshelfage(n)=ilvl_bsc_m3d*min(1,LVL_SHELFAGE(n))
+      endif
       if (use_CFC) then
         if (LVL_CFC11(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlcfc11(n)=ilvl_bsc_m3d*min(1,LVL_CFC11(n))
@@ -1084,6 +1433,69 @@ CONTAINS
       if (use_BROMO) then
         if (LVL_BROMO(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlbromo(n)=ilvl_bsc_m3d*min(1,LVL_BROMO(n))
+      endif
+      if (use_extNcycle) then
+        if (LVL_ANH4(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlanh4(n)=ilvl_bsc_m3d*min(1,LVL_ANH4(n))
+        if (LVL_ANO2(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlano2(n)=ilvl_bsc_m3d*min(1,LVL_ANO2(n))
+        if (LVL_nitr_NH4(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_nitr_NH4(n)=ilvl_bsc_m3d*min(1,LVL_nitr_NH4(n))
+        if (LVL_nitr_NO2(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_nitr_NO2(n)=ilvl_bsc_m3d*min(1,LVL_nitr_NO2(n))
+        if (LVL_nitr_N2O_prod(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_nitr_N2O_prod(n)=ilvl_bsc_m3d*min(1,LVL_nitr_N2O_prod(n))
+        if (LVL_nitr_NH4_OM(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_nitr_NH4_OM(n)=ilvl_bsc_m3d*min(1,LVL_nitr_NH4_OM(n))
+        if (LVL_nitr_NO2_OM(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_nitr_NO2_OM(n)=ilvl_bsc_m3d*min(1,LVL_nitr_NO2_OM(n))
+        if (LVL_denit_NO3(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_denit_NO3(n)=ilvl_bsc_m3d*min(1,LVL_denit_NO3(n))
+        if (LVL_denit_NO2(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_denit_NO2(n)=ilvl_bsc_m3d*min(1,LVL_denit_NO2(n))
+        if (LVL_denit_N2O(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_denit_N2O(n)=ilvl_bsc_m3d*min(1,LVL_denit_N2O(n))
+        if (LVL_DNRA_NO2(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_DNRA_NO2(n)=ilvl_bsc_m3d*min(1,LVL_DNRA_NO2(n))
+        if (LVL_anmx_N2_prod(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_anmx_N2_prod(n)=ilvl_bsc_m3d*min(1,LVL_anmx_N2_prod(n))
+        if (LVL_anmx_OM_prod(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_anmx_OM_prod(n)=ilvl_bsc_m3d*min(1,LVL_anmx_OM_prod(n))
+        if (LVL_phosy_NH4(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_phosy_NH4(n)=ilvl_bsc_m3d*min(1,LVL_phosy_NH4(n))
+        if (LVL_phosy_NO3(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_phosy_NO3(n)=ilvl_bsc_m3d*min(1,LVL_phosy_NO3(n))
+        if (LVL_remin_aerob(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_remin_aerob(n)=ilvl_bsc_m3d*min(1,LVL_remin_aerob(n))
+        if (LVL_remin_sulf(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_remin_sulf(n)=ilvl_bsc_m3d*min(1,LVL_remin_sulf(n))
+      endif
+      if (use_M4AGO) then
+        ! M4AGO
+        if (LVL_agg_ws(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_ws(n)=ilvl_bsc_m3d*min(1,LVL_agg_ws(n))
+        if (LVL_dynvis(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_dynvis(n)=ilvl_bsc_m3d*min(1,LVL_dynvis(n))
+        if (LVL_agg_stick(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_stick(n)=ilvl_bsc_m3d*min(1,LVL_agg_stick(n))
+        if (LVL_agg_stickf(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_stickf(n)=ilvl_bsc_m3d*min(1,LVL_agg_stickf(n))
+        if (LVL_agg_dmax(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_dmax(n)=ilvl_bsc_m3d*min(1,LVL_agg_dmax(n))
+        if (LVL_agg_avdp(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_avdp(n)=ilvl_bsc_m3d*min(1,LVL_agg_avdp(n))
+        if (LVL_agg_avrhop(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_avrhop(n)=ilvl_bsc_m3d*min(1,LVL_agg_avrhop(n))
+        if (LVL_agg_avdC(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_avdC(n)=ilvl_bsc_m3d*min(1,LVL_agg_avdC(n))
+        if (LVL_agg_df(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_df(n)=ilvl_bsc_m3d*min(1,LVL_agg_df(n))
+        if (LVL_agg_b(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_b(n)=ilvl_bsc_m3d*min(1,LVL_agg_b(n))
+        if (LVL_agg_Vrhof(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_Vrhof(n)=ilvl_bsc_m3d*min(1,LVL_agg_Vrhof(n))
+        if (LVL_agg_Vpor(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_Vpor(n)=ilvl_bsc_m3d*min(1,LVL_agg_Vpor(n))
       endif
       if (use_dom) then
         if (LVL_DOCSL(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
@@ -1152,8 +1564,64 @@ CONTAINS
         if (BUR_SSSTER(n) > 0) i_bsc_bur=i_bsc_bur+1
         jburssster(n)=i_bsc_bur*min(1,BUR_SSSTER(n))
       enddo
+      if (use_extNcycle) then
+        do n=1,nbgc
+          if (SDM_POWNH4(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jpownh4(n)=i_bsc_sed*min(1,SDM_POWNH4(n))
+          if (SDM_POWN2O(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jpown2o(n)=i_bsc_sed*min(1,SDM_POWN2O(n))
+          if (SDM_POWNO2(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jpowno2(n)=i_bsc_sed*min(1,SDM_POWNO2(n))
+          if (SDM_nitr_NH4(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_nitr_NH4(n)=i_bsc_sed*min(1,SDM_nitr_NH4(n))
+          if (SDM_nitr_NO2(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_nitr_NO2(n)=i_bsc_sed*min(1,SDM_nitr_NO2(n))
+          if (SDM_nitr_N2O_prod(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_nitr_N2O_prod(n)=i_bsc_sed*min(1,SDM_nitr_N2O_prod(n))
+          if (SDM_nitr_NH4_OM(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_nitr_NH4_OM(n)=i_bsc_sed*min(1,SDM_nitr_NH4_OM(n))
+          if (SDM_nitr_NO2_OM(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_nitr_NO2_OM(n)=i_bsc_sed*min(1,SDM_nitr_NO2_OM(n))
+          if (SDM_denit_NO3(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_denit_NO3(n)=i_bsc_sed*min(1,SDM_denit_NO3(n))
+          if (SDM_denit_NO2(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_denit_NO2(n)=i_bsc_sed*min(1,SDM_denit_NO2(n))
+          if (SDM_denit_N2O(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_denit_N2O(n)=i_bsc_sed*min(1,SDM_denit_N2O(n))
+          if (SDM_DNRA_NO2(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_DNRA_NO2(n)=i_bsc_sed*min(1,SDM_DNRA_NO2(n))
+          if (SDM_anmx_N2_prod(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_anmx_N2_prod(n)=i_bsc_sed*min(1,SDM_anmx_N2_prod(n))
+          if (SDM_anmx_OM_prod(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_anmx_OM_prod(n)=i_bsc_sed*min(1,SDM_anmx_OM_prod(n))
+          if (SDM_remin_aerob(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_remin_aerob(n)=i_bsc_sed*min(1,SDM_remin_aerob(n))
+          if (SDM_remin_sulf(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_remin_sulf(n)=i_bsc_sed*min(1,SDM_remin_sulf(n))
+        enddo
+      else
+        do n=1,nbgc
+          if (SDM_rem_aerob(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_rem_aerob(n)=i_bsc_sed*min(1,SDM_rem_aerob(n))
+          if (SDM_rem_denit(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_rem_denit(n)=i_bsc_sed*min(1,SDM_rem_denit(n))
+          if (SDM_rem_sulf(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_rem_sulf(n)=i_bsc_sed*min(1,SDM_rem_sulf(n))
+        enddo
     endif
-
+      if (use_sediment_quality) then
+        do n=1,nbgc
+          if (SDM_qual_a(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_qual_a(n)=i_bsc_sed*min(1,SDM_qual_a(n))
+          if (SDM_qual_k(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_qual_k(n)=i_bsc_sed*min(1,SDM_qual_k(n))
+          if (SDM_qual_app(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_qual_app(n)=i_bsc_sed*min(1,SDM_qual_app(n))
+          if (SDM_ssso12_age(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_ssso12_age(n)=i_bsc_sed*min(1,SDM_ssso12_age(n))
+        enddo
+      endif
+    endif
     nbgcm2d    = i_bsc_m2d+i_atm_m2d
     nbgcm3d    = i_bsc_m3d
     nbgcm3dlvl = ilvl_bsc_m3d
@@ -1505,7 +1973,7 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos(nbgcmax)       ! position in buffer
-    real,    intent(in) :: fld(idm,jdm,ddm)   ! input data used for accumulation
+    real,    intent(in) :: fld(idm,jdm,kdm)   ! input data used for accumulation
     integer, intent(in) :: k                  ! layer index of fld
     integer, intent(in) :: ind1(idm,jdm)      ! index field for first accumulated level
     integer, intent(in) :: ind2(idm,jdm)      ! index field for last accumulated level

@@ -3,7 +3,7 @@
 """
 build blom library
 """
-import os, shutil, sys, glob, imp
+import os, sys
 
 _CIMEROOT = os.environ.get("CIMEROOT")
 if _CIMEROOT is None:

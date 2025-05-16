@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2020-2023 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
+! Copyright (C) 2020-2025 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
 !
 ! This file is part of BLOM.
 !
@@ -27,9 +27,9 @@ module mod_diffusion
    use mod_constants, only: spval, epsilk
    use mod_xc
    use mod_forcing, only: wavsrc_opt, wavsrc_none, wavsrc_param, wavsrc_extern
+   use mod_utility, only: fnmlen
 
    implicit none
-
    private
 
    ! Variables to be set by namelist.
@@ -39,11 +39,11 @@ module mod_diffusion
       eggam, &  ! The parameter 'gamma' in the Eden and Greatbatch (2008)
                 ! parameterization [].
       eglsmn, & ! Minimum eddy length scale in the Eden and Greatbatch (2008)
-                ! parameterization [cm].
+                ! parameterization [m].
       egmndf, & ! Minimum diffusivity in the Eden and Greatbatch (2008)
-                ! parameterization [cm2 s-1].
+                ! parameterization [m2 s-1].
       egmxdf, & ! Maximum diffusivity in the Eden and Greatbatch (2008)
-                ! parameterization [cm2 s-1].
+                ! parameterization [m2 s-1].
       egidfq, & ! Factor relating the isopycnal diffusivity to the layer
                 ! interface diffusivity in the Eden and Greatbatch (2008)
                 ! parameterization (egidfq = difint/difiso) [].
@@ -51,8 +51,8 @@ module mod_diffusion
       ri0, &    ! Critical gradient richardson number for shear driven vertical
                 ! mixing [].
       bdmc1, &  ! Background diapycnal diffusivity times buoyancy frequency
-                ! [cm2 s-2].
-      bdmc2, &  ! Background diapycnal diffusivity [cm2 s-1].
+                ! [m2 s-2].
+      bdmc2, &  ! Background diapycnal diffusivity [m2 s-1].
       tkepf     ! Fraction of surface TKE that penetrates beneath mixed layer
                 ! [].
    integer :: &
@@ -73,7 +73,7 @@ module mod_diffusion
                 ! according to Gregg et al. (2003).
       smobld    ! If true, apply lateral smoothing of CVMix estimated boundary
                 ! layer depth.
-   character(len = 256) :: &
+   character(len = fnmlen) :: &
       tbfile    ! Name of file containing topographic beta parameter.
    character(len = 80) :: &
       lngmtp, & ! Type of Langmuir turbulence parameterization. Valid types:
@@ -113,14 +113,14 @@ module mod_diffusion
       ltedtp_neutral     = 2    ! Diffusion along neutral sublayers.
 
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy, kdm) :: &
-      difint, & ! Layer interface diffusivity [cm2 s-1].
-      difiso, & ! Isopycnal diffusivity [cm2 s-1].
-      difdia    ! Diapycnal diffusivity [cm2 s-1].
+      difint, & ! Layer interface diffusivity [m2 s-1].
+      difiso, & ! Isopycnal diffusivity [m2 s-1].
+      difdia    ! Diapycnal diffusivity [m2 s-1].
 
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy, kdm+1) :: &
-      Kvisc_m, &      ! momentum eddy viscosity [cm2 s-1].
-      Kdiff_t, &      ! temperature eddy diffusivity [cm2 s-1].
-      Kdiff_s, &      ! salinity eddy  diffusivity [cm2 s-1].
+      Kvisc_m, &      ! momentum eddy viscosity [m2 s-1].
+      Kdiff_t, &      ! temperature eddy diffusivity [m2 s-1].
+      Kdiff_s, &      ! salinity eddy  diffusivity [m2 s-1].
       t_ns_nonloc, &  ! Non-local transport term that is the fraction of
                       ! non-shortwave flux passing a layer interface [].
       s_nb_nonloc, &  ! Non-local transport term that is the fraction of
@@ -132,44 +132,45 @@ module mod_diffusion
                       ! u-component momentum flux passing a layer interface [].
 
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy) :: &
-      difmxp, & ! Maximum lateral diffusivity at p-points [cm2 s-1].
-      difmxq, & ! Maximum lateral diffusivity at q-points [cm2 s-1].
+      difmxp, & ! Maximum lateral diffusivity at p-points [m2 s-1].
+      difmxq, & ! Maximum lateral diffusivity at q-points [m2 s-1].
       difwgt    ! Eddy diffusivity weight [].
 
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy, 2*kdm) :: &
       umfltd, & ! u-component of horizontal mass flux due to thickness diffusion
-                ! [g cm s-2].
+                ! [kg m s-2].
       vmfltd, & ! v-component of horizontal mass flux due to thickness diffusion
-                ! [g cm s-2].
+                ! [kg m s-2].
       umflsm, & ! u-component of horizontal mass flux due to submesoscale
-                ! eddy-induced transport [g cm s-2].
+                ! eddy-induced transport [kg m s-2].
       vmflsm, & ! v-component of horizontal mass flux due to submesoscale
-                ! eddy-induced transport [g cm s-2].
+                ! eddy-induced transport [kg m s-2].
       utfltd, & ! u-component of horizontal heat flux due to thickness diffusion
-                ! [K g cm s-2].
+                ! [K kg m s-2].
       vtfltd, & ! v-component of horizontal heat flux due to thickness diffusion
-                ! [K g cm s-2].
+                ! [K kg m s-2].
       utflsm, & ! u-component of horizontal heat flux due to submesoscale
-                ! eddy-induced transport [K g cm s-2].
+                ! eddy-induced transport [K kg m s-2].
       vtflsm, & ! v-component of horizontal heat flux due to submesoscale
-                ! eddy-induced transport [K g cm s-2].
+                ! eddy-induced transport [K kg m s-2].
       utflld, & ! u-component of horizontal heat flux due to lateral diffusion
-                ! [K g cm s-2].
+                ! [K kg m s-2].
       vtflld, & ! v-component of horizontal heat flux due to lateral diffusion
-                ! [K g cm s-2].
+                ! [K kg m s-2].
       usfltd, & ! u-component of horizontal salt flux due to thickness diffusion
-                ! [g2 cm kg-1 s-2].
+                ! [g m s-2].
       vsfltd, & ! v-component of horizontal salt flux due to thickness diffusion
-                ! [g2 cm kg-1 s-2].
+                ! [g m s-2].
       usflsm, & ! u-component of horizontal salt flux due to submesoscale
-                ! eddy-induced transport [g2 cm kg-1 s-2].
+                ! eddy-induced transport [g m s-2].
       vsflsm, & ! v-component of horizontal salt flux due to submesoscale
-                ! eddy-induced transport [g2 cm kg-1 s-2].
+                ! eddy-induced transport [g m s-2].
       usflld, & ! u-component of horizontal salt flux due to lateral diffusion
-                ! [g2 cm kg-1 s-2].
+                ! [g m s-2].
       vsflld    ! v-component of horizontal salt flux due to lateral diffusion
-                ! [g2 cm kg-1 s-2].
+                ! [g m s-2].
 
+   ! Public variables
    public :: egc, eggam, eglsmn, egmndf, egmxdf, egidfq, &
              rhiscf, ri0, bdmc1, bdmc2, bdmldp, tkepf, bdmtyp, &
              eddf2d, edsprs, edanis, redi3d, rhsctp, tbfile, smobld, lngmtp, &
@@ -181,18 +182,21 @@ module mod_diffusion
              utflsm, vtflsm, utflld, vtflld, usfltd, vsfltd, &
              usflsm, vsflsm, usflld, vsflld, &
              Kvisc_m, Kdiff_t, Kdiff_s, &
-             t_ns_nonloc, s_nb_nonloc, mu_nonloc, mv_nonloc, &
-             readnml_diffusion, inivar_diffusion
+             t_ns_nonloc, s_nb_nonloc, mu_nonloc, mv_nonloc
+
+   ! Public routines
+   public :: readnml_diffusion, inivar_diffusion
 
 contains
 
    subroutine readnml_diffusion
-   ! ---------------------------------------------------------------------------
-   ! Read variables in the namelist group 'diffusion' and resolve options.
-   ! ---------------------------------------------------------------------------
+      ! ---------------------------------------------------------------------------
+      ! Read variables in the namelist group 'diffusion' and resolve options.
+      ! ---------------------------------------------------------------------------
 
+      ! Local variables
       character(len = 80) :: nml_fname
-      integer :: ios
+      integer :: nfu, ios
       logical :: fexist
 
       namelist /diffusion/ &
@@ -205,12 +209,13 @@ contains
          nml_fname = 'ocn_in'//trim(inst_suffix)
          inquire(file = nml_fname, exist = fexist)
          if (fexist) then
-            open (unit = nfu, file = nml_fname, status = 'old', action = 'read')
+            open (newunit = nfu, file = nml_fname, status = 'old', &
+                 action = 'read')
          else
             nml_fname = 'limits'//trim(inst_suffix)
             inquire(file = nml_fname, exist = fexist)
             if (fexist) then
-               open (unit = nfu, file = nml_fname, status = 'old', &
+               open (newunit = nfu, file = nml_fname, status = 'old', &
                      action = 'read')
             else
                write (lp,*) 'readnml_diffusion: could not find namelist file!'
@@ -296,6 +301,7 @@ contains
             call xcstop('(readnml_diffusion)')
                    stop '(readnml_diffusion)'
       end select
+
       select case (trim(edritp))
          case ('shear')
             edritp_opt = edritp_shear
@@ -309,6 +315,7 @@ contains
             call xcstop('(readnml_diffusion)')
                    stop '(readnml_diffusion)'
       end select
+
       select case (trim(edwmth))
          case ('smooth')
             edwmth_opt = edwmth_smooth
@@ -322,6 +329,7 @@ contains
             call xcstop('(readnml_diffusion)')
                    stop '(readnml_diffusion)'
       end select
+
       select case (trim(ltedtp))
          case ('layer')
             ltedtp_opt = ltedtp_layer
@@ -335,6 +343,7 @@ contains
             call xcstop('(readnml_diffusion)')
                    stop '(readnml_diffusion)'
       end select
+
       select case (trim(lngmtp))
          case ('none')
          case ('vr12-ma')
@@ -373,56 +382,38 @@ contains
 
       integer :: i, j, k, l
 
-   !$omp parallel do private(i, k)
-      do j = 1 - nbdy, jj + nbdy
-         do i = 1 - nbdy, ii + nbdy
-            difmxp(i, j) = spval
-            difmxq(i, j) = spval
-            difwgt(i, j) = spval
-         enddo
-         do k = 1, kk
-            do i = 1 - nbdy, ii + nbdy
-               difint(i, j, k) = spval
-               difiso(i, j, k) = spval
-               difdia(i, j, k) = spval
-            enddo
-         enddo
-         do k = 1, 2*kk
-            do i = 1 - nbdy, ii + nbdy
-               umfltd(i, j, k) = spval
-               vmfltd(i, j, k) = spval
-               umflsm(i, j, k) = spval
-               vmflsm(i, j, k) = spval
-               utfltd(i, j, k) = spval
-               vtfltd(i, j, k) = spval
-               utflsm(i, j, k) = spval
-               vtflsm(i, j, k) = spval
-               utflld(i, j, k) = spval
-               vtflld(i, j, k) = spval
-               usfltd(i, j, k) = spval
-               vsfltd(i, j, k) = spval
-               usflsm(i, j, k) = spval
-               vsflsm(i, j, k) = spval
-               usflld(i, j, k) = spval
-               vsflld(i, j, k) = spval
-            enddo
-         enddo
-         do k = 1, kk+1
-            do i = 1 - nbdy, ii + nbdy
-               Kvisc_m(i, j, k) = epsilk
-               Kdiff_t(i, j, k) = epsilk
-               Kdiff_s(i, j, k) = epsilk
-               t_ns_nonloc(i, j, k) = spval
-               s_nb_nonloc(i, j, k) = spval
-               mu_nonloc(i, j, k) = spval
-               mv_nonloc(i, j, k) = spval
-            enddo
-         enddo
-      enddo
-   !$omp end parallel do
+      difmxp(:,:) = spval
+      difmxq(:,:) = spval
+      difwgt(:,:) = spval
+      difint(:,:,:) = spval
+      difiso(:,:,:) = spval
+      difdia(:,:,:) = spval
+      umfltd(:,:,:) = spval
+      vmfltd(:,:,:) = spval
+      umflsm(:,:,:) = spval
+      vmflsm(:,:,:) = spval
+      utfltd(:,:,:) = spval
+      vtfltd(:,:,:) = spval
+      utflsm(:,:,:) = spval
+      vtflsm(:,:,:) = spval
+      utflld(:,:,:) = spval
+      vtflld(:,:,:) = spval
+      usfltd(:,:,:) = spval
+      vsfltd(:,:,:) = spval
+      usflsm(:,:,:) = spval
+      vsflsm(:,:,:) = spval
+      usflld(:,:,:) = spval
+      vsflld(:,:,:) = spval
+      Kvisc_m(:,:,:) = epsilk
+      Kdiff_t(:,:,:) = epsilk
+      Kdiff_s(:,:,:) = epsilk
+      t_ns_nonloc(:,:,:) = spval
+      s_nb_nonloc(:,:,:) = spval
+      mu_nonloc(:,:,:) = spval
+      mv_nonloc(:,:,:) = spval
 
       ! Initialize isopycnal diffusivity.
-   !$omp parallel do private(k, l, i)
+      !$omp parallel do private(k, l, i)
       do j = 1, jj
          do k = 1, kk
             do l = 1, isp(j)
@@ -432,12 +423,12 @@ contains
             enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
       call xctilr(difiso, 1, kk, nbdy, nbdy, halo_ps)
 
       ! Initialize diffusive fluxes at points located upstream and downstream
       ! (in i-direction) of p-points.
-   !$omp parallel do private(k, l, i)
+      !$omp parallel do private(k, l, i)
       do j = 1, jj
          do k = 1, 2*kk
             do l = 1, isp(j)
@@ -454,7 +445,7 @@ contains
             enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
       call xctilr(umfltd, 1, 2*kk, nbdy, nbdy, halo_us)
       call xctilr(umflsm, 1, 2*kk, nbdy, nbdy, halo_us)
       call xctilr(utflld, 1, 2*kk, nbdy, nbdy, halo_us)
@@ -462,7 +453,7 @@ contains
 
       ! Initialize diffusive fluxes at points located upstream and downstream
       ! (in j-direction) of p-points.
-   !$omp parallel do private(k, l, j)
+      !$omp parallel do private(k, l, j)
       do i = 1, ii
          do k = 1, 2*kk
             do l = 1, jsp(i)
@@ -479,14 +470,14 @@ contains
             enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
       call xctilr(vmfltd, 1, 2*kk, nbdy, nbdy, halo_vs)
       call xctilr(vmflsm, 1, 2*kk, nbdy, nbdy, halo_vs)
       call xctilr(vtflld, 1, 2*kk, nbdy, nbdy, halo_vs)
       call xctilr(vsflld, 1, 2*kk, nbdy, nbdy, halo_vs)
 
       ! Initialize non-local transport.
-   !$omp parallel do private(k, l, i)
+      !$omp parallel do private(k, l, i)
       do j = 1, jj
          do l = 1, isp(j)
          do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
@@ -523,7 +514,7 @@ contains
             enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
    end subroutine inivar_diffusion
 

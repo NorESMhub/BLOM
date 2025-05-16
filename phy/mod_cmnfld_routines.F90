@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2023 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2015-2025 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -16,36 +16,36 @@
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
- 
-module mod_cmnfld_routines
-! ------------------------------------------------------------------------------
-! This module contains variables and procedures related to common fields used by
-! several subsequent routines.
-! ------------------------------------------------------------------------------
 
-   use mod_types, only: r8
-   use mod_constants, only: g, alpha0, rho0, epsilp, onem, onecm, onemm
+module mod_cmnfld_routines
+  ! ------------------------------------------------------------------------------
+  ! This module contains variables and procedures related to common fields used by
+  ! several subsequent routines.
+  ! ------------------------------------------------------------------------------
+
+   use mod_types,     only: r8
+   use mod_constants, only: grav, alpha0, rho0, epsilp, onem, onecm, onemm
    use mod_xc
-   use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid
-   use mod_grid, only: scuxi, scvyi
-   use mod_eos, only: rho, p_alpha
-   use mod_state, only: dp, temp, saln, p, phi, kfpla
-!  use mod_dia, only : nphy, ACC_BFSQ, ACC_MLTS, ACC_MLTSMN, ACC_MLTSMX, &
-!                      ACC_MLTSSQ, ACC_T20D, ACC_DZ, ACC_DZLVL
-   use mod_cmnfld, only: sls0, slsmfq, slsels, bfsqmn, dbcrit, &
-                         bfsqi, bfsqf, z, bfsql, nslpx, nslpy, nnslpx, nnslpy, &
-                         dz, mlts
+   use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml
+   use mod_grid,      only: scuxi, scvyi
+   use mod_eos,       only: rho, p_alpha
+   use mod_state,     only: dp, temp, saln, p, phi, kfpla
+   !use mod_dia,      only: nphy, ACC_BFSQ, ACC_MLTS, ACC_MLTSMN, ACC_MLTSMX, &
+   !                        ACC_MLTSSQ, ACC_T20D, ACC_DZ, ACC_DZLVL
+   use mod_cmnfld,    only: sls0, slsmfq, slsels, bfsqmn, dbcrit, &
+                            bfsqi, bfsqf, z, bfsql, nslpx, nslpy, nnslpx, nnslpy, &
+                            dz, mlts
    use mod_diffusion, only: eitmth_opt, eitmth_gm, &
                             edritp_opt, edritp_large_scale, &
                             ltedtp_opt, ltedtp_neutral
-   use mod_utility, only: util1
-   use mod_checksum, only: csdiag, chksummsk
+   use mod_utility,   only: util1
+   use mod_checksum,  only: csdiag, chksummsk
 
    implicit none
 
    private
 
-   public :: cmnfld_bfsqi_cntiso_hybrid, cmnfld1, cmnfld2
+   public :: cmnfld_bfsqi_ale, cmnfld1, cmnfld2
 
    contains
 
@@ -75,19 +75,19 @@ module mod_cmnfld_routines
       ! scale of MLD times slsels.
       ! ------------------------------------------------------------------------
 
-   !$omp parallel do private(l, i, kfpl, k, pml, delp, bfsq, q, sls2, &
-   !$omp                     pup, tup, sup, kn, plo, tlo, slo, &
-   !$omp                     ctd, btd, rtd, atd, bei, gam)
+      !$omp parallel do private(l, i, kfpl, k, pml, delp, bfsq, q, sls2, &
+      !$omp                     pup, tup, sup, kn, plo, tlo, slo, &
+      !$omp                     ctd, btd, rtd, atd, bei, gam)
       do j = - 1, jj + 2
          do l = 1, isp(j)
          do i = max(- 1, ifp(j, l)), min(ii + 2, ilp(j, l))
 
             ! Compute BFSQ in the mixed layer.
             bfsqi(i, j, 1) = &
-               .5_r8*g*g*( rho(p(i, j, 2), &
-                               temp(i, j, 2 + nn), saln(i, j, 2 + nn)) &
-                         - rho(p(i, j, 2), &
-                               temp(i, j, 1 + nn), saln(i, j, 1 + nn))) &
+               .5_r8*grav*grav*( rho(p(i, j, 2), &
+                                     temp(i, j, 2 + nn), saln(i, j, 2 + nn)) &
+                               - rho(p(i, j, 2), &
+                                     temp(i, j, 1 + nn), saln(i, j, 1 + nn))) &
                /(dp(i, j, 1 + nn) + dp(i, j, 2 + nn))
             bfsqi(i, j, 2) = bfsqi(i, j, 1)
             bfsql(i, j, 1) = bfsqi(i, j, 1)
@@ -141,8 +141,8 @@ module mod_cmnfld_routines
                      tlo = temp(i, j, kn)
                      slo = saln(i, j, kn)
                      delp(k) = max(onemm, plo - pup)
-                     bfsqi(i, j, k) = g*g*( rho(p(i, j, k), tlo, slo) &
-                                          - rho(p(i, j, k), tup, sup))/delp(k)
+                     bfsqi(i, j, k) = grav*grav*( rho(p(i, j, k), tlo, slo) &
+                                                - rho(p(i, j, k), tup, sup))/delp(k)
                      bfsq(k) = max(bfsqmn, bfsqi(i, j, k))
                      bfsqi(i, j, k) = bfsqi(i, j, k)*delp(k)/max(onem, delp(k))
                      if (p(i, j, kk + 1) - p(i, j, k) < onem) then
@@ -215,7 +215,7 @@ module mod_cmnfld_routines
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
       if (csdiag) then
          if (mnproc == 1) then
@@ -228,7 +228,7 @@ module mod_cmnfld_routines
 
    end subroutine cmnfld_bfsqf_isopyc_bulkml
 
-   subroutine cmnfld_bfsqf_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
+   subroutine cmnfld_bfsqf_ale(m, n, mm, nn, k1m, k1n)
    ! ---------------------------------------------------------------------------
    ! Compute buoyancy frequency squared (BFSQ) on layer interfaces and
    ! representative of the layer itself. Also compute a filtered BFSQ on
@@ -243,13 +243,13 @@ module mod_cmnfld_routines
 
       ! ------------------------------------------------------------------------
       ! The BFSQ is estimated locally at layer interfaces. The filtered BFSQ is
-      ! smoothed in the vertical direction by solving a diffusion equation. 
+      ! smoothed in the vertical direction by solving a diffusion equation.
       ! ------------------------------------------------------------------------
 
       bfsqi = 0.0_r8
       bfsql = 0.0_r8
-   !$omp parallel do private(l, i, k, delp, bfsq, sls2, pup, tup, sup, kn, &
-   !$omp                     plo, tlo, slo, ctd, btd, rtd, atd, bei, gam)
+      !$omp parallel do private(l, i, k, delp, bfsq, sls2, pup, tup, sup, kn, &
+      !$omp                     plo, tlo, slo, ctd, btd, rtd, atd, bei, gam)
       do j = - 1, jj + 2
          do l = 1, isp(j)
          do i = max(- 1, ifp(j, l)), min(ii + 2, ilp(j, l))
@@ -276,8 +276,8 @@ module mod_cmnfld_routines
                   tlo = temp(i, j, kn)
                   slo = saln(i, j, kn)
                   delp(k) = max(onemm, plo - pup)
-                  bfsqi(i, j, k) = g*g*( rho(p(i, j, k), tlo, slo) &
-                                       - rho(p(i, j, k), tup, sup))/delp(k)
+                  bfsqi(i, j, k) = grav*grav*( rho(p(i, j, k), tlo, slo) &
+                                             - rho(p(i, j, k), tup, sup))/delp(k)
                   bfsq(k) = max(bfsqmn, bfsqi(i, j, k))
                   bfsqi(i, j, k) = bfsqi(i, j, k)*delp(k)/max(onem, delp(k))
                   if (p(i, j, kk + 1) - p(i, j, k) < onem) then
@@ -342,20 +342,20 @@ module mod_cmnfld_routines
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
       if (csdiag) then
          if (mnproc == 1) then
-            write(lp,*) 'cmnfld_bfsqf_cntiso_hybrid:'
+            write(lp,*) 'cmnfld_bfsqf_ale:'
          endif
          call chksummsk(bfsqi, ip, kk + 1, 'bfsqi')
          call chksummsk(bfsql, ip, kk, 'bfsql')
          call chksummsk(bfsqf, ip, kk + 1, 'bfsqf')
       endif
 
-   end subroutine cmnfld_bfsqf_cntiso_hybrid
+   end subroutine cmnfld_bfsqf_ale
 
-   subroutine cmnfld_bfsqi_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
+   subroutine cmnfld_bfsqi_ale(m, n, mm, nn, k1m, k1n)
    ! ---------------------------------------------------------------------------
    ! Compute buoyancy frequency squared (BFSQ) on layer interfaces.
    ! ---------------------------------------------------------------------------
@@ -365,7 +365,7 @@ module mod_cmnfld_routines
       real(r8) :: pup, tup, sup, plo, tlo, slo
       integer :: i, j, k, l, kn
 
-   !$omp parallel do private(k,kn,l,i)
+      !$omp parallel do private(k,kn,l,i)
       do j = -2, jj+3
          do k=1, kk
             kn = k + nn
@@ -376,13 +376,13 @@ module mod_cmnfld_routines
             enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
       bfsqi = 0.0_r8
-   !$omp parallel do private(l, i, k, pup, tup, sup, kn, plo, tlo, slo)
-      do j = 1, jj
+      !$omp parallel do private(l, i, k, pup, tup, sup, kn, plo, tlo, slo)
+      do j = 0, jj+1
          do l = 1, isp(j)
-         do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+         do i = max(0, ifp(j, l)), min(ii+1, ilp(j, l))
             bfsqi(i, j, 1) = bfsqmn
             pup = .5_r8*(p(i, j, 1) + p(i, j, 2))
             tup = temp(i, j, 1 + nn)
@@ -399,8 +399,8 @@ module mod_cmnfld_routines
                   endif
                   tlo = temp(i, j, kn)
                   slo = saln(i, j, kn)
-                  bfsqi(i, j, k) = g*g*( rho(p(i, j, k), tlo, slo) &
-                                       - rho(p(i, j, k), tup, sup)) &
+                  bfsqi(i, j, k) = grav*grav*( rho(p(i, j, k), tlo, slo) &
+                                             - rho(p(i, j, k), tup, sup)) &
                                    /max(onem, plo - pup)
                   if (p(i, j, kk + 1) - p(i, j, k) < onem) then
                      bfsqi(i, j, k) = bfsqi(i, j, k - 1)
@@ -415,16 +415,16 @@ module mod_cmnfld_routines
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
       if (csdiag) then
          if (mnproc == 1) then
-            write(lp,*) 'cmnfld_bfsqi_cntiso_hybrid:'
+            write(lp,*) 'cmnfld_bfsqi_ale:'
          endif
          call chksummsk(bfsqi, ip, kk + 1, 'bfsqi')
       endif
 
-   end subroutine cmnfld_bfsqi_cntiso_hybrid
+   end subroutine cmnfld_bfsqi_ale
 
    subroutine cmnfld_nslope_isopyc_bulkml(m, n, mm, nn, k1m, k1n)
    ! ---------------------------------------------------------------------------
@@ -440,7 +440,7 @@ module mod_cmnfld_routines
       ! Compute geopotential at layer interfaces.
       ! ------------------------------------------------------------------------
 
-   !$omp parallel do private(k, kn, l, i)
+      !$omp parallel do private(k, kn, l, i)
       do j = - 1, jj + 2
          do k = kk, 1, - 1
             kn = k + nn
@@ -457,7 +457,7 @@ module mod_cmnfld_routines
             enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
       ! ------------------------------------------------------------------------
       ! Compute slope vector of local neutral surfaces and also slope vector
@@ -467,8 +467,8 @@ module mod_cmnfld_routines
       ! bathymetry and in this case values are extrapolated from above.
       ! ------------------------------------------------------------------------
 
-   !$omp parallel do private(l, i, k, kmax, kn, kintr, knnsl, pm, rho_x, &
-   !$omp                     phi_x, bfsqm)
+      !$omp parallel do private(l, i, k, kmax, kn, kintr, knnsl, pm, rho_x, &
+      !$omp                     phi_x, bfsqm)
       do j = - 1, jj + 2
          do l = 1, isu(j)
          do i = max(0, ifu(j, l)), min(ii + 2, ilu(j, l))
@@ -505,7 +505,7 @@ module mod_cmnfld_routines
                      - rho(pm, temp(i - 1, j, 2 + nn), saln(i - 1, j, 2 + nn))
                phi_x = phi(i, j, 3) - phi(i - 1, j, 3)
                bfsqm = .5_r8*(bfsqf(i - 1, j, 3) + bfsqf(i, j, 3))
-               nslpx(i, j, 3) = (g*rho_x/(rho0*bfsqm) + phi_x/g)*scuxi(i, j)
+               nslpx(i, j, 3) = (grav*rho_x/(rho0*bfsqm) + phi_x/grav)*scuxi(i, j)
                if (phi(i    , j, 3) > phi(i - 1, j, kk + 1) .and. &
                    phi(i - 1, j, 3) > phi(i    , j, kk + 1)) then
                   nnslpx(i, j, 3) = sqrt(bfsqm)*nslpx(i, j, 3)
@@ -527,7 +527,7 @@ module mod_cmnfld_routines
                                           saln(i - 1, j, kn    )))
                   phi_x = phi(i, j, k) - phi(i - 1, j, k)
                   bfsqm = .5_r8*(bfsqf(i - 1, j, k) + bfsqf(i, j, k))
-                  nslpx(i, j, k) = (g*rho_x/(rho0*bfsqm) + phi_x/g)*scuxi(i, j)
+                  nslpx(i, j, k) = (grav*rho_x/(rho0*bfsqm) + phi_x/grav)*scuxi(i, j)
                   if (phi(i    , j, k) > phi(i - 1, j, kk + 1) .and. &
                       phi(i - 1, j, k) > phi(i    , j, kk + 1)) then
                      nnslpx(i, j, k) = sqrt(bfsqm)*nslpx(i, j, k)
@@ -554,10 +554,10 @@ module mod_cmnfld_routines
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
-   !$omp parallel do private(l, i, k, kmax, kn, kintr, knnsl, pm, rho_y, &
-   !$omp                     phi_y, bfsqm)
+      !$omp parallel do private(l, i, k, kmax, kn, kintr, knnsl, pm, rho_y, &
+      !$omp                     phi_y, bfsqm)
       do j = 0, jj + 2
          do l = 1, isv(j)
          do i = max(- 1, ifv(j, l)), min(ii + 2, ilv(j, l))
@@ -594,7 +594,7 @@ module mod_cmnfld_routines
                      - rho(pm, temp(i, j - 1, 2 + nn), saln(i, j - 1, 2 + nn))
                phi_y = phi(i, j, 3) - phi(i, j - 1, 3)
                bfsqm = .5_r8*(bfsqf(i, j - 1, 3) + bfsqf(i, j, 3))
-               nslpy(i, j, 3) = (g*rho_y/(rho0*bfsqm) + phi_y/g)*scvyi(i, j)
+               nslpy(i, j, 3) = (grav*rho_y/(rho0*bfsqm) + phi_y/grav)*scvyi(i, j)
                if (phi(i, j    , 3) > phi(i, j - 1, kk + 1) .and. &
                    phi(i, j - 1, 3) > phi(i, j    , kk + 1)) then
                   nnslpy(i, j, 3) = sqrt(bfsqm)*nslpy(i, j, 3)
@@ -616,7 +616,7 @@ module mod_cmnfld_routines
                                           saln(i, j - 1, kn    )))
                   phi_y = phi(i, j, k) - phi(i, j - 1, k)
                   bfsqm = .5_r8*(bfsqf(i, j - 1, k) + bfsqf(i, j, k))
-                  nslpy(i, j, k) = (g*rho_y/(rho0*bfsqm) + phi_y/g)*scvyi(i, j)
+                  nslpy(i, j, k) = (grav*rho_y/(rho0*bfsqm) + phi_y/grav)*scvyi(i, j)
                   if (phi(i, j    , k) > phi(i, j - 1, kk + 1) .and. &
                       phi(i, j - 1, k) > phi(i, j    , kk + 1)) then
                      nnslpy(i, j, k) = sqrt(bfsqm)*nslpy(i, j, k)
@@ -643,7 +643,7 @@ module mod_cmnfld_routines
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
       if (csdiag) then
          if (mnproc == 1) then
@@ -657,7 +657,7 @@ module mod_cmnfld_routines
 
    end subroutine cmnfld_nslope_isopyc_bulkml
 
-   subroutine cmnfld_nslope_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
+   subroutine cmnfld_nslope_ale(m, n, mm, nn, k1m, k1n)
    ! ---------------------------------------------------------------------------
    ! Estimate slope of local neutral surface.
    ! ---------------------------------------------------------------------------
@@ -671,7 +671,7 @@ module mod_cmnfld_routines
       ! Compute geopotential at layer interfaces.
       ! ------------------------------------------------------------------------
 
-   !$omp parallel do private(k, kn, l, i)
+      !$omp parallel do private(k, kn, l, i)
       do j = - 1, jj + 2
          do k = kk, 1, - 1
             kn = k + nn
@@ -688,7 +688,7 @@ module mod_cmnfld_routines
             enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
       ! ------------------------------------------------------------------------
       ! Compute slope vector of local neutral surfaces and also slope vector
@@ -698,7 +698,7 @@ module mod_cmnfld_routines
       ! bathymetry and in this case values are extrapolated from above.
       ! ------------------------------------------------------------------------
 
-   !$omp parallel do private(l, i, k, kmax, kn, knnsl, pm, rho_x, phi_x, bfsqm)
+      !$omp parallel do private(l, i, k, kmax, kn, knnsl, pm, rho_x, phi_x, bfsqm)
       do j = - 1, jj + 2
          do l = 1, isu(j)
          do i = max(0, ifu(j, l)), min(ii + 2, ilu(j, l))
@@ -735,7 +735,7 @@ module mod_cmnfld_routines
                                        saln(i - 1, j, kn    )))
                phi_x = phi(i, j, k) - phi(i - 1, j, k)
                bfsqm = .5_r8*(bfsqf(i - 1, j, k) + bfsqf(i, j, k))
-               nslpx(i, j, k) = (g*rho_x/(rho0*bfsqm) + phi_x/g)*scuxi(i, j)
+               nslpx(i, j, k) = (grav*rho_x/(rho0*bfsqm) + phi_x/grav)*scuxi(i, j)
                if (phi(i    , j, k) > phi(i - 1, j, kk + 1) .and. &
                    phi(i - 1, j, k) > phi(i    , j, kk + 1)) then
                   nnslpx(i, j, k) = sqrt(bfsqm)*nslpx(i, j, k)
@@ -749,9 +749,9 @@ module mod_cmnfld_routines
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
-   !$omp parallel do private(l, i, k, kmax, kn, knnsl, pm, rho_y, phi_y, bfsqm)
+      !$omp parallel do private(l, i, k, kmax, kn, knnsl, pm, rho_y, phi_y, bfsqm)
       do j = 0, jj + 2
          do l = 1, isv(j)
          do i = max(- 1, ifv(j, l)), min(ii + 2, ilv(j, l))
@@ -788,7 +788,7 @@ module mod_cmnfld_routines
                                        saln(i, j - 1, kn    )))
                phi_y = phi(i, j, k) - phi(i, j - 1, k)
                bfsqm = .5_r8*(bfsqf(i, j - 1, k) + bfsqf(i, j, k))
-               nslpy(i, j, k) = (g*rho_y/(rho0*bfsqm) + phi_y/g)*scvyi(i, j)
+               nslpy(i, j, k) = (grav*rho_y/(rho0*bfsqm) + phi_y/grav)*scvyi(i, j)
                if (phi(i, j    , k) > phi(i, j - 1, kk + 1) .and. &
                    phi(i, j - 1, k) > phi(i, j    , kk + 1)) then
                   nnslpy(i, j, k) = sqrt(bfsqm)*nslpy(i, j, k)
@@ -802,11 +802,11 @@ module mod_cmnfld_routines
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
       if (csdiag) then
          if (mnproc == 1) then
-           write (lp,*) 'cmnfld_nslope_cntiso_hybrid:'
+           write (lp,*) 'cmnfld_nslope_ale:'
          endif
          call chksummsk(nslpx, iu, kk, 'nslpx')
          call chksummsk(nslpy, iv, kk, 'nslpy')
@@ -814,9 +814,9 @@ module mod_cmnfld_routines
          call chksummsk(nnslpy, iv, kk, 'nnslpy')
       endif
 
-   end subroutine cmnfld_nslope_cntiso_hybrid
+   end subroutine cmnfld_nslope_ale
 
-   subroutine cmnfld_nnslope_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
+   subroutine cmnfld_nnslope_ale(m, n, mm, nn, k1m, k1n)
    ! ---------------------------------------------------------------------------
    ! Compute neutral slope times buoyancy frequency, where the neutral slope is
    ! known.
@@ -830,7 +830,7 @@ module mod_cmnfld_routines
       call xctilr(nslpx, 1, kk, 2, 2, halo_uv)
       call xctilr(nslpy, 1, kk, 2, 2, halo_vv)
 
-   !$omp parallel do private(l, i, knnsl, k, bfsqm)
+      !$omp parallel do private(l, i, knnsl, k, bfsqm)
       do j = - 1, jj + 2
          do l = 1, isu(j)
          do i = max(0, ifu(j, l)), min(ii + 2, ilu(j, l))
@@ -852,9 +852,9 @@ module mod_cmnfld_routines
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
-   !$omp parallel do private(l, i, knnsl, k, bfsqm)
+      !$omp parallel do private(l, i, knnsl, k, bfsqm)
       do j = 0, jj + 2
          do l = 1, isv(j)
          do i = max(- 1, ifv(j, l)), min(ii + 2, ilv(j, l))
@@ -876,17 +876,17 @@ module mod_cmnfld_routines
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
       if (csdiag) then
          if (mnproc == 1) then
-           write (lp,*) 'cmnfld_nnslope_cntiso_hybrid:'
+           write (lp,*) 'cmnfld_nnslope_ale:'
          endif
          call chksummsk(nnslpx, iu, kk, 'nnslpx')
          call chksummsk(nnslpy, iv, kk, 'nnslpy')
       endif
 
-   end subroutine cmnfld_nnslope_cntiso_hybrid
+   end subroutine cmnfld_nnslope_ale
 
    subroutine cmnfld_z(m, n, mm, nn, k1m, k1n)
    ! ---------------------------------------------------------------------------
@@ -897,16 +897,16 @@ module mod_cmnfld_routines
 
       integer :: i, j, k, l, km
 
-   !$omp parallel do private(l, i)
+      !$omp parallel do private(l, i)
       do j = 1, jj
          do l = 1, isp(j)
          do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
-            z(i, j, kk + 1) = - phi(i, j, kk + 1)/g
+            z(i, j, kk + 1) = - phi(i, j, kk + 1)/grav
          enddo
          enddo
       enddo
-   !$omp end parallel do
-   !$omp parallel do private(k, km, l, i)
+      !$omp end parallel do
+      !$omp parallel do private(k, km, l, i)
       do j = 1, jj
          do k = kk, 1, - 1
             km = k + mm
@@ -917,14 +917,14 @@ module mod_cmnfld_routines
                else
                   z(i, j, k) = z(i, j, k + 1) &
                              + p_alpha(p(i, j, k + 1), p(i, j, k), &
-                                       temp(i, j, km), saln(i, j, km))/g
+                                       temp(i, j, km), saln(i, j, km))/grav
                endif
                dz(i, j, k) = z(i, j, k + 1) - z(i, j, k)
             enddo
             enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
       if (csdiag) then
          if (mnproc == 1) then
@@ -946,7 +946,7 @@ module mod_cmnfld_routines
       real(r8) :: zup, dbup, plo, zlo, dblo
       integer :: i, j, k, l, km
 
-   !$omp parallel do private(l, i, k, km, zup, dbup, plo, zlo, dblo)
+      !$omp parallel do private(l, i, k, km, zup, dbup, plo, zlo, dblo)
       do j = 1, jj
          do l = 1, isp(j)
             do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
@@ -959,8 +959,8 @@ module mod_cmnfld_routines
                     plo = p(i, j, k) + .5_r8*dp(i, j, km)
                     zlo = z(i, j, k) + .5_r8*dz(i, j, k )
                     dblo = &
-                       g*(1._r8 - rho(plo, temp(i, j, k1m), saln(i, j, k1m)) &
-                                 /rho(plo, temp(i, j, km ), saln(i, j, km )))
+                       grav*(1._r8 - rho(plo, temp(i, j, k1m), saln(i, j, k1m)) &
+                                    /rho(plo, temp(i, j, km ), saln(i, j, km )))
                     if (dblo <= dbcrit) then
                        zup = zlo
                        dbup = dblo
@@ -982,7 +982,7 @@ module mod_cmnfld_routines
             enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
       if (csdiag) then
          if (mnproc == 1) then
@@ -1008,7 +1008,7 @@ module mod_cmnfld_routines
       ! Compute fields depending on selection of physics and diagnostics.
       ! ------------------------------------------------------------------------
 
-!     if (vcoord_type_tag == cntiso_hybrid .or. &
+!     if (vcoord_tag /= vcoord_isopyc_bulkml .or. &
 !         sum( ACC_MLTS  (1:nphy) + ACC_MLTSMN(1:nphy) &
 !            + ACC_MLTSMX(1:nphy) + ACC_MLTSSQ(1:nphy) &
 !            + ACC_T20D  (1:nphy) + &
@@ -1022,7 +1022,7 @@ module mod_cmnfld_routines
 
 !     endif
 
-!     if (vcoord_type_tag == cntiso_hybrid .or. &
+!     if (vcoord_tag /= vcoord_isopyc_bulkml .or. &
 !         sum( ACC_MLTS  (1:nphy) + ACC_MLTSMN(1:nphy) &
 !            + ACC_MLTSMX(1:nphy) + ACC_MLTSSQ(1:nphy)) /= 0) then
 
@@ -1054,8 +1054,8 @@ module mod_cmnfld_routines
 !     call xctilr(temp(1 - nbdy, 1 - nbdy, k1n), 1, kk, 3, 3, halo_ps)
 !     call xctilr(saln(1 - nbdy, 1 - nbdy, k1n), 1, kk, 3, 3, halo_ps)
 
-      if (vcoord_type_tag == isopyc_bulkml) then
-      !$omp parallel do private(l, i)
+      if (vcoord_tag == vcoord_isopyc_bulkml) then
+        !$omp parallel do private(l, i)
          do j = 1, jj
             do l = 1, isp(j)
             do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
@@ -1063,9 +1063,9 @@ module mod_cmnfld_routines
             enddo
             enddo
          enddo
-      !$omp end parallel do
+         !$omp end parallel do
          call xctilr(util1, 1, 1, 2, 2, halo_ps)
-      !$omp parallel do private(l, i)
+         !$omp parallel do private(l, i)
          do j = - 1, jj + 2
             do l = 1, isp(j)
             do i = max(- 1, ifp(j, l)), min(ii + 2, ilp(j, l))
@@ -1073,27 +1073,27 @@ module mod_cmnfld_routines
             enddo
             enddo
          enddo
-      !$omp end parallel do
+         !$omp end parallel do
       endif
 
       ! ------------------------------------------------------------------------
       ! Compute fields depending on selection of physics and diagnostics.
       ! ------------------------------------------------------------------------
 
-!     if (vcoord_type_tag == cntiso_hybrid .or. &
-!         edritp == 'large scale' .or. eitmth == 'gm' .or. &
-!         sum(ACC_BFSQ(1:nphy)) /= 0) then
-      if (vcoord_type_tag == cntiso_hybrid .or. &
+      !     if (vcoord_tag /= vcoord_isopyc_bulkml .or. &
+      !         edritp == 'large scale' .or. eitmth == 'gm' .or. &
+      !         sum(ACC_BFSQ(1:nphy)) /= 0) then
+      if (vcoord_tag /= vcoord_isopyc_bulkml .or. &
           edritp_opt == edritp_large_scale .or. eitmth_opt == eitmth_gm) then
 
          ! ---------------------------------------------------------------------
          ! Compute filtered buoyancy frequency squared.
          ! ---------------------------------------------------------------------
 
-         if (vcoord_type_tag == isopyc_bulkml) then
+         if (vcoord_tag == vcoord_isopyc_bulkml) then
             call cmnfld_bfsqf_isopyc_bulkml(m, n, mm, nn, k1m, k1n)
          else
-            call cmnfld_bfsqf_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
+            call cmnfld_bfsqf_ale(m, n, mm, nn, k1m, k1n)
          endif
 
       endif
@@ -1104,13 +1104,13 @@ module mod_cmnfld_routines
          ! Estimate slope of local neutral surface.
          ! ---------------------------------------------------------------------
 
-         if (vcoord_type_tag == isopyc_bulkml) then
+         if (vcoord_tag == vcoord_isopyc_bulkml) then
             call cmnfld_nslope_isopyc_bulkml(m, n, mm, nn, k1m, k1n)
          else
             if (ltedtp_opt == ltedtp_neutral) then
-               call cmnfld_nnslope_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
+               call cmnfld_nnslope_ale(m, n, mm, nn, k1m, k1n)
             else
-               call cmnfld_nslope_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
+               call cmnfld_nslope_ale(m, n, mm, nn, k1m, k1n)
             endif
          endif
 

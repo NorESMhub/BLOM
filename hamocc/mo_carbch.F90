@@ -49,7 +49,8 @@ module mo_carbch
   real, dimension (:,:,:,:), allocatable, public :: ocetra
   real, dimension (:,:,:),   allocatable, public :: atm
   real, dimension (:,:,:),   allocatable, public :: atmflx
-  real, dimension (:,:),     allocatable, public :: ndepflx
+  real, dimension (:,:),     allocatable, public :: ndepnoyflx
+  real, dimension (:,:),     allocatable, public :: ndepnhxflx
   real, dimension (:,:),     allocatable, public :: oalkflx
   real, dimension (:,:,:),   allocatable, public :: rivinflx
   real, dimension (:,:,:),   allocatable, public :: co3
@@ -61,23 +62,29 @@ module mo_carbch
 
   real, dimension (:,:,:),   allocatable, public :: satoxy
   real, dimension (:,:),     allocatable, public :: satn2o
+  real, dimension (:,:),     allocatable, public :: pn2om
+  real, dimension (:,:),     allocatable, public :: pnh3
   real, dimension (:,:),     allocatable, public :: atdifv
   real, dimension (:,:),     allocatable, public :: suppco2
   real, dimension (:,:,:),   allocatable, public :: sedfluxo
+  real, dimension (:,:,:),   allocatable, public :: sedfluxb
+  real, dimension (:,:,:,:), allocatable, public :: nutlim_diag
+  real, dimension (:,:,:),   allocatable, public :: zeu_nutlim_diag
 
-  real, dimension (:,:),     allocatable, public :: pco2d
-  real, dimension (:,:),     allocatable, public :: pco2m
+  real, dimension (:,:),     allocatable, public :: fco2
+  real, dimension (:,:),     allocatable, public :: pco2
+  real, dimension (:,:),     allocatable, public :: xco2
+  real, dimension (:,:),     allocatable, public :: pco2_gex
   real, dimension (:,:),     allocatable, public :: kwco2sol
-  real, dimension (:,:),     allocatable, public :: kwco2d
-  real, dimension (:,:),     allocatable, public :: co2sold
-  real, dimension (:,:),     allocatable, public :: co2solm
+  real, dimension (:,:),     allocatable, public :: kwco2a
+  real, dimension (:,:),     allocatable, public :: co2sol
   real, dimension (:,:),     allocatable, public :: co2fxd
   real, dimension (:,:),     allocatable, public :: co2fxu
   real, dimension (:,:),     allocatable, public :: co213fxd
   real, dimension (:,:),     allocatable, public :: co213fxu
   real, dimension (:,:),     allocatable, public :: co214fxd
   real, dimension (:,:),     allocatable, public :: co214fxu
-  real, dimension (:,:),     allocatable, public :: natpco2d
+  real, dimension (:,:),     allocatable, public :: natpco2
   real, dimension (:,:,:),   allocatable, public :: nathi
   real, dimension (:,:,:),   allocatable, public :: natco3
   real, dimension (:,:,:),   allocatable, public :: natomegaa
@@ -87,6 +94,11 @@ module mo_carbch
   real, public :: atm_cfc11_nh, atm_cfc11_sh
   real, public :: atm_cfc12_nh, atm_cfc12_sh
   real, public :: atm_sf6_nh, atm_sf6_sh
+
+  ! Index for nutlim_diag
+  integer, parameter, public :: inutlim_phosph = 1
+  integer, parameter, public :: inutlim_n      = 2
+  integer, parameter, public :: inutlim_fe     = 3
 
 contains
 
@@ -98,8 +110,8 @@ contains
 
     use mod_xc,         only: mnproc
     use mo_control_bgc, only: io_stdo_bgc
-    use mo_param1_bgc,  only: nocetra,npowtra,natm,nriv
-    use mo_control_bgc, only: use_natDIC,use_cisonew
+    use mo_param1_bgc,  only: nocetra,npowtra,nsedtra,natm,nriv
+    use mo_control_bgc, only: use_natDIC,use_cisonew,use_extNcycle
 
     integer, intent(in) :: kpie
     integer, intent(in) :: kpje
@@ -170,13 +182,13 @@ contains
 
     if (use_natDIC) then
       if (mnproc.eq.1) then
-        write(io_stdo_bgc,*)'Memory allocation for variable natpco2d ...'
+        write(io_stdo_bgc,*)'Memory allocation for variable natpco2 ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
       endif
-      allocate (natpco2d(kpie,kpje),stat=errstat)
-      if(errstat.ne.0) stop 'not enough memory natpco2d'
-      natpco2d(:,:) = 0.0
+      allocate (natpco2(kpie,kpje),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory natpco2'
+      natpco2(:,:) = 0.0
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable nathi ...'
@@ -222,6 +234,37 @@ contains
     sedfluxo(:,:,:) = 0.0
 
     if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)'Memory allocation for variable sedfluxb ..'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      write(io_stdo_bgc,*)'Third dimension    : ',nsedtra
+    endif
+    allocate (sedfluxb(kpie,kpje,nsedtra),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory sedfluxb'
+    sedfluxb(:,:,:) = 0.0
+
+    if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)'Memory allocation for variable nutlim_diag ..'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      write(io_stdo_bgc,*)'Third dimension    : ',kpke
+      write(io_stdo_bgc,*)'Fourth dimension   : ',3     ! number of potentially limiting nutrients
+    endif
+    allocate (nutlim_diag(kpie,kpje,kpke,3),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory nutlim_diag'
+    nutlim_diag(:,:,:,:) = 0.0
+
+    if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)'Memory allocation for variable zeu_nutlim_diag ..'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      write(io_stdo_bgc,*)'Third dimension    : ',3     ! number of potentially limiting nutrients
+    endif
+    allocate (zeu_nutlim_diag(kpie,kpje,3),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory zeu_nutlim_diag'
+    zeu_nutlim_diag(:,:,:) = 0.0
+
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable satn2o ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -229,6 +272,15 @@ contains
     allocate (satn2o(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory satn2o'
     satn2o(:,:) = 0.0
+
+    if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)'Memory allocation for variable pn2om ...'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+    endif
+    allocate (pn2om(kpie,kpje),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory pn2om'
+    pn2om(:,:) = 0.0
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable keqb ...'
@@ -274,13 +326,13 @@ contains
     ! Allocate field to hold N-deposition fluxes per timestep for
     ! inventory calculations and output
     if (mnproc.eq.1) then
-      write(io_stdo_bgc,*)'Memory allocation for variable ndepflx ...'
+      write(io_stdo_bgc,*)'Memory allocation for variable ndepnoyflx ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
     endif
-    allocate (ndepflx(kpie,kpje),stat=errstat)
-    if(errstat.ne.0) stop 'not enough memory ndepflx'
-    ndepflx(:,:) = 0.0
+    allocate (ndepnoyflx(kpie,kpje),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory ndepfnoylx'
+    ndepnoyflx(:,:) = 0.0
 
     ! Allocate field to hold OA alkalinity fluxes per timestep for
     ! inventory calculations and output
@@ -305,31 +357,49 @@ contains
     rivinflx(:,:,:) = 0.0
 
     if (mnproc.eq.1) then
-      write(io_stdo_bgc,*)'Memory allocation for variable pco2d ...'
+      write(io_stdo_bgc,*)'Memory allocation for variable fco2 ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
     endif
-    allocate (pco2d(kpie,kpje),stat=errstat)
-    if(errstat.ne.0) stop 'not enough memory pco2d'
-    pco2d(:,:) = 0.0
+    allocate (fco2(kpie,kpje),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory fco2'
+    fco2(:,:) = 0.0
 
     if (mnproc.eq.1) then
-      write(io_stdo_bgc,*)'Memory allocation for variable pco2m ...'
+      write(io_stdo_bgc,*)'Memory allocation for variable pco2 ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
     endif
-    allocate (pco2m(kpie,kpje),stat=errstat)
-    if(errstat.ne.0) stop 'not enough memory pco2m'
-    pco2m(:,:) = 0.0
+    allocate (pco2(kpie,kpje),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory pco2'
+    pco2(:,:) = 0.0
 
     if (mnproc.eq.1) then
-      write(io_stdo_bgc,*)'Memory allocation for variable kwco2d ...'
+      write(io_stdo_bgc,*)'Memory allocation for variable xco2 ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
     endif
-    allocate (kwco2d(kpie,kpje),stat=errstat)
-    if(errstat.ne.0) stop 'not enough memory kwco2d'
-    kwco2d(:,:) = 0.0
+    allocate (xco2(kpie,kpje),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory xco2'
+    xco2(:,:) = 0.0
+
+    if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)'Memory allocation for variable pco2_gex ...'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+    endif
+    allocate (pco2_gex(kpie,kpje),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory pco2_gex'
+    pco2_gex(:,:) = 0.0
+
+    if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)'Memory allocation for variable kwco2a ...'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+    endif
+    allocate (kwco2a(kpie,kpje),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory kwco2a'
+    kwco2a(:,:) = 0.0
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable kwco2sol ...'
@@ -341,22 +411,13 @@ contains
     kwco2sol(:,:) = 0.0
 
     if (mnproc.eq.1) then
-      write(io_stdo_bgc,*)'Memory allocation for variable co2sold ...'
+      write(io_stdo_bgc,*)'Memory allocation for variable co2sol ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
     endif
-    allocate (co2sold(kpie,kpje),stat=errstat)
+    allocate (co2sol(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory co2sold'
-    co2sold(:,:) = 0.0
-
-    if (mnproc.eq.1) then
-      write(io_stdo_bgc,*)'Memory allocation for variable co2solm ...'
-      write(io_stdo_bgc,*)'First dimension    : ',kpie
-      write(io_stdo_bgc,*)'Second dimension   : ',kpje
-    endif
-    allocate (co2solm(kpie,kpje),stat=errstat)
-    if(errstat.ne.0) stop 'not enough memory co2solm'
-    co2solm(:,:) = 0.0
+    co2sol(:,:) = 0.0
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable co2fxd, co2fxu ...'
@@ -384,6 +445,27 @@ contains
       co213fxu(:,:) = 0.0
       co214fxd(:,:) = 0.0
       co214fxu(:,:) = 0.0
+    endif
+
+    if (use_extNcycle) then
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable pnh3 ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      endif
+      allocate (pnh3(kpie,kpje),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory pnh3'
+      pnh3(:,:) = 0.0
+
+      ! Allocate field to hold N-deposition NHx fluxes per timestep for inventory caluclations
+      if (mnproc.eq.1) then
+       write(io_stdo_bgc,*)'Memory allocation for variable ndepnhxflx ...'
+       write(io_stdo_bgc,*)'First dimension    : ',kpie
+       write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      endif
+      allocate (ndepnhxflx(kpie,kpje),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory ndepnhxflx'
+      ndepnhxflx(:,:) = 0.0
     endif
 
   end subroutine alloc_mem_carbch

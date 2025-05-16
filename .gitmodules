@@ -1,3 +1,12 @@
 [submodule "CVMix-src"]
 	path = pkgs/CVMix-src
-	url = git@github.com:CVMix/CVMix-src.git
+	url = https://github.com/CVMix/CVMix-src
+	fxtag = v0.98-beta
+	fxrequired = AlwaysRequired
+        fxDONOTUSEurl = https://github.com/CVMix/CVMix-src
+[submodule "pkgs/M4AGO-sinking-scheme"]
+	path = pkgs/M4AGO-sinking-scheme
+	url = https://github.com/jmaerz/M4AGO-sinking-scheme
+	fxtag = v1.1.1
+	fxrequired = AlwaysRequired
+	fxDONOTUSEurl = https://github.com/jmaerz/M4AGO-sinking-scheme

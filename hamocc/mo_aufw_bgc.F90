@@ -75,9 +75,10 @@ contains
     use mod_dia,        only: iotype
     use mo_carbch,      only: co2star,co3,hi,satoxy,nathi
     use mo_control_bgc, only: io_stdo_bgc,ldtbgc,rmasks,rmasko,use_cisonew,use_AGG,use_BOXATM,     &
-                              use_BROMO,use_CFC,use_natDIC,use_sedbypass,use_dom
+                              use_BROMO,use_CFC,use_natDIC,use_sedbypass,use_extNcycle,            &
+                              use_pref_tracers,use_shelfsea_res_time,use_sediment_quality,use_dom
     use mo_sedmnt,      only: sedhpl
-    use mo_intfcblom,   only: sedlay2,powtra2,burial2,atm2
+    use mo_intfcblom,   only: sedlay2,powtra2,burial2,atm2,prorca_mavg2
     use mo_param1_bgc,  only: ialkali, ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,    &
                               iiron,iopal,ioxygen,iphosph,iphy,iprefalk,iprefdic,iprefo2,iprefpo4, &
                               isco212,isilica,izoo,ks,nocetra,iadust, inos,iatmco2,iatmn2,iatmo2,  &
@@ -85,9 +86,13 @@ contains
                               idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,issso13,issso14,  &
                               isssc13,isssc14,ipowc13,ipowc14,iatmnco2,iatmc13,iatmc14,inatalkali, &
                               inatcalc,inatsco212,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,  &
-                              ipowno3,isssc12,issso12,issssil,issster,idocsl,idocsr,idocr,iprefdoc,&
-                              iprefdocsl,iprefdocsr,iprefdocr     
+                              ipowno3,isssc12,issso12,issssil,issster,iprefsilica,ianh4,iano2,     &
+                              ipownh4,ipown2o,ipowno2,ishelfage,issso12_age,idocsl,idocsr,idocr,   &
+                              iprefdoc,iprefdocsl,iprefdocsr,iprefdocr
     use mo_netcdf_bgcrw,only: write_netcdf_var,netcdf_def_vardb
+#ifdef PNETCDF
+    use mod_xc,         only: mpicomm
+#endif
 
     ! Arguments
     integer,          intent(in) :: kpie             ! 1st dimension of model grid.
@@ -122,9 +127,6 @@ contains
 #   include <mpif.h>
     integer(kind=MPI_OFFSET_KIND) :: clen
     integer*4 ,save               :: info=MPI_INFO_NULL
-    integer                       :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4),mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
 #endif
 
     ! pass tracer fields in from ocean model, note that both timelevels
@@ -405,7 +407,7 @@ contains
          &    6,'mol/kg',24,'Dissolved organic carbon',rmissing,17,io_stdo_bgc)
 
     call NETCDF_DEF_VARDB(ncid,3,'poc',3,ncdimst,ncvarid,                                          &
-         &    6,'mol/kg',25,'Particulate organic carbon',rmissing,18,io_stdo_bgc)
+         &    6,'mol/kg',26,'Particulate organic carbon',rmissing,18,io_stdo_bgc)
 
     call NETCDF_DEF_VARDB(ncid,5,'phyto',3,ncdimst,ncvarid,                                        &
          &    7,'molP/kg',27,'Phytoplankton concentration',rmissing,19,io_stdo_bgc)
@@ -431,21 +433,25 @@ contains
     call NETCDF_DEF_VARDB(ncid,4,'iron',3,ncdimst,ncvarid,                                         &
          &    6,'mol/kg',14,'Dissolved iron',rmissing,26,io_stdo_bgc)
 
-    call NETCDF_DEF_VARDB(ncid,6,'prefo2',3,ncdimst,ncvarid,                                       &
-         &    6,'mol/kg',16,'Preformed oxygen',rmissing,27,io_stdo_bgc)
-
-    call NETCDF_DEF_VARDB(ncid,7,'prefpo4',3,ncdimst,ncvarid,                                      &
-         &    6,'mol/kg',19,'Preformed phosphate',rmissing,28,io_stdo_bgc)
-
-    call NETCDF_DEF_VARDB(ncid,7,'prefalk',3,ncdimst,ncvarid,                                      &
-         &    6,'mol/kg',20,'Preformed alkalinity',rmissing,29,io_stdo_bgc)
-
-    call NETCDF_DEF_VARDB(ncid,7,'prefdic',3,ncdimst,ncvarid,                                      &
-         &    6,'mol/kg',13,'Preformed dic',rmissing,30,io_stdo_bgc)
-
     call NETCDF_DEF_VARDB(ncid,6,'dicsat',3,ncdimst,ncvarid,                                       &
          &    6,'mol/kg',13,'Saturated dic',rmissing,31,io_stdo_bgc)
 
+    if (use_pref_tracers) then
+      call NETCDF_DEF_VARDB(ncid,6,'prefo2',3,ncdimst,ncvarid,                                     &
+         &    6,'mol/kg',16,'Preformed oxygen',rmissing,27,io_stdo_bgc)
+
+      call NETCDF_DEF_VARDB(ncid,7,'prefpo4',3,ncdimst,ncvarid,                                    &
+         &    6,'mol/kg',19,'Preformed phosphate',rmissing,28,io_stdo_bgc)
+
+      call NETCDF_DEF_VARDB(ncid,10,'prefsilica',3,ncdimst,ncvarid,                                &
+           &    6,'mol/kg',16,'Preformed silica',rmissing,28,io_stdo_bgc)
+
+      call NETCDF_DEF_VARDB(ncid,7,'prefalk',3,ncdimst,ncvarid,                                    &
+         &    6,'mol/kg',20,'Preformed alkalinity',rmissing,29,io_stdo_bgc)
+
+      call NETCDF_DEF_VARDB(ncid,7,'prefdic',3,ncdimst,ncvarid,                                    &
+         &    6,'mol/kg',13,'Preformed dic',rmissing,30,io_stdo_bgc)
+    endif
     if (use_cisonew) then
       call NETCDF_DEF_VARDB(ncid,6,'sco213',3,ncdimst,ncvarid,                                     &
            &    6,'mol/kg',15, 'Dissolved CO213',rmissing,32,io_stdo_bgc)
@@ -512,7 +518,18 @@ contains
     endif
     if (use_BROMO) then
       call NETCDF_DEF_VARDB(ncid,5,'bromo',3,ncdimst,ncvarid,                                      &
-           &    6,'mol/kg',9,'Bromoform',rmissing,53,io_stdo_bgc)
+           &    6,'mol/kg',9,'Bromoform',rmissing,47,io_stdo_bgc)
+    endif
+    if (use_extNcycle) then
+      call NETCDF_DEF_VARDB(ncid,4,'anh4',3,ncdimst,ncvarid,                                       &
+           &    6,'mol/kg',18,'Dissolved ammonium',rmissing,54,io_stdo_bgc)
+
+      call NETCDF_DEF_VARDB(ncid,4,'ano2',3,ncdimst,ncvarid,                                       &
+           &    6,'mol/kg',17,'Dissolved nitrite',rmissing,55,io_stdo_bgc)
+    endif
+    if (use_shelfsea_res_time) then
+      call NETCDF_DEF_VARDB(ncid,8,'shelfage',3,ncdimst,ncvarid,                                   &
+           &    1,'d',25,'Shelfwater residence time',rmissing,65,io_stdo_bgc)
     endif
     if (use_dom) then
       call NETCDF_DEF_VARDB(ncid,5,'docsl',3,ncdimst,ncvarid,                                      &
@@ -537,7 +554,7 @@ contains
            &    6,'mol/kg',23,'Preformed refactory doc',rmissing,60,io_stdo_bgc)
 
     endif
- 
+
     !
     ! Define variables : diagnostic ocean fields
     ! ----------------------------------------------------------------------
@@ -632,7 +649,24 @@ contains
 
         call NETCDF_DEF_VARDB(ncid,6,'powc14',3,ncdimst,ncvarid,                                   &
              &    9,'kmol/m**3',25,'Sediment pore water DIC14',rmissing,86,io_stdo_bgc)
+      endif
 
+      if (use_extNcycle) then
+        call NETCDF_DEF_VARDB(ncid,6,'pownh4',3,ncdimst,ncvarid,                                   &
+             &    9,'kmol/m**3',34,'Sediment pore water ammonium (NH4)',rmissing,79,io_stdo_bgc)
+
+        call NETCDF_DEF_VARDB(ncid,6,'pown2o',3,ncdimst,ncvarid,                                   &
+             &    9,'kmol/m**3',39,'Sediment pore water nitrous oxide (N2O)',rmissing,79,io_stdo_bgc)
+
+        call NETCDF_DEF_VARDB(ncid,6,'powno2',3,ncdimst,ncvarid,                                   &
+             &    9,'kmol/m**3',33,'Sediment pore water nitrite (NO2)',rmissing,79,io_stdo_bgc)
+      endif
+      if (use_sediment_quality) then
+        call NETCDF_DEF_VARDB(ncid,10,'ssso12_age',3,ncdimst,ncvarid,                              &
+           &    2,'yr',39,'Sediment accumulated organic carbon age',rmissing,70,io_stdo_bgc)
+        call NETCDF_DEF_VARDB(ncid,11,'prorca_mavg',3,ncdimst,ncvarid,                             &
+           &    11,'kmol/m**2/d',51,'Moving average of organic carbon sedimentation flux',rmissing,&
+           &    70,io_stdo_bgc)
       endif
 
       if((mnproc==1 .and. IOTYPE==0) .OR. IOTYPE==1) then
@@ -679,6 +713,11 @@ contains
 
         call NETCDF_DEF_VARDB(ncid,8,'bur_c14',3,ncdimst,ncvarid,                                  &
              &    9,'kmol/m**2',23,'Burial layer of Ca14CO3',rmissing,97,io_stdo_bgc)
+      endif
+
+      if (use_sediment_quality) then
+        call NETCDF_DEF_VARDB(ncid,11,'bur_o12_age',3,ncdimst,ncvarid,                             &
+             &    2,'yr',34,'Burial layer of organic carbon age',rmissing,97,io_stdo_bgc)
       endif
 
     endif ! not sedbypass
@@ -765,11 +804,17 @@ contains
     call write_netcdf_var(ncid,'dms',locetra(1,1,1,idms),2*kpke,0)
     call write_netcdf_var(ncid,'fdust',locetra(1,1,1,ifdust),2*kpke,0)
     call write_netcdf_var(ncid,'iron',locetra(1,1,1,iiron),2*kpke,0)
+    call write_netcdf_var(ncid,'dicsat',locetra(1,1,1,idicsat),2*kpke,0)
+    if (use_pref_tracers) then
     call write_netcdf_var(ncid,'prefo2',locetra(1,1,1,iprefo2),2*kpke,0)
     call write_netcdf_var(ncid,'prefpo4',locetra(1,1,1,iprefpo4),2*kpke,0)
+      call write_netcdf_var(ncid,'prefsilica',locetra(1,1,1,iprefsilica),2*kpke,0)
     call write_netcdf_var(ncid,'prefalk',locetra(1,1,1,iprefalk),2*kpke,0)
     call write_netcdf_var(ncid,'prefdic',locetra(1,1,1,iprefdic),2*kpke,0)
-    call write_netcdf_var(ncid,'dicsat',locetra(1,1,1,idicsat),2*kpke,0)
+    endif
+    if (use_shelfsea_res_time) then
+      call write_netcdf_var(ncid,'shelfage',locetra(1,1,1,ishelfage),2*kpke,0)
+    endif
     if (use_cisonew) then
       call write_netcdf_var(ncid,'sco213'   ,locetra(1,1,1,isco213) ,2*kpke,0)
       call write_netcdf_var(ncid,'sco214'   ,locetra(1,1,1,isco214) ,2*kpke,0)
@@ -801,6 +846,10 @@ contains
     if (use_BROMO) then
       call write_netcdf_var(ncid,'bromo',locetra(1,1,1,ibromo),2*kpke,0)
     endif
+    if (use_extNcycle) then
+      call write_netcdf_var(ncid,'anh4',locetra(1,1,1,ianh4),2*kpke,0)
+      call write_netcdf_var(ncid,'ano2',locetra(1,1,1,iano2),2*kpke,0)
+    endif
     if (use_dom) then
       call write_netcdf_var(ncid,'docsl',locetra(1,1,1,idocsl),2*kpke,0)
       call write_netcdf_var(ncid,'docsr',locetra(1,1,1,idocsr),2*kpke,0)
@@ -812,7 +861,7 @@ contains
     endif
 
     !
-    ! Write restart data : diagtnostic ocean fields
+    ! Write restart data : diagnostic ocean fields
     !
     call write_netcdf_var(ncid,'hi',hi(1,1,1),kpke,0)
     call write_netcdf_var(ncid,'co3',co3(1,1,1),kpke,0)
@@ -852,6 +901,16 @@ contains
         call write_netcdf_var(ncid,'bur_c14',burial2(1,1,1,isssc14),2,0)
         call write_netcdf_var(ncid,'powc13',powtra2(1,1,1,ipowc13),2*ks,0)
         call write_netcdf_var(ncid,'powc14',powtra2(1,1,1,ipowc14),2*ks,0)
+      endif
+      if (use_extNcycle) then
+        call write_netcdf_var(ncid,'pownh4',powtra2(1,1,1,ipownh4),2*ks,0)
+        call write_netcdf_var(ncid,'pown2o',powtra2(1,1,1,ipown2o),2*ks,0)
+        call write_netcdf_var(ncid,'powno2',powtra2(1,1,1,ipowno2),2*ks,0)
+      endif
+      if (use_sediment_quality) then
+        call write_netcdf_var(ncid,'ssso12_age',sedlay2(1,1,1,issso12_age),2*ks,0)
+        call write_netcdf_var(ncid,'bur_o12_age',burial2(1,1,1,issso12_age),2,0)
+        call write_netcdf_var(ncid,'prorca_mavg',prorca_mavg2(1,1,1),2,0)
       endif
     endif
     !

@@ -4,6 +4,15 @@
 
 <definitions_variables>
 
+  <entry id="BLOM_OUTPUT_SIZE">
+    <type>char</type>
+    <valid_values>spinup,default</valid_values>
+    <default_value>default</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Namelist option to set BLOM output option.</desc>
+  </entry>
+
   <entry id="COMP_OCN">
     <type>char</type>
     <valid_values>blom</valid_values>
@@ -18,29 +27,33 @@
     <valid_values>iage,iage ecosys</valid_values>
     <default_value>iage</default_value>
     <values>
-      <value compset="_BLOM%ECO">iage ecosys</value>
+      <value compset="_BLOM.*%ECO">iage ecosys</value>
     </values>
     <group>build_component_blom</group>
     <file>env_build.xml</file>
     <desc>Optional ocean tracers.  Valid values are Any combination of: iage ecosys</desc>
   </entry>
 
+  <entry id="BLOM_ATRC">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <group>build_component_blom</group>
+    <file>env_build.xml</file>
+    <desc>Set namelist option to activate age tracer code. Requires module iage or ecosys</desc>
+  </entry>
+
   <entry id="BLOM_TURBULENT_CLOSURE">
     <type>char</type>
     <valid_values></valid_values>
     <default_value>oneeq advection</default_value>
+    <values>
+      <value compset="_BLOM%HYB">null</value>
+      <value compset="_BLOM%LVL">null</value>
+    </values>
     <group>build_component_blom</group>
     <file>env_build.xml</file>
     <desc>Optional turbulent closure.  Valid values one of: twoeq oneeq. Additional values: advection isodif</desc>
-  </entry>
-
-  <entry id="BLOM_UNIT">
-    <type>char</type>
-    <valid_values></valid_values>
-    <default_value>cgs</default_value>
-    <group>build_component_blom</group>
-    <file>env_build.xml</file>
-    <desc>Unit system.  Valid values one of: cgs mks. </desc>
   </entry>
 
   <entry id="OCN_CO2_TYPE">
@@ -48,11 +61,11 @@
     <valid_values>constant,prognostic,diagnostic</valid_values>
     <default_value>constant</default_value>
     <values>
-      <value compset="_BLOM%ECO"           >constant</value>
-      <value compset="_BLOM%ECO.*_BGC%BPRP">prognostic</value>
-      <value compset="_BLOM%ECO.*_BGC%BDRD">diagnostic</value>
-      <value compset="_DATM%CPLHIST.*_BLOM%ECO">diagnostic</value>
-      <value compset="20TR_DATM%IAF.*_BLOM%ECO">diagnostic</value>
+      <value compset="_BLOM.*%ECO"           >constant</value>
+      <value compset="_BLOM.*%ECO.*_BGC%BPRP">prognostic</value>
+      <value compset="_BLOM.*%ECO.*_BGC%BDRD">diagnostic</value>
+      <value compset="_DATM%CPLHIST.*_BLOM.*%ECO">diagnostic</value>
+      <value compset="20TR_DATM%IAF.*_BLOM.*%ECO">diagnostic</value>
     </values>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
@@ -63,11 +76,28 @@
 
   <entry id="BLOM_VCOORD">
     <type>char</type>
-    <valid_values>isopyc_bulkml,cntiso_hybrid</valid_values>
+    <valid_values>isopyc_bulkml,cntiso_hybrid,plevel</valid_values>
     <default_value>isopyc_bulkml</default_value>
+    <values>
+      <value compset="_BLOM%HYB">cntiso_hybrid</value>
+      <value compset="_BLOM%LVL">plevel</value>
+    </values>
     <group>build_component_blom</group>
     <file>env_build.xml</file>
     <desc>Vertical coordinate type of BLOM</desc>
+  </entry>
+
+  <entry id="BLOM_KDM">
+    <type>integer</type>
+    <valid_values/>
+    <default_value>53</default_value>
+    <values>
+      <value compset="_BLOM%HYB">56</value>
+      <value compset="_BLOM%LVL">56</value>
+    </values>
+    <group>build_component_blom</group>
+    <file>env_build.xml</file>
+    <desc>Vertical dimension of BLOM</desc>
   </entry>
 
   <entry id="BLOM_COUPLING">
@@ -112,24 +142,122 @@
     <valid_values>UNSET,1850,2000,hist,ssp119,ssp126,ssp245,ssp370,ssp434,ssp460,ssp534os,ssp585</valid_values>
     <default_value>1850</default_value>
     <values>
-      <value compset="HIST_CAM60%NORESM.*_BLOM%ECO"    >hist</value>
-      <value compset="20TR_DATM.*_BLOM%ECO"            >hist</value>
-      <value compset="2000_CAM60%NORESM.*_BLOM%ECO"    >2000</value>
-      <value compset="SSP119_CAM60%NORESM.*_BLOM%ECO"  >ssp119</value>
-      <value compset="SSP126_CAM60%NORESM.*_BLOM%ECO"  >ssp126</value>
-      <value compset="SSP245_CAM60%NORESM.*_BLOM%ECO"  >ssp245</value>
-      <value compset="SSP370_CAM60%NORESM.*_BLOM%ECO"  >ssp370</value>
-      <value compset="SSP370LOWNTCF_CAM60%NORESM.*_BLOM%ECO"      >ssp370</value>
-      <value compset="SSP370REFGHGLOWNTCF_CAM60%NORESM.*_BLOM%ECO">ssp370</value>
-      <value compset="SSP434_CAM60%NORESM.*_BLOM%ECO"  >ssp434</value>
-      <value compset="SSP460_CAM60%NORESM.*_BLOM%ECO"  >ssp460</value>
-      <value compset="SSP534_CAM60%NORESM.*_BLOM%ECO"  >ssp534os</value>
-      <value compset="SSP585_CAM60%NORESM.*_BLOM%ECO"  >ssp585</value>
+      <value compset="1850_.*_BLOM.*%ECO"   >1850</value>
+      <value compset="2000_.*_BLOM.*%ECO"   >2000</value>
+      <value compset="HIST_.*_BLOM.*%ECO"   >hist</value>
+      <value compset="20TR_.*_BLOM.*%ECO"   >hist</value>
+      <value compset="SSP119_.*_BLOM.*%ECO" >ssp119</value>
+      <value compset="SSP126_.*_BLOM.*%ECO" >ssp126</value>
+      <value compset="SSP245_.*_BLOM.*%ECO" >ssp245</value>
+      <value compset="SSP370_.*_BLOM.*%ECO" >ssp370</value>
+      <value compset="SSP434_.*_BLOM.*%ECO" >ssp434</value>
+      <value compset="SSP460_.*_BLOM.*%ECO" >ssp460</value>
+      <value compset="SSP534_.*_BLOM.*%ECO" >ssp534os</value>
+      <value compset="SSP585_.*_BLOM.*%ECO" >ssp585</value>
+      <value compset="SSP370.*_BLOM.*%ECO"  >ssp370</value>
      </values>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>Scenario for nitrogen deposition data. Requires module ecosys</desc>
+    <desc>Scenario for nitrogen deposition data. Requires module ecosys.
+    Not used when coupling with nuopc-cmeps</desc>
   </entry>
+
+  <entry id="HAMOCC_EXTNCYCLE">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <values>
+       <value compset="_BGC.*%N2OC">TRUE</value>
+       <value compset="_BGC.*%NH3C">TRUE</value>
+       <value compset="_BGC.*%ATMNDEPC">TRUE</value>
+    </values>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Set namelist option to activate the extended nitrogen cycle code. Requires module ecosys</desc>
+  </entry>
+
+  <entry id="HAMOCC_ATMNDEPC">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <values>
+       <value compset="_BGC.*%ATMNDEPC">TRUE</value>
+    </values>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Nitrogen deposition coupled from atmosphere. Requires module ecosys and extncycle.
+    Not used when coupling with nuopc-cmeps</desc>
+  </entry>
+
+  <entry id="HAMOCC_N2OC">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <values>
+       <value compset="_BGC.*%N2OC">TRUE</value>
+    </values>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>N2O fluxes coupled from atmosphere. Requires module ecosys and extncycle</desc>
+  </entry>
+  
+  <entry id="HAMOCC_NH3C">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <values>
+       <value compset="_BGC.*%NH3C">TRUE</value>
+    </values>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>NH3 fluxes coupled from atmosphere. Requires module ecosys and extncycle</desc>
+  </entry>
+
+  <entry id="HAMOCC_SINKING_SCHEME">
+    <type>char</type>
+    <valid_values>WLIN,M4AGO,AGG,CONST</valid_values>
+    <default_value>WLIN</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Namelist option to set sinking scheme. Requires module ecosys</desc>
+  </entry>
+
+  <entry id="HAMOCC_OUTPUT_SIZE">
+    <type>char</type>
+    <valid_values>spinup,default</valid_values>
+    <default_value>default</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Namelist option to set iHAMOCC output option. Requires module ecosys</desc>
+  </entry>
+
+  <entry id="HAMOCC_PREF_TRACERS">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>TRUE</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Set namelist option to activate the preformed tracer code. Requires module ecosys</desc>
+  </entry>
+
+  <entry id="HAMOCC_SHELFSEA_RES_TIME">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Set namelist option to activate the shelfsea water residence time code. Requires module ecosys</desc>
+  </entry>
+
+  <entry id="HAMOCC_SEDIMENT_QUALITY">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Set namelist option to activate the sediment quality-based remineralization code. Requires module ecosys</desc>
+  </entry>
+
 
   <entry id="HAMOCC_CISO">
     <type>logical</type>
@@ -137,7 +265,7 @@
     <default_value>FALSE</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>Set preprocessor option to activate the carbon isotope code. Requires module ecosys</desc>
+    <desc>Set namelist option to activate the carbon isotope code. Requires module ecosys</desc>
   </entry>
 
   <entry id="HAMOCC_SEDBYPASS">
@@ -146,7 +274,7 @@
     <default_value>FALSE</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>Set preprocessor option to bypass the sediment code. Requires module ecosys</desc>
+    <desc>Set namelist option to bypass the sediment code. Requires module ecosys</desc>
   </entry>
 
   <entry id="HAMOCC_SEDSPINUP">
@@ -155,7 +283,7 @@
     <default_value>TRUE</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>Activate sediment spinup. HAMOCC_SEDSPINUP_YR_START and HAMOCC_SEDSPINUP_YR_END 
+    <desc>Activate sediment spinup. HAMOCC_SEDSPINUP_YR_START and HAMOCC_SEDSPINUP_YR_END
       need to be set to valid values for this option to take effect. Requires module ecosys</desc>
   </entry>
 
@@ -165,7 +293,7 @@
     <default_value>1</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>Set start year for HAMOCC sediment spin-up if HAMOCC_SEDSPINUP == TRUE. 
+    <desc>Set start year for HAMOCC sediment spin-up if HAMOCC_SEDSPINUP == TRUE.
       Requires module ecosys</desc>
   </entry>
 
@@ -175,23 +303,23 @@
     <default_value>800</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>Set end year for HAMOCC sediment spin-up if HAMOCC_SEDSPINUP == TRUE. 
+    <desc>Set end year for HAMOCC sediment spin-up if HAMOCC_SEDSPINUP == TRUE.
       Requires module ecosys</desc>
   </entry>
- 
+
   <entry id="HAMOCC_SEDSPINUP_NCYCLE">
     <type>integer</type>
     <valid_values/>
     <default_value>20</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>Set the number of sub-cycles for HAMOCC sediment spin-up if HAMOCC_SEDSPINUP == TRUE. 
+    <desc>Set the number of sub-cycles for HAMOCC sediment spin-up if HAMOCC_SEDSPINUP == TRUE.
       Requires module ecosys</desc>
   </entry>
 
   <description>
-    <desc compset="_BLOM"    >BLOM default:</desc>
-    <desc compset="_BLOM%ECO">BLOM/Ecosystem:</desc>
+    <desc compset="_BLOM"      >BLOM default:</desc>
+    <desc compset="_BLOM.*%ECO">BLOM/Ecosystem:</desc>
   </description>
 
   <help>

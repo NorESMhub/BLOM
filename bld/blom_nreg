@@ -1,0 +1,99 @@
+#!/bin/bash
+#
+# ------------------------------------------------------------------------------
+# Copyright (C) 2025 Mats Bentsen
+#
+# This file is part of BLOM.
+#
+# BLOM is free software: you can redistribute it and/or modify it under the
+# terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option)
+# any later version.
+#
+# BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+# more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with BLOM. If not, see <https://www.gnu.org/licenses/>.
+# ------------------------------------------------------------------------------
+#
+# The purpose of this script is to write the grid type parameter "nreg"
+# to stdout. The necessary information is taken from patch.input files
+# for the appropriate processor count.
+#
+set -e
+
+sn=`basename $0`
+usage="Usage: $sn -n pes [-d directory]\nPurpose: write BLOM grid type parameter \"nreg\" to stdout.\nOptions:\n -n pes\t\tnumber of processing elements.\n -d directory\tdirectory to search for patch.input files (default\n\t\tcurrent working directory)."
+
+#
+# Get options
+#
+patchdir=$PWD
+error=0
+while getopts ":n:d:" opt; do
+  case $opt in
+    n) npes=$OPTARG;;
+    d) patchdir=$OPTARG;;
+    \?) echo "$sn: Invalid option: -$OPTARG" >&2
+        error=1;;
+    :) echo "$sn: Option -$OPTARG requires an argument." >&2
+       error=1;;
+  esac
+done
+if [[ -z $npes || $error -eq 1 ]]; then
+  echo -e "$usage" >&2
+  exit 1
+fi
+
+#
+# Check for availability of suitable patch.input file
+#
+if [ ! -d $patchdir ];  then
+  echo "$sn: Directory $patchdir for patch.input files does not exist!" >&2
+  exit 1
+fi
+if [ ! -e $patchdir/patch.input.$npes ];  then
+  echo "$sn: Cannot find patch.input file for $npes processors!" >&2
+  pil=($patchdir/patch.input.*)
+  if [ "${pil[0]##*.}" == "*" ]; then
+    echo "$sn: no patch.input files are available!" >&2
+  else
+    for ((i=0; i < "${#pil[@]}"; i++)); do
+      pil[i]=`tail -c11 <<< "000000000${pil[i]##*.}"`
+    done
+    pil=(`for ((i=0; i < "${#pil[@]}"; i++)); do echo ${pil[i]}; done | sort`)
+    echo "$sn: Available processor counts: ${pil[@]##*00000}" >&2
+  fi
+  exit 1
+fi
+
+#
+# Read all lines in the patch input file
+#
+l=0
+while read line[l]; do
+  l=$((l+1))
+done < $patchdir/patch.input.$npes
+
+#
+# Get various parameters
+#
+read npesfile npe mpe idm jdm ibig jbig nreg minsea maxsea avesea <<< ${line[1]}
+
+#
+# Check consistency of processor count in argument and patch.input file
+#
+if [[ npes -ne npesfile ]]; then
+  echo "$sn: Inconsistent processor count in argument ($npes) and patch.input file ($npesfile)." >&2
+  exit 1
+fi
+
+#
+# Write nreg to stdout
+#
+echo $nreg
+
+exit 0

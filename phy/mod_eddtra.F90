@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2022 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2015-2025 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -23,38 +23,127 @@ module mod_eddtra
 ! transport.
 ! ------------------------------------------------------------------------------
 
-   use mod_types, only: r8
-   use mod_constants, only: g, alpha0, rho0, epsilp, onem, onecm, onemm, &
-                            L_mks2cgs
-   use mod_time, only: delt1
+   use mod_types,     only: r8
+   use mod_constants, only: grav, alpha0, rho0, epsilp, spval, &
+                            onem, onecm, onemm
+   use mod_time,      only: delt1
    use mod_xc
-   use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid
-   use mod_grid, only: scuy, scvx, scp2, scu2, scv2, scuxi, scvyi, coriop
-   use mod_eos, only: rho, sig0
-   use mod_state, only: dp, dpu, dpv, temp, saln, p, pbu, pbv, kfpla
+   use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml
+   use mod_grid,      only: scuy, scvx, scp2, scu2, scv2, scuxi, scvyi, coriop
+   use mod_eos,       only: rho, sig0
+   use mod_state,     only: dp, dpu, dpv, temp, saln, p, pbu, pbv, kfpla
    use mod_diffusion, only: eitmth_opt, eitmth_intdif, eitmth_gm, &
                             difint, umfltd, vmfltd, umflsm, vmflsm, &
                             utfltd, vtfltd, utflsm, vtflsm, &
                             usfltd, vsfltd, usflsm, vsflsm
-   use mod_cmnfld, only: dbcrit, nslpx, nslpy, mlts
-   use mod_mxlayr, only: ce
-   use mod_utility, only: util1
-   use mod_checksum, only: csdiag, chksummsk
+   use mod_cmnfld,    only: dbcrit, nslpx, nslpy, mlts
+   use mod_forcing,   only: ustar3, wstar3
+   use mod_difest,    only: OBLdepth
+   use mod_utility,   only: util1
+   use mod_checksum,  only: csdiag, chksummsk
 
    implicit none
 
-   real(r8), parameter :: &
-      iL_mks2cgs = 1./L_mks2cgs
-
    private
 
-   public :: eddtra
+   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
+      hbl_tf, wpup_tf, hml_tf1, hml_tf
+
+   ! Options with default values, modifiable by namelist.
+   character(len = 80) :: &
+      mlrmth = 'fox08'                 ! Mixed layer restratification method.
+                                       ! Valid methods: 'none', 'fox08',
+                                       ! 'bod23'.
+   real(r8) :: &
+      ce = .06, &                      ! Efficiency factor for the
+                                       ! restratification by mixed layer eddies
+                                       ! (Fox-Kemper et al., 2008) [].
+      cl = .25_r8, &                   ! Scaling of the efficiency factor for
+                                       ! the restratification by mixed layer
+                                       ! eddies (Bodner et al., 2023) [].
+      tau_mlr = 86400._r8, &           ! Timescale for momentum mixing across
+                                       ! mixed layer [s].
+      tau_growing_hbl = 300._r8, &     ! Time-scale for running mean filter when
+                                       ! signal is greater than filtered value
+                                       ! (used for boundary layer thickness
+                                       ! and vertical momentum flux) [s].
+      tau_decaying_hbl = 86400._r8, &  ! Time-scale for running mean filter when
+                                       ! signal is less than filtered value
+                                       ! (used for boundary layer thickness and
+                                       ! vertical momentum flux) [s].
+      tau_growing_hml = 3600._r8, &    ! Time-scale for running mean filter when
+                                       ! signal is greater than filtered value
+                                       ! (used for mixed layer thickness) [s].
+      tau_decaying_hml = 259200._r8, & ! Time-scale for running mean filter when
+                                       ! signal is less than filtered value
+                                       ! (used for mixed layer thickness) [s].
+      lfmin = 5.e3_r8, &               ! Minimum length scale of mixed layer
+                                       ! fronts [m].
+      mstar = .5_r8, &                 ! Scaling of boundary layer turbulence
+                                       ! due to friction velocity (Bodner et
+                                       ! al., 2023) [].
+      nstar = .066_r8, &               ! Scaling of boundary layer turbulence
+                                       ! due to convective velocity (Bodner et
+                                       ! al., 2023) [].
+      wpup_min = 1.e-3_r8              ! Minimum vertical momentum flux.
+                                       ! According to Eq. (24) of Bodner et al.
+                                       ! (2023), this minimum value should give
+                                       ! a frontal length scale of abont 1 m for
+                                       ! a 100 m thick boundary layer and f =
+                                       ! 1/(86400 s).
+
+   ! Option derived from string option.
+   integer :: mlrmth_opt
+
+   ! Parameters:
+   integer, parameter :: &
+      ! Mixed layer restratification metods:
+      mlrmth_none  = 0, & ! None.
+      mlrmth_fox08 = 1, & ! Fox-Kemper et al. (2008).
+      mlrmth_bod23 = 2    ! Bodner et al. (2023).
+
+   public :: inivar_eddtra, init_eddtra, eddtra, &
+             mlrmth, ce, cl, tau_mlr, tau_growing_hbl, tau_decaying_hbl, &
+             tau_growing_hml, tau_decaying_hml, lfmin, mstar, nstar, wpup_min, &
+             hbl_tf, wpup_tf, hml_tf1, hml_tf
 
 contains
 
    ! ---------------------------------------------------------------------------
    ! Private procedures.
    ! ---------------------------------------------------------------------------
+
+   pure subroutine rmeanfilt(filtered, signal, &
+                             wgt_filtered_growing, wgt_filtered_decaying)
+   ! ---------------------------------------------------------------------------
+   ! Two time-scale running mean filter. The "filtered" argument is updated with
+   ! "signal" so that
+   !    
+   !    filtered = (tau*filtered + dt*signal)/(tau + dt)
+   !
+   ! If signal >= filtered, the time-scale tau = tau_growing is used, else the
+   ! time-scale is tau_decaying. The pre-computed weight arguments for growing
+   ! and decaying signal should then be
+   !
+   !    wgt_filtered_growing = tau_growing/(tau_growing + dt)
+   !    wgt_filtered_decaying = tau_decaying/(tau_decaying + dt)
+   !
+   !respectively.
+
+      real(r8), intent(inout) :: filtered
+      real(r8), intent(in) :: signal, &
+                              wgt_filtered_growing, wgt_filtered_decaying
+
+      real(r8) :: wf
+
+      if (signal >= filtered) then
+        wf = wgt_filtered_growing
+      else
+        wf = wgt_filtered_decaying
+      endif
+      filtered = wf*filtered + (1._r8 - wf)*signal
+
+   end subroutine rmeanfilt
 
    subroutine eddtra_intdif_isopyc_bulkml(m, n, mm, nn, k1m, k1n)
    ! ---------------------------------------------------------------------------
@@ -66,39 +155,39 @@ contains
       real(r8) :: flxhi, flxlo, q
       integer :: i, j, k, l, km, kn
 
-      call xctilr(difint, 1,kk, 2,2, halo_ps)
+      call xctilr(difint, 1,kk, 1,1, halo_ps)
 
-   !$omp parallel do private(l, i)
-      do j = -1, jj+2
+      !$omp parallel do private(l, i)
+      do j = 1, jj
          do l = 1, isu(j)
-         do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
+         do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
             umfltd(i,j,1+mm) = 0._r8
             umfltd(i,j,2+mm) = 0._r8
             umfltd(i,j,3+mm) = 0._r8
          enddo
          enddo
       enddo
-   !$omp end parallel do
-   !$omp parallel do private(l, i)
-      do j = 0, jj+2
+      !$omp end parallel do
+      !$omp parallel do private(l, i)
+      do j = 1, jj
          do l = 1, isv(j)
-         do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
+         do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
             vmfltd(i,j,1+mm) = 0._r8
             vmfltd(i,j,2+mm) = 0._r8
             vmfltd(i,j,3+mm) = 0._r8
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
       do k = 4, kk
          km = k + mm
          kn = k + nn
 
-      !$omp parallel do private(l, i, flxhi, flxlo, q)
-         do j = -1, jj+2
+         !$omp parallel do private(l, i, flxhi, flxlo, q)
+         do j = 1, jj
             do l = 1, isu(j)
-            do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
+            do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
                flxhi =   .125_r8*min(dp(i-1,j,kn-1)*scp2(i-1,j), &
                                      dp(i  ,j,kn  )*scp2(i  ,j))
                flxlo = - .125_r8*min(dp(i  ,j,kn-1)*scp2(i  ,j), &
@@ -111,13 +200,8 @@ contains
                umfltd(i,j,km  ) = - q
             enddo
             enddo
-         enddo
-      !$omp end parallel do
-
-      !$omp parallel do private(l, i, flxhi, flxlo, q)
-         do j = 0, jj+2
             do l = 1, isv(j)
-            do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
+            do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
                flxhi =   .125_r8*min(dp(i,j-1,kn-1)*scp2(i,j-1), &
                                      dp(i,j  ,kn  )*scp2(i,j  ))
                flxlo = - .125_r8*min(dp(i,j  ,kn-1)*scp2(i,j  ), &
@@ -132,7 +216,7 @@ contains
             enddo
             enddo
          enddo
-      !$omp end parallel do
+         !$omp end parallel do
 
       enddo
 
@@ -160,41 +244,35 @@ contains
       integer :: i, j, k, l, km, kn, kintr, kmax, kmin, niter, kdir
       logical :: changed
 
-      call xctilr(difint, 1, kk, 2, 2, halo_ps)
-      call xctilr(pbu, 1, 2, 2, 2, halo_us)
-      call xctilr(pbv, 1, 2, 2, 2, halo_vs)
-
+      call xctilr(difint, 1, kk, 1, 1, halo_ps)
 
       ! Compute top pressure at velocity points.
-   !$omp parallel do private(l, i)
-      do j= -1, jj+2
+      !$omp parallel do private(l, i)
+      do j= 1, jj
          do l = 1, isu(j)
-         do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
+         do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
             ptu(i,j) = max(p(i-1,j,1), p(i,j,1))
          enddo
          enddo
-      enddo
-   !$omp end parallel do
-   !$omp parallel do private(l, i)
-      do j = 0, jj+2
          do l = 1, isv(j)
-         do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
+         do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
             ptv(i,j) = max(p(i,j-1,1), p(i,j,1))
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
-     ! -------------------------------------------------------------------------
-     ! Compute u-component of eddy-induced mass fluxes.
-     ! -------------------------------------------------------------------------
+      !$omp parallel do private(l, i, k, km, et2mf, kmax, kn, kintr, kappa, &
+      !$omp                     upsilon, kmin, mfl, dlm, dlp, fhi, flo, changed, &
+      !$omp                     niter, kdir, q)
+      do j = 1, jj
 
-   !$omp parallel do private(l, i, k, km, et2mf, kmax, kn, kintr, kappa, &
-   !$omp                     upsilon, kmin, mfl, dlm, dlp, fhi, flo, changed, &
-   !$omp                     niter, kdir, q)
-      do j = -1, jj+2
+         ! ---------------------------------------------------------------------
+         ! Compute u-component of eddy-induced mass fluxes.
+         ! ---------------------------------------------------------------------
+
          do l = 1, isu(j)
-         do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
+         do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
 
             ! Set eddy-induced mass fluxes to zero initially.
             do k = 1, kk
@@ -203,7 +281,7 @@ contains
             enddo
 
             ! Eddy transport to mass flux conversion factor.
-            et2mf = - g*rho0*delt1*scuy(i,j)
+            et2mf = - grav*rho0*delt1*scuy(i,j)
 
             ! Index of last layer containing mass at either of the scalar points
             ! adjacent to the velocity point.
@@ -551,19 +629,13 @@ contains
 
          enddo
          enddo
-      enddo
-   !$omp end parallel do
 
-     ! -------------------------------------------------------------------------
-     ! Compute v-component of eddy-induced mass fluxes.
-     ! -------------------------------------------------------------------------
+         ! ---------------------------------------------------------------------
+         ! Compute v-component of eddy-induced mass fluxes.
+         ! ---------------------------------------------------------------------
 
-   !$omp parallel do private(l, i, k, km, et2mf, kmax, kn, kintr, kappa, &
-   !$omp                     upsilon, kmin, mfl, dlm, dlp, fhi, flo, changed, &
-   !$omp                     niter, kdir, q)
-      do j = 0, jj+2
          do l = 1, isv(j)
-         do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
+         do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
 
             ! Set eddy-induced mass fluxes to zero initially.
             do k = 1, kk
@@ -572,7 +644,7 @@ contains
             enddo
 
             ! Eddy transport to mass flux conversion factor.
-            et2mf = - g*rho0*delt1*scvx(i,j)
+            et2mf = - grav*rho0*delt1*scvx(i,j)
 
             ! Index of last layer containing mass at either of the scalar points
             ! adjacent to the velocity point.
@@ -921,11 +993,11 @@ contains
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
    end subroutine eddtra_gm_isopyc_bulkml
 
-   subroutine eddtra_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
+   subroutine eddtra_ale(m, n, mm, nn, k1m, k1n)
    ! ---------------------------------------------------------------------------
    ! Estimate eddy-induced transport following the Gent-McWilliams
    ! parameterization.
@@ -939,117 +1011,203 @@ contains
                                 ! flux is allowed to deplete [].
          fface = .99_r8*ffac, & ! (1-epsilon)*ffac [].
          eps   = 1.e-14_r8, &   ! Small non-dimensional value [].
-         rtau  = 1._r8/86400._r8, &
-         lfmin = 5.e3_r8*L_mks2cgs, &
+         c2_3 = 2._r8/3._r8, &
          c5_21 = 5._r8/21._r8
 
       real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
          upssmx, upssmy, ptu, ptv
       real(r8), dimension(kdm+1) :: puv, mflgm, mflsm, mfl
       real(r8), dimension(kdm) :: dlm, dlp
-      real(r8) :: mlp, mldpi, tmldp, smldp, csm, f, absfi, lfi, &
-                  mfleps, et2mf, mldh, kappa, q
+      real(r8) :: wf_growing_hbl, wf_decaying_hbl, &
+                  wf_growing_hml, wf_decaying_hml, &
+                  hbl, wpup, pml, dpmli, tmldp, smldp, csm, hml, absf, drho, &
+                  rtau, f, absfi, lfi, mfleps, et2mf, kappa, q
       integer :: i, j, k, l, km, kn, kmax, kml, niter, kdir
       logical :: changed
 
-      call xctilr(difint, 1, kk, 2, 2, halo_ps)
-      call xctilr(pbu, 1, 2, 2, 2, halo_us)
-      call xctilr(pbv, 1, 2, 2, 2, halo_vs)
-      call xctilr(mlts, 1, 1, 2, 2, halo_ps)
+      call xctilr(difint, 1, kk, 1, 1, halo_ps)
 
-      ! ------------------------------------------------------------------------
-      ! Compute the depth invariant lateral components of submesoscale eddy
-      ! transport (upsilon) according to Fox-Kemper et al. (2008).
-      ! ------------------------------------------------------------------------
-
-      ! Compute vertically averaged mixed layer density [g cm-3].
-   !$omp parallel do private(l, i, mlp, mldpi, tmldp, smldp, k, kn)
-      do j=1,jj
-         do l=1,isp(j)
-         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            mlp = min(p(i,j,1) + mlts(i,j)*(onem*iL_mks2cgs), p(i,j,kk+1))
-            mldpi = 1._r8/(mlp - p(i,j,1))
-            tmldp = 0._r8
-            smldp = 0._r8
-            do k = 1, kk
-               kn = k + nn
-               if (p(i,j,k+1) < mlp) then
-                  tmldp = tmldp + temp(i,j,kn)*dp(i,j,kn)
-                  smldp = smldp + saln(i,j,kn)*dp(i,j,kn)
-               else
-                  tmldp = tmldp + temp(i,j,kn)*(mlp - p(i,j,k))
-                  smldp = smldp + saln(i,j,kn)*(mlp - p(i,j,k))
-                  exit
-               endif
+      if (mlrmth_opt == mlrmth_none) then
+         !$omp parallel do private(l, i)
+         do j = 1, jj
+            do l = 1, isu(j)
+            do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
+               upssmx(i,j) = 0._r8
             enddo
-            util1(i,j) = sig0(tmldp*mldpi, smldp*mldpi)
+            enddo
+            do l = 1, isv(j)
+            do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
+               upssmy(i,j) = 0._r8
+            enddo
+            enddo
          enddo
-         enddo
-      enddo
-   !$omp end parallel do
-      call xctilr(util1, 1,1, 2,2, halo_ps)
+         !$omp end parallel do
+      else
 
-      ! Compute components of submesoscale eddy transport [cm2 s-1].
-      csm = g*alpha0*ce
-   !$omp parallel do private(l, i, mldh, f, absfi, lfi)
-      do j = -1, jj+2
-         do l = 1, isu(j)
-         do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
-            mldh = .5_r8*(mlts(i-1,j) + mlts(i,j))
-            f = .5_r8*(coriop(i-1,j) + coriop(i,j))
-            absfi = 1._r8/sqrt(f*f + rtau*rtau)
-            lfi = 1._r8/max(sqrt(dbcrit*mldh)*absfi, lfmin)
-!           lfi = 1._r8/lfmin
-            upssmx(i,j) = csm*mldh*mldh*(util1(i,j) - util1(i-1,j))*lfi*absfi
+         ! ---------------------------------------------------------------------
+         ! Compute the depth invariant lateral components of submesoscale eddy
+         ! transport (upsilon) according to Fox-Kemper et al. (2008) or Bodner
+         ! et al. (2023).
+         ! ---------------------------------------------------------------------
+
+         ! Carry out time-filtering to reduce the diurnal variability of mixed
+         ! layer variables.
+         wf_growing_hbl = tau_growing_hbl/(tau_growing_hbl + delt1)
+         wf_decaying_hbl = tau_decaying_hbl/(tau_decaying_hbl + delt1)
+         wf_growing_hml = tau_growing_hml/(tau_growing_hml + delt1)
+         wf_decaying_hml = tau_decaying_hml/(tau_decaying_hml + delt1)
+         if (mlrmth_opt == mlrmth_bod23) then
+            !$omp parallel do private(l, i, hbl, wpup)
+            do j = 1, jj
+               do l = 1, isp(j)
+               do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                  hbl = OBLdepth(i,j)
+                  wpup = max(wpup_min, &
+                             (mstar*ustar3(i,j) + nstar*wstar3(i,j))**c2_3)
+                  call rmeanfilt(hbl_tf(i,j) , hbl , &
+                                 wf_growing_hbl, wf_decaying_hbl)
+                  call rmeanfilt(wpup_tf(i,j), wpup, &
+                                 wf_growing_hbl, wf_decaying_hbl)
+                  call rmeanfilt(hml_tf1(i,j), mlts(i,j)   , &
+                                 wf_growing_hbl, wf_decaying_hbl)
+                  call rmeanfilt(hml_tf(i,j) , hml_tf1(i,j), &
+                                 wf_growing_hml, wf_decaying_hml)
+               enddo
+               enddo
+            enddo
+            !$omp end parallel do
+            call xctilr(hbl_tf, 1, 1, 1, 1, halo_ps)
+            call xctilr(wpup_tf, 1, 1, 1, 1, halo_ps)
+            call xctilr(hml_tf, 1, 1, 1, 1, halo_ps)
+         else
+            !$omp parallel do private(l, i)
+            do j = 1, jj
+               do l = 1, isp(j)
+               do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                  call rmeanfilt(hml_tf1(i,j), mlts(i,j)   , &
+                                 wf_growing_hbl, wf_decaying_hbl)
+                  call rmeanfilt(hml_tf(i,j) , hml_tf1(i,j), &
+                                 wf_growing_hml, wf_decaying_hml)
+               enddo
+               enddo
+            enddo
+            !$omp end parallel do
+            call xctilr(hml_tf, 1, 1, 1, 1, halo_ps)
+         endif
+
+         ! Compute vertically averaged mixed layer density [kg m-3].
+         !$omp parallel do private(l, i, pml, dpmli, tmldp, smldp, k, kn)
+         do j = 1, jj
+            do l = 1, isp(j)
+            do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+               pml = min(p(i,j,1) + hml_tf(i,j)*onem, p(i,j,kk+1))
+               dpmli = 1._r8/(pml - p(i,j,1))
+               tmldp = 0._r8
+               smldp = 0._r8
+               do k = 1, kk
+                  kn = k + nn
+                  if (p(i,j,k+1) < pml) then
+                     tmldp = tmldp + temp(i,j,kn)*dp(i,j,kn)
+                     smldp = smldp + saln(i,j,kn)*dp(i,j,kn)
+                  else
+                     tmldp = tmldp + temp(i,j,kn)*(pml - p(i,j,k))
+                     smldp = smldp + saln(i,j,kn)*(pml - p(i,j,k))
+                     exit
+                  endif
+               enddo
+               util1(i,j) = sig0(tmldp*dpmli, smldp*dpmli)
+            enddo
+            enddo
          enddo
-         enddo
-      enddo
-   !$omp end parallel do
-   !$omp parallel do private(l, i, mldh, f, absfi, lfi)
-      do j = 0, jj+2
-         do l = 1, isv(j)
-         do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
-            mldh = .5_r8*(mlts(i,j-1) + mlts(i,j))
-            f = .5_r8*(coriop(i,j-1) + coriop(i,j))
-            absfi = 1._r8/sqrt(f*f + rtau*rtau)
-            lfi = 1._r8/max(sqrt(dbcrit*mldh)*absfi, lfmin)
-!           lfi = 1._r8/lfmin
-            upssmy(i,j) = csm*mldh*mldh*(util1(i,j) - util1(i,j-1))*lfi*absfi
-         enddo
-         enddo
-      enddo
-   !$omp end parallel do
+         !$omp end parallel do
+         call xctilr(util1, 1,1, 1,1, halo_ps)
+
+         ! Compute components of submesoscale eddy transport [m2 s-1].
+         if (mlrmth_opt == mlrmth_bod23) then
+            csm = grav*alpha0*ce/cl
+            !$omp parallel do private(l, i, hbl, hml, absf, wpup, drho)
+            do j = 1, jj
+               do l = 1, isu(j)
+               do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
+                  hbl = .5_r8*(hbl_tf(i-1,j) + hbl_tf(i,j))
+                  hml = .5_r8*(hml_tf(i-1,j) + hml_tf(i,j))
+                  absf = .5_r8*abs(coriop(i-1,j) + coriop(i,j))
+                  wpup = .5_r8*(wpup_tf(i-1,j) + wpup_tf(i,j))
+                  drho = util1(i,j) - util1(i-1,j)
+                  upssmx(i,j) = csm*absf*hbl*hml*hml*drho/wpup
+               enddo
+               enddo
+               do l = 1, isv(j)
+               do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
+                  hbl = .5_r8*(hbl_tf(i,j-1) + hbl_tf(i,j))
+                  hml = .5_r8*(hml_tf(i,j-1) + hml_tf(i,j))
+                  absf = .5_r8*abs(coriop(i,j-1) + coriop(i,j))
+                  wpup = .5_r8*(wpup_tf(i,j-1) + wpup_tf(i,j))
+                  drho = util1(i,j) - util1(i,j-1)
+                  upssmy(i,j) = csm*absf*hbl*hml*hml*drho/wpup
+               enddo
+               enddo
+            enddo
+            !$omp end parallel do
+         else
+            rtau = 1._r8/tau_mlr
+            csm = grav*alpha0*ce
+            !$omp parallel do private(l, i, hml, f, absfi, lfi, drho)
+            do j = 1, jj
+               do l = 1, isu(j)
+               do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
+                  hml = .5_r8*(hml_tf(i-1,j) + hml_tf(i,j))
+                  f = .5_r8*(coriop(i-1,j) + coriop(i,j))
+                  absfi = 1._r8/sqrt(f*f + rtau*rtau)
+                  lfi = 1._r8/max(sqrt(dbcrit*hml)*absfi, lfmin)
+!                 lfi = 1._r8/lfmin
+                  drho = util1(i,j) - util1(i-1,j)
+                  upssmx(i,j) = csm*hml*hml*drho*lfi*absfi
+               enddo
+               enddo
+               do l = 1, isv(j)
+               do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
+                  hml = .5_r8*(hml_tf(i,j-1) + hml_tf(i,j))
+                  f = .5_r8*(coriop(i,j-1) + coriop(i,j))
+                  absfi = 1._r8/sqrt(f*f + rtau*rtau)
+                  lfi = 1._r8/max(sqrt(dbcrit*hml)*absfi, lfmin)
+!                 lfi = 1._r8/lfmin
+                  drho = util1(i,j) - util1(i,j-1)
+                  upssmy(i,j) = csm*hml*hml*drho*lfi*absfi
+               enddo
+               enddo
+            enddo
+            !$omp end parallel do
+         endif
+      endif
 
       ! Compute top pressure at velocity points.
-   !$omp parallel do private(l, i)
-      do j = -1, jj+2
+      !$omp parallel do private(l, i)
+      do j = 1, jj
          do l = 1, isu(j)
-         do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
+         do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
             ptu(i,j) = max(p(i-1,j,1), p(i,j,1))
          enddo
          enddo
-      enddo
-   !$omp end parallel do
-   !$omp parallel do private(l, i)
-      do j = 0, jj+2
          do l = 1, isv(j)
-         do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
+         do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
             ptv(i,j) = max(p(i,j-1,1), p(i,j,1))
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
-     ! -------------------------------------------------------------------------
-     ! Compute u-component of eddy-induced mass fluxes.
-     ! -------------------------------------------------------------------------
+      !$omp parallel do private(l, i, k, km, mfleps, et2mf, kmax, puv, kn, hml, &
+      !$omp                     pml, dpmli, kml, kappa, mflgm, mflsm, q, mfl, &
+      !$omp                     dlm, dlp, changed, niter, kdir)
+      do j = 1, jj
 
-   !$omp parallel do private(l, i, k, km, mfleps, et2mf, kmax, puv, kn, mldh, &
-   !$omp                     mlp, mldpi, kml, kappa, mflgm, mflsm, q, mfl, &
-   !$omp                     dlm, dlp, changed, niter, kdir)
-      do j = -1, jj+2
+         ! ---------------------------------------------------------------------
+         ! Compute u-component of eddy-induced mass fluxes.
+         ! ---------------------------------------------------------------------
+
          do l = 1, isu(j)
-         do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
+         do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
 
             ! Set eddy-induced mass fluxes to zero initially.
             do k = 1, kk
@@ -1062,7 +1220,7 @@ contains
             mfleps = eps*epsilp*scu2(i,j)
 
             ! Eddy transport to mass flux conversion factor.
-            et2mf = - g*rho0*delt1*scuy(i,j)
+            et2mf = - grav*rho0*delt1*scuy(i,j)
 
             ! Get interface pressures and find index of last layer containing
             ! mass at either of the scalar points adjacent to the velocity point
@@ -1075,21 +1233,21 @@ contains
                if (dp(i-1,j,kn) > epsilp .or. dp(i,j,kn) > epsilp) kmax = k
             enddo
 
-            ! Mixed layer thickness [cm].
-            mldh = .5_r8*(mlts(i-1,j) + mlts(i,j))
+            ! Mixed layer thickness [m].
+            hml = .5_r8*(hml_tf(i-1,j) + hml_tf(i,j))
 
-            ! Pressure of mixed layer base [g cm-1 s-2].
-            mlp = min(puv(1) + mldh*(onem*iL_mks2cgs), puv(kmax+1))
+            ! Pressure of mixed layer base [kg m-1 s-2].
+            pml = min(puv(1) + hml*onem, puv(kmax+1))
 
             ! Multiplicative inverse of mixed layer pressure thickness
-            ! [g cm-1 s-2].
-            mldpi = 1._r8/(mlp - puv(1))
+            ! [kg m-1 s-2].
+            dpmli = 1._r8/(pml - puv(1))
 
             ! Find index of first interface below the mixed layer base.
             ! mixed layer.
             kml = kmax + 1
             do k = kmax, 2, -1
-               if (puv(k) > mlp) then
+               if (puv(k) > pml) then
                   kml = k
                else
                   exit
@@ -1110,7 +1268,7 @@ contains
             ! surface to the mass flux below the mixed layer.
             mflgm(1) = 0._r8
             do k = 2, kml - 1
-               mflgm(k) = mflgm(kml)*(puv(k) - puv(1))*mldpi
+               mflgm(k) = mflgm(kml)*(puv(k) - puv(1))*dpmli
             enddo
 
             ! Using a prescibed vertical structure function, compute the
@@ -1118,7 +1276,7 @@ contains
             ! mixed layer.
             mflsm(1) = 0._r8
             do k = 2, kml - 1
-               q = (2._r8*(puv(1) - puv(k))*mldpi + 1._r8)**2
+               q = (2._r8*(puv(1) - puv(k))*dpmli + 1._r8)**2
                mflsm(k) = - upssmx(i,j)*(1._r8 - q)*(1._r8 + c5_21*q)*et2mf
             enddo
             do k = kml, kmax+1
@@ -1165,8 +1323,8 @@ contains
                         /(max(onemm, dpu(i,j,kn))*delt1*scuy(i,j))
                   enddo
                   write(lp,*) 'no convergence u', i+i0, j+j0
-                  call xchalt('(eddtra_cntiso_hybrid)')
-                         stop '(eddtra_cntiso_hybrid)'
+                  call xchalt('(eddtra_ale)')
+                         stop '(eddtra_ale)'
                endif
 
                changed = .false.
@@ -1289,37 +1447,31 @@ contains
                endif
                if (umfltd(i,j,km) + umflsm(i,j,km) > &
                     ffac*max(epsilp, dlm(k))*scp2(i-1,j)) then
-                  write(lp,*) 'eddtra_cntiso_hybrid u >', &
+                  write(lp,*) 'eddtra_ale u >', &
                               i+i0, j+j0, k, umfltd(i,j,km) + umflsm(i,j,km), &
                               ffac*max(epsilp, dlm(k))*scp2(i-1,j)
-                  call xchalt('(eddtra_cntiso_hybrid)')
-                         stop '(eddtra_cntiso_hybrid)'
+                  call xchalt('(eddtra_ale)')
+                         stop '(eddtra_ale)'
                endif
                if (umfltd(i,j,km) + umflsm(i,j,km) < &
                   - ffac*max(epsilp, dlp(k))*scp2(i  ,j)) then
-                  write(lp,*) 'eddtra_cntiso_hybrid u <', &
+                  write(lp,*) 'eddtra_ale u <', &
                               i+i0, j+j0, k, umfltd(i,j,km) + umflsm(i,j,km), &
                             - ffac*max(epsilp, dlp(k))*scp2(i  ,j)
-                  call xchalt('(eddtra_cntiso_hybrid)')
-                         stop '(eddtra_cntiso_hybrid)'
+                  call xchalt('(eddtra_ale)')
+                         stop '(eddtra_ale)'
                endif
             enddo
 
          enddo
          enddo
-      enddo
-   !$omp end parallel do
 
-     ! -------------------------------------------------------------------------
-     ! Compute v-component of eddy-induced mass fluxes.
-     ! -------------------------------------------------------------------------
+         ! ---------------------------------------------------------------------
+         ! Compute v-component of eddy-induced mass fluxes.
+         ! ---------------------------------------------------------------------
 
-   !$omp parallel do private(l, i, k, km, mfleps, et2mf, kmax, puv, kn, mldh, &
-   !$omp                     mlp, mldpi, kml, kappa, mflgm, mflsm, q, mfl, &
-   !$omp                     dlm, dlp, changed, niter, kdir)
-      do j = 0, jj+2
          do l = 1, isv(j)
-         do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
+         do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
 
             ! Set eddy-induced mass fluxes to zero initially.
             do k = 1, kk
@@ -1332,7 +1484,7 @@ contains
             mfleps = eps*epsilp*scv2(i,j)
 
             ! Eddy transport to mass flux conversion factor.
-            et2mf = - g*rho0*delt1*scvx(i,j)
+            et2mf = - grav*rho0*delt1*scvx(i,j)
 
             ! Get interface pressures and find index of last layer containing
             ! mass at either of the scalar points adjacent to the velocity point
@@ -1345,21 +1497,21 @@ contains
                if (dp(i,j-1,kn) > epsilp .or. dp(i,j,kn) > epsilp) kmax = k
             enddo
 
-            ! Mixed layer thickness [cm].
-            mldh = .5_r8*(mlts(i,j-1) + mlts(i,j))
+            ! Mixed layer thickness [m].
+            hml = .5_r8*(hml_tf(i,j-1) + hml_tf(i,j))
 
-            ! Pressure of mixed layer base [g cm-1 s-2].
-            mlp = min(puv(1) + mldh*(onem*iL_mks2cgs), puv(kmax+1))
+            ! Pressure of mixed layer base [kg m-1 s-2].
+            pml = min(puv(1) + hml*(onem), puv(kmax+1))
 
             ! Multiplicative inverse of mixed layer pressure thickness
-            ! [g cm-1 s-2].
-            mldpi = 1._r8/(mlp - puv(1))
+            ! [kg m-1 s-2].
+            dpmli = 1._r8/(pml - puv(1))
 
             ! Find index of first interface below the mixed layer base.
             ! mixed layer.
             kml = kmax + 1
             do k = kmax, 2, -1
-               if (puv(k) > mlp) then
+               if (puv(k) > pml) then
                   kml = k
                else
                   exit
@@ -1380,7 +1532,7 @@ contains
             ! surface to the mass flux below the mixed layer.
             mflgm(1) = 0._r8
             do k = 2, kml - 1
-               mflgm(k) = mflgm(kml)*(puv(k) - puv(1))*mldpi
+               mflgm(k) = mflgm(kml)*(puv(k) - puv(1))*dpmli
             enddo
 
             ! Using a prescibed vertical structure function, compute the
@@ -1388,7 +1540,7 @@ contains
             ! mixed layer.
             mflsm(1) = 0._r8
             do k = 2, kml - 1
-               q = (2._r8*(puv(1) - puv(k))*mldpi + 1._r8)**2
+               q = (2._r8*(puv(1) - puv(k))*dpmli + 1._r8)**2
                mflsm(k) = - upssmy(i,j)*(1._r8 - q)*(1._r8 + c5_21*q)*et2mf
             enddo
             do k = kml, kmax+1
@@ -1435,8 +1587,8 @@ contains
                         /(max(onemm, dpv(i,j,kn))*delt1*scvx(i,j))
                   enddo
                   write(lp,*) 'no convergence v', i+i0, j+j0
-                  call xchalt('(eddtra_cntiso_hybrid)')
-                         stop '(eddtra_cntiso_hybrid)'
+                  call xchalt('(eddtra_ale)')
+                         stop '(eddtra_ale)'
                endif
 
                changed = .false.
@@ -1559,32 +1711,94 @@ contains
                endif
                if (vmfltd(i,j,km) + vmflsm(i,j,km) > &
                     ffac*max(epsilp, dlm(k))*scp2(i,j-1)) then
-                  write(lp,*) 'eddtra_cntiso_hybrid v >', &
+                  write(lp,*) 'eddtra_ale v >', &
                               i+i0, j+j0, k, vmfltd(i,j,km) + vmflsm(i,j,km), &
                               ffac*max(epsilp, dlm(k))*scp2(i,j-1)
-                  call xchalt('(eddtra_cntiso_hybrid)')
-                         stop '(eddtra_cntiso_hybrid)'
+                  call xchalt('(eddtra_ale)')
+                         stop '(eddtra_ale)'
                endif
                if (vmfltd(i,j,km) + vmflsm(i,j,km) < &
                   - ffac*max(epsilp, dlp(k))*scp2(i,j  )) then
-                  write(lp,*) 'eddtra_cntiso_hybrid v <', &
+                  write(lp,*) 'eddtra_ale v <', &
                               i+i0, j+j0, k, vmfltd(i,j,km) + vmflsm(i,j,km), &
                             - ffac*max(epsilp, dlp(k))*scp2(i,j  )
-                  call xchalt('(eddtra_cntiso_hybrid)')
-                         stop '(eddtra_cntiso_hybrid)'
+                  call xchalt('(eddtra_ale)')
+                         stop '(eddtra_ale)'
                endif
             enddo
 
          enddo
          enddo
       enddo
-   !$omp end parallel do
+      !$omp end parallel do
 
-   end subroutine eddtra_cntiso_hybrid
+   end subroutine eddtra_ale
 
    ! ---------------------------------------------------------------------------
    ! Public procedures.
    ! ---------------------------------------------------------------------------
+
+   subroutine inivar_eddtra
+   ! ---------------------------------------------------------------------------
+   ! Initialize arrays.
+   ! ---------------------------------------------------------------------------
+
+      integer :: i, j, l
+
+      hbl_tf(:,:) = spval
+      wpup_tf(:,:) = spval
+      hml_tf1(:,:) = spval
+      hml_tf(:,:) = spval
+
+      !$omp parallel do private(l, i)
+      do j = 1, jj
+         do l = 1, isp(j)
+         do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+            hbl_tf(i,j) = 0._r8
+            wpup_tf(i,j) = 0._r8
+            hml_tf1(i,j) = 0._r8
+            hml_tf(i,j) = 0._r8
+         enddo
+         enddo
+      enddo
+      !$omp end parallel do
+
+   end subroutine inivar_eddtra
+
+   subroutine init_eddtra
+   ! ---------------------------------------------------------------------------
+   ! Initialize eddy-induced transport.
+   ! ---------------------------------------------------------------------------
+
+      ! Resolve mixed layer restratification options.
+      select case (trim(mlrmth))
+         case ('none')
+            mlrmth_opt = mlrmth_none
+            if (vcoord_tag == vcoord_isopyc_bulkml) then
+               ce = 0._r8
+            endif
+         case ('fox08')
+            mlrmth_opt = mlrmth_fox08
+         case ('bod23')
+            if (vcoord_tag == vcoord_isopyc_bulkml) then
+               if (mnproc == 1) &
+                  write (lp,'(3a)') &
+                     ' init_eddtra: mlrmth = ', trim(mlrmth), &
+                     ' is unsupported with vcoord = ''isopyc_bulkml''!'
+               call xcstop('(init_eddtra)')
+                      stop '(init_eddtra)'
+            endif
+            mlrmth_opt = mlrmth_bod23
+         case default
+            if (mnproc == 1) &
+               write (lp,'(3a)') &
+                  ' init_eddtra: mlrmth = ', trim(mlrmth), &
+                  ' is unsupported!'
+            call xcstop('(init_eddtra)')
+                   stop '(init_eddtra)'
+      end select
+
+   end subroutine init_eddtra
 
    subroutine eddtra(m, n, mm, nn, k1m, k1n)
    ! ---------------------------------------------------------------------------
@@ -1596,7 +1810,7 @@ contains
       real(r8) :: q
       integer :: i, j, k, l, km
 
-      if (vcoord_type_tag == isopyc_bulkml) then
+      if (vcoord_tag == vcoord_isopyc_bulkml) then
 
          ! Compute eddy-induced transport of mass.
          if     (eitmth_opt == eitmth_intdif) then
@@ -1607,14 +1821,14 @@ contains
             if (mnproc == 1) then
                write(lp,'(a,i1,2a)') &
                   ' eitmth_opt = ', eitmth_opt, ' is unsupported ', &
-                  'for vcoord_type = ''isopyc_bulkml''!'
+                  'for vcoord = ''isopyc_bulkml''!'
             endif
             call xcstop('(eddtra)')
                    stop '(eddtra)'
          endif
 
          ! Diagnose eddy-induced transport components of heat and salt.
-      !$omp parallel do private(k, km, l, i)
+         !$omp parallel do private(k, km, l, i)
          do j = 1, jj
             do k = 1, kk
                km = k + mm
@@ -1636,25 +1850,25 @@ contains
                enddo
             enddo
          enddo
-      !$omp end parallel do
+         !$omp end parallel do
 
       else
 
          ! Compute eddy-induced transport of mass.
          if     (eitmth_opt == eitmth_gm) then
-            call eddtra_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
+            call eddtra_ale(m, n, mm, nn, k1m, k1n)
          else
             if (mnproc == 1) then
                write(lp,'(a,i1,2a)') &
                   ' eitmth_opt = ', eitmth_opt, ' is unsupported ', &
-                  'for vcoord_type = ''cntiso_hybrid''!'
+                  'for vcoord = ''cntiso_hybrid''!'
             endif
             call xcstop('(eddtra)')
                    stop '(eddtra)'
          endif
 
          ! Diagnose eddy-induced transport components of heat and salt.
-      !$omp parallel do private(k, km, l, i, q)
+         !$omp parallel do private(k, km, l, i, q)
          do j = 1, jj
             do k = 1, kk
                km = k + mm
@@ -1680,7 +1894,7 @@ contains
                enddo
             enddo
          enddo
-      !$omp end parallel do
+         !$omp end parallel do
 
       endif
 
@@ -1688,6 +1902,10 @@ contains
          if (mnproc == 1) then
             write(lp,*) 'eddtra:'
          endif
+         call chksummsk(hbl_tf, ip, 1, 'hbl_tf')
+         call chksummsk(wpup_tf, ip, 1, 'wpup_tf')
+         call chksummsk(hml_tf1, ip, 1, 'hml_tf1')
+         call chksummsk(hml_tf, ip, 1, 'hml_tf')
          call chksummsk(umfltd(1-nbdy, 1-nbdy, k1m), iu, kk, 'umfltd')
          call chksummsk(vmfltd(1-nbdy, 1-nbdy, k1m), iv, kk, 'vmfltd')
          call chksummsk(umflsm(1-nbdy, 1-nbdy, k1m), iu, kk, 'umflsm')

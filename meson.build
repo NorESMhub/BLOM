@@ -14,6 +14,9 @@ if fcc.get_id() == 'gcc'
                            '-ffpe-trap=invalid,zero,overflow'],
                           language: 'fortran')
   endif
+  if get_option('buildtype') == 'release'
+    add_project_arguments('-ffp-contract=off'.split(),language: 'fortran')
+  endif
   # If MPI is enabled we need to allow for argument mismatch with gfortran to
   # make it able to compile
   if get_option('mpi') and fcc.has_argument('-fallow-argument-mismatch')
@@ -64,16 +67,15 @@ subdir('phy')
 subdir('drivers')
 subdir('ben02')
 subdir('cesm')
+subdir('noforcing')
 subdir('fuk95')
 subdir('channel')
 subdir('single_column')
 subdir('pkgs/')
+subdir('trc')
+subdir('idlage')
 
 # Handle options and add necessary flags and subfolders with source files
-
-if get_option('mks')
-  add_project_arguments('-DMKS', language: 'fortran')
-endif
 
 turbclo = get_option('turbclo')
 if turbclo.length() > 0 and get_option('vcoord') == 'cntiso_hybrid'
@@ -83,7 +85,10 @@ endif
 
 if get_option('iage') or turbclo.length() > 0 or get_option('ecosys')
   add_project_arguments('-DTRC', language: 'fortran')
-  subdir('trc')
+endif
+
+if get_option('atrc')
+  add_project_arguments('-DATRC', language: 'fortran')
 endif
 
 if turbclo.length() > 0
@@ -109,7 +114,6 @@ endif
 
 if get_option('iage')
   add_project_arguments('-DIDLAGE', language: 'fortran')
-  subdir('idlage')
 endif
 
 if get_option('ecosys')
@@ -132,6 +136,10 @@ if get_option('parallel_netcdf')
   if not get_option('mpi')
     warning('MPI must be enabled for parallel NetCDF to work')
   endif
+endif
+
+if nreg == '2'
+  add_project_arguments('-DARCTIC', language: 'fortran')
 endif
 
 # Handle Unit Testing

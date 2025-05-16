@@ -26,7 +26,7 @@ module mo_ocprod
 
 contains
 
-  subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
+  subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph,psao,ppao,prho)
 
     !***********************************************************************************************
     !  Biological production, remineralization and particle sinking.
@@ -61,9 +61,11 @@ contains
     !***********************************************************************************************
 
     use mod_xc,           only: mnproc
-    use mo_carbch,        only: ocetra,satoxy,hi,co2star
+    use mo_carbch,        only: ocetra,satoxy,hi,co2star,nutlim_diag,inutlim_fe,inutlim_phosph,    &
+                              & inutlim_n,zeu_nutlim_diag
     use mo_sedmnt,        only: prcaca,produs,prorca,silpro,pror13,pror14,prca13,prca14
-    use mo_param_bgc,     only: drempoc,dremn2o,dremopal,dremsul,dyphy,ecan,epsher,fesoly,         &
+    use mo_param_bgc,     only: drempoc,drempoc_anaerob,bkox_drempoc,dremn2o,dremopal,dremsul,     &
+                                dyphy,ecan,epsher,fesoly,                                          &
                                 gammap,gammaz,grami,grazra,pi_alpha,phytomi,                       &
                                 rcalc,rcar,rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,                     &
                                 relaxfe,remido,riron,rnit,rnoi,ro2ut,ropal,                        &
@@ -75,28 +77,38 @@ contains
                                 tsfac,vsmall,zdis,wmin,wmax,wlin,rbro,                             &
                                 dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma,                     &
                                 fbro1,fbro2,atten_f,atten_c,atten_uv,atten_w,bkopal,bkphy,bkzoo,   &
-                                gammapsl,gammazsl,alphasl,alphasr
+                                gammapsl,gammazsl,alphasl,alphasr,                                 &
+                                POM_remin_q10,POM_remin_Tref,opal_remin_q10,opal_remin_Tref,       &
+                                bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo,max_limiter,         &
+                                O2thresh_aerob,O2thresh_hypoxic,NO3thresh_sulf
     use mo_biomod,        only: bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,bsiflx_bot, &
                                 calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot, &
                                 carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,carflx_bot, &
+                                dustflx0100,dustflx0500,dustflx1000,dustflx2000,dustflx4000,       &
+                                dustflx_bot,                                                       &
                                 expoor,exposi,expoca,intdnit,intdms_bac,intdmsprod,intdms_uv,      &
                                 intphosy,int_chbr3_prod,int_chbr3_uv,                              &
                                 int_exudl,int_exudsl,int_excrl,int_excrsl,                         &
                                 int_docl_rem,int_docsl_rem,int_docsr_rem,int_docr_rem,             &
-                                phosy3d,abs_oce,strahl,asize3d,wmass,wnumb,eps3d
+                                phosy3d,abs_oce,strahl,asize3d,wmass,wnumb,eps3d,phosy_NH4,        &
+                                phosy_NO3, remin_aerob,remin_sulf
     use mo_param1_bgc,    only: ialkali,ian2o,iano3,icalc,idet,idms,idoc,ifdust,                   &
                                 igasnit,iiron,iopal,ioxygen,iphosph,iphy,isco212,                  &
                                 isilica,izoo,iadust,inos,ibromo,                                   &
                                 icalc13,icalc14,idet13,idet14,idoc13,idoc14,                       &
                                 iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv,               &
-                                inatalkali,inatcalc,inatsco212,idocsl,idocsr,idocr
+                                inatalkali,inatcalc,inatsco212,ianh4,,idocsl,idocsr,idocr
     use mo_control_bgc,   only: dtb,io_stdo_bgc,with_dmsph,                                        &
                                 use_BROMO,use_AGG,use_PBGC_OCNP_TIMESTEP,use_FB_BGC_OCE,           &
-                                use_AGG,use_cisonew,use_natDIC, use_WLIN,use_sedbypass, use_dom
+                                use_AGG,use_cisonew,use_natDIC, use_WLIN,use_sedbypass,use_M4AGO,  &
+                                use_extNcycle,lkwrbioz_off,lTO2depremin,use_dom
     use mo_vgrid,         only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000,kwrbioz,ptiestu
     use mo_vgrid,         only: kmle
     use mo_clim_swa,      only: swa_clim
     use mo_inventory_bgc, only: inventory_bgc
+    use mo_ihamocc4m4ago, only: ihamocc_mean_aggregate_sinking_speed,ws_agg
+    use mo_extNwatercol,  only: nitrification,denit_NO3_to_NO2,anammox,denit_dnra,extN_inv_check
+
 
     ! Arguments
     integer, intent(in) :: kpie                                         ! 1st dimension of model grid.
@@ -109,6 +121,9 @@ contains
     real,    intent(in) :: omask(kpie,kpje)                             ! land/ocean mask (1=ocean)
     real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! potential temperature [deg C].
     real,    intent(in) :: pi_ph(kpie,kpje)
+    real,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! salinity [psu].
+    real,    intent(in) :: ppao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! sea level pressure [Pascal].
+    real,    intent(in) :: prho(kpie,kpje,kpke)                         ! density [g/cm^3].
 
     ! Local variables
     integer, parameter :: nsinkmax = 12
@@ -128,6 +143,9 @@ contains
     real :: dtr,dz
     real :: wpocd,wcald,wopald,wdustd,dagg
     real :: wcal,wdust,wopal,wpoc
+    real :: o2lim ! O2 limitation of ammonification (POC remin)
+    real :: tiny_val = epsilon(1.)
+    real :: zeu
     ! DOM      
     real :: exudsl,excdocsl,bacfrasl,docremsl,bacfrasr,docremsr,bacfrar,docremr
     ! sedbypass
@@ -170,32 +188,46 @@ contains
     ! BROMO
     real :: bro_beta,bro_uv
     real :: abs_uv(kpie,kpje,kpke)
+    ! extNcycle
+    character(len=:), allocatable :: inv_message
+    real :: ano3up_inh,nutlim,anh4lim,nlim,grlim,nh4uptfrac
 
     ! set variables for diagnostic output to zero
-    expoor    (:,:) = 0.
-    expoca    (:,:) = 0.
-    exposi    (:,:) = 0.
-    carflx0100(:,:) = 0.
-    carflx0500(:,:) = 0.
-    carflx1000(:,:) = 0.
-    carflx2000(:,:) = 0.
-    carflx4000(:,:) = 0.
-    bsiflx0100(:,:) = 0.
-    bsiflx0500(:,:) = 0.
-    bsiflx1000(:,:) = 0.
-    bsiflx2000(:,:) = 0.
-    bsiflx4000(:,:) = 0.
-    calflx0100(:,:) = 0.
-    calflx0500(:,:) = 0.
-    calflx1000(:,:) = 0.
-    calflx2000(:,:) = 0.
-    calflx4000(:,:) = 0.
-    intdnit   (:,:) = 0.
-    intphosy  (:,:) = 0.
-    intdmsprod(:,:) = 0.
-    intdms_bac(:,:) = 0.
-    intdms_uv (:,:) = 0.
-    phosy3d (:,:,:) = 0.
+    expoor     (:,:) = 0.
+    expoca     (:,:) = 0.
+    exposi     (:,:) = 0.
+    carflx0100 (:,:) = 0.
+    carflx0500 (:,:) = 0.
+    carflx1000 (:,:) = 0.
+    carflx2000 (:,:) = 0.
+    carflx4000 (:,:) = 0.
+    carflx_bot (:,:) = 0.
+    bsiflx0100 (:,:) = 0.
+    bsiflx0500 (:,:) = 0.
+    bsiflx1000 (:,:) = 0.
+    bsiflx2000 (:,:) = 0.
+    bsiflx4000 (:,:) = 0.
+    bsiflx_bot (:,:) = 0.
+    calflx0100 (:,:) = 0.
+    calflx0500 (:,:) = 0.
+    calflx1000 (:,:) = 0.
+    calflx2000 (:,:) = 0.
+    calflx4000 (:,:) = 0.
+    calflx_bot (:,:) = 0.
+    dustflx0100(:,:) = 0.
+    dustflx0500(:,:) = 0.
+    dustflx1000(:,:) = 0.
+    dustflx2000(:,:) = 0.
+    dustflx4000(:,:) = 0.
+    dustflx_bot(:,:) = 0.
+    intdnit    (:,:) = 0.
+    intphosy   (:,:) = 0.
+    intdmsprod (:,:) = 0.
+    intdms_bac (:,:) = 0.
+    intdms_uv  (:,:) = 0.
+    phosy3d  (:,:,:) = 0.
+    nutlim_diag(:,:,:,:) = 0.
+    zeu_nutlim_diag(:,:,:) = 0.
 
     if (use_dom) then
       int_exudl    (:,:) = 0.
@@ -216,7 +248,12 @@ contains
       eps3d(:,:,:)    = 0.
       asize3d(:,:,:)  = 0.
     endif
-
+    if (use_extNcycle) then
+      phosy_NH4(:,:,:)   = 0.
+      phosy_NO3(:,:,:)   = 0.
+      remin_aerob(:,:,:) = 0.
+      remin_sulf(:,:,:)  = 0.
+    endif
 
     if (use_PBGC_OCNP_TIMESTEP) then
       if (mnproc == 1) then
@@ -246,7 +283,7 @@ contains
           absorption    = 1.
           absorption_uv = 1.
 
-          vloop: do k = 1,kwrbioz(i,j)
+          vloop: do k = 1,merge(kpke,kwrbioz(i,j),lkwrbioz_off)
 
             if(pddpo(i,j,k) > 0.0) then
 
@@ -278,11 +315,16 @@ contains
     enddo
     !$OMP END PARALLEL DO
 
+    if (use_M4AGO) then
+      ! even though we loose detritus, etc. we call the calculation for settling velocity by M4AGO here
+      ! to enable further future development... - assuming that the operator splitting decently functions
+      call ihamocc_mean_aggregate_sinking_speed(kpie, kpje, kpke, kbnd, pddpo, omask, ptho, psao, ppao, prho)
+    endif
 
     !$OMP PARALLEL DO PRIVATE(avphy,avgra,avsil,avanut,avanfe,pho,xa,xn   &
     !$OMP  ,phosy,ya,yn,grazing,graton,gratpoc,grawa,bacfra,phymor        &
     !$OMP  ,zoomor,excdoc,exud,export,delsil,delcar,dmsprod               &
-    !$OMP  ,dms_bac,dms_uv,dtr,phofa,temfa,zoothresh,dms_ph,dz            &
+    !$OMP  ,dms_bac,dms_uv,dtr,phofa,temfa,zoothresh,dms_ph,dz,opalrem    &
     !$OMP  ,avmass,avnos,zmornos                                          &
     !$OMP  ,exudsl,excdocsl,bacfrasl                                      &
     !$OMP  ,rco213,rco214,rphy13,rphy14,rzoo13,rzoo14,grazing13,grazing14 &
@@ -292,11 +334,13 @@ contains
     !$OMP  ,delcar13,delcar14,dtr13,dtr14,bifr13,bifr14,bifr13_perm       &
     !$OMP  ,growth_co2,phygrowth                                          &
     !$OMP  ,bro_beta,bro_uv                                               &
-    !$OMP  ,i,k)
+    !$OMP  ,ano3up_inh,nutlim,anh4lim,nlim,grlim,nh4uptfrac               &
+    !$OMP  ,i,k,zeu)
 
     loop1: do j = 1,kpje
       do i = 1,kpie
-        do k = 1,kwrbioz(i,j)
+        zeu  = 0.
+        do k = 1,merge(kpke,kwrbioz(i,j),lkwrbioz_off)
 
           if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
 
@@ -316,12 +360,57 @@ contains
             avgra = max(grami,ocetra(i,j,k,izoo))                     ! 'available' zooplankton
             avsil = max(0.,ocetra(i,j,k,isilica))
             avdic = max(0.,ocetra(i,j,k,isco212))
+            if (use_extNcycle)then
+              ano3up_inh = bkphyanh4/(bkphyanh4 + ocetra(i,j,k,ianh4)) ! inhibition of NO3 uptake
+              nutlim     = min(ocetra(i,j,k,iphosph)/(ocetra(i,j,k,iphosph)+bkphosph),                              &
+                               ocetra(i,j,k,iiron)/(ocetra(i,j,k,iiron)+bkiron))
+              anh4lim    = ocetra(i,j,k,ianh4)/(ocetra(i,j,k,ianh4) + bkphyanh4)
+              nlim       = ano3up_inh*ocetra(i,j,k,iano3)/(ocetra(i,j,k,iano3) +  bkphyano3) + anh4lim
+              grlim      = min(nutlim,nlim) ! growth limitation
+
+              nh4uptfrac = anh4lim/(nlim+epsilon(1.))
+              ! re-check avnut - can sum N avail exceed indiv. contrib?
+              avanut     = max(0.,min(ocetra(i,j,k,iphosph), ocetra(i,j,k,iiron)/riron,                              &
+                         &        rnoi*((1.-nh4uptfrac)*ocetra(i,j,k,iano3) + nh4uptfrac*ocetra(i,j,k,ianh4))))
+
+              xn         = avphy/(1. - pho*grlim)       ! phytoplankton growth
+              phosy      = max(0.,min(xn-avphy,max_limiter*avanut)) ! limit PP growth to available nutr.
+              if (abs(grlim - nutlim) < tiny_val) then
+                if (abs(grlim - ocetra(i,j,k,iiron)/(ocetra(i,j,k,iiron)+bkiron)) < tiny_val) then
+                  nutlim_diag(i,j,k,inutlim_fe)     = 1.
+                  nutlim_diag(i,j,k,inutlim_phosph) = 0.
+                  nutlim_diag(i,j,k,inutlim_n)      = 0.
+                else
+                  nutlim_diag(i,j,k,inutlim_fe)     = 0.
+                  nutlim_diag(i,j,k,inutlim_phosph) = 1.
+                  nutlim_diag(i,j,k,inutlim_n)      = 0.
+                endif
+              else
+                  nutlim_diag(i,j,k,inutlim_fe)     = 0.
+                  nutlim_diag(i,j,k,inutlim_phosph) = 0.
+                  nutlim_diag(i,j,k,inutlim_n)      = 1.
+              endif
+            else
             avanut = max(0.,min(ocetra(i,j,k,iphosph),rnoi*ocetra(i,j,k,iano3)))
             avanfe = max(0.,min(avanut,ocetra(i,j,k,iiron)/riron))
             xa = avanfe
             xn = xa/(1.+pho*avphy/(xa+bkphy))
             phosy = max(0.,xa-xn)
-            phosy = MERGE(avdic/rcar, phosy, avdic <= rcar*phosy)     ! limit phosy by available DIC
+              if (abs(avanfe - ocetra(i,j,k,iiron)/riron) < tiny_val) then
+                nutlim_diag(i,j,k,inutlim_fe)     = 1.
+                nutlim_diag(i,j,k,inutlim_phosph) = 0.
+                nutlim_diag(i,j,k,inutlim_n)      = 0.
+              else if (ocetra(i,j,k,iphosph) <= rnoi * ocetra(i,j,k,iano3)) then
+                nutlim_diag(i,j,k,inutlim_fe)     = 0.
+                nutlim_diag(i,j,k,inutlim_phosph) = 1.
+                nutlim_diag(i,j,k,inutlim_n)      = 0.
+              else
+                nutlim_diag(i,j,k,inutlim_fe)     = 0.
+                nutlim_diag(i,j,k,inutlim_phosph) = 0.
+                nutlim_diag(i,j,k,inutlim_n)      = 1.
+              endif
+            endif
+            phosy = merge(avdic/rcar, phosy, avdic <= rcar*phosy)     ! limit phosy by available DIC
             ya = avphy+phosy
             yn = (ya+grazra*avgra*phytomi/(avphy+bkzoo))/(1.+grazra*avgra/(avphy+bkzoo))
             grazing = max(0.,ya-yn)
@@ -330,21 +419,19 @@ contains
             grawa = epsher*zinges*grazing
 
             phythresh = max(0.,(ocetra(i,j,k,iphy)-2.*phytomi))
-            zoothresh = max(0.,(ocetra(i,j,k,izoo)-2.*grami))
             phymor = dyphy*phythresh
-            exud = gammap*phythresh
-            zoomor = spemor*zoothresh*zoothresh           ! *10 compared to linear in tropics (tinka)
-            excdoc = gammaz*zoothresh                     ! excretion of doc by zooplankton
-            export = zoomor*(1.-ecan) + phymor + gratpoc  ! ecan=.95, gratpoc= .2*grazing
-
-            if (use_dom) then
-            ! Lønborg et al. 2018 (Frontiers):
-            ! A=2.96e6 (day-1) (Theoretical Kc in the absence of Ea)
-            ! R=8.314 J/mol/K (Universal gas constant)
-            ! Ea=38kJ/mol (Activation energy for DOC_L decay)
-            ! A_sl=7.96e9 (day-1) (Theoretical Kc in the absence of Ea)
-            ! R=8.314 J/mol/K (Universal gas constant)
-            ! Ea_sl=58kJ/mol (Activation energy for DOC_L decay)
+            zoothresh = max(0.,(ocetra(i,j,k,izoo)-2.*grami))
+            if (lkwrbioz_off) then
+              bacfra = 0.
+            else
+              if (use_dom) then
+              ! Lønborg et al. 2018 (Frontiers):
+              ! A=2.96e6 (day-1) (Theoretical Kc in the absence of Ea)
+              ! R=8.314 J/mol/K (Universal gas constant)
+              ! Ea=38kJ/mol (Activation energy for DOC_L decay)
+              ! A_sl=7.96e9 (day-1) (Theoretical Kc in the absence of Ea)
+              ! R=8.314 J/mol/K (Universal gas constant)
+              ! Ea_sl=58kJ/mol (Activation energy for DOC_L decay)
                 bacfra=1.5e6*dtb*exp(-38.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idoc) !increased from 2e5 13082024
                 !JT if (ocetra(i,j,k,iphosph) >5.e-8) then ! Nutrient thresholds for surface bacteria activity (Anton Salgado, pers. comm.)
                  bacfrasl=5.0e7*dtb*exp(-58.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocsl)
@@ -356,12 +443,16 @@ contains
                 !JT  bacfrasr = 0.
                 !JT  bacfrar  = 0.
                 !JT endif
-   
                 exudsl = gammapsl*phythresh
                 excdocsl = gammazsl*zoothresh
-            else
-                bacfra=remido*ocetra(i,j,k,idoc)
+              else
+                bacfra = remido*ocetra(i,j,k,idoc)
+              endif
             endif
+            exud = gammap*phythresh
+            zoomor = spemor*zoothresh*zoothresh           ! *10 compared to linear in tropics (tinka)
+            excdoc = gammaz*zoothresh                     ! excretion of doc by zooplankton
+            export = zoomor*(1.-ecan) + phymor + gratpoc  ! ecan=.95, gratpoc= .2*grazing
 
             if (use_cisonew) then
               ! calculation of isotope fractionation during photosynthesis (Laws 1997)
@@ -400,8 +491,13 @@ contains
               grawa13 = epsher*zinges*grazing13
               grawa14 = epsher*zinges*grazing14
 
-              bacfra13 = remido*ocetra(i,j,k,idoc13)
-              bacfra14 = remido*ocetra(i,j,k,idoc14)
+              if (lkwrbioz_off) then
+                bacfra13 = 0.
+                bacfra14 = 0.
+              else
+                bacfra13 = remido*ocetra(i,j,k,idoc13)
+                bacfra14 = remido*ocetra(i,j,k,idoc14)
+              endif
 
               phymor13 = phymor*rphy13
               phymor14 = phymor*rphy14
@@ -438,8 +534,12 @@ contains
               dms_ph  = 1.
             endif
             dmsprod = (dmsp5*delsil+dmsp4*delcar)*(1.+1./(temp+dmsp1)**2)*dms_ph
+            if (lkwrbioz_off) then
+               dms_bac = 0.
+            else
             dms_bac = dmsp3*abs(temp+3.)*ocetra(i,j,k,idms)                 &
                  &             *(ocetra(i,j,k,idms)/(dmsp6+ocetra(i,j,k,idms)))
+            endif
             dms_uv  = dmsp2*phofa/pi_alpha*ocetra(i,j,k,idms)
 
             if (use_dom) then
@@ -449,12 +549,27 @@ contains
             endif
 
             ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+dtr
+            if (.not. use_extNcycle) then
             ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)+dtr*rnit
+              ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)-2.*delcar-(rnit+1)*dtr
+              ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen)-dtr*ro2ut
+            else
+              ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3) - (1.-nh4uptfrac)*phosy*rnit
+              ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4) - nh4uptfrac*phosy*rnit + (dtr+phosy)*rnit
+              ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - nh4uptfrac*phosy*(rnit-1.)             & ! NH4 + PO4 Uptake
+                                    &                       + (1.-nh4uptfrac)*phosy*(rnit+1.)        & ! NO3 + PO4 Uptake
+                                    &                       + (dtr+phosy)*(rnit-1.)  - 2.*delcar       ! Remin to (NH4 + PO4) and CaCO3 formation
+              ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) + nh4uptfrac*phosy*ro2utammo             & ! NH4 uptake
+                                    &                       + (1.-nh4uptfrac)*phosy*ro2ut            & ! NO3 uptake
+                                    &                       - (dtr+phosy)*ro2utammo                    ! Remin to NH4
+              ! Output
+              phosy_NH4(i,j,k)   =  nh4uptfrac*phosy*rnit      ! kmol N/m3/dtb - NH4 uptake during PP growth
+              phosy_NO3(i,j,k)   = (1.-nh4uptfrac)*phosy*rnit  ! kmol N/m3/dtb - NO3 uptake during PP growth
+              remin_aerob(i,j,k) = (dtr+phosy)*rnit            ! kmol N/m3/dtb - Aerob remin to ammonium  (var. sources)
+            endif
             ocetra(i,j,k,idet) = ocetra(i,j,k,idet)+export
             ocetra(i,j,k,idms) = ocetra(i,j,k,idms)+dmsprod-dms_bac-dms_uv
             ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)-delcar+rcar*dtr
-            ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)-2.*delcar-(rnit+1)*dtr
-            ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen)-dtr*ro2ut
             ocetra(i,j,k,iphy) = ocetra(i,j,k,iphy)+phosy-grazing-phymor-exud
             ocetra(i,j,k,izoo) = ocetra(i,j,k,izoo)+grawa-excdoc-zoomor
             ocetra(i,j,k,idoc) = ocetra(i,j,k,idoc)-bacfra+excdoc+exud
@@ -488,8 +603,17 @@ contains
               ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)-2.*delcar-(rnit+1)*dtr
               ocetra(i,j,k,inatcalc) = ocetra(i,j,k,inatcalc)+delcar
             endif
-            ocetra(i,j,k,isilica) = ocetra(i,j,k,isilica)-delsil+dremopal*ocetra(i,j,k,iopal)
-            ocetra(i,j,k,iopal) = ocetra(i,j,k,iopal)+delsil-dremopal*ocetra(i,j,k,iopal)
+            if (lkwrbioz_off) then
+                  opalrem = 0.
+            else
+               if (use_M4AGO) then
+                  opalrem = dremopal*opal_remin_q10**((ptho(i,j,k)-opal_remin_Tref)/10.)*ocetra(i,j,k,iopal)
+               else
+                  opalrem = dremopal*ocetra(i,j,k,iopal)
+               endif
+            endif
+            ocetra(i,j,k,isilica) = ocetra(i,j,k,isilica)-delsil+opalrem
+            ocetra(i,j,k,iopal) = ocetra(i,j,k,iopal)+delsil-opalrem
             ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+dtr*riron                     &
                  &                - relaxfe*max(ocetra(i,j,k,iiron)-fesoly,0.)
 
@@ -561,7 +685,6 @@ contains
 
             intphosy(i,j)   = intphosy(i,j)  +phosy*rcar*dz  ! primary production in kmol C m-2
             phosy3d(i,j,k)  = phosy*rcar                     ! primary production in kmol C m-3
-
             if (use_dom) then
               int_exudl    (i,j) = int_exudl    (i,j)+exud*rcar*dz  ! PHY exudation to DOC-L in kmol C m-2
               int_exudsl   (i,j) = int_exudsl   (i,j)+exudsl*rcar*dz
@@ -572,9 +695,22 @@ contains
               int_docsr_rem(i,j) = int_docsr_rem(i,j)+bacfrasr*rcar*dz
               int_docr_rem (i,j) = int_docr_rem (i,j)+bacfrar*rcar*dz
             endif
-
+            if ( k<= kwrbioz(i,j)) then
+              zeu  = zeu  + dz ! total depth considered
+              zeu_nutlim_diag(i,j,inutlim_fe)     = zeu_nutlim_diag(i,j,inutlim_fe)                &
+                                                  & + nutlim_diag(i,j,k,inutlim_fe)*dz
+              zeu_nutlim_diag(i,j,inutlim_phosph) = zeu_nutlim_diag(i,j,inutlim_phosph)            &
+                                                  & + nutlim_diag(i,j,k,inutlim_phosph)*dz
+              zeu_nutlim_diag(i,j,inutlim_n)      = zeu_nutlim_diag(i,j,inutlim_n)                 &
+                                                  & + nutlim_diag(i,j,k,inutlim_n)*dz
+            endif
           endif         ! pddpo(i,j,k) > dp_min
         enddo         ! kwrbioz
+        if (zeu > dp_min) then
+          zeu_nutlim_diag(i,j,inutlim_fe)    = zeu_nutlim_diag(i,j,inutlim_fe)    /zeu
+          zeu_nutlim_diag(i,j,inutlim_phosph)= zeu_nutlim_diag(i,j,inutlim_phosph)/zeu
+          zeu_nutlim_diag(i,j,inutlim_n)     = zeu_nutlim_diag(i,j,inutlim_n)     /zeu
+        endif
       enddo         ! kpie
     enddo loop1   ! kpje
 
@@ -589,7 +725,7 @@ contains
     endif
 
     !$OMP PARALLEL DO PRIVATE(phythresh,zoothresh,sterph,sterzo,remin     &
-    !$OMP  ,opalrem,aou,refra,dms_bac,pocrem,docrem,phyrem,dz             &
+    !$OMP  ,opalrem,aou,refra,dms_bac,pocrem,docrem,phyrem,dz,o2lim       &
     !$OMP  ,avmass,avnos,zmornos                                          &
     !$OMP  ,docremsl,docremr,docremsr,alphasl,slphasr                     &
     !$OMP  ,rphy13,rphy14,rzoo13,rzoo14,rdet13,rdet14,rdoc13,rdoc14       &
@@ -599,7 +735,7 @@ contains
 
     loop2: do j = 1,kpje
       do i = 1,kpie
-        do k = kwrbioz(i,j)+1,kpke
+        do k = merge(1,kwrbioz(i,j)+1,lkwrbioz_off),kpke
           if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
 
             if (use_AGG) then
@@ -625,6 +761,16 @@ contains
               sterzo13 = sterzo*rzoo13
               sterzo14 = sterzo*rzoo14
             endif
+
+            if (lkwrbioz_off) then ! dying before in PP loop
+              sterph   = 0.
+              sterzo   = 0.
+              sterph13 = 0.
+              sterph14 = 0.
+              sterzo13 = 0.
+              sterzo14 = 0.
+            endif
+
             ocetra(i,j,k,iphy) = ocetra(i,j,k,iphy)-sterph
             ocetra(i,j,k,izoo) = ocetra(i,j,k,izoo)-sterzo
             if (use_cisonew) then
@@ -634,20 +780,39 @@ contains
               ocetra(i,j,k,izoo14) = ocetra(i,j,k,izoo14)-sterzo14
             endif
 
-            if(ocetra(i,j,k,ioxygen) > 5.e-8) then
-              if (use_dom) then
-                pocrem   = min(drempoc*ocetra(i,j,k,idet),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-                phyrem   = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-                !fractions of doc(s) remineralized into nutrients
-                docrem   = min(1.5e6*dtb*exp(-38.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idoc), 0.083*ocetra(i,j,k,ioxygen)/ro2ut)
-                docremsl = (1.-alphasl)*min(5.0e7*dtb*exp(-58.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocsl), 0.083*ocetra(i,j,k,ioxygen)/ro2ut) 
-                docremsr = (1.-alphasr)*min(1.7e17*dtb*exp(-116.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocsr), 0.083*ocetra(i,j,k,ioxygen)/ro2ut) 
-                docremr  = min(5.0e26*dtb*exp(-179.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocr), 0.083*ocetra(i,j,k,ioxygen)/ro2ut) 
+            if(ocetra(i,j,k,ioxygen) > O2thresh_aerob) then
+              if (lTO2depremin) then
+                ! Both, use_M4AGO and use_extNcycle switch lTO2depremin to true!
+                o2lim  = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkox_drempoc)
+                pocrem = drempoc*o2lim*POM_remin_q10**((ptho(i,j,k)-POM_remin_Tref)/10.)*ocetra(i,j,k,idet)
               else
-                pocrem = min(drempoc*ocetra(i,j,k,idet),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-                phyrem = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-                docrem = min( remido*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+                pocrem = drempoc*ocetra(i,j,k,idet)
               endif
+
+              if (.not. use_extNcycle) then
+                if (use_dom) then
+                  pocrem   = min(drempoc*ocetra(i,j,k,idet),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+                  phyrem   = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+                  !fractions of doc(s) remineralized into nutrients
+                  docrem   = min(1.5e6*dtb*exp(-38.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idoc), 0.083*ocetra(i,j,k,ioxygen)/ro2ut)
+                  docremsl = (1.-alphasl)*min(5.0e7*dtb*exp(-58.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocsl), 0.083*ocetra(i,j,k,ioxygen)/ro2ut) 
+                  docremsr = (1.-alphasr)*min(1.7e17*dtb*exp(-116.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocsr), 0.083*ocetra(i,j,k,ioxygen)/ro2ut) 
+                  docremr  = min(5.0e26*dtb*exp(-179.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocr), 0.083*ocetra(i,j,k,ioxygen)/ro2ut) 
+                else
+                  pocrem = min(pocrem,                    0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+                  docrem = min(remido*ocetra(i,j,k,idoc), 0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+                  phyrem = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+                endif
+              else
+                pocrem = min(pocrem,                    0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
+                docrem = min(remido*ocetra(i,j,k,idoc), 0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
+                phyrem = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
+              endif
+
+              if (lkwrbioz_off) then ! dying before in PP loop
+                phyrem = 0.
+              endif
+
               if (use_cisonew) then
                 pocrem13 = pocrem*rdet13
                 pocrem14 = pocrem*rdet14
@@ -678,7 +843,7 @@ contains
             ocetra(i,j,k,idet) = ocetra(i,j,k,idet) - pocrem + sterph + sterzo
             ocetra(i,j,k,idoc) = ocetra(i,j,k,idoc) - docrem
             ocetra(i,j,k,iphy) = ocetra(i,j,k,iphy) - phyrem
-            
+
             if (use_dom) then
               ocetra(i,j,k,idocsl) = ocetra(i,j,k,idocsl) - docremsl/(1.-alphasl)
               ocetra(i,j,k,idocsr) = ocetra(i,j,k,idocsr) - docremsr/(1.-alphasr) + docremsl*(alphasl/(1.-alphasl))
@@ -692,10 +857,17 @@ contains
             endif
 
             ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+remin
-            ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)+remin*rnit
+            if (.not. use_extNcycle) then
+              ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)+remin*rnit
+              ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)-(rnit+1)*remin
+              ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen)-ro2ut*remin
+            else
+              ocetra(i,j,k,ianh4) = ocetra(i,j,k,ianh4) + remin*rnit
+              ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + (rnit-1.)*remin
+              ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - ro2utammo*remin
+              remin_aerob(i,j,k)  = remin_aerob(i,j,k)+remin*rnit ! kmol/NH4/dtb - remin to NH4 from various sources
+            endif
             ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+rcar*remin
-            ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)-(rnit+1)*remin
-            ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen)-ro2ut*remin
             ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+remin*riron           &
                  &             -relaxfe*max(ocetra(i,j,k,iiron)-fesoly,0.)
             if (use_natDIC) then
@@ -719,21 +891,28 @@ contains
             ! so the expression dremopal*(Si(OH)4sat-Si(OH)4) would change the
             ! rate only from 0 to 100%
             !***********************************************************************
+            if (use_M4AGO) then
+              opalrem = dremopal*opal_remin_q10**((ptho(i,j,k)-opal_remin_Tref)/10.)*ocetra(i,j,k,iopal)
+            else
             opalrem = dremopal*0.1*(temp+3.)*ocetra(i,j,k,iopal)
+            endif
             ocetra(i,j,k,iopal) = ocetra(i,j,k,iopal)-opalrem
             ocetra(i,j,k,isilica) = ocetra(i,j,k,isilica)+opalrem
 
+            if (.not. use_extNcycle) then
             !***********************************************************************
             !           There is about 1.e4 O2 on 1 N2O molecule (Broeker&Peng)
             !           refra : Tim Rixton, private communication
             !***********************************************************************
             aou = satoxy(i,j,k)-ocetra(i,j,k,ioxygen)
             refra = 1.+3.*(0.5+sign(0.5,aou-1.97e-4))
-            dms_bac = dmsp3 * abs(temp+3.) * ocetra(i,j,k,idms)                   &
-                 &    * (ocetra(i,j,k,idms) / (dmsp6+ocetra(i,j,k,idms)))
             ocetra(i,j,k,ian2o) = ocetra(i,j,k,ian2o)+remin*1.e-4*ro2ut*refra
             ocetra(i,j,k,igasnit) = ocetra(i,j,k,igasnit)-remin*1.e-4*ro2ut*refra
             ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen)-remin*1.e-4*ro2ut*refra*0.5
+            endif
+
+            dms_bac = dmsp3 * abs(temp+3.) * ocetra(i,j,k,idms)                     &
+                    &    * (ocetra(i,j,k,idms) / (dmsp6+ocetra(i,j,k,idms)))
             ocetra(i,j,k,idms) = ocetra(i,j,k,idms)-dms_bac
 
             dz = pddpo(i,j,k)
@@ -779,17 +958,19 @@ contains
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
 
+    if (.not. use_extNcycle) then
+      ! =====>>>> Regular CMIP6 iHAMOCC version for denitrification wo extended nitrogen cycle =====>>>>
     !$OMP PARALLEL DO PRIVATE(remin,remin2o,dz,avmass,avnos,rem13,rem14,i,k)
     loop3: do j = 1,kpje
       do i = 1,kpie
-        do k = kwrbioz(i,j)+1,kpke
+          do k = merge(1,kwrbioz(i,j)+1,lkwrbioz_off),kpke
           if(omask(i,j) > 0.5) then
-            if(ocetra(i,j,k,ioxygen) < 5.e-7 .and. pddpo(i,j,k) > dp_min) then
+              if(ocetra(i,j,k,ioxygen) < O2thresh_hypoxic .and. pddpo(i,j,k) > dp_min) then
               if (use_AGG) then
                 avmass = ocetra(i,j,k,iphy) + ocetra(i,j,k,idet)
               endif
 
-              remin   = 0.05*drempoc*min(ocetra(i,j,k,idet),0.5   *ocetra(i,j,k,iano3)/rdnit1)
+                remin   = drempoc_anaerob*min(ocetra(i,j,k,idet),0.5   *ocetra(i,j,k,iano3)/rdnit1)
               remin2o =      dremn2o*min(ocetra(i,j,k,idet),0.003 *ocetra(i,j,k,ian2o)/rdn2o1)
 
               if (use_cisonew) then
@@ -837,7 +1018,6 @@ contains
     enddo loop3
     !$OMP END PARALLEL DO
 
-
     if (use_PBGC_OCNP_TIMESTEP) then
       if (mnproc == 1) then
         write(io_stdo_bgc,*)' '
@@ -845,7 +1025,25 @@ contains
       endif
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
+      ! <<<<===== end of CMIP6 version denitrification processes without extended nitrogen cycle <<<<=====
+    else
+      !======>>>> extended nitrogen cycle processes (aerobic and anaerobic) that follow ammonification
+      inv_message = 'in OCPROD after extNcycle nitrification'
+      call nitrification(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
+      call extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
 
+      inv_message = 'in OCPROD after extNcycle denitrification NO3 -> NO2'
+      call denit_NO3_to_NO2(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
+      call extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
+
+      inv_message = 'in OCPROD after extNcycle anammox'
+      call anammox(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
+      call extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
+
+      inv_message = 'in OCPROD after extNcycle denitrification / DNRA'
+      call denit_dnra(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
+      call extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
+    endif
 
     !sulphate reduction   ! introduced 11.5.2007 to improve poc-remineralisation in the
     !                       oxygen minimum zone in the subsurface equatorial Pacific
@@ -858,9 +1056,9 @@ contains
     !$OMP PARALLEL DO PRIVATE(remin,avmass,avnos,rem13,rem14,i,k)
     loop4: do j = 1,kpje
       do i = 1,kpie
-        do k = kwrbioz(i,j)+1,kpke
+        do k = merge(1,kwrbioz(i,j)+1,lkwrbioz_off),kpke
           if(omask(i,j) > 0.5 .and. pddpo(i,j,k) > dp_min) then
-            if(ocetra(i,j,k,ioxygen) < 5.e-7 .and. ocetra(i,j,k,iano3) < 3.e-6) then
+            if(ocetra(i,j,k,ioxygen) < O2thresh_hypoxic .and. ocetra(i,j,k,iano3) < NO3thresh_sulf ) then
 
               if (use_AGG) then
                 avmass = ocetra(i,j,k,iphy)+ocetra(i,j,k,idet)
@@ -886,7 +1084,10 @@ contains
                 ocetra(i,j,k,isco213) = ocetra(i,j,k,isco213)+rcar*rem13
                 ocetra(i,j,k,isco214) = ocetra(i,j,k,isco214)+rcar*rem14
               endif
-
+              if (use_extNcycle) then
+                ! Output
+                remin_sulf(i,j,k) = remin ! kmol P/m3/dtb
+              endif
               if (use_AGG) then
                 !***********************************************************************
                 ! loss of snow numbers due to remineralization of poc
@@ -1139,6 +1340,16 @@ contains
                 wdust  = wdust_const
                 wdustd = wdust_const
                 dagg   = 0.0
+              else if (use_M4AGO) then
+                wpoc   = ws_agg(i,j,k)
+                wpocd  = ws_agg(i,j,kdonor)
+                wcal   = ws_agg(i,j,k)
+                wcald  = ws_agg(i,j,kdonor)
+                wopal  = ws_agg(i,j,k)
+                wopald = ws_agg(i,j,kdonor)
+                wdust  = ws_agg(i,j,k)
+                wdustd = ws_agg(i,j,kdonor)
+                dagg   = 0.0
               else
                 wpoc   = wpoc_const
                 wpocd  = wpoc_const
@@ -1159,7 +1370,9 @@ contains
                 if (use_AGG) then
                   wnosd  = 0.0
                 else if (use_WLIN) then
-                  wpoc   = wmin
+                  wpoc = wmin
+                else if (use_M4AGO) then
+                  wpoc = ws_agg(i,j,k)
                 endif
               endif
 
@@ -1346,14 +1559,28 @@ contains
               wpoc  = wmass(i,j,k)
               wcal  = wmass(i,j,k)
               wopal = wmass(i,j,k)
+              wdust = dustsink
             else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
+              wdust = wdust_const
+            else if (use_M4AGO) then
+              wpoc   = ws_agg(i,j,k)
+              wcal   = ws_agg(i,j,k)
+              wopal  = ws_agg(i,j,k)
+              wdust  = ws_agg(i,j,k)
+            else
+              wpoc   = wpoc_const
+              wcal   = wcal_const
+              wopal  = wopal_const
+              wdust  = wdust_const
             endif
 
             if (use_AGG) then
               carflx0100(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
+              dustflx0100(i,j)= ocetra(i,j,k,ifdust)*wdust + ocetra(i,j,k,iadust)*wpoc
             else
               carflx0100(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
+              dustflx0100(i,j)= ocetra(i,j,k,ifdust)*wdust
             endif
             bsiflx0100(i,j) = ocetra(i,j,k,iopal)*wopal
             calflx0100(i,j) = ocetra(i,j,k,icalc)*wcal
@@ -1366,14 +1593,28 @@ contains
               wpoc  = wmass(i,j,k)
               wcal  = wmass(i,j,k)
               wopal = wmass(i,j,k)
+              wdust = dustsink
             else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
+              wdust = wdust_const
+            else if (use_M4AGO) then
+              wpoc   = ws_agg(i,j,k)
+              wcal   = ws_agg(i,j,k)
+              wopal  = ws_agg(i,j,k)
+              wdust  = ws_agg(i,j,k)
+            else
+              wpoc   = wpoc_const
+              wcal   = wcal_const
+              wopal  = wopal_const
+              wdust  = wdust_const
             endif
 
             if (use_AGG) then
               carflx0500(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
+              dustflx0500(i,j)= ocetra(i,j,k,ifdust)*wdust + ocetra(i,j,k,iadust)*wpoc
             else
               carflx0500(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
+              dustflx0500(i,j)= ocetra(i,j,k,ifdust)*wdust
             endif
             bsiflx0500(i,j) = ocetra(i,j,k,iopal)*wopal
             calflx0500(i,j) = ocetra(i,j,k,icalc)*wcal
@@ -1386,14 +1627,28 @@ contains
               wpoc  = wmass(i,j,k)
               wcal  = wmass(i,j,k)
               wopal = wmass(i,j,k)
+              wdust = dustsink
             else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
+              wdust = wdust_const
+            else if (use_M4AGO) then
+              wpoc   = ws_agg(i,j,k)
+              wcal   = ws_agg(i,j,k)
+              wopal  = ws_agg(i,j,k)
+              wdust  = ws_agg(i,j,k)
+            else
+              wpoc   = wpoc_const
+              wcal   = wcal_const
+              wopal  = wopal_const
+              wdust  = wdust_const
             endif
 
             if (use_AGG) then
               carflx1000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
+              dustflx1000(i,j)= ocetra(i,j,k,ifdust)*wdust + ocetra(i,j,k,iadust)*wpoc
             else
               carflx1000(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
+              dustflx1000(i,j)= ocetra(i,j,k,ifdust)*wdust
             endif
             bsiflx1000(i,j) = ocetra(i,j,k,iopal)*wopal
             calflx1000(i,j) = ocetra(i,j,k,icalc)*wcal
@@ -1406,14 +1661,28 @@ contains
               wpoc  = wmass(i,j,k)
               wcal  = wmass(i,j,k)
               wopal = wmass(i,j,k)
+              wdust = dustsink
             else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
+              wdust = wdust_const
+            else if (use_M4AGO) then
+              wpoc   = ws_agg(i,j,k)
+              wcal   = ws_agg(i,j,k)
+              wopal  = ws_agg(i,j,k)
+              wdust  = ws_agg(i,j,k)
+            else
+              wpoc   = wpoc_const
+              wcal   = wcal_const
+              wopal  = wopal_const
+              wdust  = wdust_const
             endif
 
             if (use_AGG) then
               carflx2000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
+              dustflx2000(i,j)= ocetra(i,j,k,ifdust)*wdust + ocetra(i,j,k,iadust)*wpoc
             else
               carflx2000(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
+              dustflx2000(i,j)= ocetra(i,j,k,ifdust)*wdust
             endif
             bsiflx2000(i,j) = ocetra(i,j,k,iopal)*wopal
             calflx2000(i,j) = ocetra(i,j,k,icalc)*wcal
@@ -1426,14 +1695,28 @@ contains
               wpoc  = wmass(i,j,k)
               wcal  = wmass(i,j,k)
               wopal = wmass(i,j,k)
+              wdust = dustsink
             else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
+              wdust = wdust_const
+            else if (use_M4AGO) then
+              wpoc   = ws_agg(i,j,k)
+              wcal   = ws_agg(i,j,k)
+              wopal  = ws_agg(i,j,k)
+              wdust  = ws_agg(i,j,k)
+            else
+              wpoc   = wpoc_const
+              wcal   = wcal_const
+              wopal  = wopal_const
+              wdust  = wdust_const
             endif
 
             if (use_AGG) then
               carflx4000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
+              dustflx4000(i,j)= ocetra(i,j,k,ifdust)*wdust + ocetra(i,j,k,iadust)*wpoc
             else
               carflx4000(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
+              dustflx4000(i,j)= ocetra(i,j,k,ifdust)*wdust
             endif
             bsiflx4000(i,j) = ocetra(i,j,k,iopal)*wopal
             calflx4000(i,j) = ocetra(i,j,k,icalc)*wcal
@@ -1443,6 +1726,7 @@ contains
           carflx_bot(i,j) = prorca(i,j)*rcar
           bsiflx_bot(i,j) = silpro(i,j)
           calflx_bot(i,j) = prcaca(i,j)
+          dustflx_bot(i,j)= produs(i,j)
 
         endif ! omask > 0.5
       enddo

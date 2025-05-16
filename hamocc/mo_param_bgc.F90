@@ -32,12 +32,15 @@ module mo_param_bgc
   !*************************************************************************************************
 
   use mo_carbch,      only: atm_co2
-  use mo_control_bgc, only: io_stdo_bgc,bgc_namelist,use_AGG,use_natDIC,use_dom,                   &
+  use mo_control_bgc, only: io_stdo_bgc,bgc_namelist,use_AGG,use_natDIC,                           &
                             use_BROMO,use_cisonew,use_WLIN,use_FB_BGC_OCE,                         &
                             do_ndep,do_oalk,do_rivinpt,do_sedspinup,l_3Dvarsedpor,                 &
                             use_BOXATM,use_CFC,use_PBGC_CK_TIMESTEP,                               &
-                            use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type
-  use mod_xc,         only: mnproc
+                            use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type,use_M4AGO,&
+                            do_n2o_coupled,do_nh3_coupled,use_extNcycle,                           &
+                            lkwrbioz_off,lTO2depremin,use_shelfsea_res_time,use_sediment_quality,  &
+                            use_pref_tracers,use_coupler_ndep
+  use mod_xc,         only: mnproc,xchalt
 
   implicit none
   private
@@ -60,6 +63,7 @@ module mo_param_bgc
 
   ! Routines
   public  :: ini_parambgc
+  public  :: ini_bgctimes
   private :: ini_aggregation
   private :: read_bgcnamelist
   private :: calc_param_atm
@@ -69,7 +73,8 @@ module mo_param_bgc
   ! Module variables set by bgcparams namelist
   public :: wpoc_const,wcal_const,wopal_const,wdust_const
   public :: bkopal,bkphy,bluefix,bkzoo
-  public :: drempoc,dremopal,dremn2o,dremsul
+  public :: drempoc,dremopal,dremcalc,dremn2o,dremsul
+  public :: drempoc_anaerob,bkox_drempoc
   public :: grazra,gammap,gammaz,spemor
   public :: ecan,epsher,fetune
   public :: relaxfe,rcalc,ropal
@@ -77,8 +82,8 @@ module mo_param_bgc
 
   ! Other module variables
   public :: ro2ut,rcar,rnit,rnoi,riron,rdnit0,rdnit1,rdnit2,rdn2o1,rdn2o2
-  public :: atm_n2,atm_o2,atm_co2_nat,atm_bromo,re1312
-  public :: re14to,prei13,prei14,ctochl
+  public :: atm_n2,atm_o2,atm_co2_nat,atm_bromo,re1312,atm_n2o,atm_nh3
+  public :: srfdic_min,re14to,prei13,prei14,ctochl
   public :: atten_w,atten_c,atten_uv,atten_f
   public :: perc_diron,fesoly,phytomi,pi_alpha
   public :: dyphy,tf2,tf1,tf0,tff,bifr13_ini,bifr14_ini,c14_t_half
@@ -91,11 +96,51 @@ module mo_param_bgc
   public :: vsmall,safe,pupper,plower,zdis,nmldmin
   public :: beta13,alpha14,atm_c13,atm_c14,c14fac,c14dec
   public :: sedict,silsat,disso_poc,disso_sil,disso_caco3
-  public :: sed_denit,calcwei,opalwei,orgwei
+  public :: sed_denit,sed_sulf,calcwei,opalwei,orgwei
   public :: calcdens,opaldens,orgdens,claydens
   public :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma
   public :: gammapsl,gammazsl,alphasl,alphasr
+  public :: POM_remin_q10,opal_remin_q10,POM_remin_Tref,opal_remin_Tref
+  public :: O2thresh_aerob,O2thresh_hypoxic,NO3thresh_sulf
+  public :: sed_O2thresh_sulf,sed_O2thresh_hypoxic,sed_NO3thresh_sulf
+  public :: shelfbreak_depth
+  public :: sed_alpha_poc,sed_qual_sc
 
+  ! extended nitrogen cycle
+  public :: q10ano3denit,sc_ano3denit,Trefano3denit,rano3denit,bkano3denit,      &
+          & rano2anmx,q10anmx,Trefanmx,alphaanmx,bkoxanmx,bkano2anmx,bkanh4anmx, &
+          & rano2denit,q10ano2denit,Trefano2denit,bkoxano2denit,bkano2denit,     &
+          & ran2odenit,q10an2odenit,Trefan2odenit,bkoxan2odenit,bkan2odenit,     &
+          & rdnra,q10dnra,Trefdnra,bkoxdnra,bkdnra,ranh4nitr,q10anh4nitr,        &
+          & Trefanh4nitr,bkoxamox,bkanh4nitr,bkamoxn2o,bkyamox,                  &
+          & rano2nitr,q10ano2nitr,Trefano2nitr,bkoxnitr,bkano2nitr,n2omaxy,      &
+          & n2oybeta,NOB2AOAy,bn2o,mufn2o,                                       &
+          & rc2n,ro2nnit,rnoxp,rnoxpi,rno2anmx,rno2anmxi,rnh4anmx,               &
+          & rnh4anmxi,rno2dnra,rno2dnrai,rnh4dnra,rnh4dnrai,rnm1,                &
+          & bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo,                       &
+          & q10ano3denit_sed,sc_ano3denit_sed,Trefano3denit_sed,rano3denit_sed,  &
+          & bkano3denit_sed,rano2anmx_sed,q10anmx_sed,Trefanmx_sed,alphaanmx_sed,&
+          & bkoxanmx_sed,bkano2anmx_sed,bkanh4anmx_sed,rano2denit_sed,           &
+          & q10ano2denit_sed,Trefano2denit_sed,bkoxano2denit_sed,bkano2denit_sed,&
+          & ran2odenit_sed,q10an2odenit_sed,Trefan2odenit_sed,bkoxan2odenit_sed, &
+          & bkan2odenit_sed,rdnra_sed,q10dnra_sed,Trefdnra_sed,bkoxdnra_sed,     &
+          & bkdnra_sed,ranh4nitr_sed,q10anh4nitr_sed,Trefanh4nitr_sed,           &
+          & bkoxamox_sed,bkanh4nitr_sed,bkamoxn2o_sed,bkyamox_sed,               &
+          & rano2nitr_sed,q10ano2nitr_sed,Trefano2nitr_sed,bkoxnitr_sed,         &
+          & bkano2nitr_sed,n2omaxy_sed,n2oybeta_sed,NOB2AOAy_sed,bn2o_sed,       &
+          & mufn2o_sed,POM_remin_q10_sed, POM_remin_Tref_sed,bkox_drempoc_sed,   &
+          & max_limiter
+
+  ! Time variables
+  public :: sec_per_year,sec_per_day,days_per_year
+  !********************************************************************
+  ! Time parameters
+  !********************************************************************
+  ! NOTE: days_per_year and sec_per_year are updated in ini_bgctimes(!)
+  real, parameter :: sec_per_day   = 86400.           ! [s/d]  seconds per day
+  real, protected :: days_per_year = 365.             ! [d/yr] days per year
+  real, protected :: sec_per_year  = 365.*sec_per_day ! [s/yr] seconds per year
+  logical         :: lini=.true.
   !********************************************************************
   ! Stoichiometry and fixed parameters
   !********************************************************************
@@ -123,11 +168,33 @@ module mo_param_bgc
   ! Decay parameter for C14, HalfLive = 5700 years
   real, parameter :: c14_t_half = 5700.*365.      ! Half life of 14C [days]
 
+  ! Minimum surface DIC concentration for gas-exchange parameterization
+  real, parameter :: srfdic_min = 1.0e-5          ! kmol C m-3
+
+  ! Extended nitrogen cycle
+  real, parameter :: max_limiter   = 0.9999          ! maximum in concentrations that can be consumed at once
+  real, parameter :: rc2n          = rcar/rnit       ! iHAMOCC C:N ratio
+  real, parameter :: ro2utammo     = 140.            ! Oxygen utilization per mol detritus during ammonification
+  real, parameter :: ro2nnit       = ro2utammo/rnit  !
+  real, parameter :: rnoxp         = 280.            ! consumption of NOx per mol detritus during denitrification
+  real, parameter :: rnoxpi        = 1./rnoxp        ! inverse
+  real, parameter :: rno2anmx      = 1144.           ! consumption of NO2 per mol organic production by anammox
+  real, parameter :: rno2anmxi     = 1./rno2anmx     ! inverse
+  real, parameter :: rnh4anmx      = 880.            ! consumption of NH4 per mol organic production by anammox
+  real, parameter :: rnh4anmxi     = 1./rnh4anmx     ! inverse
+  real, parameter :: rno2dnra      = 93. + 1./3.     ! consumption of NO2 per mol OM degradation during DNRA
+  real, parameter :: rno2dnrai     = 1./rno2dnra     ! inverse
+  real, parameter :: rnh4dnra      = rno2dnra + rnit ! production of NH4 per mol OM during DNRA
+  real, parameter :: rnh4dnrai     = 1./rnh4dnra     ! inverse
+  real, parameter :: rnm1          = rnit - 1.
+
   !********************************************************************
   ! Atmosphere:
   !********************************************************************
 
   real, protected :: atm_n2      = 802000. ! atmosphere dinitrogen concentration
+  real, protected :: atm_n2o     = 270.1e3 ! atmosphere N2O conc. pre-industrial: 270.1 (+-6ppb) IPCC 2021, p708, provided in ppt,300ppb = 300e3ppt = 3e-7 mol/mol
+  real, protected :: atm_nh3     = 0.      ! Six & Mikolajewicz 2022: less than 1nmol m-3
   real, protected :: atm_o2      = 196800. ! atmosphere oxygen concentration
   real, protected :: atm_co2_nat = 284.32  ! atmosphere CO2 concentration CMIP6 pre-industrial reference
   real, protected :: atm_bromo   = 3.4     ! atmosphere bromophorme concentration
@@ -181,7 +248,7 @@ module mo_param_bgc
   !********************************************************************
   real, protected :: phytomi    = 1.e-11          ! kmol/m3 - i.e. 1e-5 mmol P/m3 minimum concentration of phyto plankton (?js)
   real, protected :: pi_alpha   = 0.02*0.4        ! initial slope of production vs irradiance curve (alpha) (0.002 for 10 steps per day)
-  real, protected :: bkphy      = 3.5e-8           ! kmol/m3 - i.e. 0.04 mmol P/m3 half saturation constant
+  real, protected :: bkphy      = 4.e-8           ! kmol/m3 - i.e. 0.04 mmol P/m3 half saturation constant
   real, protected :: dyphy      = 0.004           ! 1/d -mortality rate of phytoplankton
 
   ! Initial fractionation during photosynthesis
@@ -217,7 +284,7 @@ module mo_param_bgc
   real, protected :: zinges                       ! dimensionless fraction - assimilation efficiency
   real, protected :: epsher                       ! dimensionless fraction - fraction of grazing egested
 
-  real :: gammapsl, gammazsl, alphasl, alphasr
+  real, protected :: gammapsl, gammazsl, alphasl, alphasr
 
   !********************************************************************
   ! Shell production (CaCO3 and opal) parameters
@@ -230,12 +297,154 @@ module mo_param_bgc
   !********************************************************************
   ! Remineralization and dissolution parameters
   !********************************************************************
-  real, protected :: remido     = 0.004           ! 1/d - remineralization rate (of DOM)
+  real, parameter :: O2thresh_aerob   = 5.e-8  ! Above O2thresh_aerob aerob remineralization takes place
+  real, parameter :: O2thresh_hypoxic = 5.e-7  ! Below O2thresh_hypoxic denitrification and sulfate reduction takes place (default model version)
+  real, parameter :: NO3thresh_sulf   = 3.e-6  ! Below NO3thresh_sulf 'sufate reduction' takes place
+  real, protected :: remido           = 0.004  ! 1/d - remineralization rate (of DOM)
   ! deep sea remineralisation constants
-  real, protected :: drempoc    = 0.025           ! 1/d Aerob remineralization rate detritus
-  real, protected :: dremopal   = 0.003           ! 1/d Dissolution rate for opal
-  real, protected :: dremn2o    = 0.01            ! 1/d Remineralization rate of detritus on N2O
-  real, protected :: dremsul    = 0.005           ! 1/d Remineralization rate for sulphate reduction
+  real, protected :: drempoc         = 0.025   ! 1/d Aerob remineralization rate detritus
+  real, protected :: drempoc_anaerob = 1.25e-3 ! =0.05*drempoc - remin in sub-/anoxic environm. - not be overwritten by M4AGO
+  real, protected :: bkox_drempoc    = 1e-7    ! half-saturation constant for oxygen for ammonification (aerobic remin via drempoc)
+  real, protected :: dremopal        = 0.003   ! 1/d Dissolution rate for opal
+  real, protected :: dremcalc        = 0.00035 ! 1/d Dissolution rate for CaCO3 (applied if Omega_c < 1)
+  real, protected :: dremn2o         = 0.01    ! 1/d Remineralization rate of detritus on N2O
+  real, protected :: dremsul         = 0.005   ! 1/d Remineralization rate for sulphate reduction
+  real, protected :: POM_remin_q10   = 2.1     ! Bidle et al. 2002: Regulation of Oceanic Silicon...
+  real, protected :: opal_remin_q10  = 2.6     ! Bidle et al. 2002: Regulation of Oceanic Silicon...
+  real, protected :: POM_remin_Tref  = 10.     ! [deg C] reference temperatue for Q10-dep. POC remin
+  real, protected :: opal_remin_Tref = 10.     ! [deg C] reference temperature for Q10-dep. opal dissolution
+
+  !********************************************************************
+  ! Extended nitrogen cycle
+  !********************************************************************
+  ! WATER COLUMN
+  ! Phytoplankton growth
+  real, protected :: bkphyanh4     = 0.25e-6  ! Half-saturation constant for NH4 uptake by bulk phytoplankton (kmol/m3)
+  real, protected :: bkphyano3     = 0.16e-6  ! Half-saturation constant for NO3 uptake by bulk phytoplankton (kmol/m3)
+  real, protected :: bkphosph      = 0.01e-6  ! Half-saturation constant for PO4 uptake by bulk phytoplankton (kmol/m3)
+  real, protected :: bkiron                   ! = bkphosph*riron - Half-saturation constant for Fe uptake by bulk phytoplankton (kmol/m3)
+
+  ! === Denitrification step NO3 -> NO2:
+  real, protected :: rano3denit    = 0.00005  ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
+  real, protected :: q10ano3denit  = 2.       ! Q10 factor for denitrification on NO3 (-)
+  real, protected :: Trefano3denit = 10.      ! Reference temperature for denitrification on NO3 (degr C)
+  real, protected :: sc_ano3denit  = 0.12e6   ! Shape factor for NO3 denitrification oxygen inhibition function (m3/kmol)
+  real, protected :: bkano3denit   = 5.e-6    ! Half-saturation constant for NO3 denitrification (kmol/m3)
+
+  ! === Anammox
+  real, protected :: rano2anmx     = 0.001    ! Maximum growth rate for anammox at reference T (1/d -> 1/dt)
+  real, protected :: q10anmx       = 1.6      ! Q10 factor for anammox (-)
+  real, protected :: Trefanmx      = 10.      ! Reference temperature for anammox (degr C)
+  real, protected :: alphaanmx     = 0.45e6   ! Shape factor for anammox oxygen inhibition function (m3/kmol)
+  real, protected :: bkoxanmx      = 11.3e-6  ! Half-saturation constant for oxygen inhibition function (kmol/m3)
+  real, protected :: bkano2anmx    = 5.e-6    ! Half-saturation constant for NO2 limitation (kmol/m3)
+  real, protected :: bkanh4anmx !   = bkano2anmx * rnh4anmx/rno2anmx !Half-saturation constant for NH4 limitation of anammox (kmol/m3)
+
+  ! === Denitrification step NO2 -> N2O
+  real, protected :: rano2denit    = 0.002    ! Maximum growth rate denitrification on NO2 at reference T (1/d -> 1/dt)
+  real, protected :: q10ano2denit  = 2.0      ! Q10 factor for denitrification on NO2 (-)
+  real, protected :: Trefano2denit = 10.      ! Reference temperature for denitrification on NO2 (degr C)
+  real, protected :: bkoxano2denit = 2.e-6    ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on NO2 (kmol/m3)
+  real, protected :: bkano2denit   = 5.6e-6   ! Half-saturation constant for denitrification on NO2 (kmol/m3)
+
+  ! === Denitrification step N2O -> N2
+  real, protected :: ran2odenit    = 0.0005   ! Maximum growth rate denitrification on N2O at reference T (1/d -> 1/dt)
+  real, protected :: q10an2odenit  = 3.       ! Q10 factor for denitrificationj on N2O (-)
+  real, protected :: Trefan2odenit = 10.      ! Reference temperature for denitrification on N2O (degr C)
+  real, protected :: bkoxan2odenit = 10e-6    ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on N2O (kmol/m3)
+  real, protected :: bkan2odenit   = 0.1e-6   ! Half-saturation constant for denitrification on N2O (kmol/m3)
+
+  ! === DNRA NO2 -> NH4
+  real, protected :: rdnra         = 0.0003   ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
+  real, protected :: q10dnra       = 2.       ! Q10 factor for DNRA on NO2 (-)
+  real, protected :: Trefdnra      = 10.      ! Reference temperature for DNRA (degr C)
+  real, protected :: bkoxdnra      = 2.5e-6   ! Half saturation constant for (quadratic) oxygen inhibition function of DNRA on NO2 (kmol/m3)
+  real, protected :: bkdnra        = 0.05e-6  ! Half-saturation constant for DNRA on NO2 (kmol/m3)
+
+  ! === Nitrification on NH4
+  real, protected :: ranh4nitr     = 1.       ! Maximum growth rate nitrification on NH4 at reference T (1/d -> 1/dt)
+  real, protected :: q10anh4nitr   = 3.3      ! Q10 factor for nitrification on NH4 (-)
+  real, protected :: Trefanh4nitr  = 20.      ! Reference temperature for nitrification on NH4 (degr C)
+  real, protected :: bkoxamox      = 0.333e-6 ! Half-saturation constant for oxygen limitation of nitrification on NH4 (kmol/m3)
+  real, protected :: bkanh4nitr    = 0.133e-6 ! Half-saturation constant for nitrification on NH4 (kmol/m3)
+  real, protected :: bkamoxn2o     = 0.5e-6 ! Half saturation constant for NH4 in pathway splitting function N2O for nitrification on NH4 (kmol/m3)
+  real, protected :: mufn2o !       = 0.11/(50.*1e6*bkoxamox) !=6.61e-3  0.11/(50*1e6)=2.2e-9 - ~Santoro et al. 2011 with simple MM,
+  real, protected :: bn2o   !       = 0.077/(50.*mufn2o)  !=0.2331 - before set to 0.3 - base fraction entering N2O
+  real, protected :: n2omaxy       = 0.003    ! Maximum yield of OM on NH4 nitrification (-)
+  real, protected :: n2oybeta      = 18.      ! Decay factor for inhibition function for yield during nitrification on NH4 (kmol/m3)
+  real, protected :: bkyamox       = 0.333e-6 ! Half saturation constant for pathway splitting function OM-yield for nitrification on NH4 (kmol/m3)
+
+  ! === Nitrification on NO2
+  real, protected :: rano2nitr     = 0.75     ! Maximum growth rate nitrification on NO2 at reference T (1/d -> 1/dt)
+  real, protected :: q10ano2nitr   = 2.7      ! Q10 factor for nitrification on NO2 (-)
+  real, protected :: Trefano2nitr  = 20.      ! Reference temperature for nitrification on NO2 (degr C)
+  real, protected :: bkoxnitr      = 0.788e-6 ! Half-saturation constant for oxygen limitation of nitrification on NO2 (kmol/m3)
+  real, protected :: bkano2nitr    = 0.287e-6 ! Half-saturation constant for NO2 for nitrification on NO2 (kmol/m3)
+  real, protected :: NOB2AOAy      = 0.44     ! Ratio of NOB versus AOA yield per energy source ~0.043/0.098 according to Zakem et al. 2022
+
+  !SEDIMENT
+      ! === Ammonification in the sediment
+  real, protected :: POM_remin_q10_sed  = 2.1     ! ammonification Q10 in sediment
+  real, protected :: POM_remin_Tref_sed = 10.     ! ammonification Tref in sediment
+  real, protected :: bkox_drempoc_sed   = 1e-7    ! half saturation constant for O2 limitatio of ammonification in sediment (kmol/m3)
+
+      ! === Denitrification step NO3 -> NO2:
+  real, protected :: rano3denit_sed     = 0.05     ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
+  real, protected :: q10ano3denit_sed   = 2.       ! Q10 factor for denitrification on NO3 (-)
+  real, protected :: Trefano3denit_sed  = 10.      ! Reference temperature for denitrification on NO3 (degr C)
+  real, protected :: sc_ano3denit_sed   = 0.12e6   ! Shape factor for NO3 denitrification oxygen inhibition function (m3/kmol)
+  real, protected :: bkano3denit_sed    = 5.e-6    ! Half-saturation constant for NO3 denitrification (kmol/m3)
+
+      ! === Anammox
+  real, protected :: rano2anmx_sed      = 0.05     ! Maximum growth rate for anammox at reference T (1/d -> 1/dt)
+  real, protected :: q10anmx_sed        = 1.6      ! Q10 factor for anammox (-)
+  real, protected :: Trefanmx_sed       = 10.      ! Reference temperature for anammox (degr C)
+  real, protected :: alphaanmx_sed      = 0.45e6   ! Shape factor for anammox oxygen inhibition function (m3/kmol)
+  real, protected :: bkoxanmx_sed       = 11.3e-6  ! Half-saturation constant for oxygen inhibition function (kmol/m3)
+  real, protected :: bkano2anmx_sed     = 5.e-6    ! Half-saturation constant for NO2 limitation (kmol/m3)
+  real, protected :: bkanh4anmx_sed                ! = bkano2anmx_sed * rnh4anmx/rno2anmx !Half-saturation constant for NH4 limitation of anammox (kmol/m3)
+
+      ! === Denitrification step NO2 -> N2O
+  real, protected :: rano2denit_sed     = 0.12     ! Maximum growth rate denitrification on NO2 at reference T (1/d -> 1/dt)
+  real, protected :: q10ano2denit_sed   = 2.       ! Q10 factor for denitrification on NO2 (-)
+  real, protected :: Trefano2denit_sed  = 10.      ! Reference temperature for denitrification on NO2 (degr C)
+  real, protected :: bkoxano2denit_sed  = 2.e-6    ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on NO2 (kmol/m3)
+  real, protected :: bkano2denit_sed    = 5.6e-6   ! Half-saturation constant for denitrification on NO2 (kmol/m3)
+
+      ! === Denitrification step N2O -> N2
+  real, protected :: ran2odenit_sed     = 0.16     ! Maximum growth rate denitrification on N2O at reference T (1/d -> 1/dt)
+  real, protected :: q10an2odenit_sed   = 3.       ! Q10 factor for denitrificationj on N2O (-)
+  real, protected :: Trefan2odenit_sed  = 10.      ! Reference temperature for denitrification on N2O (degr C)
+  real, protected :: bkoxan2odenit_sed  = 5.e-6    ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on N2O (kmol/m3)
+  real, protected :: bkan2odenit_sed    = 1.e-6    ! Half-saturation constant for denitrification on N2O (kmol/m3)
+
+      ! === DNRA NO2 -> NH4
+  real, protected :: rdnra_sed          = 0.1      ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
+  real, protected :: q10dnra_sed        = 2.       ! Q10 factor for DNRA on NO2 (-)
+  real, protected :: Trefdnra_sed       = 10.      ! Reference temperature for DNRA (degr C)
+  real, protected :: bkoxdnra_sed       = 2.5e-6   ! Half saturation constant for (quadratic) oxygen inhibition function of DNRA on NO2 (kmol/m3)
+  real, protected :: bkdnra_sed         = 0.05e-6  ! Half-saturation constant for DNRA on NO2 (kmol/m3)
+
+      ! === Nitrification on NH4
+  real, protected :: ranh4nitr_sed      = 1.       ! Maximum growth rate nitrification on NH4 at reference T (1/d -> 1/dt)
+  real, protected :: q10anh4nitr_sed    = 3.3      ! Q10 factor for nitrification on NH4 (-)
+  real, protected :: Trefanh4nitr_sed   = 20.      ! Reference temperature for nitrification on NH4 (degr C)
+  real, protected :: bkoxamox_sed       = 0.333e-6 ! Half-saturation constant for oxygen limitation of nitrification on NH4 (kmol/m3)
+  real, protected :: bkanh4nitr_sed     = 0.133e-6 ! Half-saturation constant for nitrification on NH4 (kmol/m3)
+  real, protected :: bkamoxn2o_sed      = 0.5e-6   ! Half saturation constant for NH4 in pathway splitting function N2O for nitrification on NH4 (kmol/m3)
+  real, protected :: mufn2o_sed                    ! = 0.11/(50.*1e6*bkoxamox_sed)  !=6.61e-3  0.11/(50*1e6)=2.2e-9 - ~Santoro et al. 2011 with simple MM
+  real, protected :: bn2o_sed                      ! = 0.077/(50.*mufn2o_sed)       !=0.2331 - before set to 0.3 - base fraction entering N2O
+  real, protected :: n2omaxy_sed        = 0.003    ! Maximum yield of OM on NH4 nitrification (-)
+  real, protected :: n2oybeta_sed       = 18.      ! Decay factor for inhibition function for yield during nitrification on NH4 (kmol/m3)
+  real, protected :: bkyamox_sed        = 0.333e-6 ! Half saturation constant for pathway splitting function OM-yield for nitrification on NH4 (kmol/m3)
+
+      ! === Nitrification on NO2
+  real, protected :: rano2nitr_sed      = 1.54     ! Maximum growth rate nitrification on NO2 at reference T (1/d -> 1/dt)
+  real, protected :: q10ano2nitr_sed    = 2.7      ! Q10 factor for nitrification on NO2 (-)
+  real, protected :: Trefano2nitr_sed   = 20.      ! Reference temperature for nitrification on NO2 (degr C)
+  real, protected :: bkoxnitr_sed       = 0.788e-6 ! Half-saturation constant for oxygen limitation of nitrification on NO2 (kmol/m3)
+  real, protected :: bkano2nitr_sed     = 0.287e-6 ! Half-saturation constant for NO2 for nitrification on NO2 (kmol/m3)
+  real, protected :: NOB2AOAy_sed       = 0.44     ! Ratio of NOB versus AOA yield per energy source ~0.043/0.098 according to Zakem et al. 2022
 
   !********************************************************************
   ! Parameters for DMS and BrO schemes
@@ -262,11 +471,11 @@ module mo_param_bgc
   !********************************************************************
   ! Sinking parameters
   !********************************************************************
-  real, protected :: wpoc_const  =  5.0            ! m/d   Sinking speed of detritus iris : 5.
-  real, protected :: wcal_const  = 33.             ! m/d   Sinking speed of CaCO3 shell material
+  real, protected :: wpoc_const  =  5.             ! m/d   Sinking speed of detritus iris : 5.
+  real, protected :: wcal_const  = 30.             ! m/d   Sinking speed of CaCO3 shell material
   real, protected :: wopal_const = 30.             ! m/d   Sinking speed of opal iris : 60
   real, protected :: wdust_const                             ! m/d   Sinking speed of dust
-  real, protected :: wmin        =  5.             ! m/d   minimum sinking speed
+  real, protected :: wmin        =  1.             ! m/d   minimum sinking speed
   real, protected :: wmax        = 60.             ! m/d   maximum sinking speed
   real, protected :: wlin        = 60./2400.       ! m/d/m constant describing incr. with depth, r/a=1.0
   real, protected :: dustd1      = 0.0001          ! cm = 1 um, boundary between clay and silt
@@ -279,19 +488,28 @@ module mo_param_bgc
   real, protected :: vsmall,safe,pupper,plower,zdis,nmldmin
   real, protected :: cellsink = 9999.
 
+  !********************************************************************
+  ! Shelfsea water residence time
+  !********************************************************************
+  real, protected :: shelfbreak_depth = 200. ! [m] shelf-break depth fall-back value, if no shelfseaa mask file provided
 
   !********************************************************************
   ! Sediment biogeochemistry
   !********************************************************************
   ! Note that the rates in the sediment are given in per second here!
   !
+  real, protected :: sed_O2thresh_hypoxic = 1.e-6 ! Below sed_O2thresh_hypoxic denitrification takes place (default model version)
+  real, protected :: sed_O2thresh_sulf    = 3.e-6 ! Below sed_O2thresh_sulf 'sulfate reduction' takes place
+  real, protected :: sed_NO3thresh_sulf   = 3.e-6 ! Below sed_NO3thresh_sulf 'sufate reduction' takes place
   real, protected :: sedict      = 1.e-9          ! m2/s Molecular diffusion coefficient
   real, protected :: silsat      = 0.001          ! kmol/m3 Silicate saturation concentration is 1 mol/m3
-  real, protected :: disso_poc   = 0.01 / 86400.  ! 1/(kmol O2/m3 s) disso=3.e-5 was quite high - Degradation rate constant of POP
+  real, protected :: disso_poc   = 0.432/sec_per_day ! 1/(kmol O2/m3 s)      Degradation rate constant of POP
   real, protected :: disso_sil   = 3.e-8          ! 1/(kmol Si(OH)4/m3 s) Dissolution rate constant of opal
   real, protected :: disso_caco3 = 1.e-7          ! 1/(kmol CO3--/m3 s) Dissolution rate constant of CaCO3
-  real, protected :: sed_denit   = 0.01/86400.    ! 1/s Denitrification rate constant of POP
-
+  real, protected :: sed_denit   = 0.01/sec_per_day  ! 1/s Denitrification rate constant of POP
+  real, protected :: sed_sulf    = 0.01/sec_per_day  ! 1/s "Sulfate reduction" rate constant of POP
+  real, protected :: sed_alpha_poc = 1./90.       ! 1/d 1/decay time for sediment moving average - assuming ~3 month memory here
+  real, protected :: sed_qual_sc = 1.             ! scaling factor for sediment quality-based remineralization
   !********************************************************************
   ! Densities etc. for SEDIMENT SHIFTING
   !********************************************************************
@@ -316,7 +534,32 @@ module mo_param_bgc
 contains
 
   !********************************************************************
-  subroutine ini_parambgc(kpie,kpje)
+  subroutine ini_bgctimes(nday_in_year)
+
+    use mod_config, only: expcnf
+    ! NOTE: called also at run time after initialization
+    integer,intent(in) :: nday_in_year
+
+    days_per_year = real(nday_in_year)
+
+    if (nday_in_year /= 365 .and. mnproc==1 .and. lini .eqv. .true.) then
+      lini=.false.
+      if (.not. (expcnf == 'single_column' .or. expcnf == 'fuk95' .or. expcnf == 'channel' .or. expcnf == 'noforcing')) then
+        ! for production runs, issue an error and stop
+        write (io_stdo_bgc,*) 'Error: Init iHAMOCC time variables: non-standard calendar selected with [days] ',days_per_year
+        call xchalt('(ini_bgctimes)')
+        stop '(ini_bgctimes)'
+      else
+        ! for test cases, pass, but issue a warning
+        write (io_stdo_bgc,*) 'WARNING: Init iHAMOCC time variables: non-standard calendar selected with [days] ',days_per_year
+      endif
+    endif
+
+    sec_per_year = days_per_year*sec_per_day
+  end subroutine ini_bgctimes
+
+  !********************************************************************
+  subroutine ini_parambgc()
     !
     ! First, Initialze parameters of individual components with default values.
     ! The order of initialization can matter due to interdependcies.
@@ -324,9 +567,6 @@ contains
     ! adjust rates to 'per time step'
     ! Eventually write out the used parameters to the log file
     !
-    ! Arguments
-    integer, intent(in) :: kpie  ! 1st dimension of model grid.
-    integer, intent(in) :: kpje  ! 2nd dimension of model grid.
 
     call ini_param_biol()    ! initialize biological parameters
     if (use_AGG) then
@@ -395,6 +635,12 @@ contains
       rcalc  = 40.         ! iris 40 !calcium carbonate to organic phosphorous production ratio
       ropal  = 30.         ! iris 25 !opal to organic phosphorous production ratio
     endif
+
+    if (use_M4AGO) then
+      ! reset drempoc and dremopal for Q10 T-dep remin/dissolution
+      drempoc  = 0.12
+      dremopal = 0.023
+    endif
   end subroutine ini_param_biol
 
   !********************************************************************
@@ -408,17 +654,41 @@ contains
 
     namelist /bgcparams/ bkphy,dyphy,bluefix,bkzoo,grazra,spemor,gammap,gammaz,  &
                          ecan,zinges,epsher,bkopal,rcalc,ropal,                  &
-                         remido,drempoc,dremopal,dremn2o,dremsul,fetune,relaxfe, &
-                         wmin,wmax,wlin,wpoc_const,wcal_const,wopal_const
+                         remido,drempoc,dremopal,dremcalc,dremn2o,dremsul,       &
+                         fetune,relaxfe,wmin,wmax,wlin,wpoc_const,wcal_const,    &
+                         wopal_const,disso_poc,disso_sil,disso_caco3,            &
+                         rano3denit,rano2anmx,rano2denit,ran2odenit,rdnra,       &
+                         ranh4nitr,rano2nitr,rano3denit_sed,rano2anmx_sed,       &
+                         rano2denit_sed,ran2odenit_sed,rdnra_sed,ranh4nitr_sed,  &
+                         rano2nitr_sed,atm_nh3,atm_n2o,bkphyanh4,bkphyano3,      &
+                         bkphosph,                                               &
+                         q10ano3denit,sc_ano3denit,bkano3denit,q10anmx,alphaanmx,&
+                         bkoxanmx,bkano2anmx,q10ano2denit,                       &
+                         bkoxano2denit,bkano2denit,q10an2odenit,bkoxan2odenit,   &
+                         bkan2odenit,q10dnra,bkoxdnra,bkdnra,q10anh4nitr,        &
+                         bkoxamox,bkanh4nitr,q10ano2nitr,bkoxnitr,bkano2nitr,    &
+                         q10ano3denit_sed,sc_ano3denit_sed,bkano3denit_sed,      &
+                         q10anmx_sed,alphaanmx_sed,bkox_drempoc_sed,             &
+                         bkoxanmx_sed,bkano2anmx_sed,q10ano2denit_sed,           &
+                         bkoxano2denit_sed,bkano2denit_sed,q10an2odenit_sed,     &
+                         bkoxan2odenit_sed,bkan2odenit_sed,q10dnra_sed,          &
+                         bkoxdnra_sed,bkdnra_sed,q10anh4nitr_sed,                &
+                         bkoxamox_sed,bkanh4nitr_sed,q10ano2nitr_sed,            &
+                         bkoxnitr_sed,bkano2nitr_sed,sed_alpha_poc,sed_qual_sc,  &
+                         sed_denit,sed_sulf,                                     &
+                         sed_O2thresh_hypoxic,sed_O2thresh_sulf,sed_NO3thresh_sulf
+
+    if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)
+      write(io_stdo_bgc,*)'********************************************'
+      write(io_stdo_bgc,*) 'iHAMOCC: read namelist bgcparams'
+    endif
 
     open (newunit=iounit, file=bgc_namelist, status='old',action='read')
     read (unit=iounit, nml=BGCPARAMS)
     close(unit=iounit)
 
     if (mnproc.eq.1) then
-      write(io_stdo_bgc,*)
-      write(io_stdo_bgc,*)'********************************************'
-      write(io_stdo_bgc,*) 'iHAMOCC: read namelist bgcparams'
       write(io_stdo_bgc,nml=BGCPARAMS)
     endif
 
@@ -435,10 +705,21 @@ contains
     perc_diron = fetune * 0.035 * 0.01 / 55.85
 
     dustd2   = dustd1*dustd1
-    dustsink = (9.81 * 86400. / 18.                 & ! g * sec per day / 18.
+    dustsink = (9.81 * sec_per_day / 18.                 & ! g * sec per day / 18.
                * (claydens - 1025.) / 1.567 * 1000. & ! excess density / dyn. visc.
                * dustd2 * 1.e-4)                      ! m/d
 
+    if (use_extNcycle) then
+      bkiron        = bkphosph*riron                 ! Half-saturation constant for Fe uptake by bulk phytoplankton (kmol/m3)
+      bkanh4anmx    = bkano2anmx * rnh4anmx/rno2anmx ! Half-saturation constant for NH4 limitation of anammox (kmol/m3)
+      mufn2o        = 0.11/(50.*1e6*bkoxamox)        ! =6.61e-3  0.11/(50*1e6)=2.2e-9 - ~Santoro et al. 2011 with simple MM,
+      bn2o          = 0.077/(50.*mufn2o)             ! =0.2331 - before set to 0.3 - base fraction entering N2O
+      bkanh4anmx_sed = bkano2anmx_sed * rnh4anmx/rno2anmx !Half-saturation constant for NH4 limitation of anammox (kmol/m3)
+      mufn2o_sed     = 0.11/(50.*1e6*bkoxamox_sed)   !=6.61e-3  0.11/(50*1e6)=2.2e-9 - ~Santoro et al. 2011 with simple MM
+      bn2o_sed       = 0.077/(50.*mufn2o_sed)        !=0.2331 - before set to 0.3 - base fraction entering N2O
+      lTO2depremin   = .true.
+    endif
+    if (use_M4AGO) lTO2depremin = .true.
 
     !*************************************************
     !     DOM parameters
@@ -472,18 +753,15 @@ contains
       c14dec = 1.-(log(2.)/c14_t_half)*dtb   ! lambda [1/day]; c14dec[-]
     endif
 
-    gammap   = gammap*dtb      ! 1/d to 1/time step - exudation rate
-    if (use_dom) then
-        gammapsl   = gammapsl*dtb      ! 1/d to 1/time step - exudation rate
-    endif
-
     !********************************************************************
     !     Zooplankton parameters
     !********************************************************************
     grazra   = grazra*dtb      ! 1/d to 1/time step - grazing rate
     spemor   = spemor*dtb      ! 1/d to 1/time step - mortality rate
+    gammap   = gammap*dtb      ! 1/d to 1/time step - exudation rate
     gammaz   = gammaz*dtb      ! 1/d to 1/time step - excretion rate
     if (use_dom) then
+        gammapsl   = gammapsl*dtb      ! 1/d to 1/time step - exudation rate
         gammazsl   = gammazsl*dtb      ! 1/d to 1/time step - exudation rate
     endif
 
@@ -493,7 +771,9 @@ contains
     remido   = remido*dtb     ! 1/d to 1/time step - remineralization rate (of DOM)
     ! deep sea remineralisation constants
     drempoc  = drempoc*dtb    ! 1/d to 1/time step  Aerob remineralization rate of detritus
+    drempoc_anaerob = drempoc_anaerob*dtb ! 1/d Anaerob remin rate of detritus
     dremopal = dremopal*dtb   ! 1/d to 1/time step  Dissolution rate of opal
+    dremcalc = dremcalc*dtb   ! 1/d to 1/time step  Dissolution rate of CaCO3
     dremn2o  = dremn2o*dtb    ! 1/d to 1/time step  Remineralization rate of detritus on N2O
     dremsul  = dremsul*dtb    ! 1/d to 1/time step  Remineralization rate for sulphate reduction
 
@@ -536,7 +816,25 @@ contains
     disso_poc   = disso_poc   * dtbgc ! 1/(kmol O2/m3 time step)      Degradation rate constant of POP
     disso_caco3 = disso_caco3 * dtbgc ! 1/(kmol CO3--/m3 time step)   Dissolution rate constant of CaCO3
     sed_denit   = sed_denit   * dtbgc ! 1/time step                   Denitrification rate constant of POP
+    sed_sulf    = sed_sulf    * dtbgc ! 1/time step                   "Sulfate reduction" rate constant of POP
 
+    if (use_extNcycle) then
+      rano3denit = rano3denit *dtb ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
+      rano2anmx  = rano2anmx  *dtb ! Maximum growth rate for anammox at reference T (1/d -> 1/dt)
+      rano2denit = rano2denit *dtb ! Maximum growth rate denitrification on NO2 at reference T (1/d -> 1/dt)
+      ran2odenit = ran2odenit *dtb ! Maximum growth rate denitrification on N2O at reference T (1/d -> 1/dt)
+      rdnra      = rdnra      *dtb ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
+      ranh4nitr  = ranh4nitr  *dtb ! Maximum growth rate nitrification on NH4 at reference T (1/d -> 1/dt)
+      rano2nitr  = rano2nitr  *dtb ! Maximum growth rate nitrification on NO2 at reference T (1/d -> 1/dt)
+
+      rano3denit_sed = rano3denit_sed *dtb ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
+      rano2anmx_sed  = rano2anmx_sed  *dtb ! Maximum growth rate for anammox at reference T (1/d -> 1/dt)
+      rano2denit_sed = rano2denit_sed *dtb ! Maximum growth rate denitrification on NO2 at reference T (1/d -> 1/dt)
+      ran2odenit_sed = ran2odenit_sed *dtb ! Maximum growth rate denitrification on N2O at reference T (1/d -> 1/dt)
+      rdnra_sed      = rdnra_sed      *dtb ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
+      ranh4nitr_sed  = ranh4nitr_sed  *dtb ! Maximum growth rate nitrification on NH4 at reference T (1/d -> 1/dt)
+      rano2nitr_sed  = rano2nitr_sed  *dtb ! Maximum growth rate nitrification on NO2 at reference T (1/d -> 1/dt)
+    endif
   end subroutine rates_2_timestep
 
   !********************************************************************
@@ -606,18 +904,30 @@ contains
       call cinfo_add_entry('use_natDIC',             use_natDIC)
       call cinfo_add_entry('use_CFC',                use_CFC)
       call cinfo_add_entry('use_cisonew',            use_cisonew)
+      call cinfo_add_entry('use_extNcycle',          use_extNcycle)
       call cinfo_add_entry('use_PBGC_OCNP_TIMESTEP', use_PBGC_OCNP_TIMESTEP)
       call cinfo_add_entry('use_PBGC_CK_TIMESTEP',   use_PBGC_CK_TIMESTEP)
-      call cinfo_add_entry('use_FB_BGC_OCE BROMO',   use_FB_BGC_OCE)
+      call cinfo_add_entry('use_FB_BGC_OCE',         use_FB_BGC_OCE)
       call cinfo_add_entry('use_BOXATM',             use_BOXATM)
       call cinfo_add_entry('use_sedbypass',          use_sedbypass)
-      write(io_stdo_bgc,*) '*   ocn_co2_type     = ',ocn_co2_type
+      write(io_stdo_bgc,*) '*   ocn_co2_type           = ',ocn_co2_type
       call cinfo_add_entry('do_ndep',                do_ndep)
       call cinfo_add_entry('do_rivinpt',             do_rivinpt)
       call cinfo_add_entry('do_oalk',                do_oalk)
       call cinfo_add_entry('with_dmsph',             with_dmsph)
       call cinfo_add_entry('do_sedspinup',           do_sedspinup)
       call cinfo_add_entry('l_3Dvarsedpor',          l_3Dvarsedpor)
+      call cinfo_add_entry('lkwrbioz_off',           lkwrbioz_off)
+      call cinfo_add_entry('lTO2depremin',           lTO2depremin)
+      call cinfo_add_entry('use_shelfsea_res_time',  use_shelfsea_res_time)
+      call cinfo_add_entry('use_sediment_quality',   use_sediment_quality)
+      call cinfo_add_entry('use_M4AGO',              use_M4AGO)
+      call cinfo_add_entry('use_pref_tracers',       use_pref_tracers)
+      call cinfo_add_entry('use_coupler_ndep',       use_coupler_ndep)
+      if (use_extNcycle) then
+        call cinfo_add_entry('do_n2o_coupled',       do_n2o_coupled)
+        call cinfo_add_entry('do_nh3_coupled',       do_nh3_coupled)
+      endif
       write(io_stdo_bgc,*) '* '
       write(io_stdo_bgc,*) '* Values of MO_PARAM_BGC variables : '
       call pinfo_add_entry('atm_co2',     atm_co2)
@@ -641,6 +951,10 @@ contains
       endif
       call pinfo_add_entry('atm_o2',      atm_o2)
       call pinfo_add_entry('atm_n2',      atm_n2)
+      call pinfo_add_entry('atm_n2o',     atm_n2o)
+      if (use_extNcycle) then
+        call pinfo_add_entry('atm_nh3',atm_nh3)
+      endif
       call pinfo_add_entry('phytomi',     phytomi)
       call pinfo_add_entry('grami',       grami)
       call pinfo_add_entry('remido',      remido*dtbinv)
@@ -659,8 +973,12 @@ contains
       call pinfo_add_entry('wpoc_const',  wpoc_const*dtbinv)
       call pinfo_add_entry('wcal_const',  wcal_const*dtbinv)
       call pinfo_add_entry('wopal_const', wopal_const*dtbinv)
+      call pinfo_add_entry('O2thresh_aerob', O2thresh_aerob)
+      call pinfo_add_entry('O2thresh_hypoxic',O2thresh_hypoxic)
+      call pinfo_add_entry('NO3thresh_sulf',  NO3thresh_sulf)
       call pinfo_add_entry('drempoc',     drempoc*dtbinv)
       call pinfo_add_entry('dremopal',    dremopal*dtbinv)
+      call pinfo_add_entry('dremcalc',    dremcalc*dtbinv)
       call pinfo_add_entry('dremn2o',     dremn2o*dtbinv)
       call pinfo_add_entry('dremsul',     dremsul*dtbinv)
       call pinfo_add_entry('bluefix',     bluefix*dtbinv)
@@ -749,11 +1067,15 @@ contains
       write(io_stdo_bgc,*)
       write(io_stdo_bgc,*) '********************************************'
       write(io_stdo_bgc,*) '* Values of MO_PARAM_BGC sediment variables : '
+      call pinfo_add_entry('sed_O2thresh_hypoxic',sed_O2thresh_hypoxic)
+      call pinfo_add_entry('sed_O2thresh_sulf',   sed_O2thresh_sulf)
+      call pinfo_add_entry('sed_NO3thresh_sulf',  sed_NO3thresh_sulf)
       call pinfo_add_entry('sedict',      sedict      * dtbgcinv)
       call pinfo_add_entry('disso_poc',   disso_poc   * dtbgcinv)
       call pinfo_add_entry('disso_sil',   disso_sil   * dtbgcinv)
       call pinfo_add_entry('disso_caco3', disso_caco3 * dtbgcinv)
       call pinfo_add_entry('sed_denit',   sed_denit   * dtbgcinv)
+      call pinfo_add_entry('sed_sulf',    sed_sulf    * dtbgcinv)
       call pinfo_add_entry('silsat',      silsat)
       call pinfo_add_entry('orgwei',      orgwei)
       call pinfo_add_entry('opalwei',     opalwei)
@@ -762,8 +1084,127 @@ contains
       call pinfo_add_entry('opaldens',    opaldens)
       call pinfo_add_entry('calcdens',    calcdens)
       call pinfo_add_entry('claydens',    claydens)
+      if (use_sediment_quality) then
+        call pinfo_add_entry('sed_alpha_poc',    sed_alpha_poc)
+        call pinfo_add_entry('sed_qual_sc',      sed_qual_sc)
     endif
+    endif
+    if (use_extNcycle) then
+      write(io_stdo_bgc,*) '*********************************************************'
+      write(io_stdo_bgc,*) '* HAMOCC extended nitrogen cycle parameters water column:'
+      call pinfo_add_entry('rc2n',          rc2n)
+      call pinfo_add_entry('ro2utammo',     ro2utammo)
+      call pinfo_add_entry('ro2nnit',       ro2nnit)
+      call pinfo_add_entry('rnoxp',         rnoxp)
+      call pinfo_add_entry('rnoxpi',        rnoxpi)
+      call pinfo_add_entry('rno2anmx',      rno2anmx)
+      call pinfo_add_entry('rno2anmxi',     rno2anmxi)
+      call pinfo_add_entry('rnh4anmx',      rnh4anmx)
+      call pinfo_add_entry('rnh4anmxi',     rnh4anmxi)
+      call pinfo_add_entry('rno2dnra',      rno2dnra)
+      call pinfo_add_entry('rno2dnrai',     rno2dnrai)
+      call pinfo_add_entry('rnh4dnra',      rnh4dnra)
+      call pinfo_add_entry('rnh4dnrai',     rnh4dnrai)
+      call pinfo_add_entry('rnm1',          rnm1)
+      call pinfo_add_entry('bkphyanh4',     bkphyanh4)
+      call pinfo_add_entry('bkphyano3',     bkphyano3)
+      call pinfo_add_entry('bkphosph',      bkphosph)
+      call pinfo_add_entry('bkiron',        bkiron)
+      call pinfo_add_entry('rano3denit',    rano3denit    *dtbinv)
+      call pinfo_add_entry('q10ano3denit',  q10ano3denit)
+      call pinfo_add_entry('Trefano3denit', Trefano3denit)
+      call pinfo_add_entry('sc_ano3denit',  sc_ano3denit)
+      call pinfo_add_entry('bkano3denit',   bkano3denit)
+      call pinfo_add_entry('rano2anmx',     rano2anmx     *dtbinv)
+      call pinfo_add_entry('q10anmx',       q10anmx)
+      call pinfo_add_entry('Trefanmx',      Trefanmx)
+      call pinfo_add_entry('alphaanmx',     alphaanmx)
+      call pinfo_add_entry('bkoxanmx',      bkoxanmx)
+      call pinfo_add_entry('bkano2anmx',    bkano2anmx)
+      call pinfo_add_entry('bkanh4anmx',    bkanh4anmx)
+      call pinfo_add_entry('rano2denit',    rano2denit    *dtbinv)
+      call pinfo_add_entry('q10ano2denit',  q10ano2denit)
+      call pinfo_add_entry('Trefano2denit', Trefano2denit)
+      call pinfo_add_entry('bkoxano2denit', bkoxano2denit)
+      call pinfo_add_entry('bkano2denit',   bkano2denit)
+      call pinfo_add_entry('ran2odenit',    ran2odenit    *dtbinv)
+      call pinfo_add_entry('q10an2odenit',  q10an2odenit)
+      call pinfo_add_entry('Trefan2odenit', Trefan2odenit)
+      call pinfo_add_entry('bkoxan2odenit', bkoxan2odenit)
+      call pinfo_add_entry('bkan2odenit',   bkan2odenit)
+      call pinfo_add_entry('rdnra',         rdnra         *dtbinv)
+      call pinfo_add_entry('q10dnra',       q10dnra)
+      call pinfo_add_entry('Trefdnra',      Trefdnra)
+      call pinfo_add_entry('bkoxdnra',      bkoxdnra)
+      call pinfo_add_entry('bkdnra',        bkdnra)
+      call pinfo_add_entry('ranh4nitr',     ranh4nitr     *dtbinv)
+      call pinfo_add_entry('q10anh4nitr',   q10anh4nitr)
+      call pinfo_add_entry('Trefanh4nitr',  Trefanh4nitr)
+      call pinfo_add_entry('bkoxamox',      bkoxamox)
+      call pinfo_add_entry('bkanh4nitr',    bkanh4nitr)
+      call pinfo_add_entry('bkamoxn2o',     bkamoxn2o)
+      call pinfo_add_entry('mufn2o',        mufn2o)
+      call pinfo_add_entry('bn2o',          bn2o)
+      call pinfo_add_entry('n2omaxy',       n2omaxy)
+      call pinfo_add_entry('n2oybeta',      n2oybeta)
+      call pinfo_add_entry('bkyamox',       bkyamox)
+      call pinfo_add_entry('rano2nitr',     rano2nitr     *dtbinv)
+      call pinfo_add_entry('q10ano2nitr',   q10ano2nitr)
+      call pinfo_add_entry('Trefano2nitr',  Trefano2nitr)
+      call pinfo_add_entry('bkoxnitr',      bkoxnitr)
+      call pinfo_add_entry('bkano2nitr',    bkano2nitr)
+      call pinfo_add_entry('NOB2AOAy',      NOB2AOAy)
 
+      write(io_stdo_bgc,*) '****************************************************************'
+      write(io_stdo_bgc,*) '* HAMOCC extended nitrogen cycle parameters sediment:'
+      call pinfo_add_entry('POM_remin_q10_sed', POM_remin_q10_sed)
+      call pinfo_add_entry('POM_remin_Tref_sed',POM_remin_Tref_sed)
+      call pinfo_add_entry('bkox_drempoc_sed',  bkox_drempoc_sed)
+      call pinfo_add_entry('rano3denit_sed',    rano3denit_sed    *dtbinv)
+      call pinfo_add_entry('q10ano3denit_sed',  q10ano3denit_sed)
+      call pinfo_add_entry('Trefano3denit_sed', Trefano3denit_sed)
+      call pinfo_add_entry('sc_ano3denit_sed',  sc_ano3denit_sed)
+      call pinfo_add_entry('bkano3denit_sed',   bkano3denit_sed)
+      call pinfo_add_entry('rano2anmx_sed',     rano2anmx_sed     *dtbinv)
+      call pinfo_add_entry('q10anmx_sed',       q10anmx_sed)
+      call pinfo_add_entry('Trefanmx_sed',      Trefanmx_sed)
+      call pinfo_add_entry('alphaanmx_sed',     alphaanmx_sed)
+      call pinfo_add_entry('bkoxanmx_sed',      bkoxanmx_sed)
+      call pinfo_add_entry('bkano2anmx_sed',    bkano2anmx_sed)
+      call pinfo_add_entry('bkanh4anmx_sed',    bkanh4anmx_sed)
+      call pinfo_add_entry('rano2denit_sed',    rano2denit_sed    *dtbinv)
+      call pinfo_add_entry('q10ano2denit_sed',  q10ano2denit_sed)
+      call pinfo_add_entry('Trefano2denit_sed', Trefano2denit_sed)
+      call pinfo_add_entry('bkoxano2denit_sed', bkoxano2denit_sed)
+      call pinfo_add_entry('bkano2denit_sed',   bkano2denit_sed)
+      call pinfo_add_entry('ran2odenit_sed',    ran2odenit_sed    *dtbinv)
+      call pinfo_add_entry('q10an2odenit_sed',  q10an2odenit_sed)
+      call pinfo_add_entry('Trefan2odenit_sed', Trefan2odenit_sed)
+      call pinfo_add_entry('bkoxan2odenit_sed', bkoxan2odenit_sed)
+      call pinfo_add_entry('bkan2odenit_sed',   bkan2odenit_sed)
+      call pinfo_add_entry('rdnra_sed',         rdnra_sed         *dtbinv)
+      call pinfo_add_entry('q10dnra_sed',       q10dnra_sed)
+      call pinfo_add_entry('Trefdnra_sed',      Trefdnra_sed)
+      call pinfo_add_entry('bkoxdnra_sed',      bkoxdnra_sed)
+      call pinfo_add_entry('bkdnra_sed',        bkdnra_sed)
+      call pinfo_add_entry('ranh4nitr_sed',     ranh4nitr_sed     *dtbinv)
+      call pinfo_add_entry('q10anh4nitr_sed',   q10anh4nitr_sed)
+      call pinfo_add_entry('Trefanh4nitr_sed',  Trefanh4nitr_sed)
+      call pinfo_add_entry('bkoxamox_sed',      bkoxamox_sed)
+      call pinfo_add_entry('bkanh4nitr_sed',    bkanh4nitr_sed)
+      call pinfo_add_entry('bkamoxn2o_sed',     bkamoxn2o_sed)
+      call pinfo_add_entry('mufn2o_sed',        mufn2o_sed)
+      call pinfo_add_entry('bn2o_sed',          bn2o_sed)
+      call pinfo_add_entry('n2omaxy_sed',       n2omaxy_sed)
+      call pinfo_add_entry('n2oybeta_sed',      n2oybeta_sed)
+      call pinfo_add_entry('bkyamox_sed',       bkyamox_sed)
+      call pinfo_add_entry('rano2nitr_sed',     rano2nitr_sed     *dtbinv)
+      call pinfo_add_entry('q10ano2nitr_sed',   q10ano2nitr_sed)
+      call pinfo_add_entry('Trefano2nitr_sed',  Trefano2nitr_sed)
+      call pinfo_add_entry('bkoxnitr_sed',      bkoxnitr_sed)
+      call pinfo_add_entry('bkano2nitr_sed',    bkano2nitr_sed)
+      call pinfo_add_entry('NOB2AOAy_sed',      NOB2AOAy_sed)
+    endif
   end subroutine write_parambgc
 
   subroutine cinfo_add_entry(controlname,controlval)

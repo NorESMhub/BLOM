@@ -1,3 +1,4 @@
+fs = import('fs') # import fs system module: https://mesonbuild.com/Fs-module.html
 sources += files('CVMix-src/src/shared/cvmix_background.F90',
 'CVMix-src/src/shared/cvmix_convection.F90', 
 'CVMix-src/src/shared/cvmix_ddiff.F90',
@@ -8,3 +9,27 @@ sources += files('CVMix-src/src/shared/cvmix_background.F90',
 'CVMix-src/src/shared/cvmix_shear.F90', 
 'CVMix-src/src/shared/cvmix_tidal.F90', 
 'CVMix-src/src/shared/cvmix_utils.F90')
+
+if get_option('ecosys')
+   sources += files('M4AGO-sinking-scheme/src/mo_m4ago_core.f90',
+                    'M4AGO-sinking-scheme/src/mo_m4ago_physics.f90',
+       		    'M4AGO-sinking-scheme/src/mo_ihamocc4m4ago.f90')
+   if fs.exists('M4AGO-sinking-scheme/src/mo_m4ago_kind.F90')
+     sources += files('M4AGO-sinking-scheme/src/mo_m4ago_kind.F90')
+   endif
+   if fs.exists('M4AGO-sinking-scheme/src/mo_m4ago_control.f90')
+     sources += files('M4AGO-sinking-scheme/src/mo_m4ago_control.f90')
+   endif
+   if fs.exists('M4AGO-sinking-scheme/src/mo_m4ago_params.f90')
+     sources += files('M4AGO-sinking-scheme/src/mo_m4ago_params.f90')
+   endif
+   if fs.exists('M4AGO-sinking-scheme/src/mo_m4ago_types.f90')
+     sources += files('M4AGO-sinking-scheme/src/mo_m4ago_types.f90')
+   endif
+   if fs.exists('M4AGO-sinking-scheme/src/mo_m4ago_HAMOCCinit.F90')
+     sources += files('M4AGO-sinking-scheme/src/mo_m4ago_HAMOCCinit.F90')
+   endif
+   if fs.exists('M4AGO-sinking-scheme/src/mo_m4ago_HAMOCCPrimPart.F90')
+     sources += files('M4AGO-sinking-scheme/src/mo_m4ago_HAMOCCPrimPart.F90')
+   endif
+endif

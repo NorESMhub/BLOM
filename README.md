@@ -4,6 +4,27 @@ This is the source code of BLOM and includes the ocean biogeochemistry
 model iHAMOCC. BLOM is the ocean component of the Norwegian Earth System
 Model (<https://github.com/NorESMhub/NorESM>).
 
+## Structure of the BLOM repository
+
+The BLOM repository contains source code corresponding to several versions of NorESM, which are contained in
+permanent release branches. The structure of the branches and naming conventions are documented in the
+[discussions item #164](https://github.com/NorESMhub/BLOM/discussions/164). In general, tags on the format
+`v#.#.#` correspond to a relase version of BLOM, whereas tags on the format `dev#.#.#.#` correspond to 
+development tags. Currently the following branches are actively maintained:
+
+| branch      | note                                            |
+|-------------|-------------------------------------------------|
+| master      | main development branch                         |
+| release-1.7 | release version for NorESM2.3.1/NorESM2.5_alpha |
+| release-1.6 | release version for NorESM2.3                   |
+| release-1.5 | release version for NorESM2.1                   |
+| release-1.4 | release version for NorESM2.0                   |
+
+The release-1.7 and current master maintains support for both MCT and NUOPC coupler systems.
+We aim to maintian this dual support also for the upcoming release-1.8 version.
+Further development beyond v1.8.X is likely to be NUOPC only.
+
+
 ## BLOM documentation
 
 Since BLOM is mainly used in connection with the NorESM system, the BLOM user documetation has been integrated
