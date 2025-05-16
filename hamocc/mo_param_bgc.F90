@@ -39,7 +39,7 @@ module mo_param_bgc
                             use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type,use_M4AGO,&
                             do_n2o_coupled,do_nh3_coupled,use_extNcycle,                           &
                             lkwrbioz_off,lTO2depremin,use_shelfsea_res_time,use_sediment_quality,  &
-                            use_pref_tracers,use_coupler_ndep
+                            use_pref_tracers,use_coupler_ndep,use_dom
   use mod_xc,         only: mnproc,xchalt
 
   implicit none

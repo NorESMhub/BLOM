@@ -146,7 +146,7 @@ contains
     use mo_control_bgc,   only: io_stdo_bgc,dtb,use_BROMO,use_AGG,use_WLIN,use_natDIC,             &
                                 use_CFC,use_sedbypass,use_cisonew,use_BOXATM,use_M4AGO,            &
                                 use_extNcycle,use_pref_tracers,use_shelfsea_res_time,              &
-                                use_sediment_quality,,use_dom
+                                use_sediment_quality,use_dom
     use mo_param1_bgc,    only: ialkali,ian2o,iano3,iatmco2,iatmdms,iatmn2,iatmn2o,iatmo2,         &
                                 icalc,idet,idms,idicsat,idoc,iiron,iopal,                          &
                                 ioxygen,iphosph,iphy,iprefalk,iprefdic,                            &
@@ -547,7 +547,7 @@ contains
          &  jlvl_agg_ws+jlvl_dynvis+jlvl_agg_stick+jlvl_agg_stickf+         &
          &  jlvl_agg_dmax+jlvl_agg_avdp+jlvl_agg_avrhop+jlvl_agg_avdC+      &
          &  jlvl_agg_df+jlvl_agg_b+jlvl_agg_Vrhof+jlvl_agg_Vpor+            &
-         &  jlvlnutlim_fe+jlvlnutlim_n+jlvlnutlim_phosph                    &
+         &  jlvlnutlim_fe+jlvlnutlim_n+jlvlnutlim_phosph+                   &
          &  jlvldocsl+jlvldocsr+jlvldocr+jlvlprefdoc+jlvlprefdocsl+         &
          &  jlvlprefdocsr+jlvlprefdocr                                      &
          &  ) /= 0) then

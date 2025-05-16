@@ -97,7 +97,7 @@ contains
                                 isilica,izoo,iadust,inos,ibromo,                                   &
                                 icalc13,icalc14,idet13,idet14,idoc13,idoc14,                       &
                                 iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv,               &
-                                inatalkali,inatcalc,inatsco212,ianh4,,idocsl,idocsr,idocr
+                                inatalkali,inatcalc,inatsco212,ianh4,idocsl,idocsr,idocr
     use mo_control_bgc,   only: dtb,io_stdo_bgc,with_dmsph,                                        &
                                 use_BROMO,use_AGG,use_PBGC_OCNP_TIMESTEP,use_FB_BGC_OCE,           &
                                 use_AGG,use_cisonew,use_natDIC, use_WLIN,use_sedbypass,use_M4AGO,  &
@@ -794,10 +794,14 @@ contains
                   pocrem   = min(drempoc*ocetra(i,j,k,idet),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
                   phyrem   = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2ut)
                   !fractions of doc(s) remineralized into nutrients
-                  docrem   = min(1.5e6*dtb*exp(-38.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idoc), 0.083*ocetra(i,j,k,ioxygen)/ro2ut)
-                  docremsl = (1.-alphasl)*min(5.0e7*dtb*exp(-58.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocsl), 0.083*ocetra(i,j,k,ioxygen)/ro2ut) 
-                  docremsr = (1.-alphasr)*min(1.7e17*dtb*exp(-116.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocsr), 0.083*ocetra(i,j,k,ioxygen)/ro2ut) 
-                  docremr  = min(5.0e26*dtb*exp(-179.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocr), 0.083*ocetra(i,j,k,ioxygen)/ro2ut) 
+                  docrem   = min(1.5e6*dtb*exp(-38.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idoc), &
+                           &     0.083*ocetra(i,j,k,ioxygen)/ro2ut)
+                  docremsl = (1.-alphasl)*min(5.0e7*dtb*exp(-58.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocsl),&
+                           &                  0.083*ocetra(i,j,k,ioxygen)/ro2ut)
+                  docremsr = (1.-alphasr)*min(1.7e17*dtb*exp(-116.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocsr),&
+                           &                  0.083*ocetra(i,j,k,ioxygen)/ro2ut)
+                  docremr  = min(5.0e26*dtb*exp(-179.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocr),&
+                           &     0.083*ocetra(i,j,k,ioxygen)/ro2ut)
                 else
                   pocrem = min(pocrem,                    0.33*ocetra(i,j,k,ioxygen)/ro2ut)
                   docrem = min(remido*ocetra(i,j,k,idoc), 0.33*ocetra(i,j,k,ioxygen)/ro2ut)
