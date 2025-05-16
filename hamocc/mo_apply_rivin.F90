@@ -19,10 +19,10 @@
 module mo_apply_rivin
 
   !*************************************************************************************************
-  ! Routines for applying riverine nutrient and carbon input data. 
+  ! Routines for applying riverine nutrient and carbon input data.
   !
-  ! Riverine carbon and nutrient input is activated through a logical switch 'do_rivinpt' read 
-  ! from HAMOCC's bgcnml namelist. When coupled to NorESM, this is achieved by setting 
+  ! Riverine carbon and nutrient input is activated through a logical switch 'do_rivinpt' read
+  ! from HAMOCC's bgcnml namelist. When coupled to NorESM, this is achieved by setting
   ! BLOM_RIVER_NUTRIENTS to TRUE in env_run.xml.
   !
   ! S. Gao,              *Gfi, Bergen*    19.08.2017
@@ -170,14 +170,6 @@ contains
                &                          + rivin(i,j,irsi) *fdt/volij
           ocetra(i,j,1:kmle(i,j),iiron)   = ocetra(i,j,1:kmle(i,j),iiron)                          &
                &                          + rivin(i,j,iriron)*fdt/volij*dFe_frac
-          ocetra(i,j,1:kmle(i,j),idoc)    = ocetra(i,j,1:kmle(i,j),idoc)                           &
-               &                          + rivin(i,j,irdoc)*fdt/volij
-          ocetra(i,j,1:kmle(i,j),idet)    = ocetra(i,j,1:kmle(i,j),idet)                           &
-               &                          + rivin(i,j,irdet)*fdt/volij
-          ocetra(i,j,1:kmle(i,j),isco212) = ocetra(i,j,1:kmle(i,j),isco212)                        &
-               &                          + rivin(i,j,iralk)*fdt/volij                             &
-               &                          + rivin(i,j,irdin)*fdt/volij                             &
-               &                          + rivin(i,j,irdip)*fdt/volij
           ocetra(i,j,1:kmle(i,j),ialkali) = ocetra(i,j,1:kmle(i,j),ialkali)                        &
                &                          + rivin(i,j,iralk)*fdt/volij
 
@@ -210,19 +202,19 @@ contains
             ! DIC is updated using the assumptions that a_t=a_c+a_n and DIC=a_c (a_t: total
             ! alkalinity, a_c: carbonate alkalinity, a_n: contribution of nutrients to a_t).
             if (use_dom) then
-              ! JT Here assume 10% (labile), 10% (semi-labile), 40% (semi-refractory), and 
+              ! JT Here assume 10% (labile), 10% (semi-labile), 40% (semi-refractory), and
               ! 40% (refractory) distribution following Kulinski et al. (2016)
               ! https://doi.org/10.1016/j.marchem.2016.03.002
-              ocetra(i,j,1:kmle(i,j),idoc)  = ocetra(i,j,1:kmle(i,j),idoc)                           &
+              ocetra(i,j,1:kmle(i,j),idoc)  = ocetra(i,j,1:kmle(i,j),idoc)                         &
                  &                          + 0.1*rivin(i,j,irdoc)*fdt/volij
-              ocetra(i,j,1:kmle(i,j),idocsl)= ocetra(i,j,1:kmle(i,j),idocsl)                         &
+              ocetra(i,j,1:kmle(i,j),idocsl)= ocetra(i,j,1:kmle(i,j),idocsl)                       &
                  &                          + 0.1*rivin(i,j,irdoc)*fdt/volij
-              ocetra(i,j,1:kmle(i,j),idocsr)= ocetra(i,j,1:kmle(i,j),idocsr)                         &
+              ocetra(i,j,1:kmle(i,j),idocsr)= ocetra(i,j,1:kmle(i,j),idocsr)                       &
                  &                          + 0.4*rivin(i,j,irdoc)*fdt/volij
-              ocetra(i,j,1:kmle(i,j),idocr) = ocetra(i,j,1:kmle(i,j),idocr)                          &
+              ocetra(i,j,1:kmle(i,j),idocr) = ocetra(i,j,1:kmle(i,j),idocr)                        &
                  &                          + 0.4*rivin(i,j,irdoc)*fdt/volij
              else
-              ocetra(i,j,1:kmle(i,j),idoc)  = ocetra(i,j,1:kmle(i,j),idoc)                           &
+              ocetra(i,j,1:kmle(i,j),idoc)  = ocetra(i,j,1:kmle(i,j),idoc)                         &
                  &                          + rivin(i,j,irdoc)*fdt/volij
             endif
             ocetra(i,j,1:kmle(i,j),idet)    = ocetra(i,j,1:kmle(i,j),idet)                         &
