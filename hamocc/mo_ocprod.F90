@@ -435,7 +435,7 @@ contains
                 tdoclc_rem = 0.
                 tdochc_rem = 0.
               endif
-              if (use_dom)
+              if (use_dom) then
                 bacfrasl   = 0.
                 bacfrasr   = 0.
                 bacfrar    = 0.
