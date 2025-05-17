@@ -4507,6 +4507,16 @@
     <desc>Logical switch to use riverine carbon and nutrient inputs following R2OMIP protocol</desc>
   </entry>
 
+  <entry id="use_dom">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>Logical switch to use DOM code with several labile and refractory classes</desc>
+  </entry>
+
   <!-- ========================= -->
   <!-- namelist group: bgcoafx -->
   <!-- These options can be activated by expert users via user namelist. -->

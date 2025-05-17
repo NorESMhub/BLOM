@@ -41,7 +41,7 @@ module mo_param_bgc
                             use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type,use_M4AGO,&
                             do_n2o_coupled,do_nh3_coupled,use_extNcycle,                           &
                             lkwrbioz_off,lTO2depremin,use_shelfsea_res_time,use_sediment_quality,  &
-                            use_pref_tracers,use_coupler_ndep,use_river2omip
+                            use_pref_tracers,use_coupler_ndep,use_river2omip,use_dom
   use mod_xc,         only: mnproc,xchalt
 
   implicit none
@@ -103,6 +103,7 @@ module mo_param_bgc
   public :: sed_denit,sed_sulf,calcwei,opalwei,orgwei
   public :: calcdens,opaldens,orgdens,claydens
   public :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma
+  public :: gammapsl,gammazsl,alphasl,alphasr
   public :: POM_remin_q10,opal_remin_q10,POM_remin_Tref,opal_remin_Tref
   public :: O2thresh_aerob,O2thresh_hypoxic,NO3thresh_sulf
   public :: sed_O2thresh_sulf,sed_O2thresh_hypoxic,sed_NO3thresh_sulf
@@ -191,7 +192,7 @@ module mo_param_bgc
   real, parameter :: rnh4dnrai     = 1./rnh4dnra     ! inverse
   real, parameter :: rnm1          = rnit - 1.
 
-  ! Terrestrial dissolved organic carbon tDOC (river2oceanmip) 
+  ! Terrestrial dissolved organic carbon tDOC (river2oceanmip)
   ! Low-carbon tDOC
   real, parameter :: rcar_tdoclc  = 276.                             ! mol C per mol P
   real, parameter :: rnit_tdoclc  = 25.                              ! mol N per mol P
@@ -311,6 +312,14 @@ module mo_param_bgc
   real, protected :: zinges                       ! dimensionless fraction - assimilation efficiency
   real, protected :: epsher                       ! dimensionless fraction - fraction of grazing egested
 
+  !*************************************************
+  ! Extended DOM parameters
+  !*************************************************
+  real, protected :: gammapsl  = 0.02        ! DOC_sl exudation rate [day-1]
+  real, protected :: gammazsl  = 0.03        ! DOC_sl excretion rate [day-1]
+  real, protected :: alphasl   = 0.18        ! fraction of DOC_sl converted to DOC_sr []
+  real, protected :: alphasr   = 0.19        ! fraction of DOC_sr converted to DOC_r  []
+
   !********************************************************************
   ! Shell production (CaCO3 and opal) parameters
   !********************************************************************
@@ -325,21 +334,21 @@ module mo_param_bgc
   real, parameter :: O2thresh_aerob   = 5.e-8   ! Above O2thresh_aerob aerob remineralization takes place
   real, parameter :: O2thresh_hypoxic = 5.e-7   ! Below O2thresh_hypoxic denitrification and sulfate reduction takes place (default model version)
   real, parameter :: NO3thresh_sulf   = 3.e-6   ! Below NO3thresh_sulf 'sufate reduction' takes place
-  real, protected :: remido     = 0.004         ! 1/d - remineralization rate (of DOM)
-  real, protected :: rem_tdoclc = 1./(1.5*365.) ! 1/d Degradation time scale of low-C tDOC (1.5 yr)
-  real, protected :: rem_tdochc = 1./(1.5*365.) ! 1/d Degradation time scale of high-C tDOC (1.5 yr)
+  real, protected :: remido           = 0.004         ! 1/d - remineralization rate (of DOM)
+  real, protected :: rem_tdoclc       = 1./(1.5*365.) ! 1/d Degradation time scale of low-C tDOC (1.5 yr)
+  real, protected :: rem_tdochc       = 1./(1.5*365.) ! 1/d Degradation time scale of high-C tDOC (1.5 yr)
   ! deep sea remineralisation constants
-  real, protected :: drempoc         = 0.025    ! 1/d Aerob remineralization rate detritus
-  real, protected :: drempoc_anaerob = 1.25e-3  ! =0.05*drempoc - remin in sub-/anoxic environm. - not be overwritten by M4AGO
-  real, protected :: bkox_drempoc    = 1e-7     ! half-saturation constant for oxygen for ammonification (aerobic remin via drempoc)
-  real, protected :: dremopal        = 0.003    ! 1/d Dissolution rate for opal
-  real, protected :: dremcalc        = 0.00035  ! 1/d Dissolution rate for CaCO3 (applied if Omega_c < 1)
-  real, protected :: dremn2o         = 0.01     ! 1/d Remineralization rate of detritus on N2O
-  real, protected :: dremsul         = 0.005    ! 1/d Remineralization rate for sulphate reduction
-  real, protected :: POM_remin_q10   = 2.1      ! Bidle et al. 2002: Regulation of Oceanic Silicon...
-  real, protected :: opal_remin_q10  = 2.6      ! Bidle et al. 2002: Regulation of Oceanic Silicon...
-  real, protected :: POM_remin_Tref  = 10.      ! [deg C] reference temperatue for Q10-dep. POC remin
-  real, protected :: opal_remin_Tref = 10.      ! [deg C] reference temperature for Q10-dep. opal dissolution
+  real, protected :: drempoc          = 0.025   ! 1/d Aerob remineralization rate detritus
+  real, protected :: drempoc_anaerob  = 1.25e-3 ! =0.05*drempoc - remin in sub-/anoxic environm. - not be overwritten by M4AGO
+  real, protected :: bkox_drempoc     = 1e-7    ! half-saturation constant for oxygen for ammonification (aerobic remin via drempoc)
+  real, protected :: dremopal         = 0.003   ! 1/d Dissolution rate for opal
+  real, protected :: dremcalc         = 0.00035 ! 1/d Dissolution rate for CaCO3 (applied if Omega_c < 1)
+  real, protected :: dremn2o          = 0.01    ! 1/d Remineralization rate of detritus on N2O
+  real, protected :: dremsul          = 0.005   ! 1/d Remineralization rate for sulphate reduction
+  real, protected :: POM_remin_q10    = 2.1     ! Bidle et al. 2002: Regulation of Oceanic Silicon...
+  real, protected :: opal_remin_q10   = 2.6     ! Bidle et al. 2002: Regulation of Oceanic Silicon...
+  real, protected :: POM_remin_Tref   = 10.     ! [deg C] reference temperatue for Q10-dep. POC remin
+  real, protected :: opal_remin_Tref  = 10.     ! [deg C] reference temperature for Q10-dep. opal dissolution
 
   !********************************************************************
   ! Extended nitrogen cycle
@@ -668,6 +677,14 @@ contains
       drempoc  = 0.12
       dremopal = 0.023
     endif
+
+    if (use_dom) then
+      gammap      = 0.10        ! DOC_l exudation rate [day-1]
+      gammaz      = 0.06        ! DOC_l excretion rate [day-1]
+      wcal_const  = 33.
+      wmin        = 5.
+      bkphy       = 3.5e-8
+    endif
   end subroutine ini_param_biol
 
   !********************************************************************
@@ -747,6 +764,7 @@ contains
       lTO2depremin   = .true.
     endif
     if (use_M4AGO) lTO2depremin = .true.
+
   end subroutine calc_param_biol
 
   !********************************************************************
@@ -775,6 +793,10 @@ contains
     spemor   = spemor*dtb      ! 1/d to 1/time step - mortality rate
     gammap   = gammap*dtb      ! 1/d to 1/time step - exudation rate
     gammaz   = gammaz*dtb      ! 1/d to 1/time step - excretion rate
+    if (use_dom) then
+        gammapsl   = gammapsl*dtb      ! 1/d to 1/time step - exudation rate
+        gammazsl   = gammazsl*dtb      ! 1/d to 1/time step - exudation rate
+    endif
 
     !********************************************************************
     !     Remineralization and dissolution parameters
@@ -938,6 +960,7 @@ contains
       call cinfo_add_entry('use_pref_tracers',       use_pref_tracers)
       call cinfo_add_entry('use_coupler_ndep',       use_coupler_ndep)
       call cinfo_add_entry('use_river2omip',         use_river2omip)
+      call cinfo_add_entry('use_dom',                use_dom)
       if (use_extNcycle) then
         call cinfo_add_entry('do_n2o_coupled',       do_n2o_coupled)
         call cinfo_add_entry('do_nh3_coupled',       do_nh3_coupled)
@@ -979,6 +1002,12 @@ contains
       call pinfo_add_entry('spemor',      spemor*dtbinv)
       call pinfo_add_entry('gammap',      gammap*dtbinv)
       call pinfo_add_entry('gammaz',      gammaz*dtbinv)
+      if (use_dom) then
+        call pinfo_add_entry('gammapsl',      gammapsl*dtbinv)
+        call pinfo_add_entry('gammazsl',      gammazsl*dtbinv)
+        call pinfo_add_entry('alphasl',       alphasl)
+        call pinfo_add_entry('alphasr',       alphasr)
+      endif
       call pinfo_add_entry('ecan',        ecan)
       call pinfo_add_entry('pi_alpha',    pi_alpha)
       call pinfo_add_entry('bkphy',       bkphy)

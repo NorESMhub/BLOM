@@ -39,8 +39,10 @@ contains
     !***********************************************************************************************
 
     use mo_carbch,     only: ocetra
-    use mo_param1_bgc, only: ialkali,ioxygen,iphosph,isilica,iprefalk,iprefdic,iprefo2,iprefpo4,isco212,iprefsilica
+    use mo_param1_bgc, only: ialkali,ioxygen,iphosph,isilica,iprefalk,iprefdic,iprefo2,iprefpo4,isco212,iprefsilica,&
+                             idoc,idocsl,idocsr,idocr,iprefdoc,iprefdocsl,iprefdocsr,iprefdocr
     use mo_vgrid,      only: kmle
+    use mo_control_bgc,only: use_dom
 
     ! Arguments
     integer, intent(in) :: kpie ! 1st dimension of model grid.
@@ -58,6 +60,12 @@ contains
           ocetra(i,j,1:kmle(i,j),iprefsilica)= ocetra(i,j,1:kmle(i,j),isilica)
           ocetra(i,j,1:kmle(i,j),iprefalk) = ocetra(i,j,1:kmle(i,j),ialkali)
           ocetra(i,j,1:kmle(i,j),iprefdic) = ocetra(i,j,1:kmle(i,j),isco212)
+          if (use_dom) then
+            ocetra(i,j,1:kmle(i,j),iprefdoc)   = ocetra(i,j,1:kmle(i,j),idoc)
+            ocetra(i,j,1:kmle(i,j),iprefdocsl) = ocetra(i,j,1:kmle(i,j),idocsl)
+            ocetra(i,j,1:kmle(i,j),iprefdocsr) = ocetra(i,j,1:kmle(i,j),idocsr)
+            ocetra(i,j,1:kmle(i,j),iprefdocr)  = ocetra(i,j,1:kmle(i,j),idocr)
+          endif
         endif
       enddo
     enddo

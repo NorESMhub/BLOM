@@ -91,6 +91,7 @@ module mo_control_bgc
   logical           :: use_shelfsea_res_time  = .false.
   logical           :: use_sediment_quality   = .false.
   logical           :: use_river2omip         = .false.
+  logical           :: use_dom                = .false.
 
 contains
 
