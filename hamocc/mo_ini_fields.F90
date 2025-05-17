@@ -260,13 +260,13 @@ contains
               ocetra(i,j,k,ian2o) =6.e-9   ! 6 to 8 nmol/kg = ca. value in near surface regions Toyoda et al. 2019, prevent from too long outgassing
             endif
             if (use_dom) then
-              ocetra(i,j,k,idocsl)   =1.e-8
-              ocetra(i,j,k,idocsr)   =1.e-8
-              ocetra(i,j,k,idocr )   =1.e-8
-              ocetra(i,j,k,iprefdoc) =0.
-              ocetra(i,j,k,iprefdocsl) =0.
-              ocetra(i,j,k,iprefdocsr) =0.
-              ocetra(i,j,k,iprefdocr) =0.
+              ocetra(i,j,k,idocsl)     = 1.e-8
+              ocetra(i,j,k,idocsr)     = 1.e-8
+              ocetra(i,j,k,idocr )     = 1.e-8
+              ocetra(i,j,k,iprefdoc)   = 0.
+              ocetra(i,j,k,iprefdocsl) = 0.
+              ocetra(i,j,k,iprefdocsr) = 0.
+              ocetra(i,j,k,iprefdocr)  = 0.
             endif
           endif ! omask > 0.5
         enddo
@@ -279,16 +279,16 @@ contains
       do j=1,kpje
         do i=1,kpie
           if (omask(i,j) > 0.5) then
-            ocetra(i,j,1:kmle(i,j),iprefo2)  = ocetra(i,j,1:kmle(i,j),ioxygen)
-            ocetra(i,j,1:kmle(i,j),iprefpo4) = ocetra(i,j,1:kmle(i,j),iphosph)
-            ocetra(i,j,1:kmle(i,j),iprefsilica)= ocetra(i,j,1:kmle(i,j),isilica)
-            ocetra(i,j,1:kmle(i,j),iprefalk) = ocetra(i,j,1:kmle(i,j),ialkali)
-            ocetra(i,j,1:kmle(i,j),iprefdic) = ocetra(i,j,1:kmle(i,j),isco212)
+            ocetra(i,j,1:kmle(i,j),iprefo2)     = ocetra(i,j,1:kmle(i,j),ioxygen)
+            ocetra(i,j,1:kmle(i,j),iprefpo4)    = ocetra(i,j,1:kmle(i,j),iphosph)
+            ocetra(i,j,1:kmle(i,j),iprefsilica) = ocetra(i,j,1:kmle(i,j),isilica)
+            ocetra(i,j,1:kmle(i,j),iprefalk)    = ocetra(i,j,1:kmle(i,j),ialkali)
+            ocetra(i,j,1:kmle(i,j),iprefdic)    = ocetra(i,j,1:kmle(i,j),isco212)
             if (use_dom) then
-              ocetra(i,j,1:kmle(i,j),iprefdoc) = ocetra(i,j,1:kmle(i,j),idoc)
+              ocetra(i,j,1:kmle(i,j),iprefdoc)   = ocetra(i,j,1:kmle(i,j),idoc)
               ocetra(i,j,1:kmle(i,j),iprefdocsl) = ocetra(i,j,1:kmle(i,j),idocsl)
               ocetra(i,j,1:kmle(i,j),iprefdocsr) = ocetra(i,j,1:kmle(i,j),idocsr)
-              ocetra(i,j,1:kmle(i,j),iprefdocr) = ocetra(i,j,1:kmle(i,j),idocr)
+              ocetra(i,j,1:kmle(i,j),iprefdocr)  = ocetra(i,j,1:kmle(i,j),idocr)
             endif
           endif
         enddo

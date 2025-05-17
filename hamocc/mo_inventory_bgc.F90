@@ -414,7 +414,7 @@ contains
       totalcarbon = totalcarbon + co2flux
     endif
     if (use_dom) then
-      totalcarbon = totalcarbon + (zocetratot(idocsl)+zocetratot(idocsr)  & 
+      totalcarbon = totalcarbon + (zocetratot(idocsl)+zocetratot(idocsr)  &
                     + zocetratot(idocr))*rcar
     endif
 
@@ -438,8 +438,8 @@ contains
        &  +zpowtratot(ipownh4)+zpowtratot(ipown2o)*2+zpowtratot(ipowno2)
     endif
     if (use_dom) then
-      totalnitr = totalnitr + (zocetratot(idocsl)+zocetratot(idocsr)      & 
-                    + zocetratot(idocr))*rnit 
+      totalnitr = totalnitr + (zocetratot(idocsl)+zocetratot(idocsr)      &
+                    + zocetratot(idocr))*rnit
     endif
 
     totalphos=                                                            &
@@ -449,8 +449,8 @@ contains
          + zburial(issso12)                                               &
          + zprorca
     if (use_dom) then
-      totalphos = totalphos + zocetratot(idocsl)+zocetratot(idocsr)       & 
-                    + zocetratot(idocr) 
+      totalphos = totalphos + zocetratot(idocsl)+zocetratot(idocsr)       &
+                    + zocetratot(idocr)
     endif
 
     totalsil=                                                             &
@@ -479,7 +479,7 @@ contains
       totaloxy = totaloxy + zocetratot(iano2)+zpowtratot(ipown2o)*0.5+zpowtratot(ipowno2)
     endif
     if (use_dom) then
-      totaloxy = totaloxy + (zocetratot(idocsl)+zocetratot(idocsr)        & 
+      totaloxy = totaloxy + (zocetratot(idocsl)+zocetratot(idocsr)        &
                     + zocetratot(idocr))*(-24.)
     endif
 
@@ -497,7 +497,7 @@ contains
         totalcarbon = totalcarbon- srivflux(irdoc)*rcar-srivflux(irtdoc)*rcar_tdochc               &
              &                   - srivflux(irdet)*rcar_tdoclc                                     &
              &                   - srivflux(iralk) ! no DIN & DIP substraction because alkalinity
-                                                   ! changes due to instantaneous remineralisation 
+                                                   ! changes due to instantaneous remineralisation
                                                    ! of riverine DOC are ignored
         totalnitr   = totalnitr  - srivflux(irdoc)*rnit-srivflux(irtdoc)*rnit_tdochc               &
              &                   - srivflux(irdet)*rnit_tdoclc - srivflux(irdin)
@@ -1761,39 +1761,39 @@ contains
                &    'Mean preformed DOC-L concentration') )
           call nccheck( NF90_PUT_ATT(ncid, zc_prefdoc_varid, 'units', 'kmol/m^3') )
 
-          call nccheck( NF90_DEF_VAR(ncid, 'zt_prefdocsl', NF90_DOUBLE,               &
+          call nccheck( NF90_DEF_VAR(ncid, 'zt_prefdocsl', NF90_DOUBLE,             &
                &    time_dimid, zt_prefdocsl_varid) )
-          call nccheck( NF90_PUT_ATT(ncid, zt_prefdocsl_varid, 'long_name',           &
+          call nccheck( NF90_PUT_ATT(ncid, zt_prefdocsl_varid, 'long_name',         &
                &    'Total preformed DOC-SL tracer') )
           call nccheck( NF90_PUT_ATT(ncid, zt_prefdocsl_varid, 'units', 'kmol') )
 
-          call nccheck( NF90_DEF_VAR(ncid, 'zc_prefdocsl', NF90_DOUBLE,               &
+          call nccheck( NF90_DEF_VAR(ncid, 'zc_prefdocsl', NF90_DOUBLE,             &
                &    time_dimid, zc_prefdocsl_varid) )
-          call nccheck( NF90_PUT_ATT(ncid, zc_prefdocsl_varid, 'long_name',           &
+          call nccheck( NF90_PUT_ATT(ncid, zc_prefdocsl_varid, 'long_name',         &
                &    'Mean preformed DOC-SL concentration') )
           call nccheck( NF90_PUT_ATT(ncid, zc_prefdocsl_varid, 'units', 'kmol/m^3') )
 
-          call nccheck( NF90_DEF_VAR(ncid, 'zt_prefdocsr', NF90_DOUBLE,               &
+          call nccheck( NF90_DEF_VAR(ncid, 'zt_prefdocsr', NF90_DOUBLE,             &
                &    time_dimid, zt_prefdocsr_varid) )
-          call nccheck( NF90_PUT_ATT(ncid, zt_prefdocsr_varid, 'long_name',           &
+          call nccheck( NF90_PUT_ATT(ncid, zt_prefdocsr_varid, 'long_name',         &
                &    'Total preformed DOC-SR tracer') )
           call nccheck( NF90_PUT_ATT(ncid, zt_prefdocsr_varid, 'units', 'kmol') )
 
-          call nccheck( NF90_DEF_VAR(ncid, 'zc_prefdocsr', NF90_DOUBLE,               &
+          call nccheck( NF90_DEF_VAR(ncid, 'zc_prefdocsr', NF90_DOUBLE,             &
                &    time_dimid, zc_prefdocsr_varid) )
-          call nccheck( NF90_PUT_ATT(ncid, zc_prefdocsr_varid, 'long_name',           &
+          call nccheck( NF90_PUT_ATT(ncid, zc_prefdocsr_varid, 'long_name',         &
                &    'Mean preformed DOC-SR concentration') )
           call nccheck( NF90_PUT_ATT(ncid, zc_prefdocsr_varid, 'units', 'kmol/m^3') )
 
-          call nccheck( NF90_DEF_VAR(ncid, 'zt_prefdocr', NF90_DOUBLE,               &
+          call nccheck( NF90_DEF_VAR(ncid, 'zt_prefdocr', NF90_DOUBLE,              &
                &    time_dimid, zt_prefdocr_varid) )
-          call nccheck( NF90_PUT_ATT(ncid, zt_prefdocr_varid, 'long_name',           &
+          call nccheck( NF90_PUT_ATT(ncid, zt_prefdocr_varid, 'long_name',          &
                &    'Total preformed DOC-R tracer') )
           call nccheck( NF90_PUT_ATT(ncid, zt_prefdocr_varid, 'units', 'kmol') )
 
-          call nccheck( NF90_DEF_VAR(ncid, 'zc_prefdocr', NF90_DOUBLE,               &
+          call nccheck( NF90_DEF_VAR(ncid, 'zc_prefdocr', NF90_DOUBLE,              &
                &    time_dimid, zc_prefdocr_varid) )
-          call nccheck( NF90_PUT_ATT(ncid, zc_prefdocr_varid, 'long_name',           &
+          call nccheck( NF90_PUT_ATT(ncid, zc_prefdocr_varid, 'long_name',          &
                &    'Mean preformed DOC-R concentration') )
           call nccheck( NF90_PUT_ATT(ncid, zc_prefdocr_varid, 'units', 'kmol/m^3') )
         endif
