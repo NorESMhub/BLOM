@@ -152,7 +152,7 @@ contains
     real :: o2lim ! O2 limitation of ammonification (POC remin)
     real :: tiny_val = epsilon(1.)
     real :: zeu
-    ! DOM      
+    ! DOM
     real :: exudsl,excdocsl,bacfrasl,docremsl,bacfrasr,docremsr,bacfrar,docremr
     ! sedbypass
     real :: florca,flcaca,flsil
@@ -198,7 +198,7 @@ contains
     real :: abs_uv(kpie,kpje,kpke)
     ! extNcycle
     character(len=:), allocatable :: inv_message
-    real :: ano3up_inh,nutlim,anh4lim,nlim,grlim,nh4uptfrac
+    real :: ano3up_inh,nutlim,anh4lim,nlim,grlim,nh4uptfrac,o2csmp
 
     ! set variables for diagnostic output to zero
     expoor     (:,:) = 0.
@@ -435,27 +435,28 @@ contains
                 tdoclc_rem = 0.
                 tdochc_rem = 0.
               endif
+              if (use_dom)
+                bacfrasl   = 0.
+                bacfrasr   = 0.
+                bacfrar    = 0.
+                exudsl     = gammapsl*phythresh
+                excdocsl   = gammazsl*zoothresh
+              endif
             else
               if (use_dom) then
-              ! Lønborg et al. 2018 (Frontiers):
-              ! A=2.96e6 (day-1) (Theoretical Kc in the absence of Ea)
-              ! R=8.314 J/mol/K (Universal gas constant)
-              ! Ea=38kJ/mol (Activation energy for DOC_L decay)
-              ! A_sl=7.96e9 (day-1) (Theoretical Kc in the absence of Ea)
-              ! R=8.314 J/mol/K (Universal gas constant)
-              ! Ea_sl=58kJ/mol (Activation energy for DOC_L decay)
-                bacfra=1.5e6*dtb*exp(-38.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idoc) !increased from 2e5 13082024
+                ! Loenborg et al. 2018 (Frontiers):
+                ! A=2.96e6 (day-1) (Theoretical Kc in the absence of Ea)
+                ! R=8.314 J/mol/K (Universal gas constant)
+                ! Ea=38kJ/mol (Activation energy for DOC_L decay)
+                ! A_sl=7.96e9 (day-1) (Theoretical Kc in the absence of Ea)
+                ! R=8.314 J/mol/K (Universal gas constant)
+                ! Ea_sl=58kJ/mol (Activation energy for DOC_L decay)
+                bacfra   = 1.5e6*dtb*exp(-38.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idoc) !increased from 2e5 13082024
                 !JT if (ocetra(i,j,k,iphosph) >5.e-8) then ! Nutrient thresholds for surface bacteria activity (Anton Salgado, pers. comm.)
-                 bacfrasl=5.0e7*dtb*exp(-58.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocsl)
-                 bacfrasr = 1.7e17*dtb*exp(-116.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocsr) 
-                 bacfrar  = 5.0e26*dtb*exp(-179.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocr)  
-                !JT else
-                !JT !jt bacfra  = 0.
-                !JT  bacfrasl = 0.
-                !JT  bacfrasr = 0.
-                !JT  bacfrar  = 0.
-                !JT endif
-                exudsl = gammapsl*phythresh
+                bacfrasl = 5.0e7*dtb*exp(-58.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocsl)
+                bacfrasr = 1.7e17*dtb*exp(-116.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocsr)
+                bacfrar  = 5.0e26*dtb*exp(-179.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocr)
+                exudsl   = gammapsl*phythresh
                 excdocsl = gammazsl*zoothresh
               else
                 bacfra = remido*ocetra(i,j,k,idoc)
@@ -571,7 +572,7 @@ contains
             dms_uv  = dmsp2*phofa/pi_alpha*ocetra(i,j,k,idms)
 
             if (use_dom) then
-              dtr = bacfra+(1-alphasl)*bacfrasl+(1-alphasr)*bacfrasr+bacfrar-phosy+graton+ecan*zoomor
+              dtr = bacfra+(1.-alphasl)*bacfrasl+(1.-alphasr)*bacfrasr+bacfrar-phosy+graton+ecan*zoomor
             else
               dtr = bacfra-phosy+graton+ecan*zoomor
             endif
@@ -629,8 +630,8 @@ contains
               ocetra(i,j,k,itdoc_hc) = ocetra(i,j,k,itdoc_hc)-tdochc_rem
             endif
             if (use_dom) then
-              ocetra(i,j,k,iphy) = ocetra(i,j,k,iphy)-exudsl
-              ocetra(i,j,k,izoo) = ocetra(i,j,k,izoo)-excdocsl
+              ocetra(i,j,k,iphy)   = ocetra(i,j,k,iphy)-exudsl
+              ocetra(i,j,k,izoo)   = ocetra(i,j,k,izoo)-excdocsl
               ocetra(i,j,k,idocsl) = ocetra(i,j,k,idocsl)-bacfrasl+excdocsl+exudsl
               ocetra(i,j,k,idocsr) = ocetra(i,j,k,idocsr)-bacfrasr+alphasl*bacfrasl
               ocetra(i,j,k,idocr)  = ocetra(i,j,k,idocr)-bacfrar+alphasr*bacfrasr
@@ -656,7 +657,7 @@ contains
                 ocetra(i,j,k,isco213) = ocetra(i,j,k,isco213) + tdoclc_rem13*rcar_tdoclc           &
                                       &                       + tdochc_rem13*rcar_tdochc
                 ocetra(i,j,k,isco214) = ocetra(i,j,k,isco214) + tdoclc_rem14*rcar_tdoclc           &
-                                      &                       + tdochc_rem14*rcar_tdochc    
+                                      &                       + tdochc_rem14*rcar_tdochc
                 ocetra(i,j,k,itdoc_lc13) = ocetra(i,j,k,itdoc_lc13)-tdoclc_rem13
                 ocetra(i,j,k,itdoc_hc13) = ocetra(i,j,k,itdoc_hc13)-tdochc_rem13
                 ocetra(i,j,k,itdoc_lc14) = ocetra(i,j,k,itdoc_lc14)-tdoclc_rem14
@@ -827,7 +828,7 @@ contains
                 rtdochc13 = ocetra(i,j,k,itdoc_hc13)/(ocetra(i,j,k,itdoc_hc)+safediv)
                 rtdoclc14 = ocetra(i,j,k,itdoc_lc14)/(ocetra(i,j,k,itdoc_lc)+safediv)
                 rtdochc14 = ocetra(i,j,k,itdoc_hc14)/(ocetra(i,j,k,itdoc_hc)+safediv)
-              endif 
+              endif
               sterph13 = sterph*rphy13
               sterph14 = sterph*rphy14
               sterzo13 = sterzo*rzoo13
@@ -861,28 +862,23 @@ contains
                 pocrem = drempoc*ocetra(i,j,k,idet)
               endif
 
-              if (.not. use_extNcycle) then
-                if (use_dom) then
-                  pocrem   = min(drempoc*ocetra(i,j,k,idet),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-                  phyrem   = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-                  !fractions of doc(s) remineralized into nutrients
-                  docrem   = min(1.5e6*dtb*exp(-38.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idoc), &
-                           &     0.083*ocetra(i,j,k,ioxygen)/ro2ut)
-                  docremsl = (1.-alphasl)*min(5.0e7*dtb*exp(-58.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocsl),&
-                           &                  0.083*ocetra(i,j,k,ioxygen)/ro2ut)
-                  docremsr = (1.-alphasr)*min(1.7e17*dtb*exp(-116.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocsr),&
-                           &                  0.083*ocetra(i,j,k,ioxygen)/ro2ut)
-                  docremr  = min(5.0e26*dtb*exp(-179.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocr),&
-                           &     0.083*ocetra(i,j,k,ioxygen)/ro2ut)
-                else
-                  pocrem = min(pocrem,                    0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-                  docrem = min(remido*ocetra(i,j,k,idoc), 0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-                  phyrem = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-                endif
+              o2csmp = merge(ro2utammo,ro2ut,use_extNcycle)
+              if (use_dom) then
+                pocrem   = min(drempoc*ocetra(i,j,k,idet),0.33*ocetra(i,j,k,ioxygen)/o2csmp)
+                phyrem   = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/o2csmp)
+                !fractions of doc(s) remineralized into nutrients
+                docrem   = min(1.5e6*dtb*exp(-38.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idoc), &
+                         &     0.083*ocetra(i,j,k,ioxygen)/o2csmp)
+                docremsl = (1.-alphasl)*min(5.0e7*dtb*exp(-58.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocsl),&
+                         &                  0.083*ocetra(i,j,k,ioxygen)/o2csmp)
+                docremsr = (1.-alphasr)*min(1.7e17*dtb*exp(-116.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocsr),&
+                         &                  0.083*ocetra(i,j,k,ioxygen)/o2csmp)
+                docremr  = min(5.0e26*dtb*exp(-179.e3/(8.314*(ptho(i,j,k)+273.15)))*ocetra(i,j,k,idocr),&
+                         &     0.083*ocetra(i,j,k,ioxygen)/o2csmp)
               else
-                pocrem = min(pocrem,                    0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
-                docrem = min(remido*ocetra(i,j,k,idoc), 0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
-                phyrem = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
+                pocrem = min(pocrem,                    0.33*ocetra(i,j,k,ioxygen)/o2csmp)
+                docrem = min(remido*ocetra(i,j,k,idoc), 0.33*ocetra(i,j,k,ioxygen)/o2csmp)
+                phyrem = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/o2csmp)
               endif
 
               if (use_river2omip) then
@@ -891,7 +887,7 @@ contains
                 tdoclc_rem = min(rem_tdoclc*ocetra(i,j,k,idoc), 0.33*ocetra(i,j,k,ioxygen)         &
                            & /merge(ro2utammo_tdoclc,ro2ut_tdoclc,use_extNcycle))
                 tdochc_rem = min(rem_tdochc*ocetra(i,j,k,idoc), 0.33*ocetra(i,j,k,ioxygen)         &
-                           & /merge(ro2utammo_tdochc,ro2ut_tdochc,use_extNcycle)) 
+                           & /merge(ro2utammo_tdochc,ro2ut_tdochc,use_extNcycle))
                 ocetra(i,j,k,itdoc_lc) = ocetra(i,j,k,itdoc_lc) - tdoclc_rem
                 ocetra(i,j,k,itdoc_hc) = ocetra(i,j,k,itdoc_hc) - tdochc_rem
               endif
@@ -968,7 +964,7 @@ contains
               ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - ro2utammo*remin
               remin_aerob(i,j,k)  = remin_aerob(i,j,k)+remin*rnit ! kmol/NH4/dtb - remin to NH4 from various sources
             endif
-            
+
             if (use_river2omip) then
               ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + tdoclc_rem + tdochc_rem
               if (.not. use_extNcycle) then
@@ -992,7 +988,7 @@ contains
                                     &                       + tdochc_rem*rcar_tdochc
               ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)     + (tdoclc_rem+tdochc_rem)*riron
             endif
-            
+
             ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+rcar*remin
             ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+remin*riron           &
                  &             -relaxfe*max(ocetra(i,j,k,iiron)-fesoly,0.)
