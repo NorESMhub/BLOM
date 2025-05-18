@@ -1,4 +1,4 @@
-module mod_map_input
+module mod_io_input
 
    use ESMF              , only : ESMF_Clock, ESMF_Mesh, ESMF_Time, ESMF_ClockGet, ESMF_TimeGet
    use ESMF              , only : ESMF_SUCCESS, ESMF_LOGERR_PASSTHRU, ESMF_END_ABORT
@@ -672,4 +672,4 @@ contains
 
    end subroutine DynOcnMaskProc
 
-end module mod_map_input
+end module mod_io_input

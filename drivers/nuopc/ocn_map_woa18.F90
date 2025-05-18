@@ -9,8 +9,8 @@ module ocn_map_woa18
    use nuopc_shr_methods , only : chkerr
    use shr_kind_mod      , only : r8 => shr_kind_r8, CL => shr_kind_cl, CS => shr_kind_cs
    use shr_log_mod       , only : errMsg => shr_log_errMsg
-   use mod_map_input     , only : read_map_input_data, field_getfldptr
-   use mod_io            , only : io_write
+   use mod_io_input      , only : read_map_input_data, field_getfldptr
+   use mod_io_output     , only : io_write
    use mod_xc
 
    implicit none
@@ -18,7 +18,7 @@ module ocn_map_woa18
 
    public :: map_woa18
 
-   ! Determine number of levels in input data
+   ! TODO: Determine number of levels in input data
    integer :: nlev = 102
 
    character(len=*), parameter :: u_FILE_u = &
@@ -78,7 +78,7 @@ contains
       call read_map_input_data(mesh_input, filename, fldlist_input, nlev, 'bilinear', fldbun_blom, rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
-      ! Plot fldbun_blom
+      ! Plot mapped fldbun
       call io_write(filename="woa18_t_an.nc", fldbun=fldbun_blom, use_float=.false., rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
