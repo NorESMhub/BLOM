@@ -10,6 +10,7 @@ module ocn_map_woa18
    use shr_kind_mod      , only : r8 => shr_kind_r8, CL => shr_kind_cl, CS => shr_kind_cs
    use shr_log_mod       , only : errMsg => shr_log_errMsg
    use mod_map_input     , only : read_map_input_data, field_getfldptr
+   use mod_io            , only : io_write
    use mod_xc
 
    implicit none
@@ -75,6 +76,10 @@ contains
       ! Read the data
       ! TOOD: specify mapping type
       call read_map_input_data(mesh_input, filename, fldlist_input, nlev, 'bilinear', fldbun_blom, rc)
+      if (chkerr(rc,__LINE__,u_FILE_u)) return
+
+      ! Plot fldbun_blom
+      call io_write(filename="woa18_t_an.nc", fldbun=fldbun_blom, use_float=.false., rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
       ! Extract the data from the field bundle

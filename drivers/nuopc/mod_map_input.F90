@@ -11,8 +11,9 @@ module mod_map_input
    use ESMF              , only : ESMF_MESHLOC_ELEMENT, ESMF_REGRIDMETHOD_CONSERVE, ESMF_NORMTYPE_DSTAREA
    use ESMF              , only : ESMF_UNMAPPEDACTION_IGNORE, ESMF_TERMORDER_SRCSEQ, ESMF_REGION_TOTAL
    use ESMF              , only : ESMF_REGRIDMETHOD_BILINEAR,ESMF_POLEMETHOD_ALLAVG
-   use ESMF              , only : ESMF_MAXSTR, ESMF_ITEMORDER_ADDORDER
+   use ESMF              , only : ESMF_MAXSTR, ESMF_ITEMORDER_ADDORDER, ESMF_KIND_R8, ESMF_REGION_EMPTY
    use ESMF              , only : ESMF_FieldDestroy
+   use ESMF              , only : ESMF_DYNAMICMASK, ESMF_DynamicMaskSetR8R8R8, ESMF_DYNAMICMASKELEMENTR8R8R8
    use ESMF              , only : operator(/=), operator(==)
    use nuopc_shr_methods , only : chkerr
    use shr_kind_mod      , only : r8 => shr_kind_r8, r4 => shr_kind_r4, CL => shr_kind_cl, CS => shr_kind_cs
@@ -38,6 +39,7 @@ module mod_map_input
 
    private :: set_iodesc
 
+   type(ESMF_DynamicMask)         :: dynamicOcnMask
    type(iosystem_desc_t), pointer :: pio_subsystem => null()     ! pio info
    integer                        :: io_type                     ! pio info
    integer                        :: io_format                   ! pio info
@@ -63,6 +65,7 @@ contains
       integer                     , intent(out)   :: rc
 
       ! local variables
+      real(r8)                :: dynamicSrcMaskValue
       type(ESMF_Field)        :: field_data
       type(ESMF_Field)        :: field_dst
       type(file_desc_t)       :: pioid
@@ -88,7 +91,8 @@ contains
       logical                 :: checkflag = .false.
       type(io_desc_t)         :: pio_iodesc             ! stream pio descriptor
       type(ESMF_RouteHandle)  :: routehandle
-      integer                 :: srcMaskValue = 0
+      !integer                 :: srcMaskValue = 0
+      integer                 :: srcMaskValue = -987987
       integer                 :: dstMaskValue = -987987 ! spval for RH mask values
       integer                 :: srcTermProcessing_Value = 0
       character(*), parameter :: subname = '(read_map_input_data) '
@@ -306,8 +310,16 @@ contains
          call fldbun_getfieldN(fldbun_blom, nf, field_dst, rc=rc)
          if (chkerr(rc,__LINE__,u_FILE_u)) return
 
-         ! create route handle to map river input to blom mesh
+         ! create route handle to map input data to blom mesh
          if (nf == 1) then
+            ! Create a dynamic mask object
+            ! The dynamic mask object further holds a pointer to the routine that will be called in order to
+            ! handle dynamically masked elements - in this case its DynOcnMaskProc (see below)
+            dynamicSrcMaskValue = shr_const_spval
+            call ESMF_DynamicMaskSetR8R8R8(dynamicOcnMask, dynamicMaskRoutine=DynOcnMaskProc, &
+                 dynamicSrcMaskValue=dynamicSrcMaskValue,  handleAllElements=.true., rc=rc)
+            if (chkerr(rc,__LINE__,u_FILE_u)) return
+
             if (regrid_method == 'conserve') then
                call ESMF_FieldRegridStore(field_data, field_dst, routehandle=routehandle, &
                     srcMaskValues=(/srcMaskValue/), &
@@ -334,10 +346,9 @@ contains
             end if
          end if
 
-         call ESMF_FieldRegrid(field_data, field_dst, routehandle=routehandle, &
-              termorderflag=ESMF_TERMORDER_SRCSEQ, checkflag=.false., zeroregion=ESMF_REGION_TOTAL, rc=rc)
+         call ESMF_FieldRegrid(field_data, field_dst, routehandle=routehandle, dynamicMask=dynamicOcnMask, &
+              zeroregion=ESMF_REGION_EMPTY, rc=rc)
          if (chkerr(rc,__LINE__,u_FILE_u)) return
-
       enddo
 
       ! Close the file
@@ -396,7 +407,6 @@ contains
       nullify(compdof3d)
 
       ! query the variable fldname in the input dataset for its dimensions
-      write(6,*)'DEBUG: fldname = ',trim(fldname)
       rcode = pio_inq_varid(pioid, trim(fldname), varid)
       rcode = pio_inq_varndims(pioid, varid, ndims)
 
@@ -616,5 +626,50 @@ contains
       deallocate(lfieldnamelist)
 
    end subroutine fldbun_getNameN
+
+   subroutine dynOcnMaskProc(dynamicMaskList, dynamicSrcMaskValue, dynamicDstMaskValue, rc)
+
+      use ESMF, only : ESMF_RC_ARG_BAD
+
+      ! input/output arguments
+      type(ESMF_DynamicMaskElementR8R8R8) , pointer :: dynamicMaskList(:)
+      real(ESMF_KIND_R8), intent(in), optional  :: dynamicSrcMaskValue
+      real(ESMF_KIND_R8), intent(in), optional  :: dynamicDstMaskValue
+      integer           , intent(out)           :: rc
+
+      ! local variables
+      integer  :: no, ni
+      real(ESMF_KIND_R8)  :: renorm
+      !---------------------------------------------------------------
+
+      rc = ESMF_SUCCESS
+
+      ! Below - ONLY if you do NOT have the source masked out then do
+      ! the regridding (which is done explicitly here)
+
+      if (associated(dynamicMaskList)) then
+         do no = 1, size(dynamicMaskList)
+            dynamicMaskList(no)%dstElement = 0.0_r8 ! set to zero
+            renorm = 0.d0 ! reset
+            do ni = 1, size(dynamicMaskList(no)%factor)
+               ! Need to multiply by .90 to handle averaging of input fields before remapping is called
+               if ( dynamicMaskList(no)%srcElement(ni) < dynamicSrcMaskValue*.90) then
+                  dynamicMaskList(no)%dstElement = dynamicMaskList(no)%dstElement + &
+                       (dynamicMaskList(no)%factor(ni) * dynamicMaskList(no)%srcElement(ni))
+                  renorm = renorm + dynamicMaskList(no)%factor(ni)
+               endif
+            enddo
+            if (renorm > 0.d0) then
+               dynamicMaskList(no)%dstElement = dynamicMaskList(no)%dstElement / renorm
+            else if (present(dynamicSrcMaskValue)) then
+               dynamicMaskList(no)%dstElement = dynamicSrcMaskValue
+            else
+               rc = ESMF_RC_ARG_BAD  ! error detected
+               return
+            endif
+         enddo
+      endif
+
+   end subroutine DynOcnMaskProc
 
 end module mod_map_input
