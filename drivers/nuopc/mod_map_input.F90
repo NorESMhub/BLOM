@@ -315,7 +315,7 @@ contains
             ! Create a dynamic mask object
             ! The dynamic mask object further holds a pointer to the routine that will be called in order to
             ! handle dynamically masked elements - in this case its DynOcnMaskProc (see below)
-            dynamicSrcMaskValue = shr_const_spval
+            dynamicSrcMaskValue = 1.e30_r8
             call ESMF_DynamicMaskSetR8R8R8(dynamicOcnMask, dynamicMaskRoutine=DynOcnMaskProc, &
                  dynamicSrcMaskValue=dynamicSrcMaskValue,  handleAllElements=.true., rc=rc)
             if (chkerr(rc,__LINE__,u_FILE_u)) return
