@@ -4097,7 +4097,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>.false.</value>
+      <value>.true.</value>
     </values>
     <desc>Switch for primary production and remineralization throughout the whole water column</desc>
   </entry>
@@ -4107,7 +4107,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>.false.</value>
+      <value>.true.</value>
     </values>
     <desc>Switch for T- and O2-dependent remineralization of POM</desc>
   </entry>
