@@ -4678,7 +4678,27 @@
     <desc>zooplankton parameter: 1/d -exudation rate</desc>
   </entry>
 
+  <entry id="gammapsl">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>zooplankton parameter: 1/d -exudation rate</desc>
+  </entry>
+
   <entry id="gammaz">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>zooplankton parameter: 1/d -excretion rate</desc>
+  </entry>
+
+  <entry id="gammazsl">
     <type>real</type>
     <category>bgcparams</category>
     <group>bgcparams</group>
@@ -4764,6 +4784,66 @@
       <value>None</value>
     </values>
     <desc>remineralization and dissolution parameter: 1/d -remineralization rate (of DOM)</desc>
+  </entry>
+
+  <entry id="alphasl">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>fraction of DOC_sl converted to DOC_sr</desc>
+  </entry>
+
+  <entry id="alphasr">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>fraction of DOC_sr converted to DOC_r</desc>
+  </entry>
+
+  <entry id="docl_remin">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>remineralization rate of labile DOM</desc>
+  </entry>
+
+  <entry id="docsl_remin">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>remineralization rate of semi-labile DOM (DOC_sl)</desc>
+  </entry>
+
+  <entry id="docsr_remin">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>remineralization rate of semi-refractory DOM (DOC_sr)</desc>
+  </entry>
+
+  <entry id="docr_remin">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>remineralization rate of refractory DOM (DOC_r)</desc>
   </entry>
 
   <entry id="drempoc">

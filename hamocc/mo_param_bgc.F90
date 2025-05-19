@@ -103,7 +103,7 @@ module mo_param_bgc
   public :: sed_denit,sed_sulf,calcwei,opalwei,orgwei
   public :: calcdens,opaldens,orgdens,claydens
   public :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma
-  public :: gammapsl,gammazsl,alphasl,alphasr
+  public :: gammapsl,gammazsl,alphasl,alphasr,docl_remin,docsl_remin,docsr_remin,docr_remin
   public :: POM_remin_q10,opal_remin_q10,POM_remin_Tref,opal_remin_Tref
   public :: O2thresh_aerob,O2thresh_hypoxic,NO3thresh_sulf
   public :: sed_O2thresh_sulf,sed_O2thresh_hypoxic,sed_NO3thresh_sulf
@@ -319,6 +319,11 @@ module mo_param_bgc
   real, protected :: gammazsl  = 0.03        ! DOC_sl excretion rate [day-1]
   real, protected :: alphasl   = 0.18        ! fraction of DOC_sl converted to DOC_sr []
   real, protected :: alphasr   = 0.19        ! fraction of DOC_sr converted to DOC_r  []
+  real, protected :: docl_remin  = 1.7e6     ! theor. remineralization rate of labile DOC [d-1]
+  real, protected :: docsl_remin = 5.0e7     ! theor. remineralization rate of semi-labile DOC [d-1]
+  real, protected :: docsr_remin = 1.7e17    ! theor. remineralization rate of semi-refractory DOC [d-1]
+  real, protected :: docr_remin  = 5.0e26    ! theor. remineralization rate of refractory DOC [d-1]
+
 
   !********************************************************************
   ! Shell production (CaCO3 and opal) parameters
@@ -720,7 +725,9 @@ contains
                          bkoxamox_sed,bkanh4nitr_sed,q10ano2nitr_sed,            &
                          bkoxnitr_sed,bkano2nitr_sed,sed_alpha_poc,sed_qual_sc,  &
                          sed_denit,sed_sulf,                                     &
-                         sed_O2thresh_hypoxic,sed_O2thresh_sulf,sed_NO3thresh_sulf
+                         sed_O2thresh_hypoxic,sed_O2thresh_sulf,sed_NO3thresh_sulf,&
+                         gammapsl,gammazsl,alphasl,alphasr,docl_remin,docsl_remin, &
+                         docsr_remin,docr_remin
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)
@@ -794,8 +801,12 @@ contains
     gammap   = gammap*dtb      ! 1/d to 1/time step - exudation rate
     gammaz   = gammaz*dtb      ! 1/d to 1/time step - excretion rate
     if (use_dom) then
-        gammapsl   = gammapsl*dtb      ! 1/d to 1/time step - exudation rate
-        gammazsl   = gammazsl*dtb      ! 1/d to 1/time step - exudation rate
+      gammapsl    = gammapsl*dtb      ! 1/d to 1/time step - exudation rate
+      gammazsl    = gammazsl*dtb      ! 1/d to 1/time step - exudation rate
+      docl_remin  = docl_remin*dtb
+      docsl_remin = docsl_remin*dtb
+      docsr_remin = docsr_remin*dtb
+      docr_remin  = docr_remin*dtb
     endif
 
     !********************************************************************
@@ -1007,6 +1018,10 @@ contains
         call pinfo_add_entry('gammazsl',      gammazsl*dtbinv)
         call pinfo_add_entry('alphasl',       alphasl)
         call pinfo_add_entry('alphasr',       alphasr)
+        call pinfo_add_entry('docl_remin',    docl_remin*dtbinv)
+        call pinfo_add_entry('docsl_remin',   docsl_remin*dtbinv)
+        call pinfo_add_entry('docsr_remin',   docsr_remin*dtbinv)
+        call pinfo_add_entry('docr_remin',    docr_remin*dtbinv)
       endif
       call pinfo_add_entry('ecan',        ecan)
       call pinfo_add_entry('pi_alpha',    pi_alpha)
