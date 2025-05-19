@@ -1,5 +1,11 @@
 module mod_io_input
 
+   use nuopc_shr_methods , only : chkerr
+   use shr_kind_mod      , only : r8 => shr_kind_r8, r4 => shr_kind_r4, CL => shr_kind_cl, CS => shr_kind_cs
+   use shr_log_mod       , only : shr_log_error
+   use shr_const_mod     , only : r8fill => SHR_CONST_SPVAL
+   use shr_infnan_mod    , only : shr_infnan_isnan
+   use shr_pio_mod       , only : shr_pio_getiosys, shr_pio_getiotype, shr_pio_getioformat
    use ESMF              , only : ESMF_Clock, ESMF_Mesh, ESMF_Time, ESMF_ClockGet, ESMF_TimeGet
    use ESMF              , only : ESMF_SUCCESS, ESMF_LOGERR_PASSTHRU, ESMF_END_ABORT
    use ESMF              , only : ESMF_Finalize, ESMF_LogFoundError
@@ -15,12 +21,6 @@ module mod_io_input
    use ESMF              , only : ESMF_FieldDestroy
    use ESMF              , only : ESMF_DYNAMICMASK, ESMF_DynamicMaskSetR8R8R8, ESMF_DYNAMICMASKELEMENTR8R8R8
    use ESMF              , only : operator(/=), operator(==)
-   use nuopc_shr_methods , only : chkerr
-   use shr_kind_mod      , only : r8 => shr_kind_r8, r4 => shr_kind_r4, CL => shr_kind_cl, CS => shr_kind_cs
-   use shr_log_mod       , only : shr_log_error
-   use shr_const_mod     , only : r8fill => SHR_CONST_SPVAL
-   use shr_infnan_mod    , only : shr_infnan_isnan
-   use shr_pio_mod       , only : shr_pio_getiosys, shr_pio_getiotype, shr_pio_getioformat
    use pio               , only : file_desc_t, iosystem_desc_t, io_desc_t, var_desc_t
    use pio               , only : pio_openfile, pio_closefile, pio_nowrite
    use pio               , only : pio_seterrorhandling, pio_initdecomp, pio_freedecomp
@@ -51,21 +51,22 @@ module mod_io_input
 contains
 !===============================================================================
 
-   subroutine read_map_input_data(mesh_input, filename, fldlist, nlev, regrid_method, fldbun_blom, rc)
+   subroutine read_map_input_data(mesh_input, filename, fldlist, nlev, regrid_method, fldbun_blom, &
+        depth_bnds, rc)
 
       ! Read and map the input data
 
       ! input/output variables
-      type(ESMF_Mesh)             , intent(in)    :: mesh_input
-      character(len=*)            , intent(in)    :: filename
-      character(len=*)            , intent(in)    :: fldlist(:)
-      integer                     , intent(in)    :: nlev
-      character(len=*)            , intent(in)    :: regrid_method ! conserve or bilinear for now
-      type(ESMF_FieldBundle)      , intent(inout) :: fldbun_blom   ! input data interpolated to model grid
-      integer                     , intent(out)   :: rc
+      type(ESMF_Mesh)        , intent(in)    :: mesh_input
+      character(len=*)       , intent(in)    :: filename
+      character(len=*)       , intent(in)    :: fldlist(:)
+      integer                , intent(in)    :: nlev
+      character(len=*)       , intent(in)    :: regrid_method ! conserve or bilinear for now
+      type(ESMF_FieldBundle) , intent(inout) :: fldbun_blom   ! input data interpolated to model grid
+      real(r8), optional     , intent(out)   :: depth_bnds(2,nlev)
+      integer                , intent(out)   :: rc
 
       ! local variables
-      real(r8)                :: dynamicSrcMaskValue
       type(ESMF_Field)        :: field_data
       type(ESMF_Field)        :: field_dst
       type(file_desc_t)       :: pioid
@@ -77,7 +78,6 @@ contains
       real(r8)                :: fillvalue_r8
       logical                 :: handlefill = .false.
       integer                 :: old_error_handle
-      real(r8), pointer       :: dataptr(:)
       real(r8), pointer       :: dataptr1d(:)        ! field bundle data
       real(r8), pointer       :: dataptr2d(:,:)      ! field bundle data
       real(r4), allocatable   :: data_real1d(:)      ! input data
@@ -85,16 +85,15 @@ contains
       real(r8), allocatable   :: data_dbl1d(:)       ! input data
       real(r8), allocatable   :: data_dbl2d(:,:)     ! input data
       integer                 :: lsize, n
-      integer                 :: spatialDim, numOwnedElements
       integer                 :: pio_iovartype
       integer                 :: i, lev
-      logical                 :: checkflag = .false.
       type(io_desc_t)         :: pio_iodesc             ! stream pio descriptor
       type(ESMF_RouteHandle)  :: routehandle
-      !integer                 :: srcMaskValue = 0
       integer                 :: srcMaskValue = -987987
       integer                 :: dstMaskValue = -987987 ! spval for RH mask values
+      real(r8)                :: dynamicSrcMaskValue
       integer                 :: srcTermProcessing_Value = 0
+      integer                 :: strt(2),cnt(2)
       character(*), parameter :: subname = '(read_map_input_data) '
       character(*), parameter :: F00   = "('(read_map_input_data) ',8a)"
       character(*), parameter :: F02   = "('(read_map_input_data) ',2a,i8)"
@@ -103,19 +102,23 @@ contains
       rc = ESMF_SUCCESS
 
       ! nullify local pointers
-      nullify(dataptr)
       nullify(dataptr1d)
       nullify(dataptr2d)
 
+      ! ******************************************************************************
       ! Initialize PIO
-      ! TODO - print io_type and io_format to make sure they make sense (numbers between 1 and 4)
+      ! ******************************************************************************
+
       pio_subsystem => shr_pio_getiosys('OCN')
       io_type       =  shr_pio_getiotype('OCN')
       io_format     =  shr_pio_getioformat('OCN')
 
+      ! ******************************************************************************
       ! Open file
+      ! ******************************************************************************
+
       if (mnproc == 1) then
-         write(lp,F00) 'opening   : ',trim(filename)
+         write(lp,F00) trim(subname)//'opening   : ',trim(filename)
       endif
       rcode = pio_openfile(pio_subsystem, pioid, io_type, trim(filename), pio_nowrite)
 
@@ -124,13 +127,14 @@ contains
       ! ******************************************************************************
 
       if (mnproc == 1) then
-         write(lp,F00) 'setting pio descriptor : ',trim(filename)
+         write(lp,F00) trim(subname)//'setting pio descriptor : ',trim(filename)
       end if
       call set_iodesc(mesh_input, fldlist(1), nlev, pioid, pio_iodesc, rc=rc)
 
       ! ******************************************************************************
       ! Create a data field that can be used for reading in all input data
       ! ******************************************************************************
+
       if (nlev > 1) then
          field_data = ESMF_FieldCreate(mesh_input, ESMF_TYPEKIND_R8, meshloc=ESMF_MESHLOC_ELEMENT, &
               ungriddedLbound=(/1/), ungriddedUbound=(/nlev/), gridToFieldMap=(/2/), rc=rc)
@@ -149,11 +153,26 @@ contains
       ! ******************************************************************************
 
       if (mnproc == 1) then
-         write(lp,F02) 'reading file '//trim(filename)
+         write(lp,'(a)') trim(subname)//'reading file '//trim(filename)
       endif
 
-      do nf = 1,size(fldlist)
+      ! get depth_bounds if requested
+      if (present(depth_bnds)) then
+         strt(1:2) = 1
+         cnt(1) = 2
+         cnt(2) = size(depth_bnds,dim=2)
+         rcode = pio_inq_varid(pioid, 'depth_bnds', varid)
+         rcode = pio_get_var( pioid, varid, strt, cnt, depth_bnds)
+         if (mnproc == 1) then
+            do lev=1,nlev
+               write(lp,'(a,i8,2x,f10.4,2x,f10.4)') &
+                    trim(subname)//' input depth bnds: lev,depth_bnds(1,lev),depth_bnds(2,lev) = ',&
+                    lev,depth_bnds(1,lev),depth_bnds(2,lev)
+            end do
+         end if
+      end if
 
+      do nf = 1,size(fldlist)
          ! determine type of the variable
          rcode = pio_inq_varid(pioid, trim(fldlist(nf)), varid)
          rcode = pio_inq_vartype(pioid, varid, pio_iovartype)
@@ -186,15 +205,11 @@ contains
          if(rcode == PIO_NOERR) handlefill=.true.
          call PIO_seterrorhandling(pioid, old_error_handle)
 
-         if (mnproc == 1) then
-            write(lp,F02)' reading '// trim(fldlist(nf))//' at time index 1 '
-         end if
-
          ! Set only 1 time index
          nt = 1
+         call pio_setframe(pioid, varid, int(nt,kind=Pio_Offset_Kind))
 
          ! read the data
-         call pio_setframe(pioid, varid, int(nt,kind=Pio_Offset_Kind))
          if (pio_iovartype == PIO_REAL) then
             ! -----------------------------
             ! pio_iovartype is PIO_REAL

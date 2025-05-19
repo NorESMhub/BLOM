@@ -81,8 +81,8 @@ contains
       integer, pointer              :: dof3d(:)
       type(io_desc_t)               :: iodesc
       type(io_desc_t)               :: iodesc3d
-      logical                       :: create_iodesc = .true.
-      logical                       :: create_iodesc3d = .true.
+      logical                       :: create_iodesc
+      logical                       :: create_iodesc3d
       character(CL)                 :: itemc            ! string converted to char
       character(CL)                 :: name1            ! var name
       character(CL)                 :: cunit            ! var units
@@ -210,7 +210,7 @@ contains
       if (luse_float) then
          rcode = pio_def_var(io_file, 'lat', PIO_REAL, (/dimid(1),dimid(2)/), varid)
       else
-         rcode = pio_def_var(io_file, 'lat', PIO_DOUBLE, (/dimid(2),dimid(2)/), varid)
+         rcode = pio_def_var(io_file, 'lat', PIO_DOUBLE, (/dimid(1),dimid(2)/), varid)
       end if
       rcode = pio_put_att(io_file, varid, "long_name", 'latitude')
       rcode = pio_put_att(io_file, varid, "units", 'degrees_N')
@@ -270,6 +270,8 @@ contains
       end if
 
       ! Create iodesc and iodesc3d
+      create_iodesc = .true.
+      create_iodesc3d = .true.
       do k = 1,size(fieldNameList)
          itemc = trim(fieldNameList(k))
 
@@ -279,7 +281,21 @@ contains
          call ESMF_FieldGet(lfield, rank=rank, rc=rc)
          if (chkerr(rc,__LINE__,u_FILE_u)) return
 
-         if (rank == 2) then
+         if (create_iodesc) then
+            ! Always create 2d iodesc
+            if (mnproc == 1) then
+               write(lp,F01) 'setting iodesc for : '//trim(itemc)//' with dims(1:2) = ',nx,ny
+            end if
+            if (luse_float) then
+               call pio_initdecomp(pio_subsystem, pio_real, (/nx,ny/), dof, iodesc)
+            else
+               call pio_initdecomp(pio_subsystem, pio_double, (/nx,ny/), dof, iodesc)
+            end if
+            create_iodesc = .false.
+         end if
+         if (rank < 2) then
+            create_iodesc3d = .false.
+         else if (rank == 2) then
             if (create_iodesc3d) then
                if (luse_float) then
                   call pio_initdecomp(pio_subsystem, pio_real, (/nx,ny,nz/), dof3d, iodesc3d)
@@ -288,19 +304,6 @@ contains
                end if
                create_iodesc3d = .false.
             end if
-         end if
-         if (create_iodesc) then
-            ! Always create 2d iodesc
-            if (mnproc == 1) then
-               write(lp,F01) 'setting iodesc for : '//trim(itemc)// &
-                    ' with dims(1:2) = ',nx,ny
-            end if
-            if (luse_float) then
-               call pio_initdecomp(pio_subsystem, pio_real, (/nx,ny/), dof, iodesc)
-            else
-               call pio_initdecomp(pio_subsystem, pio_double, (/nx,ny/), dof, iodesc)
-            end if
-            create_iodesc = .false.
          end if
       end do
 
@@ -312,15 +315,13 @@ contains
       ! -------------------------------
 
       ! Set element coordinates
-      if (.not. allocated(ownedElemCoords) .and. ndims > 0 .and. nelements > 0) then
-         allocate(ownedElemCoords(ndims*nelements))
-         allocate(ownedElemCoords_x(ndims*nelements/2))
-         allocate(ownedElemCoords_y(ndims*nelements/2))
-         call ESMF_MeshGet(mesh, ownedElemCoords=ownedElemCoords, rc=rc)
-         if (chkerr(rc,__LINE__,u_FILE_u)) return
-         ownedElemCoords_x = ownedElemCoords(1::2)
-         ownedElemCoords_y = ownedElemCoords(2::2)
-      end if
+      allocate(ownedElemCoords(ndims*nelements))
+      allocate(ownedElemCoords_x(ndims*nelements/2))
+      allocate(ownedElemCoords_y(ndims*nelements/2))
+      call ESMF_MeshGet(mesh, ownedElemCoords=ownedElemCoords, rc=rc)
+      if (chkerr(rc,__LINE__,u_FILE_u)) return
+      ownedElemCoords_x = ownedElemCoords(1::2)
+      ownedElemCoords_y = ownedElemCoords(2::2)
 
       ! Fill coordinate variables
       rcode = pio_inq_varid(io_file, 'lon', varid)
@@ -330,16 +331,12 @@ contains
          call pio_write_darray(io_file, varid, iodesc, ownedElemCoords_x, rcode, fillval=fillvalue)
       end if
 
-      ! rcode = pio_inq_varid(io_file, 'lat', varid)
+      rcode = pio_inq_varid(io_file, 'lat', varid)
       if (luse_float) then
          call pio_write_darray(io_file, varid, iodesc, real(ownedElemCoords_y,r4), rcode, fillval=real(fillvalue,r4))
       else
          call pio_write_darray(io_file, varid, iodesc, ownedElemCoords_y, rcode, fillval=fillvalue)
       end if
-
-      ! TODO: write out vertical coordinate
-      !if (ndims == 3) then
-      !end if
 
       do k = 1,size(fieldNameList)
          ! Determine field name
@@ -391,19 +388,15 @@ contains
 
       call pio_closefile(io_file)
 
-      if (allocated(ownedElemCoords)) then
-         deallocate(ownedElemCoords)
-      endif
-      if (allocated(ownedElemCoords_x)) then
-         deallocate(ownedElemCoords_x)
-      endif
-      if (allocated(ownedElemCoords_y)) then
-         deallocate(ownedElemCoords_y)
-      endif
-
-      ! TODO: figure out when to call this
-      ! call pio_freedecomp(io_file, iodesc)
-      ! call pio_freedecomp(io_file, iodesc3d)
+      ! if (allocated(ownedElemCoords)) then
+      !    deallocate(ownedElemCoords)
+      ! endif
+      ! if (allocated(ownedElemCoords_x)) then
+      !    deallocate(ownedElemCoords_x)
+      ! endif
+      ! if (allocated(ownedElemCoords_y)) then
+      !    deallocate(ownedElemCoords_y)
+      ! endif
 
    end subroutine io_write
 

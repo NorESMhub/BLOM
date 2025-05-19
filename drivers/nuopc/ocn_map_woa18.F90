@@ -36,49 +36,61 @@ contains
 
       ! local variables:
       character(len=CL)      :: mesh_input_file
+      character(len=CL)      :: filename_t
+      character(len=CL)      :: filename_s
+      character(len=4)       :: fldlist_input_t(1)
+      character(len=4)       :: fldlist_input_s(1)
       type(ESMF_Mesh)        :: mesh_input
-      character(len=4)       :: fldlist_input(1)
       type(ESMF_Field)       :: field_blom
       type(ESMF_FieldBundle) :: fldbun_blom
-      character(len=CL)      :: filename
       integer                :: nf,n,i,j,ko,l
       integer                :: jjcpl
       real(r8), pointer      :: dataptr2d(:,:)
       real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nlev) :: woa18_t_depth
       real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nlev) :: woa18_s_depth
+      real(r8), dimension(2,nlev) :: depth_bnds
       !-------------------------------------------------------------------------------
 
       rc = ESMF_SUCCESS
 
-      ! Create input data mesh
+      ! ---------------------------
+      ! Filenames and field names (TODO: this should be moved to namelist)
+      ! ---------------------------
+
       mesh_input_file = '/cluster/projects/nn9560k/matsbn/WOA_mesh/WOA_1.00_degree_ESMFmesh_20250506_cdf5.nc'
+      filename_t = '/cluster/work/users/matsbn/WOA18/woa18_decav_t13_01.nc'
+      fldlist_input_t(1) = 't_an'
+      filename_s = '/cluster/work/users/matsbn/WOA18/woa18_decav_s13_01.nc'
+      fldlist_input_s(1) = 's_an'
+
+      ! ---------------------------
+      ! Create input data mesh
+      ! ---------------------------
       mesh_input = ESMF_MeshCreate(filename=trim(mesh_input_file), fileformat=ESMF_FILEFORMAT_ESMFMESH, rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
+      ! ---------------------------
       ! Create a field bundle on the blom mesh
+      ! ---------------------------
+
       fldbun_blom = ESMF_FieldBundleCreate(name='fldbun_blom', rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
-      do nf = 1,size(fldlist_input)
-         field_blom = ESMF_FieldCreate(mesh_blom, ESMF_TYPEKIND_R8, meshloc=ESMF_MESHLOC_ELEMENT, name='field_blom',  &
-              ungriddedLbound=(/1/), ungriddedUbound=(/nlev/), gridToFieldMap=(/2/), rc=rc)
-         if (chkerr(rc,__LINE__,u_FILE_u)) return
-         call ESMF_FieldBundleAdd(fldbun_blom, (/field_blom/), rc=rc)
-         if (chkerr(rc,__LINE__,u_FILE_u)) return
-      end do
-
-      ! ---------------------------
-      ! Read and map temperature
-      ! ---------------------------
-
-      fldlist_input(1) = 't_an'
-      filename = '/cluster/work/users/matsbn/WOA18/woa18_decav_t13_01.nc'
-
-      ! Read the data
-      ! TOOD: specify mapping type
-      call read_map_input_data(mesh_input, filename, fldlist_input, nlev, 'bilinear', fldbun_blom, rc)
+      field_blom = ESMF_FieldCreate(mesh_blom, ESMF_TYPEKIND_R8, meshloc=ESMF_MESHLOC_ELEMENT, name='field_blom',  &
+           ungriddedLbound=(/1/), ungriddedUbound=(/nlev/), gridToFieldMap=(/2/), rc=rc)
+      if (chkerr(rc,__LINE__,u_FILE_u)) return
+      call ESMF_FieldBundleAdd(fldbun_blom, (/field_blom/), rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
-      ! Plot mapped fldbun
+      ! ---------------------------
+      ! Read and map temperature - the output will be fldbun_blom which is on the blom mesh
+      ! ---------------------------
+
+      ! Read and map the data using bilinear interpolation
+      call read_map_input_data(mesh_input, filename_t, fldlist_input_t, nlev, 'bilinear', &
+           fldbun_blom, depth_bnds=depth_bnds, rc=rc)
+      if (chkerr(rc,__LINE__,u_FILE_u)) return
+
+      ! Plot mapped fldbun temperature
       call io_write(filename="woa18_t_an.nc", fldbun=fldbun_blom, use_float=.false., rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
@@ -110,20 +122,22 @@ contains
       end do
 
       ! ---------------------------
-      ! Read and map salinity
+      ! Read and map salinity - the output will again be in fldbun_blom on the blom mesh
       ! ---------------------------
 
-      fldlist_input(1) = 's_an'
-      filename = '/cluster/work/users/matsbn/WOA18/woa18_decav_s13_01.nc'
-
-      ! Read the data
-      call read_map_input_data(mesh_input, filename, fldlist_input, nlev, 'bilinear', fldbun_blom, rc)
+      ! Read and map the data using bilinear interpolation
+      call read_map_input_data(mesh_input, filename_s, fldlist_input_s, nlev, 'bilinear', &
+           fldbun_blom, rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
       ! Extract the data from the field bundle
       call ESMF_FieldBundleGet(fldbun_blom, fieldName='field_blom', field=field_blom, rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
       call field_getfldptr(field_blom, fldptr2=dataptr2d, rc=rc)
+      if (chkerr(rc,__LINE__,u_FILE_u)) return
+
+      ! Plot mapped fldbun salinity
+      call io_write(filename="woa18_s_an.nc", fldbun=fldbun_blom, use_float=.false., rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
       ! now set woa18_s_depth
