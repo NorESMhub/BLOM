@@ -181,10 +181,16 @@ module mo_param1_bgc
   integer, protected :: idepnoy ! index for NOy deposition
   integer, protected :: idepnhx ! index for NHx deposition
 
+  ! --------------------
+  ! Dust/fe deposition
+  ! --------------------
+  integer, protected :: ndust   ! size of dust deposition input field
+  integer, protected :: itdust  ! total atmospheric dust deposition
+  integer, protected :: isfe    ! atmospheric deposition of soluble Fe
+
   ! ------------------
   ! rivers
   ! ------------------
-
   integer, protected :: nriv   ! size of river input field
   integer, protected :: irdin  ! dissolved inorganic nitrogen
   integer, protected :: irdip  ! dissolved inorganic phosphorous
@@ -517,6 +523,11 @@ contains
       idepnoy = 1
       idepnhx = -1
     endif
+
+    ! Dust/fe
+    ndust  = 2
+    itdust = 1
+    isfe   = 2
 
     ! rivers
     nriv   =8

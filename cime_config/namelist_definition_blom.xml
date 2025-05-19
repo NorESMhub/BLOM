@@ -6506,6 +6506,32 @@
     <desc>NHx nitrogen deposition flux [mol N m-2 s-1] - extended N cycle only</desc>
   </entry>
 
+  <entry id="flx_tdust">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Atmospheric dust deposition flux [kg m-2 s-1]</desc>
+  </entry>
+
+  <entry id="flx_sfe">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Atmospheric deposition flux of soluble iron [mol Fe m-2 s-1]</desc>
+  </entry>
+
   <entry id="flx_oalk">
     <type>integer(3)</type>
     <category>diabgc</category>
