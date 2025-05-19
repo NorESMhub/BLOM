@@ -754,8 +754,8 @@ contains
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
       end if
 
-      ! map woa13 to blom mesh
 #ifdef HAMOCC
+      ! map woa18 to blom mesh
       call map_woa18(Emesh, rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
 #endif
