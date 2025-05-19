@@ -10,7 +10,7 @@ module mod_io_input
    use ESMF              , only : ESMF_SUCCESS, ESMF_LOGERR_PASSTHRU, ESMF_END_ABORT
    use ESMF              , only : ESMF_Finalize, ESMF_LogFoundError
    use ESMF              , only : ESMF_FieldBundle, ESMF_FieldBundleGet
-   use ESMF              , only : ESMF_Field, ESMF_RouteHandle, ESMF_DistGrid
+   use ESMF              , only : ESMF_Field, ESMF_RouteHandle, ESMF_DistGrid, ESMF_FieldSMMStore
    use ESMF              , only : ESMF_FieldStatus_Flag, ESMF_TYPEKIND_R8, ESMF_FieldCreate
    use ESMF              , only : ESMF_FieldRegridStore, ESMF_FieldRegrid, ESMF_FieldGet
    use ESMF              , only : ESMF_MeshGet, ESMF_DistGridGet, ESMF_FieldStatus_Flag, ESMF_FIELDSTATUS_COMPLETE
@@ -52,19 +52,21 @@ contains
 !===============================================================================
 
    subroutine read_map_input_data(mesh_input, filename, fldlist, nlev, regrid_method, fldbun_blom, &
-        depth_bnds, rc)
+        depth, depth_bnds, mapfile, rc)
 
       ! Read and map the input data
 
       ! input/output variables
-      type(ESMF_Mesh)        , intent(in)    :: mesh_input
-      character(len=*)       , intent(in)    :: filename
-      character(len=*)       , intent(in)    :: fldlist(:)
-      integer                , intent(in)    :: nlev
-      character(len=*)       , intent(in)    :: regrid_method ! conserve or bilinear for now
-      type(ESMF_FieldBundle) , intent(inout) :: fldbun_blom   ! input data interpolated to model grid
-      real(r8), optional     , intent(out)   :: depth_bnds(2,nlev)
-      integer                , intent(out)   :: rc
+      type(ESMF_Mesh)                   , intent(in)    :: mesh_input
+      character(len=*)                  , intent(in)    :: filename
+      character(len=*)                  , intent(in)    :: fldlist(:)
+      integer                           , intent(in)    :: nlev
+      character(len=*)                  , intent(in)    :: regrid_method ! conserve, bilinear, mapfile
+      type(ESMF_FieldBundle)            , intent(inout) :: fldbun_blom   ! input data interpolated to model grid
+      character(len=*)       , optional , intent(in)    :: mapfile
+      real(r8)               , optional , intent(out)   :: depth(nlev)
+      real(r8)               , optional , intent(out)   :: depth_bnds(2,nlev)
+      integer                           , intent(out)   :: rc
 
       ! local variables
       type(ESMF_Field)        :: field_data
@@ -156,6 +158,18 @@ contains
          write(lp,'(a)') trim(subname)//'reading file '//trim(filename)
       endif
 
+      ! get depths if requested
+      if (present(depth)) then
+         rcode = pio_inq_varid(pioid, 'depth', varid)
+         rcode = pio_get_var( pioid, varid, (/1/), (/nlev/), depth)
+         if (mnproc == 1) then
+            do lev=1,nlev
+               write(lp,'(a,i8,2x,f10.4)') &
+                    trim(subname)//' input depth: lev,depth(lev) = ',lev,depth(lev)
+            end do
+         end if
+      end if
+
       ! get depth_bounds if requested
       if (present(depth_bnds)) then
          strt(1:2) = 1
@@ -166,7 +180,7 @@ contains
          if (mnproc == 1) then
             do lev=1,nlev
                write(lp,'(a,i8,2x,f10.4,2x,f10.4)') &
-                    trim(subname)//' input depth bnds: lev,depth_bnds(1,lev),depth_bnds(2,lev) = ',&
+                    trim(subname)//' lev,depth_bnds(1,lev),depth_bnds(2,lev) = ',&
                     lev,depth_bnds(1,lev),depth_bnds(2,lev)
             end do
          end if
@@ -355,8 +369,18 @@ contains
                     ignoreDegenerate=.true., &
                     unmappedaction=ESMF_UNMAPPEDACTION_IGNORE, rc=rc)
                if (chkerr(rc,__LINE__,u_FILE_u)) return
+            else if (regrid_method == 'mapfile') then
+               if (present(mapfile)) then
+                  call ESMF_FieldSMMStore(field_data, field_dst, mapfile, routehandle=routehandle, &
+                       ignoreUnmatchedIndices=.true., &
+                       srcTermProcessing=srcTermProcessing_Value, rc=rc)
+                  if (chkerr(rc,__LINE__,u_FILE_u)) return
+               else
+                  call shr_log_error(' ERROR: mapfile must be present if regrid method is mapfile', rc=rc)
+                  return
+               end if
             else
-               call shr_log_error(' ERROR: regrid_method must be conserve or bilinear - not '//trim(regrid_method), rc=rc)
+               call shr_log_error(' ERROR: regrid_method must be conserve, bilinear or mapfile - not '//trim(regrid_method), rc=rc)
                return
             end if
          end if
