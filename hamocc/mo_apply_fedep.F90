@@ -39,9 +39,9 @@ contains
     !--------------------------------------------------------------------------------
 
     use mo_control_bgc, only: dtb
-    use mo_param1_bgc,  only: ifdust,iiron
+    use mo_param1_bgc,  only: ifdust,iiron,itdust,isfe
     use mo_param_bgc,   only: perc_diron
-    use mo_carbch,      only: ocetra
+    use mo_carbch,      only: ocetra,dustflx
 
     integer,intent(in) :: kpie                      ! 1st dimension of model grid.
     integer,intent(in) :: kpje                      ! 2nd dimension of model grid.
@@ -62,9 +62,10 @@ contains
     do j = 1,kpje
       do i = 1,kpie
         if(omask(i,j) > 0.5) then
-          dustinp = dust(i,j) / 30. * dtb / pddpo(i,j,1)
-          ocetra(i,j,1,ifdust) = ocetra(i,j,1,ifdust) + dustinp
-          ocetra(i,j,1,iiron) = ocetra(i,j,1,iiron) + dustinp * perc_diron
+          dustflx(i,j,itdust)  = dust(i,j) / 30. * dtb / pddpo(i,j,1)
+          dustflx(i,j,isfe)    = dust(i,j) / 30. * dtb / pddpo(i,j,1) * perc_diron
+          ocetra(i,j,1,ifdust) = ocetra(i,j,1,ifdust) + dustflx(i,j,itdust) 
+          ocetra(i,j,1,iiron)  = ocetra(i,j,1,iiron)  + dustflx(i,j,isfe)
         endif
       enddo
     enddo

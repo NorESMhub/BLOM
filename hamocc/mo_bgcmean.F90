@@ -117,7 +117,8 @@ module mo_bgcmean
        & SRF_PN2OM     =0    ,SRF_PNH3      =0    ,SRF_ATMNH3    =0    ,  &
        & SRF_ATMN2O    =0    ,INT_BROMOPRO  =0    ,INT_BROMOUV   =0    ,  &
        & INT_PHOSY     =0    ,INT_NFIX      =0    ,INT_DNIT      =0    ,  &
-       & FLX_NDEPNOY   =0    ,FLX_NDEPNHX   =0    ,FLX_OALK      =0    ,  &
+       & FLX_NDEPNOY   =0    ,FLX_NDEPNHX   =0    ,FLX_TDUST     =0    ,  &
+       & FLX_SFE       =0    ,FLX_OALK      =0    ,                       &
        & FLX_CAR0100   =0    ,FLX_CAR0500   =0    ,FLX_CAR1000   =0    ,  &
        & FLX_CAR2000   =0    ,FLX_CAR4000   =0    ,FLX_CAR_BOT   =0    ,  &
        & FLX_BSI0100   =0    ,FLX_BSI0500   =0    ,FLX_BSI1000   =0    ,  &
@@ -243,7 +244,8 @@ module mo_bgcmean
        & SRF_PN2OM         ,SRF_PNH3          ,SRF_ATMNH3        ,        &
        & SRF_ATMN2O        ,INT_BROMOPRO      ,INT_BROMOUV       ,        &
        & INT_PHOSY         ,INT_NFIX          ,INT_DNIT          ,        &
-       & FLX_NDEPNOY       ,FLX_NDEPNHX       ,FLX_OALK          ,        &
+       & FLX_NDEPNOY       ,FLX_NDEPNHX       ,FLX_TDUST         ,        &
+       & FLX_SFE           ,FLX_OALK          ,                           &
        & FLX_CAR0100       ,FLX_CAR0500       ,FLX_CAR1000       ,        &
        & FLX_CAR2000       ,FLX_CAR4000       ,FLX_CAR_BOT       ,        &
        & FLX_BSI0100       ,FLX_BSI0500       ,FLX_BSI1000       ,        &
@@ -415,6 +417,8 @@ module mo_bgcmean
        &          jintdnit   = 0 ,                                        &
        &          jndepnoyfx = 0 ,                                        &
        &          jndepnhxfx = 0 ,                                        &
+       &          jtdustfx   = 0 ,                                        &
+       &          jsfefx     = 0 ,                                        &
        &          joalkfx    = 0 ,                                        &
        &          jcarflx0100= 0 ,                                        &
        &          jcarflx0500= 0 ,                                        &
@@ -876,6 +880,10 @@ CONTAINS
       jintdnit(n)=i_bsc_m2d*min(1,INT_DNIT(n))
       if (FLX_NDEPNOY(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jndepnoyfx(n)=i_bsc_m2d*min(1,FLX_NDEPNOY(n))
+      if (FLX_TDUST(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jtdustfx(n)=i_bsc_m2d*min(1,FLX_TDUST(n))
+      if (FLX_SFE(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jsfefx(n)=i_bsc_m2d*min(1,FLX_SFE(n))
       if (FLX_OALK(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       joalkfx(n)=i_bsc_m2d*min(1,FLX_OALK(n))
       if (FLX_CAR0100(n) > 0) i_bsc_m2d=i_bsc_m2d+1
