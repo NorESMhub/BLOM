@@ -40,7 +40,7 @@ contains
     use mo_vgrid,       only: k0100,k0500,k1000,k2000,k4000
     use mo_param1_bgc,  only: ks
     use mod_nctools,    only: ncwrt1,ncdims,nctime,ncfcls,ncfopn,ncdimc,ncputr,ncputi,ncwrtr
-    use mo_bgcmean,     only: domassfluxes,flx_ndepnoy,flx_oalk,                                   &
+    use mo_bgcmean,     only: domassfluxes,flx_ndepnoy,flx_tdust,flx_sfe,flx_oalk,                 &
                               flx_cal0100,flx_cal0500,flx_cal1000,                                 &
                               flx_cal2000,flx_cal4000,flx_cal_bot,                                 &
                               flx_car0100,flx_car0500,flx_car1000,                                 &
@@ -84,7 +84,7 @@ contains
                               jlvlpoc13,jlvlprefalk,jlvlprefdic,                                   &
                               jlvlprefo2,jlvlprefpo4,jlvlsf6,jlvlsilica,                           &
                               jlvlwnos,jlvlwphy,jn2o,jsrfpn2om,                                    &
-                              jn2ofx,jndepnoyfx,jniflux,jnos,joalkfx,                              &
+                              jn2ofx,jndepnoyfx,jniflux,jnos,jtdustfx,jsfefx,joalkfx,              &
                               jo2sat,jomegaa,jomegac,jopal,joxflux,joxygen,jfco2,                  &
                               jpco2,jxco2,jpco2_gex,jkwco2sol,jco2sol,                             &
                               jph,jphosph,jphosy,jphyto,jpoc,jprefalk,                             &
@@ -615,6 +615,8 @@ contains
     call wrtsrf(jintnfix(iogrp),     INT_NFIX(iogrp),     rnacc*1e3/dtbgc,0.,cmpflg,'nfixint')
     call wrtsrf(jintdnit(iogrp),     INT_DNIT(iogrp),     rnacc*1e3/dtbgc,0.,cmpflg,'dnitint')
     call wrtsrf(jndepnoyfx(iogrp),   FLX_NDEPNOY(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'ndepnoy')
+    call wrtsrf(jtdustfx(iogrp),     FLX_TDUST(iogrp),    rnacc*1e3/dtbgc,0.,cmpflg,'tdustfx')
+    call wrtsrf(jsfefx(iogrp),       FLX_SFE(iogrp),      rnacc*1e3/dtbgc,0.,cmpflg,'sfefx')
     call wrtsrf(joalkfx(iogrp),      FLX_OALK(iogrp),     rnacc*1e3/dtbgc,0.,cmpflg,'oalkfx')
     call wrtsrf(jcarflx0100(iogrp),  FLX_CAR0100(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'carflx0100')
     call wrtsrf(jcarflx0500(iogrp),  FLX_CAR0500(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'carflx0500')
@@ -1021,6 +1023,8 @@ contains
     call inisrf(jintnfix(iogrp),0.)
     call inisrf(jintdnit(iogrp),0.)
     call inisrf(jndepnoyfx(iogrp),0.)
+    call inisrf(jtdustfx(iogrp),0.)
+    call inisrf(jsfefx(iogrp),0.)
     call inisrf(joalkfx(iogrp),0.)
     call inisrf(jcarflx0100(iogrp),0.)
     call inisrf(jcarflx0500(iogrp),0.)
@@ -1405,7 +1409,7 @@ contains
                               srf_dms_bac,srf_dms_uv,srf_export,srf_exposi,srf_expoca,             &
                               srf_dic,srf_alkali,srf_phosph,srf_oxygen,srf_ano3,srf_silica,        &
                               srf_iron,srf_phyto,srf_ph,int_phosy,int_nfix,int_dnit,               &
-                              flx_ndepnoy,flx_oalk,flx_car0100,flx_car0500,                        &
+                              flx_ndepnoy,flx_tdust,flx_sfe,flx_oalk,flx_car0100,flx_car0500,      &
                               flx_car1000,flx_car2000,flx_car4000,flx_car_bot,                     &
                               flx_bsi0100,flx_bsi0500,flx_bsi1000,flx_bsi2000,flx_bsi4000,         &
                               flx_bsi_bot,flx_cal0100,flx_cal0500,flx_cal1000,flx_cal2000,         &
@@ -1609,6 +1613,10 @@ contains
          &   'Integrated denitrification',' ','mol N m-2 s-1',0)
     call ncdefvar3d(FLX_NDEPNOY(iogrp),cmpflg,'p','ndepnoy',                    &
          &   'Nitrogen NOy deposition flux',' ','mol N m-2 s-1',0)
+    call ncdefvar3d(FLX_TDUST(iogrp),cmpflg,'p','tdustfx',                      &
+         &   'Atmospheric dust deposition flux',' ','kg m-2 s-1',0)
+    call ncdefvar3d(FLX_SFE(iogrp),cmpflg,'p','sfefx',                          &
+         &   'Atmospheric deposition flux of soluble iron',' ','mol Fe m-2 s-1',0)
     call ncdefvar3d(FLX_OALK(iogrp),cmpflg,'p','oalkfx',                        &
          &   'Alkalinity flux due to OA',' ','mol TA m-2 s-1',0)
     call ncdefvar3d(FLX_CAR0100(iogrp),cmpflg,'p','carflx0100',                 &

@@ -44,10 +44,10 @@ contains
     use mod_xc,           only: mnproc
     use mod_dia,          only: ddm
     use mo_carbch,        only: atm,atmflx,co2fxd,co2fxu,co3,hi,kwco2sol,                          &
-                                ndepnoyflx,rivinflx,oalkflx,ocetra,omegaa,omegac,fco2,pco2,xco2,   &
-                                pco2_gex,satoxy,sedfluxo,sedfluxb,kwco2a,co2sol,pn2om,             &
-                                co213fxd,co213fxu,co214fxd,co214fxu,                               &
-                                natco3,nathi,natomegaa,natomegac,natpco2,pnh3,ndepnhxflx,          &
+                                ndepnoyflx,ndepnhxflx,dustflx,rivinflx,oalkflx,ocetra,             &
+                                omegaa,omegac,fco2,pco2,xco2,pco2_gex,satoxy,sedfluxo,sedfluxb,    &
+                                kwco2a,co2sol,pn2om,co213fxd,co213fxu,co214fxd,co214fxu,           &
+                                natco3,nathi,natomegaa,natomegac,natpco2,pnh3,                     &
                                 nutlim_diag,inutlim_fe,inutlim_n,inutlim_phosph,zeu_nutlim_diag
     use mo_biomod,        only: bsiflx_bot,bsiflx0100,bsiflx0500,bsiflx1000,                       &
                                 bsiflx2000,bsiflx4000,calflx_bot,calflx0100,calflx0500,            &
@@ -98,8 +98,8 @@ contains
                                 jph,jphosph,jphosy,jphyto,jpoc,jprefalk,                           &
                                 jprefdic,jprefo2,jprefpo4,jsilica,jsrfalkali,                      &
                                 jsrfano3,jsrfdic,jsrfiron,jsrfoxygen,jsrfphosph,                   &
-                                jsrfphyto,jsrfsilica,jsrfph,jwnos,jwphy,jndepnoyfx,                &
-                                joalkfx,nbgc,nacc_bgc,bgcwrt,glb_inventory,                        &
+                                jsrfphyto,jsrfsilica,jsrfph,jwnos,jwphy,jndepnoyfx,jtdustfx,       &
+                                jsfefx,joalkfx,nbgc,nacc_bgc,bgcwrt,glb_inventory,                 &
                                 bgct2d,acclvl,acclyr,accsrf,bgczlv,                                &
                                 jatmbromo,jbromo,jbromo_prod,jbromo_uv,jbromofx,jsrfbromo,         &
                                 jcfc11,jcfc11fx,jcfc12,jcfc12fx,jsf6,jsf6fx,                       &
@@ -146,7 +146,7 @@ contains
     use mo_param1_bgc,    only: ialkali,ian2o,iano3,iatmco2,iatmdms,iatmn2,iatmn2o,iatmo2,         &
                                 icalc,idet,idms,idicsat,idoc,iiron,iopal,itdoc_lc,itdoc_hc,        &
                                 ioxygen,iphosph,iphy,iprefalk,iprefdic,                            &
-                                iprefpo4,iprefo2,isco212,isilica,izoo,                             &
+                                iprefpo4,iprefo2,isco212,isilica,izoo,itdust,isfe,                 &
                                 irdin,irdip,irsi,iralk,iriron,irdoc,irdet,inos,iatmbromo,ibromo,   &
                                 iatmf11,iatmf12,iatmsf6,icfc11,icfc12,isf6,irtdoc,                 &
                                 iatmc13,iatmc14,icalc13,idet13,idoc13,iphy13,isco213,isco214,      &
@@ -340,9 +340,11 @@ contains
       call accsrf(jbromo_uv,int_chbr3_uv,omask,0)
     endif
 
-    ! Accumulate fluxes due to N-deposition, ocean alkalinization
+    ! Accumulate fluxes due to N-deposition, dust fluxes, and ocean alkalinization
     call accsrf(jndepnoyfx,ndepnoyflx,omask,0)
     call accsrf(joalkfx,oalkflx,omask,0)
+    call accsrf(jtdustfx,dustflx(1,1,itdust),omask,0)
+    call accsrf(jsfefx,dustflx(1,1,isfe),omask,0)
 
     if (use_extNcycle) then
       call accsrf(jsrfanh4,ocetra(1,1,1,ianh4),omask,0)

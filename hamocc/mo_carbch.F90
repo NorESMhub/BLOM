@@ -52,6 +52,7 @@ module mo_carbch
   real, dimension (:,:),     allocatable, public :: ndepnoyflx
   real, dimension (:,:),     allocatable, public :: ndepnhxflx
   real, dimension (:,:),     allocatable, public :: oalkflx
+  real, dimension (:,:,:),   allocatable, public :: dustflx
   real, dimension (:,:,:),   allocatable, public :: rivinflx
   real, dimension (:,:,:),   allocatable, public :: co3
   real, dimension (:,:,:),   allocatable, public :: co2star
@@ -110,7 +111,7 @@ contains
 
     use mod_xc,         only: mnproc
     use mo_control_bgc, only: io_stdo_bgc
-    use mo_param1_bgc,  only: nocetra,npowtra,nsedtra,natm,nriv
+    use mo_param1_bgc,  only: nocetra,npowtra,nsedtra,natm,nriv,ndust
     use mo_control_bgc, only: use_natDIC,use_cisonew,use_extNcycle
 
     integer, intent(in) :: kpie
@@ -345,7 +346,20 @@ contains
     if(errstat.ne.0) stop 'not enough memory oalkflx'
     oalkflx(:,:) = 0.0
 
-    ! Allocate field to hold riverine fluxes per timestep for inventory calculations
+    ! Allocate field to hold dust and iron fluxes per timestep for 
+    ! output
+    if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)'Memory allocation for variable dustflx ...'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      write(io_stdo_bgc,*)'Third  dimension   : ',ndust
+    endif
+    allocate(dustflx(kpie,kpje,ndust),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory dustflx'
+    dustflx(:,:,:) = 0.0
+
+    ! Allocate field to hold riverine fluxes per timestep for 
+    ! inventory calculations and output
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable rivinflx ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
