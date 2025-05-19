@@ -55,15 +55,18 @@ contains
     real    :: dustinp
 
     ! dust flux from the atmosphere to the surface layer; dust fields are
-    ! monthly mean values (kg/m2/month - assume 30 days per month here)
-    ! dissolved iron is a fixed fraction (typically 3.5%), and immediately released
-
+    ! monthly mean values (kg/m2/month - assume 30 days per month here).
+    ! The iron content of dust is a fixed fraction (typically 3.5%), of 
+    ! which a fixed fraction (typically 1%) is soluble (bioavailable) and immediately 
+    ! released. The bioavailable fraction is perc_diron = fetune * 0.035 * 0.01 / 55.85
+    ! where fetune is intended to globally tune iron deposition and 55.85 is the molar
+    ! weight of Fe.
     !$OMP PARALLEL DO PRIVATE(i,dustinp)
     do j = 1,kpje
       do i = 1,kpie
         if(omask(i,j) > 0.5) then
           dustflx(i,j,itdust)  = dust(i,j) / 30. * dtb / pddpo(i,j,1)
-          dustflx(i,j,isfe)    = dust(i,j) / 30. * dtb / pddpo(i,j,1) * perc_diron
+          dustflx(i,j,isfe)    = dustflx(i,j,itdust) * perc_diron
           ocetra(i,j,1,ifdust) = ocetra(i,j,1,ifdust) + dustflx(i,j,itdust) 
           ocetra(i,j,1,iiron)  = ocetra(i,j,1,iiron)  + dustflx(i,j,isfe)
         endif
