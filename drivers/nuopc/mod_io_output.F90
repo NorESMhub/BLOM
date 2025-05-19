@@ -10,7 +10,6 @@ module mod_io_output
    use ESMF              , only : ESMF_FieldBundleIsCreated, ESMF_FieldBundle, ESMF_Mesh, ESMF_DistGrid
    use ESMF              , only : ESMF_FieldBundleGet, ESMF_FieldGet, ESMF_MeshGet, ESMF_DistGridGet
    use ESMF              , only : ESMF_Field, ESMF_FieldGet, ESMF_AttributeGet
-   use ESMF              , only : ESMF_CoordSys_Flag, ESMF_COORDSYS_SPH_DEG, ESMF_COORDSYS_SPH_RAD, ESMF_COORDSYS_CART
    use ESMF              , only : ESMF_MAXSTR
    use pio               , only : file_desc_t, iosystem_desc_t, io_desc_t, var_desc_t
    use pio               , only : pio_openfile, pio_closefile, pio_nowrite, pio_enddef, pio_createfile
@@ -69,7 +68,6 @@ contains
       type(ESMF_Field)              :: field
       type(ESMF_Mesh)               :: mesh
       type(ESMF_Distgrid)           :: distgrid
-      type(ESMF_CoordSys_Flag)      :: coordsys
       integer                       :: nf,ng,lsize
       integer                       :: k,m,n,lev
       integer                       :: ndims, nelements
@@ -84,18 +82,11 @@ contains
       logical                       :: create_iodesc
       logical                       :: create_iodesc3d
       character(CL)                 :: itemc            ! string converted to char
-      character(CL)                 :: name1            ! var name
-      character(CL)                 :: cunit            ! var units
-      character(CS)                 :: coordvarnames(2) ! coordinate variable names
-      character(CS)                 :: coordnames(2)    ! coordinate long names
-      character(CS)                 :: coordunits(2)    ! coordinate units
       logical                       :: luse_float
-      integer                       :: dimCount
       real(r8), pointer             :: fldptr1(:)
       real(r8), pointer             :: fldptr2(:,:)
       real(r4), allocatable         :: data_real2d(:,:)    ! input data
       real(r8), allocatable         :: data_dbl2d(:,:)     ! input data
-      real(r8), allocatable         :: ownedElemCoords(:), ownedElemCoords_x(:), ownedElemCoords_y(:)
       character(CS)                 :: cnumber
       character(CL)                 :: tmpstr
       type(ESMF_Field)              :: lfield
@@ -154,7 +145,7 @@ contains
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
       ! Get mesh distgrid and number of elements
-      call ESMF_MeshGet(mesh, elementDistgrid=distgrid, coordSys=coordsys, rc=rc)
+      call ESMF_MeshGet(mesh, elementDistgrid=distgrid, rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
       call ESMF_MeshGet(mesh, spatialDim=ndims, numOwnedElements=nelements, rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
@@ -198,32 +189,6 @@ contains
       ! -------------------------
       ! Write header
       ! -------------------------
-
-      if (luse_float) then
-         rcode = pio_def_var(io_file, 'lon', PIO_REAL, (/dimid(1),dimid(2)/), varid)
-      else
-         rcode = pio_def_var(io_file, 'lon', PIO_DOUBLE, (/dimid(1),dimid(2)/), varid)
-      end if
-      rcode = pio_put_att(io_file, varid, "long_name", 'longitude')
-      rcode = pio_put_att(io_file, varid, "units", 'degrees_E')
-
-      if (luse_float) then
-         rcode = pio_def_var(io_file, 'lat', PIO_REAL, (/dimid(1),dimid(2)/), varid)
-      else
-         rcode = pio_def_var(io_file, 'lat', PIO_DOUBLE, (/dimid(1),dimid(2)/), varid)
-      end if
-      rcode = pio_put_att(io_file, varid, "long_name", 'latitude')
-      rcode = pio_put_att(io_file, varid, "units", 'degrees_N')
-
-      ! if (nz > 1) then
-      !    if (luse_float) then
-      !       rcode = pio_def_var(io_file, 'depth', PIO_REAL, (/dimid(3)/), varid)
-      !    else
-      !       rcode = pio_def_var(io_file, 'depth', PIO_DOUBLE, (/dimid(3)/), varid)
-      !    end if
-      !    rcode = pio_put_att(io_file, varid, "long_name", 'depth')
-      !    rcode = pio_put_att(io_file, varid, "units", 'M')
-      ! end if
 
       ! Define variable and attribute on output file
       do k = 1,size(fieldNameList)
@@ -314,30 +279,6 @@ contains
       ! Write data
       ! -------------------------------
 
-      ! Set element coordinates
-      allocate(ownedElemCoords(ndims*nelements))
-      allocate(ownedElemCoords_x(ndims*nelements/2))
-      allocate(ownedElemCoords_y(ndims*nelements/2))
-      call ESMF_MeshGet(mesh, ownedElemCoords=ownedElemCoords, rc=rc)
-      if (chkerr(rc,__LINE__,u_FILE_u)) return
-      ownedElemCoords_x = ownedElemCoords(1::2)
-      ownedElemCoords_y = ownedElemCoords(2::2)
-
-      ! Fill coordinate variables
-      rcode = pio_inq_varid(io_file, 'lon', varid)
-      if (luse_float) then
-         call pio_write_darray(io_file, varid, iodesc, real(ownedElemCoords_x,r4), rcode, fillval=real(fillvalue,r4))
-      else
-         call pio_write_darray(io_file, varid, iodesc, ownedElemCoords_x, rcode, fillval=fillvalue)
-      end if
-
-      rcode = pio_inq_varid(io_file, 'lat', varid)
-      if (luse_float) then
-         call pio_write_darray(io_file, varid, iodesc, real(ownedElemCoords_y,r4), rcode, fillval=real(fillvalue,r4))
-      else
-         call pio_write_darray(io_file, varid, iodesc, ownedElemCoords_y, rcode, fillval=fillvalue)
-      end if
-
       do k = 1,size(fieldNameList)
          ! Determine field name
          itemc = trim(fieldNameList(k))
@@ -387,16 +328,6 @@ contains
       call pio_freedecomp(io_file, iodesc3d)
 
       call pio_closefile(io_file)
-
-      ! if (allocated(ownedElemCoords)) then
-      !    deallocate(ownedElemCoords)
-      ! endif
-      ! if (allocated(ownedElemCoords_x)) then
-      !    deallocate(ownedElemCoords_x)
-      ! endif
-      ! if (allocated(ownedElemCoords_y)) then
-      !    deallocate(ownedElemCoords_y)
-      ! endif
 
    end subroutine io_write
 

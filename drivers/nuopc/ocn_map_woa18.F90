@@ -18,8 +18,10 @@ module ocn_map_woa18
 
    public :: map_woa18
 
-   ! TODO: Determine number of levels in input data
-   integer :: nlev = 102
+   real(r8), public, allocatable :: woa18_t_depth(:,:,:)
+   real(r8), public, allocatable :: woa18_s_depth(:,:,:)
+   real(r8), public, allocatable :: depth_bnds(:,:)
+   integer , public              :: nlev
 
    character(len=*), parameter :: u_FILE_u = &
       __FILE__
@@ -46,9 +48,6 @@ contains
       integer                :: nf,n,i,j,ko,l
       integer                :: jjcpl
       real(r8), pointer      :: dataptr2d(:,:)
-      real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nlev) :: woa18_t_depth
-      real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nlev) :: woa18_s_depth
-      real(r8), dimension(2,nlev) :: depth_bnds
       !-------------------------------------------------------------------------------
 
       rc = ESMF_SUCCESS
@@ -62,6 +61,15 @@ contains
       fldlist_input_t(1) = 't_an'
       filename_s = '/cluster/work/users/matsbn/WOA18/woa18_decav_s13_01.nc'
       fldlist_input_s(1) = 's_an'
+      nlev = 102
+
+      ! ---------------------------
+      ! Allocate module arrays
+      ! ---------------------------
+
+      allocate(woa18_t_depth(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nlev))
+      allocate(woa18_s_depth(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nlev))
+      allocate(depth_bnds(2,nlev))
 
       ! ---------------------------
       ! Create input data mesh
@@ -85,7 +93,7 @@ contains
       ! Read and map temperature - the output will be fldbun_blom which is on the blom mesh
       ! ---------------------------
 
-      ! Read and map the data using bilinear interpolation
+      ! Read and map the data using bilinear interpolation - and also get depth_bnds
       call read_map_input_data(mesh_input, filename_t, fldlist_input_t, nlev, 'bilinear', &
            fldbun_blom, depth_bnds=depth_bnds, rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
