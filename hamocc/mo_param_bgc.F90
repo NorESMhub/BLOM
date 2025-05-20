@@ -333,7 +333,7 @@ module mo_param_bgc
   real, protected :: drempoc_anaerob = 1.25e-3  ! =0.05*drempoc - remin in sub-/anoxic environm. - not be overwritten by M4AGO
   real, protected :: bkox_drempoc    = 1e-7     ! half-saturation constant for oxygen for ammonification (aerobic remin via drempoc)
   real, protected :: dremopal        = 0.003    ! 1/d Dissolution rate for opal
-  real, protected :: dremcalc        = 0.00055  ! 1/d Dissolution rate for CaCO3 (applied if Omega_c < 1)
+  real, protected :: dremcalc        = 0.0007   ! 1/d Dissolution rate for CaCO3 (applied if Omega_c < 1)
   real, protected :: dremn2o         = 0.01     ! 1/d Remineralization rate of detritus on N2O
   real, protected :: dremsul         = 0.005    ! 1/d Remineralization rate for sulphate reduction
   real, protected :: POM_remin_q10   = 2.1      ! Bidle et al. 2002: Regulation of Oceanic Silicon...
