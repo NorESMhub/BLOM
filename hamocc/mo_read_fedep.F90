@@ -111,8 +111,8 @@ contains
     select case(trim(fedep_source))
 
       case('mahw2006')
-	! Dust/iron deposition using the Mahowald et al. 2006 model data.
-	! The variable 'DUST' contains the total dust-flux in kg/m2/month; this
+        ! Dust/iron deposition using the Mahowald et al. 2006 model data.
+        ! The variable 'DUST' contains the total dust-flux in kg/m2/month; this
         ! is converted to kmol/m2/s of bioavailable (soluble) iron using the molar 
         ! weight of iron (55.85) and assuming that dust contains a fraction 
         ! 'frac_ironindust' of iron, and that soluble is a fraction 'frac_soliron' of 
@@ -183,7 +183,7 @@ contains
     !  J.Schwinger            *NORCE Climate, Bergen*       2020-05-19
     !***********************************************************************************************
 
-    use mod_xc             , only: nbdy
+    use mod_xc             , only: mnproc,xchalt,nbdy
     use mo_output_forcing  , only: output_forcing
     use mo_param1_bgc      , only: itdust,isfe,ndust
     use mo_param_bgc       , only: sec_per_day,frac_ironindust,frac_soliron,fetune
