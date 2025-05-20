@@ -59,7 +59,7 @@ module mod_fuk95
        mindz  = 1._r8, &     ! Minimum interior layer thickness [m].
        saln0  = 35._r8       ! Constant salinity value [g kg-1].
 
-  public :: geoenv_fuk95, inifrc_fuk95, ictsz_fuk95
+  public :: geoenv_fuk95, inifrc_fuk95, inicon_fuk95
 
 contains
 
@@ -260,7 +260,7 @@ contains
 
   end subroutine inifrc_fuk95
 
-  subroutine ictsz_fuk95
+  subroutine inicon_fuk95
 
     real(r8), dimension(1 - nbdy:idm + nbdy, &
          1 - nbdy:jdm + nbdy, kdm + 1) :: z
@@ -443,6 +443,6 @@ contains
     enddo
     !$omp end parallel do
 
-  end subroutine ictsz_fuk95
+  end subroutine inicon_fuk95
 
 end module mod_fuk95
