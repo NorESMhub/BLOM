@@ -39,8 +39,8 @@ contains
     !--------------------------------------------------------------------------------
 
     use mo_control_bgc, only: dtb
-    use mo_param1_bgc,  only: ifdust,iiron,itdust,isfe
-    use mo_param_bgc,   only: perc_diron
+    use mo_param1_bgc,  only: ifdust,iiron,itdust,isfe,ndust
+    use mo_param_bgc,   only: sec_per_day
     use mo_carbch,      only: ocetra,dustflx
 
     integer,intent(in) :: kpie                      ! 1st dimension of model grid.
@@ -48,7 +48,7 @@ contains
     integer,intent(in) :: kpke                      ! 3rd (vertical) dimension of model grid.
     real,   intent(in) :: pddpo(kpie,kpje,kpke)     ! size of scalar grid cell (3rd dimension) [m].
     real,   intent(in) :: omask(kpie,kpje)          ! ocean mask
-    real,   intent(in) :: dust(kpie,kpje)           ! dust deposition flux [kg/m2/month].
+    real,   intent(in) :: dust(kpie,kpje,ndust)     ! dust deposition flux [kg/m2/month].
 
     ! local variables
     integer :: i,j
@@ -65,8 +65,8 @@ contains
     do j = 1,kpje
       do i = 1,kpie
         if(omask(i,j) > 0.5) then
-          dustflx(i,j,itdust)  = dust(i,j) / 30. * dtb / pddpo(i,j,1)
-          dustflx(i,j,isfe)    = dustflx(i,j,itdust) * perc_diron
+          dustflx(i,j,itdust)  = dust(i,j,itdust) * sec_per_day * dtb / pddpo(i,j,1)
+          dustflx(i,j,isfe)    = dust(i,j,isfe)   * sec_per_day * dtb / pddpo(i,j,1)
           ocetra(i,j,1,ifdust) = ocetra(i,j,1,ifdust) + dustflx(i,j,itdust) 
           ocetra(i,j,1,iiron)  = ocetra(i,j,1,iiron)  + dustflx(i,j,isfe)
         endif
