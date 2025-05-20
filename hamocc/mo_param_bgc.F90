@@ -301,10 +301,10 @@ module mo_param_bgc
   ! Zooplankton parameters
   !********************************************************************
   real, protected :: grami      = 1.e-10          ! kmol/m3 - i.e. 1e-5 mmol P/m3 minimum concentration of zooplankton
-  real, protected :: bkzoo      = 8.e-8           ! kmol/m3 - i.e. 0.08 mmol P/m3 half saturation constant
+  real, protected :: bkzoo      = 1.e-7           ! kmol/m3 - i.e. 0.08 mmol P/m3 half saturation constant
 
   !ik addded parameter definition; taken from OCPROD.F
-  real, protected :: grazra     = 1.2             ! 1/d - grazing rate
+  real, protected :: grazra     = 1.5             ! 1/d - grazing rate
   real, protected :: spemor     = 3.*1.e6         ! 1/d - mortality rate
   real, protected :: gammap     = 0.04            ! 1/d - exudation rate
   real, protected :: gammaz     = 0.06            ! 1/d - excretion rate
@@ -328,7 +328,7 @@ module mo_param_bgc
   !********************************************************************
   ! Shell production (CaCO3 and opal) parameters
   !********************************************************************
-  real, protected :: bkopal     = 5.e-6           ! kmol/m3 - i.e. 4.0 mmol Si/m3 half saturation constant
+  real, protected :: bkopal     = 1.e-5           ! kmol/m3 - i.e. 10 mmol Si/m3 half saturation constant
   real, protected :: rcalc                        ! calcium carbonate to organic phosphorous production ratio
   real, protected :: ropal                        ! opal to organic phosphorous production ratio
   real, protected :: calmax                       ! maximum CaCO3 production fraction
@@ -339,21 +339,21 @@ module mo_param_bgc
   real, parameter :: O2thresh_aerob   = 5.e-8   ! Above O2thresh_aerob aerob remineralization takes place
   real, parameter :: O2thresh_hypoxic = 5.e-7   ! Below O2thresh_hypoxic denitrification and sulfate reduction takes place (default model version)
   real, parameter :: NO3thresh_sulf   = 3.e-6   ! Below NO3thresh_sulf 'sufate reduction' takes place
-  real, protected :: remido           = 0.004         ! 1/d - remineralization rate (of DOM)
-  real, protected :: rem_tdoclc       = 1./(1.5*365.) ! 1/d Degradation time scale of low-C tDOC (1.5 yr)
-  real, protected :: rem_tdochc       = 1./(1.5*365.) ! 1/d Degradation time scale of high-C tDOC (1.5 yr)
+  real, protected :: remido     = 0.004         ! 1/d - remineralization rate (of DOM)
+  real, protected :: rem_tdoclc = 1./(1.5*365.) ! 1/d Degradation time scale of low-C tDOC (1.5 yr)
+  real, protected :: rem_tdochc = 1./(1.5*365.) ! 1/d Degradation time scale of high-C tDOC (1.5 yr)
   ! deep sea remineralisation constants
-  real, protected :: drempoc          = 0.025   ! 1/d Aerob remineralization rate detritus
-  real, protected :: drempoc_anaerob  = 1.25e-3 ! =0.05*drempoc - remin in sub-/anoxic environm. - not be overwritten by M4AGO
-  real, protected :: bkox_drempoc     = 1e-7    ! half-saturation constant for oxygen for ammonification (aerobic remin via drempoc)
-  real, protected :: dremopal         = 0.003   ! 1/d Dissolution rate for opal
-  real, protected :: dremcalc         = 0.00035 ! 1/d Dissolution rate for CaCO3 (applied if Omega_c < 1)
-  real, protected :: dremn2o          = 0.01    ! 1/d Remineralization rate of detritus on N2O
-  real, protected :: dremsul          = 0.005   ! 1/d Remineralization rate for sulphate reduction
-  real, protected :: POM_remin_q10    = 2.1     ! Bidle et al. 2002: Regulation of Oceanic Silicon...
-  real, protected :: opal_remin_q10   = 2.6     ! Bidle et al. 2002: Regulation of Oceanic Silicon...
-  real, protected :: POM_remin_Tref   = 10.     ! [deg C] reference temperatue for Q10-dep. POC remin
-  real, protected :: opal_remin_Tref  = 10.     ! [deg C] reference temperature for Q10-dep. opal dissolution
+  real, protected :: drempoc         = 0.025    ! 1/d Aerob remineralization rate detritus
+  real, protected :: drempoc_anaerob = 1.25e-3  ! =0.05*drempoc - remin in sub-/anoxic environm. - not be overwritten by M4AGO
+  real, protected :: bkox_drempoc    = 1e-7     ! half-saturation constant for oxygen for ammonification (aerobic remin via drempoc)
+  real, protected :: dremopal        = 0.003    ! 1/d Dissolution rate for opal
+  real, protected :: dremcalc        = 0.0007   ! 1/d Dissolution rate for CaCO3 (applied if Omega_c < 1)
+  real, protected :: dremn2o         = 0.01     ! 1/d Remineralization rate of detritus on N2O
+  real, protected :: dremsul         = 0.005    ! 1/d Remineralization rate for sulphate reduction
+  real, protected :: POM_remin_q10   = 2.1      ! Bidle et al. 2002: Regulation of Oceanic Silicon...
+  real, protected :: opal_remin_q10  = 2.6      ! Bidle et al. 2002: Regulation of Oceanic Silicon...
+  real, protected :: POM_remin_Tref  = 10.      ! [deg C] reference temperatue for Q10-dep. POC remin
+  real, protected :: opal_remin_Tref = 10.      ! [deg C] reference temperature for Q10-dep. opal dissolution
 
   !********************************************************************
   ! Extended nitrogen cycle
@@ -512,17 +512,17 @@ module mo_param_bgc
   !********************************************************************
   ! Sinking parameters
   !********************************************************************
-  real, protected :: wpoc_const  =  5.             ! m/d   Sinking speed of detritus iris : 5.
-  real, protected :: wcal_const  = 30.             ! m/d   Sinking speed of CaCO3 shell material
-  real, protected :: wopal_const = 30.             ! m/d   Sinking speed of opal iris : 60
-  real, protected :: wdust_const                             ! m/d   Sinking speed of dust
-  real, protected :: wmin        =  1.             ! m/d   minimum sinking speed
-  real, protected :: wmax        = 60.             ! m/d   maximum sinking speed
-  real, protected :: wlin        = 60./2400.       ! m/d/m constant describing incr. with depth, r/a=1.0
-  real, protected :: dustd1      = 0.0001          ! cm = 1 um, boundary between clay and silt
-  real, protected :: dustd2                       ! dust diameter squared
-  real, protected :: dustd3                       ! dust diameter cubed
-  real, protected :: dustsink                     ! sinking speed of dust (used use_AGG)
+  real, protected :: wpoc_const  =  5.              ! m/d   Sinking speed of detritus iris : 5.
+  real, protected :: wcal_const  = 30.              ! m/d   Sinking speed of CaCO3 shell material
+  real, protected :: wopal_const = 30.              ! m/d   Sinking speed of opal iris : 60
+  real, protected :: wdust_const                    ! m/d   Sinking speed of dust
+  real, protected :: wmin        =  5.              ! m/d   minimum sinking speed
+  real, protected :: wmax        = 60.              ! m/d   maximum sinking speed
+  real, protected :: wlin        = 60./2400.        ! m/d/m constant describing incr. with depth, r/a=1.0
+  real, protected :: dustd1      = 0.0001           ! cm = 1 um, boundary between clay and silt
+  real, protected :: dustd2                         ! dust diameter squared
+  real, protected :: dustd3                         ! dust diameter cubed
+  real, protected :: dustsink                       ! sinking speed of dust (used use_AGG)
 
   real, protected :: SinkExp, FractDim, Stick, cellmass
   real, protected :: fsh, fse,alow1, alow2,alow3,alar1,alar2,alar3,TSFac,TMFac
@@ -539,18 +539,18 @@ module mo_param_bgc
   !********************************************************************
   ! Note that the rates in the sediment are given in per second here!
   !
-  real, protected :: sed_O2thresh_hypoxic = 1.e-6 ! Below sed_O2thresh_hypoxic denitrification takes place (default model version)
-  real, protected :: sed_O2thresh_sulf    = 3.e-6 ! Below sed_O2thresh_sulf 'sulfate reduction' takes place
-  real, protected :: sed_NO3thresh_sulf   = 3.e-6 ! Below sed_NO3thresh_sulf 'sufate reduction' takes place
-  real, protected :: sedict      = 1.e-9          ! m2/s Molecular diffusion coefficient
-  real, protected :: silsat      = 0.001          ! kmol/m3 Silicate saturation concentration is 1 mol/m3
-  real, protected :: disso_poc   = 0.432/sec_per_day ! 1/(kmol O2/m3 s)      Degradation rate constant of POP
-  real, protected :: disso_sil   = 3.e-8          ! 1/(kmol Si(OH)4/m3 s) Dissolution rate constant of opal
-  real, protected :: disso_caco3 = 1.e-7          ! 1/(kmol CO3--/m3 s) Dissolution rate constant of CaCO3
-  real, protected :: sed_denit   = 0.01/sec_per_day  ! 1/s Denitrification rate constant of POP
-  real, protected :: sed_sulf    = 0.01/sec_per_day  ! 1/s "Sulfate reduction" rate constant of POP
-  real, protected :: sed_alpha_poc = 1./90.       ! 1/d 1/decay time for sediment moving average - assuming ~3 month memory here
-  real, protected :: sed_qual_sc = 1.             ! scaling factor for sediment quality-based remineralization
+  real, protected :: sed_O2thresh_hypoxic = 1.e-6   ! Below sed_O2thresh_hypoxic denitrification takes place (default model version)
+  real, protected :: sed_O2thresh_sulf    = 3.e-6   ! Below sed_O2thresh_sulf 'sulfate reduction' takes place
+  real, protected :: sed_NO3thresh_sulf   = 3.e-6   ! Below sed_NO3thresh_sulf 'sufate reduction' takes place
+  real, protected :: sedict      = 1.e-9            ! m2/s Molecular diffusion coefficient
+  real, protected :: silsat      = 0.001            ! kmol/m3 Silicate saturation concentration is 1 mol/m3
+  real, protected :: disso_poc   = 0.19/sec_per_day ! 1/(kmol O2/m3 s)      Degradation rate constant of POP
+  real, protected :: disso_sil   = 1.4e-7           ! 1/(kmol Si(OH)4/m3 s) Dissolution rate constant of opal
+  real, protected :: disso_caco3 = 1.e-7            ! 1/(kmol CO3--/m3 s) Dissolution rate constant of CaCO3
+  real, protected :: sed_denit   = 0.01/sec_per_day ! 1/s Denitrification rate constant of POP
+  real, protected :: sed_sulf    = 0.01/sec_per_day ! 1/s "Sulfate reduction" rate constant of POP
+  real, protected :: sed_alpha_poc = 1./90.         ! 1/d 1/decay time for sediment moving average - assuming ~3 month memory here
+  real, protected :: sed_qual_sc = 1.               ! scaling factor for sediment quality-based remineralization
   !********************************************************************
   ! Densities etc. for SEDIMENT SHIFTING
   !********************************************************************
@@ -656,7 +656,7 @@ contains
       epsher  = 0.9        ! dimensionless fraction -fraction of grazing egested
     else if (use_WLIN) then
       zinges  = 0.7        ! dimensionless fraction -assimilation efficiency
-      epsher  = 0.85       ! dimensionless fraction -fraction of grazing egested
+      epsher  = 0.75       ! dimensionless fraction -fraction of grazing egested
     else
       zinges  = 0.6        ! dimensionless fraction -assimilation efficiency
       epsher  = 0.8        ! dimensionless fraction -fraction of grazing egest
@@ -670,8 +670,8 @@ contains
       ropal  = 10.5        ! opal to organic phosphorous production ratio
       calmax = 0.20
     else if (use_WLIN) then
-      rcalc  = 33.         ! calcium carbonate to organic phosphorous production ratio
-      ropal  = 45.         ! opal to organic phosphorous production ratio
+      rcalc  =  8.         ! calcium carbonate to organic phosphorous production ratio
+      ropal  = 70.         ! opal to organic phosphorous production ratio
     else
       rcalc  = 40.         ! iris 40 !calcium carbonate to organic phosphorous production ratio
       ropal  = 30.         ! iris 25 !opal to organic phosphorous production ratio
@@ -684,11 +684,12 @@ contains
     endif
 
     if (use_dom) then
+      ! THIS SECTION POTENTIALLY NEEDS FURTHER PARAMETERS AFTER PR574 and others
       gammap      = 0.10        ! DOC_l exudation rate [day-1]
       gammaz      = 0.06        ! DOC_l excretion rate [day-1]
       wcal_const  = 33.
       wmin        = 5.
-      bkphy       = 3.5e-8
+      bkphy       = 3.5e-8 
     endif
   end subroutine ini_param_biol
 
@@ -771,7 +772,6 @@ contains
       lTO2depremin   = .true.
     endif
     if (use_M4AGO) lTO2depremin = .true.
-
   end subroutine calc_param_biol
 
   !********************************************************************
