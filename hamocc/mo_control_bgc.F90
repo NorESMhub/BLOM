@@ -74,24 +74,24 @@ module mo_control_bgc
                                                         ! or 'prognostic'
 
   ! Logical switches set via namelist config_bgc
-  logical           :: use_BROMO              = .false.
-  logical           :: use_AGG                = .false.
-  logical           :: use_WLIN               = .true.
-  logical           :: use_natDIC             = .false.
-  logical           :: use_CFC                = .false.
-  logical           :: use_cisonew            = .false.
-  logical           :: use_PBGC_OCNP_TIMESTEP = .false.
-  logical           :: use_PBGC_CK_TIMESTEP   = .false.
-  logical           :: use_FB_BGC_OCE         = .false.
-  logical           :: use_BOXATM             = .false.
-  logical           :: use_sedbypass          = .false.
-  logical           :: use_extNcycle          = .false.
-  logical           :: use_coupler_ndep       = .false.
-  logical           :: use_pref_tracers       = .true.
-  logical           :: use_shelfsea_res_time  = .false.
-  logical           :: use_sediment_quality   = .false.
-  logical           :: use_river2omip         = .false.
-  logical           :: use_dom                = .false.
+  logical           :: use_BROMO              = .false. ! Bromoforme code
+  logical           :: use_AGG                = .false. ! Aggregation scheme of Iris Kriest
+  logical           :: use_WLIN               = .true.  ! Linear increase of sinking velocity with depth - mimicking a Martin curve
+  logical           :: use_natDIC             = .false. ! natural DIC tracers
+  logical           :: use_CFC                = .false. ! CFCs
+  logical           :: use_cisonew            = .false. ! Carbon isotope code
+  logical           :: use_PBGC_OCNP_TIMESTEP = .false. ! Debugging mo_ocprod at each time step
+  logical           :: use_PBGC_CK_TIMESTEP   = .false. ! Debugging iHAMOCC at each time step
+  logical           :: use_FB_BGC_OCE         = .false. ! Interactive phytoplankton absorption
+  logical           :: use_BOXATM             = .false. ! Atmosphere in box mode (would need to be re-checked)
+  logical           :: use_sedbypass          = .false. ! By-passing sediment code (running iHAMOCC without sediment)
+  logical           :: use_extNcycle          = .false. ! Extended nitrogen cycle - with explicit NH4 and NO2 tracers and processes
+  logical           :: use_coupler_ndep       = .false. ! Receive nitrogen deposition through the coupler/mediator
+  logical           :: use_pref_tracers       = .true.  ! Run code with pre-formed tracers
+  logical           :: use_shelfsea_res_time  = .false. ! Include shelf sea residence time tracer
+  logical           :: use_sediment_quality   = .false. ! Use sediment quality code to determine aerobic remineralization rates
+  logical           :: use_river2omip         = .false. ! River2ocean MIP protocol
+  logical           :: use_dom                = .false. ! DOM classes (labile, semi-labile,semi-refractory and refractory)
 
 contains
 
