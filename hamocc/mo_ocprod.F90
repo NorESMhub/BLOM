@@ -154,7 +154,7 @@ contains
     real :: tiny_val = epsilon(1.)
     real :: zeu
     ! DOM
-    real :: exudsl,excdocsl,bacfrasl,docremsl,bacfrasr,docremsr,bacfrar,docremr
+    real :: exudsl,excdocsl,bacfrasl,docremsl,bacfrasr,docremsr,bacfrar,docremr,doclimfct
     ! sedbypass
     real :: florca,flcaca,flsil
     ! cisonew
@@ -791,6 +791,17 @@ contains
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
 
+
+    if (use_dom .and. use_river2omip) then
+      doclimfct = 1./6. * 0.33
+    else if (use_dom .and. .not. use_river2omip) then
+      doclimfct = 1./4. * 0.33
+    else if (.not. use_dom .and. use_river2omip) then
+      doclimfct = 1./3. * 0.33
+    else
+      doclimfct = 1. * 0.33
+    endif
+
     !$OMP PARALLEL DO PRIVATE(phythresh,zoothresh,sterph,sterzo,remin     &
     !$OMP  ,opalrem,aou,refra,dms_bac,pocrem,docrem,phyrem,dz,o2lim       &
     !$OMP  ,avmass,avnos,zmornos,tdoclc_rem,tdochc_rem                    &
@@ -869,26 +880,26 @@ contains
                 phyrem   = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/o2csmp)
                 !fractions of doc(s) remineralized into nutrients
                 docrem   = min(docl_remin*exp(-38.e3/(8.314*(ptho(i,j,k)+tzero)))*ocetra(i,j,k,idoc), &
-                         &     0.083*ocetra(i,j,k,ioxygen)/o2csmp)
-                       docremsl = (1.-alphasl)*min(docsl_remin*exp(-58.e3/(8.314*(ptho(i,j,k)+tzero)))*ocetra(i,j,k,idocsl),&
-                         &                  0.083*ocetra(i,j,k,ioxygen)/o2csmp)
-                       docremsr = (1.-alphasr)*min(docsr_remin*exp(-116.e3/(8.314*(ptho(i,j,k)+tzero)))*ocetra(i,j,k,idocsr),&
-                         &                  0.083*ocetra(i,j,k,ioxygen)/o2csmp)
-                       docremr  = min(docr_remin*exp(-179.e3/(8.314*(ptho(i,j,k)+tzero)))*ocetra(i,j,k,idocr),&
-                         &     0.083*ocetra(i,j,k,ioxygen)/o2csmp)
+                         &     doclimfct*ocetra(i,j,k,ioxygen)/o2csmp)
+                docremsl = (1.-alphasl)*min(docsl_remin*exp(-58.e3/(8.314*(ptho(i,j,k)+tzero)))*ocetra(i,j,k,idocsl), &
+                         &                  doclimfct*ocetra(i,j,k,ioxygen)/o2csmp)
+                docremsr = (1.-alphasr)*min(docsr_remin*exp(-116.e3/(8.314*(ptho(i,j,k)+tzero)))*ocetra(i,j,k,idocsr),&
+                         &                  doclimfct*ocetra(i,j,k,ioxygen)/o2csmp)
+                docremr  = min(docr_remin*exp(-179.e3/(8.314*(ptho(i,j,k)+tzero)))*ocetra(i,j,k,idocr),&
+                         &     doclimfct*ocetra(i,j,k,ioxygen)/o2csmp)
               else
                 pocrem = min(pocrem,                    0.33*ocetra(i,j,k,ioxygen)/o2csmp)
-                docrem = min(remido*ocetra(i,j,k,idoc), 0.33*ocetra(i,j,k,ioxygen)/o2csmp)
+                docrem = min(remido*ocetra(i,j,k,idoc), doclimfct*ocetra(i,j,k,ioxygen)/o2csmp)
                 phyrem = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/o2csmp)
               endif
 
               if (use_river2omip) then
                 tdoclc_rem = rem_tdoclc*ocetra(i,j,k,itdoc_lc)
                 tdochc_rem = rem_tdochc*ocetra(i,j,k,itdoc_hc)
-                tdoclc_rem = min(rem_tdoclc*ocetra(i,j,k,idoc), 0.33*ocetra(i,j,k,ioxygen)         &
-                           & /merge(ro2utammo_tdoclc,ro2ut_tdoclc,use_extNcycle))
-                tdochc_rem = min(rem_tdochc*ocetra(i,j,k,idoc), 0.33*ocetra(i,j,k,ioxygen)         &
-                           & /merge(ro2utammo_tdochc,ro2ut_tdochc,use_extNcycle))
+                tdoclc_rem = min(rem_tdoclc*ocetra(i,j,k,idoc), doclimfct*ocetra(i,j,k,ioxygen)    &
+                           &     /merge(ro2utammo_tdoclc,ro2ut_tdoclc,use_extNcycle))
+                tdochc_rem = min(rem_tdochc*ocetra(i,j,k,idoc), doclimfct*ocetra(i,j,k,ioxygen)    &
+                           &     /merge(ro2utammo_tdochc,ro2ut_tdochc,use_extNcycle))
                 ocetra(i,j,k,itdoc_lc) = ocetra(i,j,k,itdoc_lc) - tdoclc_rem
                 ocetra(i,j,k,itdoc_hc) = ocetra(i,j,k,itdoc_hc) - tdochc_rem
               endif
