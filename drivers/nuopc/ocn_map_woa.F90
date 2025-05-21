@@ -15,6 +15,7 @@ module ocn_map_woa
    use pio               , only : file_desc_t, iosystem_desc_t
    use pio               , only : pio_openfile, pio_closefile, pio_nowrite
    use pio               , only : pio_inq_dimid, pio_inq_dimlen
+   use mod_inicon        , only : t_woa, s_woa, depth_bnds_woa, depth_woa
    use mod_xc
 
    implicit none
@@ -22,17 +23,10 @@ module ocn_map_woa
 
    public :: map_woa
 
-   ! TODO: map first order conservative rather than bilinear
-   ! also - use the fill value as a public
-   ! Do not call this upon restart
-   ! mod_inicon not called when reading a restart file (logic set in mod_blom_init)
-   ! remove the call from HAMOCC ifdef
-   ! do not use wao18 = use woa
-
-   real(r8), public, allocatable :: t_woa(:,:,:)
-   real(r8), public, allocatable :: s_woa(:,:,:)
-   real(r8), public, allocatable :: depth_woa(:)
-   real(r8), public, allocatable :: depth_bnds_woa(:,:)
+   ! TODO:
+   ! map first order conservative rather than bilinear
+   ! use the fill value as a public
+   ! Do not call this upon restart - mod_inicon not called when reading a restart file (logic set in mod_blom_init)
 
    character(len=*), parameter :: u_FILE_u = &
       __FILE__
@@ -76,8 +70,8 @@ contains
 
       mesh_input_file = '/cluster/projects/nn9560k/matsbn/WOA_mesh/WOA_1.00_degree_ESMFmesh_20250506_cdf5.nc'
       filename_t = '/cluster/work/users/matsbn/WOA18/woa18_decav_t13_01.nc'
-      fldlist_input_t(1) = 't_an'
       filename_s = '/cluster/work/users/matsbn/WOA18/woa18_decav_s13_01.nc'
+      fldlist_input_t(1) = 't_an'
       fldlist_input_s(1) = 's_an'
 
       ! ---------------------------
@@ -96,7 +90,7 @@ contains
       call pio_closefile(pioid)
 
       ! ---------------------------
-      ! Allocate module arrays
+      ! Allocate module arrays in mod_inicon.F90
       ! ---------------------------
 
       allocate(t_woa(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nlev), &
