@@ -62,8 +62,8 @@ module ocn_comp_nuopc
 #ifdef HAMOCC
    use mo_control_bgc,    only: use_BROMO
    use ocn_stream_dust,   only: ocn_stream_dust_init, ocn_stream_dust_interp
-   use ocn_map_woa18,     only: map_woa18
    use mod_forcing,       only: use_stream_dust
+   use ocn_map_river_nutrients, only : map_river_nutrients
 #endif
 
    implicit none
@@ -756,7 +756,7 @@ contains
 
 #ifdef HAMOCC
       ! map woa18 to blom mesh
-      call map_woa18(Emesh, rc)
+      call map_river_nutrients(Emesh, rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
 #endif
 
