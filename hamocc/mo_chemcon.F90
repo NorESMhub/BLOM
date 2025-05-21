@@ -166,7 +166,7 @@ module mo_chemcon
   real, parameter :: mw_nitrogen = 14.00674  ! [g/mol N]   nitrogen mol-weight as defined by CAM
   real, parameter :: mw_nh3      = 17.028940 ! [g/mol NH3] ammonia mol-weight as defined by CAM
   real, parameter :: mw_n2o      = 44.012880 ! [g/mol N2O] nitrous oxide mol-weight as defined by CAM
-  real, parameter :: mw_fe       = 55.85     ! [g/mol Fe]  iron mol-385911weight
+  real, parameter :: mw_fe       = 55.85     ! [g/mol Fe]  iron mol-weight
 
   !     -----------------------------------------------------------------
   !     Constants needed for pressure correction of equilibrium constants
