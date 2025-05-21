@@ -19,12 +19,10 @@
 ! ------------------------------------------------------------------------------
 
 module mod_inicon
-
-  ! ------------------------------------------------------------------
-  ! This module contains variables and procedures related to advection
-  ! of layer pressure thickness and tracers by calling incremental
-  ! remapping routines.
-  ! ------------------------------------------------------------------
+! ------------------------------------------------------------------------------
+! This module contains variables and procedures related to advection of layer
+! pressure thickness and tracers by calling incremental remapping routines.
+! ------------------------------------------------------------------------------
 
   use dimensions,    only: idm, jdm, kdm, itdm, jtdm
   use mod_types,     only: r8
@@ -76,37 +74,38 @@ module mod_inicon
 
   private
 
+  ! Arrays and variables that are either allocated and specified in the NUOPC
+  ! interface or internally in this module.
   real(r8), allocatable, dimension(:,:,:) :: t_woa, s_woa
   real(r8), allocatable, dimension(:,:) :: depth_bnds_woa
   real(r8), allocatable, dimension(:) :: depth_woa
+  real(r8) :: t_woa_fval, s_woa_fval
+  integer :: kdm_woa
 
   ! Variables to be set in namelist:
   character(len = fnmlen) :: &
-    icfile          ! Name of file containing initial conditions, that is
-                    ! either a valid restart file or file with climatological
-                    ! based initial conditions.
+    icfile                       ! Name of file containing initial conditions,
+                                 ! that is either a valid restart file or file
+                                 ! with climatological based initial conditions.
   logical :: &
     woa_nuopc_provided = .false. ! If true, WOA climatology has been provided
-                                 ! via NUOPC (not supported yet!).
-
-! real(r8), external :: gsw_p_from_z, gsw_sa_from_sp, gsw_pt0_from_t
+                                 ! via NUOPC.
 
   public :: icfile, woa_nuopc_provided, t_woa, s_woa, &
-            depth_bnds_woa, depth_woa, inicon
+            depth_bnds_woa, depth_woa, t_woa_fval, s_woa_fval, kdm_woa, &
+            inicon
 
 contains
 
-  ! ------------------------------------------------------------------
+  ! ----------------------------------------------------------------------------
   ! Private procedures.
-  ! ------------------------------------------------------------------
+  ! ----------------------------------------------------------------------------
 
   function getpl(th,s,phiu,phil,pup) result(plo)
-
-    ! ------------------------------------------------------------------
-    ! Get lower pressure interface of a layer knowing the temperature,
-    ! salinity of the layer and the geopotential at upper and lower
-    ! interface.
-    ! ------------------------------------------------------------------
+  ! ----------------------------------------------------------------------------
+  ! Get lower pressure interface of a layer knowing the temperature, salinity of
+  ! the layer and the geopotential at upper and lower interface.
+  ! ----------------------------------------------------------------------------
 
     ! Arguments
     real(r8), intent(in) :: &
@@ -136,7 +135,209 @@ contains
 
   end function getpl
 
-  ! ------------------------------------------------------------------
+  subroutine read_regridded_woa
+  ! ----------------------------------------------------------------------------
+  ! Read WOA climatology horizontally regridded onto the model grid.
+  ! ----------------------------------------------------------------------------
+
+    ! Local variables.
+    real(r8), dimension(itdm,jtdm) :: tmp2d
+    integer, dimension(3) :: istart, icount
+    integer :: errstat, ncid, dimid, varid, i, j, k
+
+    if (mnproc == 1) then
+
+      write(lp,*) 'reading WOA climatology from '//trim(icfile)
+
+      ! Open netCDF file.
+      errstat = nf90_open(icfile, nf90_nowrite, ncid)
+      if (errstat /= nf90_noerr) then
+        write(lp,*) 'nf90_open: '//trim(icfile)//': '//nf90_strerror(errstat)
+        call xchalt('(read_regridded_woa)')
+               stop '(read_regridded_woa)'
+      endif
+
+      ! Check dimensions.
+      errstat = nf90_inq_dimid(ncid, 'x', dimid)
+      if (errstat /= nf90_noerr) then
+        write(lp,*) 'nf90_inq_dimid: x: '//nf90_strerror(errstat)
+        call xchalt('(read_regridded_woa)')
+               stop '(read_regridded_woa)'
+      endif
+      errstat = nf90_inquire_dimension(ncid, dimid, len = i)
+      if (errstat /= nf90_noerr) then
+        write(lp,*) 'nf90_inquire_dimension: x: '//nf90_strerror(errstat)
+        call xchalt('(read_regridded_woa)')
+               stop '(read_regridded_woa)'
+      endif
+      errstat = nf90_inq_dimid(ncid, 'y', dimid)
+      if (errstat /= nf90_noerr) then
+        write(lp,*) 'nf90_inq_dimid: y: '//nf90_strerror(errstat)
+        call xchalt('(read_regridded_woa)')
+               stop '(read_regridded_woa)'
+      endif
+      errstat = nf90_inquire_dimension(ncid, dimid, len = j)
+      if (errstat /= nf90_noerr) then
+        write(lp,*) 'nf90_inquire_dimension: y: '//nf90_strerror(errstat)
+        call xchalt('(read_regridded_woa)')
+               stop '(read_regridded_woa)'
+      endif
+      if ((nreg == 2 .and. (i /= itdm .or. j /= jtdm-1)) .or. &
+          (nreg /= 2 .and. (i /= itdm .or. j /= jtdm  ))) then
+        write (lp,*) 'wrong dimensions in '//trim(icfile)
+        call xchalt('(read_regridded_woa)')
+               stop '(read_regridded_woa)'
+      endif
+
+      ! Get depth dimension.
+      errstat = nf90_inq_dimid(ncid, 'depth', dimid)
+      if (errstat /= nf90_noerr) then
+        write(lp,*) 'nf90_inq_dimid: depth: '//nf90_strerror(errstat)
+        call xchalt('(read_regridded_woa)')
+               stop '(read_regridded_woa)'
+      endif
+      errstat = nf90_inquire_dimension(ncid, dimid, len = kdm_woa)
+      if (errstat /= nf90_noerr) then
+        write(lp,*) 'nf90_inquire_dimension: depth: '//nf90_strerror(errstat)
+        call xchalt('(read_regridded_woa)')
+               stop '(read_regridded_woa)'
+      endif
+
+      ! Set start and count vectors for reading horizontal slices of data.
+      istart(1) = 1
+      istart(2) = 1
+      icount(1) = itdm
+      if (nreg == 2) then
+        icount(2) = jtdm - 1
+      else
+        icount(2) = jtdm
+      endif
+      icount(3) = 1
+
+    endif
+
+    ! Allocate arrays to receive data from file.
+    call xcbcst(kdm_woa)
+    allocate(t_woa(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm_woa), &
+             s_woa(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm_woa), &
+             depth_woa(kdm_woa), &
+             depth_bnds_woa(2,kdm_woa), &
+             stat = errstat)
+    if (errstat /= 0) then
+      write(lp,*) 'Failed to allocate WOA arrays!'
+      call xchalt('(read_regridded_woa)')
+             stop '(read_regridded_woa)'
+    endif
+
+    ! Read in situ temperature climatology.
+
+    if (mnproc == 1) then
+      errstat = nf90_inq_varid(ncid, 't_an', varid)
+      if (errstat /= nf90_noerr) then
+        write(lp,*) 'nf90_inq_varid: t_an: '//nf90_strerror(errstat)
+        call xchalt('(read_regridded_woa)')
+               stop '(read_regridded_woa)'
+      endif
+      errstat = nf90_get_att(ncid, varid, '_FillValue', t_woa_fval)
+      if (errstat /= nf90_noerr) then
+        write(lp,*) 'nf90_get_att: t_an: _FillValue: '//nf90_strerror(errstat)
+        call xchalt('(read_regridded_woa)')
+               stop '(read_regridded_woa)'
+      endif
+    endif
+    call xcbcst(t_woa_fval)
+
+    do k = 1, kdm_woa
+      if (mnproc == 1) then
+        istart(3) = k
+        errstat = nf90_get_var(ncid, varid, tmp2d, istart, icount)
+        if (errstat /= nf90_noerr) then
+           write(lp,*) 'nf90_get_var: t_an: '//nf90_strerror(errstat)
+           call xchalt('(read_regridded_woa)')
+                  stop '(read_regridded_woa)'
+        endif
+      endif
+      call xcaput(tmp2d, t_woa(1-nbdy,1-nbdy,k), 1)
+    enddo
+
+    ! Read salinity climatology.
+
+    if (mnproc == 1) then
+      errstat = nf90_inq_varid(ncid, 's_an', varid)
+      if (errstat /= nf90_noerr) then
+        write(lp,*) 'nf90_inq_varid: s_an: '//nf90_strerror(errstat)
+        call xchalt('(read_regridded_woa)')
+               stop '(read_regridded_woa)'
+      endif
+      errstat = nf90_get_att(ncid, varid, '_FillValue', s_woa_fval)
+      if (errstat /= nf90_noerr) then
+        write(lp,*) 'nf90_get_att: s_an: _FillValue: '//nf90_strerror(errstat)
+        call xchalt('(read_regridded_woa)')
+               stop '(read_regridded_woa)'
+      endif
+    endif
+    call xcbcst(s_woa_fval)
+
+    do k = 1, kdm_woa
+      if (mnproc == 1) then
+        istart(3) = k
+        errstat = nf90_get_var(ncid, varid, tmp2d, istart, icount)
+        if (errstat /= nf90_noerr) then
+          write(lp,*) 'nf90_get_var: s_an: '//nf90_strerror(errstat)
+          call xchalt('(read_regridded_woa)')
+                 stop '(read_regridded_woa)'
+        endif
+      endif
+      call xcaput(tmp2d, s_woa(1-nbdy,1-nbdy,k), 1)
+    enddo
+
+    ! Read depth and depth_bnds arrays.
+    if (mnproc == 1) then
+      errstat = nf90_inq_varid(ncid, 'depth', varid)
+      if (errstat /= nf90_noerr) then
+        write(lp,*) 'nf90_inq_varid: depth: '//nf90_strerror(errstat)
+        call xchalt('(read_regridded_woa)')
+               stop '(read_regridded_woa)'
+      endif
+      errstat = nf90_get_var(ncid, varid, depth_woa)
+      if (errstat /= nf90_noerr) then
+        write(lp,*) 'nf90_get_var: depth: '//nf90_strerror(errstat)
+        call xchalt('(read_regridded_woa)')
+               stop '(read_regridded_woa)'
+      endif
+      errstat = nf90_inq_varid(ncid, 'depth_bnds', varid)
+      if (errstat /= nf90_noerr) then
+        write(lp,*) 'nf90_inq_varid: depth_bnds: '//nf90_strerror(errstat)
+        call xchalt('(read_regridded_woa)')
+               stop '(read_regridded_woa)'
+      endif
+      errstat = nf90_get_var(ncid, varid, depth_bnds_woa)
+      if (errstat /= nf90_noerr) then
+        write(lp,*) 'nf90_get_var: depth_bnds: '//nf90_strerror(errstat)
+        call xchalt('(read_regridded_woa)')
+               stop '(read_regridded_woa)'
+      endif
+    endif
+    call xcbcst(depth_woa)
+    call xcbcst(depth_bnds_woa(1,:))
+    call xcbcst(depth_bnds_woa(2,:))
+
+    ! Close file.
+    if (mnproc == 1) then
+      errstat = nf90_close(ncid)
+      if (errstat /= nf90_noerr) then
+        write(lp,*) 'nf90_close: '//trim(icfile)//': '//nf90_strerror(errstat)
+        call xchalt('(read_regridded_woa)')
+               stop '(read_regridded_woa)'
+      endif
+    endif
+
+    if (nreg == 2) then
+      call xctilr(t_woa, 1, kdm_woa, 0,0, halo_ps)
+      call xctilr(s_woa, 1, kdm_woa, 0,0, halo_ps)
+    endif
+
+  end subroutine read_regridded_woa
 
   subroutine inicon_woa_file
   ! ----------------------------------------------------------------------------
@@ -146,17 +347,14 @@ contains
   ! ----------------------------------------------------------------------------
 
     ! Local variables.
-    real(r8), dimension(itdm,jtdm) :: tmp2d
     real(r8), allocatable, dimension(:) :: z_src_ref, z_src, sp_src, pt_src
     real(r8), dimension(kdm+1) :: z_dst_ref, z_dst
     real(r8), dimension(kdm) :: pt_dst, sp_dst
-    real(r8) :: t_woa_fval, s_woa_fval, t_woa_mval, s_woa_mval, &
-                rk_woa, dk_woa, p_midlev, sa
-    integer, dimension(3) :: istart, icount
+    real(r8) :: t_woa_mval, s_woa_mval, rk_woa, dk_woa, p_midlev, sa
     type(recon_grd_struct) :: rcgs
     type(recon_src_struct) :: pt_rcss, sp_rcss
     type(remap_struct) :: rms
-    integer :: errstat, ncid, dimid, varid, kdm_woa, k_woa, i, j, k, l
+    integer :: errstat, k_woa, i, j, k, l
     logical :: filling_failed
 
     if (trim(sigref_spec) /= 'namelist') then
@@ -173,212 +371,11 @@ contains
              stop '(inicon_woa_file)'
     endif
 
-    if (.not. woa_nuopc_provided) then
+    ! If WOA climatology is not provided via NUOPC, read climatology that has
+    ! been horizontally regridded onto the model grid.
+    if (.not. woa_nuopc_provided) call read_regridded_woa
 
-      ! ------------------------------------------------------------------------
-      ! Read WOA climatology horizontally regridded onto the model grid.
-      ! ------------------------------------------------------------------------
-
-      if (mnproc == 1) then
-
-        write(lp,*) 'reading WOA climatology from '//trim(icfile)
-
-        ! Open netCDF file.
-        errstat = nf90_open(icfile, nf90_nowrite, ncid)
-        if (errstat /= nf90_noerr) then
-          write(lp,*) 'nf90_open: '//trim(icfile)//': '//nf90_strerror(errstat)
-          call xchalt('(inicon_woa_file)')
-                 stop '(inicon_woa_file)'
-        endif
-
-        ! Check dimensions.
-        errstat = nf90_inq_dimid(ncid, 'x', dimid)
-        if (errstat /= nf90_noerr) then
-          write(lp,*) 'nf90_inq_dimid: x: '//nf90_strerror(errstat)
-          call xchalt('(inicon_woa_file)')
-                 stop '(inicon_woa_file)'
-        endif
-        errstat = nf90_inquire_dimension(ncid, dimid, len = i)
-        if (errstat /= nf90_noerr) then
-          write(lp,*) 'nf90_inquire_dimension: x: '//nf90_strerror(errstat)
-          call xchalt('(inicon_woa_file)')
-                 stop '(inicon_woa_file)'
-        endif
-        errstat = nf90_inq_dimid(ncid, 'y', dimid)
-        if (errstat /= nf90_noerr) then
-          write(lp,*) 'nf90_inq_dimid: y: '//nf90_strerror(errstat)
-          call xchalt('(inicon_woa_file)')
-                 stop '(inicon_woa_file)'
-        endif
-        errstat = nf90_inquire_dimension(ncid, dimid, len = j)
-        if (errstat /= nf90_noerr) then
-          write(lp,*) 'nf90_inquire_dimension: y: '//nf90_strerror(errstat)
-          call xchalt('(inicon_woa_file)')
-                 stop '(inicon_woa_file)'
-        endif
-        if ((nreg == 2 .and. (i /= itdm .or. j /= jtdm-1)) .or. &
-            (nreg /= 2 .and. (i /= itdm .or. j /= jtdm  ))) then
-          write (lp,*) 'wrong dimensions in '//trim(icfile)
-          call xchalt('(inicon_woa_file)')
-                 stop '(inicon_woa_file)'
-        endif
-
-        ! Get depth dimension.
-        errstat = nf90_inq_dimid(ncid, 'depth', dimid)
-        if (errstat /= nf90_noerr) then
-          write(lp,*) 'nf90_inq_dimid: depth: '//nf90_strerror(errstat)
-          call xchalt('(inicon_woa_file)')
-                 stop '(inicon_woa_file)'
-        endif
-        errstat = nf90_inquire_dimension(ncid, dimid, len = kdm_woa)
-        if (errstat /= nf90_noerr) then
-          write(lp,*) 'nf90_inquire_dimension: depth: '//nf90_strerror(errstat)
-          call xchalt('(inicon_woa_file)')
-                 stop '(inicon_woa_file)'
-        endif
-
-        ! Set start and count vectors for reading horizontal slices of data.
-        istart(1) = 1
-        istart(2) = 1
-        icount(1) = itdm
-        if (nreg == 2) then
-          icount(2) = jtdm - 1
-        else
-          icount(2) = jtdm
-        endif
-        icount(3) = 1
-
-      endif
-
-      ! Allocate arrays to receive data from file.
-      call xcbcst(kdm_woa)
-      allocate(t_woa(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm_woa), &
-               s_woa(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm_woa), &
-               depth_woa(kdm_woa), &
-               depth_bnds_woa(2,kdm_woa), &
-               stat = errstat)
-      if (errstat /= 0) then
-        write(lp,*) 'Failed to allocate WOA arrays!'
-        call xchalt('(inicon_woa_file)')
-               stop '(inicon_woa_file)'
-      endif
-
-      ! Read in situ temperature climatology.
-
-      if (mnproc == 1) then
-        errstat = nf90_inq_varid(ncid, 't_an', varid)
-        if (errstat /= nf90_noerr) then
-          write(lp,*) 'nf90_inq_varid: t_an: '//nf90_strerror(errstat)
-          call xchalt('(inicon_woa_file)')
-                 stop '(inicon_woa_file)'
-        endif
-        errstat = nf90_get_att(ncid, varid, '_FillValue', t_woa_fval)
-        if (errstat /= nf90_noerr) then
-          write(lp,*) 'nf90_get_att: t_an: _FillValue: '//nf90_strerror(errstat)
-          call xchalt('(inicon_woa_file)')
-                 stop '(inicon_woa_file)'
-        endif
-      endif
-      call xcbcst(t_woa_fval)
-
-      do k = 1, kdm_woa
-        if (mnproc == 1) then
-          istart(3) = k
-          errstat = nf90_get_var(ncid, varid, tmp2d, istart, icount)
-          if (errstat /= nf90_noerr) then
-             write(lp,*) 'nf90_get_var: t_an: '//nf90_strerror(errstat)
-             call xchalt('(inicon_woa_file)')
-                    stop '(inicon_woa_file)'
-          endif
-        endif
-        call xcaput(tmp2d, t_woa(1-nbdy,1-nbdy,k), 1)
-      enddo
-
-      ! Read salinity climatology.
-
-      if (mnproc == 1) then
-        errstat = nf90_inq_varid(ncid, 's_an', varid)
-        if (errstat /= nf90_noerr) then
-          write(lp,*) 'nf90_inq_varid: s_an: '//nf90_strerror(errstat)
-          call xchalt('(inicon_woa_file)')
-                 stop '(inicon_woa_file)'
-        endif
-        errstat = nf90_get_att(ncid, varid, '_FillValue', s_woa_fval)
-        if (errstat /= nf90_noerr) then
-          write(lp,*) 'nf90_get_att: s_an: _FillValue: '//nf90_strerror(errstat)
-          call xchalt('(inicon_woa_file)')
-                 stop '(inicon_woa_file)'
-        endif
-      endif
-      call xcbcst(s_woa_fval)
-
-      do k = 1, kdm_woa
-        if (mnproc == 1) then
-          istart(3) = k
-          errstat = nf90_get_var(ncid, varid, tmp2d, istart, icount)
-          if (errstat /= nf90_noerr) then
-            write(lp,*) 'nf90_get_var: s_an: '//nf90_strerror(errstat)
-            call xchalt('(inicon_woa_file)')
-                   stop '(inicon_woa_file)'
-          endif
-        endif
-        call xcaput(tmp2d, s_woa(1-nbdy,1-nbdy,k), 1)
-      enddo
-
-      ! Read depth and depth_bnds arrays.
-      if (mnproc == 1) then
-        errstat = nf90_inq_varid(ncid, 'depth', varid)
-        if (errstat /= nf90_noerr) then
-          write(lp,*) 'nf90_inq_varid: depth: '//nf90_strerror(errstat)
-          call xchalt('(inicon_woa_file)')
-                 stop '(inicon_woa_file)'
-        endif
-        errstat = nf90_get_var(ncid, varid, depth_woa)
-        if (errstat /= nf90_noerr) then
-          write(lp,*) 'nf90_get_var: depth: '//nf90_strerror(errstat)
-          call xchalt('(inicon_woa_file)')
-                 stop '(inicon_woa_file)'
-        endif
-        errstat = nf90_inq_varid(ncid, 'depth_bnds', varid)
-        if (errstat /= nf90_noerr) then
-          write(lp,*) 'nf90_inq_varid: depth_bnds: '//nf90_strerror(errstat)
-          call xchalt('(inicon_woa_file)')
-                 stop '(inicon_woa_file)'
-        endif
-        errstat = nf90_get_var(ncid, varid, depth_bnds_woa)
-        if (errstat /= nf90_noerr) then
-          write(lp,*) 'nf90_get_var: depth_bnds: '//nf90_strerror(errstat)
-          call xchalt('(inicon_woa_file)')
-                 stop '(inicon_woa_file)'
-        endif
-      endif
-      call xcbcst(depth_woa)
-      call xcbcst(depth_bnds_woa(1,:))
-      call xcbcst(depth_bnds_woa(2,:))
-
-      ! Close file.
-      if (mnproc == 1) then
-        errstat = nf90_close(ncid)
-        if (errstat /= nf90_noerr) then
-          write(lp,*) 'nf90_close: '//trim(icfile)//': '//nf90_strerror(errstat)
-          call xchalt('(inicon_woa_file)')
-                 stop '(inicon_woa_file)'
-        endif
-      endif
-
-      if (nreg == 2) then
-        call xctilr(t_woa, 1, kdm_woa, 0,0, halo_ps)
-        call xctilr(s_woa, 1, kdm_woa, 0,0, halo_ps)
-      endif
-
-    endif
-
-    ! --------------------------------------------------------------------------
-    ! With WOA climatology available, extrapolate to missing data values and
-    ! vertically remap to arrays with model dimenions.
-    ! --------------------------------------------------------------------------
-
-    ! ALlocate 1D WOA arrays.
+    ! Allocate 1D WOA arrays.
     allocate(z_src_ref(kdm_woa+1), &
              z_src(kdm_woa+1), &
              sp_src(kdm_woa), &
@@ -457,7 +454,8 @@ contains
     sp_rcss%pc_left_bndr = .true.
     sp_rcss%pc_right_bndr = .true.
 
-    ! Process all columns.
+    ! Process all columns to convert from in situ to potential temperature and
+    ! vertically remap to array with model dimensions.
 
     do j = 1, jj
       do l = 1, isp(j)
@@ -574,7 +572,7 @@ contains
 
       write(lp,*) 'reading layer initial condition from '//trim(icfile)
 
-      ! Open netcdf file
+      ! Open netcdf file.
       status = nf90_open(icfile,nf90_nowrite,ncid)
       if (status /= nf90_noerr) then
         write(lp,'(4a)') ' nf90_open: ',trim(icfile),': ', &
@@ -583,7 +581,7 @@ contains
         stop '(inicon_layer_file)'
       end if
 
-      ! Check dimensions
+      ! Check dimensions.
       status = nf90_inq_dimid(ncid,'x',dimid)
       if (status /= nf90_noerr) then
         write(lp,'(2a)') ' nf90_inq_dimid: x: ',nf90_strerror(status)
@@ -642,7 +640,7 @@ contains
     count(2) = jtdm
     count(3) = 1
 
-    ! Read reference potential density
+    ! Read reference potential density.
     if ( vcoord_tag == vcoord_isopyc_bulkml .or. &
         (vcoord_tag == vcoord_cntiso_hybrid .and. &
          trim(sigref_spec) == 'inicon')) then
@@ -670,7 +668,7 @@ contains
       end do
     end if
 
-    ! Read potential temperature
+    ! Read potential temperature.
     if (mnproc == 1) then
       status = nf90_inq_varid(ncid,'temp',varid)
       if (status /= nf90_noerr) then
@@ -694,7 +692,7 @@ contains
       call xcaput(tmp2d,temp(1-nbdy,1-nbdy,k),1)
     end do
 
-    ! Read salinity
+    ! Read salinity.
     if (mnproc == 1) then
       status = nf90_inq_varid(ncid,'saln',varid)
       if (status /= nf90_noerr) then
@@ -718,7 +716,7 @@ contains
       call xcaput(tmp2d,saln(1-nbdy,1-nbdy,k),1)
     end do
 
-    ! Read layer thickness
+    ! Read layer thickness.
     if (mnproc == 1) then
       status = nf90_inq_varid(ncid,'dz',varid)
       if (status /= nf90_noerr) then
@@ -790,7 +788,7 @@ contains
 
     end if
 
-    ! Construct interface depths [m] from layer thicknesses [m]
+    ! Construct interface depths [m] from layer thicknesses [m].
     !$omp parallel do private(l,i)
     do j = 1,jj
       do l = 1,isp(j)
@@ -835,7 +833,7 @@ contains
     end do
     !$omp end parallel do
 
-    ! compute layer interface geopotential
+    ! Compute layer interface geopotential.
     !$omp parallel do private(k,l,i)
     do j = 1,jj
       do k = 1,kk+1
@@ -891,6 +889,14 @@ contains
       endif
       call xcbcst(woa_icfile)
       call xcbcst(layer_icfile)
+      if (.not. (woa_icfile .or. layer_icfile)) then
+        if (mnproc == 1) then
+          write(lp,*) 'inicon_file: cannot recognize type of initial '// &
+                      'condition file '//trim(icfile)
+        endif
+        call xcstop('(inicon_file)')
+               stop '(inicon_file)'
+      endif
     endif
 
     ! Obtain initial conditions based on the source type.
@@ -900,8 +906,7 @@ contains
       call inicon_layer_file
     else
       if (mnproc == 1) then
-        write(lp,*) 'inicon_file: cannot recognize type of initial '// &
-                    'condition file '//trim(icfile)
+        write(lp,*) 'inicon_file: no valid source of initial conditions'
       endif
       call xcstop('(inicon_file)')
              stop '(inicon_file)'
@@ -909,23 +914,23 @@ contains
 
   end subroutine inicon_file
 
-  ! ------------------------------------------------------------------
+  ! ----------------------------------------------------------------------------
   ! Public procedures.
-  ! ------------------------------------------------------------------
+  ! ----------------------------------------------------------------------------
 
   subroutine inicon
-  ! ------------------------------------------------------------------
-  ! Define initial conditions
-  ! ------------------------------------------------------------------
+  ! ----------------------------------------------------------------------------
+  ! Define initial conditions.
+  ! ----------------------------------------------------------------------------
 
     ! Local variables
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: tfrz
     integer :: i,j,k,l,regrid_method_tag_orig
     real :: q,tsfac,dps
 
-    ! ------------------------------------------------------------------
-    ! Define layer interface heights and layer temperature and salinity
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Define layer interface heights and layer temperature and salinity.
+    ! --------------------------------------------------------------------------
 
     select case (trim(expcnf))
       case ('cesm', 'ben02clim', 'ben02syn', 'noforcing', 'single_column')
@@ -947,15 +952,15 @@ contains
         stop '(inicon)'
     end select
 
-    ! ------------------------------------------------------------------
-    ! Set minimum physical temperature for each isopycnic layer
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Set minimum physical temperature for each isopycnic layer.
+    ! --------------------------------------------------------------------------
 
     call settemmin
 
-    ! ------------------------------------------------------------------
-    ! Initialize configuration specific variables
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Initialize configuration specific variables.
+    ! --------------------------------------------------------------------------
 
     select case (trim(expcnf))
     case ('cesm')
@@ -964,11 +969,10 @@ contains
       call inicon_ben02
     end select
 
-    ! ------------------------------------------------------------------
-    ! Make sure layer temperature is greater than the lower physical
-    ! bound and make temperature, salinity, and potential density
-    ! variables consistent.
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Make sure layer temperature is greater than the lower physical bound and
+    ! make temperature, salinity, and potential density variables consistent.
+    ! --------------------------------------------------------------------------
 
     select case (vcoord_tag)
 
@@ -1025,9 +1029,9 @@ contains
            (sigmar(itest,jtest,k),k = 1,kk)
     end if
 
-    ! ------------------------------------------------------------------
-    ! Find layer interface pressure
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Find layer interface pressure.
+    ! --------------------------------------------------------------------------
 
     !$omp parallel do private(l,i,k)
     do j = 1,jj
@@ -1050,9 +1054,9 @@ contains
     call xctilr(p, 1,kk+1, 2,2, halo_ps)
     call xctilr(phi(1-nbdy,1-nbdy,kk+1), 1,1, 1,1, halo_ps)
 
-    ! ------------------------------------------------------------------
-    ! Set layer thickness and bottom pressure
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Set layer thickness and bottom pressure.
+    ! --------------------------------------------------------------------------
 
     !$omp parallel do private(k,l,i)
     do j = 0,jj+1
@@ -1170,9 +1174,9 @@ contains
     end do
     !$omp end parallel do
 
-    ! ------------------------------------------------------------------
-    ! Initialize potential vorticity of barotropic flow
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Initialize potential vorticity of barotropic flow.
+    ! --------------------------------------------------------------------------
 
     !$omp parallel do private(l,i,q)
     do j = 0,jj
@@ -1213,9 +1217,9 @@ contains
     end do
     !$omp end parallel do
 
-    ! ------------------------------------------------------------------
-    ! separate baroclinic and barotropic velocity components
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Separate baroclinic and barotropic velocity components.
+    ! --------------------------------------------------------------------------
 
     !$omp parallel do private(l,i,k)
     do j = 1,jj
@@ -1327,9 +1331,9 @@ contains
     end do
     !$omp end parallel do
 
-    ! ------------------------------------------------------------------
-    ! Initialize fields related to the pressure gradient force
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Initialize fields related to the pressure gradient force.
+    ! --------------------------------------------------------------------------
 
     call pgforc(2,1,kk,0,kk+1,1)
 
@@ -1364,9 +1368,9 @@ contains
     end do
     !$omp end parallel do
 
-    ! ------------------------------------------------------------------
-    ! Define first physical interior layer
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Define first physical interior layer.
+    ! --------------------------------------------------------------------------
 
     !$omp parallel do private(l,i,k,dps)
     do j = 1,jj
@@ -1395,9 +1399,9 @@ contains
     end do
     !$omp end parallel do
 
-    ! ------------------------------------------------------------------
-    ! Set other time level layer thicknesses
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Set other time level layer thicknesses.
+    ! --------------------------------------------------------------------------
 
     !$omp parallel do private(k,l,i)
     do j = 1,jj
