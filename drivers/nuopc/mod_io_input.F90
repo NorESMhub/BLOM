@@ -465,6 +465,18 @@ contains
       nullify(compdof)
       nullify(compdof3d)
 
+      ! query the variable fldname in the input dataset for its dimensions
+      rcode = pio_inq_varid(pioid, trim(fldname), varid)
+      rcode = pio_inq_varndims(pioid, varid, ndims)
+
+      ! allocate memory for dimids and dimlens
+      allocate(dimids(ndims))
+      allocate(dimlens(ndims))
+      rcode = pio_inq_vardimid(pioid, varid, dimids(1:ndims))
+      do n = 1, ndims
+         rcode = pio_inq_dimlen(pioid, dimids(n), dimlens(n))
+      end do
+
       ! determine compdof for input data
       call ESMF_MeshGet(mesh_data, elementdistGrid=distGrid, rc=rc)
       if (ChkErr(rc,__LINE__,u_FILE_u)) return
