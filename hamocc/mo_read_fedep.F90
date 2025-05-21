@@ -59,6 +59,7 @@ contains
     use mod_xc,             only: mnproc,xchalt
     use mo_control_bgc,     only: io_stdo_bgc
     use mo_param_bgc,       only: sec_per_day,frac_ironindust,frac_soliron,fetune
+    use mo_chemcon,         only: mw_fe
     use mo_netcdf_bgcrw,    only: read_netcdf_var
 
     ! Arguments
@@ -113,28 +114,28 @@ contains
       case('mahw2006')
         ! Dust/iron deposition using the Mahowald et al. 2006 model data.
         ! The variable 'DUST' contains the total dust-flux in kg/m2/month; this
-        ! is converted to kmol/m2/s of bioavailable (soluble) iron using the molar 
-        ! weight of iron (55.85) and assuming that dust contains a fraction 
-        ! 'frac_ironindust' of iron, and that soluble is a fraction 'frac_soliron' of 
+        ! is converted to kmol fe/m2/s of bioavailable (soluble) iron using the molar 
+        ! weight of iron (mw_fe=55.85) and assuming that dust contains a fraction 
+        ! 'frac_ironindust' of iron, and that soluble iron is a fraction 'frac_soliron' of 
         ! total iron. A tuning factor 'fetune' is applied to the soluble fraction of iron.
         ! Note the conversion kg/m2/month -> kg/m2/s is assuming 30 days per month.	  
         call read_netcdf_var(ncid,'DUST',dustflx_tot(1,1,1),12,0,0)
         dustflx_tot(:,:,:) = dustflx_tot(:,:,:)/30.0/sec_per_day
-        dustflx_sfe(:,:,:) = dustflx_tot(:,:,:)*frac_ironindust*frac_soliron/55.85*fetune
+        dustflx_sfe(:,:,:) = dustflx_tot(:,:,:)*frac_ironindust*frac_soliron/mw_fe*fetune
 
       case('GESAMP2018')
         ! Iron deposition using data from the GESAMP atmospheric iron deposition
         ! model intercomparison study (Myriokefalitakis et al. 2018, 
         ! doi:10.5194/bg-15-6659-2018).
         ! The variables 'TFe' and 'LFe' contain the total and soluble (labile) iron 
-        ! fluxes in kg/m2/s; this is converted to kmol/m2/s using the molar weight of   
-        ! iron (55.85). A tuning factor 'fetune' is applied to the soluble fraction of iron.
+        ! fluxes in kg/m2/s; soluble iron is converted to kmol Fe/m2/s using the molar weight of   
+        ! iron (mw_fe=55.85). A tuning factor 'fetune' is applied to the soluble fraction of iron.
         ! The total dust-flux is 'back-calculated' from total iron assuming a fixed fraction
-        ! of iron inn dust.
+        ! of iron in dust.
         call read_netcdf_var(ncid,'TFe',dustflx_tot(1,1,1),12,0,0)
         call read_netcdf_var(ncid,'LFe',dustflx_sfe(1,1,1),12,0,0)
         dustflx_tot(:,:,:) = dustflx_tot(:,:,:)/frac_ironindust
-        dustflx_sfe(:,:,:) = dustflx_sfe(:,:,:)/55.85*fetune
+        dustflx_sfe(:,:,:) = dustflx_sfe(:,:,:)/mw_fe*fetune
 
       case default
         if (mnproc==1) then
@@ -187,6 +188,7 @@ contains
     use mo_output_forcing  , only: output_forcing
     use mo_param1_bgc      , only: itdust,isfe,ndust
     use mo_param_bgc       , only: sec_per_day,frac_ironindust,frac_soliron,fetune
+    use mo_chemcon         , only: mw_fe
 
     integer,        intent(in)  :: kpie                   ! 1st dimension of model grid
     integer,        intent(in)  :: kpje                   ! 2nd dimension of model grid
@@ -209,7 +211,7 @@ contains
             do i=1,kpie
               ! note that the stream is read from a file where units already are in kg/m2/s
               dust(i,j,itdust) = dust_stream(i,j)  
-              dust(i,j,isfe)   = dust_stream(i,j)*frac_ironindust*frac_soliron/55.85*fetune
+              dust(i,j,isfe)   = dust_stream(i,j)*frac_ironindust*frac_soliron/mw_fe*fetune
             end do
           end do
        

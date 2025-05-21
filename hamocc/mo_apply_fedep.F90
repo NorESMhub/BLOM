@@ -48,7 +48,7 @@ contains
     integer,intent(in) :: kpke                      ! 3rd (vertical) dimension of model grid.
     real,   intent(in) :: pddpo(kpie,kpje,kpke)     ! size of scalar grid cell (3rd dimension) [m].
     real,   intent(in) :: omask(kpie,kpje)          ! ocean mask
-    real,   intent(in) :: dust(kpie,kpje,ndust)     ! dust deposition flux [kg/m2/month].
+    real,   intent(in) :: dust(kpie,kpje,ndust)     ! dust deposition flux [kg dust/m2/s] and [kmol sFe/m2/s].
 
     ! local variables
     integer :: i,j
@@ -62,8 +62,8 @@ contains
         if(omask(i,j) > 0.5) then
           dustflx(i,j,itdust)  = dust(i,j,itdust) * sec_per_day * dtb
           dustflx(i,j,isfe)    = dust(i,j,isfe)   * sec_per_day * dtb
-          ocetra(i,j,1,ifdust) = ocetra(i,j,1,ifdust) + dustflx(i,j,itdust) /  pddpo(i,j,1)
-          ocetra(i,j,1,iiron)  = ocetra(i,j,1,iiron)  + dustflx(i,j,isfe) / pddpo(i,j,1)
+          ocetra(i,j,1,ifdust) = ocetra(i,j,1,ifdust) + dustflx(i,j,itdust) / pddpo(i,j,1)
+          ocetra(i,j,1,iiron)  = ocetra(i,j,1,iiron)  + dustflx(i,j,isfe)   / pddpo(i,j,1)
         endif
       enddo
     enddo
