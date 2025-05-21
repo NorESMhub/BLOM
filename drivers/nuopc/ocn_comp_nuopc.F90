@@ -62,9 +62,9 @@ module ocn_comp_nuopc
 #ifdef HAMOCC
    use mo_control_bgc,    only: use_BROMO
    use ocn_stream_dust,   only: ocn_stream_dust_init, ocn_stream_dust_interp
-   use ocn_map_woa18,     only: map_woa18
    use mod_forcing,       only: use_stream_dust
 #endif
+   use ocn_map_woa,       only: map_woa
 
    implicit none
 
@@ -754,14 +754,11 @@ contains
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
       end if
 
-#ifdef HAMOCC
-      ! map woa18 to blom mesh
-      call map_woa18(Emesh, rc)
+      ! map woa to blom mesh
+      call map_woa(Emesh, rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
-#endif
 
       ! Find if restart is needed at the end of the run
-
       call NUOPC_CompAttributeGet(gcomp, name="write_restart_at_endofrun", value=cvalue, isPresent=isPresent, isSet=isSet, rc=rc)
       if (ChkErr(rc,__LINE__,u_FILE_u)) return
       if (isPresent .and. isSet) then

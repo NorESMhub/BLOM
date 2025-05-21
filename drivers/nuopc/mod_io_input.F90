@@ -73,7 +73,6 @@ contains
       type(ESMF_Field)        :: field_dst
       type(file_desc_t)       :: pioid
       type(var_desc_t)        :: varid
-      integer                 :: nt
       integer                 :: nf
       integer                 :: rCode
       real(r4)                :: fillvalue_r4
@@ -96,6 +95,11 @@ contains
       real(r8)                :: dynamicSrcMaskValue
       integer                 :: srcTermProcessing_Value = 0
       integer                 :: strt(2),cnt(2)
+      integer                 :: frame
+      integer                 :: ndims
+      character(len=CS)       :: dimname
+      integer, allocatable    :: dimids(:)
+      integer, allocatable    :: dimlens(:)
       character(*), parameter :: subname = '(read_map_input_data) '
       character(*), parameter :: F00   = "('(read_map_input_data) ',8a)"
       character(*), parameter :: F02   = "('(read_map_input_data) ',2a,i8)"
@@ -191,7 +195,8 @@ contains
          rcode = pio_inq_varid(pioid, trim(fldlist(nf)), varid)
          rcode = pio_inq_vartype(pioid, varid, pio_iovartype)
 
-         ! allocate memory for input read
+         ! allocate memory for input read - assume that all input variables have
+         ! the same pio_iovartype
          if (nlev > 1) then
             lsize = size(dataptr2d, dim=2)
             if (pio_iovartype == PIO_REAL .and. .not. allocated(data_real2d)) then
@@ -219,9 +224,18 @@ contains
          if(rcode == PIO_NOERR) handlefill=.true.
          call PIO_seterrorhandling(pioid, old_error_handle)
 
-         ! Set only 1 time index
-         nt = 1
-         call pio_setframe(pioid, varid, int(nt,kind=Pio_Offset_Kind))
+         ! Determine frame index
+         rcode = pio_inq_varndims(pioid, varid, ndims)
+         allocate(dimids(ndims))
+         rcode = pio_inq_vardimid(pioid, varid, dimids(1:ndims))
+         rcode = pio_inq_dimname(pioid, dimids(ndims), dimname)
+         if (trim(dimname) == 'time' .or. trim(dimname) == 'nt') then
+            frame = 1
+         else
+            frame = -1
+         end if
+         call pio_setframe(pioid, varid, int(frame,kind=Pio_Offset_Kind))
+         deallocate(dimids)
 
          ! read the data
          if (pio_iovartype == PIO_REAL) then
@@ -385,9 +399,15 @@ contains
             end if
          end if
 
-         call ESMF_FieldRegrid(field_data, field_dst, routehandle=routehandle, dynamicMask=dynamicOcnMask, &
-              zeroregion=ESMF_REGION_EMPTY, rc=rc)
-         if (chkerr(rc,__LINE__,u_FILE_u)) return
+         if (present(mapfile)) then
+            call ESMF_FieldRegrid(field_data, field_dst, routehandle=routehandle, &
+                 zeroregion=ESMF_REGION_TOTAL, termorderflag=ESMF_TERMORDER_SRCSEQ,  rc=rc)
+            if (chkerr(rc,__LINE__,u_FILE_u)) return
+         else
+            call ESMF_FieldRegrid(field_data, field_dst, routehandle=routehandle, dynamicMask=dynamicOcnMask, &
+                 zeroregion=ESMF_REGION_EMPTY, rc=rc)
+            if (chkerr(rc,__LINE__,u_FILE_u)) return
+         end if
       enddo
 
       ! Close the file
@@ -444,18 +464,6 @@ contains
       ! nullify local pointers
       nullify(compdof)
       nullify(compdof3d)
-
-      ! query the variable fldname in the input dataset for its dimensions
-      rcode = pio_inq_varid(pioid, trim(fldname), varid)
-      rcode = pio_inq_varndims(pioid, varid, ndims)
-
-      ! allocate memory for dimids and dimlens
-      allocate(dimids(ndims))
-      allocate(dimlens(ndims))
-      rcode = pio_inq_vardimid(pioid, varid, dimids(1:ndims))
-      do n = 1, ndims
-         rcode = pio_inq_dimlen(pioid, dimids(n), dimlens(n))
-      end do
 
       ! determine compdof for input data
       call ESMF_MeshGet(mesh_data, elementdistGrid=distGrid, rc=rc)

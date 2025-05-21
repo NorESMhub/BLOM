@@ -273,7 +273,7 @@ contains
       end do
 
       deallocate(dof)
-      deallocate(dof3d)
+      if (associated(dof3d)) deallocate(dof3d)
 
       ! -------------------------------
       ! Write data
@@ -325,7 +325,7 @@ contains
 
       !call pio_syncfile(io_file)
       call pio_freedecomp(io_file, iodesc)
-      call pio_freedecomp(io_file, iodesc3d)
+      ! call pio_freedecomp(io_file, iodesc3d) ! TODO - how to check for this?
 
       call pio_closefile(io_file)
 
