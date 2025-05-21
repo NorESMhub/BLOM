@@ -1,4 +1,4 @@
-module ocn_map_woa18
+module ocn_map_woa
 
    use ESMF              , only : ESMF_Mesh, ESMF_MeshCreate, ESMF_FILEFORMAT_ESMFMESH
    use ESMF              , only : ESMF_Field, ESMF_FieldCreate
@@ -11,18 +11,28 @@ module ocn_map_woa18
    use shr_log_mod       , only : errMsg => shr_log_errMsg
    use mod_io_input      , only : read_map_input_data, field_getfldptr
    use mod_io_output     , only : io_write
+   use shr_pio_mod       , only : shr_pio_getiosys, shr_pio_getiotype, shr_pio_getioformat
+   use pio               , only : file_desc_t, iosystem_desc_t
+   use pio               , only : pio_openfile, pio_closefile, pio_nowrite
+   use pio               , only : pio_inq_dimid, pio_inq_dimlen
    use mod_xc
 
    implicit none
    private
 
-   public :: map_woa18
+   public :: map_woa
 
-   real(r8), public, allocatable :: woa18_t_depth(:,:,:)
-   real(r8), public, allocatable :: woa18_s_depth(:,:,:)
-   real(r8), public, allocatable :: depth_bnds(:,:)
-   real(r8), public, allocatable :: depth(:)
-   integer , public              :: nlev
+   ! TODO: map first order conservative rather than bilinear
+   ! also - use the fill value as a public
+   ! Do not call this upon restart
+   ! mod_inicon not called when reading a restart file (logic set in mod_blom_init)
+   ! remove the call from HAMOCC ifdef
+   ! do not use wao18 = use woa
+
+   real(r8), public, allocatable :: t_woa(:,:,:)
+   real(r8), public, allocatable :: s_woa(:,:,:)
+   real(r8), public, allocatable :: depth_woa(:)
+   real(r8), public, allocatable :: depth_bnds_woa(:,:)
 
    character(len=*), parameter :: u_FILE_u = &
       __FILE__
@@ -31,7 +41,7 @@ module ocn_map_woa18
 contains
 !===============================================================================
 
-   subroutine map_woa18(mesh_blom, rc)
+   subroutine map_woa(mesh_blom, rc)
 
       ! input/out variables
       type(ESMF_Mesh)     , intent(in)  :: mesh_blom
@@ -46,9 +56,16 @@ contains
       type(ESMF_Mesh)        :: mesh_input
       type(ESMF_Field)       :: field_blom
       type(ESMF_FieldBundle) :: fldbun_blom
+      integer                :: nlev
       integer                :: nf,n,i,j,ko,l
       integer                :: jjcpl
       real(r8), pointer      :: dataptr2d(:,:)
+      type(file_desc_t)      :: pioid
+      integer                :: dimid
+      integer                :: rcode
+      integer                :: io_type                         ! pio info
+      integer                :: io_format                       ! pio info
+      type(iosystem_desc_t), pointer :: pio_subsystem => null() ! pio info
       !-------------------------------------------------------------------------------
 
       rc = ESMF_SUCCESS
@@ -62,16 +79,36 @@ contains
       fldlist_input_t(1) = 't_an'
       filename_s = '/cluster/work/users/matsbn/WOA18/woa18_decav_s13_01.nc'
       fldlist_input_s(1) = 's_an'
-      nlev = 102
+
+      ! ---------------------------
+      ! Determine vertical dimension
+      ! ---------------------------
+
+      pio_subsystem => shr_pio_getiosys('OCN')
+      io_type       =  shr_pio_getiotype('OCN')
+      io_format     =  shr_pio_getioformat('OCN')
+      if (mnproc == 1) then
+         write(lp,'(a)') 'determining vertical dimension of WOA climatology from '//trim(filename_t)
+      end if
+      rcode = pio_openfile(pio_subsystem, pioid, io_type, trim(filename_t), pio_nowrite)
+      rcode = pio_inq_dimid(pioid, 'depth', dimid)
+      rcode = pio_inq_dimlen(pioid, dimid, nlev)
+      call pio_closefile(pioid)
 
       ! ---------------------------
       ! Allocate module arrays
       ! ---------------------------
 
-      allocate(woa18_t_depth(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nlev))
-      allocate(woa18_s_depth(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nlev))
-      allocate(depth_bnds(2,nlev))
-      allocate(depth(nlev))
+      allocate(t_woa(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nlev), &
+               s_woa(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nlev), &
+               depth_woa(nlev), &
+               depth_bnds_woa(2,nlev), &
+               stat = rcode)
+      if (rcode /= 0) then
+         write(lp,*) 'Failed to allocate WOA arrays!'
+         call xchalt('(ocn_map_woa)')
+         stop '(ocn_map_woa)'
+      endif
 
       ! ---------------------------
       ! Create input data mesh
@@ -97,7 +134,7 @@ contains
 
       ! Read and map the data using bilinear interpolation - and also get depth_bnds and depths
       call read_map_input_data(mesh_input, filename_t, fldlist_input_t, nlev, 'bilinear', &
-           fldbun_blom, depth=depth, depth_bnds=depth_bnds, rc=rc)
+           fldbun_blom, depth=depth_woa, depth_bnds=depth_bnds_woa, rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
       ! Plot mapped fldbun temperature
@@ -119,13 +156,13 @@ contains
          jjcpl = jj
       endif
 
-      ! now set woa18_t_depth
+      ! now set t_woa
       do j = 1, jjcpl
          do l = 1, isp(j)
             do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
                n = (j - 1)*ii + i
                do ko = 1,nlev
-                  woa18_t_depth(i,j,ko) = dataptr2d(ko,n)
+                  t_woa(i,j,ko) = dataptr2d(ko,n)
                end do
             end do
          end do
@@ -150,18 +187,18 @@ contains
       call io_write(filename="woa18_s_an.nc", fldbun=fldbun_blom, use_float=.false., rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
-      ! now set woa18_s_depth
+      ! now set s_woa
       do j = 1, jjcpl
          do l = 1, isp(j)
             do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
                n = (j - 1)*ii + i
                do ko = 1,nlev
-                  woa18_s_depth(i,j,ko) = dataptr2d(ko,n)
+                  s_woa(i,j,ko) = dataptr2d(ko,n)
                end do
             end do
          end do
       end do
 
-   end subroutine map_woa18
+   end subroutine map_woa
 
-end module ocn_map_woa18
+end module ocn_map_woa
