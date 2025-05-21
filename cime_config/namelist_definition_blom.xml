@@ -4497,6 +4497,15 @@
     <desc>activate the HAMOCC sediment quality-based remineralization code</desc>
   </entry>
 
+  <entry id="use_river2omip">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>Logical switch to use riverine carbon and nutrient inputs following R2OMIP protocol</desc>
+  </entry>
 
   <!-- ========================= -->
   <!-- namelist group: bgcoafx -->
@@ -5821,7 +5830,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>Phytoplankton (phyc) [mol C m-3]</desc>
+    <desc>Phytoplankton (phyc) [mol P m-3]</desc>
   </entry>
 
   <entry id="srf_ph">
@@ -6487,6 +6496,32 @@
     <desc>NHx nitrogen deposition flux [mol N m-2 s-1] - extended N cycle only</desc>
   </entry>
 
+  <entry id="flx_tdust">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Atmospheric dust deposition flux [kg m-2 s-1]</desc>
+  </entry>
+
+  <entry id="flx_sfe">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Atmospheric deposition flux of soluble iron [mol Fe m-2 s-1]</desc>
+  </entry>
+
   <entry id="flx_oalk">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -6861,7 +6896,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>Primary production [mol C m-3]</desc>
+    <desc>Primary production [mol C m-3 s-1]</desc>
   </entry>
 
   <entry id="lyr_phosph">
@@ -7527,6 +7562,57 @@
     <desc>Shelfsea water residence time [d]</desc>
   </entry>
 
+  <entry id="lyr_tdoc_lc">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">0,0,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Low C terrestrial dissolved organic carbon (tdoc_lc) [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lyr_tdoc_hc">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">0,0,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>High C terrestrial dissolved organic carbon (tdoc_hc) [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lyr_tdoc_lc13">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">0,0,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Low C terrestrial dissolved organic carbon-C13 (tdoc_lc13) [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lyr_tdoc_hc13">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">0,0,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>High C terrestrial dissolved organic carbon-C13 (tdoc_hc13) [mol P m-3]</desc>
+  </entry>
 
   <entry id="lyr_dicsat">
     <type>integer(3)</type>
@@ -7707,7 +7793,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>Particulate organic carbon 13 (detoc13) [mol C m-3]</desc>
+    <desc>Particulate organic carbon 13 (detoc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lyr_doc13">
@@ -7720,7 +7806,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>Dissolved organic carbon 13 (dissoc13) [mol C m-3]</desc>
+    <desc>Dissolved organic carbon 13 (dissoc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lyr_calc13">
@@ -7746,7 +7832,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>13C of phytoplankton biomass (phyc13) [mol C m-3]</desc>
+    <desc>13C of phytoplankton biomass (phyc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lyr_grazer13">
@@ -7759,7 +7845,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>13C of zootoplankton biomass (zooc13) [mol C m-3]</desc>
+    <desc>13C of zootoplankton biomass (zooc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lyr_cfc11">
@@ -7900,7 +7986,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
     </values>
-    <desc>Phytoplankton (phyc) [mol C m-3]</desc>
+    <desc>Phytoplankton (phyc) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_nutlim_fe">
@@ -7991,7 +8077,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
     </values>
-    <desc>Zooplankton (zooc) [mol C m-3]</desc>
+    <desc>Zooplankton (zooc) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_doc">
@@ -8004,7 +8090,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
     </values>
-    <desc>Dissolved organic carbon (dissoc) [mol C m-3]</desc>
+    <desc>Dissolved organic carbon (dissoc) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_phosy">
@@ -8498,7 +8584,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
     </values>
-    <desc>Detrius (detoc) [mol C m-3]</desc>
+    <desc>Detrius (detoc) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_calc">
@@ -8681,6 +8767,58 @@
     <desc>Shelfsea water residence time [d]</desc>
   </entry>
 
+  <entry id="lvl_tdoc_lc">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Low C terrestrial dissolved organic carbon (tdoc_lc) [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lvl_tdoc_hc">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>High C terrestrial dissolved organic carbon (tdoc_hc) [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lvl_tdoc_lc13">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Low C terrestrial dissolved organic carbon-C13 (tdoc_lc13) [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lvl_tdoc_hc13">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>High C terrestrial dissolved organic carbon-C13 (tdoc_hc13) [mol P m-3]</desc>
+  </entry>
+
   <entry id="lvl_dicsat">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -8834,7 +8972,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>Particulate organic carbon 13 (detoc13) [mol C m-3]</desc>
+    <desc>Particulate organic carbon 13 (detoc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_doc13">
@@ -8847,7 +8985,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>Dissolved organic carbon 13 (dissoc13) [mol C m-3]</desc>
+    <desc>Dissolved organic carbon 13 (dissoc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_calc13">
@@ -8873,7 +9011,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>13C of phytoplankton biomass (phyc13) [mol C m-3]</desc>
+    <desc>13C of phytoplankton biomass (phyc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_grazer13">
@@ -8886,7 +9024,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>13C of zootoplankton biomass (zooc13) [mol C m-3]</desc>
+    <desc>13C of zootoplankton biomass (zooc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_cfc11">

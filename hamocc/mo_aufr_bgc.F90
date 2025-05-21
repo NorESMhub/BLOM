@@ -83,11 +83,12 @@ CONTAINS
     use mo_control_bgc,     only: io_stdo_bgc,ldtbgc,use_cisonew,use_AGG,                          &
                                   use_BOXATM,use_BROMO,use_CFC,use_natDIC,use_sedbypass,           &
                                   use_extNcycle,use_pref_tracers,use_shelfsea_res_time,            &
-                                  use_sediment_quality
+                                  use_sediment_quality,use_river2omip
     use mo_param1_bgc,      only: ialkali,ian2o,iano3,icalc,idet,idicsat,                          &
                                   idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,       &
                                   iprefalk,iprefdic,iprefo2,iprefpo4,iprefsilica,ishelfage,        &
-                                  isco212,isilica,izoo,nocetra,                                    &
+                                  isco212,isilica,izoo,nocetra,itdoc_lc,itdoc_hc,                  &
+                                  itdoc_lc13,itdoc_hc13,itdoc_lc14,itdoc_hc14,                     &
                                   iadust,inos,iatmco2,iatmn2,iatmo2,ibromo,icfc11,icfc12,isf6,     &
                                   icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,       &
                                   isco213,isco214,izoo13,izoo14,safediv,                           &
@@ -454,6 +455,10 @@ CONTAINS
     if (use_shelfsea_res_time .and. lread_shelfage) then
       call read_netcdf_var(ncid,'shelfage',locetra(1,1,1,ishelfage),2*kpke,0,iotype)
     endif
+    if (use_river2omip) then
+      call read_netcdf_var(ncid,'tdoc_lc',locetra(1,1,1,itdoc_lc),2*kpke,0,iotype)
+      call read_netcdf_var(ncid,'tdoc_hc',locetra(1,1,1,itdoc_hc),2*kpke,0,iotype)
+    endif
     if (use_cisonew .and. lread_iso) then
       call read_netcdf_var(ncid,'sco213',locetra(1,1,1,isco213),2*kpke,0,iotype)
       call read_netcdf_var(ncid,'sco214',locetra(1,1,1,isco214),2*kpke,0,iotype)
@@ -467,6 +472,12 @@ CONTAINS
       call read_netcdf_var(ncid,'poc14',locetra(1,1,1,idet14),2*kpke,0,iotype)
       call read_netcdf_var(ncid,'calciu13',locetra(1,1,1,icalc13),2*kpke,0,iotype)
       call read_netcdf_var(ncid,'calciu14',locetra(1,1,1,icalc14),2*kpke,0,iotype)
+      if (use_river2omip) then
+       call read_netcdf_var(ncid,'tdoc_lc13',locetra(1,1,1,itdoc_lc13),2*kpke,0,iotype)
+       call read_netcdf_var(ncid,'tdoc_hc13',locetra(1,1,1,itdoc_hc13),2*kpke,0,iotype)
+       call read_netcdf_var(ncid,'tdoc_lc14',locetra(1,1,1,itdoc_lc14),2*kpke,0,iotype)
+       call read_netcdf_var(ncid,'tdoc_hc14',locetra(1,1,1,itdoc_hc14),2*kpke,0,iotype)
+      endif
     endif
     if (use_AGG)then
       call read_netcdf_var(ncid,'snos',locetra(1,1,1,inos),2*kpke,0,iotype)
@@ -636,6 +647,10 @@ CONTAINS
               locetra(i,j,k,idet14)=locetra(i,j,k,idet)*rco214*bifr14_ini
               locetra(i,j,k,icalc13)=locetra(i,j,k,icalc)*rco213
               locetra(i,j,k,icalc14)=locetra(i,j,k,icalc)*rco214
+              if (use_river2omip) then
+                locetra(i,j,k,itdoc_lc13)=locetra(i,j,k,itdoc_lc13)*rco213*bifr13_ini
+                locetra(i,j,k,itdoc_lc14)=locetra(i,j,k,itdoc_lc14)*rco214*bifr14_ini
+              endif
             endif
           enddo
         enddo

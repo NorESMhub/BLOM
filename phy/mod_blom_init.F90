@@ -24,7 +24,7 @@ module mod_blom_init
   use mod_time,            only: date, nday1, nday2, nstep1, nstep2, nstep, delt1, &
                                  time0, baclin
   use mod_timing,          only: init_timing, get_time
-  use mod_xc,              only: xcspmd, xcbcst, xctilr, mnproc, nproc, &
+  use mod_xc,              only: xcspmd, xcbcst, xctilr, xchalt, mnproc, nproc, &
                                  lp, ii, jj, kk, isp, ifp, isu, ifu, ilp, isv, ifv, &
                                  ilu, ilv, jpr, i0, nbdy, &
                                  halo_ps, halo_us, halo_vs, halo_uv, halo_vv, halo_qs
@@ -64,11 +64,11 @@ contains
 
   subroutine blom_init()
   ! ------------------------------------------------------------------
-  ! initialize the model
+  ! Initialize the model
   ! ------------------------------------------------------------------
 
     ! Local variables
-    integer :: istat,ncid,varid,i,j,k,l,m,n,mm,nn,k1m,k1n,mt,mmt,kn,km
+    integer :: errstat,ncid,varid,i,j,k,l,m,n,mm,nn,k1m,k1n,mt,mmt,kn,km
     real    :: q
     logical :: icrest,fexist
     integer :: icrest_int
@@ -184,32 +184,34 @@ contains
     ! check whether initial condition file given in namelist is a
     ! restart file
     icrest = .false.
-    icrest_int = 0
     if (mnproc == 1) then
       if ( expcnf == 'cesm' .and. runtyp /= 'startup') then
         icrest = .true.
       else
         inquire(file=icfile,exist = fexist)
         if (fexist) then
-          istat = nf90_open(icfile,nf90_nowrite,ncid)
-          if (istat == nf90_noerr) then
-            istat = nf90_inq_varid(ncid,'dp',varid)
-            if (istat == nf90_noerr) then
-              icrest = .true.
-            end if
-          end if
-        end if
+          errstat = nf90_open(icfile,nf90_nowrite,ncid)
+          if (errstat == nf90_noerr) then
+            icrest = (nf90_inq_varid(ncid,'dp',varid) == nf90_noerr)
+            errstat = nf90_close(ncid)
+            if (errstat /= nf90_noerr) then
+              write(lp,*) 'nf90_close: '//trim(icfile)//': '// &
+                          nf90_strerror(errstat)
+              call xchalt('(blom_init_phase2)')
+                     stop '(blom_init_phase2)'
+            endif
+          endif
+        endif
       endif
-      if (icrest) icrest_int = 1
-    end if
-    call xcbcst(icrest_int)
-    icrest = (icrest_int == 1)
+    endif
+    call xcbcst(icrest)
 
     if (nday1+nint(time0) == 0.and..not.icrest) then
 
-      ! ----------------------------------------------------------------
-      ! start from initial conditions derived from climatology
-      ! ----------------------------------------------------------------
+      ! ------------------------------------------------------------------------
+      ! Start from initial conditions derived from climatology or specified by
+      ! the selected experiment configuration.
+      ! ------------------------------------------------------------------------
 
       if (date%month /= 1.or.date%day /= 1) then
         if (mnproc == 1) then

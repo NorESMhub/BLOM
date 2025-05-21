@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2024 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin,
+! Copyright (C) 2015-2025 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin,
 !                         Mariana Vertenstein
 !
 ! This file is part of BLOM.
@@ -20,12 +20,13 @@
 
 module mod_inifrc
 
-  use mod_config,  only: expcnf
-  use mod_xc,      only: lp, mnproc, xcstop
-  use mod_cesm,    only: inifrc_cesm
-  use mod_ben02,   only: inifrc_ben02clim, inifrc_ben02syn
-  use mod_fuk95,   only: inifrc_fuk95
-  use mod_channel, only: inifrc_channel
+  use mod_config,    only: expcnf
+  use mod_xc,        only: lp, mnproc, xcstop
+  use mod_cesm,      only: inifrc_cesm
+  use mod_ben02,     only: inifrc_ben02clim, inifrc_ben02syn
+  use mod_noforcing, only: inifrc_noforcing
+  use mod_fuk95,     only: inifrc_fuk95
+  use mod_channel,   only: inifrc_channel
 
   implicit none
   private
@@ -35,9 +36,9 @@ module mod_inifrc
 contains
 
   subroutine inifrc
-    ! ---------------------------------------------------------------------------
-    ! Initialize forcing.
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Initialize forcing.
+  ! ---------------------------------------------------------------------------
 
     select case (trim(expcnf))
       case ('cesm')
@@ -46,6 +47,8 @@ contains
         call inifrc_ben02clim
       case ('ben02syn')
         call inifrc_ben02syn
+      case ('noforcing')
+        call inifrc_noforcing
       case ('fuk95')
         call inifrc_fuk95
       case ('channel')

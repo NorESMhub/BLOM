@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2024 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin,
+! Copyright (C) 2015-2025 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin,
 !                         Mariana Vertenstein
 !
 ! This file is part of BLOM.
@@ -33,9 +33,9 @@ module mod_getfrc
 contains
 
   subroutine getfrc
-    ! ---------------------------------------------------------------------------
-    ! Get forcing.
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Get forcing.
+  ! ---------------------------------------------------------------------------
 
     select case (trim(expcnf))
       case ('cesm')
@@ -44,6 +44,7 @@ contains
         call getfrc_ben02clim
       case ('ben02syn')
         call getfrc_ben02syn
+      case ('noforcing')
       case ('channel')
       case ('fuk95')
       case ('isomip1')
