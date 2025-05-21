@@ -128,6 +128,15 @@
     <desc>Optional input of riverine nutrients. Requires module ecosys</desc>
   </entry>
 
+  <entry id="HAMOCC_FEDEP_SOURCE">
+    <type>char</type>
+    <valid_values>mahw2006,GESAMP2018</valid_values>
+    <default_value>mahw2006</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Source of dust/iron deposition data. Requires module ecosys</desc>
+  </entry>
+
   <entry id="BLOM_N_DEPOSITION">
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>

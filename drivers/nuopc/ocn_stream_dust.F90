@@ -201,7 +201,6 @@ contains
       real(r8), pointer   :: dataptr1(:)
       real(r8), parameter :: mval = -1.e12_r8
       real(r8), parameter :: fval = -1.e13_r8
-      integer             :: seconds_per_month = 2592000 ! assuming 30 days per month
       !-----------------------------------------------------------------------
 
       ! Advance sdat stream
@@ -244,8 +243,7 @@ contains
                dust_stream(i,j) = fval
             else
                n = (j - 1)*ii + i
-               ! need dust_stream in units of kg/m2/month not kg/m2/s which is in the file
-               dust_stream(i,j) = dataptr1(n)*seconds_per_month
+               dust_stream(i,j) = dataptr1(n)  ! units in file are kg/m2/s
             end if
             ! set flux to zero over land
             if (omask(i,j) < 0.5) then

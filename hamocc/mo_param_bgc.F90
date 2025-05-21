@@ -89,7 +89,7 @@ module mo_param_bgc
   public :: atm_n2,atm_o2,atm_co2_nat,atm_bromo,re1312,atm_n2o,atm_nh3
   public :: srfdic_min,re14to,prei13,prei14,ctochl
   public :: atten_w,atten_c,atten_uv,atten_f
-  public :: perc_diron,fesoly,phytomi,pi_alpha
+  public :: frac_ironindust,frac_soliron,fesoly,phytomi,pi_alpha
   public :: dyphy,tf2,tf1,tf0,tff,bifr13_ini,bifr14_ini,c14_t_half
   public :: rbro,fbro1,fbro2,grami
   public :: calmax,remido,rem_tdoclc,rem_tdochc
@@ -265,10 +265,11 @@ module mo_param_bgc
   !********************************************************************
   !ik weight percent iron in dust deposition times Fe solubility
   ! the latter three values come from Johnson et al., 1997
-  real, protected :: fetune     = 0.6             ! factor introduced to tune deposition/solubility
-  real, protected :: perc_diron
-  real, protected :: fesoly     = 0.5*1.e-9       ! max. diss. iron concentration in deep water
-  real, protected :: relaxfe    = 0.05/365.       ! 1/d complexation rate to relax iron concentration to fesoly
+  real, protected :: fetune          = 0.6        ! factor introduced to tune deposition/solubility
+  real, protected :: frac_ironindust = 0.035      ! fraction of total iron in dust (typically 3.5%)
+  real, protected :: frac_soliron    = 0.01       ! fraction of total iron that is immediately soluble
+  real, protected :: fesoly          = 0.5*1.e-9  ! max. diss. iron concentration in deep water
+  real, protected :: relaxfe         = 0.05/365.  ! 1/d complexation rate to relax iron concentration to fesoly
 
   !********************************************************************
   ! Phytoplankton parameters (incl. cyanobacteria)
@@ -729,10 +730,8 @@ contains
     !
     bifr14_ini  = bifr13_ini**2
 
-    perc_diron = fetune * 0.035 * 0.01 / 55.85
-
     dustd2   = dustd1*dustd1
-    dustsink = (9.81 * sec_per_day / 18.                 & ! g * sec per day / 18.
+    dustsink = (9.81 * sec_per_day / 18.            & ! g * sec per day / 18.
                * (claydens - 1025.) / 1.567 * 1000. & ! excess density / dyn. visc.
                * dustd2 * 1.e-4)                      ! m/d
 
@@ -1017,7 +1016,8 @@ contains
       call pinfo_add_entry('atten_f',     atten_f)
       call pinfo_add_entry('atten_uv',    atten_uv)
       call pinfo_add_entry('fetune',      fetune)
-      call pinfo_add_entry('perc_diron',  perc_diron)
+      call pinfo_add_entry('frac_ironindust',frac_ironindust)
+      call pinfo_add_entry('frac_soliron',frac_soliron )
       call pinfo_add_entry('riron',       riron)
       call pinfo_add_entry('fesoly',      fesoly)
       call pinfo_add_entry('relaxfe',     relaxfe*dtbinv)

@@ -39,9 +39,11 @@ module mo_read_fedep
 
   ! File name (incl. full path) for input data, set through namelist in hamocc_init
   character(len=bgc_fnmlen), public :: fedepfile=''
+  character(len=64),         public :: fedep_source=''
 
-  ! Array to store dust deposition flux after reading from file
-  real, allocatable,  public :: dustflx(:,:,:)
+  ! Array to store iron deposition fluxes after reading from file
+  real, allocatable,  private :: dustflx_tot(:,:,:)
+  real, allocatable,  private :: dustflx_sfe(:,:,:)
 
 contains
 
@@ -56,12 +58,14 @@ contains
     use netcdf,             only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
     use mod_xc,             only: mnproc,xchalt
     use mo_control_bgc,     only: io_stdo_bgc
+    use mo_param_bgc,       only: sec_per_day,frac_ironindust,frac_soliron,fetune
+    use mo_chemcon,         only: mw_fe
     use mo_netcdf_bgcrw,    only: read_netcdf_var
 
     ! Arguments
-    integer, intent(in) :: kpie              ! 1st dimension of model grid.
-    integer, intent(in) :: kpje              ! 2nd dimension of model grid.
-    real,    intent(in) :: omask(kpie,kpje)  ! land/ocean mask (1=ocean)
+    integer,          intent(in) :: kpie              ! 1st dimension of model grid.
+    integer,          intent(in) :: kpje              ! 2nd dimension of model grid.
+    real,             intent(in) :: omask(kpie,kpje)  ! land/ocean mask (1=ocean)
 
     ! Local variables
     integer             :: i,j,l
@@ -76,34 +80,77 @@ contains
     endif
 
     if (mnproc.eq.1) then
-      write(io_stdo_bgc,*)'Memory allocation for variable dustflx ...'
+      write(io_stdo_bgc,*)'Memory allocation for variable dustflx_tot ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
       write(io_stdo_bgc,*)'Third dimension    :  12'
     endif
+    allocate (dustflx_tot(kpie,kpje,12),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory dustflx_tot'
+    dustflx_tot(:,:,:) = 0.0
 
-    allocate (dustflx(kpie,kpje,12),stat=errstat)
-    if(errstat.ne.0) stop 'not enough memory dustflx'
-    dustflx(:,:,:) = 0.0
+    if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)'Memory allocation for variable dustflx_sfe ...'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      write(io_stdo_bgc,*)'Third dimension    :  12'
+    endif
+    allocate (dustflx_sfe(kpie,kpje,12),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory dustflx_sfe'
+    dustflx_sfe(:,:,:) = 0.0
 
     ! Open netCDF data file
     if (mnproc==1) then
       ncstat = NF90_OPEN(trim(fedepfile),NF90_NOWRITE, ncid)
       if (ncstat /= NF90_NOERR ) then
-        call xchalt('(get_dust: Problem with netCDF1)')
-        stop        '(get_dust: Problem with netCDF1)'
+        call xchalt('(ini_read_fedep: Problem with netCDF1)')
+        stop        '(ini_read_fedep: Problem with netCDF1)'
       end if
     end if
 
     ! Read  data
-    call read_netcdf_var(ncid,'DUST',dustflx(1,1,1),12,0,0)
+    select case(trim(fedep_source))
+
+      case('mahw2006')
+        ! Dust/iron deposition using the Mahowald et al. 2006 model data.
+        ! The variable 'DUST' contains the total dust-flux in kg/m2/month; this
+        ! is converted to kmol fe/m2/s of bioavailable (soluble) iron using the molar 
+        ! weight of iron (mw_fe=55.85) and assuming that dust contains a fraction 
+        ! 'frac_ironindust' of iron, and that soluble iron is a fraction 'frac_soliron' of 
+        ! total iron. A tuning factor 'fetune' is applied to the soluble fraction of iron.
+        ! Note the conversion kg/m2/month -> kg/m2/s is assuming 30 days per month.	  
+        call read_netcdf_var(ncid,'DUST',dustflx_tot(1,1,1),12,0,0)
+        dustflx_tot(:,:,:) = dustflx_tot(:,:,:)/30.0/sec_per_day
+        dustflx_sfe(:,:,:) = dustflx_tot(:,:,:)*frac_ironindust*frac_soliron/mw_fe*fetune
+
+      case('GESAMP2018')
+        ! Iron deposition using data from the GESAMP atmospheric iron deposition
+        ! model intercomparison study (Myriokefalitakis et al. 2018, 
+        ! doi:10.5194/bg-15-6659-2018).
+        ! The variables 'TFe' and 'LFe' contain the total and soluble (labile) iron 
+        ! fluxes in kg/m2/s; soluble iron is converted to kmol Fe/m2/s using the molar weight of   
+        ! iron (mw_fe=55.85). A tuning factor 'fetune' is applied to the soluble fraction of iron.
+        ! The total dust-flux is 'back-calculated' from total iron assuming a fixed fraction
+        ! of iron in dust.
+        call read_netcdf_var(ncid,'TFe',dustflx_tot(1,1,1),12,0,0)
+        call read_netcdf_var(ncid,'LFe',dustflx_sfe(1,1,1),12,0,0)
+        dustflx_tot(:,:,:) = dustflx_tot(:,:,:)/frac_ironindust
+        dustflx_sfe(:,:,:) = dustflx_sfe(:,:,:)/mw_fe*fetune
+
+      case default
+        if (mnproc==1) then
+          call xchalt('(ini_read_fedep: invalid fedep_source)')
+          stop        '(ini_read_fedep: invalid fedep_source)'
+        end if
+
+    end select
 
     ! Close file
     if (mnproc==1) then
       ncstat = NF90_CLOSE(ncid)
       if ( ncstat /=  NF90_NOERR ) then
-        call xchalt('(get_dust: Problem with netCDF2)')
-        stop        '(get_dust: Problem with netCDF2)'
+        call xchalt('(ini_read_fedep: Problem with netCDF2)')
+        stop        '(ini_read_fedep: Problem with netCDF2)'
       end if
     end if
 
@@ -117,7 +164,10 @@ contains
       do j=1,kpje
         do i=1,kpie
 
-          if(omask(i,j).lt.0.5) dustflx(i,j,l) = 0.0
+          if(omask(i,j).lt.0.5) then
+            dustflx_tot(i,j,l) = 0.0
+            dustflx_sfe(i,j,l) = 0.0
+          endif
 
         enddo
       enddo
@@ -134,28 +184,48 @@ contains
     !  J.Schwinger            *NORCE Climate, Bergen*       2020-05-19
     !***********************************************************************************************
 
-    use mod_xc             , only: nbdy
+    use mod_xc             , only: mnproc,xchalt,nbdy
     use mo_output_forcing  , only: output_forcing
+    use mo_param1_bgc      , only: itdust,isfe,ndust
+    use mo_param_bgc       , only: sec_per_day,frac_ironindust,frac_soliron,fetune
+    use mo_chemcon         , only: mw_fe
 
-    integer, intent(in)  :: kpie             ! 1st dimension of model grid
-    integer, intent(in)  :: kpje             ! 2nd dimension of model grid
-    integer, intent(in)  :: kbnd             !
-    integer, intent(in)  :: kplmon           ! current month.
-    real,    intent(out) :: dust(kpie,kpje)  ! dust flux for current month
-    real, optional, intent(in) :: dust_stream(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+    integer,        intent(in)  :: kpie                   ! 1st dimension of model grid
+    integer,        intent(in)  :: kpje                   ! 2nd dimension of model grid
+    integer,        intent(in)  :: kbnd                   ! nb of halo-rows
+    integer,        intent(in)  :: kplmon                 ! current month.
+    real,           intent(out) :: dust(kpie,kpje,ndust)  ! dust/sFe flux for current month
+    real, optional, intent(in)  :: dust_stream(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+    !real, optional, intent(in)  :: dust_stream(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,ndust)
 
     integer :: i,j
     logical :: debug = .true.
     logical :: first_time = .true.
 
     if (present(dust_stream)) then
-       do j=1,kpje
-          do i=1,kpie
-             dust(i,j) = dust_stream(i,j)
+    
+      select case(trim(fedep_source))
+
+        case('mahw2006')
+          do j=1,kpje
+            do i=1,kpie
+              ! note that the stream is read from a file where units already are in kg/m2/s
+              dust(i,j,itdust) = dust_stream(i,j)  
+              dust(i,j,isfe)   = dust_stream(i,j)*frac_ironindust*frac_soliron/mw_fe*fetune
+            end do
           end do
-       end do
+       
+        case default
+          if (mnproc==1) then
+            call xchalt('(get_fedep: invalid fedep_source for dust stream)')
+            stop        '(get_fedep: invalid fedep_source for dust stream)'
+          end if
+
+      end select
+       
     else
-       dust(:,:) = dustflx(:,:,kplmon)
+      dust(:,:,itdust) = dustflx_tot(:,:,kplmon)
+      dust(:,:,isfe)   = dustflx_sfe(:,:,kplmon)
     end if
 
     if (debug) then
