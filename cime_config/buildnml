@@ -79,6 +79,7 @@ def buildnml(case, caseroot, compname):
     blom_tracer_modules       = case.get_value("BLOM_TRACER_MODULES")
     blom_atrc                 = case.get_value("BLOM_ATRC")
     blom_output_size          = case.get_value("BLOM_OUTPUT_SIZE")
+    hamocc_fedep_source       = case.get_value("HAMOCC_FEDEP_SOURCE")
     hamocc_output_size        = case.get_value("HAMOCC_OUTPUT_SIZE")
     hamocc_ciso               = case.get_value("HAMOCC_CISO")
     hamocc_extncycle          = case.get_value("HAMOCC_EXTNCYCLE")
@@ -234,6 +235,7 @@ def buildnml(case, caseroot, compname):
         config["blom_atrc"] = blom_atrc
         config["blom_output_size"] = blom_output_size 
         config["hamocc_output_size"] = hamocc_output_size  
+        config["hamocc_fedep_source"] = hamocc_fedep_source
         config["hamocc_ciso"] = "yes" if hamocc_ciso else "no"
         config["hamocc_extncycle"] = "yes" if hamocc_extncycle else "no"
         config["hamocc_n2oc"] = "yes" if hamocc_n2oc else "no"

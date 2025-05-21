@@ -3956,17 +3956,34 @@
     <desc>Atmospheric CO2 concentration [ppmv]</desc>
   </entry>
 
+  <entry id="fedep_source" modify_via_xml="HAMOCC_FEDEP_SOURCE">
+    <type>character</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>''</value>
+      <value hamocc_fedep_source="mahw2006"  >'mahw2006'</value>
+      <value hamocc_fedep_source="GESAMP2018">'GESAMP2018'</value>
+    </values>
+    <desc>Source of dust/iron deposition data ('mahw2006' or 'GESAMP2018')</desc>
+  </entry>
+  
   <entry id="fedepfile">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
       <value>''</value>
-      <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx2v1_20130506.nc</value>
-      <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx1v4_20171107.nc</value>
-      <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.5v1_20250210.nc</value>
-      <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.25v4_20181004.nc</value>
-      <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.125v4_20221013.nc</value>
+      <value hamocc_fedep_source="GESAMP2018" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_GESAMP2018_tnx2v1_20250515.nc</value>
+      <value hamocc_fedep_source="GESAMP2018" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_GESAMP2018_tnx1v4_20250515.nc</value>
+      <value hamocc_fedep_source="GESAMP2018" ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_GESAMP2018_tnx0.5v1_20250515.nc</value>
+      <value hamocc_fedep_source="GESAMP2018" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_GESAMP2018_tnx0.25v4_20250515.nc</value>
+      <value hamocc_fedep_source="GESAMP2018" ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_GESAMP2018_tnx0.125v4_20250515.nc</value>
+      <value hamocc_fedep_source="mahw2006"   ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx2v1_20130506.nc</value>
+      <value hamocc_fedep_source="mahw2006"   ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx1v4_20171107.nc</value>
+      <value hamocc_fedep_source="mahw2006"   ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.5v1_20250210.nc</value>
+      <value hamocc_fedep_source="mahw2006"   ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.25v4_20181004.nc</value>
+      <value hamocc_fedep_source="mahw2006"   ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.125v4_20221013.nc</value>
     </values>
     <desc>'File name (incl. full path) for iron (dust) deposition data'</desc>
   </entry>

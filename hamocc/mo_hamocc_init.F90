@@ -56,7 +56,7 @@ contains
     use mo_vgrid,       only: alloc_mem_vgrid,set_vgrid
     use mo_bgcmean,     only: alloc_mem_bgcmean
     use mo_read_rivin,  only: ini_read_rivin,rivinfile
-    use mo_read_fedep,  only: ini_read_fedep,fedepfile
+    use mo_read_fedep,  only: ini_read_fedep,fedepfile,fedep_source
     use mo_read_ndep,   only: ini_read_ndep,ndepfile
     use mo_read_oafx,   only: ini_read_oafx
     use mo_read_pi_ph,  only: ini_pi_ph,pi_ph_file
@@ -85,7 +85,7 @@ contains
     real    :: sed_POCage_init(idm,jdm,ks) = 0.
     real    :: prorca_mavg_init(idm,jdm)   = 0.
 
-    namelist /bgcnml/ atm_co2,fedepfile,do_rivinpt,rivinfile,do_ndep,ndepfile,do_oalk,             &
+    namelist /bgcnml/ atm_co2,fedepfile,fedep_source,do_rivinpt,rivinfile,do_ndep,ndepfile,do_oalk,&
          &            do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,                         &
          &            inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c,swaclimfile,       &
          &            with_dmsph,pi_ph_file,l_3Dvarsedpor,sedporfile,ocn_co2_type,use_M4AGO,       &
@@ -94,12 +94,12 @@ contains
     !
     ! --- Set io units and some control parameters
     !
-    call ini_bgctimes(nday_in_year) ! Init basic time variables
+    call ini_bgctimes(nday_in_year)    ! Init basic time variables
 
-    io_stdo_bgc = lp              !  standard out.
-    dtbgc = nphys*baclin          !  time step length [sec].
+    io_stdo_bgc = lp                   !  standard out.
+    dtbgc = nphys*baclin               !  time step length [sec].
     ndtdaybgc=NINT(sec_per_day/dtbgc)  !  time steps per day [No].
-    dtb=1./ndtdaybgc              !  time step length [days].
+    dtb=1./ndtdaybgc                   !  time step length [days].
     ldtbgc = 0
     ldtrunbgc = 0
 

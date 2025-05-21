@@ -1702,7 +1702,7 @@ contains
     call ncdefvar3d(FLX_NDEPNOY(iogrp),cmpflg,'p','ndepnoy',                    &
          &   'Nitrogen NOy deposition flux',' ','mol N m-2 s-1',0)
     call ncdefvar3d(FLX_TDUST(iogrp),cmpflg,'p','tdustfx',                      &
-         &   'Atmospheric dust deposition flux',' ','kg m-2 s-1',0)
+         &   'Atmospheric dust deposition flux',' ','g m-2 s-1',0)
     call ncdefvar3d(FLX_SFE(iogrp),cmpflg,'p','sfefx',                          &
          &   'Atmospheric deposition flux of soluble iron',' ','mol Fe m-2 s-1',0)
     call ncdefvar3d(FLX_OALK(iogrp),cmpflg,'p','oalkfx',                        &
