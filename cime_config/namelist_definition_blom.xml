@@ -4685,7 +4685,7 @@
     <values>
       <value>None</value>
     </values>
-    <desc>zooplankton parameter: 1/d -exudation rate</desc>
+    <desc>phytoplankton parameter: 1/d -DOC_sl-exudation rate</desc>
   </entry>
 
   <entry id="gammaz">
@@ -4705,7 +4705,7 @@
     <values>
       <value>None</value>
     </values>
-    <desc>zooplankton parameter: 1/d -excretion rate</desc>
+    <desc>zooplankton parameter: 1/d -DOC_sl excretion rate</desc>
   </entry>
 
   <entry id="ecan">

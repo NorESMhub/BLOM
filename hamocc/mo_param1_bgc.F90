@@ -445,8 +445,8 @@ contains
     if (use_dom) then
       i_dom=7
       idocsl=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+1
-      idocr =i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+2
-      idocsr=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+3
+      idocsr=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+2
+      idocr =i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+3
       iprefdoc=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+4
       iprefdocsl=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+5
       iprefdocsr=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+6
