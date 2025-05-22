@@ -3967,7 +3967,7 @@
     </values>
     <desc>Source of dust/iron deposition data ('mahw2006' or 'GESAMP2018')</desc>
   </entry>
-  
+
   <entry id="fedepfile">
     <type>char</type>
     <category>bgcnml</category>
@@ -4086,7 +4086,7 @@
     </values>
     <desc>Switch to couple N2O fluxes to atmosphere</desc>
   </entry>
-  
+
   <entry id="do_nh3_coupled" modify_via_xml="HAMOCC_NH3C">
     <type>logical</type>
     <category>bgcnml</category>
@@ -6587,6 +6587,110 @@
     <desc>Vertically integrated denitrification</desc>
   </entry>
 
+  <entry id="int_exudl">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Vertically integrated phy exudation to DOC-L [mol C m-2 s-1]</desc>
+  </entry>
+
+  <entry id="int_exudsl">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Vertically integrated phy exudation to DOC-SL [mol C m-2 s-1]</desc>
+  </entry>
+
+  <entry id="int_excrl">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Vertically integrated zoo excretion to DOC-L [mol C m-2 s-1]</desc>
+  </entry>
+
+  <entry id="int_excrsl">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Vertically integrated zoo excretion to DOC-SL [mol C m-2 s-1]</desc>
+  </entry>
+
+  <entry id="int_docl_rem">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Vertically integrated DOC-L remineralization [mol C m-2 s-1]</desc>
+  </entry>
+
+  <entry id="int_docsl_rem">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Vertically integrated DOC-SL remineralization [mol C m-2 s-1]</desc>
+  </entry>
+
+  <entry id="int_docsr_rem">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Vertically integrated DOC-SR remineralization [mol C m-2 s-1]</desc>
+  </entry>
+
+  <entry id="int_docr_rem">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Vertically integrated DOC-R remineralization [mol C m-2 s-1]</desc>
+  </entry>
+
   <entry id="flx_ndepnoy">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -7001,6 +7105,97 @@
       <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lyr_docsl">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
+    </values>
+    <desc>Semi-labile dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lyr_docsr">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
+    </values>
+    <desc>Semi-refractory dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lyr_docr">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
+    </values>
+    <desc>Refractory dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lyr_prefdoc">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
+    </values>
+    <desc>Preformed labile dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lyr_prefdocsl">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
+    </values>
+    <desc>Preformed semi-labile dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lyr_prefdocsr">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
+    </values>
+    <desc>Preformed semi-refractory dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lyr_prefdocr">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
+    </values>
+    <desc>Preformed refractory dissolved organic carbon [mol P m-3]</desc>
   </entry>
 
   <entry id="lyr_phosy">
@@ -8209,6 +8404,98 @@
     </values>
     <desc>Dissolved organic carbon (dissoc) [mol P m-3]</desc>
   </entry>
+
+  <entry id="lvl_docsl">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Semi-labile dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lvl_docsr">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Semi-refractory dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lvl_docr">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Refractory dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lvl_prefdoc">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Preformed labile dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lvl_prefdocsl">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Preformed semi-labile dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lvl_prefdocsr">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Preformed semi-refractory dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lvl_prefdocr">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Preformed refractory dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
 
   <entry id="lvl_phosy">
     <type>integer(3)</type>
