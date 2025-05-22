@@ -292,6 +292,8 @@ module mo_bgcmean
        & LYR_D13C          ,LYR_D14C          ,LYR_BIGD14C       ,        &
        & LYR_PHYTO13       ,LYR_GRAZER13      ,LYR_POC13         ,        &
        & LYR_DOC13         ,LYR_CALC13        ,                           &
+       & LYR_PREFDOC       ,LYR_PREFDOCSL     ,LYR_PREFDOCSR     ,        &
+       & LYR_PREFDOCR      ,                                              &
        & LYR_ANH4          ,LYR_ANO2          ,                           &
        & LYR_nitr_NH4      ,LYR_nitr_NO2      ,LYR_nitr_N2O_prod ,        &
        & LYR_nitr_NH4_OM   ,LYR_nitr_NO2_OM   ,LYR_denit_NO3     ,        &
