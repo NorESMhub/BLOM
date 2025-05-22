@@ -323,10 +323,6 @@ contains
 
       end do  ! end loop over fields in fldbun
 
-      !call pio_syncfile(io_file)
-      call pio_freedecomp(io_file, iodesc)
-      ! call pio_freedecomp(io_file, iodesc3d) ! TODO - how to check for this?
-
       call pio_closefile(io_file)
 
    end subroutine io_write

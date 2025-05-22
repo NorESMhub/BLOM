@@ -8,6 +8,7 @@ module ocn_map_woa
    use ESMF              , only : ESMF_MESHLOC_ELEMENT, ESMF_TYPEKIND_R8
    use nuopc_shr_methods , only : chkerr
    use shr_kind_mod      , only : r8 => shr_kind_r8, CL => shr_kind_cl, CS => shr_kind_cs
+   use shr_const_mod     , only : SHR_CONST_SPVAL
    use shr_log_mod       , only : errMsg => shr_log_errMsg
    use mod_io_input      , only : read_map_input_data, field_getfldptr
    use mod_io_output     , only : io_write
@@ -16,6 +17,8 @@ module ocn_map_woa
    use pio               , only : pio_openfile, pio_closefile, pio_nowrite
    use pio               , only : pio_inq_dimid, pio_inq_dimlen
    use mod_inicon        , only : t_woa, s_woa, depth_bnds_woa, depth_woa
+   use mod_inicon        , only : t_woa_fval, s_woa_fval, kdm_woa
+
    use mod_xc
 
    implicit none
@@ -50,7 +53,6 @@ contains
       type(ESMF_Mesh)        :: mesh_input
       type(ESMF_Field)       :: field_blom
       type(ESMF_FieldBundle) :: fldbun_blom
-      integer                :: nlev
       integer                :: nf,n,i,j,ko,l
       integer                :: jjcpl
       real(r8), pointer      :: dataptr2d(:,:)
@@ -86,17 +88,24 @@ contains
       end if
       rcode = pio_openfile(pio_subsystem, pioid, io_type, trim(filename_t), pio_nowrite)
       rcode = pio_inq_dimid(pioid, 'depth', dimid)
-      rcode = pio_inq_dimlen(pioid, dimid, nlev)
+      rcode = pio_inq_dimlen(pioid, dimid, kdm_woa)
       call pio_closefile(pioid)
+
+      ! ---------------------------
+      ! Set fill values
+      ! ---------------------------
+
+      t_woa_fval = SHR_CONST_SPVAL
+      s_woa_fval = SHR_CONST_SPVAL
 
       ! ---------------------------
       ! Allocate module arrays in mod_inicon.F90
       ! ---------------------------
 
-      allocate(t_woa(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nlev), &
-               s_woa(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nlev), &
-               depth_woa(nlev), &
-               depth_bnds_woa(2,nlev), &
+      allocate(t_woa(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm_woa), &
+               s_woa(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm_woa), &
+               depth_woa(kdm_woa), &
+               depth_bnds_woa(2,kdm_woa), &
                stat = rcode)
       if (rcode /= 0) then
          write(lp,*) 'Failed to allocate WOA arrays!'
@@ -117,7 +126,7 @@ contains
       fldbun_blom = ESMF_FieldBundleCreate(name='fldbun_blom', rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
       field_blom = ESMF_FieldCreate(mesh_blom, ESMF_TYPEKIND_R8, meshloc=ESMF_MESHLOC_ELEMENT, name='field_blom',  &
-           ungriddedLbound=(/1/), ungriddedUbound=(/nlev/), gridToFieldMap=(/2/), rc=rc)
+           ungriddedLbound=(/1/), ungriddedUbound=(/kdm_woa/), gridToFieldMap=(/2/), rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
       call ESMF_FieldBundleAdd(fldbun_blom, (/field_blom/), rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
@@ -127,7 +136,7 @@ contains
       ! ---------------------------
 
       ! Read and map the data using bilinear interpolation - and also get depth_bnds and depths
-      call read_map_input_data(mesh_input, filename_t, fldlist_input_t, nlev, 'bilinear', &
+      call read_map_input_data(mesh_input, filename_t, fldlist_input_t, kdm_woa, 'bilinear', &
            fldbun_blom, depth=depth_woa, depth_bnds=depth_bnds_woa, rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
@@ -155,7 +164,7 @@ contains
          do l = 1, isp(j)
             do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
                n = (j - 1)*ii + i
-               do ko = 1,nlev
+               do ko = 1,kdm_woa
                   t_woa(i,j,ko) = dataptr2d(ko,n)
                end do
             end do
@@ -167,8 +176,12 @@ contains
       ! ---------------------------
 
       ! Read and map the data using bilinear interpolation
-      call read_map_input_data(mesh_input, filename_s, fldlist_input_s, nlev, 'bilinear', &
+      call read_map_input_data(mesh_input, filename_s, fldlist_input_s, kdm_woa, 'bilinear', &
            fldbun_blom, rc=rc)
+      if (chkerr(rc,__LINE__,u_FILE_u)) return
+
+      ! Plot mapped fldbun salinity
+      call io_write(filename="woa18_s_an.nc", fldbun=fldbun_blom, use_float=.false., rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
       ! Extract the data from the field bundle
@@ -177,16 +190,12 @@ contains
       call field_getfldptr(field_blom, fldptr2=dataptr2d, rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
-      ! Plot mapped fldbun salinity
-      call io_write(filename="woa18_s_an.nc", fldbun=fldbun_blom, use_float=.false., rc=rc)
-      if (chkerr(rc,__LINE__,u_FILE_u)) return
-
       ! now set s_woa
       do j = 1, jjcpl
          do l = 1, isp(j)
             do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
                n = (j - 1)*ii + i
-               do ko = 1,nlev
+               do ko = 1,kdm_woa
                   s_woa(i,j,ko) = dataptr2d(ko,n)
                end do
             end do

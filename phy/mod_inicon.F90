@@ -857,6 +857,10 @@ contains
     integer :: errstat, ncid, varid
     logical :: woa_icfile, layer_icfile
 
+    if (woa_nuopc_provided) then
+       woa_icfile = .true.
+    end if
+
     if (.not. woa_nuopc_provided) then
       ! Check type of initial condition file.
       woa_icfile = .false.

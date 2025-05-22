@@ -754,13 +754,6 @@ contains
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
       end if
 
-      ! map woa climatological initial data to blom mesh
-      woa_nuopc_provided = .false. ! TODO: make this a namelist
-      if (woa_nuopc_provided) then
-         call map_woa(Emesh, rc)
-         if (ChkErr(rc, __LINE__, u_FILE_u)) return
-      end if
-
       ! Find if restart is needed at the end of the run
       call NUOPC_CompAttributeGet(gcomp, name="write_restart_at_endofrun", value=cvalue, isPresent=isPresent, isSet=isSet, rc=rc)
       if (ChkErr(rc,__LINE__,u_FILE_u)) return
@@ -804,6 +797,17 @@ contains
       ! ------------------------------------------------------------------------
       ! Phase 2 of BLOM initialization.
       ! ------------------------------------------------------------------------
+
+      ! map woa climatological initial data to blom mesh
+      ! woa_nuopc_provided is read in as a namelist during blom_init_phase1 and
+      ! is a module variable in mod_inicon.F90
+      if (woa_nuopc_provided) then
+         ! This allocates and fills in the following module variables in mod_inicon.F90:
+         ! t_woa, s_woa, depth_bnds_woa, depth_woa
+         ! t_woa_fval, s_woa_fval, kdm_woa
+         call map_woa(Emesh, rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      end if
 
       call blom_init_phase2
 
