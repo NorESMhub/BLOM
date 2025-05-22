@@ -4272,6 +4272,16 @@
     <desc>Filename (incl. full path) to delta 14C initial values (used if C-isotope code is activated)</desc>
   </entry>
 
+  <entry id="inidom" is_inputdata="yes">
+    <type>char</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/blom/inicon/doc_restart_NorESM2LM_yr4750_depth_bnds.nc</value>
+    </values>
+    <desc>Filename (incl. full path) to DOM classes initial values (used if DOM code is activated)</desc>
+  </entry>
+
   <entry id="with_dmsph">
     <type>logical</type>
     <category>bgcnml</category>

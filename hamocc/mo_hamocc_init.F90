@@ -63,7 +63,7 @@ contains
     use mo_read_sedpor, only: read_sedpor,sedporfile
     use mo_read_sedqual,only: read_sedqual,sedqualfile
     use mo_clim_swa,    only: ini_swa_clim,swaclimfile
-    use mo_Gdata_read,  only: inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c
+    use mo_Gdata_read,  only: inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c,inidom
     use mo_intfcblom,   only: alloc_mem_intfcblom,nphys,bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask,        &
                               sedlay2,powtra2,burial2,blom2hamocc,atm2,prorca_mavg2
     use mo_ini_fields,  only: ini_fields_ocean,ini_fields_atm
@@ -87,7 +87,7 @@ contains
 
     namelist /bgcnml/ atm_co2,fedepfile,fedep_source,do_rivinpt,rivinfile,do_ndep,ndepfile,do_oalk,&
          &            do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,                         &
-         &            inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c,swaclimfile,       &
+         &            inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c,inidom,swaclimfile,&
          &            with_dmsph,pi_ph_file,l_3Dvarsedpor,sedporfile,ocn_co2_type,use_M4AGO,       &
          &            do_n2o_coupled,do_nh3_coupled,lkwrbioz_off,lTO2depremin,shelfsea_maskfile,   &
          &            sedqualfile,ldyn_sed_age

@@ -68,7 +68,7 @@ module mo_Gdata_read
   public :: zlev ! Depth of each z-level [m] in the current data file.
   public :: zlev_bnds
   public :: nzmax,nz,fillval
-  public :: inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c
+  public :: inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c,inidom
 
   ! Number of latitudes, longitudes, and z-levels in the WOA and GLODAP data
   integer, parameter :: nlon   = 360
@@ -98,8 +98,10 @@ module mo_Gdata_read
   character(len=bgc_fnmlen) :: inisil  = ''
   character(len=bgc_fnmlen) :: inid13c = ''
   character(len=bgc_fnmlen) :: inid14c = ''
-  character(len=bgc_fnmlen) :: inic13 = ''   ! currently not used
-  character(len=bgc_fnmlen) :: inic14 = ''   ! currently not used
+  character(len=bgc_fnmlen) :: inic13  = ''   ! currently not used
+  character(len=bgc_fnmlen) :: inic14  = ''   ! currently not used
+  character(len=bgc_fnmlen) :: inidom  = ''
+
 
   ! Variables set by call to Gdata_set
   integer                               :: nz
@@ -295,6 +297,55 @@ contains
       dsrc   = 'ISO'
       cfac   = 1.0
 
+    case ('d_l') ! labile DOM
+      infile = inidom
+      ncname = 'dissoclvl'
+      dsrc   = 'WOA'       ! model run by Jerry, regridded to WOA grid
+      cfac   = 1.e-3
+
+    case ('dsl') ! semi-labile DOM
+      infile = inidom
+      ncname = 'dissocsllvl'
+      dsrc   = 'WOA'       ! model run by Jerry, regridded to WOA grid
+      cfac   = 1.e-3
+
+    case ('dsr') ! semi-refractory DOM
+      infile = inidom
+      ncname = 'dissocsrlvl'
+      dsrc   = 'WOA'       ! model run by Jerry, regridded to WOA grid
+      cfac   = 1.e-3
+
+    case ('d_r') ! refractory DOM
+      infile = inidom
+      ncname = 'dissocrlvl'
+      dsrc   = 'WOA'       ! model run by Jerry, regridded to WOA grid
+      cfac   = 1.e-3
+
+    case ('pdl') ! preformed labile DOM
+      infile = inidom
+      ncname = 'p_doclvl'
+      dsrc   = 'WOA'       ! model run by Jerry, regridded to WOA grid
+      cfac   = 1.e-3
+
+    case ('psl') ! preformed semi-labile DOM
+      infile = inidom
+      ncname = 'p_docsllvl'
+      dsrc   = 'WOA'       ! model run by Jerry, regridded to WOA grid
+      cfac   = 1.e-3
+
+    case ('psr') ! preformed semi-refractory DOM
+      infile = inidom
+      ncname = 'p_docsrlvl'
+      dsrc   = 'WOA'       ! model run by Jerry, regridded to WOA grid
+      cfac   = 1.e-3
+
+    case ('pdr') ! preformed refractory DOM
+      infile = inidom
+      ncname = 'p_docrlvl'
+      dsrc   = 'WOA'       ! model run by Jerry, regridded to WOA grid
+      cfac   = 1.e-3
+
+
     case default
       call moderr(routinestr,'Invalid vname')
 
@@ -308,7 +359,7 @@ contains
       write(io_stdo_bgc,*) '********************************************'
       write(io_stdo_bgc,*) 'iHAMOCC: initialising ', trim(vname)
     endif
-	
+
     call read_Gdata()
 
     ! extend data array by +/-dnmax data points in longitude
@@ -459,7 +510,7 @@ contains
       !write(*,*) '==============='
 
     enddo
-    
+
   end subroutine set_regional_profiles
 
 

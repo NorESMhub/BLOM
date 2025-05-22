@@ -47,12 +47,11 @@ contains
     use mod_xc,          only: xchalt
     use mo_carbch,       only: ocetra
     use mo_Gdata_read,   only: set_Gdata,clean_Gdata,get_profile,nzmax,nz,zlev_bnds,fillval
-    use mo_control_bgc,  only: io_stdo_bgc
+    use mo_control_bgc,  only: io_stdo_bgc,use_natDIC,use_cisonew,use_dom
     use mo_vgrid,        only: ptiestw
-    use mo_param1_bgc,   only: ialkali,iano3,ioxygen,iphosph,isco212,isilica
-    use mo_param1_bgc,   only: isco213,isco214
-    use mo_param1_bgc,   only: inatalkali,inatsco212
-    use mo_control_bgc,  only: use_natDIC,use_cisonew
+    use mo_param1_bgc,   only: ialkali,iano3,ioxygen,iphosph,isco212,isilica,isco213,isco214,      &
+                             & inatalkali,inatsco212,idoc,idocsl,idocsr,idocr,iprefdoc,iprefdocsl, &
+                             & iprefdocsr,iprefdocr
 
     ! Arguments
     integer, intent(in) :: kpie,kpje,kpke,kbnd
@@ -68,7 +67,8 @@ contains
     integer,  parameter :: nread_base = 6 ! Number of fields to read
     integer,  parameter :: nread_ndic = 2 ! Number of fields to read
     integer,  parameter :: nread_ciso = 2 ! Number of fields to read
-    integer,  parameter :: maxflds    = nread_base+nread_ndic+nread_ciso
+    integer,  parameter :: nread_dom  = 8 ! Number of fields to read
+    integer,  parameter :: maxflds    = nread_base+nread_ndic+nread_ciso+nread_dom
     integer             :: nflds, no
     integer             :: ifld(maxflds)
     character(len=3)    :: vname(maxflds)
@@ -89,6 +89,15 @@ contains
       nflds = nflds+nread_ciso
       vname(no:nflds) = (/'d13', 'd14'/)
       ifld(no:nflds) = (/isco213,isco214/)
+    endif
+
+    if (use_dom) then
+      no = nflds + 1
+      nflds = nflds+nread_dom
+      vname(no:nflds) = (/  'd_l',   'dsl',   'dsr',    'd_r',                                     &
+                            'pdl',   'psl',   'psr',    'pdr' /)
+      ifld(no:nflds)  = (/   idoc,      idocsl,      idocsr,    idocr,                             &
+                         iprefdoc,  iprefdocsl,  iprefdocsr,iprefdocr  /)
     endif
 
     do n = 1, nflds  ! Loop over tracer
