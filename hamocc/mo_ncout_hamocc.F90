@@ -1864,7 +1864,7 @@ contains
       call ncdefvar3d(INT_EXUDSL(iogrp),cmpflg,'p','exudslint',                 &
            &   'Integrated phy exudation to DOC-SL',' ','mol C m-2 s-1',0)
       call ncdefvar3d(INT_EXCRL(iogrp),cmpflg,'p','excrlint',                   &
-           &   'Integrated zoo excretion to DOC-SL',' ','mol C m-2 s-1',0)
+           &   'Integrated zoo excretion to DOC-L',' ','mol C m-2 s-1',0)
       call ncdefvar3d(INT_EXCRSL(iogrp),cmpflg,'p','excrslint',                 &
            &   'Integrated zoo excretion to DOC-SL',' ','mol C m-2 s-1',0)
       call ncdefvar3d(INT_DOCL_REM(iogrp),cmpflg,'p','docl_remint',             &
