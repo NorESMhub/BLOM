@@ -59,7 +59,7 @@ contains
     !***********************************************************************************************
 
     use mo_control_bgc, only: dtb,do_rivinpt,use_cisonew,use_river2omip
-    use mo_param_bgc,   only: rcar,rcar_tdochc
+    use mo_param_bgc,   only: rcar_tdochc
     use mo_param1_bgc,  only: nriv,irdin,irdip,irsi,iralk,iriron,irdoc,irtdoc,irdet,               &
                               iano3,iphosph,isilica,isco212,iiron,idoc,itdoc_lc,itdoc_hc,idet,     &
                               ialkali,inatsco212,inatalkali,itdoc_lc13,itdoc_hc13,itdoc_lc14,      &
