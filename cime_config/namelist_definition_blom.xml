@@ -4833,6 +4833,16 @@
     <desc>Dust deposition and iron solubility parameter: factor introduced to tune deposition/solubility</desc>
   </entry>
 
+  <entry id="fesoly">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Max. dissolved iron concentration in deep water</desc>
+  </entry>
+
   <!-- TODO: how to handle mathematical expressions like below -->
   <!-- <entry id="relaxfe"> -->
   <!--   <type>real</type> -->
