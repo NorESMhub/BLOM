@@ -31,7 +31,7 @@ module mod_rdlim
   use mod_xc,          only: xcbcst, xchalt, xcstop, mnproc, lp
   use mod_grid,        only: grfile
   use mod_eos,         only: pref
-  use mod_inicon,      only: icfile
+  use mod_inicon,      only: icfile, woa_nuopc_provided
   use mod_advect,      only: advmth
   use mod_cppm,        only: cppm_limiting
   use mod_pbcor,       only: bmcmth
@@ -132,7 +132,7 @@ contains
     integer :: m,n,idate,idate0,nfu,ios
 
     namelist /limits/ nday1,nday2,idate,idate0,runid,runtyp, rpoint, expcnf, &
-         grfile,icfile,pref,baclin,batrop, &
+         grfile,icfile,woa_nuopc_provided,pref,baclin,batrop, &
          mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo, &
          vsc2hi,vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls, &
          mommth,pgfmth,bmcmth,advmth,cppm_limiting, &
@@ -187,6 +187,7 @@ contains
       write (lp,*) 'EXPCNF ',trim(EXPCNF)
       write (lp,*) 'GRFILE ',trim(GRFILE)
       write (lp,*) 'ICFILE ',trim(ICFILE)
+      write (lp,*) 'WOA_NUOPC_PROVIDED ',WOA_NUOPC_PROVIDED
       write (lp,*) 'PREF',PREF
       write (lp,*) 'BACLIN',BACLIN
       write (lp,*) 'BATROP',BATROP
@@ -276,6 +277,7 @@ contains
     call xcbcst(expcnf)
     call xcbcst(grfile)
     call xcbcst(icfile)
+    call xcbcst(woa_nuopc_provided)
     call xcbcst(pref)
     call xcbcst(baclin)
     call xcbcst(batrop)

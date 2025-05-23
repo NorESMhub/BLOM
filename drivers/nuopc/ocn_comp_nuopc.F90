@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2022 Mats Bentsen
+! Copyright (C) 2022-2025 Mats Bentsen, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -52,7 +52,7 @@ module ocn_comp_nuopc
    use mod_time,          only: blom_time
    use mod_forcing,       only: srxday, trxday
    use mod_constants,     only: epsilt
-   use mod_blom_init,     only: blom_init
+   use mod_blom_init,     only: blom_init_phase1, blom_init_phase2
    use mod_blom_step,     only: blom_step
    use mod_fill_global,   only: fill_global
    use mod_restart,       only: restart_write
@@ -461,10 +461,10 @@ contains
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
 
       ! ------------------------------------------------------------------------
-      ! Initialize BLOM.
+      ! Phase 1 of BLOM initialization.
       ! ------------------------------------------------------------------------
 
-      call blom_init
+      call blom_init_phase1
 
       ! ------------------------------------------------------------------------
       ! Get ScalarField attributes.
@@ -793,6 +793,12 @@ contains
       type(ESMF_StateItem_flag) :: itemType
 
       if (dbug > 5) call ESMF_LogWrite(subname//': called', ESMF_LOGMSG_INFO)
+
+      ! ------------------------------------------------------------------------
+      ! Phase 2 of BLOM initialization.
+      ! ------------------------------------------------------------------------
+
+      call blom_init_phase2
 
       ! ------------------------------------------------------------------------
       ! Query the Component for its exportState.
