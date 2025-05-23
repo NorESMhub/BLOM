@@ -107,7 +107,8 @@ contains
     use mo_control_bgc,   only: dtb,io_stdo_bgc,with_dmsph,                                        &
                                 use_BROMO,use_AGG,use_PBGC_OCNP_TIMESTEP,use_FB_BGC_OCE,           &
                                 use_AGG,use_cisonew,use_natDIC, use_WLIN,use_sedbypass,use_M4AGO,  &
-                                use_extNcycle,lkwrbioz_off,lTO2depremin,use_river2omip,use_dom
+                                use_extNcycle,lkwrbioz_off,lTO2depremin,use_river2omip,            &
+                                use_DOMclasses
     use mo_vgrid,         only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000,kwrbioz,ptiestu
     use mo_vgrid,         only: kmle
     use mo_clim_swa,      only: swa_clim
@@ -238,7 +239,7 @@ contains
     nutlim_diag(:,:,:,:) = 0.
     zeu_nutlim_diag(:,:,:) = 0.
 
-    if (use_dom) then
+    if (use_DOMclasses) then
       int_exudl    (:,:) = 0.
       int_exudsl   (:,:) = 0.
       int_excrl    (:,:) = 0.
@@ -436,7 +437,7 @@ contains
                 tdoclc_rem = 0.
                 tdochc_rem = 0.
               endif
-              if (use_dom) then
+              if (use_DOMclasses) then
                 bacfrasl   = 0.
                 bacfrasr   = 0.
                 bacfrar    = 0.
@@ -444,7 +445,7 @@ contains
                 excdocsl   = gammazsl*zoothresh
               endif
             else
-              if (use_dom) then
+              if (use_DOMclasses) then
                 ! Loenborg et al. 2018 (Frontiers):
                 ! A=2.96e6 (day-1) (Theoretical Kc in the absence of Ea)
                 ! R=8.314 J/mol/K (Universal gas constant)
@@ -572,7 +573,7 @@ contains
             endif
             dms_uv  = dmsp2*phofa/pi_alpha*ocetra(i,j,k,idms)
 
-            if (use_dom) then
+            if (use_DOMclasses) then
               dtr = bacfra+(1.-alphasl)*bacfrasl+(1.-alphasr)*bacfrasr+bacfrar-phosy+graton+ecan*zoomor
             else
               dtr = bacfra-phosy+graton+ecan*zoomor
@@ -630,7 +631,7 @@ contains
               ocetra(i,j,k,itdoc_lc) = ocetra(i,j,k,itdoc_lc)-tdoclc_rem
               ocetra(i,j,k,itdoc_hc) = ocetra(i,j,k,itdoc_hc)-tdochc_rem
             endif
-            if (use_dom) then
+            if (use_DOMclasses) then
               ocetra(i,j,k,iphy)   = ocetra(i,j,k,iphy)-exudsl
               ocetra(i,j,k,izoo)   = ocetra(i,j,k,izoo)-excdocsl
               ocetra(i,j,k,idocsl) = ocetra(i,j,k,idocsl)-bacfrasl+excdocsl+exudsl
@@ -717,7 +718,7 @@ contains
 
               if(avmass > 0.) then
                 avnos = ocetra(i,j,k,inos)
-                if (use_dom) then
+                if (use_DOMclasses) then
                   anosloss = (phosy-exud-exudsl-graton-grawa)*avnos/avmass
                 else
                   anosloss = (phosy-exud-graton-grawa)*avnos/avmass
@@ -752,7 +753,7 @@ contains
 
             intphosy(i,j)   = intphosy(i,j)  +phosy*rcar*dz  ! primary production in kmol C m-2
             phosy3d(i,j,k)  = phosy*rcar                     ! primary production in kmol C m-3
-            if (use_dom) then
+            if (use_DOMclasses) then
               int_exudl    (i,j) = int_exudl    (i,j)+exud*rcar*dz  ! PHY exudation to DOC-L in kmol C m-2
               int_exudsl   (i,j) = int_exudsl   (i,j)+exudsl*rcar*dz
               int_excrl    (i,j) = int_excrl    (i,j)+excdoc*rcar*dz
@@ -792,11 +793,11 @@ contains
     endif
 
 
-    if (use_dom .and. use_river2omip) then
+    if (use_DOMclasses .and. use_river2omip) then
       doclimfct = 1./6. * 0.33
-    else if (use_dom .and. .not. use_river2omip) then
+    else if (use_DOMclasses .and. .not. use_river2omip) then
       doclimfct = 1./4. * 0.33
-    else if (.not. use_dom .and. use_river2omip) then
+    else if (.not. use_DOMclasses .and. use_river2omip) then
       doclimfct = 1./3. * 0.33
     else
       doclimfct = 1. * 0.33
@@ -875,7 +876,7 @@ contains
               endif
 
               o2csmp = merge(ro2utammo,ro2ut,use_extNcycle)
-              if (use_dom) then
+              if (use_DOMclasses) then
                 pocrem   = min(drempoc*ocetra(i,j,k,idet),0.33*ocetra(i,j,k,ioxygen)/o2csmp)
                 phyrem   = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/o2csmp)
                 !fractions of doc(s) remineralized into nutrients
@@ -930,7 +931,7 @@ contains
                 tdoclc_rem = 0.
                 tdochc_rem = 0.
               endif
-              if (use_dom) then
+              if (use_DOMclasses) then
                 docremsl = 0.
                 docremsr = 0.
                 docremr  = 0.
@@ -955,7 +956,7 @@ contains
             ocetra(i,j,k,idoc) = ocetra(i,j,k,idoc) - docrem
             ocetra(i,j,k,iphy) = ocetra(i,j,k,iphy) - phyrem
 
-            if (use_dom) then
+            if (use_DOMclasses) then
               ocetra(i,j,k,idocsl) = ocetra(i,j,k,idocsl) - docremsl/(1.-alphasl)
               ocetra(i,j,k,idocsr) = ocetra(i,j,k,idocsr) - docremsr/(1.-alphasr) + docremsl*(alphasl/(1.-alphasl))
               ocetra(i,j,k,idocr ) = ocetra(i,j,k,idocr ) - docremr               + docremsr*(alphasr/(1.-alphasr))
@@ -1058,7 +1059,7 @@ contains
             dz = pddpo(i,j,k)
             intdms_bac(i,j) =  intdms_bac(i,j)+dms_bac*dz
 
-            if (use_dom) then
+            if (use_DOMclasses) then
               int_docl_rem (i,j) = int_docl_rem (i,j)+docrem*rcar*dz
               int_docsl_rem(i,j) = int_docsl_rem(i,j)+docremsl/(1.-alphasl)*rcar*dz
               int_docsr_rem(i,j) = int_docsr_rem(i,j)+docremsr/(1.-alphasr)*rcar*dz

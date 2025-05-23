@@ -36,7 +36,8 @@ contains
     use mod_dia,        only: diafnm,sigmar1,iotype,ddm,depthslev,depthslev_bnds
     use mo_control_bgc, only: dtbgc,use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO,              &
                               use_sedbypass,use_BOXATM,use_M4AGO,use_extNcycle,use_pref_tracers,   &
-                              use_shelfsea_res_time,use_sediment_quality,use_river2omip,use_dom
+                              use_shelfsea_res_time,use_sediment_quality,use_river2omip,           &
+                              use_DOMclasses
     use mo_vgrid,       only: k0100,k0500,k1000,k2000,k4000
     use mo_param1_bgc,  only: ks
     use mod_nctools,    only: ncwrt1,ncdims,nctime,ncfcls,ncfopn,ncdimc,ncputr,ncputi,ncwrtr
@@ -443,7 +444,7 @@ contains
       call finlyr(jagg_Vrhof(iogrp),jdp(iogrp))
       call finlyr(jagg_Vpor(iogrp),jdp(iogrp))
     endif
-    if (use_dom) then
+    if (use_DOMclasses) then
       call finlyr(jdocsl(iogrp),jdp(iogrp))
       call finlyr(jdocsr(iogrp),jdp(iogrp))
       call finlyr(jdocr(iogrp),jdp(iogrp))
@@ -588,7 +589,7 @@ contains
       call msklvl(jlvl_agg_Vrhof(iogrp),depths)
       call msklvl(jlvl_agg_Vpor(iogrp),depths)
     endif
-    if (use_dom) then
+    if (use_DOMclasses) then
       call msklvl(jlvldocsl(iogrp),depths)
       call msklvl(jlvldocsr(iogrp),depths)
       call msklvl(jlvldocr(iogrp),depths)
@@ -737,7 +738,7 @@ contains
       call wrtsrf(jatmn2o(iogrp),      SRF_ATMN2O(iogrp),   rnacc,          0.,cmpflg,'atmn2o')
       call wrtsrf(jndepnhxfx(iogrp),   FLX_NDEPNHX(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'ndepnhx')
     endif
-    if (use_dom) then
+    if (use_DOMclasses) then
       call wrtsrf(jintexudl(iogrp),    INT_EXUDL(iogrp),    rnacc*1e3/dtbgc,0.,cmpflg,'exudlint')
       call wrtsrf(jintexudsl(iogrp),   INT_EXUDSL(iogrp),   rnacc*1e3/dtbgc,0.,cmpflg,'exudslint')
       call wrtsrf(jintexcrl(iogrp),    INT_EXCRL(iogrp),    rnacc*1e3/dtbgc,0.,cmpflg,'excrlint')
@@ -859,7 +860,7 @@ contains
       call wrtlyr(jagg_Vrhof(iogrp),   LYR_agg_Vrhof(iogrp),1.,             0.,cmpflg,'agg_Vrhof')
       call wrtlyr(jagg_Vpor(iogrp),    LYR_agg_Vpor(iogrp), 1.,             0.,cmpflg,'agg_Vpor')
     endif
-    if (use_dom) then
+    if (use_DOMclasses) then
       call wrtlyr(jdocsl(iogrp),       LYR_DOCSL(iogrp),    1e3,            0.,cmpflg,'dissocsl')
       call wrtlyr(jdocsr(iogrp),       LYR_DOCSR(iogrp),    1e3,            0.,cmpflg,'dissocsr')
       call wrtlyr(jdocr(iogrp),        LYR_DOCR(iogrp),     1e3,            0.,cmpflg,'dissocr')
@@ -982,7 +983,7 @@ contains
       call wrtlvl(jlvl_agg_Vrhof(iogrp),    LVL_agg_Vrhof(iogrp),    rnacc,          0.,cmpflg,'agg_Vrhoflvl')
       call wrtlvl(jlvl_agg_Vpor(iogrp),     LVL_agg_Vpor(iogrp),     rnacc,          0.,cmpflg,'agg_Vporlvl')
     endif
-    if (use_dom) then
+    if (use_DOMclasses) then
       call wrtlvl(jlvldocsl(iogrp),     LVL_DOCSL(iogrp),   rnacc*1e3,      0.,cmpflg,'dissocsllvl')
       call wrtlvl(jlvldocsr(iogrp),     LVL_DOCSR(iogrp),   rnacc*1e3,      0.,cmpflg,'dissocsrlvl')
       call wrtlvl(jlvldocr(iogrp),      LVL_DOCR(iogrp),    rnacc*1e3,      0.,cmpflg,'dissocrlvl')
@@ -1150,7 +1151,7 @@ contains
       call inisrf(jbromo_uv(iogrp),0.)
       call inisrf(jatmbromo(iogrp),0.)
     endif
-    if (use_dom) then
+    if (use_DOMclasses) then
       call inisrf(jintexudl(iogrp),0.)
       call inisrf(jintexudsl(iogrp),0.)
       call inisrf(jintexcrl(iogrp),0.)
@@ -1294,7 +1295,7 @@ contains
       call inilyr(jagg_Vrhof(iogrp),0.)
       call inilyr(jagg_Vpor(iogrp),0.)
     endif
-    if (use_dom) then
+    if (use_DOMclasses) then
       call inilyr(jdocsl(iogrp),0.)
       call inilyr(jdocsr(iogrp),0.)
       call inilyr(jdocr(iogrp),0.)
@@ -1415,7 +1416,7 @@ contains
       call inilvl(jlvl_agg_Vrhof(iogrp),0.)
       call inilvl(jlvl_agg_Vpor(iogrp),0.)
     endif
-    if (use_dom) then
+    if (use_DOMclasses) then
       call inilvl(jlvldocsl(iogrp),0.)
       call inilvl(jlvldocsr(iogrp),0.)
       call inilvl(jlvldocr(iogrp),0.)
@@ -1485,7 +1486,8 @@ contains
                               nctime,ncfcls,ncedef,ncdefvar3d,ndouble
     use mo_control_bgc, only: use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO,                    &
                               use_sedbypass,use_BOXATM,use_extNcycle,use_pref_tracers,use_M4AGO,   &
-                              use_shelfsea_res_time,use_sediment_quality,use_river2omip,use_dom
+                              use_shelfsea_res_time,use_sediment_quality,use_river2omip,           &
+                              use_DOMclasses
     use mo_bgcmean,     only: srf_kwco2,srf_fco2,srf_pco2,srf_xco2,srf_pco2_gex,srf_dmsflux,       &
                               srf_co2fxd,srf_co2fxu,srf_kwco2sol,srf_co2sol,                       &
                               srf_oxflux,srf_niflux,srf_pn2om,srf_dms,srf_dmsprod,                 &
@@ -1858,7 +1860,7 @@ contains
       call ncdefvar3d(SRF_ATMBROMO(iogrp),cmpflg,'p',                           &
            &   'atmbromo','Atmospheric bromoform',' ','ppt',0)
     endif
-    if (use_dom) then
+    if (use_DOMclasses) then
       call ncdefvar3d(INT_EXUDL(iogrp),cmpflg,'p','exudlint',                   &
            &   'Integrated phy exudation to DOC-L',' ','mol C m-2 s-1',0)
       call ncdefvar3d(INT_EXUDSL(iogrp),cmpflg,'p','exudslint',                 &
@@ -2109,7 +2111,7 @@ contains
       call ncdefvar3d(LYR_TDOC_HC(iogrp),cmpflg,'p','tdoc_hc',                  &
            &  'High-C terrestrial dissolved organic carbon',' ','mol P m-3',1)
     endif
-    if (use_dom) then
+    if (use_DOMclasses) then
       call ncdefvar3d(LYR_DOCSL(iogrp),cmpflg,'p',                              &
            &   'dissocsl','DOC semi-labile',' ','mol P m-3',1)
       call ncdefvar3d(LYR_DOCSR(iogrp),cmpflg,'p',                              &
@@ -2336,7 +2338,7 @@ contains
       call ncdefvar3d(LVL_TDOC_HC(iogrp),cmpflg,'p','tdoc_hclvl',               &
            &  'High-C terrestrial dissolved organic carbon',' ','mol P m-3',2)
     endif
-    if (use_dom) then
+    if (use_DOMclasses) then
       call ncdefvar3d(LVL_DOCSL(iogrp),cmpflg,'p',                              &
            &   'dissocsllvl','DOC semi-labile',' ','mol P m-3',2)
       call ncdefvar3d(LVL_DOCSR(iogrp),cmpflg,'p',                              &

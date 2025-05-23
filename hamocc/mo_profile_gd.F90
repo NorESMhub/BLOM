@@ -47,7 +47,7 @@ contains
     use mod_xc,          only: xchalt
     use mo_carbch,       only: ocetra
     use mo_Gdata_read,   only: set_Gdata,clean_Gdata,get_profile,nzmax,nz,zlev_bnds,fillval
-    use mo_control_bgc,  only: io_stdo_bgc,use_natDIC,use_cisonew,use_dom
+    use mo_control_bgc,  only: io_stdo_bgc,use_natDIC,use_cisonew,use_DOMclasses
     use mo_vgrid,        only: ptiestw
     use mo_param1_bgc,   only: ialkali,iano3,ioxygen,iphosph,isco212,isilica,isco213,isco214,      &
                              & inatalkali,inatsco212,idoc,idocsl,idocsr,idocr,iprefdoc,iprefdocsl, &
@@ -91,7 +91,7 @@ contains
       ifld(no:nflds) = (/isco213,isco214/)
     endif
 
-    if (use_dom) then
+    if (use_DOMclasses) then
       no = nflds + 1
       nflds = nflds+nread_dom
       vname(no:nflds) = (/  'd_l',   'dsl',   'dsr',    'd_r',                                     &

@@ -41,7 +41,7 @@ module mo_param_bgc
                             use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type,use_M4AGO,&
                             do_n2o_coupled,do_nh3_coupled,use_extNcycle,                           &
                             lkwrbioz_off,lTO2depremin,use_shelfsea_res_time,use_sediment_quality,  &
-                            use_pref_tracers,use_coupler_ndep,use_river2omip,use_dom
+                            use_pref_tracers,use_coupler_ndep,use_river2omip,use_DOMclasses
   use mod_xc,         only: mnproc,xchalt
 
   implicit none
@@ -684,7 +684,7 @@ contains
       dremopal = 0.023
     endif
 
-    if (use_dom) then
+    if (use_DOMclasses) then
       ! THIS SECTION POTENTIALLY NEEDS FURTHER PARAMETERS AFTER PR574 and others
       gammap      = 0.10        ! DOC_l exudation rate [day-1]
       gammaz      = 0.06        ! DOC_l excretion rate [day-1]
@@ -799,7 +799,7 @@ contains
     spemor   = spemor*dtb      ! 1/d to 1/time step - mortality rate
     gammap   = gammap*dtb      ! 1/d to 1/time step - exudation rate
     gammaz   = gammaz*dtb      ! 1/d to 1/time step - excretion rate
-    if (use_dom) then
+    if (use_DOMclasses) then
       gammapsl    = gammapsl*dtb      ! 1/d to 1/time step - exudation rate
       gammazsl    = gammazsl*dtb      ! 1/d to 1/time step - exudation rate
       docl_remin  = docl_remin*dtb
@@ -970,7 +970,7 @@ contains
       call cinfo_add_entry('use_pref_tracers',       use_pref_tracers)
       call cinfo_add_entry('use_coupler_ndep',       use_coupler_ndep)
       call cinfo_add_entry('use_river2omip',         use_river2omip)
-      call cinfo_add_entry('use_dom',                use_dom)
+      call cinfo_add_entry('use_DOMclasses',         use_DOMclasses)
       if (use_extNcycle) then
         call cinfo_add_entry('do_n2o_coupled',       do_n2o_coupled)
         call cinfo_add_entry('do_nh3_coupled',       do_nh3_coupled)
@@ -1012,7 +1012,7 @@ contains
       call pinfo_add_entry('spemor',      spemor*dtbinv)
       call pinfo_add_entry('gammap',      gammap*dtbinv)
       call pinfo_add_entry('gammaz',      gammaz*dtbinv)
-      if (use_dom) then
+      if (use_DOMclasses) then
         call pinfo_add_entry('gammapsl',      gammapsl*dtbinv)
         call pinfo_add_entry('gammazsl',      gammazsl*dtbinv)
         call pinfo_add_entry('alphasl',       alphasl)

@@ -77,7 +77,7 @@ contains
     use mo_control_bgc, only: io_stdo_bgc,ldtbgc,rmasks,rmasko,use_cisonew,use_AGG,use_BOXATM,     &
                               use_BROMO,use_CFC,use_natDIC,use_sedbypass,use_extNcycle,            &
                               use_pref_tracers,use_shelfsea_res_time,use_sediment_quality,         &
-                              use_river2omip,use_dom
+                              use_river2omip,use_DOMclasses
     use mo_sedmnt,      only: sedhpl
     use mo_intfcblom,   only: sedlay2,powtra2,burial2,atm2,prorca_mavg2
     use mo_param1_bgc,  only: ialkali, ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,    &
@@ -555,7 +555,7 @@ contains
              &    rmissing,62,io_stdo_bgc)
       endif
     endif
-    if (use_dom) then
+    if (use_DOMclasses) then
       call NETCDF_DEF_VARDB(ncid,5,'docsl',3,ncdimst,ncvarid,                                      &
            &    6,'mol/kg',36,'Semi labile dissolved organic carbon',rmissing,56,io_stdo_bgc)
 
@@ -874,7 +874,7 @@ contains
       call write_netcdf_var(ncid,'anh4',locetra(1,1,1,ianh4),2*kpke,0)
       call write_netcdf_var(ncid,'ano2',locetra(1,1,1,iano2),2*kpke,0)
     endif
-    if (use_dom) then
+    if (use_DOMclasses) then
       call write_netcdf_var(ncid,'docsl',locetra(1,1,1,idocsl),2*kpke,0)
       call write_netcdf_var(ncid,'docsr',locetra(1,1,1,idocsr),2*kpke,0)
       call write_netcdf_var(ncid,'docr' ,locetra(1,1,1,idocr),2*kpke,0)

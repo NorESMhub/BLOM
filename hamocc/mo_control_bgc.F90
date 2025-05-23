@@ -91,7 +91,7 @@ module mo_control_bgc
   logical           :: use_shelfsea_res_time  = .false. ! Include shelf sea residence time tracer
   logical           :: use_sediment_quality   = .false. ! Use sediment quality code to determine aerobic remineralization rates
   logical           :: use_river2omip         = .false. ! River2ocean MIP protocol
-  logical           :: use_dom                = .false. ! DOM classes (labile, semi-labile,semi-refractory and refractory)
+  logical           :: use_DOMclasses         = .false. ! DOM classes (labile, semi-labile,semi-refractory and refractory)
 
 contains
 

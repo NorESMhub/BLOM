@@ -149,7 +149,7 @@ contains
     use mo_control_bgc,   only: io_stdo_bgc,dtb,use_BROMO,use_AGG,use_WLIN,use_natDIC,             &
                                 use_CFC,use_sedbypass,use_cisonew,use_BOXATM,use_M4AGO,            &
                                 use_extNcycle,use_pref_tracers,use_shelfsea_res_time,              &
-                                use_sediment_quality,use_river2omip,use_dom
+                                use_sediment_quality,use_river2omip,use_DOMclasses
     use mo_param1_bgc,    only: ialkali,ian2o,iano3,iatmco2,iatmdms,iatmn2,iatmn2o,iatmo2,         &
                                 icalc,idet,idms,idicsat,idoc,iiron,iopal,itdoc_lc,itdoc_hc,        &
                                 ioxygen,iphosph,iphy,iprefalk,iprefdic,                            &
@@ -348,7 +348,7 @@ contains
       call accsrf(jbromo_prod,int_chbr3_prod,omask,0)
       call accsrf(jbromo_uv,int_chbr3_uv,omask,0)
     endif
-    if (use_dom) then
+    if (use_DOMclasses) then
       call accsrf(jintexudl,int_exudl,omask,0)
       call accsrf(jintexudsl,int_exudsl,omask,0)
       call accsrf(jintexcrl,int_excrl,omask,0)
@@ -533,7 +533,7 @@ contains
       call acclyr(jagg_Vrhof,aggregate_diagnostics(1,1,1,kav_rhof_V),pddpo,1)
       call acclyr(jagg_Vpor,aggregate_diagnostics(1,1,1,kav_por_V),pddpo,1)
     endif
-    if (use_dom) then
+    if (use_DOMclasses) then
       call acclyr(jdocsl,ocetra(1,1,1,idocsl),pddpo,1)
       call acclyr(jdocsr,ocetra(1,1,1,idocsr),pddpo,1)
       call acclyr(jdocr ,ocetra(1,1,1,idocr ),pddpo,1)
@@ -680,7 +680,7 @@ contains
           call acclvl(jlvl_agg_Vrhof,aggregate_diagnostics(1,1,1,kav_rhof_V),k,ind1,ind2,wghts)
           call acclvl(jlvl_agg_Vpor,aggregate_diagnostics(1,1,1,kav_por_V),k,ind1,ind2,wghts)
         endif
-        if (use_dom) then
+        if (use_DOMclasses) then
           call acclvl(jlvldocsl,ocetra(1,1,1,idocsl),k,ind1,ind2,wghts)
           call acclvl(jlvldocsr,ocetra(1,1,1,idocsr),k,ind1,ind2,wghts)
           call acclvl(jlvldocr ,ocetra(1,1,1,idocr ),k,ind1,ind2,wghts)

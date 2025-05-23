@@ -97,7 +97,8 @@ contains
     use mo_biomod,      only: abs_oce
     use mo_control_bgc, only: rmasks,use_FB_BGC_OCE,use_cisonew,use_AGG,use_CFC,use_natDIC,        &
                               use_BROMO, use_sedbypass,use_extNcycle,use_pref_tracers,             &
-                              use_shelfsea_res_time,use_sediment_quality,use_river2omip,use_dom
+                              use_shelfsea_res_time,use_sediment_quality,use_river2omip,           &
+                              use_DOMclasses
     use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,     &
                               iiron,iopal,ioxygen,iphosph,iphy,iprefalk,iprefdic,iprefo2,iprefpo4, &
                               isco212,isilica,izoo,iadust,inos,ibromo,icfc11,icfc12,isf6,          &
@@ -175,7 +176,7 @@ contains
               beta14=ocetra(i,j,k,isco214)/1000.+1.
               ocetra(i,j,k,isco214) = ocetra(i,j,k,isco212)*beta14*re14to/c14fac
             endif
-            if (use_dom) then
+            if (use_DOMclasses) then
               ocetra(i,j,k,idoc)       = ocetra(i,j,k,idoc)      /prho(i,j,k)
               ocetra(i,j,k,idocsl)     = ocetra(i,j,k,idocsl)    /prho(i,j,k)
               ocetra(i,j,k,idocsr)     = ocetra(i,j,k,idocsr)    /prho(i,j,k)
@@ -209,7 +210,7 @@ contains
             hi(i,j,k)            =1.e-8
             co3(i,j,k)           =0.
             co2star(i,j,k)       =20.e-6
-            if (.not. use_dom) then
+            if (.not. use_DOMclasses) then
               ocetra(i,j,k,idoc)   =1.e-8
             endif
             if (use_pref_tracers) then
@@ -287,7 +288,7 @@ contains
             ocetra(i,j,1:kmle(i,j),iprefsilica) = ocetra(i,j,1:kmle(i,j),isilica)
             ocetra(i,j,1:kmle(i,j),iprefalk)    = ocetra(i,j,1:kmle(i,j),ialkali)
             ocetra(i,j,1:kmle(i,j),iprefdic)    = ocetra(i,j,1:kmle(i,j),isco212)
-            if (use_dom) then
+            if (use_DOMclasses) then
               ocetra(i,j,1:kmle(i,j),iprefdoc)   = ocetra(i,j,1:kmle(i,j),idoc)
               ocetra(i,j,1:kmle(i,j),iprefdocsl) = ocetra(i,j,1:kmle(i,j),idocsl)
               ocetra(i,j,1:kmle(i,j),iprefdocsr) = ocetra(i,j,1:kmle(i,j),idocsr)

@@ -52,7 +52,7 @@ module mo_bgcmean
   use mo_param1_bgc,  only: ks
   use mo_control_bgc, only: use_sedbypass,use_cisonew,use_CFC,use_natDIC,use_BROMO,use_BOXATM,     &
                             use_AGG,use_M4AGO,use_extNcycle,use_pref_tracers,use_shelfsea_res_time,&
-                            use_sediment_quality,use_river2omip,use_dom
+                            use_sediment_quality,use_river2omip,use_DOMclasses
 
   implicit none
 
@@ -1070,7 +1070,7 @@ CONTAINS
         if (FLX_NDEPNHX(n) > 0) i_bsc_m2d=i_bsc_m2d+1
         jndepnhxfx(n)=i_bsc_m2d*min(1,FLX_NDEPNHX(n))
       endif
-      if (use_dom) then
+      if (use_DOMclasses) then
         if (INT_EXUDL(n) > 0) i_bsc_m2d=i_bsc_m2d+1
         jintexudl(n)=i_bsc_m2d*min(1,INT_EXUDL(n))
         if (INT_EXUDSL(n) > 0) i_bsc_m2d=i_bsc_m2d+1
@@ -1331,7 +1331,7 @@ CONTAINS
         if (LYR_agg_Vpor(n) > 0) i_bsc_m3d=i_bsc_m3d+1
         jagg_Vpor(n)=i_bsc_m3d*min(1,LYR_agg_Vpor(n))
       endif
-      if (use_dom) then
+      if (use_DOMclasses) then
         if (LYR_DOCSL(n) > 0) i_bsc_m3d=i_bsc_m3d+1
         jdocsl(n)=i_bsc_m3d*min(1,LYR_DOCSL(n))
         if (LYR_DOCSR(n) > 0) i_bsc_m3d=i_bsc_m3d+1
@@ -1549,7 +1549,7 @@ CONTAINS
         if (LVL_agg_Vpor(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvl_agg_Vpor(n)=ilvl_bsc_m3d*min(1,LVL_agg_Vpor(n))
       endif
-      if (use_dom) then
+      if (use_DOMclasses) then
         if (LVL_DOCSL(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvldocsl(n)=ilvl_bsc_m3d*min(1,LVL_DOCSL(n))
         if (LVL_DOCSR(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1

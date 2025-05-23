@@ -62,7 +62,8 @@ contains
     use mo_param1_bgc,  only: ks
     use mo_sedmnt,      only: porwat,seddw,sedlay,burial,sedhpl,powtra,porsol
     use mo_control_bgc, only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,   &
-                              use_CFC,use_natDIC,use_BROMO,use_extNcycle,use_river2omip,use_dom
+                              use_CFC,use_natDIC,use_BROMO,use_extNcycle,use_river2omip,           &
+                              use_DOMclasses
 
     ! Arguments
     integer, intent(in) :: kpie,kpje,kpke
@@ -413,7 +414,7 @@ contains
     else
       totalcarbon = totalcarbon + co2flux
     endif
-    if (use_dom) then
+    if (use_DOMclasses) then
       totalcarbon = totalcarbon + (zocetratot(idocsl)+zocetratot(idocsr)  &
                     + zocetratot(idocr))*rcar
     endif
@@ -437,7 +438,7 @@ contains
        &  - sndepnhxflux                                                  &
        &  +zpowtratot(ipownh4)+zpowtratot(ipown2o)*2+zpowtratot(ipowno2)
     endif
-    if (use_dom) then
+    if (use_DOMclasses) then
       totalnitr = totalnitr + (zocetratot(idocsl)+zocetratot(idocsr)      &
                     + zocetratot(idocr))*rnit
     endif
@@ -448,7 +449,7 @@ contains
          + zpowtratot(ipowaph)+zsedlayto(issso12)                         &
          + zburial(issso12)                                               &
          + zprorca
-    if (use_dom) then
+    if (use_DOMclasses) then
       totalphos = totalphos + zocetratot(idocsl)+zocetratot(idocsr)       &
                     + zocetratot(idocr)
     endif
@@ -478,7 +479,7 @@ contains
     if (use_extNcycle) then
       totaloxy = totaloxy + zocetratot(iano2)+zpowtratot(ipown2o)*0.5+zpowtratot(ipowno2)
     endif
-    if (use_dom) then
+    if (use_DOMclasses) then
       totaloxy = totaloxy + (zocetratot(idocsl)+zocetratot(idocsr)        &
                     + zocetratot(idocr))*(-24.)
     endif
@@ -770,7 +771,7 @@ contains
                                inatalkali,inatcalc,inatsco212,ianh4,iano2,iprefsilica,iprefdoc,    &
                                iprefdocsl,iprefdocsr,iprefdocr
       use mo_control_bgc,only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,  &
-                               use_CFC,use_natDIC,use_BROMO,use_pref_tracers,dtbgc,use_dom
+                               use_CFC,use_natDIC,use_BROMO,use_pref_tracers,dtbgc,use_DOMclasses
       use mo_kind,       only: bgc_fnmlen
 
       implicit none
@@ -1712,7 +1713,7 @@ contains
                &    'Mean terrestrial high-C dissolved organic carbon concentration') )
           call nccheck( NF90_PUT_ATT(ncid, zc_tdochc_varid, 'units', 'kmol/m^3') )
         endif
-        if (use_dom) then
+        if (use_DOMclasses) then
           call nccheck( NF90_DEF_VAR(ncid, 'zt_docsl', NF90_DOUBLE,                 &
                &    time_dimid, zt_docsl_varid) )
           call nccheck( NF90_PUT_ATT(ncid, zt_docsl_varid, 'long_name',             &
@@ -2085,7 +2086,7 @@ contains
           call nccheck( NF90_INQ_VARID(ncid, "zt_tdochc", zt_tdochc_varid) )
           call nccheck( NF90_INQ_VARID(ncid, "zc_tdochc", zc_tdochc_varid) )
         endif
-        if (use_dom) then
+        if (use_DOMclasses) then
           call nccheck( NF90_INQ_VARID(ncid, "zt_docsl", zt_docsl_varid) )
           call nccheck( NF90_INQ_VARID(ncid, "zc_docsl", zc_docsl_varid) )
           call nccheck( NF90_INQ_VARID(ncid, "zt_docsr", zt_docsr_varid) )
@@ -2401,7 +2402,7 @@ contains
         call nccheck( NF90_PUT_VAR(ncid, zc_tdochc_varid,                          &
              &    zocetratoc(itdoc_hc), start = wrstart) )
       endif
-      if (use_dom) then
+      if (use_DOMclasses) then
         call nccheck( NF90_PUT_VAR(ncid, zt_docsl_varid,                             &
              &    zocetratot(idocsl), start = wrstart) )
         call nccheck( NF90_PUT_VAR(ncid, zc_docsl_varid,                             &

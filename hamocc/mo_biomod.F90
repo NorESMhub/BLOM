@@ -122,7 +122,7 @@ CONTAINS
     !******************************************************************************
     use mod_xc,         only: mnproc
     use mo_control_bgc, only: io_stdo_bgc
-    use mo_control_bgc, only: use_FB_BGC_OCE,use_AGG,use_BROMO,use_extNcycle,use_dom
+    use mo_control_bgc, only: use_FB_BGC_OCE,use_AGG,use_BROMO,use_extNcycle,use_DOMclasses
 
     ! Arguments
     integer, intent(in) :: kpie
@@ -432,7 +432,7 @@ CONTAINS
       remin_sulf    = 0.
     endif
 
-    if (use_dom) then
+    if (use_DOMclasses) then
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable int_exudl ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie

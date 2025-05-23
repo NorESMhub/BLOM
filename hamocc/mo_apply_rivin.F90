@@ -58,7 +58,7 @@ contains
     !  Apply riverine input to oceanic tracer fields
     !***********************************************************************************************
 
-    use mo_control_bgc, only: dtb,do_rivinpt,use_cisonew,use_river2omip,use_dom
+    use mo_control_bgc, only: dtb,do_rivinpt,use_cisonew,use_river2omip,use_DOMclasses
     use mo_param_bgc,   only: rcar_tdochc
     use mo_param1_bgc,  only: nriv,irdin,irdip,irsi,iralk,iriron,irdoc,irtdoc,irdet,               &
                               iano3,iphosph,isilica,isco212,iiron,idoc,itdoc_lc,itdoc_hc,idet,     &
@@ -200,7 +200,7 @@ contains
           else
             ! DIC is updated using the assumptions that a_t=a_c+a_n and DIC=a_c (a_t: total
             ! alkalinity, a_c: carbonate alkalinity, a_n: contribution of nutrients to a_t).
-            if (use_dom) then
+            if (use_DOMclasses) then
               ! JT Here assume 10% (labile), 10% (semi-labile), 40% (semi-refractory), and
               ! 40% (refractory) distribution following Kulinski et al. (2016)
               ! https://doi.org/10.1016/j.marchem.2016.03.002

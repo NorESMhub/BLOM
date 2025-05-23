@@ -83,7 +83,7 @@ CONTAINS
     use mo_control_bgc,     only: io_stdo_bgc,ldtbgc,use_cisonew,use_AGG,                          &
                                   use_BOXATM,use_BROMO,use_CFC,use_natDIC,use_sedbypass,           &
                                   use_extNcycle,use_pref_tracers,use_shelfsea_res_time,            &
-                                  use_sediment_quality,use_river2omip,use_dom
+                                  use_sediment_quality,use_river2omip,use_DOMclasses
     use mo_param1_bgc,      only: ialkali,ian2o,iano3,icalc,idet,idicsat,                          &
                                   idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,       &
                                   iprefalk,iprefdic,iprefo2,iprefpo4,iprefsilica,ishelfage,        &
@@ -511,7 +511,7 @@ CONTAINS
         call read_netcdf_var(ncid,'ano2',locetra(1,1,1,iano2),2*kpke,0,iotype)
       endif
     endif
-    if (use_dom) then
+    if (use_DOMclasses) then
       call read_netcdf_var(ncid,'docsl',locetra(1,1,1,idocsl),2*kpke,0,iotype)
       call read_netcdf_var(ncid,'docsr',locetra(1,1,1,idocsr),2*kpke,0,iotype)
       call read_netcdf_var(ncid,'docr' ,locetra(1,1,1,idocr),2*kpke,0,iotype)

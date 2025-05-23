@@ -4534,7 +4534,7 @@
     <desc>Logical switch to use riverine carbon and nutrient inputs following R2OMIP protocol</desc>
   </entry>
 
-  <entry id="use_dom">
+  <entry id="use_domclasses">
     <type>logical</type>
     <category>config_bgc</category>
     <group>config_bgc</group>
