@@ -55,7 +55,7 @@ contains
                                 do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,               &
                                 use_BROMO, use_CFC, use_PBGC_CK_TIMESTEP,                          &
                                 use_BOXATM, use_sedbypass,ocn_co2_type,                            &
-                                do_n2o_coupled,use_extNcycle,use_pref_tracers,                     &
+                                do_n2o_coupled,use_extNcycle,                                      &
                                 use_shelfsea_res_time,do_nh3_coupled
     use mo_param1_bgc,    only: iatmco2,iatmdms,nocetra,nriv,iatmbromo,nndep,ndust,iatmn2o,iatmnh3
     use mo_vgrid,         only: set_vgrid
@@ -321,10 +321,8 @@ contains
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
 
-    if (use_pref_tracers) then
-      ! update preformed tracers
-      call preftrc(kpie,kpje,omask)
-    endif
+    ! update preformed tracers
+    call preftrc(kpie,kpje,omask)
 
     if (use_shelfsea_res_time) then
       ! Update shelf sea residence time tracer
