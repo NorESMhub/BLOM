@@ -461,10 +461,10 @@ contains
                 excdocsl = gammazsl*zoothresh
               else
                 bacfra = remido*ocetra(i,j,k,idoc)
-                if (use_river2omip) then
-                  tdoclc_rem = rem_tdoclc*ocetra(i,j,k,itdoc_lc)
-                  tdochc_rem = rem_tdochc*ocetra(i,j,k,itdoc_hc)
-                endif
+              endif
+              if (use_river2omip) then
+                tdoclc_rem = rem_tdoclc*ocetra(i,j,k,itdoc_lc)
+                tdochc_rem = rem_tdochc*ocetra(i,j,k,itdoc_hc)
               endif
             endif
             exud = gammap*phythresh
