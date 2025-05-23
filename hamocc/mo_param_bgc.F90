@@ -268,7 +268,7 @@ module mo_param_bgc
   real, protected :: fetune          = 0.6        ! factor introduced to tune deposition/solubility
   real, protected :: frac_ironindust = 0.035      ! fraction of total iron in dust (typically 3.5%)
   real, protected :: frac_soliron    = 0.01       ! fraction of total iron that is immediately soluble
-  real, protected :: fesoly          = 0.5*1.e-9  ! max. diss. iron concentration in deep water
+  real, protected :: fesoly          = 0.5e-9     ! max. diss. iron concentration in deep water
   real, protected :: relaxfe         = 0.05/365.  ! 1/d complexation rate to relax iron concentration to fesoly
 
   !********************************************************************
@@ -683,8 +683,8 @@ contains
     namelist /bgcparams/ bkphy,dyphy,bluefix,bkzoo,grazra,spemor,gammap,gammaz,  &
                          ecan,zinges,epsher,bkopal,rcalc,ropal,                  &
                          remido,drempoc,dremopal,dremcalc,dremn2o,dremsul,       &
-                         fetune,relaxfe,wmin,wmax,wlin,wpoc_const,wcal_const,    &
-                         wopal_const,disso_poc,disso_sil,disso_caco3,            &
+                         fetune,fesoly,relaxfe,wmin,wmax,wlin,wpoc_const,        &
+                         wcal_const,wopal_const,disso_poc,disso_sil,disso_caco3, &
                          rano3denit,rano2anmx,rano2denit,ran2odenit,rdnra,       &
                          ranh4nitr,rano2nitr,rano3denit_sed,rano2anmx_sed,       &
                          rano2denit_sed,ran2odenit_sed,rdnra_sed,ranh4nitr_sed,  &
