@@ -59,7 +59,7 @@ contains
     !***********************************************************************************************
 
     use mo_control_bgc, only: dtb,do_rivinpt,use_cisonew,use_river2omip,use_dom
-    use mo_param_bgc,   only: rcar
+    use mo_param_bgc,   only: rcar_tdochc
     use mo_param1_bgc,  only: nriv,irdin,irdip,irsi,iralk,iriron,irdoc,irtdoc,irdet,               &
                               iano3,iphosph,isilica,isco212,iiron,idoc,itdoc_lc,itdoc_hc,idet,     &
                               ialkali,inatsco212,inatalkali,itdoc_lc13,itdoc_hc13,itdoc_lc14,      &
@@ -106,13 +106,12 @@ contains
                    &                             + ocetra(i,j,1:kmle(i,j),isco213)                 &
                    &                             /(ocetra(i,j,1:kmle(i,j),isco212)+safediv)        &
                    &                             * (rivin(i,j,iralk)*fdt/volij                     &
-                   &                             +  rivin(i,j,irdoc)*rcar*fdt/volij) ! Alkalinity changes from instantaneous riverine
-                                                                                     ! DOC remineralisation are ignored.
+                   &                             +  rivin(i,j,irdoc)*rcar_tdochc*fdt/volij)
               ocetra(i,j,1:kmle(i,j),isco214)    = ocetra(i,j,1:kmle(i,j),isco214)                 &
                    &                             + ocetra(i,j,1:kmle(i,j),isco214)                 &
                    &                             /(ocetra(i,j,1:kmle(i,j),isco212)+safediv)        &
                    &                             * (rivin(i,j,iralk)*fdt/volij                     &
-                   &                             + rivin(i,j,irdoc)*rcar*fdt/volij)
+                   &                             + rivin(i,j,irdoc)*rcar_tdochc*fdt/volij)
               ocetra(i,j,1:kmle(i,j),itdoc_lc13) = ocetra(i,j,1:kmle(i,j),itdoc_lc13)              &
                                                  + ocetra(i,j,1:kmle(i,j),itdoc_lc13)              &
                                                  /(ocetra(i,j,1:kmle(i,j),itdoc_lc)+safediv)       &
@@ -190,11 +189,11 @@ contains
                  &                           + rivin(i,j,irtdoc)*fdt/volij
             ocetra(i,j,1:kmle(i,j),isco212)  = ocetra(i,j,1:kmle(i,j),isco212)                     &
                  &                           + rivin(i,j,iralk)*fdt/volij                          &
-                 &                           + rivin(i,j,irdoc)*rcar*fdt/volij
+                 &                           + rivin(i,j,irdoc)*rcar_tdochc*fdt/volij
             if (use_natDIC) then
               ocetra(i,j,1:kmle(i,j),inatsco212) = ocetra(i,j,1:kmle(i,j),inatsco212)              &
                    &                             + rivin(i,j,iralk)*fdt/volij                      &
-                   &                             + rivin(i,j,irdoc)*rcar*fdt/volij
+                   &                             + rivin(i,j,irdoc)*rcar_tdochc*fdt/volij
               ocetra(i,j,1:kmle(i,j),inatalkali) = ocetra(i,j,1:kmle(i,j),inatalkali)              &
                    &                             + rivin(i,j,iralk)*fdt/volij
             endif
@@ -213,7 +212,7 @@ contains
                  &                          + 0.4*rivin(i,j,irdoc)*fdt/volij
               ocetra(i,j,1:kmle(i,j),idocr) = ocetra(i,j,1:kmle(i,j),idocr)                        &
                  &                          + 0.4*rivin(i,j,irdoc)*fdt/volij
-             else
+            else
               ocetra(i,j,1:kmle(i,j),idoc)  = ocetra(i,j,1:kmle(i,j),idoc)                         &
                  &                          + rivin(i,j,irdoc)*fdt/volij
             endif
