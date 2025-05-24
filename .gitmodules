@@ -10,3 +10,6 @@
 	fxtag = v1.1.1
 	fxrequired = AlwaysRequired
 	fxDONOTUSEurl = https://github.com/jmaerz/M4AGO-sinking-scheme
+[submodule "pkgs/GSW-Fortran"]
+	path = pkgs/GSW-Fortran
+	url = https://github.com/TEOS-10/GSW-Fortran

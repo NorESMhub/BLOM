@@ -273,6 +273,7 @@ module mod_hor3map
              hor3map_pcm, hor3map_plm, hor3map_ppm, hor3map_pqm, &
              hor3map_no_limiting, hor3map_monotonic, hor3map_non_oscillatory, &
              hor3map_non_oscillatory_posdef, &
+             hor3map_regrid_method_1, hor3map_regrid_method_2, &
              hor3map_noerr, hor3map_errstr
 
 contains
