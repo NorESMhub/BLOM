@@ -27,6 +27,8 @@ module ocn_stream_dust
 
    character(len=CS), allocatable :: stream_varnames(:) ! stream variable names
 
+   integer :: ndust
+
    integer, parameter :: nfiles_max = 100  ! maximum number of stream files
 
    character(len=*), parameter :: sourcefile = &
@@ -61,13 +63,13 @@ contains
       character(len=CL)              :: stream_dust_mesh_filename
       character(len=CL)              :: stream_dust_data_filename(nfiles_max)
       character(len=CL), allocatable :: stream_filenames(:)
+      character(len=CL)              :: stream_dust_varnames
       character(len=4)               :: tmpchar
       integer                        :: nfiles
       integer                        :: nf
       integer                        :: errstat
       integer                        :: ndust
       integer                        :: nfld
-      integer                        :: errstat
       character(*), parameter :: subName = "('ocn_stream_dust_init')"
       !-----------------------------------------------------------------------
 
@@ -183,8 +185,8 @@ contains
            stream_yearFirst    = stream_dust_year_first,           &
            stream_yearLast     = stream_dust_year_last,            &
            stream_yearAlign    = stream_dust_year_align,           &
-           stream_fldlistFile  = stream_dust_varnames,             &
-           stream_fldlistModel = stream_dust_varnames,             &
+           stream_fldlistFile  = stream_varnames,                  &
+           stream_fldlistModel = stream_varnames,                  &
            stream_lev_dimname  = 'null',                           &
            stream_mapalgo      = 'bilinear',                       &
            stream_offset       = 0,                                &
@@ -220,7 +222,7 @@ contains
 
       ! local variables
       type(ESMF_Time)     :: date
-      integer             :: i,j,n
+      integer             :: i,j,n,nfld
       integer             :: jjcpl
       integer             :: year    ! year (0, ...) for nstep+1
       integer             :: mon     ! month (1, ..., 12) for nstep+1
@@ -248,10 +250,10 @@ contains
          call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end if
 
-      do n = 1, ndust
+      do nfld = 1, ndust
 
          ! Get pointer for stream data that is time and spatially interpolated to model time and grid
-         call dshr_fldbun_getFldPtr(sdat_dust%pstrm(1)%fldbun_model, stream_varnames, fldptr1=dataptr1, rc=rc)
+         call dshr_fldbun_getFldPtr(sdat_dust%pstrm(1)%fldbun_model, stream_varnames(nfld), fldptr1=dataptr1, rc=rc)
          if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) then
             call ESMF_Finalize(endflag=ESMF_END_ABORT)
          end if
@@ -269,16 +271,16 @@ contains
          do j = 1, jjcpl
             do i = 1, ii
                if (ip(i,j) == 0) then
-                  dust_stream(i,j,n) = mval
-               elseif (cplmsk(i,j,n) == 0) then
-                  dust_stream(i,j,n) = fval
+                  dust_stream(i,j,nfld) = mval
+               elseif (cplmsk(i,j) == 0) then
+                  dust_stream(i,j,nfld) = fval
                else
                   n = (j - 1)*ii + i
-                  dust_stream(i,j,n) = dataptr1(n)  ! units in file are kg/m2/s
+                  dust_stream(i,j,nfld) = dataptr1(n)  ! units in file are kg/m2/s
                end if
                ! set flux to zero over land
                if (omask(i,j) < 0.5) then
-                  dust_stream(i,j,n) = 0.0
+                  dust_stream(i,j,nfld) = 0.0
                end if
             end do
          end do

@@ -215,7 +215,6 @@ contains
           end do
 
         case('GESAMP2018')
-          do
           do j=1,kpje
             do i=1,kpie
               ! note that the stream is read from a file where units already are in kg/m2/s
