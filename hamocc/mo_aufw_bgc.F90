@@ -565,18 +565,17 @@ contains
       call NETCDF_DEF_VARDB(ncid,4,'docr',3,ncdimst,ncvarid,                                       &
            &    6,'mol/kg',35,'Refractory dissolved organic carbon',rmissing,58,io_stdo_bgc)
 
-      call NETCDF_DEF_VARDB(ncid,7,'prefdoc',3,ncdimst,ncvarid,                                      &
-           &    6,'mol/kg',20,'Preformed labile doc',rmissing,59,io_stdo_bgc)
+      call NETCDF_DEF_VARDB(ncid,7,'prefdoc',3,ncdimst,ncvarid,                                    &
+        &    6,'mol/kg',20,'Preformed labile DOC',rmissing,59,io_stdo_bgc)
 
-      call NETCDF_DEF_VARDB(ncid,9,'prefdocsl',3,ncdimst,ncvarid,                                      &
-           &    6,'mol/kg',25,'Preformed semi-labile doc',rmissing,60,io_stdo_bgc)
+      call NETCDF_DEF_VARDB(ncid,9,'prefdocsl',3,ncdimst,ncvarid,                                  &
+        &    6,'mol/kg',25,'Preformed semi-labile DOC',rmissing,60,io_stdo_bgc)
 
-      call NETCDF_DEF_VARDB(ncid,9,'prefdocsr',3,ncdimst,ncvarid,                                      &
-           &    6,'mol/kg',29,'Preformed semi-refractory doc',rmissing,61,io_stdo_bgc)
+      call NETCDF_DEF_VARDB(ncid,9,'prefdocsr',3,ncdimst,ncvarid,                                  &
+        &    6,'mol/kg',29,'Preformed semi-refractory DOC',rmissing,61,io_stdo_bgc)
 
-      call NETCDF_DEF_VARDB(ncid,8,'prefdocr',3,ncdimst,ncvarid,                                      &
-           &    6,'mol/kg',23,'Preformed refactory doc',rmissing,62,io_stdo_bgc)
-
+      call NETCDF_DEF_VARDB(ncid,8,'prefdocr',3,ncdimst,ncvarid,                                   &
+        &    6,'mol/kg',23,'Preformed refactory DOC',rmissing,62,io_stdo_bgc)
     endif
 
     !
