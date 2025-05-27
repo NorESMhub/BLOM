@@ -68,7 +68,6 @@ contains
       integer                        :: nfiles
       integer                        :: nf
       integer                        :: errstat
-      integer                        :: ndust
       integer                        :: nfld
       character(*), parameter :: subName = "('ocn_stream_dust_init')"
       !-----------------------------------------------------------------------
@@ -250,7 +249,7 @@ contains
          call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end if
 
-      do nfld = 1, ndust
+      do nfld = 1, size(stream_varnames)
 
          ! Get pointer for stream data that is time and spatially interpolated to model time and grid
          call dshr_fldbun_getFldPtr(sdat_dust%pstrm(1)%fldbun_model, stream_varnames(nfld), fldptr1=dataptr1, rc=rc)

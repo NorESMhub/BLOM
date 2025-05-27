@@ -218,8 +218,8 @@ contains
           do j=1,kpje
             do i=1,kpie
               ! note that the stream is read from a file where units already are in kg/m2/s
-              dust(i,j,itdust) = dust_stream(i,j,1)
-              dust(i,j,isfe)   = dust_stream(i,j,2)*frac_ironindust*frac_soliron/mw_fe*fetune
+              dust(i,j,itdust) = dust_stream(i,j,1)/frac_ironindust
+              dust(i,j,isfe)   = dust_stream(i,j,2)/mw_fe*fetune
             end do
           end do
 
@@ -238,7 +238,8 @@ contains
 
     if (debug) then
        if (first_time) then
-          call output_forcing('fedep.nc', 'fedep', kpie, kpje, dust)
+          call output_forcing('dustflx_tot.nc', 'dustflx_tot', kpie, kpje, dust(:,:,itdust))
+          call output_forcing('dustflx_sfe.nc', 'dustflx_sfe', kpie, kpje, dust(:,:,isfe))
           first_time = .false.
        end if
     end if

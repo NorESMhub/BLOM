@@ -10049,7 +10049,7 @@
     </desc>
     <values>
       <value hamocc_fedep_source="mahw2006">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_T42.nc</value>
-      <value hamocc_fedep_source="GESAMP2018">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_GESAMP2018_r360x180_20250515.nc</value>
+      <value hamocc_fedep_source="GESAMP2018">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_GESAMP2018_r360x180_20250526.nc</value>
     </values>
   </entry>
   <entry id="stream_dust_varnames">
