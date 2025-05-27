@@ -495,7 +495,7 @@ contains
                                   + zocetratot(itdoc_hc)*roxy_tdochc
         totalphos   = totalphos   + zocetratot(itdoc_lc) + zocetratot(itdoc_hc)
 
-        totalcarbon = totalcarbon- srivflux(irdoc)*rcar-srivflux(irtdoc)*rcar_tdochc               &
+        totalcarbon = totalcarbon- (srivflux(irdoc)+srivflux(irtdoc))*rcar_tdochc                  &
              &                   - srivflux(irdet)*rcar_tdoclc                                     &
              &                   - srivflux(iralk) ! no DIN & DIP substraction because alkalinity
                                                    ! changes due to instantaneous remineralisation
