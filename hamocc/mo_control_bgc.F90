@@ -92,6 +92,12 @@ module mo_control_bgc
   logical           :: use_sediment_quality   = .false.
   logical           :: use_river2omip         = .false.
 
+#ifdef OFFLINE_SEDIMENT_SPINUP
+  logical           :: offline_sediment_spinup = .true.
+#else
+  logical           :: offline_sediment_spinup = .false.
+#endif
+
 contains
 
   subroutine get_bgc_namelist
