@@ -139,10 +139,19 @@
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.125v4_20230318.nc</value>
     </values>
     <desc>
-      Name of file containing initial conditions, that is either a
-      valid restart file or 'inicon.nc' if climatological based
-      initial conditions are desired.
+      Name of file containing initial conditions, that is either a valid restart file or a climatology based file regridded to model grid (layer or WOA).
     </desc>
+  </entry>
+
+  <entry id="woa_nuopc_provided">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.false.</value>
+    </values>
+    <desc>if .true., use NUOPC capability to read WOA climatology</desc>
   </entry>
 
   <entry id="pref">
