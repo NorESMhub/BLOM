@@ -141,7 +141,7 @@ contains
     if (use_river2omip) then
       call ncread('slDOC',riv_itdoc2d,dummymask,0,0.)
     else
-      riv_itdoc2d = 0
+      riv_itdoc2d = 0.
     endif
     call ncread('DET',riv_idet2d,dummymask,0,0.)
     call ncfcls
@@ -156,7 +156,7 @@ contains
           rivflx(i,j,iralk)  = riv_DIC2d(i,j)
           rivflx(i,j,iriron) = riv_DFe2d(i,j)
           rivflx(i,j,irdoc)  = riv_idoc2d(i,j)
-          rivflx(i,j,irtdoc)  = riv_itdoc2d(i,j)
+          rivflx(i,j,irtdoc) = riv_itdoc2d(i,j)
           rivflx(i,j,irdet)  = riv_idet2d(i,j)
 
         endif
