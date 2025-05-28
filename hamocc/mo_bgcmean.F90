@@ -2738,7 +2738,7 @@ CONTAINS
   subroutine check_glb_inventory(glb_inventory,nbgc)
     !
     ! --- ------------------------------------------------------------------
-    ! --- Description: check that we only write invetory to netcdf file at
+    ! --- Description: check that we only write inventory to netcdf file at
     ! ---              a single time interval, set by glb_inventory(n) == 2.
     ! ---              If there are multiple instances where glb_inventory
     ! ---              is 2, keep only the first instance.
