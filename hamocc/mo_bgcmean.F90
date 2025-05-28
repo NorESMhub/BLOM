@@ -809,6 +809,9 @@ CONTAINS
       endif
     enddo
 
+    ! Only allow inventory output to netcdf file at one interval
+    call check_glb_inventory(glb_inventory,nbgc)
+
     ! Re-define index variables according to namelist
     i_bsc_m2d=0
     do n=1,nbgc
@@ -2731,5 +2734,35 @@ CONTAINS
     !$OMP END PARALLEL DO
     !
   end subroutine bgczlv
+
+  subroutine check_glb_inventory(glb_inventory,nbgc)
+    !
+    ! --- ------------------------------------------------------------------
+    ! --- Description: check that we only write invetory to netcdf file at
+    ! ---              a single time interval, set by glb_inventory(n) == 2.
+    ! ---              If there are multiple instances where glb_inventory
+    ! ---              is 2, keep only the first instance.
+    ! --- ------------------------------------------------------------------
+
+    ! Arguments
+    integer, intent(inout) :: glb_inventory(nbgcmax)
+    integer, intent(in)    :: nbgc
+    !
+    ! Local variables
+    integer :: i,maxval_glb_inventory, maxloc_glb_inventory
+
+    maxval_glb_inventory = maxval(glb_inventory)
+    if (max_glb_inventory == 2) then
+       maxloc_glb_inventory = maxloc(glb_inventory)
+       if (maxloc_glb_inventory < nbgc) then
+          ! Set subsequent instances of glb_inventory to max 1
+          do i=maxloc_glb_inventory+1,nbgc
+             if (glb_inventory(i) == 2) then
+                glb_inventory(i) = 1
+             endif
+          enddo
+       endif
+    endif
+  end subroutine check_glb_inventory
 
 end module mo_bgcmean
