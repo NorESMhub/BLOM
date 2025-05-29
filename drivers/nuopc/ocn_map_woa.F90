@@ -12,13 +12,14 @@ module ocn_map_woa
    use shr_log_mod       , only : errMsg => shr_log_errMsg
    use mod_io_input      , only : read_map_input_data, field_getfldptr
    use mod_io_output     , only : io_write
+   use mod_cesm          , only : woa_nuopc_icfile_mesh, woa_nuopc_icfile_data
    use shr_pio_mod       , only : shr_pio_getiosys, shr_pio_getiotype, shr_pio_getioformat
    use pio               , only : file_desc_t, iosystem_desc_t
    use pio               , only : pio_openfile, pio_closefile, pio_nowrite
    use pio               , only : pio_inq_dimid, pio_inq_dimlen
    use mod_inicon        , only : t_woa, s_woa, depth_bnds_woa, depth_woa
    use mod_inicon        , only : t_woa_fval, s_woa_fval, kdm_woa
-
+   use mod_cesm          , only : woa_nuopc_icfile_mesh, woa_nuopc_icfile_data
    use mod_xc
 
    implicit none
@@ -29,7 +30,6 @@ module ocn_map_woa
    ! TODO:
    ! map first order conservative rather than bilinear
    ! use the fill value as a public
-   ! Do not call this upon restart - mod_inicon not called when reading a restart file (logic set in mod_blom_init)
 
    character(len=*), parameter :: u_FILE_u = &
       __FILE__
@@ -46,10 +46,8 @@ contains
 
       ! local variables:
       character(len=CL)      :: mesh_input_file
-      character(len=CL)      :: filename_t
-      character(len=CL)      :: filename_s
-      character(len=4)       :: fldlist_input_t(1)
-      character(len=4)       :: fldlist_input_s(1)
+      character(len=CL)      :: filename_ts
+      character(len=4)       :: fldlist_input(2)
       type(ESMF_Mesh)        :: mesh_input
       type(ESMF_Field)       :: field_blom
       type(ESMF_FieldBundle) :: fldbun_blom
@@ -67,14 +65,13 @@ contains
       rc = ESMF_SUCCESS
 
       ! ---------------------------
-      ! Filenames and field names (TODO: this should be moved to namelist)
+      ! Filenames and field names
       ! ---------------------------
 
-      mesh_input_file = '/cluster/projects/nn9560k/matsbn/WOA_mesh/WOA_1.00_degree_ESMFmesh_20250506_cdf5.nc'
-      filename_t = '/cluster/work/users/matsbn/WOA18/woa18_decav_t13_01.nc'
-      filename_s = '/cluster/work/users/matsbn/WOA18/woa18_decav_s13_01.nc'
-      fldlist_input_t(1) = 't_an'
-      fldlist_input_s(1) = 's_an'
+      mesh_input_file = trim(woa_nuopc_icfile_mesh)
+      filename_ts = trim(woa_nuopc_icfile_data)
+      fldlist_input(1) = 't_an'
+      fldlist_input(2) = 's_an'
 
       ! ---------------------------
       ! Determine vertical dimension
@@ -84,9 +81,9 @@ contains
       io_type       =  shr_pio_getiotype('OCN')
       io_format     =  shr_pio_getioformat('OCN')
       if (mnproc == 1) then
-         write(lp,'(a)') 'determining vertical dimension of WOA climatology from '//trim(filename_t)
+         write(lp,'(a)') 'determining vertical dimension of WOA climatology from '//trim(filename_ts)
       end if
-      rcode = pio_openfile(pio_subsystem, pioid, io_type, trim(filename_t), pio_nowrite)
+      rcode = pio_openfile(pio_subsystem, pioid, io_type, trim(filename_ts), pio_nowrite)
       rcode = pio_inq_dimid(pioid, 'depth', dimid)
       rcode = pio_inq_dimlen(pioid, dimid, kdm_woa)
       call pio_closefile(pioid)
@@ -136,7 +133,7 @@ contains
       ! ---------------------------
 
       ! Read and map the data using bilinear interpolation - and also get depth_bnds and depths
-      call read_map_input_data(mesh_input, filename_t, fldlist_input_t, kdm_woa, 'bilinear', &
+      call read_map_input_data(mesh_input, filename_ts, (/fldlist_input(1)/), kdm_woa, 'bilinear', &
            fldbun_blom, depth=depth_woa, depth_bnds=depth_bnds_woa, rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
@@ -176,7 +173,7 @@ contains
       ! ---------------------------
 
       ! Read and map the data using bilinear interpolation
-      call read_map_input_data(mesh_input, filename_s, fldlist_input_s, kdm_woa, 'bilinear', &
+      call read_map_input_data(mesh_input, filename_ts, (/fldlist_input(2)/), kdm_woa, 'bilinear', &
            fldbun_blom, rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 

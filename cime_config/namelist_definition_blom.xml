@@ -154,6 +154,26 @@
     <desc>if .true., use NUOPC capability to read WOA climatology</desc>
   </entry>
 
+  <entry id="woa_nuopc_icfile_mesh">
+    <type>char</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/blom/inicon/WOA_1.00_degree_ESMFmesh_20250506_cdf5.nc</value>
+    </values>
+    <desc>corresponding ESMF mesh file for woa_nuopc_icfile_data</desc>
+  </entry>
+
+  <entry id="woa_nuopc_icfile_data">
+    <type>char</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/blom/inicon/woa18_decav_ts13_01_r360x180.20252805.nc</value>
+    </values>
+    <desc>WOA icfile that needs to be regridded to the BLOM grid</desc>
+  </entry>
+
   <entry id="pref">
     <type>real</type>
     <category>limits</category>
@@ -4078,7 +4098,7 @@
     </values>
     <desc>Switch to couple N2O fluxes to atmosphere</desc>
   </entry>
-  
+
   <entry id="do_nh3_coupled" modify_via_xml="HAMOCC_NH3C">
     <type>logical</type>
     <category>bgcnml</category>

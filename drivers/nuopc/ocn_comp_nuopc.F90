@@ -801,7 +801,7 @@ contains
       ! map woa climatological initial data to blom mesh
       ! woa_nuopc_provided is read in as a namelist during blom_init_phase1 and
       ! is a module variable in mod_inicon.F90
-      if (woa_nuopc_provided) then
+      if (runtyp_cesm == 'initial' .and. woa_nuopc_provided) then
          ! This allocates and fills in the following module variables in mod_inicon.F90:
          ! t_woa, s_woa, depth_bnds_woa, depth_woa
          ! t_woa_fval, s_woa_fval, kdm_woa

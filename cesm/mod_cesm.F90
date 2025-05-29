@@ -48,6 +48,9 @@ module mod_cesm
    private
 
    character(len = 256) :: &
+        woa_nuopc_icfile_mesh, & ! mesh for woa_nuopc_icfile_data,
+        woa_nuopc_icfile_data    ! woa file for temperature and salinity
+   character(len = 256) :: &
       runid_cesm, &      ! Case name received from CESM.
       runtyp_cesm        ! Run type received from CESM.
    integer :: &
@@ -105,7 +108,8 @@ module mod_cesm
              slp_da, abswnd_da, ficem_da, lamult_da, lasl_da, flxdms_da, flxbrf_da, &
              ustokes_da, vstokes_da, atmco2_da, atmbrf_da,atmn2o_da,atmnh3_da,&
              atmnhxdep_da,atmnoydep_da, &
-             smtfrc, l1ci, l2ci,inicon_cesm, inifrc_cesm, getfrc_cesm
+             smtfrc, l1ci, l2ci,inicon_cesm, inifrc_cesm, getfrc_cesm, &
+             woa_nuopc_icfile_mesh, woa_nuopc_icfile_data
 
 contains
 

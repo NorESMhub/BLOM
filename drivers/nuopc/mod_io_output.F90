@@ -129,7 +129,9 @@ contains
       ! Get number of fields
       call ESMF_FieldBundleGet(fldbun, fieldCount=nf, rc=rc)
       write(tmpstr,*) subname//' field count = ', nf
-      call ESMF_LogWrite(trim(tmpstr), ESMF_LOGMSG_INFO)
+      if (mnproc == 1) then
+         write(lp,'(a)') trim(tmpstr)
+      end if
       if (nf < 1) then
          rc = ESMF_Success
          return

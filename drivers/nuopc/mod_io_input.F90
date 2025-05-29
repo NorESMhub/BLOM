@@ -43,6 +43,7 @@ module mod_io_input
    type(iosystem_desc_t), pointer :: pio_subsystem => null()     ! pio info
    integer                        :: io_type                     ! pio info
    integer                        :: io_format                   ! pio info
+   logical                        :: debug = .false.
 
    character(len=*), parameter :: u_FILE_u = &
       __FILE__
@@ -166,11 +167,13 @@ contains
       if (present(depth)) then
          rcode = pio_inq_varid(pioid, 'depth', varid)
          rcode = pio_get_var( pioid, varid, (/1/), (/nlev/), depth)
-         if (mnproc == 1) then
-            do lev=1,nlev
-               write(lp,'(a,i8,2x,f10.4)') &
-                    trim(subname)//' input depth: lev,depth(lev) = ',lev,depth(lev)
-            end do
+         if (debug) then
+            if (mnproc == 1) then
+               do lev=1,nlev
+                  write(lp,'(a,i8,2x,f10.4)') &
+                       trim(subname)//' input depth: lev,depth(lev) = ',lev,depth(lev)
+               end do
+            end if
          end if
       end if
 
