@@ -36,6 +36,8 @@ module mod_io_output
    integer                        :: io_type                     ! pio info
    integer                        :: io_format                   ! pio info
 
+   logical :: debug = .false.
+
    character(len=*), parameter :: u_FILE_u = &
       __FILE__
 
@@ -123,12 +125,11 @@ contains
       rcode = pio_createfile(pio_subsystem, io_file, io_type, trim(filename), nmode)
       if (mnproc == 1) then
          write(lp,'(a)') trim(subname) //' creating file '// trim(filename)
-         write(lp,'(a)') 'opening   : '//trim(filename)
       endif
 
       ! Get number of fields
       call ESMF_FieldBundleGet(fldbun, fieldCount=nf, rc=rc)
-      write(tmpstr,*) subname//' field count = ', nf
+      write(tmpstr,*) trim(subname)//' input field count = ', nf
       if (mnproc == 1) then
          write(lp,'(a)') trim(tmpstr)
       end if
@@ -151,7 +152,7 @@ contains
       if (chkerr(rc,__LINE__,u_FILE_u)) return
       call ESMF_MeshGet(mesh, spatialDim=ndims, numOwnedElements=nelements, rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
-      write(tmpstr,*) subname, 'ndims, nelements = ', ndims, nelements
+      write(tmpstr,*) trim(subname), 'ndims, nelements = ', ndims, nelements
       call ESMF_LogWrite(trim(tmpstr), ESMF_LOGMSG_INFO)
 
       ! Define coordinate
@@ -243,33 +244,34 @@ contains
          itemc = trim(fieldNameList(k))
 
          ! Determine rank of field with name itemc
-         call ESMF_FieldBundleGet(fldbun, itemc,  field=lfield, rc=rc)
+         call ESMF_FieldBundleGet(fldbun, itemc, field=lfield, rc=rc)
          if (chkerr(rc,__LINE__,u_FILE_u)) return
          call ESMF_FieldGet(lfield, rank=rank, rc=rc)
          if (chkerr(rc,__LINE__,u_FILE_u)) return
 
-         if (create_iodesc) then
-            ! Always create 2d iodesc
-            if (mnproc == 1) then
-               write(lp,F01) 'setting iodesc for : '//trim(itemc)//' with dims(1:2) = ',nx,ny
-            end if
-            if (luse_float) then
-               call pio_initdecomp(pio_subsystem, pio_real, (/nx,ny/), dof, iodesc)
-            else
-               call pio_initdecomp(pio_subsystem, pio_double, (/nx,ny/), dof, iodesc)
-            end if
-            create_iodesc = .false.
-         end if
-         if (rank < 2) then
-            create_iodesc3d = .false.
-         else if (rank == 2) then
+         if (rank == 2) then
             if (create_iodesc3d) then
+               if (mnproc == 1) then
+                  write(lp,'(a,i8,2x,i8,2x,i8)') trim(subname)//' setting iodesc for : '//trim(itemc)//' with dims = ',nx,ny,nz
+               end if
                if (luse_float) then
                   call pio_initdecomp(pio_subsystem, pio_real, (/nx,ny,nz/), dof3d, iodesc3d)
                else
                   call pio_initdecomp(pio_subsystem, pio_double, (/nx,ny,nz/), dof3d, iodesc3d)
                end if
                create_iodesc3d = .false.
+            end if
+         else if (rank == 1) then
+            if (create_iodesc) then
+               if (mnproc == 1) then
+                  write(lp,'(a,i2,2x,i8)') trim(subname)//' setting iodesc for : '//trim(itemc)//' with dims = ',nx,ny
+               end if
+               if (luse_float) then
+                  call pio_initdecomp(pio_subsystem, pio_real, (/nx,ny/), dof, iodesc)
+               else
+                  call pio_initdecomp(pio_subsystem, pio_double, (/nx,ny/), dof, iodesc)
+               end if
+               create_iodesc = .false.
             end if
          end if
       end do

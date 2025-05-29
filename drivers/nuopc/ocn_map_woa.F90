@@ -60,6 +60,7 @@ contains
       integer                :: io_type                         ! pio info
       integer                :: io_format                       ! pio info
       type(iosystem_desc_t), pointer :: pio_subsystem => null() ! pio info
+      character(*), parameter :: subname = '(map_woa) '
       !-------------------------------------------------------------------------------
 
       rc = ESMF_SUCCESS
@@ -81,7 +82,7 @@ contains
       io_type       =  shr_pio_getiotype('OCN')
       io_format     =  shr_pio_getioformat('OCN')
       if (mnproc == 1) then
-         write(lp,'(a)') 'determining vertical dimension of WOA climatology from '//trim(filename_ts)
+         write(lp,'(a)') trim(subname) // ' determining vertical dimension of WOA climatology from '//trim(filename_ts)
       end if
       rcode = pio_openfile(pio_subsystem, pioid, io_type, trim(filename_ts), pio_nowrite)
       rcode = pio_inq_dimid(pioid, 'depth', dimid)
@@ -133,11 +134,19 @@ contains
       ! ---------------------------
 
       ! Read and map the data using bilinear interpolation - and also get depth_bnds and depths
+      if (mnproc == 1) then
+         write(lp,*)
+         write(lp,'(a)') trim(subname) // ' calling read_map_inputdata for '//trim(fldlist_input(1))
+      end if
       call read_map_input_data(mesh_input, filename_ts, (/fldlist_input(1)/), kdm_woa, 'bilinear', &
            fldbun_blom, depth=depth_woa, depth_bnds=depth_bnds_woa, rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
       ! Plot mapped fldbun temperature
+      if (mnproc == 1) then
+         write(lp,*)
+         write(lp,'(a)') trim(subname) //' plotting mapped data for '//trim(fldlist_input(1))
+      end if
       call io_write(filename="woa18_t_an.nc", fldbun=fldbun_blom, use_float=.false., rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
@@ -173,11 +182,19 @@ contains
       ! ---------------------------
 
       ! Read and map the data using bilinear interpolation
+      if (mnproc == 1) then
+         write(lp,*)
+         write(lp,'(a)') trim(subname) // ' calling read_map_inputdata for '//trim(fldlist_input(2))
+      end if
       call read_map_input_data(mesh_input, filename_ts, (/fldlist_input(2)/), kdm_woa, 'bilinear', &
            fldbun_blom, rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
       ! Plot mapped fldbun salinity
+      if (mnproc == 1) then
+         write(lp,*)
+         write(lp,'(a)') trim(subname) // ' plotting mapped data for '//trim(fldlist_input(2))
+      end if
       call io_write(filename="woa18_s_an.nc", fldbun=fldbun_blom, use_float=.false., rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 

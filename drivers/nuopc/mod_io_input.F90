@@ -184,12 +184,14 @@ contains
          cnt(2) = size(depth_bnds,dim=2)
          rcode = pio_inq_varid(pioid, 'depth_bnds', varid)
          rcode = pio_get_var( pioid, varid, strt, cnt, depth_bnds)
-         if (mnproc == 1) then
-            do lev=1,nlev
-               write(lp,'(a,i8,2x,f10.4,2x,f10.4)') &
-                    trim(subname)//' lev,depth_bnds(1,lev),depth_bnds(2,lev) = ',&
-                    lev,depth_bnds(1,lev),depth_bnds(2,lev)
-            end do
+         if (debug) then
+            if (mnproc == 1) then
+               do lev=1,nlev
+                  write(lp,'(a,i8,2x,f10.4,2x,f10.4)') &
+                       trim(subname)//' lev,depth_bnds(1,lev),depth_bnds(2,lev) = ',&
+                       lev,depth_bnds(1,lev),depth_bnds(2,lev)
+               end do
+            end if
          end if
       end if
 
