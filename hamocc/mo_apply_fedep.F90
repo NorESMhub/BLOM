@@ -19,7 +19,7 @@
 module mo_apply_fedep
 
   !************************************************************************************************
-  !  Routines for applying iron deposition data
+  !  Routines for applying total dust and iron deposition data
   !  This module replaces code previously found inside the ocprod-routine and
   !  encapsulates it in a module.
   !
@@ -29,18 +29,18 @@ module mo_apply_fedep
   implicit none
   private
 
-  public :: apply_fedep ! apply iron deposition to the ocean tracer field
+  public :: apply_fedep ! apply dust/iron deposition to the ocean tracer field
 
 contains
 
   subroutine apply_fedep(kpie,kpje,kpke,pddpo,omask,dust)
     !--------------------------------------------------------------------------------
-    !  Apply dust deposition input to oceanic tracer fields
+    !  Apply dust/iron deposition input to oceanic tracer fields
     !--------------------------------------------------------------------------------
 
     use mo_control_bgc, only: dtb
-    use mo_param1_bgc,  only: ifdust,iiron,itdust,isfe
-    use mo_param_bgc,   only: perc_diron
+    use mo_param1_bgc,  only: ifdust,iiron,itdust,isfe,ndust
+    use mo_param_bgc,   only: sec_per_day
     use mo_carbch,      only: ocetra,dustflx
 
     integer,intent(in) :: kpie                      ! 1st dimension of model grid.
@@ -48,27 +48,22 @@ contains
     integer,intent(in) :: kpke                      ! 3rd (vertical) dimension of model grid.
     real,   intent(in) :: pddpo(kpie,kpje,kpke)     ! size of scalar grid cell (3rd dimension) [m].
     real,   intent(in) :: omask(kpie,kpje)          ! ocean mask
-    real,   intent(in) :: dust(kpie,kpje)           ! dust deposition flux [kg/m2/month].
+    real,   intent(in) :: dust(kpie,kpje,ndust)     ! dust deposition flux [kg dust/m2/s] and [kmol sFe/m2/s].
 
     ! local variables
     integer :: i,j
     real    :: dustinp
 
-    ! dust flux from the atmosphere to the surface layer; dust fields are
-    ! monthly mean values (kg/m2/month - assume 30 days per month here).
-    ! The iron content of dust is a fixed fraction (typically 3.5%), of 
-    ! which a fixed fraction (typically 1%) is soluble (bioavailable) and immediately 
-    ! released. The bioavailable fraction is perc_diron = fetune * 0.035 * 0.01 / 55.85
-    ! where fetune is intended to globally tune iron deposition and 55.85 is the molar
-    ! weight of Fe.
+    ! Total dust and soluble iron fluxes from the atmosphere to the surface layer; input
+    ! fields are in kg/m2/s for total dust and in kmol fe/m2/s.
     !$OMP PARALLEL DO PRIVATE(i,dustinp)
     do j = 1,kpje
       do i = 1,kpie
         if(omask(i,j) > 0.5) then
-          dustflx(i,j,itdust)  = dust(i,j) / 30. * dtb / pddpo(i,j,1)
-          dustflx(i,j,isfe)    = dustflx(i,j,itdust) * perc_diron
-          ocetra(i,j,1,ifdust) = ocetra(i,j,1,ifdust) + dustflx(i,j,itdust) 
-          ocetra(i,j,1,iiron)  = ocetra(i,j,1,iiron)  + dustflx(i,j,isfe)
+          dustflx(i,j,itdust)  = dust(i,j,itdust) * sec_per_day * dtb
+          dustflx(i,j,isfe)    = dust(i,j,isfe)   * sec_per_day * dtb
+          ocetra(i,j,1,ifdust) = ocetra(i,j,1,ifdust) + dustflx(i,j,itdust) / pddpo(i,j,1)
+          ocetra(i,j,1,iiron)  = ocetra(i,j,1,iiron)  + dustflx(i,j,isfe)   / pddpo(i,j,1)
         endif
       enddo
     enddo

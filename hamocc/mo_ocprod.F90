@@ -807,11 +807,9 @@ contains
               endif
 
               if (use_river2omip) then
-                tdoclc_rem = rem_tdoclc*ocetra(i,j,k,itdoc_lc)
-                tdochc_rem = rem_tdochc*ocetra(i,j,k,itdoc_hc)
-                tdoclc_rem = min(rem_tdoclc*ocetra(i,j,k,idoc), 0.33*ocetra(i,j,k,ioxygen)         &
+                tdoclc_rem = min(rem_tdoclc*ocetra(i,j,k,itdoc_lc), 0.33*ocetra(i,j,k,ioxygen)     &
                            & /merge(ro2utammo_tdoclc,ro2ut_tdoclc,use_extNcycle))
-                tdochc_rem = min(rem_tdochc*ocetra(i,j,k,idoc), 0.33*ocetra(i,j,k,ioxygen)         &
+                tdochc_rem = min(rem_tdochc*ocetra(i,j,k,itdoc_hc), 0.33*ocetra(i,j,k,ioxygen)     &
                            & /merge(ro2utammo_tdochc,ro2ut_tdochc,use_extNcycle)) 
                 ocetra(i,j,k,itdoc_lc) = ocetra(i,j,k,itdoc_lc) - tdoclc_rem
                 ocetra(i,j,k,itdoc_hc) = ocetra(i,j,k,itdoc_hc) - tdochc_rem

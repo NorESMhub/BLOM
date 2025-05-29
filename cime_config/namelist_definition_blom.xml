@@ -3985,17 +3985,34 @@
     <desc>Atmospheric CO2 concentration [ppmv]</desc>
   </entry>
 
+  <entry id="fedep_source" modify_via_xml="HAMOCC_FEDEP_SOURCE">
+    <type>character</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>''</value>
+      <value hamocc_fedep_source="mahw2006"  >'mahw2006'</value>
+      <value hamocc_fedep_source="GESAMP2018">'GESAMP2018'</value>
+    </values>
+    <desc>Source of dust/iron deposition data ('mahw2006' or 'GESAMP2018')</desc>
+  </entry>
+
   <entry id="fedepfile">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
       <value>''</value>
-      <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx2v1_20130506.nc</value>
-      <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx1v4_20171107.nc</value>
-      <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.5v1_20250210.nc</value>
-      <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.25v4_20181004.nc</value>
-      <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.125v4_20221013.nc</value>
+      <value hamocc_fedep_source="GESAMP2018" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_GESAMP2018_tnx2v1_20250515.nc</value>
+      <value hamocc_fedep_source="GESAMP2018" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_GESAMP2018_tnx1v4_20250515.nc</value>
+      <value hamocc_fedep_source="GESAMP2018" ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_GESAMP2018_tnx0.5v1_20250515.nc</value>
+      <value hamocc_fedep_source="GESAMP2018" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_GESAMP2018_tnx0.25v4_20250515.nc</value>
+      <value hamocc_fedep_source="GESAMP2018" ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_GESAMP2018_tnx0.125v4_20250515.nc</value>
+      <value hamocc_fedep_source="mahw2006"   ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx2v1_20130506.nc</value>
+      <value hamocc_fedep_source="mahw2006"   ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx1v4_20171107.nc</value>
+      <value hamocc_fedep_source="mahw2006"   ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.5v1_20250210.nc</value>
+      <value hamocc_fedep_source="mahw2006"   ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.25v4_20181004.nc</value>
+      <value hamocc_fedep_source="mahw2006"   ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.125v4_20221013.nc</value>
     </values>
     <desc>'File name (incl. full path) for iron (dust) deposition data'</desc>
   </entry>
@@ -4126,7 +4143,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>.false.</value>
+      <value>.true.</value>
     </values>
     <desc>Switch for primary production and remineralization throughout the whole water column</desc>
   </entry>
@@ -4136,7 +4153,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>.false.</value>
+      <value>.true.</value>
     </values>
     <desc>Switch for T- and O2-dependent remineralization of POM</desc>
   </entry>
@@ -4843,6 +4860,16 @@
       <value>None</value>
     </values>
     <desc>Dust deposition and iron solubility parameter: factor introduced to tune deposition/solubility</desc>
+  </entry>
+
+  <entry id="fesoly">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Max. dissolved iron concentration in deep water</desc>
   </entry>
 
   <!-- TODO: how to handle mathematical expressions like below -->
@@ -10038,7 +10065,8 @@
     <group>stream_dust</group>
     <desc>stream mesh file</desc>
     <values>
-      <value>$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_T42_ESMFmesh_cdf5.nc</value>
+      <value hamocc_fedep_source="mahw2006">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_T42_ESMFmesh_cdf5.nc</value>
+      <value hamocc_fedep_source="GESAMP2018">/cluster/projects/nn9560k/matsbn/WOA_mesh/WOA_1.00_degree_ESMFmesh_20250506_cdf5.nc</value>
     </values>
   </entry>
   <entry id="stream_dust_data_filename">
@@ -10049,18 +10077,20 @@
       file name(s) containing dust deposition data
     </desc>
     <values>
-      <value>$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_T42.nc</value>
+      <value hamocc_fedep_source="mahw2006">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_T42.nc</value>
+      <value hamocc_fedep_source="GESAMP2018">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_GESAMP2018_r360x180_20250526.nc</value>
     </values>
   </entry>
-  <entry id="stream_dust_varname">
+  <entry id="stream_dust_varnames">
     <type>char</type>
     <category>stream_dust</category>
     <group>stream_dust</group>
     <desc>
-      variable name on stream file
+      variable names as colon deliminted string on stream file
     </desc>
     <values>
-      <value>dustdep</value>
+      <value hamocc_fedep_source="mahw2006">dustdep</value>
+      <value hamocc_fedep_source="GESAMP2018">TFe:LFe</value>
     </values>
   </entry>
   <entry id="stream_dust_year_first">

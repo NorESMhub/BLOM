@@ -102,10 +102,9 @@ module mod_forcing
 
    logical :: use_stream_relaxation ! If true, use nuopc stream relaxation capability
 
-   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
-        dust_stream              ! iron dust deposition flux (hamocc)
+   ! Allocate dust_stream in ocn_stream_dust.F90
+   real(r8), allocatable  :: dust_stream(:,:,:) ! iron dust deposition flux (hamocc)
    logical :: use_stream_dust    ! If true, use nuopc stream dust capability (hamocc only)
-
 
    ! Variables related to balancing the freshwater forcing budget.
    real(r8) :: &
