@@ -901,7 +901,7 @@ contains
         endif
         write(tstamp,'(i4.4,a1,i2.2,a1,i2.2)')                                    &
              &    date%year,sep2,date%month,sep2,date%day
-        fname_inv(iogrp) = prefix//sep1//trim(glb_fnametag(iogrp))//sep1//        &
+        fname_inv(iogrp) = prefix//sep1//trim(glb_fnametag(iogrp))//              &
              &    'i'//sep1//trim(tstamp)//'.nc'
 
         !--- create a new netCDF file
