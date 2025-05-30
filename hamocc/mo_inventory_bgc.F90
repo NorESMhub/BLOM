@@ -485,8 +485,9 @@ contains
              &                   - srivflux(irdin)
         totalphos   = totalphos  - srivflux(irtdoc)-srivflux(irdet)-srivflux(irdip)
         totaloxy    = totaloxy   - srivflux(irtdoc)*(-49.5)-srivflux(irdet)*(-10.5)                &
-             &                   - srivflux(irdin)*1.5 - srivflux(irdip)*2.                        &
-             &                   - (srivflux(iralk)+srivflux(irdin)+srivflux(irdip))
+             &                   - srivflux(irdin)*1.5-srivflux(irdip)*2.                          &
+             &                   - (srivflux(iralk)+srivflux(irdoc)*rcar_tdochc+srivflux(irdin)    &
+             &                   + srivflux(irdip))
 
       else
         totalcarbon = totalcarbon- (srivflux(irdoc)+srivflux(irdet))*rcar                          &
