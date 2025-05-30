@@ -174,7 +174,7 @@ contains
 
           if (use_river2omip) then
             ! Riverine labile DOC (riv_lDOC) instantaneously degraded as DIC assuming the same
-            ! stoichiometry as the model marine DOC. The resulting alkalinity changes are ignored.
+            ! stoichiometry as the model marine DOC. The resulting alkalinity and iron changes are ignored.
             ! DIC <= riv_DIC + riv_lDOC
             ! Riverine DIN and DIP from remineralized riv_lDOC are already included in the
             ! dataset using C:N:P 2583:103:1.
