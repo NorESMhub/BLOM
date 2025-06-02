@@ -195,10 +195,9 @@ contains
     integer,        intent(in)  :: kbnd                   ! nb of halo-rows
     integer,        intent(in)  :: kplmon                 ! current month.
     real,           intent(out) :: dust(kpie,kpje,ndust)  ! dust/sFe flux for current month
-    real, optional, intent(in)  :: dust_stream(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-    !real, optional, intent(in)  :: dust_stream(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,ndust)
+    real, optional, intent(in)  :: dust_stream(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,ndust)
 
-    integer :: i,j
+    integer :: i,j,n
     logical :: debug = .true.
     logical :: first_time = .true.
 
@@ -210,8 +209,17 @@ contains
           do j=1,kpje
             do i=1,kpie
               ! note that the stream is read from a file where units already are in kg/m2/s
-              dust(i,j,itdust) = dust_stream(i,j)
-              dust(i,j,isfe)   = dust_stream(i,j)*frac_ironindust*frac_soliron/mw_fe*fetune
+              dust(i,j,itdust) = dust_stream(i,j,1)
+              dust(i,j,isfe)   = dust_stream(i,j,1)*frac_ironindust*frac_soliron/mw_fe*fetune
+            end do
+          end do
+
+        case('GESAMP2018')
+          do j=1,kpje
+            do i=1,kpie
+              ! note that the stream is read from a file where units already are in kg/m2/s
+              dust(i,j,itdust) = dust_stream(i,j,1)/frac_ironindust
+              dust(i,j,isfe)   = dust_stream(i,j,2)/mw_fe*fetune
             end do
           end do
 
@@ -230,7 +238,8 @@ contains
 
     if (debug) then
        if (first_time) then
-          call output_forcing('fedep.nc', 'fedep', kpie, kpje, dust)
+          call output_forcing('dustflx_tot.nc', 'dustflx_tot', kpie, kpje, dust(:,:,itdust))
+          call output_forcing('dustflx_sfe.nc', 'dustflx_sfe', kpie, kpje, dust(:,:,isfe))
           first_time = .false.
        end if
     end if

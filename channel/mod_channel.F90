@@ -50,7 +50,7 @@ module mod_channel
 
    private
 
-   public :: geoenv_channel, inifrc_channel, ictsz_channel
+   public :: geoenv_channel, inifrc_channel, inicon_channel
 
 contains
 
@@ -208,7 +208,7 @@ contains
 
       end subroutine geoenv_channel
 
-      subroutine ictsz_channel
+      subroutine inicon_channel
       ! define layer temperature and salinity, and geopotential at layer interfaces.
          real(r8), dimension(1 - nbdy:idm + nbdy, &
                              1 - nbdy:jdm + nbdy, kdm + 1) :: z
@@ -231,9 +231,9 @@ contains
          if (fexist) then
             open (newunit=nfu,file='limits',status='old',action='read')
          else
-            write (lp,*) 'ictsz_channel: could not find namelist file!'
-            call xchalt('(ictsz_channel)')
-            stop '(ictsz_channel)'
+            write (lp,*) 'inicon_channel: could not find namelist file!'
+            call xchalt('(inicon_channel)')
+            stop '(inicon_channel)'
          endif
          !
          read (unit=nfu,nml=idlini,iostat=ios)
@@ -320,7 +320,7 @@ contains
          enddo
       !$omp end parallel do
 
-      end subroutine ictsz_channel
+      end subroutine inicon_channel
 
       subroutine inifrc_channel
       ! ---------------------------------------------------

@@ -139,10 +139,19 @@
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.125v4_20230318.nc</value>
     </values>
     <desc>
-      Name of file containing initial conditions, that is either a
-      valid restart file or 'inicon.nc' if climatological based
-      initial conditions are desired.
+      Name of file containing initial conditions, that is either a valid restart file or a climatology based file regridded to model grid (layer or WOA).
     </desc>
+  </entry>
+
+  <entry id="woa_nuopc_provided">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.false.</value>
+    </values>
+    <desc>if .true., use NUOPC capability to read WOA climatology</desc>
   </entry>
 
   <entry id="pref">
@@ -10423,7 +10432,8 @@
     <group>stream_dust</group>
     <desc>stream mesh file</desc>
     <values>
-      <value>$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_T42_ESMFmesh_cdf5.nc</value>
+      <value hamocc_fedep_source="mahw2006">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_T42_ESMFmesh_cdf5.nc</value>
+      <value hamocc_fedep_source="GESAMP2018">/cluster/projects/nn9560k/matsbn/WOA_mesh/WOA_1.00_degree_ESMFmesh_20250506_cdf5.nc</value>
     </values>
   </entry>
   <entry id="stream_dust_data_filename">
@@ -10434,18 +10444,20 @@
       file name(s) containing dust deposition data
     </desc>
     <values>
-      <value>$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_T42.nc</value>
+      <value hamocc_fedep_source="mahw2006">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_T42.nc</value>
+      <value hamocc_fedep_source="GESAMP2018">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_GESAMP2018_r360x180_20250526.nc</value>
     </values>
   </entry>
-  <entry id="stream_dust_varname">
+  <entry id="stream_dust_varnames">
     <type>char</type>
     <category>stream_dust</category>
     <group>stream_dust</group>
     <desc>
-      variable name on stream file
+      variable names as colon deliminted string on stream file
     </desc>
     <values>
-      <value>dustdep</value>
+      <value hamocc_fedep_source="mahw2006">dustdep</value>
+      <value hamocc_fedep_source="GESAMP2018">TFe:LFe</value>
     </values>
   </entry>
   <entry id="stream_dust_year_first">
