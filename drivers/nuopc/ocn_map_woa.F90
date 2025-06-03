@@ -27,10 +27,6 @@ module ocn_map_woa
 
    public :: map_woa
 
-   ! TODO:
-   ! map first order conservative rather than bilinear
-   ! use the fill value as a public
-
    character(len=*), parameter :: u_FILE_u = &
       __FILE__
 
@@ -138,7 +134,7 @@ contains
          write(lp,*)
          write(lp,'(a)') trim(subname) // ' calling read_map_inputdata for '//trim(fldlist_input(1))
       end if
-      call read_map_input_data(mesh_input, filename_ts, (/fldlist_input(1)/), kdm_woa, 'bilinear', &
+      call read_map_input_data(mesh_input, filename_ts, (/fldlist_input(1)/), kdm_woa, 'conserve', &
            fldbun_blom, depth=depth_woa, depth_bnds=depth_bnds_woa, rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
@@ -186,7 +182,7 @@ contains
          write(lp,*)
          write(lp,'(a)') trim(subname) // ' calling read_map_inputdata for '//trim(fldlist_input(2))
       end if
-      call read_map_input_data(mesh_input, filename_ts, (/fldlist_input(2)/), kdm_woa, 'bilinear', &
+      call read_map_input_data(mesh_input, filename_ts, (/fldlist_input(2)/), kdm_woa, 'conserve', &
            fldbun_blom, rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
