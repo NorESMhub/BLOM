@@ -43,11 +43,12 @@ module mod_cesm
    use mo_control_bgc, only: use_bromo
 #endif
    use mod_ifdefs,     only: use_DIAG
+   use mod_utility,    only: fnmlen
 
    implicit none
    private
 
-   character(len = 256) :: &
+   character(len = fnmlen) :: &
         woa_nuopc_icfile_mesh, & ! mesh for woa_nuopc_icfile_data,
         woa_nuopc_icfile_data    ! woa file for temperature and salinity
    character(len = 256) :: &
