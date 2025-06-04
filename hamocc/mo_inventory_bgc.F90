@@ -743,8 +743,8 @@ contains
                                nf90_put_att, nf90_put_var, nf90_unlimited, nf90_write
       use mod_types,     only: r8
       use mod_config,    only: expcnf, runid, inst_suffix
-      use mod_time,      only: date0, time0, date, time, nstep, nday_of_year,nstep_in_day,calendar &
-                               blom_time
+      use mod_time,      only: date0, time0, date, time, nstep, nday_of_year, nstep_in_day,        &
+                               calendar, blom_time
       use mo_bgcmean,    only: filefq_bgc, fileann_bgc, filemon_bgc,glb_fnametag
       use mo_param1_bgc, only: idicsat,idms,ifdust,iiron,iprefalk,iprefdic,iprefo2,iprefpo4,       &
                                iadust,inos,ibromo,icfc11,icfc12,isf6,icalc13,icalc14,idet13,       &
