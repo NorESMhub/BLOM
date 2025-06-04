@@ -250,7 +250,7 @@ contains
     if (use_PBGC_OCNP_TIMESTEP) then
       if (mnproc == 1) then
         write(io_stdo_bgc,*)' '
-        write(io_stdo_bgc,*)'beginning of OCRPOD '
+        write(io_stdo_bgc,*)'beginning of OCPROD '
       endif
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
@@ -720,7 +720,7 @@ contains
     if (use_PBGC_OCNP_TIMESTEP) then
       if (mnproc == 1) then
         write(io_stdo_bgc,*)' '
-        write(io_stdo_bgc,*)'in OCRPOD after 1st bio prod'
+        write(io_stdo_bgc,*)'in OCPROD after 1st bio prod'
       endif
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
@@ -985,7 +985,7 @@ contains
     if (use_PBGC_OCNP_TIMESTEP) then
       if (mnproc == 1) then
         write(io_stdo_bgc,*)' '
-        write(io_stdo_bgc,*)'in OCRPOD after poc remin'
+        write(io_stdo_bgc,*)'in OCPROD after poc remin'
       endif
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
@@ -1053,7 +1053,7 @@ contains
       if (use_PBGC_OCNP_TIMESTEP) then
         if (mnproc == 1) then
           write(io_stdo_bgc,*)' '
-          write(io_stdo_bgc,*)'in OCRPOD after remin n2o'
+          write(io_stdo_bgc,*)'in OCPROD after remin n2o'
         endif
         call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
       endif
@@ -1142,7 +1142,7 @@ contains
     if (use_PBGC_OCNP_TIMESTEP) then
       if (mnproc == 1) then
         write(io_stdo_bgc,*)' '
-        write(io_stdo_bgc,*)'in OCRPOD after sulphate reduction '
+        write(io_stdo_bgc,*)'in OCPROD after sulphate reduction '
       endif
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
@@ -1825,7 +1825,7 @@ contains
     if (use_PBGC_OCNP_TIMESTEP) then
       if (mnproc == 1) then
         write(io_stdo_bgc,*)' '
-        write(io_stdo_bgc,*)'in OCRPOD after sinking poc '
+        write(io_stdo_bgc,*)'in OCPROD after sinking poc '
       endif
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
