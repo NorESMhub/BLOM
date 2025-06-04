@@ -2752,8 +2752,8 @@ CONTAINS
     integer :: i,maxval_glb_inventory, maxloc_glb_inventory
 
     maxval_glb_inventory = maxval(glb_inventory)
-    if (max_glb_inventory == 2) then
-       maxloc_glb_inventory = maxloc(glb_inventory)
+    if (maxval_glb_inventory == 2) then
+       maxloc_glb_inventory = maxloc(glb_inventory, 1)
        if (maxloc_glb_inventory < nbgc) then
           ! Set subsequent instances of glb_inventory to max 1
           do i=maxloc_glb_inventory+1,nbgc
