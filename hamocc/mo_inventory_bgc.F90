@@ -270,8 +270,7 @@ contains
         enddo
       enddo
     enddo
-    call xcsum(ODZvol,ztmp2,ips)
-
+    call xcsum(ODZvol,ztmp1,ips)
 
     !=== alkalinity of the first layer
     !--------------------------------------------------------------------
