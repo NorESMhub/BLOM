@@ -108,10 +108,11 @@ module mo_param1_bgc
   integer, protected :: ibromo
 
   ! Indices for DOM tracer
-  integer, protected :: i_dom 
+  integer, protected :: i_dom
   integer, protected :: idocsl
   integer, protected :: idocr
   integer, protected :: idocsr
+  integer, protected :: i_prefdom
   integer, protected :: iprefdoc
   integer, protected :: iprefdocsl
   integer, protected :: iprefdocsr
@@ -443,23 +444,32 @@ contains
       itdoc_hc  = -1
     endif
     if (use_DOMclasses) then
-      i_dom=7
+      i_dom=3
       idocsl=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+1
       idocsr=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+2
       idocr =i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+3
-      iprefdoc=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+4
-      iprefdocsl=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+5
-      iprefdocsr=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+6
-      iprefdocr=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+7
     else
       i_dom=0
       idocsl=-1
       idocr =-1
       idocsr=-1
     endif
+    if (use_DOMclasses .and. use_pref_tracers) then
+      i_prefdom = 4
+      iprefdoc=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+i_dom+1
+      iprefdocsl=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+i_dom+2
+      iprefdocsr=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+i_dom+3
+      iprefdocr=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+i_dom+4
+    else
+      i_prefdom =  0
+      iprefdoc  = -1
+      iprefdocsl= -1
+      iprefdocsr= -1
+      iprefdocr = -1
+    endif
 
     ! total number of advected tracers
-    nocetra=i_base+i_iso+i_cfc+i_agg+i_nat_dic +i_bromo+i_extn+i_pref+i_shelfage+i_r2o+i_dom
+    nocetra=i_base+i_iso+i_cfc+i_agg+i_nat_dic +i_bromo+i_extn+i_pref+i_shelfage+i_r2o+i_dom+i_prefdom
 
     ! ATMOSPHERE
     i_base_atm=5

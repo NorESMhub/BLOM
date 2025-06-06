@@ -47,7 +47,7 @@ contains
     use mod_xc,          only: xchalt
     use mo_carbch,       only: ocetra
     use mo_Gdata_read,   only: set_Gdata,clean_Gdata,get_profile,nzmax,nz,zlev_bnds,fillval
-    use mo_control_bgc,  only: io_stdo_bgc,use_natDIC,use_cisonew,use_DOMclasses
+    use mo_control_bgc,  only: io_stdo_bgc,use_natDIC,use_cisonew,use_DOMclasses,use_pref_tracers
     use mo_vgrid,        only: ptiestw
     use mo_param1_bgc,   only: ialkali,iano3,ioxygen,iphosph,isco212,isilica,isco213,isco214,      &
                              & inatalkali,inatsco212,idoc,idocsl,idocsr,idocr,iprefdoc,iprefdocsl, &
@@ -67,7 +67,8 @@ contains
     integer,  parameter :: nread_base = 6 ! Number of fields to read
     integer,  parameter :: nread_ndic = 2 ! Number of fields to read
     integer,  parameter :: nread_ciso = 2 ! Number of fields to read
-    integer,  parameter :: nread_dom  = 8 ! Number of fields to read
+    integer,  parameter :: nread_dom  = 4 ! Number of fields to read
+    integer,  parameter :: nread_pdom  = 4 ! Number of fields to read
     integer,  parameter :: maxflds    = nread_base+nread_ndic+nread_ciso+nread_dom
     integer             :: nflds, no
     integer             :: ifld(maxflds)
@@ -94,10 +95,14 @@ contains
     if (use_DOMclasses) then
       no = nflds + 1
       nflds = nflds+nread_dom
-      vname(no:nflds) = (/  'd_l',   'dsl',   'dsr',    'd_r',                                     &
-                            'pdl',   'psl',   'psr',    'pdr' /)
-      ifld(no:nflds)  = (/   idoc,      idocsl,      idocsr,    idocr,                             &
-                         iprefdoc,  iprefdocsl,  iprefdocsr,iprefdocr  /)
+      vname(no:nflds) = (/  'd_l',   'dsl',   'dsr',    'd_r' /)
+      ifld(no:nflds)  = (/   idoc,      idocsl,      idocsr,    idocr  /)
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
+      no = nflds + 1
+      nflds = nflds+nread_pdom
+      vname(no:nflds) = (/  'pdl',   'psl',   'psr',    'pdr' /)
+      ifld(no:nflds)  = (/  iprefdoc,  iprefdocsl,  iprefdocsr,iprefdocr  /)
     endif
 
     do n = 1, nflds  ! Loop over tracer

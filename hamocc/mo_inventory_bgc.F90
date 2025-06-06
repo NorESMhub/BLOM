@@ -1748,7 +1748,8 @@ contains
           call nccheck( NF90_PUT_ATT(ncid, zc_docr_varid, 'long_name',              &
                &    'Mean refractory dom concentration') )
           call nccheck( NF90_PUT_ATT(ncid, zc_docr_varid, 'units', 'kmol/m^3') )
-
+        endif
+        if (use_DOMclasses .and. use_pref_tracers) then
           call nccheck( NF90_DEF_VAR(ncid, 'zt_prefdoc', NF90_DOUBLE,               &
                &    time_dimid, zt_prefdoc_varid) )
           call nccheck( NF90_PUT_ATT(ncid, zt_prefdoc_varid, 'long_name',           &
@@ -2092,6 +2093,8 @@ contains
           call nccheck( NF90_INQ_VARID(ncid, "zc_docsr", zc_docsr_varid) )
           call nccheck( NF90_INQ_VARID(ncid, "zt_docr", zt_docr_varid) )
           call nccheck( NF90_INQ_VARID(ncid, "zc_docr", zc_docr_varid) )
+        endif
+        if (use_DOMclasses .and. use_pref_tracers) then
           call nccheck( NF90_INQ_VARID(ncid, "zt_prefdoc", zt_prefdoc_varid) )
           call nccheck( NF90_INQ_VARID(ncid, "zc_prefdoc", zc_prefdoc_varid) )
           call nccheck( NF90_INQ_VARID(ncid, "zt_prefdocsl", zt_prefdocsl_varid) )
@@ -2414,6 +2417,8 @@ contains
              &    zocetratot(idocr), start = wrstart) )
         call nccheck( NF90_PUT_VAR(ncid, zc_docr_varid,                              &
              &    zocetratoc(idocr), start = wrstart) )
+      endif
+      if (use_DOMclasses .and. use_pref_tracers) then
         call nccheck( NF90_PUT_VAR(ncid, zt_prefdoc_varid,                           &
              &    zocetratot(iprefdoc), start = wrstart) )
         call nccheck( NF90_PUT_VAR(ncid, zc_prefdoc_varid,                           &

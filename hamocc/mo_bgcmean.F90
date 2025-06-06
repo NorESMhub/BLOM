@@ -1338,6 +1338,8 @@ CONTAINS
         jdocsr(n)=i_bsc_m3d*min(1,LYR_DOCSR(n))
         if (LYR_DOCR(n)  > 0) i_bsc_m3d=i_bsc_m3d+1
         jdocr(n) =i_bsc_m3d*min(1,LYR_DOCR(n))
+      endif
+      if (use_DOMclasses .and. use_pref_tracers) then
         if (LYR_PREFDOC(n)  > 0) i_bsc_m3d=i_bsc_m3d+1
         jprefdoc(n)=i_bsc_m3d*min(1,LYR_PREFDOC(n))
         if (LYR_PREFDOCSL(n)  > 0) i_bsc_m3d=i_bsc_m3d+1
@@ -1556,6 +1558,8 @@ CONTAINS
         jlvldocsr(n)=ilvl_bsc_m3d*min(1,LVL_DOCSR(n))
         if (LVL_DOCR(n)  > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvldocr(n) =ilvl_bsc_m3d*min(1,LVL_DOCR(n))
+      endif
+      if (use_DOMclasses .and. use_pref_tracers) then
         if (LVL_PREFDOC(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlprefdoc(n)=ilvl_bsc_m3d*min(1,LVL_PREFDOC(n))
         if (LVL_PREFDOCSL(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1

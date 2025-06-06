@@ -448,6 +448,8 @@ contains
       call finlyr(jdocsl(iogrp),jdp(iogrp))
       call finlyr(jdocsr(iogrp),jdp(iogrp))
       call finlyr(jdocr(iogrp),jdp(iogrp))
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
       call finlyr(jprefdoc(iogrp),jdp(iogrp))
       call finlyr(jprefdocsl(iogrp),jdp(iogrp))
       call finlyr(jprefdocsr(iogrp),jdp(iogrp))
@@ -593,6 +595,8 @@ contains
       call msklvl(jlvldocsl(iogrp),depths)
       call msklvl(jlvldocsr(iogrp),depths)
       call msklvl(jlvldocr(iogrp),depths)
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
       call msklvl(jlvlprefdoc(iogrp),depths)
       call msklvl(jlvlprefdocsl(iogrp),depths)
       call msklvl(jlvlprefdocsr(iogrp),depths)
@@ -864,6 +868,8 @@ contains
       call wrtlyr(jdocsl(iogrp),       LYR_DOCSL(iogrp),    1e3,            0.,cmpflg,'dissocsl')
       call wrtlyr(jdocsr(iogrp),       LYR_DOCSR(iogrp),    1e3,            0.,cmpflg,'dissocsr')
       call wrtlyr(jdocr(iogrp),        LYR_DOCR(iogrp),     1e3,            0.,cmpflg,'dissocr')
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
       call wrtlyr(jprefdoc(iogrp),     LYR_PREFDOC(iogrp),  1e3,            0.,cmpflg,'p_doc')
       call wrtlyr(jprefdocsl(iogrp),   LYR_PREFDOCSL(iogrp),1e3,            0.,cmpflg,'p_docsl')
       call wrtlyr(jprefdocsr(iogrp),   LYR_PREFDOCSR(iogrp),1e3,            0.,cmpflg,'p_docsr')
@@ -987,6 +993,8 @@ contains
       call wrtlvl(jlvldocsl(iogrp),     LVL_DOCSL(iogrp),   rnacc*1e3,      0.,cmpflg,'dissocsllvl')
       call wrtlvl(jlvldocsr(iogrp),     LVL_DOCSR(iogrp),   rnacc*1e3,      0.,cmpflg,'dissocsrlvl')
       call wrtlvl(jlvldocr(iogrp),      LVL_DOCR(iogrp),    rnacc*1e3,      0.,cmpflg,'dissocrlvl')
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
       call wrtlvl(jlvlprefdoc(iogrp),   LVL_PREFDOC(iogrp),   rnacc*1e3,    0.,cmpflg,'p_doclvl')
       call wrtlvl(jlvlprefdocsl(iogrp), LVL_PREFDOCSL(iogrp), rnacc*1e3,    0.,cmpflg,'p_docsllvl')
       call wrtlvl(jlvlprefdocsr(iogrp), LVL_PREFDOCSR(iogrp), rnacc*1e3,    0.,cmpflg,'p_docsrlvl')
@@ -1299,6 +1307,8 @@ contains
       call inilyr(jdocsl(iogrp),0.)
       call inilyr(jdocsr(iogrp),0.)
       call inilyr(jdocr(iogrp),0.)
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
       call inilyr(jprefdoc(iogrp),0.)
       call inilyr(jprefdocsl(iogrp),0.)
       call inilyr(jprefdocsr(iogrp),0.)
@@ -1420,6 +1430,8 @@ contains
       call inilvl(jlvldocsl(iogrp),0.)
       call inilvl(jlvldocsr(iogrp),0.)
       call inilvl(jlvldocr(iogrp),0.)
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
       call inilvl(jlvlprefdoc(iogrp),0.)
       call inilvl(jlvlprefdocsl(iogrp),0.)
       call inilvl(jlvlprefdocsr(iogrp),0.)
@@ -2118,6 +2130,8 @@ contains
            &   'dissocsr','DOC semi-refractory',' ','mol P m-3',1)
       call ncdefvar3d(LYR_DOCR(iogrp),cmpflg,'p',                               &
            &   'dissocr','DOC refractory',' ','mol P m-3',1)
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
       call ncdefvar3d(LYR_PREFDOC(iogrp),cmpflg,'p',                            &
            &   'p_doc','Preformed labile DOC',' ','mol P m-3',1)
       call ncdefvar3d(LYR_PREFDOCSL(iogrp),cmpflg,'p',                          &
@@ -2345,6 +2359,8 @@ contains
            &   'dissocsrlvl','DOC semi-refractory',' ','mol P m-3',2)
       call ncdefvar3d(LVL_DOCR(iogrp),cmpflg,'p',                               &
            &   'dissocrlvl','DOC refractory',' ','mol P m-3',2)
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
       call ncdefvar3d(LVL_PREFDOC(iogrp),cmpflg,'p',                            &
            &   'p_doclvl','Preformed labile DOC',' ','mol P m-3',2)
       call ncdefvar3d(LVL_PREFDOCSL(iogrp),cmpflg,'p',                          &

@@ -181,6 +181,8 @@ contains
               ocetra(i,j,k,idocsl)     = ocetra(i,j,k,idocsl)    /prho(i,j,k)
               ocetra(i,j,k,idocsr)     = ocetra(i,j,k,idocsr)    /prho(i,j,k)
               ocetra(i,j,k,idocr )     = ocetra(i,j,k,idocr)     /prho(i,j,k)
+            endif
+            if (use_DOMclasses .and. use_pref_tracers) then
               ocetra(i,j,k,iprefdoc)   = ocetra(i,j,k,iprefdoc)  /prho(i,j,k)
               ocetra(i,j,k,iprefdocsl) = ocetra(i,j,k,iprefdocsl)/prho(i,j,k)
               ocetra(i,j,k,iprefdocsr) = ocetra(i,j,k,iprefdocsr)/prho(i,j,k)
@@ -279,7 +281,7 @@ contains
 
     if (use_pref_tracers) then
       ! Initialise preformed tracers in the mixed layer; note that the
-      ! whole field has been initialised to zero above
+      ! whole field has been initialised to zero above (except prefdocx)
       do j=1,kpje
         do i=1,kpie
           if (omask(i,j) > 0.5) then
@@ -288,26 +290,16 @@ contains
             ocetra(i,j,1:kmle(i,j),iprefsilica) = ocetra(i,j,1:kmle(i,j),isilica)
             ocetra(i,j,1:kmle(i,j),iprefalk)    = ocetra(i,j,1:kmle(i,j),ialkali)
             ocetra(i,j,1:kmle(i,j),iprefdic)    = ocetra(i,j,1:kmle(i,j),isco212)
+            if (use_DOMclasses) then
+              ocetra(i,j,1:kmle(i,j),iprefdoc)   = ocetra(i,j,1:kmle(i,j),idoc)
+              ocetra(i,j,1:kmle(i,j),iprefdocsl) = ocetra(i,j,1:kmle(i,j),idocsl)
+              ocetra(i,j,1:kmle(i,j),iprefdocsr) = ocetra(i,j,1:kmle(i,j),idocsr)
+              ocetra(i,j,1:kmle(i,j),iprefdocr)  = ocetra(i,j,1:kmle(i,j),idocr)
+            endif
           endif
         enddo
       enddo
     endif
-
-    if (use_DOMclasses) then
-      ! Initialise preformed tracers in the mixed layer
-      do j=1,kpje
-        do i=1,kpie
-          if (omask(i,j) > 0.5) then
-            ocetra(i,j,1:kmle(i,j),iprefdoc)   = ocetra(i,j,1:kmle(i,j),idoc)
-            ocetra(i,j,1:kmle(i,j),iprefdocsl) = ocetra(i,j,1:kmle(i,j),idocsl)
-            ocetra(i,j,1:kmle(i,j),iprefdocsr) = ocetra(i,j,1:kmle(i,j),idocsr)
-            ocetra(i,j,1:kmle(i,j),iprefdocr)  = ocetra(i,j,1:kmle(i,j),idocr)
-          endif
-        enddo
-      enddo
-    endif
-
-
 
     ! Initial values for sediment
     if (.not. use_sedbypass) then

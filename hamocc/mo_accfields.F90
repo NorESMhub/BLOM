@@ -537,6 +537,8 @@ contains
       call acclyr(jdocsl,ocetra(1,1,1,idocsl),pddpo,1)
       call acclyr(jdocsr,ocetra(1,1,1,idocsr),pddpo,1)
       call acclyr(jdocr ,ocetra(1,1,1,idocr ),pddpo,1)
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
       call acclyr(jprefdoc,ocetra(1,1,1,iprefdoc),pddpo,1)
       call acclyr(jprefdocsl,ocetra(1,1,1,iprefdocsl),pddpo,1)
       call acclyr(jprefdocsr,ocetra(1,1,1,iprefdocsr),pddpo,1)
@@ -684,6 +686,8 @@ contains
           call acclvl(jlvldocsl,ocetra(1,1,1,idocsl),k,ind1,ind2,wghts)
           call acclvl(jlvldocsr,ocetra(1,1,1,idocsr),k,ind1,ind2,wghts)
           call acclvl(jlvldocr ,ocetra(1,1,1,idocr ),k,ind1,ind2,wghts)
+        endif
+        if (use_DOMclasses .and. use_pref_tracers) then
           call acclvl(jlvlprefdoc,ocetra(1,1,1,iprefdoc),k,ind1,ind2,wghts)
           call acclvl(jlvlprefdocsl,ocetra(1,1,1,iprefdocsl),k,ind1,ind2,wghts)
           call acclvl(jlvlprefdocsr,ocetra(1,1,1,iprefdocsr),k,ind1,ind2,wghts)

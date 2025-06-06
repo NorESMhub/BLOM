@@ -564,7 +564,8 @@ contains
 
       call NETCDF_DEF_VARDB(ncid,4,'docr',3,ncdimst,ncvarid,                                       &
            &    6,'mol/kg',35,'Refractory dissolved organic carbon',rmissing,58,io_stdo_bgc)
-
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
       call NETCDF_DEF_VARDB(ncid,7,'prefdoc',3,ncdimst,ncvarid,                                    &
         &    6,'mol/kg',20,'Preformed labile DOC',rmissing,59,io_stdo_bgc)
 
@@ -877,6 +878,8 @@ contains
       call write_netcdf_var(ncid,'docsl',locetra(1,1,1,idocsl),2*kpke,0)
       call write_netcdf_var(ncid,'docsr',locetra(1,1,1,idocsr),2*kpke,0)
       call write_netcdf_var(ncid,'docr' ,locetra(1,1,1,idocr),2*kpke,0)
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
       call write_netcdf_var(ncid,'prefdoc',locetra(1,1,1,iprefdoc),2*kpke,0)
       call write_netcdf_var(ncid,'prefdocsl',locetra(1,1,1,iprefdocsl),2*kpke,0)
       call write_netcdf_var(ncid,'prefdocsr',locetra(1,1,1,iprefdocsr),2*kpke,0)

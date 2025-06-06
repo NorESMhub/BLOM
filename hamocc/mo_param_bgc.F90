@@ -684,14 +684,6 @@ contains
       dremopal = 0.023
     endif
 
-    if (use_DOMclasses) then
-      ! THIS SECTION POTENTIALLY NEEDS FURTHER PARAMETERS AFTER PR574 and others
-      gammap      = 0.10        ! DOC_l exudation rate [day-1]
-      gammaz      = 0.06        ! DOC_l excretion rate [day-1]
-      wcal_const  = 33.
-      wmin        = 5.
-      bkphy       = 3.5e-8
-    endif
   end subroutine ini_param_biol
 
   !********************************************************************
