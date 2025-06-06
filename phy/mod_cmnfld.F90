@@ -64,12 +64,14 @@ module mod_cmnfld
                                  ! buoyancy frequency [s-1].
       dz                         ! Layer thickness [m].
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
-      mlts                       ! Mixed layer depth defined by density
+      mlts, &                    ! Mixed layer depth defined by density
                                  ! criterion [m].
+      dpml                       ! Mixed layer pressure thickness defined by
+                                 ! density criterion [kg m-1 s-2].
 
    public :: sls0, slsmfq, slsels, bfsqmn, dbcrit, &
-             bfsqi, bfsqf, z, bfsql, nslpx, nslpy, nnslpx, nnslpy, dz, mlts, &
-             inivar_cmnfld
+             bfsqi, bfsqf, z, bfsql, nslpx, nslpy, nnslpx, nnslpy, dz, &
+             mlts, dpml, inivar_cmnfld
 
    contains
 
@@ -92,6 +94,7 @@ module mod_cmnfld
       nnslpy(:,:,:) = spval
       dz    (:,:,:) = spval
       mlts  (:,:) = spval
+      dpml  (:,:) = spval
 
    end subroutine inivar_cmnfld
 

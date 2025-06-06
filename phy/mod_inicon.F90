@@ -357,9 +357,10 @@ contains
     integer :: errstat, k_woa, i, j, k, l
     logical :: filling_failed
 
-    if (trim(sigref_spec) /= 'namelist') then
+    if (trim(sigref_spec) /= 'function' .and. &
+        trim(sigref_spec) /= 'namelist') then
       if (mnproc == 1) &
-        write(lp,*) 'Initial conditions from WOA require sigref_spec == ''namelist''!'
+        write(lp,*) 'Initial conditions from WOA require sigref_spec == ''function'' or sigref_spec == ''namelist''!'
       call xcstop('(inicon_woa_file)')
              stop '(inicon_woa_file)'
     endif

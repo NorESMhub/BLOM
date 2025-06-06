@@ -36,7 +36,8 @@ module mod_dia
                            iu, iv, ips, halo_qs, halo_uv, halo_vv
   use mod_nctools
   use netcdf,        only: nf90_fill_double
-  use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml, sigmar
+  use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml, sigmar, sigref, &
+                           sigref_adaption
   use mod_grid,      only: scp2, depths, area
   use mod_eos,       only: rho, p_alpha
   use mod_state,     only: u, v, dp, dpu, dpv, temp, saln, sigma, &
@@ -2358,7 +2359,11 @@ contains
     ! write auxillary dimension information
     if (irec(iogrp) == 1) then
       ! sigma levels
-      call ncwrt1('sigma','sigma',sigmar1)
+      if (sigref_adaption) then
+        call ncwrt1('sigma','sigma',sigref(1:kk))
+      else
+        call ncwrt1('sigma','sigma',sigmar1)
+      endif
       call ncattr('long_name','Potential density')
       call ncattr('standard_name','sea_water_sigma_theta')
       call ncattr('units','kg m-3')

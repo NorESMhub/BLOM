@@ -23,88 +23,113 @@
 module mod_restart
 
    use mod_types,          only: r8
-   use mod_config,         only: expcnf, runid, inst_suffix, resume_flag, rpoint, runtyp
+   use mod_config,         only: expcnf, runid, inst_suffix, resume_flag, &
+                                 rpoint, runtyp
    use mod_calendar,       only: date_type, daynum_diff, operator(/=), &
                                  calendar_noerr, calendar_errstr
-   use mod_time,           only: date0, date, nday1, nstep0, nstep1, nstep, time, time0, &
-                                 nstep_in_day, nday_of_year, calendar
+   use mod_time,           only: date0, date, nday1, nstep0, nstep1, nstep, &
+                                 time, time0, nstep_in_day, nday_of_year, &
+                                 calendar
    use mod_xc
-   use mod_vcoord,         only: vcoord_tag, vcoord_isopyc_bulkml, sigmar
+   use mod_vcoord,         only: vcoord_tag, vcoord_isopyc_bulkml, &
+                                 sra_tlev_num, sigmar, &
+                                 sigref_fun_spec, sigref_adaption, &
+                                 sra_massdc_colsum, sra_sigmassdc_colsum, &
+                                 sra_massgs_colsum, sra_dpml_sum, &
+                                 sra_sigmlb_sum, sra_sigref_sum, &
+                                 sra_s_bot_sum, sra_tlev_accnum, sra_accnum, &
+                                 sigref_fun_spec_old, sigref_fun_spec_new
    use mod_inicon,         only: icfile
-   use mod_state,          only: u, v, dp, dpu, dpv, temp, saln, sigma, uflx, vflx, &
-                                 utflx, vtflx, usflx, vsflx, phi, ubflxs, vbflxs, &
-                                 ub, vb, pb, pbu, pbv, ubflxs_p, vbflxs_p, &
-                                 pb_p, pbu_p, pbv_p, ubcors_p, vbcors_p, sealv, kfpla
-   use mod_pgforc,         only: pgfx, pgfy, pgfxm, pgfym, xixp, xixm, xiyp, xiym
+   use mod_state,          only: u, v, dp, dpu, dpv, temp, saln, sigma, &
+                                 uflx, vflx, utflx, vtflx, usflx, vsflx, &
+                                 phi, ubflxs, vbflxs, ub, vb, pb, pbu, pbv, &
+                                 ubflxs_p, vbflxs_p, pb_p, pbu_p, pbv_p, &
+                                 ubcors_p, vbcors_p, sealv, kfpla
+   use mod_pgforc,         only: pgfx, pgfy, pgfxm, pgfym, &
+                                 xixp, xixm, xiyp, xiym
    use mod_barotp,         only: ubflx, vbflx, pb_mn, ubflx_mn, vbflx_mn, pvtrop
    use mod_temmin,         only: settemmin
-   use mod_nctools,        only: nccomp, ncwrtr, ncdefvar, ndouble, ncinqv, ncinqa, &
-                                 ncread, ncfopn, ncgetr, ncfopn, ncgeti, ncgetr, ncfcls, &
-                                 ncputi, ncputr, ncdims, ncdimc, ncedef, ncdimlen
+   use mod_nctools,        only: nccomp, ncwrtr, ncdefvar, ndouble, ncinqv, &
+                                 ncinqa, ncread, ncfopn, ncgetr, ncfopn, &
+                                 ncgeti, ncgetr, ncfcls, ncputi, ncputr, &
+                                 ncdims, ncdimc, ncedef, ncdimlen
    use mod_dia,            only: rstfrq, iotype, rstfmt, rstcmp, rstmon, &
                                  ddm, depthslev, phyh2d, phylyr, phylvl, &
                                  nphy, nacc_phy, &
-                                 acc_abswnd ,acc_alb ,acc_brnflx ,acc_brnpd ,acc_dfl , &
-                                 acc_eva ,acc_fice ,acc_fmltfz ,acc_hice ,acc_hmltfz , &
-                                 acc_hsnw ,acc_iage ,acc_idkedt ,acc_lamult ,acc_lasl , &
-                                 acc_lip ,acc_maxmld ,acc_mld ,acc_mlts ,acc_mltsmn , &
-                                 acc_mltsmx ,acc_mltssq ,acc_mtkeus ,acc_mtkeni ,acc_mtkebf , &
-                                 acc_mtkers ,acc_mtkepe ,acc_mtkeke ,acc_mty ,acc_nsf , &
-                                 acc_pbot ,acc_psrf ,acc_rfiflx ,acc_rnfflx ,acc_salflx , &
-                                 acc_salrlx ,acc_sbot ,acc_sealv ,acc_slvsq ,acc_sfl , &
-                                 acc_sop ,acc_sigmx ,acc_sss ,acc_ssssq ,acc_sst , &
-                                 acc_sstsq ,acc_surflx ,acc_surrlx ,acc_swa ,acc_t20d , &
-                                 acc_taux ,acc_tauy ,acc_tbot ,acc_tice ,acc_tsrf , &
-                                 acc_ub ,acc_ubflxs ,acc_uice ,acc_ustar ,acc_ustar3 , &
-                                 acc_ustokes,acc_vb ,acc_vbflxs ,acc_vice ,acc_vstokes, &
-                                 acc_ztx ,acc_ivolu ,acc_ivolv ,acc_utilh2d, &
-                                 acc_bfsq ,acc_difdia ,acc_difvmo ,acc_difvho ,acc_difvso , &
-                                 acc_difint ,acc_difiso ,acc_dp ,acc_dpu ,acc_dpv , &
-                                 acc_dz ,acc_saln ,acc_temp ,acc_uflx ,acc_utflx , &
-                                 acc_usflx ,acc_umfltd ,acc_umflsm ,acc_utfltd ,acc_utflsm , &
-                                 acc_utflld ,acc_usfltd ,acc_usflsm ,acc_usflld ,acc_uvel , &
-                                 acc_vflx ,acc_vtflx ,acc_vsflx ,acc_vmfltd ,acc_vmflsm , &
-                                 acc_vtfltd ,acc_vtflsm ,acc_vtflld ,acc_vsfltd ,acc_vsflsm , &
-                                 acc_vsflld ,acc_vvel ,acc_wflx ,acc_wflx2 ,acc_avdsg , &
-                                 acc_dpvor ,acc_tke ,acc_gls_psi,acc_utillyr, &
-                                 acc_bfsqlvl ,acc_difdialvl ,acc_difvmolvl ,acc_difvholvl , &
-                                 acc_difvsolvl ,acc_difintlvl ,acc_difisolvl ,acc_dzlvl , &
-                                 acc_salnlvl ,acc_templvl ,acc_uflxlvl ,acc_utflxlvl , &
-                                 acc_usflxlvl ,acc_umfltdlvl ,acc_umflsmlvl ,acc_utfltdlvl , &
-                                 acc_utflsmlvl ,acc_utflldlvl ,acc_usfltdlvl ,acc_usflsmlvl , &
-                                 acc_usflldlvl ,acc_uvellvl ,acc_vflxlvl ,acc_vtflxlvl , &
-                                 acc_vsflxlvl ,acc_vmfltdlvl ,acc_vmflsmlvl ,acc_vtfltdlvl , &
-                                 acc_vtflsmlvl ,acc_vtflldlvl ,acc_vsfltdlvl ,acc_vsflsmlvl , &
-                                 acc_vsflldlvl ,acc_vvellvl ,acc_wflxlvl ,acc_wflx2lvl , &
-                                 acc_pvlvl ,acc_tkelvl ,acc_gls_psilvl,acc_uflxold , &
-                                 acc_vflxold ,acc_utillvl , &
-                                 acc_mmflxl,acc_mmflxd,acc_mmftdl,acc_mmfsml,acc_mmftdd, &
-                                 acc_mmfsmd,acc_mhflx ,acc_mhftd ,acc_mhfsm ,acc_mhfld , &
-                                 acc_msflx ,acc_msftd ,acc_msfsm ,acc_msfld ,acc_voltr
-   use mod_forcing,        only: ditflx, disflx, sprfac, tflxdi, sflxdi, nflxdi, &
-                                 prfac, eiacc, pracc, flxco2, flxdms, flxbrf, &
-                                 flxn2o,flxnh3, &
-                                 ustarb, wstar3, salt_corr, trc_corr, buoyfl, ustar
+                                 acc_abswnd, acc_alb, acc_brnflx, acc_brnpd, &
+                                 acc_dfl, acc_eva, acc_fice, acc_fmltfz, &
+                                 acc_hice, acc_hmltfz, acc_hsnw, acc_iage, &
+                                 acc_idkedt, acc_lamult, acc_lasl, acc_lip, &
+                                 acc_maxmld, acc_mld, acc_mlts, acc_mltsmn, &
+                                 acc_mltsmx, acc_mltssq, acc_mtkeus, &
+                                 acc_mtkeni, acc_mtkebf, acc_mtkers, &
+                                 acc_mtkepe, acc_mtkeke, acc_mty, acc_nsf, &
+                                 acc_pbot, acc_psrf, acc_rfiflx, acc_rnfflx, &
+                                 acc_salflx, acc_salrlx, acc_sbot, acc_sealv, &
+                                 acc_slvsq, acc_sfl, acc_sop, acc_sigmx, &
+                                 acc_sss, acc_ssssq, acc_sst, acc_sstsq, &
+                                 acc_surflx, acc_surrlx, acc_swa, acc_t20d, &
+                                 acc_taux, acc_tauy, acc_tbot, acc_tice, &
+                                 acc_tsrf, acc_ub, acc_ubflxs, acc_uice, &
+                                 acc_ustar, acc_ustar3, acc_ustokes,acc_vb, &
+                                 acc_vbflxs, acc_vice, acc_vstokes, acc_ztx, &
+                                 acc_ivolu, acc_ivolv, acc_utilh2d, acc_bfsq, &
+                                 acc_difdia, acc_difvmo, acc_difvho, &
+                                 acc_difvso, acc_difint, acc_difiso, acc_dp, &
+                                 acc_dpu, acc_dpv, acc_dz, acc_saln, acc_temp, &
+                                 acc_uflx, acc_utflx, acc_usflx, acc_umfltd, &
+                                 acc_umflsm, acc_utfltd, acc_utflsm, &
+                                 acc_utflld, acc_usfltd, acc_usflsm, &
+                                 acc_usflld, acc_uvel, acc_vflx, acc_vtflx, &
+                                 acc_vsflx, acc_vmfltd, acc_vmflsm, &
+                                 acc_vtfltd, acc_vtflsm, acc_vtflld, &
+                                 acc_vsfltd, acc_vsflsm, acc_vsflld, acc_vvel, &
+                                 acc_wflx, acc_wflx2, acc_avdsg, acc_dpvor, &
+                                 acc_tke, acc_gls_psi,acc_utillyr, &
+                                 acc_bfsqlvl, acc_difdialvl, acc_difvmolvl, &
+                                 acc_difvholvl, acc_difvsolvl, acc_difintlvl, &
+                                 acc_difisolvl, acc_dzlvl, acc_salnlvl, &
+                                 acc_templvl, acc_uflxlvl, acc_utflxlvl, &
+                                 acc_usflxlvl, acc_umfltdlvl, acc_umflsmlvl, &
+                                 acc_utfltdlvl, acc_utflsmlvl, acc_utflldlvl, &
+                                 acc_usfltdlvl, acc_usflsmlvl, acc_usflldlvl, &
+                                 acc_uvellvl, acc_vflxlvl, acc_vtflxlvl, &
+                                 acc_vsflxlvl, acc_vmfltdlvl, acc_vmflsmlvl, &
+                                 acc_vtfltdlvl, acc_vtflsmlvl, acc_vtflldlvl, &
+                                 acc_vsfltdlvl, acc_vsflsmlvl, acc_vsflldlvl, &
+                                 acc_vvellvl, acc_wflxlvl, acc_wflx2lvl, &
+                                 acc_pvlvl, acc_tkelvl, acc_gls_psilvl, &
+                                 acc_uflxold, acc_vflxold, acc_utillvl, &
+                                 acc_mmflxl, acc_mmflxd, acc_mmftdl, &
+                                 acc_mmfsml, acc_mmftdd, acc_mmfsmd, &
+                                 acc_mhflx, acc_mhftd, acc_mhfsm, acc_mhfld, &
+                                 acc_msflx, acc_msftd, acc_msfsm, acc_msfld, &
+                                 acc_voltr
+   use mod_forcing,        only: ditflx, disflx, sprfac, tflxdi, sflxdi, &
+                                 nflxdi, prfac, eiacc, pracc, flxco2, flxdms, &
+                                 flxbrf, flxn2o,flxnh3, ustarb, wstar3, &
+                                 salt_corr, trc_corr, buoyfl, ustar
    use mod_niw,            only: uml, vml, umlres, vmlres
    use mod_difest,         only: OBLdepth
    use mod_diffusion,      only: difiso, Kvisc_m, Kdiff_t, Kdiff_s, &
-                                 t_ns_nonloc, s_nb_nonloc, mu_nonloc, mv_nonloc, difdia,&
-                                 umflsm, usfltd, utflld, usflsm, utfltd, &
-                                 usflld, utflsm, usflld, utflld, umfltd, usflld, &
-                                 vmflsm, vsfltd, vtflld, vsflsm, vtfltd, &
-                                 vsflld, vtflsm, vsflld, vtflld, vmfltd, vsflld
+                                 t_ns_nonloc, s_nb_nonloc, mu_nonloc, &
+                                 mv_nonloc, difdia, umflsm, usfltd, utflld, &
+                                 usflsm, utfltd, usflld, utflsm, usflld, &
+                                 utflld, umfltd, usflld, vmflsm, vsfltd, &
+                                 vtflld, vsflsm, vtfltd, vsflld, vtflsm, &
+                                 vsflld, vtflld, vmfltd, vsflld
    use mod_eddtra,         only: tau_growing_hbl, tau_decaying_hbl, &
                                  tau_growing_hml, tau_decaying_hml, &
                                  hbl_tf, wpup_tf, hml_tf1, hml_tf
-   use mod_cesm,           only: frzpot, mltpot, swa_da, nsf_da, hmlt_da, lip_da, &
-                                 sop_da, eva_da, rnf_da, rfi_da, fmltfz_da, sfl_da, &
-                                 ztx_da, mty_da, ustarw_da, slp_da, abswnd_da, &
-                                 atmco2_da, atmbrf_da, &
+   use mod_cesm,           only: frzpot, mltpot, swa_da, nsf_da, hmlt_da, &
+                                 lip_da, sop_da, eva_da, rnf_da, rfi_da, &
+                                 fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da, &
+                                 slp_da, abswnd_da, atmco2_da, atmbrf_da, &
                                  atmco2_da, atmbrf_da, atmn2o_da, atmnh3_da, &
                                  ficem_da, l1ci, l2ci
-   use mod_ben02,          only: cd_d, ch_d, ce_d, wg2_d, cd_m, ch_m, ce_m, wg2_m, &
-                                 rhoa, tsi_tda, tml_tda, sml_tda, alb_tda, fice_tda, &
-                                 ntda, rnfres
+   use mod_ben02,          only: cd_d, ch_d, ce_d, wg2_d, cd_m, ch_m, ce_m, &
+                                 wg2_m, rhoa, tsi_tda, tml_tda, sml_tda, &
+                                 alb_tda, fice_tda, ntda, rnfres
    use mod_thdysi,         only: tsrfm, ticem
    use mod_seaice,         only: ficem, hicem, hsnwm, iagem
    use mod_tmsmt,          only: dpold
@@ -123,7 +148,7 @@ module mod_restart
    private
 
    real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) :: rkfpla
-   integer , dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: iuu, ivv, iqq
+   integer,  dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: iuu, ivv, iqq
    character(len = 5) :: c5p, c5u, c5v, c5q
    logical :: first_call = .true.
 
@@ -224,6 +249,7 @@ contains
 
       logical, intent(in) :: defmode
 
+      real(r8) :: massgs
       integer :: n
       character(len = 2) :: c2
 
@@ -346,6 +372,24 @@ contains
       if (use_TRC) then
          call defwrtfld('trc_corr', trim(c5p)//' ntr time', &
                          trc_corr, ip, defmode)
+      endif
+
+      if (sigref_adaption) then
+         call xcsum(massgs, sra_massgs_colsum, ips)
+         if (massgs > 0._r8) then
+            call defwrtfld('sra_massgs_colsum', trim(c5p)//' time', &
+                            sra_massgs_colsum, ip, defmode)
+            call defwrtfld('sra_massdc_colsum', trim(c5p)//' kk time', &
+                            sra_massdc_colsum, ip, defmode)
+            call defwrtfld('sra_sigmassdc_colsum', trim(c5p)//' kk time', &
+                            sra_sigmassdc_colsum, ip, defmode)
+         endif
+         if (sum(sra_tlev_accnum(:)) > 0) then
+            call defwrtfld('sra_dpml_sum', trim(c5p)//' sratlev', &
+                            sra_dpml_sum, ip, defmode)
+            call defwrtfld('sra_sigmlb_sum', trim(c5p)//' sratlev', &
+                            sra_sigmlb_sum, ip, defmode)
+         endif
       endif
 
       if (vcoord_tag == vcoord_isopyc_bulkml) then
@@ -1148,11 +1192,78 @@ contains
       call ncdims('kkp1', kk + 1)
       call ncdims('kk2', 2*kk)
       call ncdims('ntr', ntr)
+      if (sigref_adaption) then
+         call ncdims('sratlev', sra_tlev_num)
+      endif
       call ncdims('plev', ddm)
       call ncputr('plev', depthslev)
       call ncdims('time', 1)
 
       ! Output model fields to restart file.
+      if (sigref_adaption) then
+         call ncputr('sigref_fun_spec_old_dsdz_bot', &
+                      sigref_fun_spec_old%dsdz_bot)
+         call ncputr('sigref_fun_spec_old_sp1', &
+                      sigref_fun_spec_old%sp1)
+         call ncputr('sigref_fun_spec_old_zp2', &
+                      sigref_fun_spec_old%zp2)
+         call ncputr('sigref_fun_spec_old_zp3', &
+                      sigref_fun_spec_old%zp3)
+         call ncputr('sigref_fun_spec_old_sp4', &
+                      sigref_fun_spec_old%sp4)
+         call ncputr('sigref_fun_spec_old_z_top', &
+                      sigref_fun_spec_old%z_top)
+         call ncputr('sigref_fun_spec_old_s_top', &
+                      sigref_fun_spec_old%s_top)
+         call ncputr('sigref_fun_spec_old_z_bot', &
+                      sigref_fun_spec_old%z_bot)
+         call ncputr('sigref_fun_spec_old_s_bot', &
+                      sigref_fun_spec_old%s_bot)
+         call ncputr('sigref_fun_spec_new_dsdz_bot', &
+                      sigref_fun_spec_new%dsdz_bot)
+         call ncputr('sigref_fun_spec_new_sp1', &
+                      sigref_fun_spec_new%sp1)
+         call ncputr('sigref_fun_spec_new_zp2', &
+                      sigref_fun_spec_new%zp2)
+         call ncputr('sigref_fun_spec_new_zp3', &
+                      sigref_fun_spec_new%zp3)
+         call ncputr('sigref_fun_spec_new_sp4', &
+                      sigref_fun_spec_new%sp4)
+         call ncputr('sigref_fun_spec_new_z_top', &
+                      sigref_fun_spec_new%z_top)
+         call ncputr('sigref_fun_spec_new_s_top', &
+                      sigref_fun_spec_new%s_top)
+         call ncputr('sigref_fun_spec_new_z_bot', &
+                      sigref_fun_spec_new%z_bot)
+         call ncputr('sigref_fun_spec_new_s_bot', &
+                      sigref_fun_spec_new%s_bot)
+         call ncputr('sigref_fun_spec_dsdz_bot', &
+                      sigref_fun_spec%dsdz_bot)
+         call ncputr('sigref_fun_spec_sp1', &
+                      sigref_fun_spec%sp1)
+         call ncputr('sigref_fun_spec_zp2', &
+                      sigref_fun_spec%zp2)
+         call ncputr('sigref_fun_spec_zp3', &
+                      sigref_fun_spec%zp3)
+         call ncputr('sigref_fun_spec_sp4', &
+                      sigref_fun_spec%sp4)
+         call ncputr('sigref_fun_spec_z_top', &
+                      sigref_fun_spec%z_top)
+         call ncputr('sigref_fun_spec_s_top', &
+                      sigref_fun_spec%s_top)
+         call ncputr('sigref_fun_spec_z_bot', &
+                      sigref_fun_spec%z_bot)
+         call ncputr('sigref_fun_spec_s_bot', &
+                      sigref_fun_spec%s_bot)
+         if (sum(sra_tlev_accnum(:)) > 0) then
+            call ncputi('sra_tlev_accnum', sra_tlev_accnum)
+         endif
+         if (sra_accnum > 0) then
+            call ncputi('sra_accnum', sra_accnum)
+            call ncputr('sra_sigref_sum', sra_sigref_sum)
+            call ncputr('sra_s_bot_sum', sra_s_bot_sum)
+         endif
+      endif
       if (sprfac) then
          call ncputr('prfac', prfac)
       endif
@@ -1492,6 +1603,103 @@ contains
          ml2i_unitconv = 1.e1_r8
       endif
 
+      if (sigref_adaption) then
+         if (.not.(ncinqa('sigref_fun_spec_old_dsdz_bot') .and. &
+                   ncinqa('sigref_fun_spec_old_sp1')      .and. &
+                   ncinqa('sigref_fun_spec_old_zp2')      .and. &
+                   ncinqa('sigref_fun_spec_old_zp3')      .and. &
+                   ncinqa('sigref_fun_spec_old_sp4')      .and. &
+                   ncinqa('sigref_fun_spec_old_z_top')    .and. &
+                   ncinqa('sigref_fun_spec_old_s_top')    .and. &
+                   ncinqa('sigref_fun_spec_old_z_bot')    .and. &
+                   ncinqa('sigref_fun_spec_old_s_bot')    .and. &
+                   ncinqa('sigref_fun_spec_new_dsdz_bot') .and. &
+                   ncinqa('sigref_fun_spec_new_sp1')      .and. &
+                   ncinqa('sigref_fun_spec_new_zp2')      .and. &
+                   ncinqa('sigref_fun_spec_new_zp3')      .and. &
+                   ncinqa('sigref_fun_spec_new_sp4')      .and. &
+                   ncinqa('sigref_fun_spec_new_z_top')    .and. &
+                   ncinqa('sigref_fun_spec_new_s_top')    .and. &
+                   ncinqa('sigref_fun_spec_new_z_bot')    .and. &
+                   ncinqa('sigref_fun_spec_new_s_bot')    .and. &
+                   ncinqa('sigref_fun_spec_dsdz_bot')     .and. &
+                   ncinqa('sigref_fun_spec_sp1')          .and. &
+                   ncinqa('sigref_fun_spec_zp2')          .and. &
+                   ncinqa('sigref_fun_spec_zp3')          .and. &
+                   ncinqa('sigref_fun_spec_sp4')          .and. &
+                   ncinqa('sigref_fun_spec_z_top')        .and. &
+                   ncinqa('sigref_fun_spec_s_top')        .and. &
+                   ncinqa('sigref_fun_spec_z_bot')        .and. &
+                   ncinqa('sigref_fun_spec_s_bot'))) then
+            if (mnproc == 1) write(lp,*) 'Required sigref_fun_spec missing for reference potential density adaption!'
+            call xcstop('(restart_read)')
+                   stop '(restart_read)'
+         endif
+         call ncgetr('sigref_fun_spec_old_dsdz_bot', &
+                      sigref_fun_spec_old%dsdz_bot)
+         call ncgetr('sigref_fun_spec_old_sp1', &
+                      sigref_fun_spec_old%sp1)
+         call ncgetr('sigref_fun_spec_old_zp2', &
+                      sigref_fun_spec_old%zp2)
+         call ncgetr('sigref_fun_spec_old_zp3', &
+                      sigref_fun_spec_old%zp3)
+         call ncgetr('sigref_fun_spec_old_sp4', &
+                      sigref_fun_spec_old%sp4)
+         call ncgetr('sigref_fun_spec_old_z_top', &
+                      sigref_fun_spec_old%z_top)
+         call ncgetr('sigref_fun_spec_old_s_top', &
+                      sigref_fun_spec_old%s_top)
+         call ncgetr('sigref_fun_spec_old_z_bot', &
+                      sigref_fun_spec_old%z_bot)
+         call ncgetr('sigref_fun_spec_old_s_bot', &
+                      sigref_fun_spec_old%s_bot)
+         call ncgetr('sigref_fun_spec_new_dsdz_bot', &
+                      sigref_fun_spec_new%dsdz_bot)
+         call ncgetr('sigref_fun_spec_new_sp1', &
+                      sigref_fun_spec_new%sp1)
+         call ncgetr('sigref_fun_spec_new_zp2', &
+                      sigref_fun_spec_new%zp2)
+         call ncgetr('sigref_fun_spec_new_zp3', &
+                      sigref_fun_spec_new%zp3)
+         call ncgetr('sigref_fun_spec_new_sp4', &
+                      sigref_fun_spec_new%sp4)
+         call ncgetr('sigref_fun_spec_new_z_top', &
+                      sigref_fun_spec_new%z_top)
+         call ncgetr('sigref_fun_spec_new_s_top', &
+                      sigref_fun_spec_new%s_top)
+         call ncgetr('sigref_fun_spec_new_z_bot', &
+                      sigref_fun_spec_new%z_bot)
+         call ncgetr('sigref_fun_spec_new_s_bot', &
+                      sigref_fun_spec_new%s_bot)
+         call ncgetr('sigref_fun_spec_dsdz_bot', &
+                      sigref_fun_spec%dsdz_bot)
+         call ncgetr('sigref_fun_spec_sp1', &
+                      sigref_fun_spec%sp1)
+         call ncgetr('sigref_fun_spec_zp2', &
+                      sigref_fun_spec%zp2)
+         call ncgetr('sigref_fun_spec_zp3', &
+                      sigref_fun_spec%zp3)
+         call ncgetr('sigref_fun_spec_sp4', &
+                      sigref_fun_spec%sp4)
+         call ncgetr('sigref_fun_spec_z_top', &
+                      sigref_fun_spec%z_top)
+         call ncgetr('sigref_fun_spec_s_top', &
+                      sigref_fun_spec%s_top)
+         call ncgetr('sigref_fun_spec_z_bot', &
+                      sigref_fun_spec%z_bot)
+         call ncgetr('sigref_fun_spec_s_bot', &
+                      sigref_fun_spec%s_bot)
+         if (ncinqa('sra_tlev_accnum')) then
+            call ncgeti('sra_tlev_accnum', sra_tlev_accnum)
+            call xcbcst(sra_tlev_accnum)
+         endif
+         if (ncinqa('sra_accnum')) then
+            call ncgeti('sra_accnum', sra_accnum)
+            call ncgetr('sra_sigref_sum', sra_sigref_sum)
+            call ncgetr('sra_s_bot_sum', sra_s_bot_sum)
+         endif
+      endif
+
       call readfld('u', l_unitconv, u, iuu)
       call readfld('v', l_unitconv, v, ivv)
       call readfld('dp', p_unitconv, dp, ip)
@@ -1563,6 +1771,19 @@ contains
          endif
       endif
 
+      if (sigref_adaption) then
+         call readfld('sra_massgs_colsum', m_unitconv, &
+                       sra_massgs_colsum, ip, required = .false.)
+         call readfld('sra_massdc_colsum', m_unitconv, &
+                       sra_massdc_colsum, ip, required = .false.)
+         call readfld('sra_sigmassdc_colsum', no_unitconv, &
+                       sra_sigmassdc_colsum, ip, required = .false.)
+         if (sum(sra_tlev_accnum(:)) > 0) then
+            call readfld('sra_dpml_sum', p_unitconv, sra_dpml_sum, ip)
+            call readfld('sra_sigmlb_sum', r_unitconv, sra_sigmlb_sum, ip)
+         endif
+      endif
+
       if (vcoord_tag == vcoord_isopyc_bulkml) then
          call readfld('buoyfl', l2_unitconv, buoyfl, ip)
          call readfld('uml', l_unitconv, uml, iuu, required = .false.)
@@ -1599,7 +1820,6 @@ contains
                       fld_read = fld_read)
          if (fld_read) then
             call ncgetr('prfac', prfac)
-            call xcbcst(prfac)
          elseif (mnproc == 1) then
             write(lp,*) 'restart_read: warning: fields needed for '// &
                         'balancing fresh water budget are not read from '// &
@@ -1625,7 +1845,6 @@ contains
          call readfld('fice_tda', no_unitconv, fice_tda, ip)
 
          call ncgeti('ntda', ntda)
-         call xcbcst(ntda)
 
          call readfld('hicem', no_unitconv, hicem, ip)
          call readfld('tsrfm', no_unitconv, tsrfm, ip)
@@ -1638,7 +1857,6 @@ contains
 
       if (expcnf == 'channel') then
          call ncgeti('ntda', ntda)
-         call xcbcst(ntda)
 !        call readfld('rnfres', no_unitconv, rnfres, ip)
       endif
 
@@ -1665,7 +1883,6 @@ contains
                       required = .false., fld_read = fld_read)
          if (fld_read) then
             call ncgeti('l2ci', l2ci)
-            call xcbcst(l2ci)
             l1ci = 3 - l2ci
          else
             if (mnproc == 1) then
@@ -1736,7 +1953,6 @@ contains
             else
                nacc_phy(n) = 0
             endif
-            call xcbcst(nacc_phy(n))
             if (nacc_phy(n) > 0) then
                if (ACC_UB(n) /= 0) &
                   call readfld('ub_phy'//c2, l_unitconv, &
