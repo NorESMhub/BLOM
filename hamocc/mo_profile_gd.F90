@@ -68,7 +68,7 @@ contains
     integer,  parameter :: nread_ndic = 2 ! Number of fields to read
     integer,  parameter :: nread_ciso = 2 ! Number of fields to read
     integer,  parameter :: nread_dom  = 4 ! Number of fields to read
-    integer,  parameter :: nread_pdom  = 4 ! Number of fields to read
+    integer,  parameter :: nread_pdom = 4 ! Number of fields to read
     integer,  parameter :: maxflds    = nread_base+nread_ndic+nread_ciso+nread_dom
     integer             :: nflds, no
     integer             :: ifld(maxflds)
@@ -96,13 +96,13 @@ contains
       no = nflds + 1
       nflds = nflds+nread_dom
       vname(no:nflds) = (/  'd_l',   'dsl',   'dsr',    'd_r' /)
-      ifld(no:nflds)  = (/   idoc,      idocsl,      idocsr,    idocr  /)
+      ifld(no:nflds)  = (/   idoc,      idocsl,      idocsr,    idocr /)
     endif
     if (use_DOMclasses .and. use_pref_tracers) then
       no = nflds + 1
       nflds = nflds+nread_pdom
       vname(no:nflds) = (/  'pdl',   'psl',   'psr',    'pdr' /)
-      ifld(no:nflds)  = (/  iprefdoc,  iprefdocsl,  iprefdocsr,iprefdocr  /)
+      ifld(no:nflds)  = (/  iprefdoc,  iprefdocsl,  iprefdocsr, iprefdocr /)
     endif
 
     do n = 1, nflds  ! Loop over tracer
