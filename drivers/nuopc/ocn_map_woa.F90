@@ -212,6 +212,11 @@ contains
          end do
       end do
 
+      if (nreg == 2) then
+         call xctilr(t_woa, 1, kdm_woa, 0,0, halo_ps)
+         call xctilr(s_woa, 1, kdm_woa, 0,0, halo_ps)
+      endif
+
    end subroutine map_woa
 
 end module ocn_map_woa

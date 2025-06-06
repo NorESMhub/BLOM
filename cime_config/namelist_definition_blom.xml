@@ -10101,7 +10101,7 @@
       First year in stream to use
     </desc>
     <values>
-      <value>1</value>
+      <value>1850</value>
     </values>
   </entry>
   <entry id="stream_dust_year_last">
@@ -10123,7 +10123,7 @@
       Align stream_year_first with this model year
     </desc>
     <values>
-      <value>1850</value>
+      <value>1</value>
     </values>
   </entry>
 
