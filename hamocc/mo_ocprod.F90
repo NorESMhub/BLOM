@@ -453,11 +453,11 @@ contains
                 ! A_sl=7.96e9 (day-1) (Theoretical Kc in the absence of Ea)
                 ! R=8.314 J/mol/K (Universal gas constant)
                 ! Ea_sl=58kJ/mol (Activation energy for DOC_L decay)
-                bacfra   = docl_remin*exp(-38.e3/(8.314*(ptho(i,j,k)+tzero)))*ocetra(i,j,k,idoc) !increased from 2e5 13082024
+                bacfra   = docl_remin*exp(-38.e3/(8.314*(temp+tzero)))*ocetra(i,j,k,idoc) !increased from 2e5 13082024
                 !JT if (ocetra(i,j,k,iphosph) >5.e-8) then ! Nutrient thresholds for surface bacteria activity (Anton Salgado, pers. comm.)
-                bacfrasl = docsl_remin*exp(-58.e3/(8.314*(ptho(i,j,k)+tzero)))*ocetra(i,j,k,idocsl)
-                bacfrasr = docsr_remin*exp(-116.e3/(8.314*(ptho(i,j,k)+tzero)))*ocetra(i,j,k,idocsr)
-                bacfrar  = docr_remin*exp(-179.e3/(8.314*(ptho(i,j,k)+tzero)))*ocetra(i,j,k,idocr)
+                bacfrasl = docsl_remin*exp(-58.e3/(8.314*(temp+tzero)))*ocetra(i,j,k,idocsl)
+                bacfrasr = docsr_remin*exp(-116.e3/(8.314*(temp+tzero)))*ocetra(i,j,k,idocsr)
+                bacfrar  = docr_remin*exp(-179.e3/(8.314*(temp+tzero)))*ocetra(i,j,k,idocr)
                 exudsl   = gammapsl*phythresh
                 excdocsl = gammazsl*zoothresh
               else
@@ -880,13 +880,13 @@ contains
                 pocrem   = min(drempoc*ocetra(i,j,k,idet),0.33*ocetra(i,j,k,ioxygen)/o2csmp)
                 phyrem   = min(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/o2csmp)
                 !fractions of doc(s) remineralized into nutrients
-                docrem   = min(docl_remin*exp(-38.e3/(8.314*(ptho(i,j,k)+tzero)))*ocetra(i,j,k,idoc), &
+                docrem   = min(docl_remin*exp(-38.e3/(8.314*(temp+tzero)))*ocetra(i,j,k,idoc), &
                          &     doclimfct*ocetra(i,j,k,ioxygen)/o2csmp)
-                docremsl = (1.-alphasl)*min(docsl_remin*exp(-58.e3/(8.314*(ptho(i,j,k)+tzero)))*ocetra(i,j,k,idocsl), &
+                docremsl = (1.-alphasl)*min(docsl_remin*exp(-58.e3/(8.314*(temp+tzero)))*ocetra(i,j,k,idocsl), &
                          &                  doclimfct*ocetra(i,j,k,ioxygen)/o2csmp)
-                docremsr = (1.-alphasr)*min(docsr_remin*exp(-116.e3/(8.314*(ptho(i,j,k)+tzero)))*ocetra(i,j,k,idocsr),&
+                docremsr = (1.-alphasr)*min(docsr_remin*exp(-116.e3/(8.314*(temp+tzero)))*ocetra(i,j,k,idocsr),&
                          &                  doclimfct*ocetra(i,j,k,ioxygen)/o2csmp)
-                docremr  = min(docr_remin*exp(-179.e3/(8.314*(ptho(i,j,k)+tzero)))*ocetra(i,j,k,idocr),&
+                docremr  = min(docr_remin*exp(-179.e3/(8.314*(temp+tzero)))*ocetra(i,j,k,idocr),&
                          &     doclimfct*ocetra(i,j,k,ioxygen)/o2csmp)
               else
                 pocrem = min(pocrem,                    0.33*ocetra(i,j,k,ioxygen)/o2csmp)
@@ -898,7 +898,7 @@ contains
                 tdoclc_rem = min(rem_tdoclc*ocetra(i,j,k,itdoc_lc), doclimfct*ocetra(i,j,k,ioxygen)     &
                            &     /merge(ro2utammo_tdoclc,ro2ut_tdoclc,use_extNcycle))
                 tdochc_rem = min(rem_tdochc*ocetra(i,j,k,itdoc_hc), doclimfct*ocetra(i,j,k,ioxygen)     &
-                           &     /merge(ro2utammo_tdochc,ro2ut_tdochc,use_extNcycle)) 
+                           &     /merge(ro2utammo_tdochc,ro2ut_tdochc,use_extNcycle))
                 ocetra(i,j,k,itdoc_lc) = ocetra(i,j,k,itdoc_lc) - tdoclc_rem
                 ocetra(i,j,k,itdoc_hc) = ocetra(i,j,k,itdoc_hc) - tdochc_rem
               endif
