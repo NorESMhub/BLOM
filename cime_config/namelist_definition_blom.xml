@@ -154,26 +154,6 @@
     <desc>if .true., use NUOPC capability to read WOA climatology</desc>
   </entry>
 
-  <entry id="woa_nuopc_icfile_mesh">
-    <type>char</type>
-    <category>limits</category>
-    <group>limits</group>
-    <values>
-      <value>$DIN_LOC_ROOT/ocn/blom/inicon/WOA_1.00_degree_ESMFmesh_20250506_cdf5.nc</value>
-    </values>
-    <desc>corresponding ESMF mesh file for woa_nuopc_icfile_data</desc>
-  </entry>
-
-  <entry id="woa_nuopc_icfile_data">
-    <type>char</type>
-    <category>limits</category>
-    <group>limits</group>
-    <values>
-      <value>$DIN_LOC_ROOT/ocn/blom/inicon/woa18_decav_ts13_01_r360x180.20252805.nc</value>
-    </values>
-    <desc>WOA icfile that needs to be regridded to the BLOM grid</desc>
-  </entry>
-
   <entry id="pref">
     <type>real</type>
     <category>limits</category>
@@ -9913,6 +9893,60 @@
       <value comp_interface="nuopc">.true.</value>
     </values>
     <desc>if .true., use NUOPC stream functionality for HAMOOC fedep input </desc>
+  </entry>
+
+ <!-- =========================  -->
+  <!-- namelist group: nuopc_woa -->
+  <!-- ========================= -->
+
+  <entry id="woa_mesh">
+    <type>char</type>
+    <category>nuopc_woa</category>
+    <group>nuopc_woa</group>
+    <desc>ESMF mesh for WOA data</desc>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/woa/WOA_1.00_degree_ESMFmesh_20250506_cdf5.nc</value>
+    </values>
+  </entry>
+
+  <entry id="woa_filename_t">
+    <type>char</type>
+    <category>nuopc_woa</category>
+    <group>nuopc_woa</group>
+    <desc>WOA 3d temperature</desc>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/woa/woa18_decav_t13_01.nc</value>
+    </values>
+  </entry>
+
+  <entry id="woa_filename_s">
+    <type>char</type>
+    <category>nuopc_woa</category>
+    <group>nuopc_woa</group>
+    <desc>WOA 3d temperature </desc>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/woa/woa18_decav_s13_01.nc</value>
+    </values>
+  </entry>
+
+  <entry id="woa_varname_t">
+    <type>char</type>
+    <category>nuopc_woa</category>
+    <group>nuopc_woa</group>
+    <desc>WOA temperature variable</desc>
+    <values>
+      <value>t_an</value>
+    </values>
+  </entry>
+
+  <entry id="woa_varname_s">
+    <type>char</type>
+    <category>nuopc_woa</category>
+    <group>nuopc_woa</group>
+    <desc>WOA salinity variable</desc>
+    <values>
+      <value>s_an</value>
+    </values>
   </entry>
 
   <!-- =========================  -->

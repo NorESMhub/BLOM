@@ -104,7 +104,7 @@ module mod_rdlim
   use mod_vcoord,      only: vcoord_tag, vcoord_isopyc_bulkml, readnml_vcoord
   use mod_ale_regrid_remap, only: readnml_ale_regrid_remap
   use mod_cesm,        only: runid_cesm, ocn_cpl_dt_cesm, nstep_in_cpl, &
-                             smtfrc, woa_nuopc_icfile_data, woa_nuopc_icfile_mesh
+                             smtfrc
   use mod_pointtest,   only: itest, jtest
   use mod_budget,      only: cnsvdi
   use mod_checksum,    only: csdiag
@@ -149,8 +149,7 @@ contains
          csdiag, &
          rstfrq,rstfmt,rstcmp,iotype,use_stream_relaxation, &
          use_stream_dust, &
-         use_diag, &
-         woa_nuopc_icfile_data, woa_nuopc_icfile_mesh
+         use_diag
 
     ! read limits namelist
 
@@ -262,8 +261,6 @@ contains
       write (lp,*) 'USE_STREAM_RELAXATION',use_stream_relaxation
       write (lp,*) 'USE_STREAM_DUST',use_stream_dust
       write (lp,*) 'USE_DIAG',use_diag
-      write (lp,*) 'WOA_NUOPC_ICFILE_DATA',woa_nuopc_icfile_data
-      write (lp,*) 'WOA_NUOPC_ICFILE_MESH',woa_nuopc_icfile_mesh
       write (lp,*)
 
     end if
@@ -354,8 +351,6 @@ contains
     call xcbcst(use_stream_relaxation)
     call xcbcst(use_stream_dust)
     call xcbcst(use_diag)
-    call xcbcst(woa_nuopc_icfile_data)
-    call xcbcst(woa_nuopc_icfile_mesh)
 
     ! resolve options
     select case (trim(wavsrc))

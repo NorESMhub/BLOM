@@ -10,16 +10,18 @@ module ocn_map_woa
    use shr_kind_mod      , only : r8 => shr_kind_r8, CL => shr_kind_cl, CS => shr_kind_cs
    use shr_const_mod     , only : SHR_CONST_SPVAL
    use shr_log_mod       , only : errMsg => shr_log_errMsg
-   use mod_io_input      , only : read_map_input_data, field_getfldptr
-   use mod_io_output     , only : io_write
-   use mod_cesm          , only : woa_nuopc_icfile_mesh, woa_nuopc_icfile_data
+   use shr_nl_mod        , only : shr_nl_find_group_name
+   use shr_sys_mod       , only : shr_sys_abort
    use shr_pio_mod       , only : shr_pio_getiosys, shr_pio_getiotype, shr_pio_getioformat
    use pio               , only : file_desc_t, iosystem_desc_t
    use pio               , only : pio_openfile, pio_closefile, pio_nowrite
    use pio               , only : pio_inq_dimid, pio_inq_dimlen
+   use mod_io_input      , only : read_map_input_data, field_getfldptr
+   use mod_io_output     , only : io_write
    use mod_inicon        , only : t_woa, s_woa, depth_bnds_woa, depth_woa
    use mod_inicon        , only : t_woa_fval, s_woa_fval, kdm_woa
-   use mod_cesm          , only : woa_nuopc_icfile_mesh, woa_nuopc_icfile_data
+   use mod_utility       , only : fnmlen
+   use mod_config        , only : inst_suffix
    use mod_xc
 
    implicit none
@@ -41,9 +43,12 @@ contains
       integer             , intent(out) :: rc
 
       ! local variables:
-      character(len=CL)      :: mesh_input_file
-      character(len=CL)      :: filename_ts
-      character(len=4)       :: fldlist_input(2)
+      character(len=CL)      :: filein         ! namelist file
+      character(len=fnmlen)  :: woa_mesh       ! mesh for woa data
+      character(len=fnmlen)  :: woa_filename_t ! woa file for temperature
+      character(len=fnmlen)  :: woa_filename_s ! woa file for salinity
+      character(len=CS)      :: woa_varname_t  ! temperature variable name
+      character(len=CS)      :: woa_varname_s  ! salinity variable name
       type(ESMF_Mesh)        :: mesh_input
       type(ESMF_Field)       :: field_blom
       type(ESMF_FieldBundle) :: fldbun_blom
@@ -53,22 +58,47 @@ contains
       type(file_desc_t)      :: pioid
       integer                :: dimid
       integer                :: rcode
-      integer                :: io_type                         ! pio info
-      integer                :: io_format                       ! pio info
+      integer                :: io_type        ! pio info
+      integer                :: io_format      ! pio info
+      integer                :: nu_nml         ! unit for namelist file
+      integer                :: nml_error      ! namelist i/o error flag
       type(iosystem_desc_t), pointer :: pio_subsystem => null() ! pio info
       character(*), parameter :: subname = '(map_woa) '
       !-------------------------------------------------------------------------------
 
+      namelist /nuopc_woa/ &
+           woa_mesh, &
+           woa_filename_t, woa_filename_s, &
+           woa_varname_t, woa_varname_s
+
       rc = ESMF_SUCCESS
 
       ! ---------------------------
-      ! Filenames and field names
+      ! Read input namelist
       ! ---------------------------
 
-      mesh_input_file = trim(woa_nuopc_icfile_mesh)
-      filename_ts = trim(woa_nuopc_icfile_data)
-      fldlist_input(1) = 't_an'
-      fldlist_input(2) = 's_an'
+      if (mnproc == 1) then
+         filein = trim("ocn_in"//inst_suffix)
+         open( newunit=nu_nml, file=trim(filein), status='old', iostat=nml_error )
+         if (nml_error /= 0) then
+            call shr_sys_abort(subName//': ERROR opening '//trim(filein)//errMsg(u_FILE_u, __LINE__))
+         end if
+         call shr_nl_find_group_name(nu_nml, 'nuopc_woa', status=nml_error)
+         if (nml_error == 0) then
+            read(nu_nml, nml=nuopc_woa, iostat=nml_error)
+            if (nml_error /= 0) then
+               call shr_sys_abort(' ERROR reading nuopc_woa namelist: '//errMsg(u_FILE_u, __LINE__))
+            end if
+         else
+            call shr_sys_abort(' ERROR finding nuopc_woa namelist: '//errMsg(u_FILE_u, __LINE__))
+         end if
+         close(nu_nml)
+      endif
+      call xcbcst(woa_mesh)
+      call xcbcst(woa_filename_t)
+      call xcbcst(woa_filename_s)
+      call xcbcst(woa_varname_t)
+      call xcbcst(woa_varname_s)
 
       ! ---------------------------
       ! Determine vertical dimension
@@ -78,9 +108,9 @@ contains
       io_type       =  shr_pio_getiotype('OCN')
       io_format     =  shr_pio_getioformat('OCN')
       if (mnproc == 1) then
-         write(lp,'(a)') trim(subname) // ' determining vertical dimension of WOA climatology from '//trim(filename_ts)
+         write(lp,'(a)') trim(subname) // ' determining vertical dimension of WOA climatology from '//trim(woa_filename_t)
       end if
-      rcode = pio_openfile(pio_subsystem, pioid, io_type, trim(filename_ts), pio_nowrite)
+      rcode = pio_openfile(pio_subsystem, pioid, io_type, trim(woa_filename_t), pio_nowrite)
       rcode = pio_inq_dimid(pioid, 'depth', dimid)
       rcode = pio_inq_dimlen(pioid, dimid, kdm_woa)
       call pio_closefile(pioid)
@@ -110,7 +140,8 @@ contains
       ! ---------------------------
       ! Create input data mesh
       ! ---------------------------
-      mesh_input = ESMF_MeshCreate(filename=trim(mesh_input_file), fileformat=ESMF_FILEFORMAT_ESMFMESH, rc=rc)
+
+      mesh_input = ESMF_MeshCreate(filename=trim(woa_mesh), fileformat=ESMF_FILEFORMAT_ESMFMESH, rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
       ! ---------------------------
@@ -132,16 +163,16 @@ contains
       ! Read and map the data using bilinear interpolation - and also get depth_bnds and depths
       if (mnproc == 1) then
          write(lp,*)
-         write(lp,'(a)') trim(subname) // ' calling read_map_inputdata for '//trim(fldlist_input(1))
+         write(lp,'(a)') trim(subname) // ' calling read_map_inputdata for '//trim(woa_varname_t)
       end if
-      call read_map_input_data(mesh_input, filename_ts, (/fldlist_input(1)/), kdm_woa, 'conserve', &
+      call read_map_input_data(mesh_input, woa_filename_t, (/woa_varname_t/), kdm_woa, 'conserve', &
            fldbun_blom, depth=depth_woa, depth_bnds=depth_bnds_woa, rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
       ! Plot mapped fldbun temperature
       if (mnproc == 1) then
          write(lp,*)
-         write(lp,'(a)') trim(subname) //' plotting mapped data for '//trim(fldlist_input(1))
+         write(lp,'(a)') trim(subname) //' plotting mapped data for '//trim(woa_varname_t)
       end if
       call io_write(filename="woa18_t_an.nc", fldbun=fldbun_blom, use_float=.false., rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
@@ -180,16 +211,16 @@ contains
       ! Read and map the data using bilinear interpolation
       if (mnproc == 1) then
          write(lp,*)
-         write(lp,'(a)') trim(subname) // ' calling read_map_inputdata for '//trim(fldlist_input(2))
+         write(lp,'(a)') trim(subname) // ' calling read_map_inputdata for '//trim(woa_varname_s)
       end if
-      call read_map_input_data(mesh_input, filename_ts, (/fldlist_input(2)/), kdm_woa, 'conserve', &
+      call read_map_input_data(mesh_input, woa_filename_s, (/woa_varname_s/), kdm_woa, 'conserve', &
            fldbun_blom, rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
       ! Plot mapped fldbun salinity
       if (mnproc == 1) then
          write(lp,*)
-         write(lp,'(a)') trim(subname) // ' plotting mapped data for '//trim(fldlist_input(2))
+         write(lp,'(a)') trim(subname) // ' plotting mapped data for '//trim(woa_varname_s)
       end if
       call io_write(filename="woa18_s_an.nc", fldbun=fldbun_blom, use_float=.false., rc=rc)
       if (chkerr(rc,__LINE__,u_FILE_u)) return

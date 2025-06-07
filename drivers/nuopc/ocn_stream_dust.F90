@@ -250,7 +250,7 @@ contains
          call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end if
 
-      !dust_stream(:,:,:) = 0.0
+      ! Set to unreasonable value to catch errors
       dust_stream(:,:,:) = 1.e30
       do nfld = 1, size(stream_varnames)
 
