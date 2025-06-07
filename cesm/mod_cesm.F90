@@ -43,6 +43,7 @@ module mod_cesm
    use mo_control_bgc, only: use_bromo
 #endif
    use mod_ifdefs,     only: use_DIAG
+   use mod_utility,    only: fnmlen
 
    implicit none
    private

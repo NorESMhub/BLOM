@@ -9895,6 +9895,60 @@
     <desc>if .true., use NUOPC stream functionality for HAMOOC fedep input </desc>
   </entry>
 
+ <!-- =========================  -->
+  <!-- namelist group: nuopc_woa -->
+  <!-- ========================= -->
+
+  <entry id="woa_mesh">
+    <type>char</type>
+    <category>nuopc_woa</category>
+    <group>nuopc_woa</group>
+    <desc>ESMF mesh for WOA data</desc>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/woa/WOA_1.00_degree_ESMFmesh_20250506_cdf5.nc</value>
+    </values>
+  </entry>
+
+  <entry id="woa_filename_t">
+    <type>char</type>
+    <category>nuopc_woa</category>
+    <group>nuopc_woa</group>
+    <desc>WOA 3d temperature</desc>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/woa/woa18_decav_t13_01.nc</value>
+    </values>
+  </entry>
+
+  <entry id="woa_filename_s">
+    <type>char</type>
+    <category>nuopc_woa</category>
+    <group>nuopc_woa</group>
+    <desc>WOA 3d temperature </desc>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/woa/woa18_decav_s13_01.nc</value>
+    </values>
+  </entry>
+
+  <entry id="woa_varname_t">
+    <type>char</type>
+    <category>nuopc_woa</category>
+    <group>nuopc_woa</group>
+    <desc>WOA temperature variable</desc>
+    <values>
+      <value>t_an</value>
+    </values>
+  </entry>
+
+  <entry id="woa_varname_s">
+    <type>char</type>
+    <category>nuopc_woa</category>
+    <group>nuopc_woa</group>
+    <desc>WOA salinity variable</desc>
+    <values>
+      <value>s_an</value>
+    </values>
+  </entry>
+
   <!-- =========================  -->
   <!-- namelist group: stream_sss -->
   <!-- =========================  -->
@@ -10081,7 +10135,7 @@
       First year in stream to use
     </desc>
     <values>
-      <value>1</value>
+      <value>1850</value>
     </values>
   </entry>
   <entry id="stream_dust_year_last">
@@ -10103,7 +10157,7 @@
       Align stream_year_first with this model year
     </desc>
     <values>
-      <value>1850</value>
+      <value>1</value>
     </values>
   </entry>
 
