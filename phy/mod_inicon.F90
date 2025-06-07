@@ -400,6 +400,9 @@ contains
           endif
         enddo
       enddo
+      if (mnproc == 1) then
+         write(lp,*)'calling fill_global at k = ',k
+      end if
       call fill_global(t_woa_mval, t_woa_fval, halo_ps, &
                        t_woa(1-nbdy,1-nbdy,k))
       call fill_global(s_woa_mval, s_woa_fval, halo_ps, &
@@ -856,6 +859,10 @@ contains
     ! Local variables.
     integer :: errstat, ncid, varid
     logical :: woa_icfile, layer_icfile
+
+    if (woa_nuopc_provided) then
+       woa_icfile = .true.
+    end if
 
     if (.not. woa_nuopc_provided) then
       ! Check type of initial condition file.
