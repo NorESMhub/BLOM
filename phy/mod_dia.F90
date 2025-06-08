@@ -36,8 +36,9 @@ module mod_dia
                            iu, iv, ips, halo_qs, halo_uv, halo_vv
   use mod_nctools
   use netcdf,        only: nf90_fill_double
-  use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml, sigmar, sigref, &
-                           sigref_adaption
+  use mod_vcoord,    only: vcoord_type, vcoord_tag, vcoord_isopyc_bulkml, &
+                           sigref_spec, sigmar, sigref, &
+                           sigref_fun_spec, sigref_adaption
   use mod_grid,      only: scp2, depths, area
   use mod_eos,       only: rho, p_alpha
   use mod_state,     only: u, v, dp, dpu, dpv, temp, saln, sigma, &
@@ -2351,6 +2352,29 @@ contains
         stop '(diaout)'
       end if
     end if
+
+    ! If sigref_spec == 'function', write function specifications as global
+    ! attributes.
+    call ncattr('vcoord_type',trim(vcoord_type))
+    if (vcoord_tag /= vcoord_isopyc_bulkml) then
+      call ncattr('sigref_spec',trim(sigref_spec))
+      if (trim(sigref_spec) == 'function') then
+        if (sigref_adaption) then
+          call ncattr('sigref_adaption','.true.')
+        else
+          call ncattr('sigref_adaption','.false.')
+        endif
+        call ncputr('sigref_fun_spec_dsdz_bot', sigref_fun_spec%dsdz_bot)
+        call ncputr('sigref_fun_spec_sp1'     , sigref_fun_spec%sp1)
+        call ncputr('sigref_fun_spec_zp2'     , sigref_fun_spec%zp2)
+        call ncputr('sigref_fun_spec_zp3'     , sigref_fun_spec%zp3)
+        call ncputr('sigref_fun_spec_sp4'     , sigref_fun_spec%sp4)
+        call ncputr('sigref_fun_spec_z_top'   , sigref_fun_spec%z_top)
+        call ncputr('sigref_fun_spec_s_top'   , sigref_fun_spec%s_top)
+        call ncputr('sigref_fun_spec_z_bot'   , sigref_fun_spec%z_bot)
+        call ncputr('sigref_fun_spec_s_bot'   , sigref_fun_spec%s_bot)
+      endif
+    endif
 
     call definevar(irec(iogrp),iogrp,cmpflg,timeunits,calendar)
 

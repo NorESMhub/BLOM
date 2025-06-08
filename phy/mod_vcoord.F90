@@ -129,9 +129,9 @@ module mod_vcoord
       sigref_fun_spec_old, &      ! 
       sigref_fun_spec_new
 
-   public :: vcoord_tag, vcoord_isopyc_bulkml, vcoord_cntiso_hybrid, &
-             vcoord_plevel, sra_tlev_num, sigref_spec, sigmar, &
-             sigref_fun_spec, sigref, plevel, sigref_adaption, &
+   public :: vcoord_type, vcoord_tag, vcoord_isopyc_bulkml, &
+             vcoord_cntiso_hybrid, vcoord_plevel, sra_tlev_num, sigref_spec, &
+             sigmar, sigref_fun_spec, sigref, plevel, sigref_adaption, &
              sra_massdc_colsum, sra_sigmassdc_colsum, sra_massgs_colsum, &
              sra_dpml_sum, sra_sigmlb_sum, sra_sigref_sum, sra_s_bot_sum, &
              sra_tlev_accnum, sra_accnum, &
