@@ -84,7 +84,7 @@ module mod_vcoord
    real(r8) :: &
       dpmin_surface          = 1.5_r8, &
       dpmin_inflation_factor = 1._r8, &
-      sra_ts                 = 3._r8, &
+      sra_ts                 = 5._r8, &
       sra_massfrac_bot       = .01, &
       sra_massfrac_eps       = .0001
    type(sigref_fun_spec_type) :: &
