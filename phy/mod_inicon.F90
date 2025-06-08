@@ -488,8 +488,7 @@ contains
         do k = 1, kk
           z_dst(k) = max(z_dst_ref(k), - depths(i,j))
         enddo
-         z_dst(kk+1) = - depths(i,j)
-
+        z_dst(kk+1) = - depths(i,j)
 
         ! Prepare vertical reconstruction and remapping.
 
