@@ -653,6 +653,7 @@ contains
 
       if (sigref_fun_spec%z_bot < 1._r8 - z_eps) then
 
+         ! Diagnose the mass fraction in the range [z_bot 1]
          rktb = sigref_fun_spec%z_bot*real(kdm - 1, r8) + 1._r8
          ktb = int(rktb) + 1
          massfrac_bot = massfracdc(ktb-1)*(real(ktb, r8) - rktb)
@@ -693,12 +694,17 @@ contains
          ! Adjust s_bot.
 
          if (massfracdc(kdm) < sra_massfrac_eps) then
+            ! If the mass fraction of the densest layer is below
+            ! sra_massfrac_eps, set s_bot to the mean reference density of the
+            ! densest layer with mass fraction above sra_massfrac_eps.
             kdc = kdm - 1
             do while (massfracdc(kdc) < sra_massfrac_eps)
                kdc = kdc - 1
             enddo
             sigref_fun_spec_new%s_bot = sigref_mean(kdc)
          else
+            ! Adjust s_bot to balance the mass fraction of the two densest
+            ! layers.
             if (massfracdc(kdm-1) > massfracdc(kdm)) then
                sigref_fun_spec_new%s_bot = &
                   s_bot_mean &

@@ -2353,8 +2353,7 @@ contains
       end if
     end if
 
-    ! If sigref_spec == 'function', write function specifications as global
-    ! attributes.
+    ! Record vertical coordinate settings as global attributes.
     call ncattr('vcoord_type',trim(vcoord_type))
     if (vcoord_tag /= vcoord_isopyc_bulkml) then
       call ncattr('sigref_spec',trim(sigref_spec))
