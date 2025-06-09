@@ -176,7 +176,6 @@ contains
         km = k+mm
         do l = 1,isp(j)
           do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-            dpold(i,j,km) = dp(i,j,km)
             told(i,j,k) = temp(i,j,km)
             sold(i,j,k) = saln(i,j,km)
             if (use_TRC) then
@@ -241,6 +240,9 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'tmsmt1:'
       end if
+      call chksummsk(dpold,ip,2*kk,'dpold')
+      call chksummsk(told,ip,kk,'told')
+      call chksummsk(sold,ip,kk,'sold')
       call chksummsk(dpuold,iu,kk,'dpuold')
       call chksummsk(dpvold,iv,kk,'dpvold')
     end if
@@ -327,12 +329,13 @@ contains
 
       call xctilr(dp(1-nbdy,1-nbdy,k1m), 1,kk, 3,3, halo_ps)
 
-      !$omp parallel do private(k,l,i)
+      !$omp parallel do private(k,km,l,i)
       do j = -2,jj+2
         do k = 1,kk
+          km = k+mm
           do l = 1,isp(j)
             do i = max(-2,ifp(j,l)),min(ii+2,ilp(j,l))
-              p(i,j,k+1) = p(i,j,k)+dp(i,j,k+mm)
+              p(i,j,k+1) = p(i,j,k)+dp(i,j,km)
             end do
           end do
         end do
@@ -365,12 +368,13 @@ contains
 
     else
 
-      !$omp parallel do private(k,l,i)
+      !$omp parallel do private(k,km,l,i)
       do j = 1,jj
         do k = 1,kk
+          km = k+mm
           do l = 1,isp(j)
             do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-              p(i,j,k+1) = p(i,j,k)+dp(i,j,k+mm)
+              p(i,j,k+1) = p(i,j,k)+dp(i,j,km)
             end do
           end do
         end do

@@ -978,6 +978,136 @@
     <desc>Pressure level specification: Valid specs.: 'inflation', 'namelist'</desc>
   </entry>
 
+  <entry id="sigref_fun_spec%dsdz_bot">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>1.125</value>
+    </values>
+    <desc>Derivative of sigma with respect to z at Bezier point 4 (z = 1) [kg m-3]</desc>
+  </entry>
+
+  <entry id="sigref_fun_spec%sp1">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>23.70</value>
+    </values>
+    <desc>Sigma value at Bezier point 1 (z = 0) [kg m-3]</desc>
+  </entry>
+
+  <entry id="sigref_fun_spec%zp2">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>0.21</value>
+    </values>
+    <desc>z value at Bezier point 2 []</desc>
+  </entry>
+
+  <entry id="sigref_fun_spec%zp3">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>0.36</value>
+    </values>
+    <desc>z value at Bezier point 3 []</desc>
+  </entry>
+
+  <entry id="sigref_fun_spec%sp4">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>37.40</value>
+    </values>
+    <desc>Sigma value at Bezier point 4 (z = 1) [kg m-3]</desc>
+  </entry>
+
+  <entry id="sigref_fun_spec%z_top">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>0.06</value>
+    </values>
+    <desc>z value at transition from Bezier curve to parabola covering the z-range [0, z_top]</desc>
+  </entry>
+
+  <entry id="sigref_fun_spec%s_top">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>0.</value>
+    </values>
+    <desc>Sigma value of parabola at z = 0 [kg m-3]</desc>
+  </entry>
+
+  <entry id="sigref_fun_spec%z_bot">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>0.92</value>
+    </values>
+    <desc>z value at transition from Bezier curve to parabola covering the z-range [z_bot, 1]</desc>
+  </entry>
+
+  <entry id="sigref_fun_spec%s_bot">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>38.0</value>
+    </values>
+    <desc>Sigma value of parabola at z = 1 [kg m-3]</desc>
+  </entry>
+
+  <entry id="sigref_adaption">
+    <type>logical</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>Flag to enable adaption of reference potential densities to model state</desc>
+  </entry>
+
+  <entry id="sra_ts">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>5.0</value>
+    </values>
+    <desc>e-folding time scale (years) for adjusting to optimized reference potential densities</desc>
+  </entry>
+
+  <entry id="sra_massfrac_bot">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>0.01</value>
+    </values>
+    <desc>Target mass fraction of the density classes within the bottom parabolic shape [z_bot 1]</desc>
+  </entry>
+
+  <entry id="sra_massfrac_eps">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>0.0001</value>
+    </values>
+    <desc>Small mass fraction</desc>
+  </entry>
+
   <entry id="dpmin_surface">
     <type>real</type>
     <category>vcoord</category>
