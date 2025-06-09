@@ -33,6 +33,7 @@ module mod_blom_init
   use mod_state,           only: dp, dpu, dpv, uflx, vflx, p, pu, pv, phi
   use mod_barotp,          only: pvtrop
   use mod_pgforc,          only: pgfxm, pgfym, xixp, xixm, xiyp, xiym
+  use mod_diffusion,       only: difiso
   use mod_niw,             only: uml, vml, umlres, vmlres
   use mod_eos,             only: inieos
   use mod_swabs,           only: iniswa
@@ -382,6 +383,8 @@ contains
        call xctilr(vml, 1,4, 0,1, halo_vv)
        call xctilr(umlres, 1,2, 1,0, halo_uv)
        call xctilr(vmlres, 1,2, 0,1, halo_vv)
+    else
+       call xctilr(difiso, 1,kk, 1,1, halo_ps)
     end if
 
     ! With arctic patch, switch xixp and xixm and xiyp and xiym in the halo

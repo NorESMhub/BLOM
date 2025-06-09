@@ -149,6 +149,8 @@
 !            structure based in the 3D structure of anisotropy (l)
 ! RHSCTP   : If true, use the minimum of planetary and topographic beta
 !            to define the Rhines scale (l)
+! EDFSMO   : If true, apply lateral smoothing of isopycnal and interface
+!            diffusivities.
 ! RI0      : Critical gradient richardson number for shear driven
 !            vertical mixing () (f)
 ! BDMTYP   : Type of background diapycnal mixing. If bdmtyp=1 the

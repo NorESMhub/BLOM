@@ -1367,7 +1367,6 @@ contains
          do nt = 1, ntr
             call xctilr(trc(1-nbdy,1-nbdy,k1n,nt), 1, kk, 1, 1, halo_ps)
          enddo
-         call xctilr(difiso, 1,kk, 1,1, halo_ps)
       end if
 
       ! Inital j-slice indices.

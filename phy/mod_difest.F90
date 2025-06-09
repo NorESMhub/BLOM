@@ -34,10 +34,11 @@ module mod_difest
   use mod_diffusion,         only: egc, eggam, eglsmn, egmndf, egmxdf, &
                                    egidfq, rhiscf, ri0, bdmc1, bdmc2, &
                                    bdmldp, tkepf, bdmtyp, eddf2d, edsprs, &
-                                   edanis, redi3d, rhsctp, smobld, lngmtp, &
-                                   edritp_opt, edritp_shear, &
+                                   edanis, redi3d, rhsctp, edfsmo, smobld, &
+                                   lngmtp, edritp_opt, edritp_shear, &
                                    edritp_large_scale, edwmth_opt, &
                                    edwmth_smooth, edwmth_step, &
+                                   ltedtp_opt, ltedtp_neutral, &
                                    difint, difiso, difdia, difmxp, difwgt, &
                                    Kvisc_m, Kdiff_t, Kdiff_s, &
                                    t_ns_nonloc, s_nb_nonloc, &
@@ -50,7 +51,7 @@ module mod_difest
   use mod_tidaldissip,       only: twedon
   use mod_niw,               only: niwgf, niwbf, niwlf, idkedt, niw_ke_tendency
   use mod_seaice,            only: ficem
-  use mod_utility,           only: util1
+  use mod_utility,           only: util1, util2
   use mod_checksum,          only: csdiag, chksummsk
   use CVMix_kpp,             only: CVMix_coeffs_kpp
   use CVMix_kpp,             only: CVMix_kpp_compute_turbulent_scales
@@ -162,6 +163,7 @@ module mod_difest
   !            non-isopycnic layers [kg/m/s^2].
   !   dpnbav - thickness of region near the bottom used to estimate
   !            bottom Brunt-Vaisala frequency [kg/m/s^2].
+  !  egr_max - maximum Eady growth rate [1/s]
   !  cpsemin - Lower bound of zonal eddy phase speed minus zonal
   !            barotropic velocity [m/s].
   !  urmsemin- Lower bound of absolute value of RMS eddy velocity
@@ -196,6 +198,7 @@ module mod_difest
   real    , parameter :: dpdiav = 100.*onem
   real    , parameter :: dpddav=10.*onem
   real    , parameter :: dpnbav=250.*onem
+  real    , parameter :: egr_max = 1./(86400.*2.)
   real    , parameter :: ustmin = .001
   real    , parameter :: kappa=.4
   real    , parameter :: bfeps=1.e-16
@@ -1454,14 +1457,14 @@ contains
 
     integer :: m,n,mm,nn,k1m,k1n
 
-
+    real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: piso,pgrav,pdiav
     real, dimension(1-nbdy:idm+nbdy,kdm) :: egr,anisok
     real, dimension(1-nbdy:idm+nbdy) :: &
          tup,pup,sup,cr,bcrrd,afeql,dps,egrs,egrup,dfints,anisos,ubt,vbt, &
          umls,vmls,urmse,cpse
-    integer :: i,j,k,l,kn
+    integer :: i,j,k,l,kn,mrgint,mrgiso,mrg
     real :: q,plo,tlo,slo,tsfac,rhisc,ubc,vbc,speed,rhisct,falign, &
-         els,egrlo,umnsc,esfac
+            els,egrlo,umnsc,esfac,ws,ww,we,wn,wc
 
     ! Locate the range of layers to be considered in the computation of
     ! diffusivities.
@@ -1482,10 +1485,9 @@ contains
     do j = 1,jj
       do l = 1,isp(j)
         do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-          kfil(i,j) = kk+1
-          do k = kk,2,-1
-            if (p(i,j,k) > mlts(i,j)*(onem)) kfil(i,j) = k
-          end do
+          piso(i,j) = mlts(i,j)*onem + 100.*onem
+          pgrav(i,j) = piso(i,j) + dpgrav
+          pdiav(i,j) = piso(i,j) + dpdiav
         end do
       end do
     end do
@@ -1606,16 +1608,16 @@ contains
           do k = 2,kk
             do l = 1,isp(j)
               do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-                if (k >= kfil(i,j).and.k <= kmax(i,j).and. &
-                     kmax(i,j)-kfil(i,j) >= 1) then
+                if (p(i,j,k+1) > piso(i,j) .and. k <= kmax(i,j)) then
                   egr(i,k) = afeql(i) &
                        /sqrt(.5*(rig(i,j,k)+rig(i,j,k+1))+eggam)
                   if (edsprs.or.edanis) then
                     if (eddf2d) then
-                      q = max(0.,p(i,j,k+1)-p(i,j,k))
+                      q = max(piso(i,j),p(i,j,k+1)) &
+                         -max(piso(i,j),p(i,j,k))
                     else
-                      q = max(0.,min(p(i,j,kfil(i,j))+dpgrav, &
-                           p(i,j,k+1))-p(i,j,k))
+                      q = max(0.,min(pgrav(i,j),p(i,j,k+1)) &
+                                -max(piso(i,j),p(i,j,k)))
                     end if
                     dps(i) = dps(i)+q
                     egrs(i) = egrs(i)+egr(i,k)*q
@@ -1627,8 +1629,8 @@ contains
         else if (edritp_opt == edritp_large_scale) then
           do l = 1,isp(j)
             do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-              if (kmax(i,j)-kfil(i,j) >= 1) then
-                k = kfil(i,j)
+              if (kmax(i,j) > 2) then
+                k = 2
                 if     (kmax(i-1,j) >= k.and.kmax(i+1,j) >= k) then
                   q = .25*(nnslpx(i,j,k)+nnslpx(i+1,j,k))**2
                 else if (kmax(i-1,j) >= k) then
@@ -1645,15 +1647,15 @@ contains
                 else if (kmax(i,j+1) >= k) then
                   q = q+nnslpy(i,j+1,k)**2
                 end if
-                egrup(i) = sqrt(q)
-              end if
+                egrup(i) = min(egr_max, sqrt(q))
+              endif
             end do
           end do
           do k = 2,kk
             do l = 1,isp(j)
               do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-                if (kmax(i,j)-kfil(i,j) >= 1) then
-                  if     (k >= kfil(i,j).and.k < kmax(i,j)) then
+                if (kmax(i,j) > 2) then
+                  if      (k < kmax(i,j)) then
                     if     (kmax(i-1,j) > k.and.kmax(i+1,j) > k) then
                       q = .25*(nnslpx(i,j,k+1)+nnslpx(i+1,j,k+1))**2
                     else if (kmax(i-1,j) > k) then
@@ -1670,15 +1672,16 @@ contains
                     else if (kmax(i,j+1) > k) then
                       q = q+nnslpy(i,j+1,k+1)**2
                     end if
-                    egrlo = sqrt(q)
+                    egrlo = min(egr_max, sqrt(q))
                     egr(i,k) = .5*(egrup(i)+egrlo)
                     egrup(i) = egrlo
                     if (edsprs.or.edanis) then
                       if (eddf2d) then
-                        q = max(0.,p(i,j,k+1)-p(i,j,k))
+                        q = max(piso(i,j),p(i,j,k+1)) &
+                           -max(piso(i,j),p(i,j,k))
                       else
-                        q = max(0.,min(p(i,j,kfil(i,j))+dpgrav, &
-                                       p(i,j,k+1))-p(i,j,k))
+                        q = max(0.,min(pgrav(i,j),p(i,j,k+1)) &
+                                  -max(piso(i,j),p(i,j,k)))
                       end if
                       dps(i) = dps(i)+q
                       egrs(i) = egrs(i)+egr(i,k)*q
@@ -1733,8 +1736,7 @@ contains
           kn = k+nn
           do l = 1,isp(j)
             do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-              if (k >= kfil(i,j).and.k <= kmax(i,j).and. &
-                   kmax(i,j)-kfil(i,j) >= 1) then
+              if (p(i,j,k+1) > piso(i,j).and.k <= kmax(i,j)) then
 
                 ! Planetary Rhines scale.
                 rhisc = egr(i,k)/max(1.e-22,betafp(i,j))
@@ -1784,13 +1786,11 @@ contains
                 ! anisotrophy if requested.
 
                 if (eddf2d) then
-                  q = max(0.,p(i,j,k+1)-p(i,j,k))
+                  q = max(piso(i,j),p(i,j,k+1)) &
+                     -max(piso(i,j),p(i,j,k))
                 else
-
-                  ! Only consider a region below the first physical layer
-                  ! with 3d structure of diffusivity.
-                  q = max(0.,min(p(i,j,kfil(i,j))+dpdiav, &
-                                 p(i,j,k+1))-p(i,j,k))
+                  q = max(0.,min(pgrav(i,j),p(i,j,k+1)) &
+                            -max(piso(i,j),p(i,j,k)))
                 end if
 
                 dps(i) = dps(i)+q
@@ -1948,8 +1948,7 @@ contains
           kn = k+nn
           do l = 1,isp(j)
             do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-              if (k >= kfil(i,j).and.k <= kmax(i,j).and. &
-                   kmax(i,j)-kfil(i,j) >= 1) then
+              if (p(i,j,k+1) > piso(i,j).and.k <= kmax(i,j)) then
 
                 if (edsprs) then
 
@@ -2001,6 +2000,50 @@ contains
     end do
     !$omp end parallel do
 
+    ! Update halos and optionally smooth isopycnal and interface diffusivities
+    ! laterally.
+    if (ltedtp_opt == ltedtp_neutral) then
+      mrgint = 1
+      mrgiso = 1
+    else
+      mrgint = 1
+      mrgiso = 2
+    endif
+    if (edfsmo) then
+      call xctilr(difint, 1, kk, mrgint + 1, mrgint + 1, halo_ps)
+      call xctilr(difiso, 1, kk, mrgiso + 1, mrgiso + 1, halo_ps)
+      mrg = max(mrgint, mrgiso)
+      do k = 1, kk
+        kn = k + nn
+        util1(:,:) = difint(:,:,k)
+        util2(:,:) = difiso(:,:,k)
+        do j = 1 - mrg, jj + mrg
+          do l = 1, isp(j)
+          do i = max(1 - mrg, ifp(j, l)), min(ii + mrg, ilp(j, l))
+            ws = .125_r8*ip(i  ,j-1)*min(onem,dp(i  ,j-1,kn))/onem
+            ww = .125_r8*ip(i-1,j  )*min(onem,dp(i-1,j  ,kn))/onem
+            we = .125_r8*ip(i+1,j  )*min(onem,dp(i+1,j  ,kn))/onem
+            wn = .125_r8*ip(i  ,j+1)*min(onem,dp(i  ,j+1,kn))/onem
+            wc = 1._r8 - (ws + ww + we + wn)
+            difint(i,j,k) = ws*util1(i  ,j-1) &
+                          + ww*util1(i-1,j  ) &
+                          + wc*util1(i  ,j  ) &
+                          + we*util1(i+1,j  ) &
+                          + wn*util1(i  ,j+1)
+            difiso(i,j,k) = ws*util2(i  ,j-1) &
+                          + ww*util2(i-1,j  ) &
+                          + wc*util2(i  ,j  ) &
+                          + we*util2(i+1,j  ) &
+                          + wn*util2(i  ,j+1)
+          enddo
+          enddo
+        enddo
+      enddo
+    else
+      call xctilr(difint, 1, kk, mrgint, mrgint, halo_ps)
+      call xctilr(difiso, 1, kk, mrgiso, mrgiso, halo_ps)
+    endif
+
     if (csdiag) then
       if (mnproc == 1) then
         write (lp,*) 'difest_lateral_hyb:'
@@ -2024,9 +2067,9 @@ contains
     real, dimension(1-nbdy:idm+nbdy) :: &
          tup,pup,sup,cr,bcrrd,afeql,dps,egrs,egrup,dfints,anisos,ubt,vbt, &
          urmse,cpse
-    integer :: i,j,k,l,kn
+    integer :: i,j,k,l,kn,mrgint,mrgiso,mrg
     real :: q,plo,tlo,slo,tsfac,rhisc,ubc,vbc,speed,rhisct,falign, &
-         els,egrlo,umnsc,esfac
+         els,egrlo,umnsc,esfac,ws,ww,we,wn,wc
 
     !$omp parallel do private( &
     !$omp l,i,k,kn,q,tup,pup,sup,cr,plo,tlo,slo,bcrrd,afeql,dps,egrs,egr, &
@@ -2555,6 +2598,44 @@ contains
     end do
     !$omp end parallel do
 
+    ! Update halos and optionally smooth isopycnal and interface diffusivities
+    ! laterally.
+    mrgint = 1
+    mrgiso = 2
+    if (edfsmo) then
+      call xctilr(difint, 1, kk, mrgint + 1, mrgint + 1, halo_ps)
+      call xctilr(difiso, 1, kk, mrgiso + 1, mrgiso + 1, halo_ps)
+      mrg = max(mrgint, mrgiso)
+      do k = 1, kk
+        kn = k + nn
+        util1(:,:) = difint(:,:,k)
+        util2(:,:) = difiso(:,:,k)
+        do j = 1 - mrg, jj + mrg
+          do l = 1, isp(j)
+          do i = max(1 - mrg, ifp(j, l)), min(ii + mrg, ilp(j, l))
+            ws = .125_r8*ip(i  ,j-1)*min(onem,dp(i  ,j-1,kn))/onem
+            ww = .125_r8*ip(i-1,j  )*min(onem,dp(i-1,j  ,kn))/onem
+            we = .125_r8*ip(i+1,j  )*min(onem,dp(i+1,j  ,kn))/onem
+            wn = .125_r8*ip(i  ,j+1)*min(onem,dp(i  ,j+1,kn))/onem
+            wc = 1._r8 - (ws + ww + we + wn)
+            difint(i,j,k) = ws*util1(i  ,j-1) &
+                          + ww*util1(i-1,j  ) &
+                          + wc*util1(i  ,j  ) &
+                          + we*util1(i+1,j  ) &
+                          + wn*util1(i  ,j+1)
+            difiso(i,j,k) = ws*util2(i  ,j-1) &
+                          + ww*util2(i-1,j  ) &
+                          + wc*util2(i  ,j  ) &
+                          + we*util2(i+1,j  ) &
+                          + wn*util2(i  ,j+1)
+          enddo
+          enddo
+        enddo
+      enddo
+    else
+      call xctilr(difint, 1, kk, mrgint, mrgint, halo_ps)
+      call xctilr(difiso, 1, kk, mrgiso, mrgiso, halo_ps)
+    endif
 
     if (csdiag) then
       if (mnproc == 1) then
