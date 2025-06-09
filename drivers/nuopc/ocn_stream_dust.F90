@@ -15,6 +15,7 @@ module ocn_stream_dust
    use mod_forcing       , only : dust_stream
    use mo_intfcblom      , only : omask
    use mod_config        , only : inst_suffix
+   use mod_fill_global   , only : fill_global
    use mod_xc
 
    implicit none
@@ -249,6 +250,8 @@ contains
          call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end if
 
+      ! Set to unreasonable value to catch errors
+      dust_stream(:,:,:) = 1.e30
       do nfld = 1, size(stream_varnames)
 
          ! Get pointer for stream data that is time and spatially interpolated to model time and grid
@@ -283,6 +286,8 @@ contains
                end if
             end do
          end do
+
+         call fill_global(mval, fval, halo_ps, dust_stream(1-nbdy,1-nbdy,nfld))
 
          if (csdiag) then
             if (mnproc == 1) then

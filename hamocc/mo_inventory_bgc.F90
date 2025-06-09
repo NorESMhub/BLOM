@@ -270,8 +270,7 @@ contains
         enddo
       enddo
     enddo
-    call xcsum(ODZvol,ztmp2,ips)
-
+    call xcsum(ODZvol,ztmp1,ips)
 
     !=== alkalinity of the first layer
     !--------------------------------------------------------------------
@@ -743,7 +742,8 @@ contains
                                nf90_put_att, nf90_put_var, nf90_unlimited, nf90_write
       use mod_types,     only: r8
       use mod_config,    only: expcnf, runid, inst_suffix
-      use mod_time,      only: date0, time0, date, time, nstep, nday_of_year,nstep_in_day,calendar
+      use mod_time,      only: date0, time0, date, time, nstep, nday_of_year, nstep_in_day,        &
+                               calendar, blom_time
       use mo_bgcmean,    only: filefq_bgc, fileann_bgc, filemon_bgc,glb_fnametag
       use mo_param1_bgc, only: idicsat,idms,ifdust,iiron,iprefalk,iprefdic,iprefo2,iprefpo4,       &
                                iadust,inos,ibromo,icfc11,icfc12,isf6,icalc13,icalc14,idet13,       &
@@ -770,6 +770,7 @@ contains
       character(len=20) :: tstamp
       character(len=30) :: timeunits
       integer :: l
+      integer :: ymd, tod           ! used to access blom_time
       real(r8) :: datenum
 
       !=== Variables for netcdf
@@ -899,10 +900,10 @@ contains
           sep1='_'
           sep2='.'
         endif
-        write(tstamp,'(i4.4,a1,i2.2,a1,i2.2)')                                    &
-             &    date%year,sep2,date%month,sep2,date%day
-        fname_inv(iogrp) = prefix//sep1//trim(glb_fnametag(iogrp))//sep1//        &
-             &    'i'//sep1//trim(tstamp)//'.nc'
+        call blom_time(ymd, tod)
+        write(tstamp,'(i4.4,a1,i2.2,a1,i2.2,a1,i5.5)')                            &
+             &    date%year,sep2,date%month,sep2,date%day,sep2,tod
+        fname_inv(iogrp) = prefix//sep1//'hbgci'//sep1//trim(tstamp)//'.nc'
 
         !--- create a new netCDF file
         write(io_stdo_bgc,*) 'Create BGC inventory file : ',trim(fname_inv(iogrp))

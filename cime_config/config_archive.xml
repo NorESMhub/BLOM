@@ -3,7 +3,7 @@
     <rest_file_extension>r</rest_file_extension>
     <rest_file_extension>rbgc</rest_file_extension>
     <hist_file_extension>h[dmy]\d*.*\.nc$</hist_file_extension>
-    <hist_file_extension>hbgc[dmy]\d*.*\.nc$</hist_file_extension>
+    <hist_file_extension>hbgc[idmy]\d*.*\.nc$</hist_file_extension>
     <rest_history_varname>unset</rest_history_varname>
     <rpointer>
       <rpointer_file>rpointer.ocn$NINST_STRING</rpointer_file>
