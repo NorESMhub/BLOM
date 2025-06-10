@@ -98,7 +98,7 @@ contains
     use mo_control_bgc, only: rmasks,use_FB_BGC_OCE,use_cisonew,use_AGG,use_CFC,use_natDIC,        &
                               use_BROMO, use_sedbypass,use_extNcycle,use_pref_tracers,             &
                               use_shelfsea_res_time,use_sediment_quality,use_river2omip,           &
-                              use_DOMclasses
+                              use_DOMclasses,linit_DOMclasses_sim
     use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,     &
                               iiron,iopal,ioxygen,iphosph,iphy,iprefalk,iprefdic,iprefo2,iprefpo4, &
                               isco212,isilica,izoo,iadust,inos,ibromo,icfc11,icfc12,isf6,          &
@@ -214,6 +214,18 @@ contains
             co2star(i,j,k)       =20.e-6
             if (.not. use_DOMclasses) then
               ocetra(i,j,k,idoc)   =1.e-8
+            endif
+            if (use_DOMclasses .eqv. .true. .and. linit_DOMclasses_sim .eqv. .false.) then !starting DOM classes from scratch
+              ocetra(i,j,k,idoc)   = 1.e-8
+              ocetra(i,j,k,idocsl) = 0.
+              ocetra(i,j,k,idocsr) = 0.
+              ocetra(i,j,k,idocr)  = 0.
+              if (use_pref_tracers) then
+                ocetra(i,j,k,iprefdoc)   = 0.
+                ocetra(i,j,k,iprefdocsl) = 0.
+                ocetra(i,j,k,iprefdocsr) = 0.
+                ocetra(i,j,k,iprefdocr)  = 0.
+              endif
             endif
             if (use_pref_tracers) then
               ocetra(i,j,k,iprefo2)     = 0.

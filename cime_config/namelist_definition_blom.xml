@@ -4199,6 +4199,16 @@
     <desc>Number of subcyles per time-step for sediment spinup</desc>
   </entry>
 
+  <entry id="lini_domclasses_sim">
+    <type>logical</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>.true.</value>
+    </values>
+    <desc>Switch to initialize DOM classes from former simulation (.true.) or from scratch (.false.)</desc>
+  </entry>
+
   <entry id="inidic" is_inputdata="yes">
     <type>char</type>
     <category>bgcnml</category>

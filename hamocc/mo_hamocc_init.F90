@@ -46,7 +46,8 @@ contains
                               ldtrunbgc,ndtdaybgc,with_dmsph,l_3Dvarsedpor,use_M4AGO,              &
                               lkwrbioz_off,do_n2o_coupled,do_nh3_coupled,                          &
                               ocn_co2_type, use_sedbypass, use_BOXATM, use_BROMO,use_extNcycle,    &
-                              use_coupler_ndep,lTO2depremin,use_sediment_quality,ldyn_sed_age
+                              use_coupler_ndep,lTO2depremin,use_sediment_quality,ldyn_sed_age,     &
+                              linit_DOMclasses_sim
     use mo_param1_bgc,  only: ks,init_por2octra_mapping
     use mo_param_bgc,   only: ini_parambgc,claydens,calcdens,calcwei,opaldens,opalwei,ropal,       &
                             & ini_bgctimes,sec_per_day
@@ -90,7 +91,7 @@ contains
          &            inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c,inidom,swaclimfile,&
          &            with_dmsph,pi_ph_file,l_3Dvarsedpor,sedporfile,ocn_co2_type,use_M4AGO,       &
          &            do_n2o_coupled,do_nh3_coupled,lkwrbioz_off,lTO2depremin,shelfsea_maskfile,   &
-         &            sedqualfile,ldyn_sed_age
+         &            sedqualfile,ldyn_sed_age,linit_DOMclasses_sim
     !
     ! --- Set io units and some control parameters
     !
