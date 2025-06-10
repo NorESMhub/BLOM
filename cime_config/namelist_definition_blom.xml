@@ -1529,6 +1529,17 @@
     <desc>If true, use the minimum of planetary and topographic beta</desc>
   </entry>
 
+  <entry id="edfsmo">
+    <type>logical</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>.true.</value>
+      <value blom_vcoord="isopyc_bulkml">.false.</value>
+    </values>
+    <desc>If true, apply lateral smoothing of isopycnal and interface diffusivities</desc>
+  </entry>
+
   <entry id="ri0">
     <type>real</type>
     <category>diffusion</category>

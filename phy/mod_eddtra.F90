@@ -155,8 +155,6 @@ contains
       real(r8) :: flxhi, flxlo, q
       integer :: i, j, k, l, km, kn
 
-      call xctilr(difint, 1,kk, 1,1, halo_ps)
-
       !$omp parallel do private(l, i)
       do j = 1, jj
          do l = 1, isu(j)
@@ -243,8 +241,6 @@ contains
       real(r8) :: q, et2mf, kappa, fhi, flo
       integer :: i, j, k, l, km, kn, kintr, kmax, kmin, niter, kdir
       logical :: changed
-
-      call xctilr(difint, 1, kk, 1, 1, halo_ps)
 
       ! Compute top pressure at velocity points.
       !$omp parallel do private(l, i)
@@ -1024,8 +1020,6 @@ contains
                   rtau, f, absfi, lfi, mfleps, et2mf, kappa, q
       integer :: i, j, k, l, km, kn, kmax, kml, niter, kdir
       logical :: changed
-
-      call xctilr(difint, 1, kk, 1, 1, halo_ps)
 
       if (mlrmth_opt == mlrmth_none) then
          !$omp parallel do private(l, i)

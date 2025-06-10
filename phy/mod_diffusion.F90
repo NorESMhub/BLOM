@@ -69,6 +69,8 @@ module mod_diffusion
                 ! structure based in the 3D structure of anisotropy.
       rhsctp, & ! If true, use the minimum of planetary and topographic beta
                 ! to define the Rhines scale.
+      edfsmo, & ! If true, apply lateral smoothing of isopycnal and interface
+                ! diffusivities.
       bdmldp, & ! If true, make the background mixing latitude dependent
                 ! according to Gregg et al. (2003).
       smobld    ! If true, apply lateral smoothing of CVMix estimated boundary
@@ -171,9 +173,9 @@ module mod_diffusion
                 ! [g m s-2].
 
    ! Public variables
-   public :: egc, eggam, eglsmn, egmndf, egmxdf, egidfq, &
-             rhiscf, ri0, bdmc1, bdmc2, bdmldp, tkepf, bdmtyp, &
-             eddf2d, edsprs, edanis, redi3d, rhsctp, tbfile, smobld, lngmtp, &
+   public :: egc, eggam, eglsmn, egmndf, egmxdf, egidfq, rhiscf, ri0, &
+             bdmc1, bdmc2, bdmldp, tkepf, bdmtyp, eddf2d, edsprs, edanis, &
+             redi3d, rhsctp, tbfile, edfsmo, smobld, lngmtp, &
              eitmth_opt, eitmth_intdif, eitmth_gm, edritp_opt, edritp_shear, &
              edritp_large_scale, edwmth_opt, edwmth_smooth, edwmth_step, &
              ltedtp_opt, ltedtp_layer, ltedtp_neutral, &
@@ -202,7 +204,7 @@ contains
       namelist /diffusion/ &
          egc, eggam, eglsmn, egmndf, egmxdf, egidfq, rhiscf, ri0, &
          bdmc1, bdmc2, bdmldp, tkepf, bdmtyp, eddf2d, edsprs, edanis, redi3d, &
-         rhsctp, tbfile, smobld, lngmtp, eitmth, edritp, edwmth, ltedtp
+         rhsctp, tbfile, edfsmo, smobld, lngmtp, eitmth, edritp, edwmth, ltedtp
 
       ! Read variables in the namelist group 'diffusion'.
       if (mnproc == 1) then
@@ -251,6 +253,7 @@ contains
         call xcbcst(redi3d)
         call xcbcst(rhsctp)
         call xcbcst(tbfile)
+        call xcbcst(edfsmo)
         call xcbcst(smobld)
         call xcbcst(lngmtp)
         call xcbcst(eitmth)
@@ -278,6 +281,7 @@ contains
          write (lp,*) '  edanis = ', edanis
          write (lp,*) '  redi3d = ', redi3d
          write (lp,*) '  rhsctp = ', rhsctp
+         write (lp,*) '  edfsmo = ', edfsmo
          write (lp,*) '  smobld = ', smobld
          write (lp,*) '  tbfile = ', trim(tbfile)
          write (lp,*) '  lngmtp = ', trim(lngmtp)

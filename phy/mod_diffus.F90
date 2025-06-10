@@ -78,7 +78,6 @@ contains
           call xctilr(trc(1-nbdy,1-nbdy,k1n,nt), 1,kk, 2,2, halo_ps)
         end do
       end if
-      call xctilr(difiso, 1,kk, 2,2, halo_ps)
     end if
 
     do k = 1,kk
