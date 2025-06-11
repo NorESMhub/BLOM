@@ -29,7 +29,7 @@ module mo_read_fedep
   !    and a module that applies the fluxes in core hamocc (mo_apply_fedep)
   !*************************************************************************************************
 
-  use mo_kind, only: bgc_fnmlen
+  use mo_kind, only: bgc_fnmlen,rp
 
   implicit none
   private
@@ -42,8 +42,8 @@ module mo_read_fedep
   character(len=64),         public :: fedep_source=''
 
   ! Array to store iron deposition fluxes after reading from file
-  real, allocatable,  private :: dustflx_tot(:,:,:)
-  real, allocatable,  private :: dustflx_sfe(:,:,:)
+  real(rp), allocatable,  private :: dustflx_tot(:,:,:)
+  real(rp), allocatable,  private :: dustflx_sfe(:,:,:)
 
 contains
 
@@ -57,7 +57,6 @@ contains
 
     use netcdf,             only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
     use mod_xc,             only: mnproc,xchalt
-    use mo_kind,            only: rp
     use mo_control_bgc,     only: io_stdo_bgc
     use mo_param_bgc,       only: sec_per_day,frac_ironindust,frac_soliron,fetune
     use mo_chemcon,         only: mw_fe
@@ -66,7 +65,7 @@ contains
     ! Arguments
     integer,          intent(in) :: kpie              ! 1st dimension of model grid.
     integer,          intent(in) :: kpje              ! 2nd dimension of model grid.
-    real,             intent(in) :: omask(kpie,kpje)  ! land/ocean mask (1=ocean)
+    real(rp),         intent(in) :: omask(kpie,kpje)  ! land/ocean mask (1=ocean)
 
     ! Local variables
     integer             :: i,j,l
@@ -195,8 +194,8 @@ contains
     integer,        intent(in)  :: kpje                   ! 2nd dimension of model grid
     integer,        intent(in)  :: kbnd                   ! nb of halo-rows
     integer,        intent(in)  :: kplmon                 ! current month.
-    real,           intent(out) :: dust(kpie,kpje,ndust)  ! dust/sFe flux for current month
-    real, optional, intent(in)  :: dust_stream(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,ndust)
+    real(rp),       intent(out) :: dust(kpie,kpje,ndust)  ! dust/sFe flux for current month
+    real(rp), optional, intent(in)  :: dust_stream(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,ndust)
 
     integer :: i,j,n
     logical :: debug = .true.

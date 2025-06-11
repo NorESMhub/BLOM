@@ -22,7 +22,7 @@ module mo_read_shelfmask
   ! Routine to read and/or initialize an ocean shelf-sea mask either from netcdf file or from
   ! internal bathymetry values, if use_shelfsea_res_time = .true.
   !
-  ! If a file is read, it should hold real values with 1. for shelf-sea regions and 0 elsewhere
+  ! If a file is read, it should hold real(rp) values with 1. for shelf-sea regions and 0 elsewhere
   ! and the variable name is 'shelfmask'
   !
   ! The shelf-sea mask is currently used to calculate the shelf-sea water residence time
@@ -57,13 +57,13 @@ contains
     integer, intent(in) :: kpie                                     ! 1st dimension of model grid
     integer, intent(in) :: kpje                                     ! 2nd dimension of model grid
     integer, intent(in) :: kbnd                                     ! number of halo grid points
-    real,    intent(in) :: pbath(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd) ! bathymetry fields - water depth [m]
-    real,    intent(in) :: omask(kpie,kpje)                         ! land/ocean mask.
+    real(rp),intent(in) :: pbath(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd) ! bathymetry fields - water depth [m]
+    real(rp),intent(in) :: omask(kpie,kpje)                         ! land/ocean mask.
 
     ! Local variables
     logical :: file_exists=.false.
     integer :: i,j,errstat,ncid,ncstat
-    real,allocatable  :: mask(:,:)
+    real(rp),allocatable  :: mask(:,:)
 
     ! Always allocate field to hold shelfsea mask
     if(mnproc.eq.1) then

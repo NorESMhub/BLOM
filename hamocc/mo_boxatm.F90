@@ -54,19 +54,19 @@ contains
     use mo_sedmnt,      only: powtra,sedlay,seddw,porwat,porsol
 
     ! Arguments
-    integer,intent(in) :: kpie,kpje,kpke
-    real,   intent(in) :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)
-    real,   intent(in) :: pddpo(kpie,kpje,kpke),omask(kpie,kpje)
+    integer,  intent(in) :: kpie,kpje,kpke
+    real(rp), intent(in) :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)
+    real(rp), intent(in) :: pddpo(kpie,kpje,kpke),omask(kpie,kpje)
 
     ! Local variables
-    real, parameter :: pg2ppm = 1.0_rp/2.13_rp  ! conversion factor PgC -> ppm CO2
-    integer :: i,j,k
-    real    :: ztmp1(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
-    real    :: co2flux, co2flux_ppm
-    real    :: ztmp2(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy) ! cisonew
-    real    :: co213flux, co213flux_ppm ! cisonew
-    real    :: co214flux, co214flux_ppm ! cisonew
-    real    :: totc14dec, vol ! cisonew
+    real(rp), parameter :: pg2ppm = 1.0_rp/2.13_rp  ! conversion factor PgC -> ppm CO2
+    integer  :: i,j,k
+    real(rp) :: ztmp1(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
+    real(rp) :: co2flux, co2flux_ppm
+    real(rp) :: ztmp2(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy) ! cisonew
+    real(rp) :: co213flux, co213flux_ppm ! cisonew
+    real(rp) :: co214flux, co214flux_ppm ! cisonew
+    real(rp) :: totc14dec, vol ! cisonew
 
     co2flux      = 0.0_rp
 

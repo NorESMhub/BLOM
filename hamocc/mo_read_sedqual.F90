@@ -52,14 +52,14 @@ contains
     integer, intent(in)    :: kpie
     integer, intent(in)    :: kpje
     integer, intent(in)    :: ks
-    real,    intent(in)    :: omask(kpie,kpje)
-    real,    intent(inout) :: sed_POCage_init(kpie,kpje,ks)
-    real,    intent(inout) :: prorca_mavg_init(kpie,kpje)
+    real(rp),intent(in)    :: omask(kpie,kpje)
+    real(rp),intent(inout) :: sed_POCage_init(kpie,kpje,ks)
+    real(rp),intent(inout) :: prorca_mavg_init(kpie,kpje)
 
     ! Local variables
     integer :: i,j,k
-    real    :: sed_age(kpie,kpje,ks)
-    real    :: mavg_prorca(kpie,kpje)
+    real(rp):: sed_age(kpie,kpje,ks)
+    real(rp):: mavg_prorca(kpie,kpje)
     logical :: file_exists = .false.
     integer :: ncid,ncstat
 

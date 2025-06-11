@@ -85,32 +85,32 @@ contains
     integer, intent(in)  :: kplmon                                          ! current month.
     integer, intent(in)  :: kplday                                          ! current day.
     integer, intent(in)  :: kldtday                                         ! number of time step in current day.
-    real,    intent(in)  :: pdlxp  (kpie,kpje)                              ! size of grid cell (longitudinal) [m].
-    real,    intent(in)  :: pdlyp  (kpie,kpje)                              ! size of grid cell (latitudinal) [m].
-    real,    intent(in)  :: pddpo  (kpie,kpje,kpke)                         ! size of grid cell (depth) [m].
-    real,    intent(in)  :: prho   (kpie,kpje,kpke)                         ! density [g/cm^3].
-    real,    intent(in)  :: pglat  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! latitude of grid cells [deg north].
-    real,    intent(in)  :: omask  (kpie,kpje)                              ! land/ocean mask.
-    real,    intent(in)  :: dust   (kpie,kpje,ndust)                        ! dust/sFe deposition flux [kg dust m-2 s-1] and [kmol sFe m-2 s-1].
-    real,    intent(in)  :: rivin  (kpie,kpje,nriv)                         ! riverine input [kmol m-2 yr-1].
-    real,    intent(in)  :: ndep   (kpie,kpje,nndep)                        ! nitrogen deposition [kmol m-2 yr-1].
-    real,    intent(in)  :: oafx   (kpie,kpje)                              ! alkalinity flux from alkalinization [kmol m-2 yr-1]
-    real,    intent(in)  :: pi_ph  (kpie,kpje)                              ! pre-ind. pH climatology used for pH-dependent DMS fluxes [log10([H+])]
-    real,    intent(in)  :: pfswr  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! solar radiation [W/m**2].
-    real,    intent(in)  :: psicomo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! sea ice concentration
-    real,    intent(in)  :: ppao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! sea level pressure [Pascal].
-    real,    intent(in)  :: pfu10  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! absolute wind speed at 10m height [m/s]
-    real,    intent(in)  :: ptho   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! potential temperature [deg C].
-    real,    intent(in)  :: psao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! salinity [psu.].
-    real,    intent(in)  :: patmco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! atmospheric CO2 concentration [ppm] used in fully coupled mode
-    real,    intent(out) :: pflxco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! CO2 flux [kg/m^2/s].
-    real,    intent(out) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! DMS flux [kg/m^2/s].
-    real,    intent(in)  :: patmbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)    ! atmospheric bromoform concentration [ppt] used in fully coupled mode.
-    real,    intent(out) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)    ! Bromoform flux [kg/m^2/s].
-    real,    intent(in)  :: patmn2o(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! atmospheric nitrous oxide concentration [ppt] used in fully coupled mode.
-    real,    intent(out) :: pflxn2o(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! Nitrous oxide flux [kg N2O m-2 s-1].
-    real,    intent(in)  :: patmnh3(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! atmospheric ammonia concentration [ppt] used in fully coupled mode
-    real,    intent(out) :: pflxnh3(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! Ammonia flux [kg NH3 m-2 s-1].
+    real(rp),intent(in)  :: pdlxp  (kpie,kpje)                              ! size of grid cell (longitudinal) [m].
+    real(rp),intent(in)  :: pdlyp  (kpie,kpje)                              ! size of grid cell (latitudinal) [m].
+    real(rp),intent(in)  :: pddpo  (kpie,kpje,kpke)                         ! size of grid cell (depth) [m].
+    real(rp),intent(in)  :: prho   (kpie,kpje,kpke)                         ! density [g/cm^3].
+    real(rp),intent(in)  :: pglat  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! latitude of grid cells [deg north].
+    real(rp),intent(in)  :: omask  (kpie,kpje)                              ! land/ocean mask.
+    real(rp),intent(in)  :: dust   (kpie,kpje,ndust)                        ! dust/sFe deposition flux [kg dust m-2 s-1] and [kmol sFe m-2 s-1].
+    real(rp),intent(in)  :: rivin  (kpie,kpje,nriv)                         ! riverine input [kmol m-2 yr-1].
+    real(rp),intent(in)  :: ndep   (kpie,kpje,nndep)                        ! nitrogen deposition [kmol m-2 yr-1].
+    real(rp),intent(in)  :: oafx   (kpie,kpje)                              ! alkalinity flux from alkalinization [kmol m-2 yr-1]
+    real(rp),intent(in)  :: pi_ph  (kpie,kpje)                              ! pre-ind. pH climatology used for pH-dependent DMS fluxes [log10([H+])]
+    real(rp),intent(in)  :: pfswr  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! solar radiation [W/m**2].
+    real(rp),intent(in)  :: psicomo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! sea ice concentration
+    real(rp),intent(in)  :: ppao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! sea level pressure [Pascal].
+    real(rp),intent(in)  :: pfu10  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! absolute wind speed at 10m height [m/s]
+    real(rp),intent(in)  :: ptho   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! potential temperature [deg C].
+    real(rp),intent(in)  :: psao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! salinity [psu.].
+    real(rp),intent(in)  :: patmco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! atmospheric CO2 concentration [ppm] used in fully coupled mode
+    real(rp),intent(out) :: pflxco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! CO2 flux [kg/m^2/s].
+    real(rp),intent(out) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! DMS flux [kg/m^2/s].
+    real(rp),intent(in)  :: patmbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)    ! atmospheric bromoform concentration [ppt] used in fully coupled mode.
+    real(rp),intent(out) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)    ! Bromoform flux [kg/m^2/s].
+    real(rp),intent(in)  :: patmn2o(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! atmospheric nitrous oxide concentration [ppt] used in fully coupled mode.
+    real(rp),intent(out) :: pflxn2o(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! Nitrous oxide flux [kg N2O m-2 s-1].
+    real(rp),intent(in)  :: patmnh3(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! atmospheric ammonia concentration [ppt] used in fully coupled mode
+    real(rp),intent(out) :: pflxnh3(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! Ammonia flux [kg NH3 m-2 s-1].
     logical, intent(in)  :: shelfmask(kpie,kpje)                            ! mask for shelf sea regions (1=shelf, 0 elsewhere)
 
     ! Local variables

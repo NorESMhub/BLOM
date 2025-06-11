@@ -41,10 +41,10 @@ module mo_vgrid
   integer, parameter, public :: kmle_static = 2  ! k-end index for layers that represent the mixed layer in blom.
 
   ! Default value used for isopycnic coordinates.
-  real,    parameter, public :: dp_ez  = 100.0_rp    ! depth of euphotic zone
-  real,    parameter, public :: dp_min = 1.0e-12_rp  ! min layer thickness layers thinner
+  real(rp),parameter, public :: dp_ez  = 100.0_rp    ! depth of euphotic zone
+  real(rp),parameter, public :: dp_min = 1.0e-12_rp  ! min layer thickness layers thinner
                                                      ! than this are ignored by HAMOCC
-  real,    parameter, public :: dp_min_sink = 1.0_rp ! min layer thickness for sinking (layers thinner than
+  real(rp),parameter, public :: dp_min_sink = 1.0_rp ! min layer thickness for sinking (layers thinner than
                                                      ! this are ignored and set to the concentration of the
                                                      ! layer above). note that the bottom layer index kbo(i,j)
                                                      ! is defined as the lowermost layer thicker than dp_min_sink.
@@ -52,9 +52,9 @@ module mo_vgrid
   integer, dimension(:,:),   allocatable, public :: kmle
   integer, dimension(:,:),   allocatable, public :: kbo     ! number of wet cells in column.
   integer, dimension(:,:),   allocatable, public :: kwrbioz ! last k-index of euphotic zone.
-  real,    dimension(:,:),   allocatable, public :: bolay   ! height of bottom cell.
-  real,    dimension(:,:,:), allocatable, public :: ptiestu ! depth of layer centres.
-  real,    dimension(:,:,:), allocatable, public :: ptiestw ! depth of layer interfaces.
+  real(rp),dimension(:,:),   allocatable, public :: bolay   ! height of bottom cell.
+  real(rp),dimension(:,:,:), allocatable, public :: ptiestu ! depth of layer centres.
+  real(rp),dimension(:,:,:), allocatable, public :: ptiestw ! depth of layer interfaces.
   integer, dimension(:,:),   allocatable, public :: k0100   ! k-index of gridbox comprising 100 m depth
   integer, dimension(:,:),   allocatable, public :: k0500   ! k-index of gridbox comprising 500 m depth
   integer, dimension(:,:),   allocatable, public :: k1000   ! k-index of gridbox comprising 1000 m depth
@@ -81,7 +81,7 @@ contains
     integer, intent(in) :: kpie                  ! 1st dimension of model grid.
     integer, intent(in) :: kpje                  ! 2nd dimension of model grid.
     integer, intent(in) :: kpke                  ! 3rd (vertical) dimension of model grid.
-    real,    intent(in) :: pddpo(kpie,kpje,kpke) ! size of grid cell (3rd dimension) [m].
+    real(rp),intent(in) :: pddpo(kpie,kpje,kpke) ! size of grid cell (3rd dimension) [m].
 
     ! Local variables
     integer  :: i,j,k

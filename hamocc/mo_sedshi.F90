@@ -52,17 +52,17 @@ contains
     ! Arguments
     integer, intent(in) :: kpie
     integer, intent(in) :: kpje
-    real,    intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: omask(kpie,kpje)
     integer, intent(in) :: kplyear                                         ! current year.
 
     ! Local variables
-    integer :: i,j,k,l,iv
-    real    :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)
-    real    :: wsed(kpie,kpje), fulsed(kpie,kpje)
-    real    :: sedlo,uebers,seddef,spresent,buried
-    real    :: refill,frac
-    real    :: eps=epsilon(1._rp)
-    real    :: acc_time=0._rp
+    integer  :: i,j,k,l,iv
+    real(rp) :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)
+    real(rp) :: wsed(kpie,kpje), fulsed(kpie,kpje)
+    real(rp) :: sedlo,uebers,seddef,spresent,buried
+    real(rp) :: refill,frac
+    real(rp) :: eps=epsilon(1._rp)
+    real(rp) :: acc_time=0._rp
 
     sedfluxb(:,:,:) = 0._rp
 

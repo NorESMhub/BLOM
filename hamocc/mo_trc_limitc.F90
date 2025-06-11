@@ -56,7 +56,7 @@ contains
 
     ! Local variables
     integer :: i,j,l,nt,kn
-    real    :: trbudo(ntrbgc),trbudn,q
+    real(rp):: trbudo(ntrbgc),trbudn,q
 
     ! --- ------------------------------------------------------------------
     ! --- - compute tracer budgets before removing negative values

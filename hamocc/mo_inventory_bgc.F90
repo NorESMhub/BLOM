@@ -69,61 +69,61 @@ contains
     ! Arguments
     integer, intent(in) :: kpie,kpje,kpke
     integer, intent(in) :: iogrp
-    real,    intent(in) :: dlxp(kpie,kpje)
-    real,    intent(in) :: dlyp(kpie,kpje)
-    real,    intent(in) :: ddpo(kpie,kpje,kpke)
-    real,    intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: dlxp(kpie,kpje)
+    real(rp),intent(in) :: dlyp(kpie,kpje)
+    real(rp),intent(in) :: ddpo(kpie,kpje,kpke)
+    real(rp),intent(in) :: omask(kpie,kpje)
 
     ! Local variables
     integer :: i,j,k,l
-    real :: ztmp1(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
-    real :: ztmp2(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
-    real :: vol
+    real(rp) :: ztmp1(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
+    real(rp) :: ztmp2(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
+    real(rp) :: vol
     ! ppm2con: atmospheric weight: ~10000kg/m^2, avrg. ~29 g/mol
     ! --> 350 kmol/m^2 --> 1ppm ~ 0.35e-3 kmol/m^2
-    real, parameter :: ppm2con = 0.35e-3_rp
+    real(rp), parameter :: ppm2con = 0.35e-3_rp
     !=== Variables for global sums
-    real :: ztotvol                  ! Total ocean volume
-    real :: ztotarea                 ! Total sea surface area
+    real(rp) :: ztotvol                  ! Total ocean volume
+    real(rp) :: ztotarea                 ! Total sea surface area
     !--- aqueous sediment tracer
-    real :: zsedtotvol               ! Total pore water volume
-    real :: zpowtratot(npowtra)      ! Sum : Pore water tracers
-    real :: zpowtratoc(npowtra)      ! Mean concentration of pore water tracers
+    real(rp) :: zsedtotvol               ! Total pore water volume
+    real(rp) :: zpowtratot(npowtra)      ! Sum : Pore water tracers
+    real(rp) :: zpowtratoc(npowtra)      ! Mean concentration of pore water tracers
     !--- non aqueous sediment tracer
-    real :: zsedhplto                ! Total sediment accumulated hydrogen ions
-    real :: zsedlayto(nsedtra)       ! Sum : Sediment layer tracers
-    real :: zburial(nsedtra)         ! Sum : Sediment burial tracers
+    real(rp) :: zsedhplto                ! Total sediment accumulated hydrogen ions
+    real(rp) :: zsedlayto(nsedtra)       ! Sum : Sediment layer tracers
+    real(rp) :: zburial(nsedtra)         ! Sum : Sediment burial tracers
     !--- oceanic tracers
-    real :: zocetratot(nocetra)      ! Sum : Ocean tracers
-    real :: zocetratoc(nocetra)      ! Mean concentration of ocean racers
+    real(rp) :: zocetratot(nocetra)      ! Sum : Ocean tracers
+    real(rp) :: zocetratoc(nocetra)      ! Mean concentration of ocean racers
     !--- additional ocean tracer
-    real :: zhito                    ! Total hydrogen ion tracer
-    real :: zco3to                   ! Total dissolved carbonate (CO3) tracer
-    real :: ODZvol                   ! ODZ volume (O2threshold: 20 mumol)
+    real(rp) :: zhito                    ! Total hydrogen ion tracer
+    real(rp) :: zco3to                   ! Total dissolved carbonate (CO3) tracer
+    real(rp) :: ODZvol                   ! ODZ volume (O2threshold: 20 mumol)
     !--- alkalinity of the first layer
-    real :: zvoltop                  ! Total volume of top ocean layer
-    real :: zalkali                  ! Total alkalinity of top ocean layer
-    real :: zphosph                  ! Total phosphate of top ocean layer
-    real :: zano3                    ! Total nitrate of top ocean layer
+    real(rp) :: zvoltop                  ! Total volume of top ocean layer
+    real(rp) :: zalkali                  ! Total alkalinity of top ocean layer
+    real(rp) :: zphosph                  ! Total phosphate of top ocean layer
+    real(rp) :: zano3                    ! Total nitrate of top ocean layer
     !--- river fluxes
-    real :: srivflux(nriv)           ! sum of riverfluxes
+    real(rp) :: srivflux(nriv)           ! sum of riverfluxes
     !--- atmosphere flux and atmospheric CO2
-    real :: sndepnoyflux             ! sum of N dep fluxes
-    real :: sndepnhxflux             ! sum of N dep fluxes
-    real :: zatmco2,zatmo2,zatmn2
-    real :: co2flux,so2flux,sn2flux,sn2oflux,snh3flux,sdmsflux
-    real :: zprorca,zprcaca,zsilpro
+    real(rp) :: sndepnoyflux             ! sum of N dep fluxes
+    real(rp) :: sndepnhxflux             ! sum of N dep fluxes
+    real(rp) :: zatmco2,zatmo2,zatmn2
+    real(rp) :: co2flux,so2flux,sn2flux,sn2oflux,snh3flux,sdmsflux
+    real(rp) :: zprorca,zprcaca,zsilpro
     !--- total tracer budgets
-    real :: totalcarbon,totalphos,totalsil,totalnitr,totaloxy
+    real(rp) :: totalcarbon,totalphos,totalsil,totalnitr,totaloxy
     !--- sediment fluxes
-    real :: sum_zprorca
-    real :: sum_zprcaca
-    real :: sum_zsilpro
-    real :: sum_sedfluxo(npowtra)
+    real(rp) :: sum_zprorca
+    real(rp) :: sum_zprcaca
+    real(rp) :: sum_zsilpro
+    real(rp) :: sum_sedfluxo(npowtra)
     !--- export production
-    real :: sum_expoor
-    real :: sum_expoca
-    real :: sum_exposi
+    real(rp) :: sum_expoor
+    real(rp) :: sum_expoca
+    real(rp) :: sum_exposi
 
     !=== aqueous sediment tracer
     !----------------------------------------------------------------------
@@ -553,13 +553,13 @@ contains
       !**** Sum 2D scalar fields
       !**********************************************************************
       implicit none
-      real, dimension(kpie,kpje), intent(in) :: var2d
-      real :: total
+      real(rp), dimension(kpie,kpje), intent(in) :: var2d
+      real(rp) :: total
 
       ! Local variables
       integer :: i,j
       !--- input to xcsum require halo indices
-      real, dimension(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy) :: ztmp
+      real(rp), dimension(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy) :: ztmp
 
       ztmp(:,:)=0.0_rp
       do j=1,kpje
@@ -577,13 +577,13 @@ contains
       !**********************************************************************
       implicit none
       integer, intent(in) :: narr
-      real, dimension(kpie,kpje,narr), intent(in) :: var3d
-      real, dimension(narr) :: total
+      real(rp), dimension(kpie,kpje,narr), intent(in) :: var3d
+      real(rp), dimension(narr) :: total
 
       ! Local variables
       integer :: i,j,k
       !--- input to xcsum require halo indices
-      real, dimension(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy) :: ztmp
+      real(rp), dimension(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy) :: ztmp
 
       ztmp(:,:)=0.0_rp
       do k=1,narr
@@ -760,7 +760,6 @@ contains
                                nf90_def_var, nf90_double, nf90_enddef, nf90_global,                &
                                nf90_inq_dimid, nf90_inq_varid, nf90_open,                          &
                                nf90_put_att, nf90_put_var, nf90_unlimited, nf90_write
-      use mod_types,     only: r8
       use mod_config,    only: expcnf, runid, inst_suffix
       use mod_time,      only: date0, time0, date, time, nstep, nday_of_year, nstep_in_day,        &
                                calendar, blom_time
@@ -792,7 +791,7 @@ contains
       character(len=30) :: timeunits
       integer :: l
       integer :: ymd, tod           ! used to access blom_time
-      real(r8) :: datenum
+      real(rp):: datenum
 
       !=== Variables for netcdf
       integer :: ncid, ncvarid, ncstat

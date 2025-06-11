@@ -75,7 +75,7 @@ module mo_extNsediment
           & ised_anmx_OM_prod,ised_remin_aerob,ised_remin_sulf,extNsed_diagnostics
 
   ! output
-  real, dimension (:,:,:,:), allocatable :: extNsed_diagnostics
+  real(rp), dimension (:,:,:,:), allocatable :: extNsed_diagnostics
   integer, parameter ::               &
              ised_nitr_NH4      = 1,  &
              ised_nitr_NO2      = 2,  &
@@ -92,8 +92,8 @@ module mo_extNsediment
              ised_remin_sulf    = 13, &
              n_seddiag          = 13
 
-  real :: eps    = epsilon(1._rp)
-  real :: minlim = 1.e-9_rp
+  real(rp) :: eps    = epsilon(1._rp)
+  real(rp) :: minlim = 1.e-9_rp
 
 contains
 
@@ -124,18 +124,18 @@ contains
   ! ================================================================================================================================
   subroutine sed_nitrification(j,kpie,kpje,kpke,kbnd,ptho,omask,ex_ddic,ex_dalk)
     integer, intent(in) :: j,kpie,kpje,kpke,kbnd
-    real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+    real(rp),intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
     ! for calculation of pore water DIC and alkalinity changes [P-units]!
-    real,    intent(inout) :: ex_ddic(kpie,ks)
-    real,    intent(inout) :: ex_dalk(kpie,ks)
+    real(rp),intent(inout) :: ex_ddic(kpie,ks)
+    real(rp),intent(inout) :: ex_dalk(kpie,ks)
 
     ! local variables
     integer :: i,k
 
-    real    :: Tdepanh4,O2limanh4,nut1lim,anh4new,potdnh4amox,fdetamox,fno2,fn2o,ftotnh4
-    real    :: Tdepano2,O2limano2,nut2lim,ano2new,potdno2nitr,fdetnitr,no2fn2o,no2fno2,no2fdetamox
-    real    :: amoxfrac,nitrfrac,totd,amox,nitr,temp,w2s
+    real(rp) :: Tdepanh4,O2limanh4,nut1lim,anh4new,potdnh4amox,fdetamox,fno2,fn2o,ftotnh4
+    real(rp) :: Tdepano2,O2limano2,nut2lim,ano2new,potdno2nitr,fdetnitr,no2fn2o,no2fno2,no2fdetamox
+    real(rp) :: amoxfrac,nitrfrac,totd,amox,nitr,temp,w2s
 
     do i = 1,kpie
       do k = 1,ks
@@ -241,15 +241,15 @@ contains
   ! ================================================================================================================================
   subroutine sed_denit_NO3_to_NO2(j,kpie,kpje,kpke,kbnd,ptho,omask,ex_ddic,ex_dalk)
     integer, intent(in) :: j,kpie,kpje,kpke,kbnd
-    real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+    real(rp),intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
     ! for calculation of pore water DIC and alkalinity changes [P-units]!
-    real,    intent(inout) :: ex_ddic(kpie,ks)
-    real,    intent(inout) :: ex_dalk(kpie,ks)
+    real(rp),intent(inout) :: ex_ddic(kpie,ks)
+    real(rp),intent(inout) :: ex_dalk(kpie,ks)
 
     ! local variables
-    integer :: i,k
-    real    :: Tdep,O2inhib,nutlim,ano3new,ano3denit,temp,s2w
+    integer  :: i,k
+    real(rp) :: Tdep,O2inhib,nutlim,ano3new,ano3denit,temp,s2w
 
     do i = 1,kpie
       do k = 1,ks
@@ -286,15 +286,15 @@ contains
   ! ================================================================================================================================
   subroutine sed_anammox(j,kpie,kpje,kpke,kbnd,ptho,omask,ex_ddic,ex_dalk)
     integer, intent(in) :: j,kpie,kpje,kpke,kbnd
-    real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+    real(rp),intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
     ! for calculation of pore water DIC and alkalinity changes [P-units]!
-    real,    intent(inout) :: ex_ddic(kpie,ks)
-    real,    intent(inout) :: ex_dalk(kpie,ks)
+    real(rp),intent(inout) :: ex_ddic(kpie,ks)
+    real(rp),intent(inout) :: ex_dalk(kpie,ks)
 
     ! local variables
     integer :: i,k
-    real    :: Tdep,O2inhib,nut1lim,nut2lim,ano2new,ano2anmx,temp,w2s
+    real(rp):: Tdep,O2inhib,nut1lim,nut2lim,ano2new,ano2anmx,temp,w2s
 
     do i = 1,kpie
       do k = 1,ks
@@ -339,19 +339,19 @@ contains
   ! ================================================================================================================================
   subroutine sed_denit_DNRA(j,kpie,kpje,kpke,kbnd,ptho,omask,ex_ddic,ex_dalk)
     integer, intent(in) :: j,kpie,kpje,kpke,kbnd
-    real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+    real(rp),intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
     ! for calculation of pore water DIC and alkalinity changes [P-units]!
-    real,    intent(inout) :: ex_ddic(kpie,ks)
-    real,    intent(inout) :: ex_dalk(kpie,ks)
+    real(rp),intent(inout) :: ex_ddic(kpie,ks)
+    real(rp),intent(inout) :: ex_dalk(kpie,ks)
 
     ! local variables
-    integer :: i,k
-    real    :: Tdepano2,O2inhibano2,nutlimano2,rpotano2denit,ano2denit
-    real    :: Tdepdnra,O2inhibdnra,nutlimdnra,rpotano2dnra,ano2dnra
-    real    :: fdenit,fdnra,potano2new,potdano2,potddet,fdetano2denit,fdetan2odenit,fdetdnra
-    real    :: Tdepan2o,O2inhiban2o,nutliman2o,an2onew,an2odenit
-    real    :: temp,s2w
+    integer  :: i,k
+    real(rp) :: Tdepano2,O2inhibano2,nutlimano2,rpotano2denit,ano2denit
+    real(rp) :: Tdepdnra,O2inhibdnra,nutlimdnra,rpotano2dnra,ano2dnra
+    real(rp) :: fdenit,fdnra,potano2new,potdano2,potddet,fdetano2denit,fdetan2odenit,fdetdnra
+    real(rp) :: Tdepan2o,O2inhiban2o,nutliman2o,an2onew,an2odenit
+    real(rp) :: temp,s2w
 
 
     do i = 1,kpie

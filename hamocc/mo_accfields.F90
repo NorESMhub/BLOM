@@ -184,19 +184,19 @@ contains
     integer , intent(in) :: kpie                  ! 1st dimension of model grid.
     integer , intent(in) :: kpje                  ! 2nd dimension of model grid.
     integer , intent(in) :: kpke                  ! 3rd (vertical) dimension of model grid.
-    real    , intent(in) :: pdlxp(kpie,kpje)      ! size of grid cell (1st dimension) [m].
-    real    , intent(in) :: pdlyp(kpie,kpje)      ! size of grid cell (2nd dimension) [m].
-    real    , intent(in) :: pddpo(kpie,kpje,kpke) ! size of grid cell (3rd dimension) [m].
-    real    , intent(in) :: omask(kpie,kpje)      ! land/ocean mask
+    real(rp), intent(in) :: pdlxp(kpie,kpje)      ! size of grid cell (1st dimension) [m].
+    real(rp), intent(in) :: pdlyp(kpie,kpje)      ! size of grid cell (2nd dimension) [m].
+    real(rp), intent(in) :: pddpo(kpie,kpje,kpke) ! size of grid cell (3rd dimension) [m].
+    real(rp), intent(in) :: omask(kpie,kpje)      ! land/ocean mask
 
     ! Local variables
-    integer :: i,j,k,l
-    integer :: ind1(kpie,kpje),ind2(kpie,kpje)
-    real    :: wghts(kpie,kpje,ddm)
-    real    :: di12C                   ! cisonew
-    real    :: d13C(kpie,kpje,kpke)    ! cisonew
-    real    :: d14C(kpie,kpje,kpke)    ! cisonew
-    real    :: bigd14C(kpie,kpje,kpke) ! cisonew
+    integer  :: i,j,k,l
+    integer  :: ind1(kpie,kpje),ind2(kpie,kpje)
+    real(rp) :: wghts(kpie,kpje,ddm)
+    real(rp) :: di12C                   ! cisonew
+    real(rp) :: d13C(kpie,kpje,kpke)    ! cisonew
+    real(rp) :: d14C(kpie,kpje,kpke)    ! cisonew
+    real(rp) :: bigd14C(kpie,kpje,kpke) ! cisonew
 
     if (use_cisonew) then
       ! Calculation d13C, d14C and Dd14C: Delta notation for output

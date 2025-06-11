@@ -25,8 +25,8 @@ contains
       integer :: ncid,ncvarid,ncstat,ncdims(2),nclatid,nclonid
       integer :: i,j
       integer :: start(2),count(2)
-      real    :: arr_g(itdm,jtdm)
-      real    :: arr_l(1-nbdy:idm+nbdy, 1-nbdy:jdm+nbdy, 1)
+      real(rp):: arr_g(itdm,jtdm)
+      real(rp):: arr_l(1-nbdy:idm+nbdy, 1-nbdy:jdm+nbdy, 1)
 
       if (mnproc==1) then
          write(lp,'(a)') 'creating netcdf file '//trim(filename)

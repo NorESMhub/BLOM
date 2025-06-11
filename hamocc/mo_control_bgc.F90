@@ -45,15 +45,14 @@ module mo_control_bgc
   character(len=:), allocatable, protected :: bgc_namelist
 
   ! Control variables
-  real    :: dtbgc                    !  time step length [sec].
-  real    :: dtb                      !  time step length [days].
-  integer :: ndtdaybgc                !  time steps per day.
+  real(rp) :: dtbgc                    !  time step length [sec].
+  real(rp) :: dtb                      !  time step length [days].
+  integer  :: ndtdaybgc                !  time steps per day.
+  integer  :: ldtbgc                   !  time step number from bgc restart file
+  integer  :: ldtrunbgc                !  actual time steps of run.
 
-  integer :: ldtbgc                   !  time step number from bgc restart file
-  integer :: ldtrunbgc                !  actual time steps of run.
-
-  real    :: rmasks = 0.0_rp             !  value at wet cells in sediment.
-  real    :: rmasko = 99999.00_rp        !  value at wet cells in ocean.
+  real(rp)    :: rmasks = 0.0_rp             !  value at wet cells in sediment.
+  real(rp)    :: rmasko = 99999.00_rp        !  value at wet cells in ocean.
 
   ! Variables set via namelist bgcnml
   logical           :: l_3Dvarsedpor          = .false. ! apply spatially variable sediment porosity

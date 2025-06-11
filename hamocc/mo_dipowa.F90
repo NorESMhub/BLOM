@@ -57,15 +57,15 @@ contains
 
     ! Arguments
     integer, intent(in) :: kpie, kpje, kpke
-    real,    intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: omask(kpie,kpje)
     logical, intent(in) :: lspin
 
     ! Local variables
-    integer :: i,j,k,l,iv
-    integer :: iv_oc                    ! index of ocetra in powtra loop
-    real    :: sedb1(kpie,0:ks,npowtra) ! ????
-    real    :: tredsy(kpie,0:kpke,3)    ! redsy for 'reduced system'?
-    real    :: aprior                   ! start value of oceanic tracer in bottom layer
+    integer  :: i,j,k,l,iv
+    integer  :: iv_oc                    ! index of ocetra in powtra loop
+    real(rp) :: sedb1(kpie,0:ks,npowtra) ! ????
+    real(rp) :: tredsy(kpie,0:kpke,3)    ! redsy for 'reduced system'?
+    real(rp) :: aprior                   ! start value of oceanic tracer in bottom layer
 
     !$OMP PARALLEL DO PRIVATE(i,k,iv,l,tredsy,sedb1,aprior,iv_oc)
     j_loop: do j=1,kpje

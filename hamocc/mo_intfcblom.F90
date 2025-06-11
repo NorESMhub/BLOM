@@ -26,6 +26,7 @@ module mo_intfcblom
   !  J.Schwinger,        *NORCE Climate, Bergen*    2020-05-19
   !*************************************************************************************************
 
+  use mo_kind,        only: rp
   use mo_control_bgc, only: use_sedbypass,use_BOXATM,use_sediment_quality
 
   implicit none
@@ -41,12 +42,12 @@ module mo_intfcblom
 
   integer, parameter, public :: nphys=2       ! number of bgc timesteps per ocean timestep.
 
-  real, allocatable, public  :: bgc_dx(:,:)    ! size of grid cell (longitudinal) [m].
-  real, allocatable, public  :: bgc_dy(:,:)    ! size of grid cell (latitudinal) [m].
-  real, allocatable, public  :: bgc_dp(:,:,:)  ! size of grid cell (depth) [m].
-  real, allocatable, public  :: bgc_rho(:,:,:) ! sea water density [kg/m^3].
+  real(rp), allocatable, public  :: bgc_dx(:,:)    ! size of grid cell (longitudinal) [m].
+  real(rp), allocatable, public  :: bgc_dy(:,:)    ! size of grid cell (latitudinal) [m].
+  real(rp), allocatable, public  :: bgc_dp(:,:,:)  ! size of grid cell (depth) [m].
+  real(rp), allocatable, public  :: bgc_rho(:,:,:) ! sea water density [kg/m^3].
 
-  real, allocatable, public :: omask(:,:)     ! land ocean mask.
+  real(rp), allocatable, public :: omask(:,:)     ! land ocean mask.
 
   ! The following arrays are used to keep a two time-level copy of sediment
   ! and prognostic atmosphere fields. These arrays are copied back and forth
@@ -54,13 +55,13 @@ module mo_intfcblom
   ! Also, they written/read to and from restart files:
 
   ! Two time-level copy of sediment fields
-  real, allocatable, public :: sedlay2(:,:,:,:)
-  real, allocatable, public :: powtra2(:,:,:,:)
-  real, allocatable, public :: burial2(:,:,:,:)
-  real, allocatable, public :: prorca_mavg2(:,:,:)
+  real(rp), allocatable, public :: sedlay2(:,:,:,:)
+  real(rp), allocatable, public :: powtra2(:,:,:,:)
+  real(rp), allocatable, public :: burial2(:,:,:,:)
+  real(rp), allocatable, public :: prorca_mavg2(:,:,:)
 
   ! Two time level copy of prognostic atmosphere field used if BOXATM is activated
-  real, allocatable, public :: atm2(:,:,:,:)
+  real(rp), allocatable, public :: atm2(:,:,:,:)
 
 contains
 
@@ -73,7 +74,6 @@ contains
     !******************************************************************************
 
     use mod_xc,         only: mnproc
-    use mo_kind,        only: rp
     use mo_control_bgc, only: io_stdo_bgc
     use mo_param1_bgc,  only: ks,nsedtra,npowtra,natm
 
@@ -218,7 +218,6 @@ contains
     use mod_eos,       only: rho,p_alpha
     use mod_difest,    only: hOBL
     use mod_tracers,   only: ntrbgc,itrbgc,trc
-    use mo_kind,       only: rp
     use mo_param1_bgc, only: ks,nsedtra,npowtra,natm
     use mo_carbch,     only: ocetra,atm
     use mo_sedmnt,     only: sedlay,powtra,sedhpl,burial,prorca_mavg
@@ -229,8 +228,8 @@ contains
 
     ! Local variables
     integer :: i,j,k,l,nns,kn
-    real    :: p1,p2,ldp,th,s,pa
-    real    :: rpr(idm,jdm,kdm+1)
+    real(rp):: p1,p2,ldp,th,s,pa
+    real(rp):: rpr(idm,jdm,kdm+1)
 
     nns=(n-1)*ks
 

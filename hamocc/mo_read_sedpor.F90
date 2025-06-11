@@ -54,12 +54,12 @@ contains
     integer, intent(in)    :: kpie
     integer, intent(in)    :: kpje
     integer, intent(in)    :: ks
-    real,    intent(in)    :: omask(kpie,kpje)
-    real,    intent(inout) :: sed_por(kpie,kpje,ks)
+    real(rp),intent(in)    :: omask(kpie,kpje)
+    real(rp),intent(inout) :: sed_por(kpie,kpje,ks)
 
     !local variables
     integer :: i,j,k
-    real    :: sed_por_in(kpie,kpje,ks)
+    real(rp):: sed_por_in(kpie,kpje,ks)
     logical :: file_exists = .false.
     integer :: ncid,ncstat
 

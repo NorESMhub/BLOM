@@ -43,42 +43,42 @@ module mo_sedmnt
   private :: ini_sedmnt_por    ! Initialize 2D and 3D sediment fields
 
   ! Module variables
-  real, protected, public :: dzs(ksp)    = 0.0_rp
-  real, protected, public :: seddzi(ksp) = 0.0_rp
-  real, protected, public :: seddw(ks)   = 0.0_rp
+  real(rp), protected, public :: dzs(ksp)    = 0.0_rp
+  real(rp), protected, public :: seddzi(ksp) = 0.0_rp
+  real(rp), protected, public :: seddw(ks)   = 0.0_rp
 
-  real, dimension (:,:,:,:), allocatable, public :: sedlay
-  real, dimension (:,:,:,:), allocatable, public :: powtra
-  real, dimension (:,:,:),   allocatable, public :: sedhpl
-  real, dimension (:,:,:),   allocatable, public :: porsol
-  real, dimension (:,:,:),   allocatable, public :: porwah
-  real, dimension (:,:,:),   allocatable, public :: porwat
-  real, dimension (:,:),     allocatable, public :: solfu
-  real, dimension (:,:,:),   allocatable, public :: zcoefsu
-  real, dimension (:,:,:),   allocatable, public :: zcoeflo
+  real(rp), dimension (:,:,:,:), allocatable, public :: sedlay
+  real(rp), dimension (:,:,:,:), allocatable, public :: powtra
+  real(rp), dimension (:,:,:),   allocatable, public :: sedhpl
+  real(rp), dimension (:,:,:),   allocatable, public :: porsol
+  real(rp), dimension (:,:,:),   allocatable, public :: porwah
+  real(rp), dimension (:,:,:),   allocatable, public :: porwat
+  real(rp), dimension (:,:),     allocatable, public :: solfu
+  real(rp), dimension (:,:,:),   allocatable, public :: zcoefsu
+  real(rp), dimension (:,:,:),   allocatable, public :: zcoeflo
 
-  real, dimension (:,:),     allocatable, public :: silpro
-  real, dimension (:,:),     allocatable, public :: prorca
-  real, dimension (:,:),     allocatable, public :: prorca_mavg
-  real, dimension (:,:),     allocatable, public :: pror13
-  real, dimension (:,:),     allocatable, public :: prca13
-  real, dimension (:,:),     allocatable, public :: pror14
-  real, dimension (:,:),     allocatable, public :: prca14
-  real, dimension (:,:),     allocatable, public :: prcaca
-  real, dimension (:,:),     allocatable, public :: produs
-  real, dimension (:,:,:),   allocatable, public :: burial
+  real(rp), dimension (:,:),     allocatable, public :: silpro
+  real(rp), dimension (:,:),     allocatable, public :: prorca
+  real(rp), dimension (:,:),     allocatable, public :: prorca_mavg
+  real(rp), dimension (:,:),     allocatable, public :: pror13
+  real(rp), dimension (:,:),     allocatable, public :: prca13
+  real(rp), dimension (:,:),     allocatable, public :: pror14
+  real(rp), dimension (:,:),     allocatable, public :: prca14
+  real(rp), dimension (:,:),     allocatable, public :: prcaca
+  real(rp), dimension (:,:),     allocatable, public :: produs
+  real(rp), dimension (:,:,:),   allocatable, public :: burial
 
   ! Output diagnostics
-  real, dimension (:,:,:),   allocatable, public :: sed_rem_aerob
-  real, dimension (:,:,:),   allocatable, public :: sed_rem_denit
-  real, dimension (:,:,:),   allocatable, public :: sed_rem_sulf
+  real(rp), dimension (:,:,:),   allocatable, public :: sed_rem_aerob
+  real(rp), dimension (:,:,:),   allocatable, public :: sed_rem_denit
+  real(rp), dimension (:,:,:),   allocatable, public :: sed_rem_sulf
 
   ! values for sediment quality-driven remineralization
-  real, dimension(:,:,:),    allocatable, public :: sed_reactivity_a
-  real, dimension(:,:,:),    allocatable, public :: sed_reactivity_k
-  real, dimension(:,:,:),    allocatable, public :: sed_applied_reminrate
+  real(rp), dimension(:,:,:),    allocatable, public :: sed_reactivity_a
+  real(rp), dimension(:,:,:),    allocatable, public :: sed_reactivity_k
+  real(rp), dimension(:,:,:),    allocatable, public :: sed_applied_reminrate
 
-  real, protected, public :: calfa, oplfa, orgfa, clafa
+  real(rp), protected, public :: calfa, oplfa, orgfa, clafa
 
 CONTAINS
 
@@ -89,10 +89,10 @@ CONTAINS
 
     ! Arguments
     integer, intent(in) :: kpie,kpje
-    real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: sed_por(kpie,kpje,ks)
-    real,    intent(in) :: sed_POCage_init(kpie,kpje,ks)
-    real,    intent(in) :: prorca_mavg_init(kpie,kpje)
+    real(rp),intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: sed_por(kpie,kpje,ks)
+    real(rp),intent(in) :: sed_POCage_init(kpie,kpje,ks)
+    real(rp),intent(in) :: prorca_mavg_init(kpie,kpje)
 
     ! Local variables
     integer :: k
@@ -155,8 +155,8 @@ CONTAINS
 
     ! Arguments
     integer, intent(in) :: kpie,kpje
-    real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: sed_por(kpie,kpje,ks)
+    real(rp),intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: sed_por(kpie,kpje,ks)
 
     ! local
     integer :: i,j,k
@@ -243,9 +243,9 @@ CONTAINS
     implicit none
     ! Arguments
     integer, intent(in) :: kpie,kpje
-    real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: sed_POCage_init(kpie,kpje,ks)
-    real,    intent(in) :: prorca_mavg_init(kpie,kpje)
+    real(rp),intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: sed_POCage_init(kpie,kpje,ks)
+    real(rp),intent(in) :: prorca_mavg_init(kpie,kpje)
 
     ! Local variables
     integer :: i,j,k

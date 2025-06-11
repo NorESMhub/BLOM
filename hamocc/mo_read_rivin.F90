@@ -64,17 +64,17 @@ module mo_read_rivin
 
   ! File name (incl. full path) for input data, set through namelist in mo_hamocc_init
   character(len=bgc_fnmlen), public :: rivinfile = ''
-  real, allocatable,  public :: rivflx(:,:,:) ! holds input data as read from file
+  real(rp), allocatable,  public :: rivflx(:,:,:) ! holds input data as read from file
 
   ! arrays for reading riverine inputs on the model grid
-  real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DIN2d
-  real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DIP2d
-  real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DSI2d
-  real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DIC2d
-  real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DFe2d
-  real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_idet2d
-  real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_idoc2d
-  real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_itdoc2d
+  real(rp), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DIN2d
+  real(rp), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DIP2d
+  real(rp), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DSI2d
+  real(rp), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DIC2d
+  real(rp), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DFe2d
+  real(rp), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_idet2d
+  real(rp), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_idoc2d
+  real(rp), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_itdoc2d
 
 contains
 
@@ -93,7 +93,7 @@ contains
     ! Arguments
     integer,  intent(in) :: kpie             ! 1st dimension of model grid.
     integer , intent(in) :: kpje             ! 2nd dimension of model grid.
-    real,     intent(in) :: omask(kpie,kpje) ! ocean mask
+    real(rp), intent(in) :: omask(kpie,kpje) ! ocean mask
 
     ! local variables
     integer :: i,j,errstat,dummymask(2)

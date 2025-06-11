@@ -31,22 +31,22 @@ module mo_carchm
   integer, parameter :: niter=20
 
   ! Accuracy for test of convergence in carbon chemistry solver
-  real, parameter :: eps=5.e-5_rp
+  real(rp), parameter :: eps=5.e-5_rp
 
   ! Avoid division by zero
-  real, parameter :: eps_safe = epsilon(1._rp)
+  real(rp), parameter :: eps_safe = epsilon(1._rp)
 
   ! Minimum and maximum SST/SSS set for carbon chemistry and gas exchange calculations
-  real, parameter :: temp_min = -1.0_rp
-  real, parameter :: temp_max = 40.0_rp
-  real, parameter :: saln_min =  5.0_rp
-  real, parameter :: saln_max = 40.0_rp
+  real(rp), parameter :: temp_min = -1.0_rp
+  real(rp), parameter :: temp_max = 40.0_rp
+  real(rp), parameter :: saln_min =  5.0_rp
+  real(rp), parameter :: saln_max = 40.0_rp
 
   ! Minimum and maximum H+ concentrations allowed in the iterative carbon chemistry solver
   ! The values set below (corresponding to pH 5 and 11) should never be reached in any resonable 
   ! oceanographic context
-  real, parameter :: ah_min = 1.0e-11_rp
-  real, parameter :: ah_max = 1.0e-5_rp
+  real(rp), parameter :: ah_min = 1.0e-11_rp
+  real(rp), parameter :: ah_max = 1.0e-5_rp
 
 contains
 
@@ -117,47 +117,47 @@ contains
     integer, intent(in) :: kpje                                              ! 2nd dimension of model grid.
     integer, intent(in) :: kpke                                              ! 3rd (vertical) dimension of model grid.
     integer, intent(in) :: kbnd                                              ! nb of halo grid points
-    real,    intent(in) :: pdlxp(kpie,kpje)                                  ! size of grid cell (1st dimension) [m].
-    real,    intent(in) :: pdlyp(kpie,kpje)                                  ! size of grid cell (2nd dimension) [m].
-    real,    intent(in) :: pddpo(kpie,kpje,kpke)                             ! size of grid cell (3rd dimension) [m].
-    real,    intent(in) :: prho(kpie,kpje,kpke)                              ! density [g/cm^3].
-    real,    intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)          ! latitude of grid cells [deg north].
-    real,    intent(in) :: omask(kpie,kpje)                                  ! ocean mask.
-    real,    intent(in) :: psicomo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)        ! sea ice.
-    real,    intent(in) :: ppao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)           ! sea level pressure [pascal].
-    real,    intent(in) :: pfu10(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)          ! forcing field wind speed.
-    real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)      ! potential temperature.
-    real,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)      ! salinity [psu].
+    real(rp),intent(in) :: pdlxp(kpie,kpje)                                  ! size of grid cell (1st dimension) [m].
+    real(rp),intent(in) :: pdlyp(kpie,kpje)                                  ! size of grid cell (2nd dimension) [m].
+    real(rp),intent(in) :: pddpo(kpie,kpje,kpke)                             ! size of grid cell (3rd dimension) [m].
+    real(rp),intent(in) :: prho(kpie,kpje,kpke)                              ! density [g/cm^3].
+    real(rp),intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)          ! latitude of grid cells [deg north].
+    real(rp),intent(in) :: omask(kpie,kpje)                                  ! ocean mask.
+    real(rp),intent(in) :: psicomo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)        ! sea ice.
+    real(rp),intent(in) :: ppao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)           ! sea level pressure [pascal].
+    real(rp),intent(in) :: pfu10(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)          ! forcing field wind speed.
+    real(rp),intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)      ! potential temperature.
+    real(rp),intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)      ! salinity [psu].
 
     ! Local variables
-    integer :: i,j,k,l,js
-    real    :: supsat, undsa, dissol
-    real    :: rpp0,fluxd,fluxu
-    real    :: kwco2,kwo2,kwn2,kwdms,kwn2o
-    real    :: scco2,sco2,scn2,scdms,scn2o
-    real    :: xconvxa
-    real    :: oxflux,niflux,dmsflux,n2oflux
-    real    :: ato2,atn2,atco2,atn2o
-    real    :: oxy,ani,anisa
-    real    :: rrho,t,t2,t3,t4,tk,tk100,prb,s,rs
-    real    :: Kh0,K1,K2,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,Kspa
-    real    :: tc,ta,sit,pt,ah1,ac,cu,cu_sat,cb,cc,tc_sat
-    real    :: Bvir,delta,fc,pH2O,omega
-    real    :: atm_cfc11,atm_cfc12,atm_sf6,fact                    ! CFC
-    real    :: sch_11,sch_12,sch_sf,kw_11,kw_12,kw_sf              ! CFC
-    real    :: flx11,flx12,flxsf,a_11,a_12,a_sf                    ! CFC
-    real    :: natcu,natcu_sat,natcb,natcc                         ! natDIC
-    real    :: natfluxd,natfluxu,natomega                          ! natDIC
-    real    :: natsupsat,natundsa,natdissol                        ! natDIC
-    real    :: rco213,rco214                                       ! cisonew
-    real    :: dissol13,dissol14,cu13,cu14,cu_sat13,cu_sat14       ! cisonew
-    real    :: flux14d,flux14u,flux13d,flux13u                     ! cisonew
-    real    :: atco213,atco214                                     ! cisonew
-    real    :: frac_k,frac_aqg,frac_dicg                           ! cisonew
-    real    :: flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub ! BROMO
+    integer     :: i,j,k,l,js
+    real(rp)    :: supsat, undsa, dissol
+    real(rp)    :: rpp0,fluxd,fluxu
+    real(rp)    :: kwco2,kwo2,kwn2,kwdms,kwn2o
+    real(rp)    :: scco2,sco2,scn2,scdms,scn2o
+    real(rp)    :: xconvxa
+    real(rp)    :: oxflux,niflux,dmsflux,n2oflux
+    real(rp)    :: ato2,atn2,atco2,atn2o
+    real(rp)    :: oxy,ani,anisa
+    real(rp)    :: rrho,t,t2,t3,t4,tk,tk100,prb,s,rs
+    real(rp)    :: Kh0,K1,K2,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,Kspa
+    real(rp)    :: tc,ta,sit,pt,ah1,ac,cu,cu_sat,cb,cc,tc_sat
+    real(rp)    :: Bvir,delta,fc,pH2O,omega
+    real(rp)    :: atm_cfc11,atm_cfc12,atm_sf6,fact                    ! CFC
+    real(rp)    :: sch_11,sch_12,sch_sf,kw_11,kw_12,kw_sf              ! CFC
+    real(rp)    :: flx11,flx12,flxsf,a_11,a_12,a_sf                    ! CFC
+    real(rp)    :: natcu,natcu_sat,natcb,natcc                         ! natDIC
+    real(rp)    :: natfluxd,natfluxu,natomega                          ! natDIC
+    real(rp)    :: natsupsat,natundsa,natdissol                        ! natDIC
+    real(rp)    :: rco213,rco214                                       ! cisonew
+    real(rp)    :: dissol13,dissol14,cu13,cu14,cu_sat13,cu_sat14       ! cisonew
+    real(rp)    :: flux14d,flux14u,flux13d,flux13u                     ! cisonew
+    real(rp)    :: atco213,atco214                                     ! cisonew
+    real(rp)    :: frac_k,frac_aqg,frac_dicg                           ! cisonew
+    real(rp)    :: flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub ! BROMO
     ! extNcycle
-    real    :: flx_nh3,sch_nh3_a,sch_nh3_w,kw_nh3,ka_nh3,atnh3,diff_nh3_a,diff_nh3_w,mu_air,mu_w,p_dbar,rho_air
-    real    :: h_nh3,hstar_nh3,pKa_nh3,Kh_nh3,cD_wind,u_star
+    real(rp)    :: flx_nh3,sch_nh3_a,sch_nh3_w,kw_nh3,ka_nh3,atnh3,diff_nh3_a,diff_nh3_w,mu_air,mu_w,p_dbar,rho_air
+    real(rp)    :: h_nh3,hstar_nh3,pKa_nh3,Kh_nh3,cD_wind,u_star
 
 
     ! set variables for diagnostic output to zero
@@ -738,30 +738,30 @@ contains
                           bd1,bd2,bd3,a0,a1,a2,b0,b1,b2
 
     ! Arguments
-    real,    intent(in)    :: temp   ! potential temperature [degr C].
-    real,    intent(in)    :: saln   ! salinity [psu].
-    real,    intent(in)    :: prb    ! pressure [bar].
-    real,    intent(out)   :: Kh0    ! equilibrium constant Kh0 = [CO2]/fCO2, moist air.
-    real,    intent(out)   :: K1     ! equilibrium constant K1  = [H][HCO3]/[H2CO3].
-    real,    intent(out)   :: K2     ! equilibrium constant K2  = [H][CO3]/[HCO3].
-    real,    intent(out)   :: Kb     ! equilibrium constant Kb  = [H][BO2]/[HBO2].
-    real,    intent(out)   :: Kw     ! equilibrium constant Kw  = [H][OH].
-    real,    intent(out)   :: Ks1    ! equilibrium constant Ks1 = [H][SO4]/[HSO4].
-    real,    intent(out)   :: Kf     ! equilibrium constant Kf  = [H][F]/[HF].
-    real,    intent(out)   :: Ksi    ! equilibrium constant Ksi = [H][SiO(OH)3]/[Si(OH)4].
-    real,    intent(out)   :: K1p    ! equilibrium constant K1p = [H][H2PO4]/[H3PO4].
-    real,    intent(out)   :: K2p    ! equilibrium constant K2p = [H][HPO4]/[H2PO4].
-    real,    intent(out)   :: K3p    ! equilibrium constant K3p = [H][PO4]/[HPO4].
-    real,    intent(out)   :: Kspc   ! equilibrium constant Kspc= [Ca2+]T [CO3]T.
-    real,    intent(out)   :: Kspa   ! equilibrium constant Kspa= [Ca2+]T [CO3]T.
+    real(rp),    intent(in)    :: temp   ! potential temperature [degr C].
+    real(rp),    intent(in)    :: saln   ! salinity [psu].
+    real(rp),    intent(in)    :: prb    ! pressure [bar].
+    real(rp),    intent(out)   :: Kh0    ! equilibrium constant Kh0 = [CO2]/fCO2, moist air.
+    real(rp),    intent(out)   :: K1     ! equilibrium constant K1  = [H][HCO3]/[H2CO3].
+    real(rp),    intent(out)   :: K2     ! equilibrium constant K2  = [H][CO3]/[HCO3].
+    real(rp),    intent(out)   :: Kb     ! equilibrium constant Kb  = [H][BO2]/[HBO2].
+    real(rp),    intent(out)   :: Kw     ! equilibrium constant Kw  = [H][OH].
+    real(rp),    intent(out)   :: Ks1    ! equilibrium constant Ks1 = [H][SO4]/[HSO4].
+    real(rp),    intent(out)   :: Kf     ! equilibrium constant Kf  = [H][F]/[HF].
+    real(rp),    intent(out)   :: Ksi    ! equilibrium constant Ksi = [H][SiO(OH)3]/[Si(OH)4].
+    real(rp),    intent(out)   :: K1p    ! equilibrium constant K1p = [H][H2PO4]/[H3PO4].
+    real(rp),    intent(out)   :: K2p    ! equilibrium constant K2p = [H][HPO4]/[H2PO4].
+    real(rp),    intent(out)   :: K3p    ! equilibrium constant K3p = [H][PO4]/[HPO4].
+    real(rp),    intent(out)   :: Kspc   ! equilibrium constant Kspc= [Ca2+]T [CO3]T.
+    real(rp),    intent(out)   :: Kspa   ! equilibrium constant Kspa= [Ca2+]T [CO3]T.
 
     ! Local varibles
     integer                :: js
-    real                   :: tk,tk100,invtk,dlogtk
-    real                   :: t,s,is,is2,sqrtis,s15,s2,sqrts,scl
-    real                   :: pK01,pK02
-    real                   :: nKhwe74,deltav,deltak,zprb,zprb2
-    real                   :: lnkpok0(11)
+    real(rp)                   :: tk,tk100,invtk,dlogtk
+    real(rp)                   :: t,s,is,is2,sqrtis,s15,s2,sqrts,scl
+    real(rp)                   :: pK01,pK02
+    real(rp)                   :: nKhwe74,deltav,deltak,zprb,zprb2
+    real(rp)                   :: lnkpok0(11)
 
     t = min(temp_max,max(temp_min,temp))
     s = min(saln_max,max(saln_min,saln))
@@ -874,28 +874,28 @@ contains
     use mo_chemcon, only: bor1,bor2,salchl
 
     ! Arguments
-    real,    intent(in)    :: saln  ! salinity [psu].
-    real,    intent(in)    :: tc    ! total DIC concentraion [mol/kg].
-    real,    intent(in)    :: ta    ! total alkalinity [eq/kg].
-    real,    intent(in)    :: sit   ! silicate concentration [mol/kg].
-    real,    intent(in)    :: pt    ! phosphate concentration [mol/kg].
-    real,    intent(in)    :: K1    ! equilibrium constant K1  = [H][HCO3]/[H2CO3].
-    real,    intent(in)    :: K2    ! equilibrium constant K2  = [H][CO3]/[HCO3].
-    real,    intent(in)    :: Kb    ! equilibrium constant Kb  = [H][BO2]/[HBO2].
-    real,    intent(in)    :: Kw    ! equilibrium constant Kw  = [H][OH].
-    real,    intent(in)    :: Ks1   ! equilibrium constant Ks1 = [H][SO4]/[HSO4].
-    real,    intent(in)    :: Kf    ! equilibrium constant Kf  = [H][F]/[HF].
-    real,    intent(in)    :: Ksi   ! equilibrium constant Ksi = [H][SiO(OH)3]/[Si(OH)4].
-    real,    intent(in)    :: K1p   ! equilibrium constant K1p = [H][H2PO4]/[H3PO4].
-    real,    intent(in)    :: K2p   ! equilibrium constant K2p = [H][HPO4]/[H2PO4].
-    real,    intent(in)    :: K3p   ! equilibrium constant K3p = [H][PO4]/[HPO4].
-    real,    intent(inout) :: ah1   ! hydrogen ion concentration.
-    real,    intent(out)   :: ac    ! carbonate alkalinity.
+    real(rp),    intent(in)    :: saln  ! salinity [psu].
+    real(rp),    intent(in)    :: tc    ! total DIC concentraion [mol/kg].
+    real(rp),    intent(in)    :: ta    ! total alkalinity [eq/kg].
+    real(rp),    intent(in)    :: sit   ! silicate concentration [mol/kg].
+    real(rp),    intent(in)    :: pt    ! phosphate concentration [mol/kg].
+    real(rp),    intent(in)    :: K1    ! equilibrium constant K1  = [H][HCO3]/[H2CO3].
+    real(rp),    intent(in)    :: K2    ! equilibrium constant K2  = [H][CO3]/[HCO3].
+    real(rp),    intent(in)    :: Kb    ! equilibrium constant Kb  = [H][BO2]/[HBO2].
+    real(rp),    intent(in)    :: Kw    ! equilibrium constant Kw  = [H][OH].
+    real(rp),    intent(in)    :: Ks1   ! equilibrium constant Ks1 = [H][SO4]/[HSO4].
+    real(rp),    intent(in)    :: Kf    ! equilibrium constant Kf  = [H][F]/[HF].
+    real(rp),    intent(in)    :: Ksi   ! equilibrium constant Ksi = [H][SiO(OH)3]/[Si(OH)4].
+    real(rp),    intent(in)    :: K1p   ! equilibrium constant K1p = [H][H2PO4]/[H3PO4].
+    real(rp),    intent(in)    :: K2p   ! equilibrium constant K2p = [H][HPO4]/[H2PO4].
+    real(rp),    intent(in)    :: K3p   ! equilibrium constant K3p = [H][PO4]/[HPO4].
+    real(rp),    intent(inout) :: ah1   ! hydrogen ion concentration.
+    real(rp),    intent(out)   :: ac    ! carbonate alkalinity.
 
     ! Local variables
     integer :: jit
-    real    :: s,scl,borat,sti,ft
-    real    :: hso4,hf,hsi,hpo4,ab,aw,ah2o,ah2,erel
+    real(rp)    :: s,scl,borat,sti,ft
+    real(rp)    :: hso4,hf,hsi,hpo4,ab,aw,ah2o,ah2,erel
 
     ! Calculate concentrations for borate, sulfate, and fluoride; see Dickson, A.G.,
     ! Sabine, C.L. and Christian, J.R. (Eds.) 2007. Guide to best practices
@@ -941,29 +941,29 @@ contains
 
     use mo_chemcon, only: bor1,bor2,salchl
 
-    real,    intent(in)  :: saln    ! salinity [psu].
-    real,    intent(in)  :: co2_sat ! saturation concentraion of dissoveld CO2 [mol/kg].
-    real,    intent(in)  :: ta      ! total alkalinity [eq/kg].
-    real,    intent(in)  :: sit     ! silicate concentration [mol/kg].
-    real,    intent(in)  :: pt      ! phosphate concentration [mol/kg].
-    real,    intent(in)  :: Kh0     ! equilibrium constant Kh0 = [H2CO3]/fCO2.
-    real,    intent(in)  :: K1      ! equilibrium constant K1  = [H][HCO3]/[H2CO3].
-    real,    intent(in)  :: K2      ! equilibrium constant K2  = [H][CO3]/[HCO3].
-    real,    intent(in)  :: Kb      ! equilibrium constant Kb  = [H][BO2]/[HBO2].
-    real,    intent(in)  :: Kw      ! equilibrium constant Kw  = [H][OH].
-    real,    intent(in)  :: Ks1     ! equilibrium constant Ks1 = [H][SO4]/[HSO4].
-    real,    intent(in)  :: Kf      ! equilibrium constant Kf  = [H][F]/[HF].
-    real,    intent(in)  :: Ksi     ! equilibrium constant Ksi = [H][SiO(OH)3]/[Si(OH)4].
-    real,    intent(in)  :: K1p     ! equilibrium constant K1p = [H][H2PO4]/[H3PO4].
-    real,    intent(in)  :: K2p     ! equilibrium constant K2p = [H][HPO4]/[H2PO4].
-    real,    intent(in)  :: K3p     ! equilibrium constant K3p = [H][PO4]/[HPO4].
-    real,    intent(out) :: tc_sat  ! saturated total DIC concentration [mol/kg].
+    real(rp),    intent(in)  :: saln    ! salinity [psu].
+    real(rp),    intent(in)  :: co2_sat ! saturation concentraion of dissoveld CO2 [mol/kg].
+    real(rp),    intent(in)  :: ta      ! total alkalinity [eq/kg].
+    real(rp),    intent(in)  :: sit     ! silicate concentration [mol/kg].
+    real(rp),    intent(in)  :: pt      ! phosphate concentration [mol/kg].
+    real(rp),    intent(in)  :: Kh0     ! equilibrium constant Kh0 = [H2CO3]/fCO2.
+    real(rp),    intent(in)  :: K1      ! equilibrium constant K1  = [H][HCO3]/[H2CO3].
+    real(rp),    intent(in)  :: K2      ! equilibrium constant K2  = [H][CO3]/[HCO3].
+    real(rp),    intent(in)  :: Kb      ! equilibrium constant Kb  = [H][BO2]/[HBO2].
+    real(rp),    intent(in)  :: Kw      ! equilibrium constant Kw  = [H][OH].
+    real(rp),    intent(in)  :: Ks1     ! equilibrium constant Ks1 = [H][SO4]/[HSO4].
+    real(rp),    intent(in)  :: Kf      ! equilibrium constant Kf  = [H][F]/[HF].
+    real(rp),    intent(in)  :: Ksi     ! equilibrium constant Ksi = [H][SiO(OH)3]/[Si(OH)4].
+    real(rp),    intent(in)  :: K1p     ! equilibrium constant K1p = [H][H2PO4]/[H3PO4].
+    real(rp),    intent(in)  :: K2p     ! equilibrium constant K2p = [H][HPO4]/[H2PO4].
+    real(rp),    intent(in)  :: K3p     ! equilibrium constant K3p = [H][PO4]/[HPO4].
+    real(rp),    intent(out) :: tc_sat  ! saturated total DIC concentration [mol/kg].
 
     ! Local varibles
     integer :: jit
-    real    :: s,scl,borat,sti,ft
-    real    :: hso4,hf,hsi,hpo4,ab,aw,ah2o,ah2,erel
-    real    :: hco3_sat,co3_sat,ah1,ac
+    real(rp)    :: s,scl,borat,sti,ft
+    real(rp)    :: hso4,hf,hsi,hpo4,ab,aw,ah2o,ah2,erel
+    real(rp)    :: hco3_sat,co3_sat,ah1,ac
 
     ! Calculate concentrations for borate, sulfate, and fluoride; see Dickson, A.G.,
     ! Sabine, C.L. and Christian, J.R. (Eds.) 2007. Guide to best practices

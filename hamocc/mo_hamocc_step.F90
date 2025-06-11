@@ -57,10 +57,10 @@ contains
     integer, intent(in) :: m,n,mm,nn,k1m,k1n
 
     ! Local variables
-    integer :: l,ldtday
-    real    :: ndep(idm,jdm,nndep)
-    real    :: dust(idm,jdm,ndust)
-    real    :: oafx(idm,jdm)
+    integer  :: l,ldtday
+    real(rp) :: ndep(idm,jdm,nndep)
+    real(rp) :: dust(idm,jdm,ndust)
+    real(rp) :: oafx(idm,jdm)
 
     call ini_bgctimes(nday_in_year) ! update days per year (leap years, restart)
 

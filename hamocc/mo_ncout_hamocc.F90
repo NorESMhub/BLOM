@@ -250,7 +250,7 @@ contains
     character(len=bgc_fnmlen), save :: fname(nbgcmax)
     character(len=20)        :: startdate
     character(len=30)        :: timeunits
-    real                     :: datenum,rnacc
+    real(rp)                 :: datenum,rnacc
     integer,dimension(2,2)   :: dummy
 
     data append2file /nbgcmax*.false./
@@ -278,7 +278,7 @@ contains
          &   filemon_bgc(iogrp).and.date%day.eq.1).and.                         &
          &   mod(nstep,nstep_in_day).eq.0).or.                                  &
          &   .not.(fileann_bgc(iogrp).or.filemon_bgc(iogrp)).and.               &
-         &   mod(nstep+.5,filefq_bgc(iogrp)).lt.1._rp) then
+         &   mod(nstep+.5_rp,filefq_bgc(iogrp)).lt.1._rp) then
       append2file(iogrp)=.false.
     endif
 

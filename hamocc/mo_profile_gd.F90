@@ -56,15 +56,15 @@ contains
 
     ! Arguments
     integer, intent(in) :: kpie,kpje,kpke,kbnd
-    real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: pglon(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-    real,    intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+    real(rp),intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: pglon(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+    real(rp),intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
 
     ! Local variables
     integer             :: i,j,k,l,ll,n
     integer             :: idx,izmax
-    real                :: prf(nzmax),wgt(nzmax),zbnds(2,nzmax),clon,clat
-    real,     parameter :: dxy = 5.0_rp ! Extent of "smoothing region"
+    real(rp)            :: prf(nzmax),wgt(nzmax),zbnds(2,nzmax),clon,clat
+    real(rp), parameter :: dxy = 5.0_rp ! Extent of "smoothing region"
     integer,  parameter :: nread_base = 6 ! Number of fields to read
     integer,  parameter :: nread_ndic = 2 ! Number of fields to read
     integer,  parameter :: nread_ciso = 2 ! Number of fields to read

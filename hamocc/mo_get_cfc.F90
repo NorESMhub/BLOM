@@ -37,15 +37,15 @@ contains
 
     ! Arguments
     integer, intent(in)  :: kplyear
-    real,    intent(out) :: atm_cfc11_nh,atm_cfc12_nh,atm_sf6_nh
-    real,    intent(out) :: atm_cfc11_sh,atm_cfc12_sh,atm_sf6_sh
+    real(rp),intent(out) :: atm_cfc11_nh,atm_cfc12_nh,atm_sf6_nh
+    real(rp),intent(out) :: atm_cfc11_sh,atm_cfc12_sh,atm_sf6_sh
 
     ! Local variables
     integer :: i
     integer :: yr_dat(105)
     integer :: start_yr
-    real    :: cfc_11_nh(105),cfc_12_nh(105),sf_6_nh(105)
-    real    :: cfc_11_sh(105),cfc_12_sh(105),sf_6_sh(105)
+    real(rp):: cfc_11_nh(105),cfc_12_nh(105),sf_6_nh(105)
+    real(rp):: cfc_11_sh(105),cfc_12_sh(105),sf_6_sh(105)
     integer, save :: kplyear_old = 0
 
     ! **********************************************************************************************

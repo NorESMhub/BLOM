@@ -71,10 +71,10 @@ module mo_read_oafx
 
   character(len=128), protected, public  :: oalkscen   =''
   character(len=bgc_fnmlen), protected, public  :: oalkfile   =''
-  real,allocatable,   protected          :: oalkflx(:,:)
+  real(rp),allocatable,   protected          :: oalkflx(:,:)
   integer,            protected          :: startyear,endyear
 
-  real, parameter                        :: Pmol2kmol  = 1.0e12_rp
+  real(rp), parameter                    :: Pmol2kmol  = 1.0e12_rp
 
   ! Parameter used in the definition of alkalinization scenarios not based on
   ! an input file. The following scenarios are defined in this module:
@@ -86,9 +86,9 @@ module mo_read_oafx
   !                latitude cdrmip_latmin and latitude cdrmip_latmax
 
   ! Values are read from namelist bgcoafx, which overwrites default values set here
-  real,    protected :: addalk        = 0.135_rp ! Pmol alkalinity/yr added in the scenarios.
-  real,    protected :: cdrmip_latmax =  70.0_rp ! Min and max latitude where
-  real,    protected :: cdrmip_latmin = -60.0_rp ! alkalinity is added according to the CDRMIP protocol.
+  real(rp),protected :: addalk        = 0.135_rp ! Pmol alkalinity/yr added in the scenarios.
+  real(rp),protected :: cdrmip_latmax =  70.0_rp ! Min and max latitude where
+  real(rp),protected :: cdrmip_latmin = -60.0_rp ! alkalinity is added according to the CDRMIP protocol.
   integer, protected :: ramp_start    = 2025     ! In 'ramp' scenario, start at
   integer, protected :: ramp_end      = 2035     ! 0 Pmol/yr at ramp_start, and arrive at addalk Pmol/yr
                                                  ! in year ramp_end
@@ -97,7 +97,7 @@ module mo_read_oafx
   ! namelist bgcoafx, which overwrites default values set here
   ! Limit the input of alkalinity by setting alkalinity-flux to zero
   ! for grid cells where Omegaa > thrh_omegaa (negative values mean no threshold considered)
-  real, protected, public  :: thrh_omegaa   =-1.0_rp
+  real(rp), protected, public  :: thrh_omegaa   =-1.0_rp
 
   logical :: lini = .false.
 
@@ -122,17 +122,17 @@ contains
     ! Arguments
     integer, intent(in) :: kpie                                     ! 1st dimension of model grid.
     integer, intent(in) :: kpje                                     ! 2nd dimension of model grid.
-    real,    intent(in) :: pdlxp(kpie,kpje)                         ! size of grid cell (longitudinal) [m].
-    real,    intent(in) :: pdlyp(kpie,kpje)                         ! size of grid cell (latitudinal) [m].
-    real,    intent(in) :: pglat(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy) ! latitude grid cell centres [degree N].
-    real,    intent(in) :: omask(kpie,kpje)                         ! land/ocean mask.
+    real(rp),intent(in) :: pdlxp(kpie,kpje)                         ! size of grid cell (longitudinal) [m].
+    real(rp),intent(in) :: pdlyp(kpie,kpje)                         ! size of grid cell (latitudinal) [m].
+    real(rp),intent(in) :: pglat(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy) ! latitude grid cell centres [degree N].
+    real(rp),intent(in) :: omask(kpie,kpje)                         ! land/ocean mask.
 
     ! Local variables
     integer :: i,j,errstat
     logical :: file_exists=.false.
     integer :: iounit
-    real    :: avflx,ztotarea
-    real    :: ztmp1(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
+    real(rp):: avflx,ztotarea
+    real(rp):: ztmp1(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
 
     namelist /bgcoafx/ oalkscen,oalkfile,addalk,cdrmip_latmax,cdrmip_latmin,                       &
          &             ramp_start,ramp_end,thrh_omegaa
@@ -283,8 +283,8 @@ contains
     integer, intent(in)  :: kpje               ! 2nd dimension of model grid.
     integer, intent(in)  :: kplyear            ! current year.
     integer, intent(in)  :: kplmon             ! current month.
-    real,    intent(in)  :: omask(kpie,kpje)   ! land/ocean mask (1=ocean)
-    real,    intent(out) :: oafx(kpie,kpje)    ! alkalinization flux [kmol m-2 yr-1]
+    real(rp),intent(in)  :: omask(kpie,kpje)   ! land/ocean mask (1=ocean)
+    real(rp),intent(out) :: oafx(kpie,kpje)    ! alkalinization flux [kmol m-2 yr-1]
 
     ! local variables
     integer :: month_in_file,ncstat,ncid,current_day

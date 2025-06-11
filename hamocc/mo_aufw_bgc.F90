@@ -73,6 +73,7 @@ contains
                               nf90_enddef,nf90_close,nf90_create,nf90_put_att,nf90_set_fill
     use mod_xc,         only: nbdy,itdm,jtdm,mnproc,iqr,jqr,xchalt
     use mod_dia,        only: iotype
+    use mo_kind,        only: rp
     use mo_carbch,      only: co2star,co3,hi,satoxy,nathi
     use mo_control_bgc, only: io_stdo_bgc,ldtbgc,rmasks,rmasko,use_cisonew,use_AGG,use_BOXATM,     &
                               use_BROMO,use_CFC,use_natDIC,use_sedbypass,use_extNcycle,            &
@@ -107,21 +108,21 @@ contains
     integer,          intent(in) :: kplmon           ! month in ocean restart date
     integer,          intent(in) :: kplday           ! day   in ocean restart date
     integer,          intent(in) :: kpldtoce         ! step  in ocean restart date
-    real,             intent(in) :: omask(kpie,kpje) ! land/ocean mask
+    real(rp),         intent(in) :: omask(kpie,kpje) ! land/ocean mask
     character(len=*), intent(in) :: rstfnm           ! restart file name-informations
     ! initial/restart tracer field to be passed to the ocean model [mol/kg]
-    real,             intent(in) :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,2*kpke,ntr)
+    real(rp),         intent(in) :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,2*kpke,ntr)
 
     ! Local variables
     integer             :: i,j
-    real                :: locetra(kpie,kpje,2*kpke,nocetra)
+    real(rp)            :: locetra(kpie,kpje,2*kpke,nocetra)
     integer             :: errstat
 
     ! Variables for netcdf
     integer             :: ncid,ncvarid,ncstat,ncoldmod,ncdimst(4)
     integer             :: nclatid,nclonid,nclevid,nclev2id,ncksid,ncks2id,nctlvl2id
     integer             :: idate(5),ierr,testio
-    real                :: rmissing
+    real(rp)            :: rmissing
     character(len=3)    :: stripestr
     character(len=9)    :: stripestr2
 #ifdef PNETCDF

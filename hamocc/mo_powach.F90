@@ -61,28 +61,28 @@ contains
     integer, intent(in) :: kpje                                         ! 2nd dimension of model grid.
     integer, intent(in) :: kpke                                         ! 3rd (vertical) dimension of model grid.
     integer, intent(in) :: kbnd                                         ! nb of halo grid points
-    real,    intent(in) :: prho(kpie,kpje,kpke)                         ! seawater density [g/cm^3].
-    real,    intent(in) :: omask(kpie,kpje)                             ! land/ocean mask.
-    real,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! salinity [psu].
-    real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! Pot. temperature [deg C].
+    real(rp),intent(in) :: prho(kpie,kpje,kpke)                         ! seawater density [g/cm^3].
+    real(rp),intent(in) :: omask(kpie,kpje)                             ! land/ocean mask.
+    real(rp),intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! salinity [psu].
+    real(rp),intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! Pot. temperature [deg C].
     logical, intent(in) :: lspin
 
     ! Local variables
-    integer :: i,j,k,l
-    real    :: sedb1(kpie,0:ks),sediso(kpie,0:ks)
-    real    :: solrat(kpie,ks),powcar(kpie,ks)
-    real    :: aerob(kpie,ks),anaerob(kpie,ks),sulf(kpie,ks)
-    real    :: ex_ddic(kpie,ks),ex_dalk(kpie,ks) !sum of DIC and alk changes related to extended nitrogen cycle
-    real    :: ex_disso_poc
-    real    :: aerob13(kpie,ks),anaerob13(kpie,ks),sulf13(kpie,ks) ! cisonew
-    real    :: aerob14(kpie,ks),anaerob14(kpie,ks),sulf14(kpie,ks) ! cisonew
-    real    :: dissot, undsa, posol
-    real    :: umfa, denit, rrho, alk, c, sit, pt
-    real    :: K1, K2, Kb, Kw, Ks1, Kf, Ksi, K1p, K2p, K3p
-    real    :: ah1, ac, cu, cb, cc, satlev
-    real    :: ratc13, ratc14, rato13, rato14, poso13, poso14
-    real    :: avgDOU
-    real    :: eps=epsilon(1._rp)
+    integer  :: i,j,k,l
+    real(rp) :: sedb1(kpie,0:ks),sediso(kpie,0:ks)
+    real(rp) :: solrat(kpie,ks),powcar(kpie,ks)
+    real(rp) :: aerob(kpie,ks),anaerob(kpie,ks),sulf(kpie,ks)
+    real(rp) :: ex_ddic(kpie,ks),ex_dalk(kpie,ks) !sum of DIC and alk changes related to extended nitrogen cycle
+    real(rp) :: ex_disso_poc
+    real(rp) :: aerob13(kpie,ks),anaerob13(kpie,ks),sulf13(kpie,ks) ! cisonew
+    real(rp) :: aerob14(kpie,ks),anaerob14(kpie,ks),sulf14(kpie,ks) ! cisonew
+    real(rp) :: dissot, undsa, posol
+    real(rp) :: umfa, denit, rrho, alk, c, sit, pt
+    real(rp) :: K1, K2, Kb, Kw, Ks1, Kf, Ksi, K1p, K2p, K3p
+    real(rp) :: ah1, ac, cu, cb, cc, satlev
+    real(rp) :: ratc13, ratc14, rato13, rato14, poso13, poso14
+    real(rp) :: avgDOU
+    real(rp) :: eps=epsilon(1._rp)
 
     ! Set array for saving diffusive sediment-water-column fluxes to zero
     !********************************************************************

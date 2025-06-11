@@ -115,15 +115,15 @@ CONTAINS
     integer,          intent(in)    :: ntr                                               ! number of tracers in tracer field
     integer,          intent(in)    :: ntrbgc                                            ! number of biogechemical tracers in tracer field
     integer,          intent(in)    :: itrbgc                                            ! start index for biogeochemical tracers in tracer field
-    real,             intent(inout) :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,2*kpke,ntr) ! initial/restart tracer field to be passed to the ocean model [mol/kg]
+    real(rp),         intent(inout) :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,2*kpke,ntr) ! initial/restart tracer field to be passed to the ocean model [mol/kg]
     integer,          intent(in)    :: kplyear                                           ! year  in ocean restart date
     integer,          intent(in)    :: kplmon                                            ! month in ocean restart date
     integer,          intent(in)    :: kplday                                            ! day   in ocean restart date
-    real,             intent(in)    :: omask(kpie,kpje)                                  ! land/ocean mask
+    real(rp),         intent(in)    :: omask(kpie,kpje)                                  ! land/ocean mask
     character(len=*), intent(in)    :: rstfnm                                            ! restart file name-informations
 
     ! Local variables
-    real, allocatable :: locetra(:,:,:,:)          ! local array for reading
+    real(rp), allocatable :: locetra(:,:,:,:)          ! local array for reading
     integer   :: errstat
     integer   :: restyear                          !  year of restart file
     integer   :: restmonth                         !  month of restart file
@@ -133,7 +133,7 @@ CONTAINS
     logical   :: lread_cfc,lread_nat,lread_iso,lread_atm,lread_bro,lread_extn,lread_prefsi,        &
               &  lread_sedqual
     logical   :: lread_shelfage
-    real      :: rco213,rco214,alpha14,beta13,beta14,d13C_atm,d14cat
+    real(rp)  :: rco213,rco214,alpha14,beta13,beta14,d13C_atm,d14cat
     integer   :: ncid,ncstat,ncvarid
 
 #ifdef PNETCDF

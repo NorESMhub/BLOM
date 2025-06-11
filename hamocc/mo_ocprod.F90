@@ -124,84 +124,84 @@ contains
     integer, intent(in) :: kpje                                         ! 2nd dimension of model grid.
     integer, intent(in) :: kpke                                         ! 3rd (vertical) dimension of model grid.
     integer, intent(in) :: kbnd                                         ! nb of halo grid points
-    real,    intent(in) :: pdlxp(kpie,kpje)                             ! size of grid cell (1st dimension) [m].
-    real,    intent(in) :: pdlyp(kpie,kpje)                             ! size of grid cell (2nd dimension) [m].
-    real,    intent(in) :: pddpo(kpie,kpje,kpke)                        ! size of grid cell (3rd dimension) [m].
-    real,    intent(in) :: omask(kpie,kpje)                             ! land/ocean mask (1=ocean)
-    real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! potential temperature [deg C].
-    real,    intent(in) :: pi_ph(kpie,kpje)
-    real,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! salinity [psu].
-    real,    intent(in) :: ppao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! sea level pressure [Pascal].
-    real,    intent(in) :: prho(kpie,kpje,kpke)                         ! density [g/cm^3].
+    real(rp),intent(in) :: pdlxp(kpie,kpje)                             ! size of grid cell (1st dimension) [m].
+    real(rp),intent(in) :: pdlyp(kpie,kpje)                             ! size of grid cell (2nd dimension) [m].
+    real(rp),intent(in) :: pddpo(kpie,kpje,kpke)                        ! size of grid cell (3rd dimension) [m].
+    real(rp),intent(in) :: omask(kpie,kpje)                             ! land/ocean mask (1=ocean)
+    real(rp),intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! potential temperature [deg C].
+    real(rp),intent(in) :: pi_ph(kpie,kpje)
+    real(rp),intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! salinity [psu].
+    real(rp),intent(in) :: ppao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! sea level pressure [Pascal].
+    real(rp),intent(in) :: prho(kpie,kpje,kpke)                         ! density [g/cm^3].
 
     ! Local variables
     integer, parameter :: nsinkmax = 12
     integer :: i,j,k,l
     integer :: is,kdonor
-    real :: abs_bgc(kpie,kpje,kpke)
-    real :: tco(nsinkmax),tcn(nsinkmax),q(nsinkmax)
-    real :: atten,avphy,avanut,avanfe,pho,xa,xn,ya,yn,phosy
-    real :: avgra,grazing,avsil,avdic,graton
-    real :: gratpoc,grawa,bacfra,phymor,zoomor,excdoc,exud
-    real :: export, delsil, delcar, sterph, sterzo, remin
-    real :: docrem,opalrem,remin2o,aou,refra,pocrem,phyrem,tdoclc_rem,tdochc_rem
-    real :: zoothresh,phythresh
-    real :: temp,temfa,phofa                  ! temperature and irradiation factor for photosynthesis
-    real :: absorption,absorption_uv
-    real :: dmsprod,dms_bac,dms_uv,dms_ph
-    real :: dtr,dz
-    real :: wpocd,wcald,wopald,wdustd,dagg
-    real :: wcal,wdust,wopal,wpoc
-    real :: o2lim ! O2 limitation of ammonification (POC remin)
-    real :: tiny_val = epsilon(1._rp)
-    real :: zeu
+    real(rp) :: abs_bgc(kpie,kpje,kpke)
+    real(rp) :: tco(nsinkmax),tcn(nsinkmax),q(nsinkmax)
+    real(rp) :: atten,avphy,avanut,avanfe,pho,xa,xn,ya,yn,phosy
+    real(rp) :: avgra,grazing,avsil,avdic,graton
+    real(rp) :: gratpoc,grawa,bacfra,phymor,zoomor,excdoc,exud
+    real(rp) :: export, delsil, delcar, sterph, sterzo, remin
+    real(rp) :: docrem,opalrem,remin2o,aou,refra,pocrem,phyrem,tdoclc_rem,tdochc_rem
+    real(rp) :: zoothresh,phythresh
+    real(rp) :: temp,temfa,phofa                  ! temperature and irradiation factor for photosynthesis
+    real(rp) :: absorption,absorption_uv
+    real(rp) :: dmsprod,dms_bac,dms_uv,dms_ph
+    real(rp) :: dtr,dz
+    real(rp) :: wpocd,wcald,wopald,wdustd,dagg
+    real(rp) :: wcal,wdust,wopal,wpoc
+    real(rp) :: o2lim ! O2 limitation of ammonification (POC remin)
+    real(rp) :: tiny_val = epsilon(1._rp)
+    real(rp) :: zeu
     ! DOM
-    real :: exudsl,excdocsl,bacfrasl,docremsl,bacfrasr,docremsr,bacfrar,docremr,doclimfct
+    real(rp) :: exudsl,excdocsl,bacfrasl,docremsl,bacfrasr,docremsr,bacfrar,docremr,doclimfct
     ! sedbypass
-    real :: florca,flcaca,flsil
+    real(rp) :: florca,flcaca,flsil
     ! cisonew
-    real :: phygrowth
-    real :: phosy13,phosy14
-    real :: growth_co2
-    real :: bifr13,bifr14,bifr13_perm
-    real :: grazing13,grazing14
-    real :: graton13,graton14
-    real :: gratpoc13,gratpoc14
-    real :: bacfra13,bacfra14
-    real :: phymor13,phymor14
-    real :: grawa13,grawa14
-    real :: zoomor13,zoomor14
-    real :: excdoc13,excdoc14
-    real :: exud13,exud14
-    real :: export13,export14
-    real :: delcar13,delcar14
-    real :: dtr13,dtr14
-    real :: sterph13,sterph14
-    real :: sterzo13,sterzo14
-    real :: pocrem13,pocrem14
-    real :: docrem13,docrem14
-    real :: tdoclc_rem13,tdochc_rem13,tdoclc_rem14,tdochc_rem14
-    real :: phyrem13,phyrem14
-    real :: rem13,rem14
-    real :: rco213,rco214,rdoc13,rdoc14,rdet13,rdet14
-    real :: rtdoclc13,rtdochc13,rtdoclc14,rtdochc14
-    real :: rphy13,rphy14,rzoo13,rzoo14
+    real(rp) :: phygrowth
+    real(rp) :: phosy13,phosy14
+    real(rp) :: growth_co2
+    real(rp) :: bifr13,bifr14,bifr13_perm
+    real(rp) :: grazing13,grazing14
+    real(rp) :: graton13,graton14
+    real(rp) :: gratpoc13,gratpoc14
+    real(rp) :: bacfra13,bacfra14
+    real(rp) :: phymor13,phymor14
+    real(rp) :: grawa13,grawa14
+    real(rp) :: zoomor13,zoomor14
+    real(rp) :: excdoc13,excdoc14
+    real(rp) :: exud13,exud14
+    real(rp) :: export13,export14
+    real(rp) :: delcar13,delcar14
+    real(rp) :: dtr13,dtr14
+    real(rp) :: sterph13,sterph14
+    real(rp) :: sterzo13,sterzo14
+    real(rp) :: pocrem13,pocrem14
+    real(rp) :: docrem13,docrem14
+    real(rp) :: tdoclc_rem13,tdochc_rem13,tdoclc_rem14,tdochc_rem14
+    real(rp) :: phyrem13,phyrem14
+    real(rp) :: rem13,rem14
+    real(rp) :: rco213,rco214,rdoc13,rdoc14,rdet13,rdet14
+    real(rp) :: rtdoclc13,rtdochc13,rtdoclc14,rtdochc14
+    real(rp) :: rphy13,rphy14,rzoo13,rzoo14
     ! sedbypass
-    real :: flor13,flor14,flca13,flca14
+    real(rp) :: flor13,flor14,flca13,flca14
     ! AGG
-    real :: aggregate(kpie,kpje,kpke)
-    real :: dustagg(kpie,kpje,kpke)
-    real :: avmass, avnos, anosloss
-    real :: zmornos, eps, e1,e2,e3,e4,es1,es3
-    real :: TopM,TopF, snow,fshear,sagg1,sagg2,sagg4
-    real :: sett_agg,shear_agg,effsti,dfirst,dshagg,dsett
-    real :: wnos,wnosd
+    real(rp) :: aggregate(kpie,kpje,kpke)
+    real(rp) :: dustagg(kpie,kpje,kpke)
+    real(rp) :: avmass, avnos, anosloss
+    real(rp) :: zmornos, eps, e1,e2,e3,e4,es1,es3
+    real(rp) :: TopM,TopF, snow,fshear,sagg1,sagg2,sagg4
+    real(rp) :: sett_agg,shear_agg,effsti,dfirst,dshagg,dsett
+    real(rp) :: wnos,wnosd
     ! BROMO
-    real :: bro_beta,bro_uv
-    real :: abs_uv(kpie,kpje,kpke)
+    real(rp) :: bro_beta,bro_uv
+    real(rp) :: abs_uv(kpie,kpje,kpke)
     ! extNcycle
     character(len=:), allocatable :: inv_message
-    real :: ano3up_inh,nutlim,anh4lim,nlim,grlim,nh4uptfrac,o2csmp
+    real(rp) :: ano3up_inh,nutlim,anh4lim,nlim,grlim,nh4uptfrac,o2csmp
 
     ! set variables for diagnostic output to zero
     expoor     (:,:) = 0._rp

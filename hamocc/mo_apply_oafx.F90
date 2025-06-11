@@ -49,9 +49,9 @@ contains
     integer, intent(in) :: kpie                     ! 1st dimension of model grid.
     integer, intent(in) :: kpje                     ! 2nd dimension of model grid.
     integer, intent(in) :: kpke                     ! 3rd (vertical) dimension of model grid.
-    real,    intent(in) :: pddpo(kpie,kpje,kpke)    ! size of grid cell (depth) [m].
-    real,    intent(in) :: omask(kpie,kpje)         ! land/ocean mask (1=ocean)
-    real,    intent(in) :: oafx(kpie,kpje)          ! alkalinization field to apply [kmol m-2 yr-1]
+    real(rp),intent(in) :: pddpo(kpie,kpje,kpke)    ! size of grid cell (depth) [m].
+    real(rp),intent(in) :: omask(kpie,kpje)         ! land/ocean mask (1=ocean)
+    real(rp),intent(in) :: oafx(kpie,kpje)          ! alkalinization field to apply [kmol m-2 yr-1]
 
     ! local variables
     integer :: i,j

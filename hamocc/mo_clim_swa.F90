@@ -25,7 +25,7 @@ module mo_clim_swa
   !  J.Tjiputra,        *NORCE Climate, Bergen*    2021-04-15
   !*************************************************************************************************
 
-  use mo_kind, only: bgc_fnmlen
+  use mo_kind, only: bgc_fnmlen,rp
 
   implicit none
   private
@@ -39,7 +39,7 @@ module mo_clim_swa
   character(len=bgc_fnmlen), public :: swaclimfile=''
 
   ! Array to store swa flux after reading from file
-  real, allocatable, public :: swa_clim(:,:,:)
+  real(rp), allocatable, public :: swa_clim(:,:,:)
 
 contains
 
@@ -53,14 +53,13 @@ contains
 
     use netcdf,          only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
     use mod_xc,          only: mnproc,xchalt
-    use mo_kind,         only: rp
     use mo_control_bgc,  only: io_stdo_bgc
     use mo_netcdf_bgcrw, only: read_netcdf_var
 
     ! Arguments
     integer, intent(in) :: kpie              !  1st dimension of model grid.
     integer, intent(in) :: kpje              !  2nd dimension of model grid.
-    real,    intent(in) :: omask(kpie,kpje)  !  land/ocean mask (1=ocean)
+    real(rp),intent(in) :: omask(kpie,kpje)  !  land/ocean mask (1=ocean)
 
     ! Local variables
     integer :: i,j

@@ -91,7 +91,7 @@ module mo_bgcmean
   ! --- Averaging and writing frequencies for diagnostic output
   integer                     :: nbgc
   integer, parameter          :: nbgcmax=10
-  real,    dimension(nbgcmax) :: diagfq_bgc,filefq_bgc
+  real(rp),dimension(nbgcmax) :: diagfq_bgc,filefq_bgc
   integer, dimension(nbgcmax) :: nacc_bgc
   logical, dimension(nbgcmax) :: diagmon_bgc,diagann_bgc,filemon_bgc,fileann_bgc,bgcwrt
 
@@ -789,11 +789,11 @@ module mo_bgcmean
   integer :: nbgct_bur
 
   !----------------------------------------------------------------
-  real, dimension (:,:,:),   allocatable :: bgct2d
-  real, dimension (:,:,:),   allocatable :: bgcm2d
-  real, dimension (:,:,:,:), allocatable :: bgcm3d,bgcm3dlvl
-  real, dimension (:,:,:,:), allocatable :: bgct_sed
-  real, dimension (:,:,:),   allocatable :: bgct_bur
+  real(rp), dimension (:,:,:),   allocatable :: bgct2d
+  real(rp), dimension (:,:,:),   allocatable :: bgcm2d
+  real(rp), dimension (:,:,:,:), allocatable :: bgcm3d,bgcm3dlvl
+  real(rp), dimension (:,:,:,:), allocatable :: bgct_sed
+  real(rp), dimension (:,:,:),   allocatable :: bgct_bur
 
 CONTAINS
 
@@ -1781,7 +1781,7 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos    ! position in common buffer
-    real,    intent(in) :: inival ! value used for initalisation
+    real(rp),intent(in) :: inival ! value used for initalisation
     !
     ! Local variables
     integer :: i,j,l
@@ -1811,7 +1811,7 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos    ! position in common buffer
-    real,    intent(in) :: inival ! value used for initalisation
+    real(rp),intent(in) :: inival ! value used for initalisation
     !
     ! Local variables
     integer :: i,j,k,l
@@ -1843,7 +1843,7 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos    ! position in common buffer
-    real,    intent(in) :: inival ! value used for initalisation
+    real(rp),intent(in) :: inival ! value used for initalisation
     !
     ! Local variables
     integer :: i,j,k,l
@@ -1875,7 +1875,7 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos    ! position in common buffer
-    real,    intent(in) :: inival ! value used for initalisation
+    real(rp),intent(in) :: inival ! value used for initalisation
     !
     ! Local variables
     integer :: i,j,k,l
@@ -1907,7 +1907,7 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos    ! position in common buffer
-    real,    intent(in) :: inival ! value used for initalisation
+    real(rp),intent(in) :: inival ! value used for initalisation
     !
     ! Local variables
     integer :: i,j,k,l
@@ -1937,8 +1937,8 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos(nbgcmax)   ! position in 3d buffer
-    real,    intent(in) :: fld(idm,jdm)   ! input data used for accumulation
-    real,    intent(in) :: wghts(idm,jdm) ! weights used for accumulation
+    real(rp),intent(in) :: fld(idm,jdm)   ! input data used for accumulation
+    real(rp),intent(in) :: wghts(idm,jdm) ! weights used for accumulation
     integer, intent(in) :: wghtsflg
     !
     ! Local variables
@@ -1983,8 +1983,8 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos(nbgcmax)       ! position in 3d layer buffer
-    real,    intent(in) :: fld(idm,jdm,kdm)   ! input data used for accumulation
-    real,    intent(in) :: wghts(idm,jdm,kdm) ! weights used for accumulation
+    real(rp),intent(in) :: fld(idm,jdm,kdm)   ! input data used for accumulation
+    real(rp),intent(in) :: wghts(idm,jdm,kdm) ! weights used for accumulation
     integer, intent(in) :: wghtsflg
     !
     ! Local variables
@@ -2033,11 +2033,11 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos(nbgcmax)       ! position in buffer
-    real,    intent(in) :: fld(idm,jdm,kdm)   ! input data used for accumulation
+    real(rp),intent(in) :: fld(idm,jdm,kdm)   ! input data used for accumulation
     integer, intent(in) :: k                  ! layer index of fld
     integer, intent(in) :: ind1(idm,jdm)      ! index field for first accumulated level
     integer, intent(in) :: ind2(idm,jdm)      ! index field for last accumulated level
-    real,    intent(in) :: wghts(idm,jdm,ddm) ! weights used for accumulation
+    real(rp),intent(in) :: wghts(idm,jdm,ddm) ! weights used for accumulation
     !
     ! Local variables
     integer :: d,i,j,l,o
@@ -2071,7 +2071,7 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos(nbgcmax)    ! position in 3d layer buffer
-    real,    intent(in) :: fld(idm,jdm,ks) ! input data used for accumulation
+    real(rp),intent(in) :: fld(idm,jdm,ks) ! input data used for accumulation
     !
     ! Local variables
     integer :: i,j,k,l,o
@@ -2105,9 +2105,9 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos(nbgcmax) ! position in 3d layer buffer
-    real,    intent(in) :: fld(idm,jdm) ! input data used for accumulation
+    real(rp),intent(in) :: fld(idm,jdm) ! input data used for accumulation
     !
-    ! Local varaibles
+    ! Local variables
     integer :: i,j,l,o
     !
     ! --- Check whether field should be accumulated
@@ -2140,7 +2140,7 @@ CONTAINS
     !
     ! Local variables
     integer :: i,j,l
-    real, parameter :: epsil=1e-11
+    real(rp), parameter :: epsil=1e-11
     !
     ! --- Check whether field should be initialised
     if (posacc == 0) RETURN
@@ -2171,7 +2171,7 @@ CONTAINS
     !
     ! Local variables
     integer :: i,j,k,l
-    real, parameter :: epsil=1e-11
+    real(rp), parameter :: epsil=1e-11
     !
     ! --- Check whether field should be initialised
     if (posacc == 0) RETURN
@@ -2207,10 +2207,10 @@ CONTAINS
     integer, intent(in) :: frmt         ! format/precision of output
                                         !  0=field is not written
                                         !  2=field is written as int2 with scale factor and offset
-                                        !  4=field is written as real4
-                                        !  8=field is written as real8
-    real,    intent(in) :: sfac         ! user defined scale factor to be applied
-    real,    intent(in) :: offs         ! user defined offset to be added
+                                        !  4=field is written as real(rp)4
+                                        !  8=field is written as real(rp)8
+    real(rp),intent(in) :: sfac         ! user defined scale factor to be applied
+    real(rp),intent(in) :: offs         ! user defined offset to be added
     integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1
     character(len=*), intent(in) :: vnm ! variable name used in nc-file
     !
@@ -2266,10 +2266,10 @@ CONTAINS
     integer, intent(in) :: frmt         ! format/precision of output
                                         !  0=field is not written
                                         !  2=field is written as int2 with scale factor and offset
-                                        !  4=field is written as real4
-                                        !  8=field is written as real8
-    real,    intent(in) :: sfac         ! user defined scale factor to be applied
-    real,    intent(in) :: offs         ! user defined offset to be added
+                                        !  4=field is written as real(rp)4
+                                        !  8=field is written as real(rp)8
+    real(rp),intent(in) :: sfac         ! user defined scale factor to be applied
+    real(rp),intent(in) :: offs         ! user defined offset to be added
     integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1
     character(len=*), intent(in) :: vnm ! variable name used in nc-file
     !
@@ -2325,10 +2325,10 @@ CONTAINS
     integer, intent(in) :: frmt         ! format/precision of output
                                         !  0=field is not written
                                         !  2=field is written as int2 with scale factor and offset
-                                        !  4=field is written as real4
-                                        !  8=field is written as real8
-    real,    intent(in) :: sfac         ! user defined scale factor to be applied
-    real,    intent(in) :: offs         ! user defined offset to be added
+                                        !  4=field is written as real(rp)4
+                                        !  8=field is written as real(rp)8
+    real(rp),intent(in) :: sfac         ! user defined scale factor to be applied
+    real(rp),intent(in) :: offs         ! user defined offset to be added
     integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1
     character(len=*), intent(in) :: vnm ! variable name used in nc-file
     !
@@ -2384,10 +2384,10 @@ CONTAINS
     integer, intent(in) :: frmt         ! format/precision of output
                                         !  0=field is not written
                                         !  2=field is written as int2 with scale factor and offset
-                                        !  4=field is written as real4
-                                        !  8=field is written as real8
-    real,    intent(in) :: sfac         ! user defined scale factor to be applied
-    real,    intent(in) :: offs         ! user defined offset to be added
+                                        !  4=field is written as real(rp)4
+                                        !  8=field is written as real(rp)8
+    real(rp),intent(in) :: sfac         ! user defined scale factor to be applied
+    real(rp),intent(in) :: offs         ! user defined offset to be added
     integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1
     character(len=*), intent(in) :: vnm ! variable name used in nc-file
     !
@@ -2443,10 +2443,10 @@ CONTAINS
     integer, intent(in) :: frmt         ! format/precision of output
                                         !  0=field is not written
                                         !  2=field is written as int2 with scale factor and offset
-                                        !  4=field is written as real4
-                                        !  8=field is written as real8
-    real,    intent(in) :: sfac         ! user defined scale factor to be applied
-    real,    intent(in) :: offs         ! user defined offset to be added
+                                        !  4=field is written as real(rp)4
+                                        !  8=field is written as real(rp)8
+    real(rp),intent(in) :: sfac         ! user defined scale factor to be applied
+    real(rp),intent(in) :: offs         ! user defined offset to be added
     integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1
     character(len=*), intent(in) :: vnm ! variable name used in nc-file
     !
@@ -2499,12 +2499,12 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos  ! field position in layer buffer
-    real,    intent(in) :: sfac ! scale factor to be applied before log10
-    real,    intent(in) :: offs ! offset to be added before log10
+    real(rp),intent(in) :: sfac ! scale factor to be applied before log10
+    real(rp),intent(in) :: offs ! offset to be added before log10
     !
     ! Local variables
     integer :: i,j,l
-    real    :: epsil=1e-11_rp
+    real(rp)    :: epsil=1e-11_rp
     !
     ! --- Check whether field should be processed
     if (pos == 0) RETURN
@@ -2535,12 +2535,12 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos  ! field position in layer buffer
-    real,    intent(in) :: sfac ! scale factor to be applied before log10
-    real,    intent(in) :: offs ! offset to be added before log10
+    real(rp),intent(in) :: sfac ! scale factor to be applied before log10
+    real(rp),intent(in) :: offs ! offset to be added before log10
     !
     ! Local variable
     integer :: i,j,k,l
-    real    :: epsil=1e-11
+    real(rp):: epsil=1e-11
     !
     ! --- Check whether field should be processed
     if (pos == 0) RETURN
@@ -2571,13 +2571,13 @@ CONTAINS
     ! --- ------------------------------------------------------------------
     !
     ! Arguments
-    real,    intent(in) :: sfac ! field position in layer buffer
-    real,    intent(in) :: offs ! scale factor to be applied before log10
+    real(rp),intent(in) :: sfac ! field position in layer buffer
+    real(rp),intent(in) :: offs ! scale factor to be applied before log10
     integer, intent(in) :: pos  ! offset to be added before log10
     !
     ! Local variable
     integer :: i,j,k,l
-    real    :: epsil=1e-11
+    real(rp):: epsil=1e-11
     !
     ! --- Check whether field should be processed
     if (pos == 0) RETURN
@@ -2610,12 +2610,12 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos  ! field position in layer buffer
-    real,    intent(in) :: sfac ! scale factor to be applied before log10
-    real,    intent(in) :: offs ! offset to be added before log10
+    real(rp),    intent(in) :: sfac ! scale factor to be applied before log10
+    real(rp),    intent(in) :: offs ! offset to be added before log10
     !
     ! Local variable
     integer :: i,j,k,l
-    real    :: epsil=1e-11
+    real(rp):: epsil=1e-11
     !
     ! --- Check whether field should be processed
     if (pos == 0) RETURN
@@ -2651,7 +2651,7 @@ CONTAINS
     !
     ! Local variables
     integer :: i,j,l
-    real, parameter :: mskval=nf90_fill_double
+    real(rp), parameter :: mskval=nf90_fill_double
     !
     ! --- Check whether field should be initia
     if (pos == 0) RETURN
@@ -2677,13 +2677,13 @@ CONTAINS
 
     ! Arguments
     integer, intent(in)  :: pos                                     ! field position in level buffer
-    real,    intent(in)  :: depths(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ! bathymetry field
+    real(rp),intent(in)  :: depths(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ! bathymetry field
     !
     ! Local variables
     integer         :: i,j,k,l
     logical, save   :: iniflg=.true.
     integer, save   :: kmax(idm,jdm)
-    real, parameter :: mskval=nf90_fill_double
+    real(rp), parameter :: mskval=nf90_fill_double
     !
     ! --- Check whether field should be processed
     if (pos == 0) RETURN
@@ -2728,20 +2728,20 @@ CONTAINS
     !-----------------------------------------------------------------------
     !
     ! Arguments
-    real,    intent(in)    :: pddpo(idm,jdm,kdm)
+    real(rp),intent(in)    :: pddpo(idm,jdm,kdm)
     integer, intent(in)    :: kin
     integer, intent(inout) :: ind1(idm,jdm)
     integer, intent(inout) :: ind2(idm,jdm)
-    real,    intent(inout) :: weights(idm,jdm,ddm)
+    real(rp),intent(inout) :: weights(idm,jdm,ddm)
     !
     ! Local variables
     ! TODO: why do the following have save attributes?
     integer         :: d,i,j,k,l
-    real,    save   :: dlev(idm,jdm,ddm)
-    real,    save   :: ztop(idm,jdm,kdm)
-    real,    save   :: zbot(idm,jdm,kdm)
+    real(rp),save   :: dlev(idm,jdm,ddm)
+    real(rp),save   :: ztop(idm,jdm,kdm)
+    real(rp),save   :: zbot(idm,jdm,kdm)
     logical, save   :: iniflg=.true.
-    real, parameter :: eps=1e-10
+    real(rp), parameter :: eps=1e-10
     !
     ! --- Adjust bounds of levitus levels according to model bathymetry
     if (iniflg) then

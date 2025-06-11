@@ -32,6 +32,8 @@ module mo_biomod
   !   new global fields for output defined here
   !*************************************************************************************************
 
+  use mo_kind,        only: rp
+
   implicit none
   private
 
@@ -41,78 +43,78 @@ module mo_biomod
 
   ! Module variables
 
-  real, dimension (:,:),   allocatable, public :: strahl
-  real, dimension (:,:),   allocatable, public :: expoor
-  real, dimension (:,:),   allocatable, public :: expoca
-  real, dimension (:,:),   allocatable, public :: exposi
-  real, dimension (:,:),   allocatable, public :: intphosy
-  real, dimension (:,:),   allocatable, public :: intdnit
-  real, dimension (:,:),   allocatable, public :: intnfix
-  real, dimension (:,:),   allocatable, public :: intdmsprod
-  real, dimension (:,:),   allocatable, public :: intdms_bac
-  real, dimension (:,:),   allocatable, public :: intdms_uv
-  real, dimension (:,:),   allocatable, public :: carflx0100
-  real, dimension (:,:),   allocatable, public :: carflx0500
-  real, dimension (:,:),   allocatable, public :: carflx1000
-  real, dimension (:,:),   allocatable, public :: carflx2000
-  real, dimension (:,:),   allocatable, public :: carflx4000
-  real, dimension (:,:),   allocatable, public :: carflx_bot
-  real, dimension (:,:),   allocatable, public :: bsiflx0100
-  real, dimension (:,:),   allocatable, public :: bsiflx0500
-  real, dimension (:,:),   allocatable, public :: bsiflx1000
-  real, dimension (:,:),   allocatable, public :: bsiflx2000
-  real, dimension (:,:),   allocatable, public :: bsiflx4000
-  real, dimension (:,:),   allocatable, public :: bsiflx_bot
-  real, dimension (:,:),   allocatable, public :: calflx0100
-  real, dimension (:,:),   allocatable, public :: calflx0500
-  real, dimension (:,:),   allocatable, public :: calflx1000
-  real, dimension (:,:),   allocatable, public :: calflx2000
-  real, dimension (:,:),   allocatable, public :: calflx4000
-  real, dimension (:,:),   allocatable, public :: calflx_bot
-  real, dimension (:,:),   allocatable, public :: dustflx0100
-  real, dimension (:,:),   allocatable, public :: dustflx0500
-  real, dimension (:,:),   allocatable, public :: dustflx1000
-  real, dimension (:,:),   allocatable, public :: dustflx2000
-  real, dimension (:,:),   allocatable, public :: dustflx4000
-  real, dimension (:,:),   allocatable, public :: dustflx_bot
-  real, dimension (:,:,:), allocatable, public :: phosy3d
-  real, dimension (:,:),   allocatable, public :: int_exudl
-  real, dimension (:,:),   allocatable, public :: int_exudsl
-  real, dimension (:,:),   allocatable, public :: int_excrl
-  real, dimension (:,:),   allocatable, public :: int_excrsl
-  real, dimension (:,:),   allocatable, public :: int_docl_rem
-  real, dimension (:,:),   allocatable, public :: int_docsl_rem
-  real, dimension (:,:),   allocatable, public :: int_docr_rem
-  real, dimension (:,:),   allocatable, public :: int_docsr_rem
+  real(rp), dimension (:,:),   allocatable, public :: strahl
+  real(rp), dimension (:,:),   allocatable, public :: expoor
+  real(rp), dimension (:,:),   allocatable, public :: expoca
+  real(rp), dimension (:,:),   allocatable, public :: exposi
+  real(rp), dimension (:,:),   allocatable, public :: intphosy
+  real(rp), dimension (:,:),   allocatable, public :: intdnit
+  real(rp), dimension (:,:),   allocatable, public :: intnfix
+  real(rp), dimension (:,:),   allocatable, public :: intdmsprod
+  real(rp), dimension (:,:),   allocatable, public :: intdms_bac
+  real(rp), dimension (:,:),   allocatable, public :: intdms_uv
+  real(rp), dimension (:,:),   allocatable, public :: carflx0100
+  real(rp), dimension (:,:),   allocatable, public :: carflx0500
+  real(rp), dimension (:,:),   allocatable, public :: carflx1000
+  real(rp), dimension (:,:),   allocatable, public :: carflx2000
+  real(rp), dimension (:,:),   allocatable, public :: carflx4000
+  real(rp), dimension (:,:),   allocatable, public :: carflx_bot
+  real(rp), dimension (:,:),   allocatable, public :: bsiflx0100
+  real(rp), dimension (:,:),   allocatable, public :: bsiflx0500
+  real(rp), dimension (:,:),   allocatable, public :: bsiflx1000
+  real(rp), dimension (:,:),   allocatable, public :: bsiflx2000
+  real(rp), dimension (:,:),   allocatable, public :: bsiflx4000
+  real(rp), dimension (:,:),   allocatable, public :: bsiflx_bot
+  real(rp), dimension (:,:),   allocatable, public :: calflx0100
+  real(rp), dimension (:,:),   allocatable, public :: calflx0500
+  real(rp), dimension (:,:),   allocatable, public :: calflx1000
+  real(rp), dimension (:,:),   allocatable, public :: calflx2000
+  real(rp), dimension (:,:),   allocatable, public :: calflx4000
+  real(rp), dimension (:,:),   allocatable, public :: calflx_bot
+  real(rp), dimension (:,:),   allocatable, public :: dustflx0100
+  real(rp), dimension (:,:),   allocatable, public :: dustflx0500
+  real(rp), dimension (:,:),   allocatable, public :: dustflx1000
+  real(rp), dimension (:,:),   allocatable, public :: dustflx2000
+  real(rp), dimension (:,:),   allocatable, public :: dustflx4000
+  real(rp), dimension (:,:),   allocatable, public :: dustflx_bot
+  real(rp), dimension (:,:,:), allocatable, public :: phosy3d
+  real(rp), dimension (:,:),   allocatable, public :: int_exudl
+  real(rp), dimension (:,:),   allocatable, public :: int_exudsl
+  real(rp), dimension (:,:),   allocatable, public :: int_excrl
+  real(rp), dimension (:,:),   allocatable, public :: int_excrsl
+  real(rp), dimension (:,:),   allocatable, public :: int_docl_rem
+  real(rp), dimension (:,:),   allocatable, public :: int_docsl_rem
+  real(rp), dimension (:,:),   allocatable, public :: int_docr_rem
+  real(rp), dimension (:,:),   allocatable, public :: int_docsr_rem
 
   ! Variables for interactive phytoplanktion absorption (use_FB_BGC_OCE=.true.)
-  real, dimension (:,:,:), allocatable, public :: abs_oce
+  real(rp), dimension (:,:,:), allocatable, public :: abs_oce
 
   ! Variables for aggregation scheme (use_AGG=.true.)
-  real, dimension (:,:,:), allocatable, public  :: wmass
-  real, dimension (:,:,:), allocatable, public  :: wnumb
-  real, dimension (:,:,:), allocatable, public  :: eps3d
-  real, dimension (:,:,:), allocatable, public  :: asize3d
+  real(rp), dimension (:,:,:), allocatable, public  :: wmass
+  real(rp), dimension (:,:,:), allocatable, public  :: wnumb
+  real(rp), dimension (:,:,:), allocatable, public  :: eps3d
+  real(rp), dimension (:,:,:), allocatable, public  :: asize3d
 
   ! Variables for bromoform scheme (use_BROMO=.true.)
-  real, dimension (:,:),   allocatable, public  :: int_chbr3_prod
-  real, dimension (:,:),   allocatable, public  :: int_chbr3_uv
+  real(rp), dimension (:,:),   allocatable, public  :: int_chbr3_prod
+  real(rp), dimension (:,:),   allocatable, public  :: int_chbr3_uv
 
-  real, dimension (:,:,:), allocatable, public :: nitr_NH4
-  real, dimension (:,:,:), allocatable, public :: nitr_NO2
-  real, dimension (:,:,:), allocatable, public :: nitr_N2O_prod
-  real, dimension (:,:,:), allocatable, public :: nitr_NH4_OM
-  real, dimension (:,:,:), allocatable, public :: nitr_NO2_OM
-  real, dimension (:,:,:), allocatable, public :: denit_NO3
-  real, dimension (:,:,:), allocatable, public :: denit_NO2
-  real, dimension (:,:,:), allocatable, public :: denit_N2O
-  real, dimension (:,:,:), allocatable, public :: DNRA_NO2
-  real, dimension (:,:,:), allocatable, public :: anmx_N2_prod
-  real, dimension (:,:,:), allocatable, public :: anmx_OM_prod
-  real, dimension (:,:,:), allocatable, public :: phosy_NH4
-  real, dimension (:,:,:), allocatable, public :: phosy_NO3
-  real, dimension (:,:,:), allocatable, public :: remin_aerob
-  real, dimension (:,:,:), allocatable, public :: remin_sulf
+  real(rp), dimension (:,:,:), allocatable, public :: nitr_NH4
+  real(rp), dimension (:,:,:), allocatable, public :: nitr_NO2
+  real(rp), dimension (:,:,:), allocatable, public :: nitr_N2O_prod
+  real(rp), dimension (:,:,:), allocatable, public :: nitr_NH4_OM
+  real(rp), dimension (:,:,:), allocatable, public :: nitr_NO2_OM
+  real(rp), dimension (:,:,:), allocatable, public :: denit_NO3
+  real(rp), dimension (:,:,:), allocatable, public :: denit_NO2
+  real(rp), dimension (:,:,:), allocatable, public :: denit_N2O
+  real(rp), dimension (:,:,:), allocatable, public :: DNRA_NO2
+  real(rp), dimension (:,:,:), allocatable, public :: anmx_N2_prod
+  real(rp), dimension (:,:,:), allocatable, public :: anmx_OM_prod
+  real(rp), dimension (:,:,:), allocatable, public :: phosy_NH4
+  real(rp), dimension (:,:,:), allocatable, public :: phosy_NO3
+  real(rp), dimension (:,:,:), allocatable, public :: remin_aerob
+  real(rp), dimension (:,:,:), allocatable, public :: remin_sulf
 
 CONTAINS
 
@@ -121,7 +123,6 @@ CONTAINS
     ! ALLOC_MEM_BIOMOD - Allocate variables in this module
     !******************************************************************************
     use mod_xc,         only: mnproc
-    use mo_kind,        only: rp
     use mo_control_bgc, only: io_stdo_bgc
     use mo_control_bgc, only: use_FB_BGC_OCE,use_AGG,use_BROMO,use_extNcycle,use_DOMclasses
 

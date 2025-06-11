@@ -46,9 +46,9 @@ contains
     integer, intent(in) :: kpie                   ! 1st dimension of model grid
     integer, intent(in) :: kpje                   ! 2nd dimension of model grid
     integer, intent(in) :: kpke                   ! 3rd dimension of model grid
-    real,    intent(in) :: pddpo(kpie,kpje,kpke)  ! size of grid cell (3rd dimension) [m].
+    real(rp),intent(in) :: pddpo(kpie,kpje,kpke)  ! size of grid cell (3rd dimension) [m].
     logical, intent(in) :: shelfmask(kpie,kpje)   ! shelf-sea mask True: shelf, False: else
-    real,    intent(in) :: omask(kpie,kpje)       ! land-ocean mask
+    real(rp),intent(in) :: omask(kpie,kpje)       ! land-ocean mask
 
     ! Local variables
     integer :: i,j,k

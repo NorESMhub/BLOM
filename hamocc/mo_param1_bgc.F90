@@ -37,8 +37,8 @@ module mo_param1_bgc
   implicit none
   public
 
-  integer, parameter :: ks=12,ksp=ks+1    ! ks: nb of sediment layers
-  real,    parameter :: safediv = 1.0e-25_rp ! added to the denominator of isotopic ratios (avoid div. by zero)
+  integer, parameter :: ks=12,ksp=ks+1       ! ks: nb of sediment layers
+  real(rp),parameter :: safediv = 1.0e-25_rp ! added to the denominator of isotopic ratios (avoid div. by zero)
 
   ! ------------------
   ! Tracer indices

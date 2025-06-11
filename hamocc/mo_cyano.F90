@@ -57,14 +57,14 @@ contains
     integer, intent(in) :: kpje                                          ! 2nd dimension of model grid.
     integer, intent(in) :: kpke                                          ! 3rd (vertical) dimension of model grid.
     integer, intent(in) :: kbnd                                          ! nb of halo grid points
-    real,    intent(in) :: pddpo(kpie,kpje,kpke)                         ! size of grid cell (3rd dimension) [m].
-    real,    intent(in) :: omask(kpie,kpje)                              ! land/ocean mask
-    real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)  ! potential temperature.
+    real(rp),intent(in) :: pddpo(kpie,kpje,kpke)                         ! size of grid cell (3rd dimension) [m].
+    real(rp),intent(in) :: omask(kpie,kpje)                              ! land/ocean mask
+    real(rp),intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)  ! potential temperature.
 
     ! Local variables
-    integer :: i,j,k
-    real    :: oldocetra,anavail,dansp,dox,dalk
-    real    :: ttemp,nfixtfac
+    integer  :: i,j,k
+    real(rp) :: oldocetra,anavail,dansp,dox,dalk
+    real(rp) :: ttemp,nfixtfac
 
     intnfix(:,:)=0.0_rp
 

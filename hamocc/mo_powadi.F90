@@ -47,15 +47,15 @@ contains
     integer,                    intent(in)    :: j      ! j zonal grid index
     integer,                    intent(in)    :: kpie
     integer,                    intent(in)    :: kpje
-    real, dimension(kpie,ks),   intent(in)    :: solrat ! dissolution rate
-    real, dimension(kpie,0:ks), intent(inout) :: sedb1  ! tracer at entry
-    real, dimension(kpie,0:ks), intent(inout) :: sediso ! diffused tracer at exit
-    real, dimension(kpie,kpje), intent(in)    :: omask
+    real(rp), dimension(kpie,ks),   intent(in)    :: solrat ! dissolution rate
+    real(rp), dimension(kpie,0:ks), intent(inout) :: sedb1  ! tracer at entry
+    real(rp), dimension(kpie,0:ks), intent(inout) :: sediso ! diffused tracer at exit
+    real(rp), dimension(kpie,kpje), intent(in)    :: omask
 
     ! Local variables
     integer :: i,k,l
-    real    :: asu, alo
-    real, dimension(kpie,0:ks,3) :: tredsy
+    real(rp):: asu, alo
+    real(rp), dimension(kpie,0:ks,3) :: tredsy
 
     do k = 1, ks
       do i = 1, kpie

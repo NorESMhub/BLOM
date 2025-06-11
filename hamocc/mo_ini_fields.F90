@@ -122,16 +122,16 @@ contains
     integer, intent(in) :: kpje                                     ! 2nd dimension of model grid.
     integer, intent(in) :: kpke                                     ! 3rd (vertical) dimension of model grid.
     integer, intent(in) :: kbnd                                     ! nb of halo grid points
-    real,    intent(in) :: pddpo(kpie,kpje,kpke)                    ! size of grid cell (3rd dimension) [m].
-    real,    intent(in) :: prho (kpie,kpje,kpke)                    ! density [g/cm^3].
-    real,    intent(in) :: omask(kpie,kpje)                         ! ocean mask.
-    real,    intent(in) :: pglon(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd) ! longitude of grid cell [deg].
-    real,    intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd) ! latitude  of grid cell [deg].
+    real(rp),intent(in) :: pddpo(kpie,kpje,kpke)                    ! size of grid cell (3rd dimension) [m].
+    real(rp),intent(in) :: prho (kpie,kpje,kpke)                    ! density [g/cm^3].
+    real(rp),intent(in) :: omask(kpie,kpje)                         ! ocean mask.
+    real(rp),intent(in) :: pglon(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd) ! longitude of grid cell [deg].
+    real(rp),intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd) ! latitude  of grid cell [deg].
 
     ! local variables
     integer :: i,j,k,l
-    real    :: rco213,rco214,beta13,beta14 ! cisonew
-    real    :: snow ! AGG
+    real(rp):: rco213,rco214,beta13,beta14 ! cisonew
+    real(rp):: snow ! AGG
 
     if (use_FB_BGC_OCE) then
       do k=1,kpke

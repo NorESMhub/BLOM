@@ -49,7 +49,7 @@ module mo_read_ndep
   !
   !*************************************************************************************************
 
-  use mo_kind, only: bgc_fnmlen
+  use mo_kind, only: bgc_fnmlen,rp
 
   implicit none
   private
@@ -59,8 +59,8 @@ module mo_read_ndep
   public :: ndepfile
 
   character(len=bgc_fnmlen)  :: ndepfile=''
-  real,  allocatable  :: noydepread(:,:)
-  real,  allocatable  :: nhxdepread(:,:)
+  real(rp),  allocatable     :: noydepread(:,:)
+  real(rp),  allocatable     :: nhxdepread(:,:)
   integer             :: startyear,endyear
   logical             :: lini = .false.
   integer             :: oldmonth=0
@@ -76,7 +76,6 @@ contains
     !***********************************************************************************************
 
     use mod_xc,             only: mnproc,xchalt
-    use mo_kind,            only: rp
     use mo_control_bgc,     only: io_stdo_bgc,do_ndep,use_extNcycle
     use mod_dia,            only: iotype
     use mod_nctools,        only: ncfopn,ncgeti,ncfcls
@@ -165,7 +164,6 @@ contains
 
     use mod_xc,             only: mnproc
     use netcdf,             only: nf90_open,nf90_close,nf90_nowrite
-    use mo_kind,            only: rp
     use mo_control_bgc,     only: io_stdo_bgc, do_ndep, use_extNcycle, use_coupler_ndep
     use mo_netcdf_bgcrw,    only: read_netcdf_var
     use mo_param1_bgc,      only: nndep,idepnoy,idepnhx
@@ -178,15 +176,15 @@ contains
     integer, intent(in)  :: kbnd              !
     integer, intent(in)  :: kplyear           ! current year.
     integer, intent(in)  :: kplmon            ! current month.
-    real,    intent(in)  :: omask(kpie,kpje)  ! land/ocean mask (1=ocean)
-    real,    intent(out) :: ndep(kpie,kpje,nndep) ! N-deposition field for current year and month
-    real,    intent(in)  :: patmnhxdep(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)   ! Atmospheric NHx deposition [kgN m-2 s-1]
-    real,    intent(in)  :: patmnoydep(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)   ! Atmospheric NOy deposition [kgN m-2 s-1]
+    real(rp),intent(in)  :: omask(kpie,kpje)  ! land/ocean mask (1=ocean)
+    real(rp),intent(out) :: ndep(kpie,kpje,nndep) ! N-deposition field for current year and month
+    real(rp),intent(in)  :: patmnhxdep(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)   ! Atmospheric NHx deposition [kgN m-2 s-1]
+    real(rp),intent(in)  :: patmnoydep(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)   ! Atmospheric NOy deposition [kgN m-2 s-1]
 
 
     ! local variables
     integer  :: month_in_file, ncstat, ncid, i, j
-    real     :: fatmndep
+    real(rp) :: fatmndep
     logical  :: first_call = .true.
 
     ndep(:,:,:) = 0.0_rp

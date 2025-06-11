@@ -49,7 +49,7 @@ contains
     ! Arguments
     integer, intent(in) :: kpie ! 1st dimension of model grid.
     integer, intent(in) :: kpje ! 2nd dimension of model grid.
-    real,    intent(in) :: omask(kpie,kpje) ! land-ocean mask
+    real(rp),intent(in) :: omask(kpie,kpje) ! land-ocean mask
 
     ! Local variables
     integer :: i,j

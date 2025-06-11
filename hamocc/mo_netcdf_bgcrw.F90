@@ -39,6 +39,7 @@ contains
     use netcdf,  only: nf90_double,nf90_noerr,nf90_put_att,nf90_def_var
     use mod_xc,  only: mnproc,xchalt
     use mod_dia, only: iotype
+    use mo_kind, only: rp
 #ifdef PNETCDF
 #   include <pnetcdf.inc>
 #   include <mpif.h>
@@ -60,7 +61,7 @@ contains
 
     ! Local variables
     integer                       :: k
-    real                          :: pmissing
+    real(rp)                      :: pmissing
     character(len=24)             :: ystring
     integer                       :: ncstat
 #ifdef PNETCDF
@@ -201,8 +202,8 @@ contains
     endif
 
   end subroutine netcdf_def_vardb
-  
-  
+
+
   subroutine write_netcdf_var(ncid,desc,arr,klev,time)
 
     !***********************************************************************************************
@@ -225,18 +226,18 @@ contains
     character(len=*), intent(in)  :: desc
     integer,          intent(in)  :: klev
     integer,          intent(in)  :: time
-    real,             intent(in)  :: arr(idm,jdm,klev)
+    real(rp),         intent(in)  :: arr(idm,jdm,klev)
 
     ! Local variables
     integer                       :: k,i,j
     integer                       :: ndims
-    real                          :: arr_g(itdm,jtdm)
+    real(rp)                      :: arr_g(itdm,jtdm)
     integer                       :: ncstat
     integer                       :: ncvarid
     integer, allocatable          :: start(:),count(:)
-    real,    allocatable          :: arr_l(:,:,:)
+    real(rp),    allocatable      :: arr_l(:,:,:)
 #ifdef PNETCDF
-    real,    allocatable          :: arr_g1(:,:,:)
+    real(rp),    allocatable      :: arr_g1(:,:,:)
     integer (kind=MPI_OFFSET_KIND), allocatable :: istart(:),icount(:)
 #endif
 
@@ -386,7 +387,7 @@ contains
     end if
 
   end subroutine write_netcdf_var
-  
+
 
   subroutine read_netcdf_var(ncid,desc,arr,klev,time,typeio)
 
@@ -410,15 +411,15 @@ contains
     integer,          intent(in)  :: klev
     integer,          intent(in)  :: time
     integer,          intent(in)  :: typeio
-    real,             intent(out) :: arr(idm,jdm,klev)
+    real(rp),         intent(out) :: arr(idm,jdm,klev)
 
     ! Local variables
     integer                       :: i,j,k
     integer                       :: ncstat
     integer                       :: ncvarid
     integer                       :: start(4),count(4)
-    real                          :: arr_g(itdm,jtdm)
-    real, allocatable             :: arr_l(:,:,:)
+    real(rp)                      :: arr_g(itdm,jtdm)
+    real(rp), allocatable         :: arr_l(:,:,:)
 #ifdef PNETCDF
     integer(kind=MPI_OFFSET_KIND) :: istart(4),icount(4)
 #endif

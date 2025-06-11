@@ -81,11 +81,11 @@ contains
     character(len=*), intent(in) :: rstfnm_hamocc ! restart filename.
 
     ! Local variables
-    integer :: i,j,k,l,nt
-    integer :: iounit
-    real    :: sed_por(idm,jdm,ks)         = 0._rp
-    real    :: sed_POCage_init(idm,jdm,ks) = 0._rp
-    real    :: prorca_mavg_init(idm,jdm)   = 0._rp
+    integer  :: i,j,k,l,nt
+    integer  :: iounit
+    real(rp) :: sed_por(idm,jdm,ks)         = 0._rp
+    real(rp) :: sed_POCage_init(idm,jdm,ks) = 0._rp
+    real(rp) :: prorca_mavg_init(idm,jdm)   = 0._rp
 
     namelist /bgcnml/ atm_co2,fedepfile,fedep_source,do_rivinpt,rivinfile,do_ndep,ndepfile,do_oalk,&
          &            do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,                         &

@@ -37,6 +37,8 @@ module mo_carbch
   !  - added OmegaA
   !*************************************************************************************************
 
+  use mo_kind,        only: rp
+
   implicit none
   private
 
@@ -46,55 +48,55 @@ module mo_carbch
 
   ! Module variables
 
-  real, dimension (:,:,:,:), allocatable, public :: ocetra
-  real, dimension (:,:,:),   allocatable, public :: atm
-  real, dimension (:,:,:),   allocatable, public :: atmflx
-  real, dimension (:,:),     allocatable, public :: ndepnoyflx
-  real, dimension (:,:),     allocatable, public :: ndepnhxflx
-  real, dimension (:,:),     allocatable, public :: oalkflx
-  real, dimension (:,:,:),   allocatable, public :: dustflx
-  real, dimension (:,:,:),   allocatable, public :: rivinflx
-  real, dimension (:,:,:),   allocatable, public :: co3
-  real, dimension (:,:,:),   allocatable, public :: co2star
-  real, dimension (:,:,:),   allocatable, public :: hi
-  real, dimension (:,:,:),   allocatable, public :: omegaa
-  real, dimension (:,:,:),   allocatable, public :: omegac
-  real, dimension (:,:,:),   allocatable, public :: keqb
+  real(rp), dimension (:,:,:,:), allocatable, public :: ocetra
+  real(rp), dimension (:,:,:),   allocatable, public :: atm
+  real(rp), dimension (:,:,:),   allocatable, public :: atmflx
+  real(rp), dimension (:,:),     allocatable, public :: ndepnoyflx
+  real(rp), dimension (:,:),     allocatable, public :: ndepnhxflx
+  real(rp), dimension (:,:),     allocatable, public :: oalkflx
+  real(rp), dimension (:,:,:),   allocatable, public :: dustflx
+  real(rp), dimension (:,:,:),   allocatable, public :: rivinflx
+  real(rp), dimension (:,:,:),   allocatable, public :: co3
+  real(rp), dimension (:,:,:),   allocatable, public :: co2star
+  real(rp), dimension (:,:,:),   allocatable, public :: hi
+  real(rp), dimension (:,:,:),   allocatable, public :: omegaa
+  real(rp), dimension (:,:,:),   allocatable, public :: omegac
+  real(rp), dimension (:,:,:),   allocatable, public :: keqb
 
-  real, dimension (:,:,:),   allocatable, public :: satoxy
-  real, dimension (:,:),     allocatable, public :: satn2o
-  real, dimension (:,:),     allocatable, public :: pn2om
-  real, dimension (:,:),     allocatable, public :: pnh3
-  real, dimension (:,:),     allocatable, public :: atdifv
-  real, dimension (:,:),     allocatable, public :: suppco2
-  real, dimension (:,:,:),   allocatable, public :: sedfluxo
-  real, dimension (:,:,:),   allocatable, public :: sedfluxb
-  real, dimension (:,:,:,:), allocatable, public :: nutlim_diag
-  real, dimension (:,:,:),   allocatable, public :: zeu_nutlim_diag
+  real(rp), dimension (:,:,:),   allocatable, public :: satoxy
+  real(rp), dimension (:,:),     allocatable, public :: satn2o
+  real(rp), dimension (:,:),     allocatable, public :: pn2om
+  real(rp), dimension (:,:),     allocatable, public :: pnh3
+  real(rp), dimension (:,:),     allocatable, public :: atdifv
+  real(rp), dimension (:,:),     allocatable, public :: suppco2
+  real(rp), dimension (:,:,:),   allocatable, public :: sedfluxo
+  real(rp), dimension (:,:,:),   allocatable, public :: sedfluxb
+  real(rp), dimension (:,:,:,:), allocatable, public :: nutlim_diag
+  real(rp), dimension (:,:,:),   allocatable, public :: zeu_nutlim_diag
 
-  real, dimension (:,:),     allocatable, public :: fco2
-  real, dimension (:,:),     allocatable, public :: pco2
-  real, dimension (:,:),     allocatable, public :: xco2
-  real, dimension (:,:),     allocatable, public :: pco2_gex
-  real, dimension (:,:),     allocatable, public :: kwco2sol
-  real, dimension (:,:),     allocatable, public :: kwco2a
-  real, dimension (:,:),     allocatable, public :: co2sol
-  real, dimension (:,:),     allocatable, public :: co2fxd
-  real, dimension (:,:),     allocatable, public :: co2fxu
-  real, dimension (:,:),     allocatable, public :: co213fxd
-  real, dimension (:,:),     allocatable, public :: co213fxu
-  real, dimension (:,:),     allocatable, public :: co214fxd
-  real, dimension (:,:),     allocatable, public :: co214fxu
-  real, dimension (:,:),     allocatable, public :: natpco2
-  real, dimension (:,:,:),   allocatable, public :: nathi
-  real, dimension (:,:,:),   allocatable, public :: natco3
-  real, dimension (:,:,:),   allocatable, public :: natomegaa
-  real, dimension (:,:,:),   allocatable, public :: natomegac
+  real(rp), dimension (:,:),     allocatable, public :: fco2
+  real(rp), dimension (:,:),     allocatable, public :: pco2
+  real(rp), dimension (:,:),     allocatable, public :: xco2
+  real(rp), dimension (:,:),     allocatable, public :: pco2_gex
+  real(rp), dimension (:,:),     allocatable, public :: kwco2sol
+  real(rp), dimension (:,:),     allocatable, public :: kwco2a
+  real(rp), dimension (:,:),     allocatable, public :: co2sol
+  real(rp), dimension (:,:),     allocatable, public :: co2fxd
+  real(rp), dimension (:,:),     allocatable, public :: co2fxu
+  real(rp), dimension (:,:),     allocatable, public :: co213fxd
+  real(rp), dimension (:,:),     allocatable, public :: co213fxu
+  real(rp), dimension (:,:),     allocatable, public :: co214fxd
+  real(rp), dimension (:,:),     allocatable, public :: co214fxu
+  real(rp), dimension (:,:),     allocatable, public :: natpco2
+  real(rp), dimension (:,:,:),   allocatable, public :: nathi
+  real(rp), dimension (:,:,:),   allocatable, public :: natco3
+  real(rp), dimension (:,:,:),   allocatable, public :: natomegaa
+  real(rp), dimension (:,:,:),   allocatable, public :: natomegac
 
-  real, public :: atm_co2
-  real, public :: atm_cfc11_nh, atm_cfc11_sh
-  real, public :: atm_cfc12_nh, atm_cfc12_sh
-  real, public :: atm_sf6_nh, atm_sf6_sh
+  real(rp), public :: atm_co2
+  real(rp), public :: atm_cfc11_nh, atm_cfc11_sh
+  real(rp), public :: atm_cfc12_nh, atm_cfc12_sh
+  real(rp), public :: atm_sf6_nh, atm_sf6_sh
 
   ! Index for nutlim_diag
   integer, parameter, public :: inutlim_phosph = 1
@@ -110,7 +112,6 @@ contains
     !--------------------------------------------
 
     use mod_xc,         only: mnproc
-    use mo_kind,        only: rp
     use mo_control_bgc, only: io_stdo_bgc
     use mo_param1_bgc,  only: nocetra,npowtra,nsedtra,natm,nriv,ndust
     use mo_control_bgc, only: use_natDIC,use_cisonew,use_extNcycle

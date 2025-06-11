@@ -73,7 +73,7 @@ module mo_extNwatercol
   ! public functions
   public :: nitrification,denit_NO3_to_NO2,anammox,denit_dnra,extN_inv_check
 
-  real :: eps    = epsilon(1._rp)
+  real(rp) :: eps    = epsilon(1._rp)
 
 contains
 
@@ -82,16 +82,16 @@ contains
     ! by dark carbon fixation and O2-dependent N2O production
 
     integer, intent(in) :: kpie,kpje,kpke,kbnd
-    real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: pddpo(kpie,kpje,kpke)
-    real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+    real(rp),intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: pddpo(kpie,kpje,kpke)
+    real(rp),intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
 
     !local variables
     integer :: i,j,k
-    real    :: Tdepanh4,O2limanh4,nut1lim,anh4new,potdnh4amox,fdetamox,fno2,fn2o,ftotnh4
-    real    :: Tdepano2,O2limano2,nut2lim,ano2new,potdno2nitr,fdetnitr,ftotno2,no2fn2o,no2fno2,    &
+    real(rp):: Tdepanh4,O2limanh4,nut1lim,anh4new,potdnh4amox,fdetamox,fno2,fn2o,ftotnh4
+    real(rp):: Tdepano2,O2limano2,nut2lim,ano2new,potdno2nitr,fdetnitr,ftotno2,no2fn2o,no2fno2,    &
                no2fdetamox
-    real    :: amoxfrac,nitrfrac,totd,amox,nitr,temp
+    real(rp):: amoxfrac,nitrfrac,totd,amox,nitr,temp
 
     ! Set output-related fields to zero
     nitr_NH4      = 0._rp
@@ -210,13 +210,13 @@ contains
     ! Denitrification / dissimilatory nitrate reduction (NO3 -> NO2)
 
     integer, intent(in) :: kpie,kpje,kpke,kbnd
-    real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: pddpo(kpie,kpje,kpke)
-    real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+    real(rp),intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: pddpo(kpie,kpje,kpke)
+    real(rp),intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
 
     !local variables
     integer :: i,j,k
-    real    :: Tdep,O2inhib,nutlim,ano3new,ano3denit,temp
+    real(rp):: Tdep,O2inhib,nutlim,ano3new,ano3denit,temp
 
     ! Set output-related field to zero
     denit_NO3  = 0._rp
@@ -259,13 +259,13 @@ contains
     ! Aanammox
 
     integer, intent(in) :: kpie,kpje,kpke,kbnd
-    real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: pddpo(kpie,kpje,kpke)
-    real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+    real(rp),intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: pddpo(kpie,kpje,kpke)
+    real(rp),intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
 
     !local variables
     integer :: i,j,k
-    real    :: Tdep,O2inhib,nut1lim,nut2lim,ano2new,ano2anmx,temp
+    real(rp):: Tdep,O2inhib,nut1lim,nut2lim,ano2new,ano2anmx,temp
 
     ! Set output-related field to zero
     anmx_N2_prod = 0._rp
@@ -317,18 +317,18 @@ contains
     ! Denitrification processes (NO2 -> N2O -> N2) and dissmilatory nitrite reduction (NO2 -> NH4)
 
     integer, intent(in) :: kpie,kpje,kpke,kbnd
-    real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: pddpo(kpie,kpje,kpke)
-    real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+    real(rp),intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: pddpo(kpie,kpje,kpke)
+    real(rp),intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
 
     !local variables
-    integer :: i,j,k
-    real    :: Tdepano2,O2inhibano2,nutlimano2,detlimano2,rpotano2denit,ano2denit
-    real    :: Tdepdnra,O2inhibdnra,nutlimdnra,detlimdnra,rpotano2dnra,ano2dnra
-    real    :: fdenit,fdnra,potano2new,potdano2,potddet,fdetano2denit,fdetan2odenit,fdetdnra
-    real    :: Tdepan2o,O2inhiban2o,nutliman2o,detliman2o,an2onew,an2odenit
+    integer  :: i,j,k
+    real(rp) :: Tdepano2,O2inhibano2,nutlimano2,detlimano2,rpotano2denit,ano2denit
+    real(rp) :: Tdepdnra,O2inhibdnra,nutlimdnra,detlimdnra,rpotano2dnra,ano2dnra
+    real(rp) :: fdenit,fdnra,potano2new,potdano2,potddet,fdetano2denit,fdetan2odenit,fdetdnra
+    real(rp) :: Tdepan2o,O2inhiban2o,nutliman2o,detliman2o,an2onew,an2odenit
 
-    real    :: temp
+    real(rp) :: temp
 
     ! Set output-related field to zero
     denit_NO2 = 0._rp
@@ -434,8 +434,8 @@ contains
     ! provide inventory calculation for extended nitrogen cycle
 
     integer, intent(in) :: kpie,kpje,kpke
-    real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: pdlxp(kpie,kpje),pdlyp(kpie,kpje),pddpo(kpie,kpje,kpke)
+    real(rp),intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: pdlxp(kpie,kpje),pdlyp(kpie,kpje),pddpo(kpie,kpje,kpke)
     character (len=*),intent(in) :: inv_message
 
     if (use_PBGC_OCNP_TIMESTEP) then

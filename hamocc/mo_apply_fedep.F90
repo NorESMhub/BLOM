@@ -44,16 +44,16 @@ contains
     use mo_param_bgc,   only: sec_per_day
     use mo_carbch,      only: ocetra,dustflx
 
-    integer,intent(in) :: kpie                      ! 1st dimension of model grid.
-    integer,intent(in) :: kpje                      ! 2nd dimension of model grid.
-    integer,intent(in) :: kpke                      ! 3rd (vertical) dimension of model grid.
-    real,   intent(in) :: pddpo(kpie,kpje,kpke)     ! size of scalar grid cell (3rd dimension) [m].
-    real,   intent(in) :: omask(kpie,kpje)          ! ocean mask
-    real,   intent(in) :: dust(kpie,kpje,ndust)     ! dust deposition flux [kg dust/m2/s] and [kmol sFe/m2/s].
+    integer,  intent(in) :: kpie                      ! 1st dimension of model grid.
+    integer,  intent(in) :: kpje                      ! 2nd dimension of model grid.
+    integer,  intent(in) :: kpke                      ! 3rd (vertical) dimension of model grid.
+    real(rp), intent(in) :: pddpo(kpie,kpje,kpke)     ! size of scalar grid cell (3rd dimension) [m].
+    real(rp), intent(in) :: omask(kpie,kpje)          ! ocean mask
+    real(rp), intent(in) :: dust(kpie,kpje,ndust)     ! dust deposition flux [kg dust/m2/s] and [kmol sFe/m2/s].
 
     ! local variables
-    integer :: i,j
-    real    :: dustinp
+    integer  :: i,j
+    real(rp) :: dustinp
 
     ! Total dust and soluble iron fluxes from the atmosphere to the surface layer; input
     ! fields are in kg/m2/s for total dust and in kmol fe/m2/s.

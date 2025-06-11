@@ -78,7 +78,7 @@ module mo_Gdata_read
   integer, parameter :: nzmax  = nz_woa ! Max nuber of z-levels (=nzwoa)
 
   ! Resolution of data in degree
-  real, parameter    :: dres = 1.0_rp
+  real(rp), parameter    :: dres = 1.0_rp
 
   ! Max number of gridpoints to select around the center for averaging in
   ! longitude direction
@@ -87,7 +87,7 @@ module mo_Gdata_read
 
   ! Fill value used in this module, original fill values of data files are
   ! replaced by this fill value during read
-  real,             parameter :: fillval = -1.e+32_rp
+  real(rp),             parameter :: fillval = -1.e+32_rp
 
   ! Input file names (incl. full path) set through namelist
   character(len=bgc_fnmlen) :: inidic  = ''
@@ -105,10 +105,10 @@ module mo_Gdata_read
 
   ! Variables set by call to Gdata_set
   integer                               :: nz
-  real                                  :: cfac, ddeg
-  real, dimension(:),       allocatable :: lon,lat,zlev
-  real, dimension(:,:),     allocatable :: zlev_bnds
-  real, dimension(:, :, :), allocatable :: rvar,gdata
+  real(rp)                                  :: cfac, ddeg
+  real(rp), dimension(:),       allocatable :: lon,lat,zlev
+  real(rp), dimension(:,:),     allocatable :: zlev_bnds
+  real(rp), dimension(:, :, :), allocatable :: rvar,gdata
   character(len=16)                     :: var,ncname
   character(len=3)                      :: dsrc
   character(len=bgc_fnmlen)             :: infile
@@ -122,9 +122,9 @@ module mo_Gdata_read
     character(len=64)  :: name        ! Region name
     integer            :: idx         ! Region index
     integer            :: npts(nzmax) ! nb of valid data points at each level
-    real               :: clon, clat  ! center longitude and latitude
-    real               :: dlon, dlat  ! latitude and longitude extent
-    real               :: mprf(nzmax) ! mean profile for region
+    real(rp)           :: clon, clat  ! center longitude and latitude
+    real(rp)           :: dlon, dlat  ! latitude and longitude extent
+    real(rp)           :: mprf(nzmax) ! mean profile for region
     logical            :: global      ! global extent T/F
   end type region
 
@@ -209,7 +209,7 @@ contains
 
     ! Arguments
     character(len=*), intent(in) :: vname  ! data set name to read in
-    real,             intent(in) :: inddeg ! extent (in degrees) of region used for averaging
+    real(rp),             intent(in) :: inddeg ! extent (in degrees) of region used for averaging
 
     ! Valid values of vname are:
     !   'pho' - WOA phosphate
@@ -386,13 +386,13 @@ contains
     !--------------------------------------------------------------------------------
 
     ! Arguments
-    real, intent(in)  :: clon       ! center lon of mean profile
-    real, intent(in)  :: clat       ! center lat of mean profile
-    real, intent(out) :: prf(nzmax) ! mean profile for initialisation
+    real(rp), intent(in)  :: clon       ! center lon of mean profile
+    real(rp), intent(in)  :: clat       ! center lat of mean profile
+    real(rp), intent(out) :: prf(nzmax) ! mean profile for initialisation
 
     ! Local variables
     integer                        :: idx, npts(nzmax)
-    real                           :: clon_tmp,clat_tmp
+    real(rp)                       :: clon_tmp,clat_tmp
     character(len=*), parameter    :: routinestr = 'mo_Gdata_read, get_profile'
 
     if( .not. lset ) then
@@ -433,14 +433,14 @@ contains
     !--------------------------------------------------------------------------------
 
     ! ARGUMENTS
-    real, intent(in) :: clon,clat ! lon/lat of point
+    real(rp), intent(in) :: clon,clat ! lon/lat of point
 
     ! Local variables
-    integer :: get_region
-    integer :: i
-    real    :: ll_lon, ur_lon
-    real    :: ll_lat, ur_lat
-    logical :: boundwithin, found
+    integer  :: get_region
+    integer  :: i
+    real(rp) :: ll_lon, ur_lon
+    real(rp) :: ll_lat, ur_lat
+    logical  :: boundwithin, found
     character(len=*), parameter    :: routinestr = 'mo_Gdata_read, get_region'
 
     if( clon < 0     ) call moderr(routinestr, ' clon must be in the range [0,360]')
@@ -525,7 +525,7 @@ contains
     integer                     :: i, ndim, natts
     integer                     :: dimid(7)
     integer                     :: status
-    real                        :: fval
+    real(rp)                    :: fval
     character(len=16)           :: lonstr,latstr,depthstr,depthbndsstr,fvalstr
     character(len=*), parameter :: routinestr = 'mo_Gdata_read, read_Gdata'
 
@@ -659,9 +659,9 @@ contains
     !--------------------------------------------------------------------------------
 
     ! Arguments
-    real,              intent(in)  :: clon, clat  !  center lon/lat of mean profile
-    real,              intent(in)  :: dlon, dlat  !  lon/lat extent of region to select for averaging
-    real,              intent(out) :: prf(nzmax)  !  mean profile calculated from all data in selected region
+    real(rp),          intent(in)  :: clon, clat  !  center lon/lat of mean profile
+    real(rp),          intent(in)  :: dlon, dlat  !  lon/lat extent of region to select for averaging
+    real(rp),          intent(out) :: prf(nzmax)  !  mean profile calculated from all data in selected region
     integer,           intent(out) :: npts(nzmax) !  nb of valid data points found for each depth level
     logical, optional, intent(in)  :: global      !  if set to true, calculate mean over the whole data set
 

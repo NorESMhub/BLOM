@@ -17,7 +17,7 @@
 
 module mo_read_pi_ph
 
-  use mo_kind, only: bgc_fnmlen
+  use mo_kind, only: bgc_fnmlen,rp
 
   implicit none
   private
@@ -42,10 +42,10 @@ module mo_read_pi_ph
   integer, parameter :: pi_ph_record = 12
 
   ! surface PI pH climatology
-  real, dimension(:,:,:), allocatable :: pi_ph_clim
+  real(rp), dimension(:,:,:), allocatable :: pi_ph_clim
 
   ! surface PI pH monthly data
-  real, dimension(:,:), allocatable :: pi_ph
+  real(rp), dimension(:,:), allocatable :: pi_ph
 
   integer :: oldmonth=0
 
@@ -56,7 +56,6 @@ contains
     ! Initialise the PI_PH field from climatology.
     !***********************************************************************************************
 
-    use mo_kind,            only: rp
     use mo_control_bgc,     only: io_stdo_bgc,with_dmsph
     use netcdf,             only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
     use mod_xc,             only: mnproc,xchalt
@@ -65,11 +64,11 @@ contains
     ! Arguments
     integer, intent(in) :: kpie
     integer, intent(in) :: kpje
-    real,    intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: omask(kpie,kpje)
 
     ! Local variables
     integer ::i,j,l
-    real    :: pi_ph_in(kpie,kpje,pi_ph_record) ! define the fields
+    real(rp):: pi_ph_in(kpie,kpje,pi_ph_record) ! define the fields
     integer :: ncid,ncstat
 
     if(mnproc.eq.1) then

@@ -51,7 +51,7 @@ module mo_apply_rivin
   ! Martin, 1995; Lohan and Bruland, 2006; Sholkovitz, 1978]. dFe_frac is the
   ! fraction of dissolved iron that enters the coastal ocean.
 
-  real, parameter :: dFe_frac = 0.01_rp  ! assume 99% loss of dissolved iron
+  real(rp), parameter :: dFe_frac = 0.01_rp  ! assume 99% loss of dissolved iron
 
 contains
 
@@ -72,16 +72,16 @@ contains
     use mo_control_bgc, only: use_natDIC
 
     ! Arguments
-    integer,intent(in) :: kpie                       ! 1st dimension of model grid.
-    integer,intent(in) :: kpje                       ! 2nd dimension of model grid.
-    integer,intent(in) :: kpke                       ! 3rd (vertical) dimension of model grid.
-    real,   intent(in) :: pddpo(kpie,kpje,kpke)      ! size of grid cell (3rd dimension) [m].
-    real,   intent(in) :: omask(kpie,kpje)           ! ocean mask
-    real,   intent(in) :: rivin(kpie,kpje,nriv)      ! riverine input field [kmol m-2 yr-1]
+    integer,  intent(in) :: kpie                       ! 1st dimension of model grid.
+    integer,  intent(in) :: kpje                       ! 2nd dimension of model grid.
+    integer,  intent(in) :: kpke                       ! 3rd (vertical) dimension of model grid.
+    real(rp), intent(in) :: pddpo(kpie,kpje,kpke)      ! size of grid cell (3rd dimension) [m].
+    real(rp), intent(in) :: omask(kpie,kpje)           ! ocean mask
+    real(rp), intent(in) :: rivin(kpie,kpje,nriv)      ! riverine input field [kmol m-2 yr-1]
 
     ! local variables
-    integer :: i,j,k
-    real    :: fdt,volij
+    integer  :: i,j,k
+    real(rp) :: fdt,volij
 
     ! rivinflx stores the applied n-deposition flux for inventory calculations
     ! and output
