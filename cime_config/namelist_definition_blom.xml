@@ -4199,7 +4199,7 @@
     <desc>Number of subcyles per time-step for sediment spinup</desc>
   </entry>
 
-  <entry id="lini_domclasses_sim">
+  <entry id="linit_domclasses_sim">
     <type>logical</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
