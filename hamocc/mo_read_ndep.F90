@@ -76,6 +76,7 @@ contains
     !***********************************************************************************************
 
     use mod_xc,             only: mnproc,xchalt
+    use mo_kind,            only: rp
     use mo_control_bgc,     only: io_stdo_bgc,do_ndep,use_extNcycle
     use mod_dia,            only: iotype
     use mod_nctools,        only: ncfopn,ncgeti,ncfcls
@@ -125,7 +126,7 @@ contains
       endif
       allocate (nhxdepread(kpie,kpje),stat=errstat)
       if(errstat /= 0) stop 'not enough memory nhxdepread'
-      nhxdepread(:,:) = 0.0
+      nhxdepread(:,:) = 0.0_rp
 
       if (mnproc == 1) then
         write(io_stdo_bgc,*)'Memory allocation for variable noydepread ...'
@@ -134,7 +135,7 @@ contains
       endif
       allocate (noydepread(kpie,kpje),stat=errstat)
       if(errstat /= 0) stop 'not enough memory noydepread'
-      noydepread(:,:) = 0.0
+      noydepread(:,:) = 0.0_rp
 
       ! read start and end year of n-deposition file
       call ncfopn(trim(ndepfile),'r',' ',1,iotype)
@@ -164,6 +165,7 @@ contains
 
     use mod_xc,             only: mnproc
     use netcdf,             only: nf90_open,nf90_close,nf90_nowrite
+    use mo_kind,            only: rp
     use mo_control_bgc,     only: io_stdo_bgc, do_ndep, use_extNcycle, use_coupler_ndep
     use mo_netcdf_bgcrw,    only: read_netcdf_var
     use mo_param1_bgc,      only: nndep,idepnoy,idepnhx
@@ -187,7 +189,7 @@ contains
     real     :: fatmndep
     logical  :: first_call = .true.
 
-    ndep(:,:,:) = 0.0
+    ndep(:,:,:) = 0.0_rp
 
     if (.not. do_ndep) then
       ! if N-deposition is switched off return
@@ -202,16 +204,16 @@ contains
       endif
 
       ! convert from kgN/m2/s to climatological input file units: kmolN/m2/yr
-      fatmndep = 365.*sec_per_day/mw_nitrogen
+      fatmndep = 365._rp*sec_per_day/mw_nitrogen
 
       if (use_extNcycle) then
         !$omp parallel do private(i)
         do j=1,kpje
           do i=1,kpie
-            if (patmnoydep(i,j) > 0.) then
+            if (patmnoydep(i,j) > 0._rp) then
               ndep(i,j,idepnoy) = patmnoydep(i,j)*fatmndep
             endif
-            if (patmnhxdep(i,j) > 0.) then
+            if (patmnhxdep(i,j) > 0._rp) then
               ndep(i,j,idepnhx) = patmnhxdep(i,j)*fatmndep
             endif
           enddo
@@ -221,7 +223,7 @@ contains
         !$omp parallel do private(i)
         do j=1,kpje
           do i=1,kpie
-            if (patmnoydep(i,j) > 0. .and.  patmnhxdep(i,j) > 0.) then
+            if (patmnoydep(i,j) > 0._rp .and.  patmnhxdep(i,j) > 0._rp) then
               ! reduced and oxidized forms all enter the NO3 pool
               ndep(i,j,idepnoy) = (patmnoydep(i,j)+patmnhxdep(i,j))*fatmndep
             endif

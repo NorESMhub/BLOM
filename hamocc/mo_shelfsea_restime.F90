@@ -36,6 +36,7 @@ contains
 
   subroutine shelfsea_residence_time(kpie,kpje,kpke,pddpo,shelfmask,omask)
 
+    use mo_kind,        only : rp
     use mo_vgrid,       only : dp_min
     use mo_carbch,      only : ocetra
     use mo_param1_bgc,  only : ishelfage
@@ -56,12 +57,12 @@ contains
     do k=1,kpke
       do j=1,kpje
         do i=1,kpie
-          if (pddpo(i,j,k)>dp_min .and. omask(i,j)>0.5) then
+          if (pddpo(i,j,k)>dp_min .and. omask(i,j)>0.5_rp) then
             ! Note that in Liu et al. 2019, min function is written,
             ! but a gradual decrease in residence time off the shelf should require max function
             ! to result in zero values in open ocean regions (and not negative values)
             ocetra(i,j,k,ishelfage) = merge(       ocetra(i,j,k,ishelfage) + dtb,                  &
-                                            max(0.,ocetra(i,j,k,ishelfage) - dtb), shelfmask(i,j) )
+                                            max(0._rp,ocetra(i,j,k,ishelfage) - dtb), shelfmask(i,j) )
           endif
         enddo
       enddo

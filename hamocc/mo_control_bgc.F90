@@ -30,6 +30,8 @@ module mo_control_bgc
   !  - implement R2OMIP protocol
   !*************************************************************************************************
 
+  use mo_kind, only: rp
+
   implicit none
   public
 
@@ -50,8 +52,8 @@ module mo_control_bgc
   integer :: ldtbgc                   !  time step number from bgc restart file
   integer :: ldtrunbgc                !  actual time steps of run.
 
-  real    :: rmasks = 0.0             !  value at wet cells in sediment.
-  real    :: rmasko = 99999.00        !  value at wet cells in ocean.
+  real    :: rmasks = 0.0_rp             !  value at wet cells in sediment.
+  real    :: rmasko = 99999.00_rp        !  value at wet cells in ocean.
 
   ! Variables set via namelist bgcnml
   logical           :: l_3Dvarsedpor          = .false. ! apply spatially variable sediment porosity

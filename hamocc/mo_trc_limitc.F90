@@ -49,6 +49,7 @@ contains
     use mod_state,   only: dp
     use mod_tracers, only: ntrbgc, itrbgc, trc
     use mod_utility, only: util1
+    use mo_kind,     only: rp
 
     ! Arguments
     integer :: nn
@@ -65,7 +66,7 @@ contains
 
     do nt=1,ntrbgc
 
-      util1(:,:)=0.
+      util1(:,:)=0._rp
 
       !$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
@@ -90,7 +91,7 @@ contains
       do j=1,jj
         do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            trc(i,j,kn,nt) = max(trc(i,j,kn,nt),0.0)
+            trc(i,j,kn,nt) = max(trc(i,j,kn,nt),0.0_rp)
           enddo
         enddo
       enddo
@@ -103,7 +104,7 @@ contains
 
     do nt=1,ntrbgc
 
-      util1(:,:)=0.
+      util1(:,:)=0._rp
 
       !$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
@@ -116,7 +117,7 @@ contains
       !$OMP END PARALLEL DO
 
       call xcsum(trbudn,util1,ips)
-      q = trbudo(nt)/max(1.e-14,trbudn)
+      q = trbudo(nt)/max(1.e-14_rp,trbudn)
 
       !$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj

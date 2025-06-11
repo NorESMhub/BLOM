@@ -39,6 +39,8 @@ module mo_apply_rivin
   !
   !*************************************************************************************************
 
+  use mo_kind,        only: rp
+
   implicit none
   private
 
@@ -49,7 +51,7 @@ module mo_apply_rivin
   ! Martin, 1995; Lohan and Bruland, 2006; Sholkovitz, 1978]. dFe_frac is the
   ! fraction of dissolved iron that enters the coastal ocean.
 
-  real, parameter :: dFe_frac = 0.01  ! assume 99% loss of dissolved iron
+  real, parameter :: dFe_frac = 0.01_rp  ! assume 99% loss of dissolved iron
 
 contains
 
@@ -83,19 +85,19 @@ contains
 
     ! rivinflx stores the applied n-deposition flux for inventory calculations
     ! and output
-    rivinflx(:,:,:) = 0.0
+    rivinflx(:,:,:) = 0.0_rp
 
     if (.not. do_rivinpt) return
 
-    fdt = dtb/365.
+    fdt = dtb/365._rp
 
     !$OMP PARALLEL DO PRIVATE(i,k,volij)
     do j=1,kpje
       do i=1,kpie
-        if(omask(i,j) > 0.5) then
+        if(omask(i,j) > 0.5_rp) then
 
           ! Distribute riverine inputs over the model mixed layer
-          volij = 0.
+          volij = 0._rp
           do k=1,kmle(i,j)
             volij=volij+pddpo(i,j,k)
           enddo
@@ -205,13 +207,13 @@ contains
               ! 40% (refractory) distribution following Kulinski et al. (2016)
               ! https://doi.org/10.1016/j.marchem.2016.03.002
               ocetra(i,j,1:kmle(i,j),idoc)  = ocetra(i,j,1:kmle(i,j),idoc)                         &
-                 &                          + 0.1*rivin(i,j,irdoc)*fdt/volij
+                 &                          + 0.1_rp*rivin(i,j,irdoc)*fdt/volij
               ocetra(i,j,1:kmle(i,j),idocsl)= ocetra(i,j,1:kmle(i,j),idocsl)                       &
-                 &                          + 0.1*rivin(i,j,irdoc)*fdt/volij
+                 &                          + 0.1_rp*rivin(i,j,irdoc)*fdt/volij
               ocetra(i,j,1:kmle(i,j),idocsr)= ocetra(i,j,1:kmle(i,j),idocsr)                       &
-                 &                          + 0.4*rivin(i,j,irdoc)*fdt/volij
+                 &                          + 0.4_rp*rivin(i,j,irdoc)*fdt/volij
               ocetra(i,j,1:kmle(i,j),idocr) = ocetra(i,j,1:kmle(i,j),idocr)                        &
-                 &                          + 0.4*rivin(i,j,irdoc)*fdt/volij
+                 &                          + 0.4_rp*rivin(i,j,irdoc)*fdt/volij
             else
               ocetra(i,j,1:kmle(i,j),idoc)  = ocetra(i,j,1:kmle(i,j),idoc)                         &
                  &                          + rivin(i,j,irdoc)*fdt/volij
@@ -241,7 +243,7 @@ contains
           if (use_river2omip) then
             rivinflx(i,j,irtdoc) = rivin(i,j,irtdoc)*fdt
           else
-            rivinflx(i,j,irtdoc) = 0.
+            rivinflx(i,j,irtdoc) = 0._rp
           endif
           rivinflx(i,j,irdet)  = rivin(i,j,irdet)*fdt
         endif

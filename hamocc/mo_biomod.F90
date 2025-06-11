@@ -121,6 +121,7 @@ CONTAINS
     ! ALLOC_MEM_BIOMOD - Allocate variables in this module
     !******************************************************************************
     use mod_xc,         only: mnproc
+    use mo_kind,        only: rp
     use mo_control_bgc, only: io_stdo_bgc
     use mo_control_bgc, only: use_FB_BGC_OCE,use_AGG,use_BROMO,use_extNcycle,use_DOMclasses
 
@@ -147,7 +148,7 @@ CONTAINS
 
     allocate (strahl(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory strahl'
-    strahl(:,:) = 0.0
+    strahl(:,:) = 0.0_rp
 
     if (use_FB_BGC_OCE ) then
       if (mnproc.eq.1) then
@@ -159,7 +160,7 @@ CONTAINS
 
       allocate (abs_oce(kpie,kpje,kpke),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory abs_oce'
-      abs_oce(:,:,:) = 0.0
+      abs_oce(:,:,:) = 0.0_rp
     endif
 
     if (mnproc.eq.1) then
@@ -170,7 +171,7 @@ CONTAINS
 
     allocate (expoor(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory expoor'
-    expoor(:,:) = 0.0
+    expoor(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable expoca ...'
@@ -180,7 +181,7 @@ CONTAINS
 
     allocate (expoca(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory expoca'
-    expoca(:,:) = 0.0
+    expoca(:,:) = 0.0_rp
 
 
     if (mnproc.eq.1) then
@@ -191,7 +192,7 @@ CONTAINS
 
     allocate (exposi(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory exposi'
-    exposi(:,:) = 0.0
+    exposi(:,:) = 0.0_rp
 
 
     if (mnproc.eq.1) then
@@ -202,7 +203,7 @@ CONTAINS
 
     allocate (intphosy(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory intphosy'
-    intphosy(:,:) = 0.0
+    intphosy(:,:) = 0.0_rp
 
 
     if (mnproc.eq.1) then
@@ -213,7 +214,7 @@ CONTAINS
 
     allocate (intdnit(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory intdnit'
-    intdnit(:,:) = 0.0
+    intdnit(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable intnfix ...'
@@ -223,7 +224,7 @@ CONTAINS
 
     allocate (intnfix(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory intnfix'
-    intnfix(:,:) = 0.0
+    intnfix(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable intdmsprod, intdms_bac, intdms_uv ...'
@@ -235,9 +236,9 @@ CONTAINS
     allocate (intdms_bac(kpie,kpje),stat=errstat)
     allocate (intdms_uv(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory intdmsprod, intdms_bac, intdms_uv'
-    intdmsprod(:,:) = 0.0
-    intdms_bac(:,:) = 0.0
-    intdms_uv(:,:) = 0.0
+    intdmsprod(:,:) = 0.0_rp
+    intdms_bac(:,:) = 0.0_rp
+    intdms_uv(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable carflx* ...'
@@ -252,12 +253,12 @@ CONTAINS
     allocate (carflx4000(kpie,kpje),stat=errstat)
     allocate (carflx_bot(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory carflx*'
-    carflx0100(:,:) = 0.0
-    carflx0500(:,:) = 0.0
-    carflx1000(:,:) = 0.0
-    carflx2000(:,:) = 0.0
-    carflx4000(:,:) = 0.0
-    carflx_bot(:,:) = 0.0
+    carflx0100(:,:) = 0.0_rp
+    carflx0500(:,:) = 0.0_rp
+    carflx1000(:,:) = 0.0_rp
+    carflx2000(:,:) = 0.0_rp
+    carflx4000(:,:) = 0.0_rp
+    carflx_bot(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable bsiflx* ...'
@@ -272,12 +273,12 @@ CONTAINS
     allocate (bsiflx4000(kpie,kpje),stat=errstat)
     allocate (bsiflx_bot(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory bsiflx*'
-    bsiflx0100(:,:) = 0.0
-    bsiflx0500(:,:) = 0.0
-    bsiflx1000(:,:) = 0.0
-    bsiflx2000(:,:) = 0.0
-    bsiflx4000(:,:) = 0.0
-    bsiflx_bot(:,:) = 0.0
+    bsiflx0100(:,:) = 0.0_rp
+    bsiflx0500(:,:) = 0.0_rp
+    bsiflx1000(:,:) = 0.0_rp
+    bsiflx2000(:,:) = 0.0_rp
+    bsiflx4000(:,:) = 0.0_rp
+    bsiflx_bot(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable calflx* ...'
@@ -292,12 +293,12 @@ CONTAINS
     allocate (calflx4000(kpie,kpje),stat=errstat)
     allocate (calflx_bot(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory calflx*'
-    calflx0100(:,:) = 0.0
-    calflx0500(:,:) = 0.0
-    calflx1000(:,:) = 0.0
-    calflx2000(:,:) = 0.0
-    calflx4000(:,:) = 0.0
-    calflx_bot(:,:) = 0.0
+    calflx0100(:,:) = 0.0_rp
+    calflx0500(:,:) = 0.0_rp
+    calflx1000(:,:) = 0.0_rp
+    calflx2000(:,:) = 0.0_rp
+    calflx4000(:,:) = 0.0_rp
+    calflx_bot(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable dustflx* ...'
@@ -312,12 +313,12 @@ CONTAINS
     allocate (dustflx4000(kpie,kpje),stat=errstat)
     allocate (dustflx_bot(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory dustflx*'
-    dustflx0100(:,:) = 0.0
-    dustflx0500(:,:) = 0.0
-    dustflx1000(:,:) = 0.0
-    dustflx2000(:,:) = 0.0
-    dustflx4000(:,:) = 0.0
-    dustflx_bot(:,:) = 0.0
+    dustflx0100(:,:) = 0.0_rp
+    dustflx0500(:,:) = 0.0_rp
+    dustflx1000(:,:) = 0.0_rp
+    dustflx2000(:,:) = 0.0_rp
+    dustflx4000(:,:) = 0.0_rp
+    dustflx_bot(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable phosy3d ...'
@@ -328,7 +329,7 @@ CONTAINS
 
     allocate (phosy3d(kpie,kpje,kpke),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory phosy3d'
-    phosy3d(:,:,:) = 0.0
+    phosy3d(:,:,:) = 0.0_rp
 
     if (use_AGG) then
       if (mnproc.eq.1) then
@@ -340,7 +341,7 @@ CONTAINS
 
       allocate (wmass(kpie,kpje,kpke),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory eps3d'
-      wmass(:,:,:) = 0.0
+      wmass(:,:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable wnumb ...'
@@ -351,7 +352,7 @@ CONTAINS
 
       allocate (wnumb(kpie,kpje,kpke),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory eps3d'
-      wnumb(:,:,:) = 0.0
+      wnumb(:,:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable eps3d ...'
@@ -362,7 +363,7 @@ CONTAINS
 
       allocate (eps3d(kpie,kpje,kpke),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory eps3d'
-      eps3d(:,:,:) = 0.0
+      eps3d(:,:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable asize3d ...'
@@ -373,7 +374,7 @@ CONTAINS
 
       allocate (asize3d(kpie,kpje,kpke),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory asize3d'
-      asize3d(:,:,:) = 0.0
+      asize3d(:,:,:) = 0.0_rp
     endif
 
     if (use_BROMO) then
@@ -386,8 +387,8 @@ CONTAINS
       allocate (int_chbr3_prod(kpie,kpje),stat=errstat)
       allocate (int_chbr3_uv(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory int_chbr3_prod, int_chbr3_uv'
-      int_chbr3_prod(:,:) = 0.0
-      int_chbr3_uv(:,:) = 0.0
+      int_chbr3_prod(:,:) = 0.0_rp
+      int_chbr3_uv(:,:) = 0.0_rp
     endif
 
     if (use_extNcycle) then
@@ -415,21 +416,21 @@ CONTAINS
       allocate (remin_sulf(kpie,kpje,kpke),stat=errstat)
 
       if(errstat.ne.0) stop 'not enough memory extended nitrogen cycle'
-      nitr_NH4      = 0.
-      nitr_NO2      = 0.
-      nitr_N2O_prod = 0.
-      nitr_NH4_OM   = 0.
-      nitr_NO2_OM   = 0.
-      denit_NO3     = 0.
-      denit_NO2     = 0.
-      denit_N2O     = 0.
-      DNRA_NO2      = 0.
-      anmx_N2_prod  = 0.
-      anmx_OM_prod  = 0.
-      phosy_NH4     = 0.
-      phosy_NO3     = 0.
-      remin_aerob   = 0.
-      remin_sulf    = 0.
+      nitr_NH4      = 0._rp
+      nitr_NO2      = 0._rp
+      nitr_N2O_prod = 0._rp
+      nitr_NH4_OM   = 0._rp
+      nitr_NO2_OM   = 0._rp
+      denit_NO3     = 0._rp
+      denit_NO2     = 0._rp
+      denit_N2O     = 0._rp
+      DNRA_NO2      = 0._rp
+      anmx_N2_prod  = 0._rp
+      anmx_OM_prod  = 0._rp
+      phosy_NH4     = 0._rp
+      phosy_NO3     = 0._rp
+      remin_aerob   = 0._rp
+      remin_sulf    = 0._rp
     endif
 
     if (use_DOMclasses) then
@@ -441,7 +442,7 @@ CONTAINS
 
       allocate (int_exudl(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory int_exudl'
-      int_exudl(:,:) = 0.0
+      int_exudl(:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable int_exudsl ...'
@@ -451,7 +452,7 @@ CONTAINS
 
       allocate (int_exudsl(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory int_exudsl'
-      int_exudsl(:,:) = 0.0
+      int_exudsl(:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable int_excrl ...'
@@ -461,7 +462,7 @@ CONTAINS
 
       allocate (int_excrl(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory int_excrl'
-      int_excrl(:,:) = 0.0
+      int_excrl(:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable int_excrsl ...'
@@ -471,7 +472,7 @@ CONTAINS
 
       allocate (int_excrsl(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory intexcrsl'
-      int_excrsl(:,:) = 0.0
+      int_excrsl(:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable int_docl_rem ...'
@@ -481,7 +482,7 @@ CONTAINS
 
       allocate (int_docl_rem(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory int_docl_rem'
-      int_docl_rem(:,:) = 0.0
+      int_docl_rem(:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable int_docsl_rem ...'
@@ -491,7 +492,7 @@ CONTAINS
 
       allocate (int_docsl_rem(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory int_docsl_rem'
-      int_docsl_rem(:,:) = 0.0
+      int_docsl_rem(:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable int_docsr_rem ...'
@@ -501,7 +502,7 @@ CONTAINS
 
       allocate (int_docsr_rem(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory int_docsr_rem'
-      int_docsr_rem(:,:) = 0.0
+      int_docsr_rem(:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable int_docr_rem ...'
@@ -511,7 +512,7 @@ CONTAINS
 
       allocate (int_docr_rem(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory int_docr_rem'
-      int_docr_rem(:,:) = 0.0
+      int_docr_rem(:,:) = 0.0_rp
     endif
 
   end subroutine alloc_mem_biomod

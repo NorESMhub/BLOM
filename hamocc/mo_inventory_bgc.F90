@@ -40,6 +40,7 @@ contains
     !***********************************************************************************************
 
     use mod_xc,         only: mnproc,ips,nbdy,xcsum
+    use mo_kind,        only: rp
     use mo_carbch,      only: atm,atmflx,co3,hi,ndepnoyflx,rivinflx,ocetra,sedfluxo,ndepnhxflx
     use mo_sedmnt,      only: prcaca,prorca,silpro
     use mo_biomod,      only: expoor,expoca,exposi
@@ -80,7 +81,7 @@ contains
     real :: vol
     ! ppm2con: atmospheric weight: ~10000kg/m^2, avrg. ~29 g/mol
     ! --> 350 kmol/m^2 --> 1ppm ~ 0.35e-3 kmol/m^2
-    real, parameter :: ppm2con = 0.35e-3
+    real, parameter :: ppm2con = 0.35e-3_rp
     !=== Variables for global sums
     real :: ztotvol                  ! Total ocean volume
     real :: ztotarea                 ! Total sea surface area
@@ -128,16 +129,16 @@ contains
     !----------------------------------------------------------------------
     if (use_sedbypass) then
 
-      zsedtotvol = 0.0
-      zpowtratot(:)=0.0
-      zpowtratoc(:)=0.0
-      zsedlayto(:)=0.0
-      zburial(:)=0.0
-      zsedhplto=0.0
+      zsedtotvol = 0.0_rp
+      zpowtratot(:)=0.0_rp
+      zpowtratoc(:)=0.0_rp
+      zsedlayto(:)=0.0_rp
+      zburial(:)=0.0_rp
+      zsedhplto=0.0_rp
 
     else
 
-      ztmp1(:,:)=0.0
+      ztmp1(:,:)=0.0_rp
       do k=1,ks
         do j=1,kpje
           do i=1,kpie
@@ -150,7 +151,7 @@ contains
       call xcsum(zsedtotvol,ztmp1,ips)
 
       do l=1,npowtra
-        ztmp1(:,:)=0.0
+        ztmp1(:,:)=0.0_rp
         do k=1,ks
           do j=1,kpje
             do i=1,kpie
@@ -169,7 +170,7 @@ contains
       zburial = sum2d_array(burial, nsedtra)
 
       do l=1,nsedtra
-        ztmp1(:,:)=0.0
+        ztmp1(:,:)=0.0_rp
         do k=1,ks
           do j=1,kpje
             do i=1,kpie
@@ -182,7 +183,7 @@ contains
         call xcsum(zsedlayto(l),ztmp1,ips)
       enddo
 
-      ztmp1(:,:)=0.0
+      ztmp1(:,:)=0.0_rp
       do k=1,ks
         do j=1,kpje
           do i=1,kpie
@@ -198,11 +199,11 @@ contains
 
     !=== oceanic tracers
     !----------------------------------------------------------------------
-    ztotvol    = 0.
-    zocetratot = 0.
-    zocetratoc = 0.
+    ztotvol    = 0._rp
+    zocetratot = 0._rp
+    zocetratoc = 0._rp
 
-    ztmp1(:,:)=0.0
+    ztmp1(:,:)=0.0_rp
     do k=1,kpke
       do j=1,kpje
         do i=1,kpie
@@ -217,14 +218,14 @@ contains
     call xcsum(ztotvol,ztmp1,ips)
 
     do l=1,nocetra
-      ztmp1(:,:)=0.0
+      ztmp1(:,:)=0.0_rp
       do k=1,kpke
         do j=1,kpje
           do i=1,kpie
             if (ddpo(i,j,k).gt.dp_min) then
               vol = dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
               ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*ocetra(i,j,k,l)*vol
-              !             if (ocetra(i,j,k,l).lt.0.0) then
+              !             if (ocetra(i,j,k,l).lt.0.0_rp) then
               !      write(io_stdo_bgc,*) 'ocetra -ve', l,ocetra(i,j,k,l)
               !             endif
             endif
@@ -238,11 +239,11 @@ contains
 
     !=== additional ocean tracer
     !----------------------------------------------------------------------
-    zhito  = 0.
-    zco3to = 0.
+    zhito  = 0._rp
+    zco3to = 0._rp
 
-    ztmp1(:,:)=0.0
-    ztmp2(:,:)=0.0
+    ztmp1(:,:)=0.0_rp
+    ztmp2(:,:)=0.0_rp
     do k=1,kpke
       do j=1,kpje
         do i=1,kpie
@@ -259,12 +260,12 @@ contains
     call xcsum(zco3to,ztmp2,ips)
 
     ! ODZ volume
-    ODZvol = 0.
-    ztmp1(:,:)=0.0
+    ODZvol = 0._rp
+    ztmp1(:,:)=0.0_rp
     do k=1,kpke
       do j=1,kpje
         do i=1,kpie
-          if (ddpo(i,j,k) > dp_min .and. ocetra(i,j,k,ioxygen) < 20.0e-6) then
+          if (ddpo(i,j,k) > dp_min .and. ocetra(i,j,k,ioxygen) < 20.0e-6_rp) then
             ! snapshot value for ODZ volume for hypoxic volume below 20mumol/L
             vol = dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
             ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*vol
@@ -276,12 +277,12 @@ contains
 
     !=== alkalinity of the first layer
     !--------------------------------------------------------------------
-    zvoltop = 0.
-    zalkali = 0.
+    zvoltop = 0._rp
+    zalkali = 0._rp
 
     k=1
-    ztmp1(:,:)=0.0
-    ztmp2(:,:)=0.0
+    ztmp1(:,:)=0.0_rp
+    ztmp2(:,:)=0.0_rp
     do j=1,kpje
       do i=1,kpie
         ztmp1(i,j) = omask(i,j)*dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
@@ -293,12 +294,12 @@ contains
     call xcsum(zalkali,ztmp2,ips)
 
     !=== phosphate and nitrate of the first layer
-    zphosph = 0.
-    zano3   = 0.
+    zphosph = 0._rp
+    zano3   = 0._rp
 
     k=1
-    ztmp1(:,:)=0.0
-    ztmp2(:,:)=0.0
+    ztmp1(:,:)=0.0_rp
+    ztmp2(:,:)=0.0_rp
     do j=1,kpje
       do i=1,kpie
         vol        = omask(i,j)*dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
@@ -311,21 +312,21 @@ contains
 
     !=== atmosphere flux and atmospheric CO2
     !--------------------------------------------------------------------
-    ztotarea =0.
-    co2flux  =0.
-    so2flux  =0.
-    sn2flux  =0.
-    sn2oflux =0.
-    snh3flux =0.
-    sdmsflux =0.
-    sndepnoyflux=0.
-    sndepnhxflux=0.
-    srivflux =0.
-    zatmco2  =0.
-    zatmo2   =0.
-    zatmn2   =0.
+    ztotarea =0._rp
+    co2flux  =0._rp
+    so2flux  =0._rp
+    sn2flux  =0._rp
+    sn2oflux =0._rp
+    snh3flux =0._rp
+    sdmsflux =0._rp
+    sndepnoyflux=0._rp
+    sndepnhxflux=0._rp
+    srivflux =0._rp
+    zatmco2  =0._rp
+    zatmo2   =0._rp
+    zatmn2   =0._rp
 
-    ztmp1(:,:)=0.0
+    ztmp1(:,:)=0.0_rp
     do j=1,kpje
       do i=1,kpie
         ztmp1(i,j) = dlxp(i,j)*dlyp(i,j)
@@ -460,27 +461,27 @@ contains
 
     totaloxy=                                                             &
          (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)              &
-         + zocetratot(izoo))*(-24.)+zocetratot(ioxygen)                   &
+         + zocetratot(izoo))*(-24._rp)+zocetratot(ioxygen)                &
          + zocetratot(iphosph)*2 +zocetratot(isco212)+zocetratot(icalc)   &
-         + zocetratot(iano3)*1.5+zocetratot(ian2o)*0.5                    &
-         + zsedlayto(issso12)*(-24.) + zsedlayto(isssc12)                 &
-        !+ zburial(issso12)*(-24.)   +   zburial(isssc12)                  &
-         + zpowtratot(ipowno3)*1.5+zpowtratot(ipowaic)                    &
+         + zocetratot(iano3)*1.5_rp+zocetratot(ian2o)*0.5_rp              &
+         + zsedlayto(issso12)*(-24._rp) + zsedlayto(isssc12)              &
+        !+ zburial(issso12)*(-24._rp)   +   zburial(isssc12)              &
+         + zpowtratot(ipowno3)*1.5_rp+zpowtratot(ipowaic)                 &
          + zpowtratot(ipowaox)+zpowtratot(ipowaph)*2                      &
-         - sndepnoyflux*1.5                                               &
-         + zprorca*(-24.)+zprcaca
+         - sndepnoyflux*1.5_rp                                            &
+         + zprorca*(-24._rp)+zprcaca
 
     if (use_BOXATM) then
       totaloxy = totaloxy + zatmo2*ppm2con+zatmco2*ppm2con
     else
-      totaloxy = totaloxy + so2flux+sn2oflux*0.5+co2flux
+      totaloxy = totaloxy + so2flux+sn2oflux*0.5_rp+co2flux
     endif
     if (use_extNcycle) then
-      totaloxy = totaloxy + zocetratot(iano2)+zpowtratot(ipown2o)*0.5+zpowtratot(ipowno2)
+      totaloxy = totaloxy + zocetratot(iano2)+zpowtratot(ipown2o)*0.5_rp+zpowtratot(ipowno2)
     endif
     if (use_DOMclasses) then
       totaloxy = totaloxy + (zocetratot(idocsl)+zocetratot(idocsr)        &
-                    + zocetratot(idocr))*(-24.)
+                    + zocetratot(idocr))*(-24._rp)
     endif
 
     if (do_rivinpt) then
@@ -502,8 +503,8 @@ contains
         totalnitr   = totalnitr  - srivflux(irtdoc)*rnit_tdochc-srivflux(irdet)*rnit_tdoclc        &
              &                   - srivflux(irdin)
         totalphos   = totalphos  - srivflux(irtdoc)-srivflux(irdet)-srivflux(irdip)
-        totaloxy    = totaloxy   - srivflux(irtdoc)*(-49.5)-srivflux(irdet)*(-10.5)                &
-             &                   - srivflux(irdin)*1.5-srivflux(irdip)*2.                          &
+        totaloxy    = totaloxy   - srivflux(irtdoc)*(-49.5_rp)-srivflux(irdet)*(-10.5_rp)          &
+             &                   - srivflux(irdin)*1.5_rp-srivflux(irdip)*2._rp                    &
              &                   - (srivflux(iralk)+srivflux(irdoc)*rcar_tdochc+srivflux(irdin)    &
              &                   + srivflux(irdip))
 
@@ -512,8 +513,8 @@ contains
              &                   - (srivflux(iralk)+srivflux(irdin)+srivflux(irdip))   ! =sco212
         totalnitr   = totalnitr  - (srivflux(irdoc)+srivflux(irdet))*rnit - srivflux(irdin)
         totalphos   = totalphos  - (srivflux(irdoc)+srivflux(irdet)+srivflux(irdip))
-        totaloxy    = totaloxy   - (srivflux(irdoc)+srivflux(irdet))*(-24.)                        &
-             &                   - srivflux(irdin)*1.5 - srivflux(irdip)*2.                        &
+        totaloxy    = totaloxy   - (srivflux(irdoc)+srivflux(irdet))*(-24._rp)                     &
+             &                   - srivflux(irdin)*1.5_rp - srivflux(irdip)*2._rp                  &
              &                   - (srivflux(iralk)+srivflux(irdin)+srivflux(irdip))
       endif
       totalsil    = totalsil   -  srivflux(irsi)
@@ -560,7 +561,7 @@ contains
       !--- input to xcsum require halo indices
       real, dimension(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy) :: ztmp
 
-      ztmp(:,:)=0.0
+      ztmp(:,:)=0.0_rp
       do j=1,kpje
         do i=1,kpie
           ztmp(i,j) = var2d(i,j)*dlxp(i,j)*dlyp(i,j)*omask(i,j)
@@ -584,7 +585,7 @@ contains
       !--- input to xcsum require halo indices
       real, dimension(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy) :: ztmp
 
-      ztmp(:,:)=0.0
+      ztmp(:,:)=0.0_rp
       do k=1,narr
         do j=1,kpje
           do i=1,kpie
@@ -2484,7 +2485,7 @@ contains
            &  filemon_bgc(iogrp) .and. date%day == 1) .and.                        &
            &  mod(nstep, nstep_in_day) == 0) .or.                                  &
            &  .not.(fileann_bgc(iogrp) .or. filemon_bgc(iogrp)) .and.              &
-           &  mod(nstep + .5, filefq_bgc(iogrp)) < 1.) then
+           &  mod(nstep + .5, filefq_bgc(iogrp)) < 1._rp) then
         append2file_inv(iogrp) = .false.
         ncrec(iogrp) = 0
       else

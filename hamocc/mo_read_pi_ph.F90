@@ -56,6 +56,7 @@ contains
     ! Initialise the PI_PH field from climatology.
     !***********************************************************************************************
 
+    use mo_kind,            only: rp
     use mo_control_bgc,     only: io_stdo_bgc,with_dmsph
     use netcdf,             only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
     use mod_xc,             only: mnproc,xchalt
@@ -113,10 +114,10 @@ contains
       do l=1,pi_ph_record
         do j=1,kpje
           do i=1,kpie
-            if(omask(i,j).gt.0.5) then
+            if(omask(i,j).gt.0.5_rp) then
               pi_ph_clim(i,j,l) = pi_ph_in(i,j,l)
             else
-              pi_ph_clim(i,j,l) = 0.
+              pi_ph_clim(i,j,l) = 0._rp
             endif
           enddo
         enddo
@@ -150,6 +151,7 @@ contains
   subroutine alloc_pi_ph(kpie,kpje)
     !***********************************************************************************************
     use mod_xc,         only: mnproc
+    use mo_kind,        only: rp
     use mo_control_bgc, only: io_stdo_bgc
 
     ! Arguments
@@ -165,13 +167,14 @@ contains
 
     allocate (pi_ph(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory pi_ph'
-    pi_ph(:,:) = 0.0
+    pi_ph(:,:) = 0.0_rp
 
   end subroutine alloc_pi_ph
 
   subroutine alloc_pi_ph_clim(kpie,kpje)
     !***********************************************************************************************
     use mod_xc,         only: mnproc
+    use mo_kind,        only: rp
     use mo_control_bgc, only: io_stdo_bgc
 
     ! Arguments
@@ -189,7 +192,7 @@ contains
 
     allocate (pi_ph_clim(kpie,kpje,pi_ph_record),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory pi_ph_clim'
-    pi_ph_clim(:,:,:) = 0.0
+    pi_ph_clim(:,:,:) = 0.0_rp
 
   end subroutine alloc_pi_ph_clim
 

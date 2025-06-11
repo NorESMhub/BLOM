@@ -48,6 +48,7 @@ contains
     !***********************************************************************************************
 
     use mod_xc,           only: mnproc
+    use mo_kind,          only: rp
     use mo_carbch,        only: atmflx,ocetra,atm,atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,          &
                                 atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh
     use mo_biomod,        only: strahl
@@ -165,7 +166,7 @@ contains
       !$OMP PARALLEL DO PRIVATE(i)
       do  j=1,kpje
         do  i=1,kpie
-          if (patmbromo(i,j).gt.0.) then
+          if (patmbromo(i,j).gt.0._rp) then
             atm(i,j,iatmbromo)=patmbromo(i,j)
           endif
         enddo
@@ -179,7 +180,7 @@ contains
         !$OMP PARALLEL DO PRIVATE(i)
         do  j=1,kpje
           do  i=1,kpie
-            if (patmn2o(i,j) > 0.) then
+            if (patmn2o(i,j) > 0._rp) then
               atm(i,j,iatmn2o)=patmn2o(i,j)
             endif
           enddo
@@ -191,7 +192,7 @@ contains
         !$OMP PARALLEL DO PRIVATE(i)
         do  j=1,kpje
           do  i=1,kpie
-            if (patmnh3(i,j) > 0.) then
+            if (patmnh3(i,j) > 0._rp) then
               atm(i,j,iatmnh3)=patmnh3(i,j)
             endif
           enddo
@@ -235,8 +236,8 @@ contains
         !$OMP PARALLEL DO PRIVATE(i)
         do J=1,kpje
           do I=1,kpie
-            if (OMASK(I,J) .gt. 0.5 ) then
-              OCETRA(I,J,K,L)=max(0.,OCETRA(I,J,K,L))
+            if (OMASK(I,J) .gt. 0.5_rp ) then
+              OCETRA(I,J,K,L)=max(0._rp,OCETRA(I,J,K,L))
             endif
           enddo
         enddo
@@ -395,7 +396,7 @@ contains
     !$OMP PARALLEL DO PRIVATE(i)
     do  j=1,kpje
       do  i=1,kpie
-        if(omask(i,j) .gt. 0.5) pflxco2(i,j)=-44.*atmflx(i,j,iatmco2)/dtbgc
+        if(omask(i,j) .gt. 0.5_rp) pflxco2(i,j)=-44._rp*atmflx(i,j,iatmco2)/dtbgc
       enddo
     enddo
     !$OMP END PARALLEL DO
@@ -406,7 +407,7 @@ contains
     !$OMP PARALLEL DO PRIVATE(i)
     do  j=1,kpje
       do  i=1,kpie
-        if(omask(i,j) .gt. 0.5) pflxdms(i,j)=-62.13*atmflx(i,j,iatmdms)/dtbgc
+        if(omask(i,j) .gt. 0.5_rp) pflxdms(i,j)=-62.13_rp*atmflx(i,j,iatmdms)/dtbgc
       enddo
     enddo
     !$OMP END PARALLEL DO
@@ -419,9 +420,9 @@ contains
     do  j=1,kpje
       do  i=1,kpie
         if (use_BROMO) then
-          if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=-252.7*atmflx(i,j,iatmbromo)/dtbgc
+          if(omask(i,j) .gt. 0.5_rp) pflxbromo(i,j)=-252.7_rp*atmflx(i,j,iatmbromo)/dtbgc
         else
-          if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=0.0
+          if(omask(i,j) .gt. 0.5_rp) pflxbromo(i,j)=0.0_rp
         endif
       enddo
     enddo
@@ -434,18 +435,18 @@ contains
       do  i=1,kpie
         if (use_extNcycle) then
           if (do_n2o_coupled) then
-              if(omask(i,j) > 0.5) pflxn2o(i,j)=-mw_n2o*atmflx(i,j,iatmn2o)/dtbgc  ! conversion factor checked against CAM
+              if(omask(i,j) > 0.5_rp) pflxn2o(i,j)=-mw_n2o*atmflx(i,j,iatmn2o)/dtbgc  ! conversion factor checked against CAM
           else
-              if(omask(i,j) > 0.5) pflxn2o(i,j)=0.0
+              if(omask(i,j) > 0.5_rp) pflxn2o(i,j)=0.0_rp
           endif
           if (do_nh3_coupled) then
-              if(omask(i,j) > 0.5) pflxnh3(i,j)=-mw_nh3*atmflx(i,j,iatmnh3)/dtbgc  ! conversion factor checked against CAM
+              if(omask(i,j) > 0.5_rp) pflxnh3(i,j)=-mw_nh3*atmflx(i,j,iatmnh3)/dtbgc  ! conversion factor checked against CAM
           else
-              if(omask(i,j) > 0.5) pflxnh3(i,j)=0.0
+              if(omask(i,j) > 0.5_rp) pflxnh3(i,j)=0.0_rp
           endif
         else
-          if(omask(i,j) > 0.5) pflxn2o(i,j)=0.0
-          if(omask(i,j) > 0.5) pflxnh3(i,j)=0.0
+          if(omask(i,j) > 0.5_rp) pflxn2o(i,j)=0.0_rp
+          if(omask(i,j) > 0.5_rp) pflxnh3(i,j)=0.0_rp
         endif
       enddo
     enddo

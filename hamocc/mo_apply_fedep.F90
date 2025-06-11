@@ -39,6 +39,7 @@ contains
     !--------------------------------------------------------------------------------
 
     use mo_control_bgc, only: dtb
+    use mo_kind,        only: rp
     use mo_param1_bgc,  only: ifdust,iiron,itdust,isfe,ndust
     use mo_param_bgc,   only: sec_per_day
     use mo_carbch,      only: ocetra,dustflx
@@ -59,7 +60,7 @@ contains
     !$OMP PARALLEL DO PRIVATE(i,dustinp)
     do j = 1,kpje
       do i = 1,kpie
-        if(omask(i,j) > 0.5) then
+        if(omask(i,j) > 0.5_rp) then
           dustflx(i,j,itdust)  = dust(i,j,itdust) * sec_per_day * dtb
           dustflx(i,j,isfe)    = dust(i,j,isfe)   * sec_per_day * dtb
           ocetra(i,j,1,ifdust) = ocetra(i,j,1,ifdust) + dustflx(i,j,itdust) / pddpo(i,j,1)

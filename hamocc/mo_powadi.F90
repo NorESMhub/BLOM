@@ -32,11 +32,12 @@ contains
     ! Vertical diffusion with simultaneous dissolution.
     !
     ! Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
-	!
+    !
     ! Modified:  S.Legutke,  *MPI-MaD, HH*    10.04.01
     ! Method: implicit discretisation.
     !***********************************************************************************************
 
+    use mo_kind,       only: rp
     use mo_sedmnt,     only: porwah,porwat,seddw,seddzi
     use mo_param_bgc,  only: sedict
     use mo_param1_bgc, only: ks
@@ -59,7 +60,7 @@ contains
     do k = 1, ks
       do i = 1, kpie
         asu = sedict * seddzi(k) * porwah(i,j,k)
-        alo = 0.
+        alo = 0._rp
         if(k < ks) alo = sedict * seddzi(k+1) * porwah(i,j,k+1)
         tredsy(i,k,1) = -asu
         tredsy(i,k,3) = -alo
@@ -69,10 +70,10 @@ contains
     enddo
 
     k = 0
-    asu = 0.
+    asu = 0._rp
     do i = 1, kpie
       alo = sedict * seddzi(1) * porwah(i,j,1)
-      if(omask(i,j) > 0.5) then
+      if(omask(i,j) > 0.5_rp) then
         tredsy(i,k,1) = -asu
         tredsy(i,k,3) = -alo
         tredsy(i,k,2) = bolay(i,j) - tredsy(i,k,1) - tredsy(i,k,3)
@@ -85,7 +86,7 @@ contains
 
     do k = 1, ks
       do i = 1, kpie
-        if(omask(i,j) > 0.5) then
+        if(omask(i,j) > 0.5_rp) then
           tredsy(i,k-1,1) = tredsy(i,k,1) / tredsy(i,k-1,2)
           tredsy(i,k,2)   = tredsy(i,k,2) - tredsy(i,k-1,3) * tredsy(i,k,1) / tredsy(i,k-1,2)
         endif
@@ -100,13 +101,13 @@ contains
 
     k = ks
     do i = 1, kpie
-      if(omask(i,j) > 0.5) sediso(i,k) = sedb1(i,k) / tredsy(i,k,2)
+      if(omask(i,j) > 0.5_rp) sediso(i,k) = sedb1(i,k) / tredsy(i,k,2)
     enddo
 
     do k = 1, ks
       l = ks - k
       do i = 1, kpie
-        if(omask(i,j) > 0.5) then
+        if(omask(i,j) > 0.5_rp) then
           sediso(i,l) = ( sedb1(i,l) - tredsy(i,l,3) * sediso(i,l+1) ) / tredsy(i,l,2)
         endif
       enddo

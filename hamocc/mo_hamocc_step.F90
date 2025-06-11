@@ -37,6 +37,7 @@ contains
                               atmn2o,flxn2o,atmnh3,flxnh3,atmnhxdep,atmnoydep, &
                               dust_stream, use_stream_dust
     use mod_seaice,     only: ficem
+    use mo_kind,        only: rp
     use mo_bgcmean,     only: nbgc,bgcwrt, diagfq_bgc,diagmon_bgc,diagann_bgc
     use mo_intfcblom,   only: bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask,blom2hamocc,hamocc2blom
     use mo_read_rivin,  only: rivflx
@@ -74,7 +75,7 @@ contains
       if (((diagann_bgc(l).and.nday_of_year.eq.1.or.diagmon_bgc(l)                                 &
            &   .and.date%day.eq.1).and.mod(nstep,nstep_in_day).eq.0).or.                           &
            &   .not.(diagann_bgc(l).or.diagmon_bgc(l)).and.                                        &
-           &   mod(nstep+.5,diagfq_bgc(l)).lt.1.) then
+           &   mod(nstep+.5_rp,diagfq_bgc(l)).lt.1._rp) then
         bgcwrt(l)=.true.
       end if
     enddo

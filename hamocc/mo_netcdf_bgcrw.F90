@@ -213,6 +213,7 @@ contains
     use netcdf,  only: nf90_noerr,nf90_inq_varid,nf90_strerror,nf90_put_var
     use mod_xc,  only: itdm,jtdm,jdm,lp,mnproc,nbdy,idm,xchalt,xcaget
     use mod_dia, only: iotype
+    use mo_kind, only: rp
 #ifdef PNETCDF
     use mod_xc,  only: i0,ii,jj,j0,mproc,mpe_1,nproc,xcgetrow
 #   include <pnetcdf.inc>
@@ -253,7 +254,7 @@ contains
       allocate(start(ndims))
       allocate(count(ndims))
       allocate(arr_l(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,1))
-      arr_l=0.0
+      arr_l=0.0_rp
       start(1)=1
       count(1)=itdm
       start(2)=1
@@ -318,8 +319,8 @@ contains
       allocate(arr_l(ii,jj,klev))
       allocate(arr_g1(itdm,jj,klev))
 
-      arr_l=0.0
-      arr_g1=0.0
+      arr_l=0.0_rp
+      arr_g1=0.0_rp
 
       if (klev.gt.1.or.time.gt.0) then
         if (klev.gt.1.and.time.gt.0) then
@@ -396,6 +397,7 @@ contains
 
     use netcdf, only: nf90_noerr,nf90_inq_varid,nf90_strerror,nf90_get_var
     use mod_xc, only: idm,itdm,jtdm,jdm,lp,mnproc,nbdy,xchalt,xcaput
+    use mo_kind,only: rp
 #ifdef PNETCDF
     use mod_xc, only: i0,ii,jj,j0
 #   include <pnetcdf.inc>
@@ -480,7 +482,7 @@ contains
 
 #ifdef PNETCDF
       allocate(arr_l(ii,jj,klev))
-      arr=0.0
+      arr=0.0_rp
       istart=1
       icount=0
       istart(1)=i0+1

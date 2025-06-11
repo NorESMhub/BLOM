@@ -41,6 +41,7 @@ contains
   subroutine read_sedqual(kpie,kpje,ks,omask,sed_POCage_init,prorca_mavg_init)
 
     use mod_xc,             only: mnproc,xchalt
+    use mo_kind,            only: rp
     use mo_control_bgc,     only: io_stdo_bgc,use_sediment_quality
     use netcdf,             only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
     use mo_netcdf_bgcrw,    only: read_netcdf_var
@@ -111,10 +112,10 @@ contains
     do k=1,ks
       do j=1,kpje
         do i=1,kpie
-          if(omask(i,j) > 0.5)then
+          if(omask(i,j) > 0.5_rp)then
             sed_POCage_init(i,j,k) = sed_age(i,j,k)
           else
-            sed_POCage_init(i,j,k) = 0.
+            sed_POCage_init(i,j,k) = 0._rp
           endif
         enddo
       enddo
@@ -122,10 +123,10 @@ contains
 
     do j=1,kpje
       do i=1,kpie
-        if (omask(i,j) > 0.5) then
+        if (omask(i,j) > 0.5_rp) then
           prorca_mavg_init(i,j) = mavg_prorca(i,j)
         else
-          prorca_mavg_init(i,j) = 0.
+          prorca_mavg_init(i,j) = 0._rp
         endif
       enddo
     enddo

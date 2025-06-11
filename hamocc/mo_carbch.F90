@@ -110,6 +110,7 @@ contains
     !--------------------------------------------
 
     use mod_xc,         only: mnproc
+    use mo_kind,        only: rp
     use mo_control_bgc, only: io_stdo_bgc
     use mo_param1_bgc,  only: nocetra,npowtra,nsedtra,natm,nriv,ndust
     use mo_control_bgc, only: use_natDIC,use_cisonew,use_extNcycle
@@ -137,7 +138,7 @@ contains
     endif
     allocate (ocetra(kpie,kpje,kpke,nocetra),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory ocetra'
-    ocetra(:,:,:,:) = 0.0
+    ocetra(:,:,:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable hi ...'
@@ -147,7 +148,7 @@ contains
     endif
     allocate (hi(kpie,kpje,kpke),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory hi'
-    hi(:,:,:) = 0.0
+    hi(:,:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable co3 ...'
@@ -157,7 +158,7 @@ contains
     endif
     allocate (co3(kpie,kpje,kpke),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory co3'
-    co3(:,:,:) = 0.0
+    co3(:,:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable co2star ...'
@@ -167,7 +168,7 @@ contains
     endif
     allocate (co2star(kpie,kpje,kpke),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory co2star'
-    co2star(:,:,:) = 0.0
+    co2star(:,:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable OmegaA, OmegaC ...'
@@ -178,8 +179,8 @@ contains
     allocate (OmegaA(kpie,kpje,kpke),stat=errstat)
     allocate (OmegaC(kpie,kpje,kpke),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory OmegaA, OmegaC'
-    OmegaA(:,:,:) = 0.0
-    OmegaC(:,:,:) = 0.0
+    OmegaA(:,:,:) = 0.0_rp
+    OmegaC(:,:,:) = 0.0_rp
 
     if (use_natDIC) then
       if (mnproc.eq.1) then
@@ -189,7 +190,7 @@ contains
       endif
       allocate (natpco2(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory natpco2'
-      natpco2(:,:) = 0.0
+      natpco2(:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable nathi ...'
@@ -199,7 +200,7 @@ contains
       endif
       allocate (nathi(kpie,kpje,kpke),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory nathi'
-      nathi(:,:,:) = 0.0
+      nathi(:,:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable natco3 ...'
@@ -209,7 +210,7 @@ contains
       endif
       allocate (natco3(kpie,kpje,kpke),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory natco3'
-      natco3(:,:,:) = 0.0
+      natco3(:,:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable natOmegaA, natOmegaC ...'
@@ -220,8 +221,8 @@ contains
       allocate (natOmegaA(kpie,kpje,kpke),stat=errstat)
       allocate (natOmegaC(kpie,kpje,kpke),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory natOmegaA, natOmegaC'
-      natOmegaA(:,:,:) = 0.0
-      natOmegaC(:,:,:) = 0.0
+      natOmegaA(:,:,:) = 0.0_rp
+      natOmegaC(:,:,:) = 0.0_rp
     endif
 
     if (mnproc.eq.1) then
@@ -232,7 +233,7 @@ contains
     endif
     allocate (sedfluxo(kpie,kpje,npowtra),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory sedfluxo'
-    sedfluxo(:,:,:) = 0.0
+    sedfluxo(:,:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable sedfluxb ..'
@@ -242,7 +243,7 @@ contains
     endif
     allocate (sedfluxb(kpie,kpje,nsedtra),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory sedfluxb'
-    sedfluxb(:,:,:) = 0.0
+    sedfluxb(:,:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable nutlim_diag ..'
@@ -253,7 +254,7 @@ contains
     endif
     allocate (nutlim_diag(kpie,kpje,kpke,3),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory nutlim_diag'
-    nutlim_diag(:,:,:,:) = 0.0
+    nutlim_diag(:,:,:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable zeu_nutlim_diag ..'
@@ -263,7 +264,7 @@ contains
     endif
     allocate (zeu_nutlim_diag(kpie,kpje,3),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory zeu_nutlim_diag'
-    zeu_nutlim_diag(:,:,:) = 0.0
+    zeu_nutlim_diag(:,:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable satn2o ...'
@@ -272,7 +273,7 @@ contains
     endif
     allocate (satn2o(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory satn2o'
-    satn2o(:,:) = 0.0
+    satn2o(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable pn2om ...'
@@ -281,7 +282,7 @@ contains
     endif
     allocate (pn2om(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory pn2om'
-    pn2om(:,:) = 0.0
+    pn2om(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable keqb ...'
@@ -291,7 +292,7 @@ contains
     endif
     allocate (keqb(11,kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory keqb'
-    keqb(:,:,:) = 0.0
+    keqb(:,:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable satoxy ...'
@@ -301,7 +302,7 @@ contains
     endif
     allocate (satoxy(kpie,kpje,kpke),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory satoxy'
-    satoxy(:,:,:) = 0.0
+    satoxy(:,:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable atm ...'
@@ -311,7 +312,7 @@ contains
     endif
     allocate (atm(kpie,kpje,natm),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory atm'
-    atm(:,:,:) = 0.0
+    atm(:,:,:) = 0.0_rp
 
 
     if (mnproc.eq.1) then
@@ -322,7 +323,7 @@ contains
     endif
     allocate (atmflx(kpie,kpje,natm),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory atmflx'
-    atmflx(:,:,:) = 0.0
+    atmflx(:,:,:) = 0.0_rp
 
     ! Allocate field to hold N-deposition fluxes per timestep for
     ! inventory calculations and output
@@ -333,7 +334,7 @@ contains
     endif
     allocate (ndepnoyflx(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory ndepfnoylx'
-    ndepnoyflx(:,:) = 0.0
+    ndepnoyflx(:,:) = 0.0_rp
 
     ! Allocate field to hold OA alkalinity fluxes per timestep for
     ! inventory calculations and output
@@ -344,9 +345,9 @@ contains
     endif
     allocate (oalkflx(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory oalkflx'
-    oalkflx(:,:) = 0.0
+    oalkflx(:,:) = 0.0_rp
 
-    ! Allocate field to hold dust and iron fluxes per timestep for 
+    ! Allocate field to hold dust and iron fluxes per timestep for
     ! output
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable dustflx ...'
@@ -356,9 +357,9 @@ contains
     endif
     allocate(dustflx(kpie,kpje,ndust),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory dustflx'
-    dustflx(:,:,:) = 0.0
+    dustflx(:,:,:) = 0.0_rp
 
-    ! Allocate field to hold riverine fluxes per timestep for 
+    ! Allocate field to hold riverine fluxes per timestep for
     ! inventory calculations and output
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable rivinflx ...'
@@ -368,7 +369,7 @@ contains
     endif
     allocate(rivinflx(kpie,kpje,nriv),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory rivinflx'
-    rivinflx(:,:,:) = 0.0
+    rivinflx(:,:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable fco2 ...'
@@ -377,7 +378,7 @@ contains
     endif
     allocate (fco2(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory fco2'
-    fco2(:,:) = 0.0
+    fco2(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable pco2 ...'
@@ -386,7 +387,7 @@ contains
     endif
     allocate (pco2(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory pco2'
-    pco2(:,:) = 0.0
+    pco2(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable xco2 ...'
@@ -395,7 +396,7 @@ contains
     endif
     allocate (xco2(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory xco2'
-    xco2(:,:) = 0.0
+    xco2(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable pco2_gex ...'
@@ -404,7 +405,7 @@ contains
     endif
     allocate (pco2_gex(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory pco2_gex'
-    pco2_gex(:,:) = 0.0
+    pco2_gex(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable kwco2a ...'
@@ -413,7 +414,7 @@ contains
     endif
     allocate (kwco2a(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory kwco2a'
-    kwco2a(:,:) = 0.0
+    kwco2a(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable kwco2sol ...'
@@ -422,7 +423,7 @@ contains
     endif
     allocate (kwco2sol(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory co2fxd,co2fxu'
-    kwco2sol(:,:) = 0.0
+    kwco2sol(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable co2sol ...'
@@ -431,7 +432,7 @@ contains
     endif
     allocate (co2sol(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory co2sold'
-    co2sol(:,:) = 0.0
+    co2sol(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable co2fxd, co2fxu ...'
@@ -441,8 +442,8 @@ contains
     allocate (co2fxd(kpie,kpje),stat=errstat)
     allocate (co2fxu(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory co2fxd,co2fxu'
-    co2fxd(:,:) = 0.0
-    co2fxu(:,:) = 0.0
+    co2fxd(:,:) = 0.0_rp
+    co2fxu(:,:) = 0.0_rp
 
     if (use_cisonew) then
       if (mnproc.eq.1) then
@@ -455,10 +456,10 @@ contains
       allocate (co214fxd(kpie,kpje),stat=errstat)
       allocate (co214fxu(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory co213fxd,..., co214fxu'
-      co213fxd(:,:) = 0.0
-      co213fxu(:,:) = 0.0
-      co214fxd(:,:) = 0.0
-      co214fxu(:,:) = 0.0
+      co213fxd(:,:) = 0.0_rp
+      co213fxu(:,:) = 0.0_rp
+      co214fxd(:,:) = 0.0_rp
+      co214fxu(:,:) = 0.0_rp
     endif
 
     if (use_extNcycle) then
@@ -469,7 +470,7 @@ contains
       endif
       allocate (pnh3(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory pnh3'
-      pnh3(:,:) = 0.0
+      pnh3(:,:) = 0.0_rp
 
       ! Allocate field to hold N-deposition NHx fluxes per timestep for inventory caluclations
       if (mnproc.eq.1) then
@@ -479,7 +480,7 @@ contains
       endif
       allocate (ndepnhxflx(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory ndepnhxflx'
-      ndepnhxflx(:,:) = 0.0
+      ndepnhxflx(:,:) = 0.0_rp
     endif
 
   end subroutine alloc_mem_carbch

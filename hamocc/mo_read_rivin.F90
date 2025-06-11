@@ -21,8 +21,8 @@ module mo_read_rivin
   !*************************************************************************************************
   ! Routines for reading riverine nutrient and carbon input data
   !
-  ! Riverine carbon and nutrient input is activated through a logical switch 'do_rivinpt' read 
-  ! from HAMOCC's bgcnml namelist. When coupled to NorESM, this is achieved by setting 
+  ! Riverine carbon and nutrient input is activated through a logical switch 'do_rivinpt' read
+  ! from HAMOCC's bgcnml namelist. When coupled to NorESM, this is achieved by setting
   ! BLOM_RIVER_NUTRIENTS to TRUE in env_run.xml.
   !
   ! The model attempts to read nutrient fluxes from a NetCDF file
@@ -54,7 +54,7 @@ module mo_read_rivin
 
   use dimensions, only: idm,jdm
   use mod_xc ,    only: nbdy
-  use mo_kind,    only: bgc_fnmlen
+  use mo_kind,    only: bgc_fnmlen,rp
 
   implicit none
   private
@@ -115,7 +115,7 @@ contains
 
     allocate (rivflx(kpie,kpje,nriv),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory rivflx'
-    rivflx(:,:,:) = 0.0
+    rivflx(:,:,:) = 0.0_rp
 
     ! Return if riverine input is turned off
     if (.not. do_rivinpt) then
@@ -132,23 +132,23 @@ contains
       write(io_stdo_bgc,'(a)') 'ini_read_rivin: read riverine nutrients from ',trim(rivinfile)
     endif
     call ncfopn(trim(rivinfile),'r',' ',1,iotype)
-    call ncread('DIN',riv_DIN2d,dummymask,0,0.)
-    call ncread('DIP',riv_DIP2d,dummymask,0,0.)
-    call ncread('DSi',riv_DSI2d,dummymask,0,0.)
-    call ncread('DIC',riv_DIC2d,dummymask,0,0.) ! It is actually alkalinity that is observed
-    call ncread('Fe' ,riv_DFe2d,dummymask,0,0.)
-    call ncread('DOC',riv_idoc2d,dummymask,0,0.)
+    call ncread('DIN',riv_DIN2d,dummymask,0,0._rp)
+    call ncread('DIP',riv_DIP2d,dummymask,0,0._rp)
+    call ncread('DSi',riv_DSI2d,dummymask,0,0._rp)
+    call ncread('DIC',riv_DIC2d,dummymask,0,0._rp) ! It is actually alkalinity that is observed
+    call ncread('Fe' ,riv_DFe2d,dummymask,0,0._rp)
+    call ncread('DOC',riv_idoc2d,dummymask,0,0._rp)
     if (use_river2omip) then
-      call ncread('slDOC',riv_itdoc2d,dummymask,0,0.)
+      call ncread('slDOC',riv_itdoc2d,dummymask,0,0._rp)
     else
-      riv_itdoc2d = 0.
+      riv_itdoc2d = 0._rp
     endif
-    call ncread('DET',riv_idet2d,dummymask,0,0.)
+    call ncread('DET',riv_idet2d,dummymask,0,0._rp)
     call ncfcls
 
     do j=1,kpje
       do i=1,kpie
-        if (omask(i,j) > 0.5) then
+        if (omask(i,j) > 0.5_rp) then
 
           rivflx(i,j,irdin)  = riv_DIN2d(i,j)
           rivflx(i,j,irdip)  = riv_DIP2d(i,j)

@@ -26,6 +26,8 @@ module mo_vgrid
   !  J.Schwinger,        *NORCE Climate, Bergen*    2020-05-19
   !*************************************************************************************************
 
+  use mo_kind,  only: rp
+
   implicit none
   private
 
@@ -39,13 +41,13 @@ module mo_vgrid
   integer, parameter, public :: kmle_static = 2  ! k-end index for layers that represent the mixed layer in blom.
 
   ! Default value used for isopycnic coordinates.
-  real,    parameter, public :: dp_ez  = 100.0    ! depth of euphotic zone
-  real,    parameter, public :: dp_min = 1.0e-12  ! min layer thickness layers thinner
-                                                  ! than this are ignored by HAMOCC
-  real,    parameter, public :: dp_min_sink = 1.0 ! min layer thickness for sinking (layers thinner than
-                                                  ! this are ignored and set to the concentration of the
-                                                  ! layer above). note that the bottom layer index kbo(i,j)
-                                                  ! is defined as the lowermost layer thicker than dp_min_sink.
+  real,    parameter, public :: dp_ez  = 100.0_rp    ! depth of euphotic zone
+  real,    parameter, public :: dp_min = 1.0e-12_rp  ! min layer thickness layers thinner
+                                                     ! than this are ignored by HAMOCC
+  real,    parameter, public :: dp_min_sink = 1.0_rp ! min layer thickness for sinking (layers thinner than
+                                                     ! this are ignored and set to the concentration of the
+                                                     ! layer above). note that the bottom layer index kbo(i,j)
+                                                     ! is defined as the lowermost layer thicker than dp_min_sink.
 
   integer, dimension(:,:),   allocatable, public :: kmle
   integer, dimension(:,:),   allocatable, public :: kbo     ! number of wet cells in column.
@@ -85,10 +87,10 @@ contains
     integer  :: i,j,k
 
     ! --- set depth of surface interface to zero
-    ptiestw(:,:,1)=0.
+    ptiestw(:,:,1)=0._rp
 
     ! --- depth of layer kpke+1 centre
-    ptiestu(:,:,kpke+1)=9000.
+    ptiestu(:,:,kpke+1)=9000._rp
 
 
     do k=1,kpke
@@ -99,7 +101,7 @@ contains
           ! --- depth of layer interfaces
           ptiestw(i,j,k+1)=ptiestw(i,j,k)+pddpo(i,j,k)
           ! --- depth of layer centres
-          ptiestu(i,j,k)=ptiestw(i,j,k)+0.5*pddpo(i,j,k)
+          ptiestu(i,j,k)=ptiestw(i,j,k)+0.5_rp*pddpo(i,j,k)
 
         enddo
       enddo
@@ -108,7 +110,7 @@ contains
 
 
     kbo(:,:)  =1
-    bolay(:,:)=0.0
+    bolay(:,:)=0.0_rp
 
     !$OMP PARALLEL DO PRIVATE(i,k)
     do j=1,kpje
@@ -152,35 +154,35 @@ contains
       do i=1,kpie
 
         do k=2,kpke
-          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 100.0 ) then
+          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 100.0_rp ) then
             k0100(i,j)=k
             exit
           endif
         enddo
 
         do k=2,kpke
-          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 500.0 ) then
+          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 500.0_rp ) then
             k0500(i,j)=k
             exit
           endif
         enddo
 
         do k=2,kpke
-          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 1000.0 ) then
+          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 1000.0_rp ) then
             k1000(i,j)=k
             exit
           endif
         enddo
 
         do k=2,kpke
-          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 2000.0 ) then
+          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 2000.0_rp ) then
             k2000(i,j)=k
             exit
           endif
         enddo
 
         do k=2,kpke
-          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 4000.0 ) then
+          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 4000.0_rp ) then
             k4000(i,j)=k
             exit
           endif
@@ -226,7 +228,7 @@ contains
 
     allocate (ptiestu(kpie,kpje,kpke+1),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory ptiestu'
-    ptiestu(:,:,:) = 0.0
+    ptiestu(:,:,:) = 0.0_rp
 
 
     if (mnproc.eq.1) then
@@ -238,7 +240,7 @@ contains
 
     allocate (ptiestw(kpie,kpje,kpke+1),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory ptiestw'
-    ptiestw(:,:,:) = 0.0
+    ptiestw(:,:,:) = 0.0_rp
 
 
     if (mnproc.eq.1) then
@@ -297,7 +299,7 @@ contains
 
     allocate (bolay(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory bolay'
-    bolay(:,:) = 0.0
+    bolay(:,:) = 0.0_rp
 
   end subroutine alloc_mem_vgrid
 

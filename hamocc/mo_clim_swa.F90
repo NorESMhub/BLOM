@@ -53,6 +53,7 @@ contains
 
     use netcdf,          only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
     use mod_xc,          only: mnproc,xchalt
+    use mo_kind,         only: rp
     use mo_control_bgc,  only: io_stdo_bgc
     use mo_netcdf_bgcrw, only: read_netcdf_var
 
@@ -80,7 +81,7 @@ contains
     endif
     allocate (swa_clim(kpie,kpje,1),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory swa_clim'
-    swa_clim(:,:,1) = 0.0
+    swa_clim(:,:,1) = 0.0_rp
 
     ! Open netCDF data file
     if (mnproc==1) then
@@ -112,7 +113,7 @@ contains
     do j=1,kpje
       do i=1,kpie
 
-        if(omask(i,j).lt.0.5) swa_clim(i,j,1) = 0.0
+        if(omask(i,j).lt.0.5_rp) swa_clim(i,j,1) = 0.0_rp
 
       enddo
     enddo

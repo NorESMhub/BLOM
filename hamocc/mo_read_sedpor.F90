@@ -43,6 +43,7 @@ contains
   subroutine read_sedpor(kpie,kpje,ks,omask,sed_por)
 
     use mod_xc,             only: mnproc,xchalt
+    use mo_kind,            only: rp
     use mo_control_bgc,     only: io_stdo_bgc,l_3Dvarsedpor
     use netcdf,             only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
     use mo_netcdf_bgcrw,    only: read_netcdf_var
@@ -110,10 +111,10 @@ contains
     do k=1,ks
       do j=1,kpje
         do i=1,kpie
-          if(omask(i,j).gt. 0.5)then
+          if(omask(i,j).gt. 0.5_rp)then
             sed_por(i,j,k)=sed_por_in(i,j,k)
           else
-            sed_por(i,j,k)=0.
+            sed_por(i,j,k)=0._rp
           endif
         enddo
       enddo

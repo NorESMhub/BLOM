@@ -49,6 +49,7 @@ module mo_bgcmean
   use mod_dia,        only: ddm,depthslev,depthslev_bnds,nstepinday,pbath
   use mod_nctools,    only: ncpack,nccomp,nccopa,ncwrtr
   use netcdf,         only: nf90_fill_double
+  use mo_kind,        only: rp
   use mo_param1_bgc,  only: ks
   use mo_control_bgc, only: use_sedbypass,use_cisonew,use_CFC,use_natDIC,use_BROMO,use_BOXATM,     &
                             use_AGG,use_M4AGO,use_extNcycle,use_pref_tracers,use_shelfsea_res_time,&
@@ -1706,7 +1707,7 @@ CONTAINS
 
     allocate (bgct2d(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,nbgct2d),stat=errstat)
     if (errstat /= 0) STOP 'not enough memory bgct2d'
-    if (nbgct2d /= 0) bgct2d=0.
+    if (nbgct2d /= 0) bgct2d=0._rp
 
     if (mnproc == 1) then
       write(io_stdo_bgc,*)'Memory allocation for variable bgcm2d ...'
@@ -1717,7 +1718,7 @@ CONTAINS
 
     allocate (bgcm2d(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,nbgcm2d),stat=errstat)
     if (errstat /= 0) STOP 'not enough memory bgcm2d'
-    if (nbgcm2d /= 0) bgcm2d=0.
+    if (nbgcm2d /= 0) bgcm2d=0._rp
 
     if (mnproc == 1) then
       write(io_stdo_bgc,*)'Memory allocation for variable bgcm3d ...'
@@ -1729,7 +1730,7 @@ CONTAINS
 
     allocate (bgcm3d(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,kpke,nbgcm3d),stat=errstat)
     if (errstat /= 0) STOP 'not enough memory bgcm3d'
-    if (nbgcm3d /= 0) bgcm3d=0.
+    if (nbgcm3d /= 0) bgcm3d=0._rp
 
     if (mnproc == 1) then
       write(io_stdo_bgc,*)'Memory allocation for variable bgcm3dlvl '
@@ -1741,7 +1742,7 @@ CONTAINS
 
     allocate (bgcm3dlvl(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,ddm,nbgcm3dlvl),stat=errstat)
     if (errstat /= 0) STOP 'not enough memory bgcm3dlvl'
-    if (nbgcm3dlvl /= 0) bgcm3dlvl=0.
+    if (nbgcm3dlvl /= 0) bgcm3dlvl=0._rp
 
     if (.not. use_sedbypass) then
       if (mnproc == 1) then
@@ -1754,7 +1755,7 @@ CONTAINS
 
       allocate (bgct_sed(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,ks,nbgct_sed),stat=errstat)
       if (errstat /= 0) STOP 'not enough memory bgct_sed'
-      if (nbgct_sed /= 0) bgct_sed=0.
+      if (nbgct_sed /= 0) bgct_sed=0._rp
 
       if (mnproc == 1) then
         write(io_stdo_bgc,*)'Memory allocation for variable bgctbur ...'
@@ -1765,7 +1766,7 @@ CONTAINS
 
       allocate (bgct_bur(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,nbgct_bur),stat=errstat)
       if (errstat /= 0) STOP 'not enough memory bgct_sed'
-      if (nbgct_bur /= 0) bgct_bur=0.
+      if (nbgct_bur /= 0) bgct_bur=0._rp
     endif
 
   end subroutine alloc_mem_bgcmean
@@ -2503,7 +2504,7 @@ CONTAINS
     !
     ! Local variables
     integer :: i,j,l
-    real    :: epsil=1e-11
+    real    :: epsil=1e-11_rp
     !
     ! --- Check whether field should be processed
     if (pos == 0) RETURN
@@ -2513,7 +2514,7 @@ CONTAINS
       do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
           if (bgcm2d(i,j,pos) < epsil) then
-            bgcm2d(i,j,pos)=0.
+            bgcm2d(i,j,pos)=0._rp
           else
             bgcm2d(i,j,pos)=log10(bgcm2d(i,j,pos)*sfac+offs)
           endif
@@ -2550,7 +2551,7 @@ CONTAINS
         do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             if (bgcm3d(i,j,k,pos) < epsil) then
-              bgcm3d(i,j,k,pos)=0.
+              bgcm3d(i,j,k,pos)=0._rp
             elseif (bgcm3d(i,j,k,pos) /= nf90_fill_double) then
               bgcm3d(i,j,k,pos)=log10(bgcm3d(i,j,k,pos)*sfac+offs)
             endif
@@ -2587,7 +2588,7 @@ CONTAINS
         do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             if (bgcm3dlvl(i,j,k,pos) < epsil) then
-              bgcm3dlvl(i,j,k,pos)=0.
+              bgcm3dlvl(i,j,k,pos)=0._rp
             elseif (bgcm3dlvl(i,j,k,pos) /= nf90_fill_double) then
               bgcm3dlvl(i,j,k,pos)=log10(bgcm3dlvl(i,j,k,pos)*sfac+offs)
             endif
@@ -2625,7 +2626,7 @@ CONTAINS
         do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             if (bgct_sed(i,j,k,pos) < epsil) then
-              bgct_sed(i,j,k,pos)=0.
+              bgct_sed(i,j,k,pos)=0._rp
             else
               bgct_sed(i,j,k,pos)=log10(bgct_sed(i,j,k,pos)*sfac+offs)
             endif
@@ -2785,7 +2786,7 @@ CONTAINS
         do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             zbot(i,j,1)=zbot(i,j,1)*pbath(i,j)/zbot(i,j,kk)
-            ztop(i,j,1)=0.
+            ztop(i,j,1)=0._rp
             ind1(i,j)=1
           enddo
         enddo
