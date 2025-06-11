@@ -215,7 +215,7 @@ contains
             if (.not. use_DOMclasses) then
               ocetra(i,j,k,idoc)   =1.e-8
             endif
-            if (use_DOMclasses .eqv. .true. .and. linit_DOMclasses_sim .eqv. .false.) then !starting DOM classes from scratch
+            if ((use_DOMclasses .eqv. .true.) .and. (linit_DOMclasses_sim .eqv. .false.)) then !starting DOM classes from scratch
               ocetra(i,j,k,idoc)   = 1.e-8
               ocetra(i,j,k,idocsl) = 1.e-8
               ocetra(i,j,k,idocsr) = 1.e-8
