@@ -97,13 +97,15 @@ contains
     use mo_biomod,      only: abs_oce
     use mo_control_bgc, only: rmasks,use_FB_BGC_OCE,use_cisonew,use_AGG,use_CFC,use_natDIC,        &
                               use_BROMO, use_sedbypass,use_extNcycle,use_pref_tracers,             &
-                              use_shelfsea_res_time,use_sediment_quality,use_river2omip
+                              use_shelfsea_res_time,use_sediment_quality,use_river2omip,           &
+                              use_DOMclasses,linit_DOMclasses_sim
     use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,     &
                               iiron,iopal,ioxygen,iphosph,iphy,iprefalk,iprefdic,iprefo2,iprefpo4, &
                               isco212,isilica,izoo,iadust,inos,ibromo,icfc11,icfc12,isf6,          &
                               icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,           &
                               isco213,isco214,izoo13,izoo14,safediv,inatcalc,itdoc_lc,itdoc_hc,    &
                               itdoc_lc13,itdoc_hc13,itdoc_lc14,itdoc_hc14,                         &
+                              idocsl,idocsr,idocr,iprefdoc,iprefdocsl,iprefdocsr,iprefdocr,        &
                               ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,      &
                               issso12,issssil,issster,ks,nsedtra,ipowc13,ipowc13,issso13,issso13,  &
                               isssc13,ipowc14,isssc14,issso14,iprefsilica,iano2,ianh4,ishelfage,   &
@@ -174,6 +176,18 @@ contains
               beta14=ocetra(i,j,k,isco214)/1000.+1.
               ocetra(i,j,k,isco214) = ocetra(i,j,k,isco212)*beta14*re14to/c14fac
             endif
+            if (use_DOMclasses) then
+              ocetra(i,j,k,idoc)       = ocetra(i,j,k,idoc)      /prho(i,j,k)
+              ocetra(i,j,k,idocsl)     = ocetra(i,j,k,idocsl)    /prho(i,j,k)
+              ocetra(i,j,k,idocsr)     = ocetra(i,j,k,idocsr)    /prho(i,j,k)
+              ocetra(i,j,k,idocr )     = ocetra(i,j,k,idocr)     /prho(i,j,k)
+            endif
+            if (use_DOMclasses .and. use_pref_tracers) then
+              ocetra(i,j,k,iprefdoc)   = ocetra(i,j,k,iprefdoc)  /prho(i,j,k)
+              ocetra(i,j,k,iprefdocsl) = ocetra(i,j,k,iprefdocsl)/prho(i,j,k)
+              ocetra(i,j,k,iprefdocsr) = ocetra(i,j,k,iprefdocsr)/prho(i,j,k)
+              ocetra(i,j,k,iprefdocr)  = ocetra(i,j,k,iprefdocr) /prho(i,j,k)
+            endif
           endif
         enddo
       enddo
@@ -185,7 +199,6 @@ contains
         do i=1,kpie
           if (omask(i,j) > 0.5) then
             ocetra(i,j,k,igasnit)=1.e-10
-            ocetra(i,j,k,idoc)   =1.e-8
             ocetra(i,j,k,iphy)   =1.e-8
             ocetra(i,j,k,izoo)   =1.e-8
             ocetra(i,j,k,idet)   =1.e-8
@@ -199,6 +212,21 @@ contains
             hi(i,j,k)            =1.e-8
             co3(i,j,k)           =0.
             co2star(i,j,k)       =20.e-6
+            if (.not. use_DOMclasses) then
+              ocetra(i,j,k,idoc)   =1.e-8
+            endif
+            if (use_DOMclasses .eqv. .true. .and. linit_DOMclasses_sim .eqv. .false.) then !starting DOM classes from scratch
+              ocetra(i,j,k,idoc)   = 1.e-8
+              ocetra(i,j,k,idocsl) = 1.e-8
+              ocetra(i,j,k,idocsr) = 1.e-8
+              ocetra(i,j,k,idocr)  = 1.e-8
+              if (use_pref_tracers) then
+                ocetra(i,j,k,iprefdoc)   = 0.
+                ocetra(i,j,k,iprefdocsl) = 0.
+                ocetra(i,j,k,iprefdocsr) = 0.
+                ocetra(i,j,k,iprefdocr)  = 0.
+              endif
+            endif
             if (use_pref_tracers) then
               ocetra(i,j,k,iprefo2)     = 0.
               ocetra(i,j,k,iprefpo4)    = 0.
@@ -265,20 +293,25 @@ contains
 
     if (use_pref_tracers) then
       ! Initialise preformed tracers in the mixed layer; note that the
-      ! whole field has been initialised to zero above
+      ! whole field has been initialised to zero above (except prefdocx)
       do j=1,kpje
         do i=1,kpie
           if (omask(i,j) > 0.5) then
-            ocetra(i,j,1:kmle(i,j),iprefo2)  = ocetra(i,j,1:kmle(i,j),ioxygen)
-            ocetra(i,j,1:kmle(i,j),iprefpo4) = ocetra(i,j,1:kmle(i,j),iphosph)
-            ocetra(i,j,1:kmle(i,j),iprefsilica)= ocetra(i,j,1:kmle(i,j),isilica)
-            ocetra(i,j,1:kmle(i,j),iprefalk) = ocetra(i,j,1:kmle(i,j),ialkali)
-            ocetra(i,j,1:kmle(i,j),iprefdic) = ocetra(i,j,1:kmle(i,j),isco212)
+            ocetra(i,j,1:kmle(i,j),iprefo2)     = ocetra(i,j,1:kmle(i,j),ioxygen)
+            ocetra(i,j,1:kmle(i,j),iprefpo4)    = ocetra(i,j,1:kmle(i,j),iphosph)
+            ocetra(i,j,1:kmle(i,j),iprefsilica) = ocetra(i,j,1:kmle(i,j),isilica)
+            ocetra(i,j,1:kmle(i,j),iprefalk)    = ocetra(i,j,1:kmle(i,j),ialkali)
+            ocetra(i,j,1:kmle(i,j),iprefdic)    = ocetra(i,j,1:kmle(i,j),isco212)
+            if (use_DOMclasses) then
+              ocetra(i,j,1:kmle(i,j),iprefdoc)   = ocetra(i,j,1:kmle(i,j),idoc)
+              ocetra(i,j,1:kmle(i,j),iprefdocsl) = ocetra(i,j,1:kmle(i,j),idocsl)
+              ocetra(i,j,1:kmle(i,j),iprefdocsr) = ocetra(i,j,1:kmle(i,j),idocsr)
+              ocetra(i,j,1:kmle(i,j),iprefdocr)  = ocetra(i,j,1:kmle(i,j),idocr)
+            endif
           endif
         enddo
       enddo
     endif
-
 
     ! Initial values for sediment
     if (.not. use_sedbypass) then

@@ -77,7 +77,7 @@ contains
     use mo_control_bgc, only: io_stdo_bgc,ldtbgc,rmasks,rmasko,use_cisonew,use_AGG,use_BOXATM,     &
                               use_BROMO,use_CFC,use_natDIC,use_sedbypass,use_extNcycle,            &
                               use_pref_tracers,use_shelfsea_res_time,use_sediment_quality,         &
-                              use_river2omip
+                              use_river2omip,use_DOMclasses
     use mo_sedmnt,      only: sedhpl
     use mo_intfcblom,   only: sedlay2,powtra2,burial2,atm2,prorca_mavg2
     use mo_param1_bgc,  only: ialkali, ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,    &
@@ -89,7 +89,8 @@ contains
                               inatcalc,inatsco212,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,  &
                               ipowno3,isssc12,issso12,issssil,issster,iprefsilica,ianh4,iano2,     &
                               ipownh4,ipown2o,ipowno2,ishelfage,issso12_age,itdoc_lc,itdoc_hc,     &
-                              itdoc_lc13,itdoc_hc13,itdoc_lc14,itdoc_hc14
+                              itdoc_lc13,itdoc_hc13,itdoc_lc14,itdoc_hc14,idocsl,idocsr,idocr,     &
+                              iprefdoc,iprefdocsl,iprefdocsr,iprefdocr
     use mo_netcdf_bgcrw,only: write_netcdf_var,netcdf_def_vardb
 #ifdef PNETCDF
     use mod_xc,         only: mpicomm
@@ -554,6 +555,29 @@ contains
              &    rmissing,62,io_stdo_bgc)
       endif
     endif
+    if (use_DOMclasses) then
+      call NETCDF_DEF_VARDB(ncid,5,'docsl',3,ncdimst,ncvarid,                                      &
+           &    6,'mol/kg',36,'Semi labile dissolved organic carbon',rmissing,56,io_stdo_bgc)
+
+      call NETCDF_DEF_VARDB(ncid,5,'docsr',3,ncdimst,ncvarid,                                      &
+           &    6,'mol/kg',40,'Semi refractory dissolved organic carbon',rmissing,57,io_stdo_bgc)
+
+      call NETCDF_DEF_VARDB(ncid,4,'docr',3,ncdimst,ncvarid,                                       &
+           &    6,'mol/kg',35,'Refractory dissolved organic carbon',rmissing,58,io_stdo_bgc)
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
+      call NETCDF_DEF_VARDB(ncid,7,'prefdoc',3,ncdimst,ncvarid,                                    &
+        &    6,'mol/kg',20,'Preformed labile DOC',rmissing,59,io_stdo_bgc)
+
+      call NETCDF_DEF_VARDB(ncid,9,'prefdocsl',3,ncdimst,ncvarid,                                  &
+        &    6,'mol/kg',25,'Preformed semi-labile DOC',rmissing,60,io_stdo_bgc)
+
+      call NETCDF_DEF_VARDB(ncid,9,'prefdocsr',3,ncdimst,ncvarid,                                  &
+        &    6,'mol/kg',29,'Preformed semi-refractory DOC',rmissing,61,io_stdo_bgc)
+
+      call NETCDF_DEF_VARDB(ncid,8,'prefdocr',3,ncdimst,ncvarid,                                   &
+        &    6,'mol/kg',23,'Preformed refactory DOC',rmissing,62,io_stdo_bgc)
+    endif
 
     !
     ! Define variables : diagnostic ocean fields
@@ -849,6 +873,17 @@ contains
     if (use_extNcycle) then
       call write_netcdf_var(ncid,'anh4',locetra(1,1,1,ianh4),2*kpke,0)
       call write_netcdf_var(ncid,'ano2',locetra(1,1,1,iano2),2*kpke,0)
+    endif
+    if (use_DOMclasses) then
+      call write_netcdf_var(ncid,'docsl',locetra(1,1,1,idocsl),2*kpke,0)
+      call write_netcdf_var(ncid,'docsr',locetra(1,1,1,idocsr),2*kpke,0)
+      call write_netcdf_var(ncid,'docr' ,locetra(1,1,1,idocr),2*kpke,0)
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
+      call write_netcdf_var(ncid,'prefdoc',locetra(1,1,1,iprefdoc),2*kpke,0)
+      call write_netcdf_var(ncid,'prefdocsl',locetra(1,1,1,iprefdocsl),2*kpke,0)
+      call write_netcdf_var(ncid,'prefdocsr',locetra(1,1,1,iprefdocsr),2*kpke,0)
+      call write_netcdf_var(ncid,'prefdocr',locetra(1,1,1,iprefdocr),2*kpke,0)
     endif
 
     !

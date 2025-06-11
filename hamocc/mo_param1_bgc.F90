@@ -107,6 +107,17 @@ module mo_param1_bgc
   integer, protected :: i_bromo
   integer, protected :: ibromo
 
+  ! Indices for DOM tracer
+  integer, protected :: i_dom
+  integer, protected :: idocsl
+  integer, protected :: idocr
+  integer, protected :: idocsr
+  integer, protected :: i_prefdom
+  integer, protected :: iprefdoc
+  integer, protected :: iprefdocsl
+  integer, protected :: iprefdocsr
+  integer, protected :: iprefdocr
+
   ! Indices for extended nitrogen cycle
   integer, protected :: i_extn
   integer, protected :: ianh4
@@ -270,7 +281,7 @@ contains
     use mo_control_bgc, only: use_BROMO,use_AGG,use_WLIN,use_natDIC,use_CFC,use_cisonew,           &
                               use_sedbypass,use_PBGC_OCNP_TIMESTEP,use_PBGC_CK_TIMESTEP,           &
                               use_FB_BGC_OCE, use_BOXATM,use_extNcycle,use_pref_tracers,           &
-                              use_coupler_ndep,use_shelfsea_res_time,use_river2omip
+                              use_coupler_ndep,use_shelfsea_res_time,use_river2omip,use_DOMclasses
 
     integer :: iounit
 
@@ -278,7 +289,7 @@ contains
                             use_sedbypass,use_PBGC_OCNP_TIMESTEP,use_PBGC_CK_TIMESTEP,             &
                             use_FB_BGC_OCE,use_BOXATM,use_extNcycle,use_pref_tracers,              &
                             use_coupler_ndep,use_shelfsea_res_time,use_sediment_quality,           &
-                            use_river2omip
+                            use_river2omip,use_DOMclasses
 
     io_stdo_bgc = lp              !  standard out.
 
@@ -432,9 +443,33 @@ contains
       itdoc_lc  = -1
       itdoc_hc  = -1
     endif
+    if (use_DOMclasses) then
+      i_dom=3
+      idocsl=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+1
+      idocsr=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+2
+      idocr =i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+3
+    else
+      i_dom=0
+      idocsl=-1
+      idocr =-1
+      idocsr=-1
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
+      i_prefdom = 4
+      iprefdoc=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+i_dom+1
+      iprefdocsl=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+i_dom+2
+      iprefdocsr=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+i_dom+3
+      iprefdocr=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+i_dom+4
+    else
+      i_prefdom =  0
+      iprefdoc  = -1
+      iprefdocsl= -1
+      iprefdocsr= -1
+      iprefdocr = -1
+    endif
 
     ! total number of advected tracers
-    nocetra=i_base+i_iso+i_cfc+i_agg+i_nat_dic +i_bromo+i_extn+i_pref+i_shelfage+i_r2o
+    nocetra=i_base+i_iso+i_cfc+i_agg+i_nat_dic +i_bromo+i_extn+i_pref+i_shelfage+i_r2o+i_dom+i_prefdom
 
     ! ATMOSPHERE
     i_base_atm=5

@@ -52,7 +52,7 @@ module mo_bgcmean
   use mo_param1_bgc,  only: ks
   use mo_control_bgc, only: use_sedbypass,use_cisonew,use_CFC,use_natDIC,use_BROMO,use_BOXATM,     &
                             use_AGG,use_M4AGO,use_extNcycle,use_pref_tracers,use_shelfsea_res_time,&
-                            use_sediment_quality,use_river2omip
+                            use_sediment_quality,use_river2omip,use_DOMclasses
 
   implicit none
 
@@ -117,6 +117,9 @@ module mo_bgcmean
        & SRF_PN2OM     =0    ,SRF_PNH3      =0    ,SRF_ATMNH3    =0    ,  &
        & SRF_ATMN2O    =0    ,INT_BROMOPRO  =0    ,INT_BROMOUV   =0    ,  &
        & INT_PHOSY     =0    ,INT_NFIX      =0    ,INT_DNIT      =0    ,  &
+       & INT_EXUDL     =0    ,INT_EXUDSL    =0    ,INT_EXCRL     =0    ,  &
+       & INT_EXCRSL    =0    ,INT_DOCL_REM  =0    ,INT_DOCSL_REM =0    ,  &
+       & INT_DOCSR_REM =0    ,INT_DOCR_REM  =0    ,                       &
        & FLX_NDEPNOY   =0    ,FLX_NDEPNHX   =0    ,FLX_TDUST     =0    ,  &
        & FLX_SFE       =0    ,FLX_OALK      =0    ,                       &
        & FLX_CAR0100   =0    ,FLX_CAR0500   =0    ,FLX_CAR1000   =0    ,  &
@@ -151,9 +154,11 @@ module mo_bgcmean
        & LYR_NATDIC    =0    ,LYR_NATALKALI =0    ,LYR_NATCALC   =0    ,  &
        & LYR_NATPH     =0    ,LYR_NATOMEGAA =0    ,LYR_NATOMEGAC =0    ,  &
        & LYR_NATCO3    =0    ,LYR_BROMO     =0    ,                       &
+       & LYR_DOCSL     =0    ,LYR_DOCSR     =0    ,LYR_DOCR      =0    ,  &
        & LYR_D13C      =0    ,LYR_D14C      =0    ,LYR_BIGD14C   =0    ,  &
        & LYR_POC13     =0    ,LYR_DOC13     =0    ,LYR_CALC13    =0    ,  &
-       & LYR_PHYTO13   =0    ,LYR_GRAZER13  =0    ,                       &
+       & LYR_PHYTO13   =0    ,LYR_GRAZER13  =0    ,LYR_PREFDOC   =0    ,  &
+       & LYR_PREFDOCSL =0    ,LYR_PREFDOCSR =0    ,LYR_PREFDOCR  =0    ,  &
        ! extNcycle LYR
        & LYR_ANH4      =0    ,LYR_ANO2      =0    ,                       &
        & LYR_nitr_NH4  =0    ,LYR_nitr_NO2  =0    ,LYR_nitr_N2O_prod =0,  &
@@ -188,6 +193,9 @@ module mo_bgcmean
        & LVL_D13C      =0    ,LVL_D14C      =0    ,LVL_BIGD14C   =0    ,  &
        & LVL_POC13     =0    ,LVL_DOC13     =0    ,LVL_CALC13    =0    ,  &
        & LVL_PHYTO13   =0    ,LVL_GRAZER13  =0    ,                       &
+       & LVL_DOCSL     =0    ,LVL_DOCSR     =0    ,LVL_DOCR      =0    ,  &
+       & LVL_PREFDOC   =0    ,LVL_PREFDOCSL =0    ,LVL_PREFDOCSR =0    ,  &
+       & LVL_PREFDOCR  =0    ,                                            &
        & LVL_NUTLIM_FE =0    ,LVL_NUTLIM_N  =0    ,LVL_NUTLIM_PHOSPH=0 ,  &
        & ZEU_NUTLIM_FE =0    ,ZEU_NUTLIM_N  =0    ,ZEU_NUTLIM_PHOSPH=0 ,  &
        ! extNcycle LVL
@@ -244,6 +252,9 @@ module mo_bgcmean
        & SRF_PN2OM         ,SRF_PNH3          ,SRF_ATMNH3        ,        &
        & SRF_ATMN2O        ,INT_BROMOPRO      ,INT_BROMOUV       ,        &
        & INT_PHOSY         ,INT_NFIX          ,INT_DNIT          ,        &
+       & INT_EXUDL         ,INT_EXUDSL        ,INT_EXCRL         ,        &
+       & INT_EXCRSL        ,INT_DOCL_REM      ,INT_DOCSL_REM     ,        &
+       & INT_DOCSL_REM     ,INT_DOCSR_REM     ,INT_DOCR_REM      ,        &
        & FLX_NDEPNOY       ,FLX_NDEPNHX       ,FLX_TDUST         ,        &
        & FLX_SFE           ,FLX_OALK          ,                           &
        & FLX_CAR0100       ,FLX_CAR0500       ,FLX_CAR1000       ,        &
@@ -277,9 +288,12 @@ module mo_bgcmean
        & LYR_NATDIC        ,LYR_NATALKALI     ,LYR_NATCALC       ,        &
        & LYR_NATPH         ,LYR_NATOMEGAA     ,LYR_NATOMEGAC     ,        &
        & LYR_NATCO3        ,LYR_BROMO         ,                           &
+       & LYR_DOCSL         ,LYR_DOCSR         ,LYR_DOCR          ,        &
        & LYR_D13C          ,LYR_D14C          ,LYR_BIGD14C       ,        &
        & LYR_PHYTO13       ,LYR_GRAZER13      ,LYR_POC13         ,        &
        & LYR_DOC13         ,LYR_CALC13        ,                           &
+       & LYR_PREFDOC       ,LYR_PREFDOCSL     ,LYR_PREFDOCSR     ,        &
+       & LYR_PREFDOCR      ,                                              &
        & LYR_ANH4          ,LYR_ANO2          ,                           &
        & LYR_nitr_NH4      ,LYR_nitr_NO2      ,LYR_nitr_N2O_prod ,        &
        & LYR_nitr_NH4_OM   ,LYR_nitr_NO2_OM   ,LYR_denit_NO3     ,        &
@@ -307,6 +321,9 @@ module mo_bgcmean
        & LVL_NATDIC        ,LVL_NATALKALI     ,LVL_NATCALC       ,        &
        & LVL_NATPH         ,LVL_NATOMEGAA     ,LVL_NATOMEGAC     ,        &
        & LVL_NATCO3        ,LVL_BROMO         ,                           &
+       & LVL_DOCSL         ,LVL_DOCSR         ,LVL_DOCR          ,        &
+       & LVL_PREFDOC       ,LVL_PREFDOCSL     ,LVL_PREFDOCSR     ,        &
+       & LVL_PREFDOCR      ,                                              &
        & LVL_D13C          ,LVL_D14C          ,LVL_BIGD14C       ,        &
        & LVL_PHYTO13       ,LVL_GRAZER13      ,LVL_POC13         ,        &
        & LVL_DOC13         ,LVL_CALC13        ,                           &
@@ -415,6 +432,14 @@ module mo_bgcmean
        &          jintphosy  = 0 ,                                        &
        &          jintnfix   = 0 ,                                        &
        &          jintdnit   = 0 ,                                        &
+       &          jintexudl  = 0 ,                                        &
+       &          jintexudsl = 0 ,                                        &
+       &          jintexcrl  = 0 ,                                        &
+       &          jintexcrsl = 0 ,                                        &
+       &          jintdocl_rem = 0 ,                                      &
+       &          jintdocsl_rem= 0 ,                                      &
+       &          jintdocr_rem = 0 ,                                      &
+       &          jintdocsr_rem= 0 ,                                      &
        &          jndepnoyfx = 0 ,                                        &
        &          jndepnhxfx = 0 ,                                        &
        &          jtdustfx   = 0 ,                                        &
@@ -689,6 +714,22 @@ module mo_bgcmean
        &          jlvl_agg_b         = 0 ,                                &
        &          jlvl_agg_Vrhof     = 0 ,                                &
        &          jlvl_agg_Vpor      = 0
+
+  integer, dimension(nbgcmax) ::                                          &
+       &          jdocsl     = 0 ,                                        &
+       &          jdocsr     = 0 ,                                        &
+       &          jdocr      = 0 ,                                        &
+       &          jlvldocsl  = 0 ,                                        &
+       &          jlvldocsr  = 0 ,                                        &
+       &          jlvldocr   = 0 ,                                        &
+       &          jprefdoc   = 0 ,                                        &
+       &          jprefdocsl = 0 ,                                        &
+       &          jprefdocsr = 0 ,                                        &
+       &          jprefdocr  = 0 ,                                        &
+       &          jlvlprefdoc  = 0 ,                                      &
+       &          jlvlprefdocsl= 0 ,                                      &
+       &          jlvlprefdocsr= 0 ,                                      &
+       &          jlvlprefdocr = 0
 
   integer :: nbgcm3d,nbgcm3dlvl
 
@@ -1032,6 +1073,24 @@ CONTAINS
         if (FLX_NDEPNHX(n) > 0) i_bsc_m2d=i_bsc_m2d+1
         jndepnhxfx(n)=i_bsc_m2d*min(1,FLX_NDEPNHX(n))
       endif
+      if (use_DOMclasses) then
+        if (INT_EXUDL(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        jintexudl(n)=i_bsc_m2d*min(1,INT_EXUDL(n))
+        if (INT_EXUDSL(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        jintexudsl(n)=i_bsc_m2d*min(1,INT_EXUDSL(n))
+        if (INT_EXCRL(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        jintexcrl(n)=i_bsc_m2d*min(1,INT_EXCRL(n))
+        if (INT_EXCRSL(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        jintexcrsl(n)=i_bsc_m2d*min(1,INT_EXCRSL(n))
+        if (INT_DOCL_REM(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        jintdocl_rem(n)=i_bsc_m2d*min(1,INT_DOCL_REM(n))
+        if (INT_DOCSL_REM(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        jintdocsl_rem(n)=i_bsc_m2d*min(1,INT_DOCSL_REM(n))
+        if (INT_DOCSR_REM(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        jintdocsr_rem(n)=i_bsc_m2d*min(1,INT_DOCSR_REM(n))
+        if (INT_DOCSL_REM(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        jintdocr_rem(n)=i_bsc_m2d*min(1,INT_DOCR_REM(n))
+      endif
     enddo
 
     domassfluxes = any(                       &
@@ -1275,6 +1334,25 @@ CONTAINS
         if (LYR_agg_Vpor(n) > 0) i_bsc_m3d=i_bsc_m3d+1
         jagg_Vpor(n)=i_bsc_m3d*min(1,LYR_agg_Vpor(n))
       endif
+      if (use_DOMclasses) then
+        if (LYR_DOCSL(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jdocsl(n)=i_bsc_m3d*min(1,LYR_DOCSL(n))
+        if (LYR_DOCSR(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jdocsr(n)=i_bsc_m3d*min(1,LYR_DOCSR(n))
+        if (LYR_DOCR(n)  > 0) i_bsc_m3d=i_bsc_m3d+1
+        jdocr(n) =i_bsc_m3d*min(1,LYR_DOCR(n))
+      endif
+      if (use_DOMclasses .and. use_pref_tracers) then
+        if (LYR_PREFDOC(n)  > 0) i_bsc_m3d=i_bsc_m3d+1
+        jprefdoc(n)=i_bsc_m3d*min(1,LYR_PREFDOC(n))
+        if (LYR_PREFDOCSL(n)  > 0) i_bsc_m3d=i_bsc_m3d+1
+        jprefdocsl(n)=i_bsc_m3d*min(1,LYR_PREFDOCSL(n))
+        if (LYR_PREFDOCSR(n)  > 0) i_bsc_m3d=i_bsc_m3d+1
+        jprefdocsr(n)=i_bsc_m3d*min(1,LYR_PREFDOCSR(n))
+        if (LYR_PREFDOCR(n)  > 0) i_bsc_m3d=i_bsc_m3d+1
+        jprefdocr(n)=i_bsc_m3d*min(1,LYR_PREFDOCR(n))
+      endif
+
       if (LVL_PHYTO(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
       jlvlphyto(n)=ilvl_bsc_m3d*min(1,LVL_PHYTO(n))
       if (LVL_NUTLIM_FE(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
@@ -1476,6 +1554,25 @@ CONTAINS
         if (LVL_agg_Vpor(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvl_agg_Vpor(n)=ilvl_bsc_m3d*min(1,LVL_agg_Vpor(n))
       endif
+      if (use_DOMclasses) then
+        if (LVL_DOCSL(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvldocsl(n)=ilvl_bsc_m3d*min(1,LVL_DOCSL(n))
+        if (LVL_DOCSR(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvldocsr(n)=ilvl_bsc_m3d*min(1,LVL_DOCSR(n))
+        if (LVL_DOCR(n)  > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvldocr(n) =ilvl_bsc_m3d*min(1,LVL_DOCR(n))
+      endif
+      if (use_DOMclasses .and. use_pref_tracers) then
+        if (LVL_PREFDOC(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlprefdoc(n)=ilvl_bsc_m3d*min(1,LVL_PREFDOC(n))
+        if (LVL_PREFDOCSL(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlprefdocsl(n)=ilvl_bsc_m3d*min(1,LVL_PREFDOCSL(n))
+        if (LVL_PREFDOCSR(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlprefdocsr(n)=ilvl_bsc_m3d*min(1,LVL_PREFDOCSR(n))
+        if (LVL_PREFDOCR(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlprefdocr(n)=ilvl_bsc_m3d*min(1,LVL_PREFDOCR(n))
+      endif
+
       if (i_bsc_m3d /= 0) checkdp(n)=1
     enddo
 

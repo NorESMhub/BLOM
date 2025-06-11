@@ -83,13 +83,14 @@ CONTAINS
     use mo_control_bgc,     only: io_stdo_bgc,ldtbgc,use_cisonew,use_AGG,                          &
                                   use_BOXATM,use_BROMO,use_CFC,use_natDIC,use_sedbypass,           &
                                   use_extNcycle,use_pref_tracers,use_shelfsea_res_time,            &
-                                  use_sediment_quality,use_river2omip
+                                  use_sediment_quality,use_river2omip,use_DOMclasses
     use mo_param1_bgc,      only: ialkali,ian2o,iano3,icalc,idet,idicsat,                          &
                                   idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,       &
                                   iprefalk,iprefdic,iprefo2,iprefpo4,iprefsilica,ishelfage,        &
                                   isco212,isilica,izoo,nocetra,itdoc_lc,itdoc_hc,                  &
                                   itdoc_lc13,itdoc_hc13,itdoc_lc14,itdoc_hc14,                     &
                                   iadust,inos,iatmco2,iatmn2,iatmo2,ibromo,icfc11,icfc12,isf6,     &
+                                  idocsl,idocsr,idocr,iprefdoc,iprefdocsl,iprefdocsr,iprefdocr,    &
                                   icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,       &
                                   isco213,isco214,izoo13,izoo14,safediv,                           &
                                   issso13,issso14,isssc13,isssc14,ipowc13,ipowc14,                 &
@@ -509,6 +510,17 @@ CONTAINS
         call read_netcdf_var(ncid,'anh4',locetra(1,1,1,ianh4),2*kpke,0,iotype)
         call read_netcdf_var(ncid,'ano2',locetra(1,1,1,iano2),2*kpke,0,iotype)
       endif
+    endif
+    if (use_DOMclasses) then
+      call read_netcdf_var(ncid,'docsl',locetra(1,1,1,idocsl),2*kpke,0,iotype)
+      call read_netcdf_var(ncid,'docsr',locetra(1,1,1,idocsr),2*kpke,0,iotype)
+      call read_netcdf_var(ncid,'docr' ,locetra(1,1,1,idocr),2*kpke,0,iotype)
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
+      call read_netcdf_var(ncid,'prefdoc',locetra(1,1,1,iprefdoc),2*kpke,0,iotype)
+      call read_netcdf_var(ncid,'prefdocsl',locetra(1,1,1,iprefdocsl),2*kpke,0,iotype)
+      call read_netcdf_var(ncid,'prefdocsr',locetra(1,1,1,iprefdocsr),2*kpke,0,iotype)
+      call read_netcdf_var(ncid,'prefdocr',locetra(1,1,1,iprefdocr),2*kpke,0,iotype)
     endif
 
     !

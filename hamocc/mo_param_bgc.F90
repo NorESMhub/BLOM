@@ -41,7 +41,7 @@ module mo_param_bgc
                             use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type,use_M4AGO,&
                             do_n2o_coupled,do_nh3_coupled,use_extNcycle,                           &
                             lkwrbioz_off,lTO2depremin,use_shelfsea_res_time,use_sediment_quality,  &
-                            use_pref_tracers,use_coupler_ndep,use_river2omip
+                            use_pref_tracers,use_coupler_ndep,use_river2omip,use_DOMclasses
   use mod_xc,         only: mnproc,xchalt
 
   implicit none
@@ -103,6 +103,7 @@ module mo_param_bgc
   public :: sed_denit,sed_sulf,calcwei,opalwei,orgwei
   public :: calcdens,opaldens,orgdens,claydens
   public :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma
+  public :: gammapsl,gammazsl,alphasl,alphasr,docl_remin,docsl_remin,docsr_remin,docr_remin
   public :: POM_remin_q10,opal_remin_q10,POM_remin_Tref,opal_remin_Tref
   public :: O2thresh_aerob,O2thresh_hypoxic,NO3thresh_sulf
   public :: sed_O2thresh_sulf,sed_O2thresh_hypoxic,sed_NO3thresh_sulf
@@ -191,7 +192,7 @@ module mo_param_bgc
   real, parameter :: rnh4dnrai     = 1./rnh4dnra     ! inverse
   real, parameter :: rnm1          = rnit - 1.
 
-  ! Terrestrial dissolved organic carbon tDOC (river2oceanmip) 
+  ! Terrestrial dissolved organic carbon tDOC (river2oceanmip)
   ! Low-carbon tDOC
   real, parameter :: rcar_tdoclc  = 276.                             ! mol C per mol P
   real, parameter :: rnit_tdoclc  = 25.                              ! mol N per mol P
@@ -311,6 +312,19 @@ module mo_param_bgc
   real, protected :: ecan       = 0.95            ! fraction of mortality as PO_4
   real, protected :: zinges                       ! dimensionless fraction - assimilation efficiency
   real, protected :: epsher                       ! dimensionless fraction - fraction of grazing egested
+
+  !*************************************************
+  ! Extended DOM parameters
+  !*************************************************
+  real, protected :: gammapsl  = 0.02        ! DOC_sl exudation rate [day-1]
+  real, protected :: gammazsl  = 0.03        ! DOC_sl excretion rate [day-1]
+  real, protected :: alphasl   = 0.18        ! fraction of DOC_sl converted to DOC_sr []
+  real, protected :: alphasr   = 0.19        ! fraction of DOC_sr converted to DOC_r  []
+  real, protected :: docl_remin  = 1.7e6     ! theor. remineralization rate of labile DOC [d-1]
+  real, protected :: docsl_remin = 5.0e7     ! theor. remineralization rate of semi-labile DOC [d-1]
+  real, protected :: docsr_remin = 1.7e17    ! theor. remineralization rate of semi-refractory DOC [d-1]
+  real, protected :: docr_remin  = 5.0e26    ! theor. remineralization rate of refractory DOC [d-1]
+
 
   !********************************************************************
   ! Shell production (CaCO3 and opal) parameters
@@ -669,6 +683,7 @@ contains
       drempoc  = 0.12
       dremopal = 0.023
     endif
+
   end subroutine ini_param_biol
 
   !********************************************************************
@@ -704,7 +719,9 @@ contains
                          bkoxamox_sed,bkanh4nitr_sed,q10ano2nitr_sed,            &
                          bkoxnitr_sed,bkano2nitr_sed,sed_alpha_poc,sed_qual_sc,  &
                          sed_denit,sed_sulf,                                     &
-                         sed_O2thresh_hypoxic,sed_O2thresh_sulf,sed_NO3thresh_sulf
+                         sed_O2thresh_hypoxic,sed_O2thresh_sulf,sed_NO3thresh_sulf,&
+                         gammapsl,gammazsl,alphasl,alphasr,docl_remin,docsl_remin, &
+                         docsr_remin,docr_remin
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)
@@ -774,6 +791,14 @@ contains
     spemor   = spemor*dtb      ! 1/d to 1/time step - mortality rate
     gammap   = gammap*dtb      ! 1/d to 1/time step - exudation rate
     gammaz   = gammaz*dtb      ! 1/d to 1/time step - excretion rate
+    if (use_DOMclasses) then
+      gammapsl    = gammapsl*dtb      ! 1/d to 1/time step - exudation rate
+      gammazsl    = gammazsl*dtb      ! 1/d to 1/time step - exudation rate
+      docl_remin  = docl_remin*dtb
+      docsl_remin = docsl_remin*dtb
+      docsr_remin = docsr_remin*dtb
+      docr_remin  = docr_remin*dtb
+    endif
 
     !********************************************************************
     !     Remineralization and dissolution parameters
@@ -937,6 +962,7 @@ contains
       call cinfo_add_entry('use_pref_tracers',       use_pref_tracers)
       call cinfo_add_entry('use_coupler_ndep',       use_coupler_ndep)
       call cinfo_add_entry('use_river2omip',         use_river2omip)
+      call cinfo_add_entry('use_DOMclasses',         use_DOMclasses)
       if (use_extNcycle) then
         call cinfo_add_entry('do_n2o_coupled',       do_n2o_coupled)
         call cinfo_add_entry('do_nh3_coupled',       do_nh3_coupled)
@@ -978,6 +1004,16 @@ contains
       call pinfo_add_entry('spemor',      spemor*dtbinv)
       call pinfo_add_entry('gammap',      gammap*dtbinv)
       call pinfo_add_entry('gammaz',      gammaz*dtbinv)
+      if (use_DOMclasses) then
+        call pinfo_add_entry('gammapsl',      gammapsl*dtbinv)
+        call pinfo_add_entry('gammazsl',      gammazsl*dtbinv)
+        call pinfo_add_entry('alphasl',       alphasl)
+        call pinfo_add_entry('alphasr',       alphasr)
+        call pinfo_add_entry('docl_remin',    docl_remin*dtbinv)
+        call pinfo_add_entry('docsl_remin',   docsl_remin*dtbinv)
+        call pinfo_add_entry('docsr_remin',   docsr_remin*dtbinv)
+        call pinfo_add_entry('docr_remin',    docr_remin*dtbinv)
+      endif
       call pinfo_add_entry('ecan',        ecan)
       call pinfo_add_entry('pi_alpha',    pi_alpha)
       call pinfo_add_entry('bkphy',       bkphy)
