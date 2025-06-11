@@ -34,7 +34,7 @@ module mod_cmnfld_routines
    !                        ACC_MLTSSQ, ACC_T20D, ACC_DZ, ACC_DZLVL
    use mod_cmnfld,    only: sls0, slsmfq, slsels, bfsqmn, dbcrit, &
                             bfsqi, bfsqf, z, bfsql, nslpx, nslpy, nnslpx, nnslpy, &
-                            dz, mlts
+                            dz, mlts, dpml
    use mod_diffusion, only: eitmth_opt, eitmth_gm, &
                             edritp_opt, edritp_large_scale, &
                             ltedtp_opt, ltedtp_neutral
@@ -943,7 +943,7 @@ module mod_cmnfld_routines
 
       integer, intent(in) :: m, n, mm, nn, k1m, k1n
 
-      real(r8) :: zup, dbup, plo, zlo, dblo
+      real(r8) :: pup, zup, dbup, plo, zlo, dblo
       integer :: i, j, k, l, km
 
       !$omp parallel do private(l, i, k, km, zup, dbup, plo, zlo, dblo)
@@ -952,6 +952,7 @@ module mod_cmnfld_routines
             do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
               k = 2
               km = k + mm
+              pup = p(i, j, 1) + .5_r8*dp(i, j, k1m)
               zup = z(i, j, 1) + .5_r8*dz(i, j, 1)
               dbup = 0._r8
               do
@@ -962,6 +963,7 @@ module mod_cmnfld_routines
                        grav*(1._r8 - rho(plo, temp(i, j, k1m), saln(i, j, k1m)) &
                                     /rho(plo, temp(i, j, km ), saln(i, j, km )))
                     if (dblo <= dbcrit) then
+                       pup = plo
                        zup = zlo
                        dbup = dblo
                     else
@@ -969,12 +971,16 @@ module mod_cmnfld_routines
                        mlts(i, j) = ( zup*(dblo - dbcrit) &
                                     + zlo*(dbcrit - dbup))/(dblo - dbup) &
                                   - z(i, j, 1)
+                       dpml(i, j) = ( pup*(dblo - dbcrit) &
+                                    + plo*(dbcrit - dbup))/(dblo - dbup) &
+                                  - p(i, j, 1)
                       exit
                     endif
                  endif
                  k = k + 1
                  if (k > kk) then
                     mlts(i, j) = z(i, j, kk + 1) - z(i, j, 1)
+                    dpml(i, j) = p(i, j, kk + 1) - p(i, j, 1)
                     exit
                  endif
                  km = k + mm
@@ -989,6 +995,7 @@ module mod_cmnfld_routines
            write (lp,*) 'cmnfld_mlts:'
          endif
          call chksummsk(mlts, ip, 1, 'mlts')
+         call chksummsk(dpml, ip, 1, 'dpml')
       endif
 
    end subroutine cmnfld_mlts

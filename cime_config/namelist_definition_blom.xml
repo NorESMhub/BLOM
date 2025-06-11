@@ -139,10 +139,19 @@
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.125v4_20230318.nc</value>
     </values>
     <desc>
-      Name of file containing initial conditions, that is either a
-      valid restart file or 'inicon.nc' if climatological based
-      initial conditions are desired.
+      Name of file containing initial conditions, that is either a valid restart file or a climatology based file regridded to model grid (layer or WOA).
     </desc>
+  </entry>
+
+  <entry id="woa_nuopc_provided">
+    <type>logical</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>.false.</value>
+      <value comp_interface="nuopc">.false.</value>
+    </values>
+    <desc>if .true., use NUOPC capability to read WOA climatology</desc>
   </entry>
 
   <entry id="pref">
@@ -969,6 +978,136 @@
     <desc>Pressure level specification: Valid specs.: 'inflation', 'namelist'</desc>
   </entry>
 
+  <entry id="sigref_fun_spec%dsdz_bot">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>1.125</value>
+    </values>
+    <desc>Derivative of sigma with respect to z at Bezier point 4 (z = 1) [kg m-3]</desc>
+  </entry>
+
+  <entry id="sigref_fun_spec%sp1">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>23.70</value>
+    </values>
+    <desc>Sigma value at Bezier point 1 (z = 0) [kg m-3]</desc>
+  </entry>
+
+  <entry id="sigref_fun_spec%zp2">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>0.21</value>
+    </values>
+    <desc>z value at Bezier point 2 []</desc>
+  </entry>
+
+  <entry id="sigref_fun_spec%zp3">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>0.36</value>
+    </values>
+    <desc>z value at Bezier point 3 []</desc>
+  </entry>
+
+  <entry id="sigref_fun_spec%sp4">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>37.40</value>
+    </values>
+    <desc>Sigma value at Bezier point 4 (z = 1) [kg m-3]</desc>
+  </entry>
+
+  <entry id="sigref_fun_spec%z_top">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>0.06</value>
+    </values>
+    <desc>z value at transition from Bezier curve to parabola covering the z-range [0, z_top]</desc>
+  </entry>
+
+  <entry id="sigref_fun_spec%s_top">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>0.</value>
+    </values>
+    <desc>Sigma value of parabola at z = 0 [kg m-3]</desc>
+  </entry>
+
+  <entry id="sigref_fun_spec%z_bot">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>0.92</value>
+    </values>
+    <desc>z value at transition from Bezier curve to parabola covering the z-range [z_bot, 1]</desc>
+  </entry>
+
+  <entry id="sigref_fun_spec%s_bot">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>38.0</value>
+    </values>
+    <desc>Sigma value of parabola at z = 1 [kg m-3]</desc>
+  </entry>
+
+  <entry id="sigref_adaption">
+    <type>logical</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>Flag to enable adaption of reference potential densities to model state</desc>
+  </entry>
+
+  <entry id="sra_ts">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>5.0</value>
+    </values>
+    <desc>e-folding time scale (years) for adjusting to optimized reference potential densities</desc>
+  </entry>
+
+  <entry id="sra_massfrac_bot">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>0.01</value>
+    </values>
+    <desc>Target mass fraction of the density classes within the bottom parabolic shape [z_bot 1]</desc>
+  </entry>
+
+  <entry id="sra_massfrac_eps">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>0.0001</value>
+    </values>
+    <desc>Small mass fraction</desc>
+  </entry>
+
   <entry id="dpmin_surface">
     <type>real</type>
     <category>vcoord</category>
@@ -1388,6 +1527,17 @@
       <value>.true.</value>
     </values>
     <desc>If true, use the minimum of planetary and topographic beta</desc>
+  </entry>
+
+  <entry id="edfsmo">
+    <type>logical</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>.true.</value>
+      <value blom_vcoord="isopyc_bulkml">.false.</value>
+    </values>
+    <desc>If true, apply lateral smoothing of isopycnal and interface diffusivities</desc>
   </entry>
 
   <entry id="ri0">
@@ -3956,17 +4106,34 @@
     <desc>Atmospheric CO2 concentration [ppmv]</desc>
   </entry>
 
+  <entry id="fedep_source" modify_via_xml="HAMOCC_FEDEP_SOURCE">
+    <type>character</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>''</value>
+      <value hamocc_fedep_source="mahw2006"  >'mahw2006'</value>
+      <value hamocc_fedep_source="GESAMP2018">'GESAMP2018'</value>
+    </values>
+    <desc>Source of dust/iron deposition data ('mahw2006' or 'GESAMP2018')</desc>
+  </entry>
+
   <entry id="fedepfile">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
       <value>''</value>
-      <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx2v1_20130506.nc</value>
-      <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx1v4_20171107.nc</value>
-      <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.5v1_20250210.nc</value>
-      <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.25v4_20181004.nc</value>
-      <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.125v4_20221013.nc</value>
+      <value hamocc_fedep_source="GESAMP2018" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_GESAMP2018_tnx2v1_20250515.nc</value>
+      <value hamocc_fedep_source="GESAMP2018" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_GESAMP2018_tnx1v4_20250515.nc</value>
+      <value hamocc_fedep_source="GESAMP2018" ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_GESAMP2018_tnx0.5v1_20250515.nc</value>
+      <value hamocc_fedep_source="GESAMP2018" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_GESAMP2018_tnx0.25v4_20250515.nc</value>
+      <value hamocc_fedep_source="GESAMP2018" ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_GESAMP2018_tnx0.125v4_20250515.nc</value>
+      <value hamocc_fedep_source="mahw2006"   ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx2v1_20130506.nc</value>
+      <value hamocc_fedep_source="mahw2006"   ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx1v4_20171107.nc</value>
+      <value hamocc_fedep_source="mahw2006"   ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.5v1_20250210.nc</value>
+      <value hamocc_fedep_source="mahw2006"   ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.25v4_20181004.nc</value>
+      <value hamocc_fedep_source="mahw2006"   ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.125v4_20221013.nc</value>
     </values>
     <desc>'File name (incl. full path) for iron (dust) deposition data'</desc>
   </entry>
@@ -4069,7 +4236,7 @@
     </values>
     <desc>Switch to couple N2O fluxes to atmosphere</desc>
   </entry>
-  
+
   <entry id="do_nh3_coupled" modify_via_xml="HAMOCC_NH3C">
     <type>logical</type>
     <category>bgcnml</category>
@@ -4097,7 +4264,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>.false.</value>
+      <value>.true.</value>
     </values>
     <desc>Switch for primary production and remineralization throughout the whole water column</desc>
   </entry>
@@ -4107,7 +4274,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>.false.</value>
+      <value>.true.</value>
     </values>
     <desc>Switch for T- and O2-dependent remineralization of POM</desc>
   </entry>
@@ -4171,6 +4338,16 @@
       <value>$HAMOCC_SEDSPINUP_NCYCLE</value>
     </values>
     <desc>Number of subcyles per time-step for sediment spinup</desc>
+  </entry>
+
+  <entry id="linit_domclasses_sim">
+    <type>logical</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>.true.</value>
+    </values>
+    <desc>Switch to initialize DOM classes from former simulation (.true.) or from scratch (.false.)</desc>
   </entry>
 
   <entry id="inidic" is_inputdata="yes">
@@ -4253,6 +4430,16 @@
       <value hamocc_ciso="yes">$DIN_LOC_ROOT/ocn/blom/inicon/d14C_permil_20180609.nc</value>
     </values>
     <desc>Filename (incl. full path) to delta 14C initial values (used if C-isotope code is activated)</desc>
+  </entry>
+
+  <entry id="inidom" is_inputdata="yes">
+    <type>char</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/blom/inicon/doc_restart_NorESM2LM_yr4750_depth_bnds.nc</value>
+    </values>
+    <desc>Filename (incl. full path) to DOM classes initial values (used if DOM code is activated)</desc>
   </entry>
 
   <entry id="with_dmsph">
@@ -4509,6 +4696,25 @@
     <desc>activate the HAMOCC sediment quality-based remineralization code</desc>
   </entry>
 
+  <entry id="use_river2omip">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>Logical switch to use riverine carbon and nutrient inputs following R2OMIP protocol</desc>
+  </entry>
+
+  <entry id="use_domclasses">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>Logical switch to use DOM code with several labile and refractory classes</desc>
+  </entry>
 
   <!-- ========================= -->
   <!-- namelist group: bgcoafx -->
@@ -4671,6 +4877,16 @@
     <desc>zooplankton parameter: 1/d -exudation rate</desc>
   </entry>
 
+  <entry id="gammapsl">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>phytoplankton parameter: 1/d -DOC_sl-exudation rate</desc>
+  </entry>
+
   <entry id="gammaz">
     <type>real</type>
     <category>bgcparams</category>
@@ -4679,6 +4895,16 @@
       <value>None</value>
     </values>
     <desc>zooplankton parameter: 1/d -excretion rate</desc>
+  </entry>
+
+  <entry id="gammazsl">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>zooplankton parameter: 1/d -DOC_sl excretion rate</desc>
   </entry>
 
   <entry id="ecan">
@@ -4759,6 +4985,66 @@
     <desc>remineralization and dissolution parameter: 1/d -remineralization rate (of DOM)</desc>
   </entry>
 
+  <entry id="alphasl">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>fraction of DOC_sl converted to DOC_sr</desc>
+  </entry>
+
+  <entry id="alphasr">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>fraction of DOC_sr converted to DOC_r</desc>
+  </entry>
+
+  <entry id="docl_remin">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>remineralization rate of labile DOM</desc>
+  </entry>
+
+  <entry id="docsl_remin">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>remineralization rate of semi-labile DOM (DOC_sl)</desc>
+  </entry>
+
+  <entry id="docsr_remin">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>remineralization rate of semi-refractory DOM (DOC_sr)</desc>
+  </entry>
+
+  <entry id="docr_remin">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>remineralization rate of refractory DOM (DOC_r)</desc>
+  </entry>
+
   <entry id="drempoc">
     <type>real</type>
     <category>bgcparams</category>
@@ -4817,6 +5103,16 @@
       <value>None</value>
     </values>
     <desc>Dust deposition and iron solubility parameter: factor introduced to tune deposition/solubility</desc>
+  </entry>
+
+  <entry id="fesoly">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Max. dissolved iron concentration in deep water</desc>
   </entry>
 
   <!-- TODO: how to handle mathematical expressions like below -->
@@ -5833,7 +6129,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>Phytoplankton (phyc) [mol C m-3]</desc>
+    <desc>Phytoplankton (phyc) [mol P m-3]</desc>
   </entry>
 
   <entry id="srf_ph">
@@ -6473,6 +6769,110 @@
     <desc>Vertically integrated denitrification</desc>
   </entry>
 
+  <entry id="int_exudl">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Vertically integrated phy exudation to DOC-L [mol C m-2 s-1]</desc>
+  </entry>
+
+  <entry id="int_exudsl">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Vertically integrated phy exudation to DOC-SL [mol C m-2 s-1]</desc>
+  </entry>
+
+  <entry id="int_excrl">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Vertically integrated zoo excretion to DOC-L [mol C m-2 s-1]</desc>
+  </entry>
+
+  <entry id="int_excrsl">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Vertically integrated zoo excretion to DOC-SL [mol C m-2 s-1]</desc>
+  </entry>
+
+  <entry id="int_docl_rem">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Vertically integrated DOC-L remineralization [mol C m-2 s-1]</desc>
+  </entry>
+
+  <entry id="int_docsl_rem">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Vertically integrated DOC-SL remineralization [mol C m-2 s-1]</desc>
+  </entry>
+
+  <entry id="int_docsr_rem">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Vertically integrated DOC-SR remineralization [mol C m-2 s-1]</desc>
+  </entry>
+
+  <entry id="int_docr_rem">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Vertically integrated DOC-R remineralization [mol C m-2 s-1]</desc>
+  </entry>
+
   <entry id="flx_ndepnoy">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -6497,6 +6897,32 @@
       <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>NHx nitrogen deposition flux [mol N m-2 s-1] - extended N cycle only</desc>
+  </entry>
+
+  <entry id="flx_tdust">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Atmospheric dust deposition flux [kg m-2 s-1]</desc>
+  </entry>
+
+  <entry id="flx_sfe">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Atmospheric deposition flux of soluble iron [mol Fe m-2 s-1]</desc>
   </entry>
 
   <entry id="flx_oalk">
@@ -6863,6 +7289,97 @@
     <desc>Dissolved organic carbon [mol P m-3]</desc>
   </entry>
 
+  <entry id="lyr_docsl">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
+    </values>
+    <desc>Semi-labile dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lyr_docsr">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
+    </values>
+    <desc>Semi-refractory dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lyr_docr">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
+    </values>
+    <desc>Refractory dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lyr_prefdoc">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
+    </values>
+    <desc>Preformed labile dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lyr_prefdocsl">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
+    </values>
+    <desc>Preformed semi-labile dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lyr_prefdocsr">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
+    </values>
+    <desc>Preformed semi-refractory dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lyr_prefdocr">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
+    </values>
+    <desc>Preformed refractory dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
   <entry id="lyr_phosy">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -6873,7 +7390,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>Primary production [mol C m-3]</desc>
+    <desc>Primary production [mol C m-3 s-1]</desc>
   </entry>
 
   <entry id="lyr_phosph">
@@ -7539,6 +8056,57 @@
     <desc>Shelfsea water residence time [d]</desc>
   </entry>
 
+  <entry id="lyr_tdoc_lc">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">0,0,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Low C terrestrial dissolved organic carbon (tdoc_lc) [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lyr_tdoc_hc">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">0,0,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>High C terrestrial dissolved organic carbon (tdoc_hc) [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lyr_tdoc_lc13">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">0,0,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Low C terrestrial dissolved organic carbon-C13 (tdoc_lc13) [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lyr_tdoc_hc13">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">0,0,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>High C terrestrial dissolved organic carbon-C13 (tdoc_hc13) [mol P m-3]</desc>
+  </entry>
 
   <entry id="lyr_dicsat">
     <type>integer(3)</type>
@@ -7719,7 +8287,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>Particulate organic carbon 13 (detoc13) [mol C m-3]</desc>
+    <desc>Particulate organic carbon 13 (detoc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lyr_doc13">
@@ -7732,7 +8300,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>Dissolved organic carbon 13 (dissoc13) [mol C m-3]</desc>
+    <desc>Dissolved organic carbon 13 (dissoc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lyr_calc13">
@@ -7758,7 +8326,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>13C of phytoplankton biomass (phyc13) [mol C m-3]</desc>
+    <desc>13C of phytoplankton biomass (phyc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lyr_grazer13">
@@ -7771,7 +8339,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>13C of zootoplankton biomass (zooc13) [mol C m-3]</desc>
+    <desc>13C of zootoplankton biomass (zooc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lyr_cfc11">
@@ -7912,7 +8480,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
     </values>
-    <desc>Phytoplankton (phyc) [mol C m-3]</desc>
+    <desc>Phytoplankton (phyc) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_nutlim_fe">
@@ -8003,7 +8571,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
     </values>
-    <desc>Zooplankton (zooc) [mol C m-3]</desc>
+    <desc>Zooplankton (zooc) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_doc">
@@ -8016,8 +8584,100 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
     </values>
-    <desc>Dissolved organic carbon (dissoc) [mol C m-3]</desc>
+    <desc>Dissolved organic carbon (dissoc) [mol P m-3]</desc>
   </entry>
+
+  <entry id="lvl_docsl">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Semi-labile dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lvl_docsr">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Semi-refractory dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lvl_docr">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Refractory dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lvl_prefdoc">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Preformed labile dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lvl_prefdocsl">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Preformed semi-labile dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lvl_prefdocsr">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Preformed semi-refractory dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lvl_prefdocr">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Preformed refractory dissolved organic carbon [mol P m-3]</desc>
+  </entry>
+
 
   <entry id="lvl_phosy">
     <type>integer(3)</type>
@@ -8510,7 +9170,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
     </values>
-    <desc>Detrius (detoc) [mol C m-3]</desc>
+    <desc>Detrius (detoc) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_calc">
@@ -8693,6 +9353,58 @@
     <desc>Shelfsea water residence time [d]</desc>
   </entry>
 
+  <entry id="lvl_tdoc_lc">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Low C terrestrial dissolved organic carbon (tdoc_lc) [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lvl_tdoc_hc">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>High C terrestrial dissolved organic carbon (tdoc_hc) [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lvl_tdoc_lc13">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>Low C terrestrial dissolved organic carbon-C13 (tdoc_lc13) [mol P m-3]</desc>
+  </entry>
+
+  <entry id="lvl_tdoc_hc13">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,2</value>
+    </values>
+    <desc>High C terrestrial dissolved organic carbon-C13 (tdoc_hc13) [mol P m-3]</desc>
+  </entry>
+
   <entry id="lvl_dicsat">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -8846,7 +9558,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>Particulate organic carbon 13 (detoc13) [mol C m-3]</desc>
+    <desc>Particulate organic carbon 13 (detoc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_doc13">
@@ -8859,7 +9571,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>Dissolved organic carbon 13 (dissoc13) [mol C m-3]</desc>
+    <desc>Dissolved organic carbon 13 (dissoc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_calc13">
@@ -8885,7 +9597,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>13C of phytoplankton biomass (phyc13) [mol C m-3]</desc>
+    <desc>13C of phytoplankton biomass (phyc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_grazer13">
@@ -8898,7 +9610,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>13C of zootoplankton biomass (zooc13) [mol C m-3]</desc>
+    <desc>13C of zootoplankton biomass (zooc13) [mol P m-3]</desc>
   </entry>
 
   <entry id="lvl_cfc11">
@@ -9733,6 +10445,60 @@
     <desc>if .true., use NUOPC stream functionality for HAMOOC fedep input </desc>
   </entry>
 
+ <!-- =========================  -->
+  <!-- namelist group: nuopc_woa -->
+  <!-- ========================= -->
+
+  <entry id="woa_mesh">
+    <type>char</type>
+    <category>nuopc_woa</category>
+    <group>nuopc_woa</group>
+    <desc>ESMF mesh for WOA data</desc>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/woa/WOA_1.00_degree_ESMFmesh_20250506_cdf5.nc</value>
+    </values>
+  </entry>
+
+  <entry id="woa_filename_t">
+    <type>char</type>
+    <category>nuopc_woa</category>
+    <group>nuopc_woa</group>
+    <desc>WOA 3d temperature</desc>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/woa/woa18_decav_t13_01.nc</value>
+    </values>
+  </entry>
+
+  <entry id="woa_filename_s">
+    <type>char</type>
+    <category>nuopc_woa</category>
+    <group>nuopc_woa</group>
+    <desc>WOA 3d temperature </desc>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/woa/woa18_decav_s13_01.nc</value>
+    </values>
+  </entry>
+
+  <entry id="woa_varname_t">
+    <type>char</type>
+    <category>nuopc_woa</category>
+    <group>nuopc_woa</group>
+    <desc>WOA temperature variable</desc>
+    <values>
+      <value>t_an</value>
+    </values>
+  </entry>
+
+  <entry id="woa_varname_s">
+    <type>char</type>
+    <category>nuopc_woa</category>
+    <group>nuopc_woa</group>
+    <desc>WOA salinity variable</desc>
+    <values>
+      <value>s_an</value>
+    </values>
+  </entry>
+
   <!-- =========================  -->
   <!-- namelist group: stream_sss -->
   <!-- =========================  -->
@@ -9883,7 +10649,8 @@
     <group>stream_dust</group>
     <desc>stream mesh file</desc>
     <values>
-      <value>$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_T42_ESMFmesh_cdf5.nc</value>
+      <value hamocc_fedep_source="mahw2006">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_T42_ESMFmesh_cdf5.nc</value>
+      <value hamocc_fedep_source="GESAMP2018">/cluster/projects/nn9560k/matsbn/WOA_mesh/WOA_1.00_degree_ESMFmesh_20250506_cdf5.nc</value>
     </values>
   </entry>
   <entry id="stream_dust_data_filename">
@@ -9894,18 +10661,20 @@
       file name(s) containing dust deposition data
     </desc>
     <values>
-      <value>$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_T42.nc</value>
+      <value hamocc_fedep_source="mahw2006">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_T42.nc</value>
+      <value hamocc_fedep_source="GESAMP2018">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_GESAMP2018_r360x180_20250526.nc</value>
     </values>
   </entry>
-  <entry id="stream_dust_varname">
+  <entry id="stream_dust_varnames">
     <type>char</type>
     <category>stream_dust</category>
     <group>stream_dust</group>
     <desc>
-      variable name on stream file
+      variable names as colon deliminted string on stream file
     </desc>
     <values>
-      <value>dustdep</value>
+      <value hamocc_fedep_source="mahw2006">dustdep</value>
+      <value hamocc_fedep_source="GESAMP2018">TFe:LFe</value>
     </values>
   </entry>
   <entry id="stream_dust_year_first">
@@ -9916,7 +10685,7 @@
       First year in stream to use
     </desc>
     <values>
-      <value>1</value>
+      <value>1850</value>
     </values>
   </entry>
   <entry id="stream_dust_year_last">
@@ -9938,7 +10707,7 @@
       Align stream_year_first with this model year
     </desc>
     <values>
-      <value>1850</value>
+      <value>1</value>
     </values>
   </entry>
 

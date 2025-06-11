@@ -35,7 +35,7 @@ module mod_blom_step
                                  diaacc_total_time, io_total_time, &
                                  get_time
   use mod_xc,              only: lp, kk, mnproc, xctilr, xcsum
-  use mod_vcoord,          only: vcoord_tag, vcoord_isopyc_bulkml
+  use mod_vcoord,          only: vcoord_tag, vcoord_isopyc_bulkml, sigref_adapt
   use mod_ale_regrid_remap, only: ale_regrid_remap
   use mod_ale_vdiff,       only: ale_vdifft, ale_vdiffm
   use mod_swabs,           only: updswa
@@ -253,6 +253,8 @@ contains
     call budget_sums(7,m,mm)
 
     call cmnfld1(m,n,mm,nn,k1m,k1n)
+
+    call sigref_adapt(m,n,mm,nn,k1m,k1n)
 
     call diaacc(m,n,mm,nn,k1m,k1n)
     diaacc_time = get_time()

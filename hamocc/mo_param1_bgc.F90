@@ -25,6 +25,8 @@ module mo_param1_bgc
   !
   !  Modified
   !  J.Schwinger,        *NORCE Climate, Bergen*    2020-05-26
+  !  T. Bourgeois,     *NORCE climate, Bergen*   2025-04-14
+  !  - implement R2OMIP protocol
   !*************************************************************************************************
 
   use mo_control_bgc, only: use_BROMO, use_AGG, use_WLIN, use_natDIC, use_CFC,                     &
@@ -105,6 +107,17 @@ module mo_param1_bgc
   integer, protected :: i_bromo
   integer, protected :: ibromo
 
+  ! Indices for DOM tracer
+  integer, protected :: i_dom
+  integer, protected :: idocsl
+  integer, protected :: idocr
+  integer, protected :: idocsr
+  integer, protected :: i_prefdom
+  integer, protected :: iprefdoc
+  integer, protected :: iprefdocsl
+  integer, protected :: iprefdocsr
+  integer, protected :: iprefdocr
+
   ! Indices for extended nitrogen cycle
   integer, protected :: i_extn
   integer, protected :: ianh4
@@ -113,6 +126,15 @@ module mo_param1_bgc
   ! Indices for the age tracer for shelf water residence time
   integer, protected :: i_shelfage
   integer, protected :: ishelfage
+
+  ! Indices for the R2O riverine terrestrial DOC
+  integer, protected :: i_r2o
+  integer, protected :: itdoc_lc
+  integer, protected :: itdoc_hc
+  integer, protected :: itdoc_lc13
+  integer, protected :: itdoc_hc13
+  integer, protected :: itdoc_lc14
+  integer, protected :: itdoc_hc14
 
   ! total number of advected tracers (set by allocate_tracers in mod_tracers.F90)
   integer :: nocetra
@@ -160,10 +182,16 @@ module mo_param1_bgc
   integer, protected :: idepnoy ! index for NOy deposition
   integer, protected :: idepnhx ! index for NHx deposition
 
+  ! --------------------
+  ! Dust/fe deposition
+  ! --------------------
+  integer, protected :: ndust   ! size of dust deposition input field
+  integer, protected :: itdust  ! total atmospheric dust deposition
+  integer, protected :: isfe    ! atmospheric deposition of soluble Fe
+
   ! ------------------
   ! rivers
   ! ------------------
-
   integer, protected :: nriv   ! size of river input field
   integer, protected :: irdin  ! dissolved inorganic nitrogen
   integer, protected :: irdip  ! dissolved inorganic phosphorous
@@ -171,6 +199,7 @@ module mo_param1_bgc
   integer, protected :: iralk  ! alkalinity
   integer, protected :: iriron ! dissolved bioavailable iron
   integer, protected :: irdoc  ! dissolved organic carbon
+  integer, protected :: irtdoc ! terrestrial semi-labile DOC
   integer, protected :: irdet  ! particulate carbon
 
   ! ------------------
@@ -252,14 +281,15 @@ contains
     use mo_control_bgc, only: use_BROMO,use_AGG,use_WLIN,use_natDIC,use_CFC,use_cisonew,           &
                               use_sedbypass,use_PBGC_OCNP_TIMESTEP,use_PBGC_CK_TIMESTEP,           &
                               use_FB_BGC_OCE, use_BOXATM,use_extNcycle,use_pref_tracers,           &
-                              use_coupler_ndep,use_shelfsea_res_time
+                              use_coupler_ndep,use_shelfsea_res_time,use_river2omip,use_DOMclasses
 
     integer :: iounit
 
     namelist / config_bgc / use_BROMO,use_AGG,use_WLIN,use_natDIC,use_CFC,use_cisonew,             &
                             use_sedbypass,use_PBGC_OCNP_TIMESTEP,use_PBGC_CK_TIMESTEP,             &
                             use_FB_BGC_OCE,use_BOXATM,use_extNcycle,use_pref_tracers,              &
-                            use_coupler_ndep,use_shelfsea_res_time,use_sediment_quality
+                            use_coupler_ndep,use_shelfsea_res_time,use_sediment_quality,           &
+                            use_river2omip,use_DOMclasses
 
     io_stdo_bgc = lp              !  standard out.
 
@@ -392,9 +422,54 @@ contains
       i_shelfage = 0
       ishelfage  = -1
     endif
+    if (use_river2omip) then
+      itdoc_lc  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+1
+      itdoc_hc  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+2
+      if (use_cisonew) then
+        i_r2o = 6
+        itdoc_lc13  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+3
+        itdoc_hc13  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+4
+        itdoc_lc14  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+5
+        itdoc_hc14  = i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+6
+      else
+        i_r2o = 2
+        itdoc_lc13  = -1
+        itdoc_hc13  = -1
+        itdoc_lc14  = -1
+        itdoc_hc14  = -1
+      endif
+    else
+      i_r2o = 0
+      itdoc_lc  = -1
+      itdoc_hc  = -1
+    endif
+    if (use_DOMclasses) then
+      i_dom=3
+      idocsl=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+1
+      idocsr=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+2
+      idocr =i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+3
+    else
+      i_dom=0
+      idocsl=-1
+      idocr =-1
+      idocsr=-1
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
+      i_prefdom = 4
+      iprefdoc=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+i_dom+1
+      iprefdocsl=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+i_dom+2
+      iprefdocsr=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+i_dom+3
+      iprefdocr=i_base+i_iso+i_cfc+i_agg+i_nat_dic+i_bromo+i_extn+i_pref+i_shelfage+i_r2o+i_dom+4
+    else
+      i_prefdom =  0
+      iprefdoc  = -1
+      iprefdocsl= -1
+      iprefdocsr= -1
+      iprefdocr = -1
+    endif
 
     ! total number of advected tracers
-    nocetra=i_base+i_iso+i_cfc+i_agg+i_nat_dic +i_bromo+i_extn+i_pref+i_shelfage
+    nocetra=i_base+i_iso+i_cfc+i_agg+i_nat_dic +i_bromo+i_extn+i_pref+i_shelfage+i_r2o+i_dom+i_prefdom
 
     ! ATMOSPHERE
     i_base_atm=5
@@ -459,15 +534,21 @@ contains
       idepnhx = -1
     endif
 
+    ! Dust/fe
+    ndust  = 2
+    itdust = 1
+    isfe   = 2
+
     ! rivers
-    nriv   =7
+    nriv   =8
     irdin  =1
     irdip  =2
     irsi   =3
     iralk  =4
     iriron =5
     irdoc  =6
-    irdet  =7
+    irtdoc =7
+    irdet  =8
 
     ! ---  sediment
     ! sediment solid components

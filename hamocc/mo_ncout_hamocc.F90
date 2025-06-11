@@ -36,11 +36,12 @@ contains
     use mod_dia,        only: diafnm,sigmar1,iotype,ddm,depthslev,depthslev_bnds
     use mo_control_bgc, only: dtbgc,use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO,              &
                               use_sedbypass,use_BOXATM,use_M4AGO,use_extNcycle,use_pref_tracers,   &
-                              use_shelfsea_res_time,use_sediment_quality
+                              use_shelfsea_res_time,use_sediment_quality,use_river2omip,           &
+                              use_DOMclasses
     use mo_vgrid,       only: k0100,k0500,k1000,k2000,k4000
     use mo_param1_bgc,  only: ks
     use mod_nctools,    only: ncwrt1,ncdims,nctime,ncfcls,ncfopn,ncdimc,ncputr,ncputi,ncwrtr
-    use mo_bgcmean,     only: domassfluxes,flx_ndepnoy,flx_oalk,                                   &
+    use mo_bgcmean,     only: domassfluxes,flx_ndepnoy,flx_tdust,flx_sfe,flx_oalk,                 &
                               flx_cal0100,flx_cal0500,flx_cal1000,                                 &
                               flx_cal2000,flx_cal4000,flx_cal_bot,                                 &
                               flx_car0100,flx_car0500,flx_car1000,                                 &
@@ -70,6 +71,8 @@ contains
                               jdms,jdms_bac,jdms_uv,jdmsflux,jdmsprod,                             &
                               jdoc,jdp,jeps,jexpoca,jexport,jexposi,jgrazer,                       &
                               jintdnit,jintnfix,jintphosy,jiron,jirsi,                             &
+                              jintexudl,jintexudsl,jintexcrl,jintexcrsl,jintdocl_rem,              &
+                              jintdocsl_rem,jintdocsr_rem,jintdocr_rem,                            &
                               jkwco2,jlvlalkali,jlvlano3,jlvlasize,                                &
                               jlvlbigd14c,jlvlbromo,jlvlcalc,jlvlcalc13,                           &
                               jlvlcfc11,jlvlcfc12,jlvlco3,jlvld13c,                                &
@@ -84,15 +87,17 @@ contains
                               jlvlpoc13,jlvlprefalk,jlvlprefdic,                                   &
                               jlvlprefo2,jlvlprefpo4,jlvlsf6,jlvlsilica,                           &
                               jlvlwnos,jlvlwphy,jn2o,jsrfpn2om,                                    &
-                              jn2ofx,jndepnoyfx,jniflux,jnos,joalkfx,                              &
+                              jn2ofx,jndepnoyfx,jniflux,jnos,jtdustfx,jsfefx,joalkfx,              &
                               jo2sat,jomegaa,jomegac,jopal,joxflux,joxygen,jfco2,                  &
                               jpco2,jxco2,jpco2_gex,jkwco2sol,jco2sol,                             &
+                              jdocsl,jdocsr,jdocr,jlvldocsl,jlvldocsr,jlvldocr,                    &
+                              jlvlprefdoc,jlvlprefdocsl,jlvlprefdocsr,jlvlprefdocr,                &
                               jph,jphosph,jphosy,jphyto,jpoc,jprefalk,                             &
                               jprefdic,jprefo2,jprefpo4,jsilica,jprefsilica,                       &
                               jshelfage,                                                           &
                               jsrfalkali,jsrfano3,jsrfdic,jsrfiron,                                &
                               jsrfoxygen,jsrfphosph,jsrfphyto,jsrfsilica,jsrfph,                   &
-                              jwnos,jwphy,                                                         &
+                              jwnos,jwphy,jprefdoc,jprefdocsl,jprefdocsr,jprefdocr,                &
                               lyr_dp,lyr_dic,lyr_alkali,lyr_phosph,                                &
                               lyr_oxygen,lyr_ano3,lyr_silica,lyr_doc,                              &
                               lyr_phyto,lyr_grazer,lyr_poc,lyr_calc,                               &
@@ -100,6 +105,8 @@ contains
                               lyr_omegaa,lyr_omegac,lyr_n2o,lyr_prefo2,                            &
                               lyr_o2sat,lyr_prefpo4,lyr_prefalk,lyr_prefsilica,                    &
                               lyr_prefdic,lyr_dicsat,lyr_shelfage,                                 &
+                              lyr_docsl,lyr_docsr,lyr_docr,                                        &
+                              lyr_prefdoc,lyr_prefdocsl,lyr_prefdocsr,lyr_prefdocr,                &
                               lvl_dic,lvl_alkali,                                                  &
                               lvl_phosph,lvl_oxygen,lvl_ano3,lvl_silica,                           &
                               lvl_doc,lvl_phyto,lvl_grazer,lvl_poc,                                &
@@ -109,6 +116,8 @@ contains
                               lvl_prefalk,lvl_prefdic,lvl_dicsat,lvl_shelfage,                     &
                               lvl_o2sat,srf_n2ofx,srf_pn2om,srf_atmco2,srf_kwco2,                  &
                               srf_kwco2sol,srf_co2sol,srf_fco2,                                    &
+                              lvl_docsl,lvl_docsr,lvl_docr,                                        &
+                              lvl_prefdoc,lvl_prefdocsl,lvl_prefdocsr,lvl_prefdocr,                &
                               srf_pco2,srf_xco2,srf_pco2_gex,srf_dmsflux,srf_co2fxd,               &
                               srf_co2fxu,srf_oxflux,srf_niflux,srf_dms,                            &
                               srf_dmsprod,srf_dms_bac,srf_dms_uv,                                  &
@@ -116,6 +125,8 @@ contains
                               srf_alkali,srf_phosph,srf_oxygen,srf_ano3,                           &
                               srf_silica,srf_iron,srf_phyto,srf_ph,                                &
                               int_phosy,int_nfix,int_dnit,                                         &
+                              int_exudl,int_exudsl,int_excrl,int_excrsl,                           &
+                              int_docl_rem,int_docsl_rem,int_docsr_rem,int_docr_rem,               &
                               nbgc,nacc_bgc,bgcwrt,glb_inventory,bgct2d,                           &
                               nbgcmax,glb_ncformat,glb_compflag,                                   &
                               glb_fnametag,filefq_bgc,diagfq_bgc,                                  &
@@ -159,7 +170,10 @@ contains
                               sdm_ssssil,sdm_sssc12,sdm_ssster,jburssso12,                         &
                               bur_sssc12,bur_ssssil,bur_ssster,bur_ssso12,                         &
                               inisdm,inibur,wrtsdm,accbur,accsdm,wrtbur,                           &
-                              jatmco2,jatmn2,jatmo2,srf_atmo2,srf_atmn2,                           &
+                              jatmco2,jatmn2,jatmo2,srf_atmo2,srf_atmn2,jtdoc_lc,jtdoc_hc,         &
+                              lyr_tdoc_lc,lyr_tdoc_hc,lvl_tdoc_lc,lvl_tdoc_hc,jlvltdoc_lc,         &
+                              jlvltdoc_hc,jtdoc_lc13,jtdoc_hc13,lyr_tdoc_lc13,lyr_tdoc_hc13,       &
+                              lvl_tdoc_lc13,lvl_tdoc_hc13,jlvltdoc_lc13,jlvltdoc_hc13,             &
                               lyr_agg_ws,lyr_dynvis,lyr_agg_stick,                                 &
                               lyr_agg_stickf,lyr_agg_dmax,lyr_agg_avdp,                            &
                               lyr_agg_avrhop,lyr_agg_avdC,lyr_agg_df,                              &
@@ -352,6 +366,10 @@ contains
     if (use_shelfsea_res_time) then
       call finlyr(jshelfage(iogrp),jdp(iogrp))
     endif
+    if (use_river2omip) then
+      call finlyr(jtdoc_lc(iogrp),jdp(iogrp))
+      call finlyr(jtdoc_hc(iogrp),jdp(iogrp))
+    endif
     if (use_cisonew) then
       call finlyr(jdic13(iogrp),jdp(iogrp))
       call finlyr(jdic14(iogrp),jdp(iogrp))
@@ -363,6 +381,10 @@ contains
       call finlyr(jcalc13(iogrp),jdp(iogrp))
       call finlyr(jphyto13(iogrp),jdp(iogrp))
       call finlyr(jgrazer13(iogrp),jdp(iogrp))
+      if (use_river2omip) then
+        call finlyr(jtdoc_lc13(iogrp),jdp(iogrp))
+        call finlyr(jtdoc_hc13(iogrp),jdp(iogrp))
+      endif
     endif
     if (use_AGG) then
       call finlyr(jnos(iogrp),jdp(iogrp))
@@ -422,6 +444,17 @@ contains
       call finlyr(jagg_Vrhof(iogrp),jdp(iogrp))
       call finlyr(jagg_Vpor(iogrp),jdp(iogrp))
     endif
+    if (use_DOMclasses) then
+      call finlyr(jdocsl(iogrp),jdp(iogrp))
+      call finlyr(jdocsr(iogrp),jdp(iogrp))
+      call finlyr(jdocr(iogrp),jdp(iogrp))
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
+      call finlyr(jprefdoc(iogrp),jdp(iogrp))
+      call finlyr(jprefdocsl(iogrp),jdp(iogrp))
+      call finlyr(jprefdocsr(iogrp),jdp(iogrp))
+      call finlyr(jprefdocr(iogrp),jdp(iogrp))
+    endif
 
     ! --- Mask sea floor in mass fluxes
     call msksrf(jcarflx0100(iogrp),k0100)
@@ -480,6 +513,10 @@ contains
     if (use_shelfsea_res_time) then
       call msklvl(jlvlshelfage(iogrp),depths)
     endif
+    if (use_river2omip) then
+      call msklvl(jlvltdoc_lc(iogrp),depths)
+      call msklvl(jlvltdoc_hc(iogrp),depths)
+    endif
     if (use_cisonew) then
       call msklvl(jlvldic13(iogrp),depths)
       call msklvl(jlvldic14(iogrp),depths)
@@ -491,6 +528,10 @@ contains
       call msklvl(jlvlcalc13(iogrp),depths)
       call msklvl(jlvlphyto13(iogrp),depths)
       call msklvl(jlvlgrazer13(iogrp),depths)
+      if (use_river2omip) then
+        call msklvl(jlvltdoc_lc13(iogrp),depths)
+        call msklvl(jlvltdoc_hc13(iogrp),depths)
+      endif
     endif
     if (use_AGG) then
       call msklvl(jlvlnos(iogrp),depths)
@@ -550,6 +591,17 @@ contains
       call msklvl(jlvl_agg_Vrhof(iogrp),depths)
       call msklvl(jlvl_agg_Vpor(iogrp),depths)
     endif
+    if (use_DOMclasses) then
+      call msklvl(jlvldocsl(iogrp),depths)
+      call msklvl(jlvldocsr(iogrp),depths)
+      call msklvl(jlvldocr(iogrp),depths)
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
+      call msklvl(jlvlprefdoc(iogrp),depths)
+      call msklvl(jlvlprefdocsl(iogrp),depths)
+      call msklvl(jlvlprefdocsr(iogrp),depths)
+      call msklvl(jlvlprefdocr(iogrp),depths)
+    endif
 
     ! --- Compute log10 of pH
     if (SRF_PH(iogrp).ne.0) call logsrf(jsrfph(iogrp),rnacc,0.)
@@ -596,6 +648,8 @@ contains
     call wrtsrf(jintnfix(iogrp),     INT_NFIX(iogrp),     rnacc*1e3/dtbgc,0.,cmpflg,'nfixint')
     call wrtsrf(jintdnit(iogrp),     INT_DNIT(iogrp),     rnacc*1e3/dtbgc,0.,cmpflg,'dnitint')
     call wrtsrf(jndepnoyfx(iogrp),   FLX_NDEPNOY(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'ndepnoy')
+    call wrtsrf(jtdustfx(iogrp),     FLX_TDUST(iogrp),    rnacc*1e3/dtbgc,0.,cmpflg,'tdustfx')
+    call wrtsrf(jsfefx(iogrp),       FLX_SFE(iogrp),      rnacc*1e3/dtbgc,0.,cmpflg,'sfefx')
     call wrtsrf(joalkfx(iogrp),      FLX_OALK(iogrp),     rnacc*1e3/dtbgc,0.,cmpflg,'oalkfx')
     call wrtsrf(jcarflx0100(iogrp),  FLX_CAR0100(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'carflx0100')
     call wrtsrf(jcarflx0500(iogrp),  FLX_CAR0500(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'carflx0500')
@@ -688,6 +742,16 @@ contains
       call wrtsrf(jatmn2o(iogrp),      SRF_ATMN2O(iogrp),   rnacc,          0.,cmpflg,'atmn2o')
       call wrtsrf(jndepnhxfx(iogrp),   FLX_NDEPNHX(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'ndepnhx')
     endif
+    if (use_DOMclasses) then
+      call wrtsrf(jintexudl(iogrp),    INT_EXUDL(iogrp),    rnacc*1e3/dtbgc,0.,cmpflg,'exudlint')
+      call wrtsrf(jintexudsl(iogrp),   INT_EXUDSL(iogrp),   rnacc*1e3/dtbgc,0.,cmpflg,'exudslint')
+      call wrtsrf(jintexcrl(iogrp),    INT_EXCRL(iogrp),    rnacc*1e3/dtbgc,0.,cmpflg,'excrlint')
+      call wrtsrf(jintexcrsl(iogrp),   INT_EXCRSL(iogrp),   rnacc*1e3/dtbgc,0.,cmpflg,'excrslint')
+      call wrtsrf(jintdocl_rem(iogrp), INT_DOCL_REM(iogrp), rnacc*1e3/dtbgc,0.,cmpflg,'docl_remint')
+      call wrtsrf(jintdocsl_rem(iogrp),INT_DOCSL_REM(iogrp),rnacc*1e3/dtbgc,0.,cmpflg,'docsl_remint')
+      call wrtsrf(jintdocsr_rem(iogrp),INT_DOCSR_REM(iogrp),rnacc*1e3/dtbgc,0.,cmpflg,'docsr_remint')
+      call wrtsrf(jintdocr_rem(iogrp), INT_DOCR_REM(iogrp), rnacc*1e3/dtbgc,0.,cmpflg,'docr_remint')
+    endif
 
     ! --- Store 3d layer fields
     call wrtlyr(jdp(iogrp),          LYR_DP(iogrp),       rnacc,          0.,cmpflg,'pddpo')
@@ -722,6 +786,10 @@ contains
     if (use_shelfsea_res_time) then
       call wrtlyr(jshelfage(iogrp),     LYR_SHELFAGE(iogrp),  rnacc,        0.,cmpflg,'shelfage')
     endif
+    if (use_river2omip) then
+      call wrtlyr(jtdoc_lc(iogrp),     LYR_TDOC_LC(iogrp),  1e3,            0.,cmpflg,'tdoc_lc')
+      call wrtlyr(jtdoc_hc(iogrp),     LYR_TDOC_HC(iogrp),  1e3,            0.,cmpflg,'tdoc_hc')
+    endif
     if (use_cisonew) then
       call wrtlyr(jdic13(iogrp),       LYR_DIC13(iogrp),    1.e3,           0.,cmpflg,'dissic13')
       call wrtlyr(jdic14(iogrp),       LYR_DIC14(iogrp),    1.e3*c14fac,    0.,cmpflg,'dissic14')
@@ -733,6 +801,10 @@ contains
       call wrtlyr(jcalc13(iogrp),      LYR_CALC13(iogrp),   1e3,            0.,cmpflg,'calc13')
       call wrtlyr(jphyto13(iogrp),     LYR_PHYTO13(iogrp),  1e3,            0.,cmpflg,'phyc13')
       call wrtlyr(jgrazer13(iogrp),    LYR_GRAZER13(iogrp), 1e3,            0.,cmpflg,'zooc13')
+      if (use_river2omip) then
+        call wrtlyr(jtdoc_lc13(iogrp),   LYR_TDOC_LC13(iogrp), 1e3,         0.,cmpflg,'tdoc_lc13')
+        call wrtlyr(jtdoc_hc13(iogrp),   LYR_TDOC_HC13(iogrp), 1e3,         0.,cmpflg,'tdoc_hc13')
+      endif
     endif
     if (use_AGG) then
       call wrtlyr(jnos(iogrp),         LYR_NOS(iogrp),      1.,             0.,cmpflg,'nos')
@@ -792,6 +864,17 @@ contains
       call wrtlyr(jagg_Vrhof(iogrp),   LYR_agg_Vrhof(iogrp),1.,             0.,cmpflg,'agg_Vrhof')
       call wrtlyr(jagg_Vpor(iogrp),    LYR_agg_Vpor(iogrp), 1.,             0.,cmpflg,'agg_Vpor')
     endif
+    if (use_DOMclasses) then
+      call wrtlyr(jdocsl(iogrp),       LYR_DOCSL(iogrp),    1e3,            0.,cmpflg,'dissocsl')
+      call wrtlyr(jdocsr(iogrp),       LYR_DOCSR(iogrp),    1e3,            0.,cmpflg,'dissocsr')
+      call wrtlyr(jdocr(iogrp),        LYR_DOCR(iogrp),     1e3,            0.,cmpflg,'dissocr')
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
+      call wrtlyr(jprefdoc(iogrp),     LYR_PREFDOC(iogrp),  1e3,            0.,cmpflg,'p_doc')
+      call wrtlyr(jprefdocsl(iogrp),   LYR_PREFDOCSL(iogrp),1e3,            0.,cmpflg,'p_docsl')
+      call wrtlyr(jprefdocsr(iogrp),   LYR_PREFDOCSR(iogrp),1e3,            0.,cmpflg,'p_docsr')
+      call wrtlyr(jprefdocr(iogrp),    LYR_PREFDOCR(iogrp), 1e3,            0.,cmpflg,'p_docr')
+    endif
 
     ! --- Store 3d level fields
     call wrtlvl(jlvldic(iogrp),      LVL_DIC(iogrp),      rnacc*1e3,      0.,cmpflg,'dissiclvl')
@@ -828,6 +911,10 @@ contains
     if (use_shelfsea_res_time) then
       call wrtlvl(jlvlshelfage(iogrp),  LVL_SHELFAGE(iogrp),  rnacc,      0.,cmpflg,'shelfagelvl')
     endif
+    if (use_river2omip) then
+      call wrtlvl(jlvltdoc_lc(iogrp),  LVL_TDOC_LC(iogrp),  rnacc*1e3,      0.,cmpflg,'tdoc_lclvl')
+      call wrtlvl(jlvltdoc_hc(iogrp),  LVL_TDOC_HC(iogrp),  rnacc*1e3,      0.,cmpflg,'tdoc_hclvl')
+    endif
     if (use_cisonew) then
       call wrtlvl(jlvldic13(iogrp),    LVL_DIC13(iogrp),    rnacc*1.e3,     0.,cmpflg,'dissic13lvl')
       call wrtlvl(jlvldic14(iogrp),    LVL_DIC14(iogrp),    rnacc*1.e3*c14fac,0.,cmpflg,'dissic14lvl')
@@ -839,6 +926,10 @@ contains
       call wrtlvl(jlvlcalc13(iogrp),   LVL_CALC13(iogrp),   rnacc*1e3,      0.,cmpflg,'calc13lvl')
       call wrtlvl(jlvlphyto13(iogrp),  LVL_PHYTO13(iogrp),  rnacc*1e3,      0.,cmpflg,'phyc13lvl')
       call wrtlvl(jlvlgrazer13(iogrp), LVL_GRAZER13(iogrp), rnacc*1e3,      0.,cmpflg,'zooc13lvl')
+      if (use_river2omip) then
+        call wrtlvl(jlvltdoc_lc13(iogrp), LVL_TDOC_LC13(iogrp), rnacc*1e3,  0.,cmpflg,'tdoc_lc13lvl')
+        call wrtlvl(jlvltdoc_hc13(iogrp), LVL_TDOC_HC13(iogrp), rnacc*1e3,  0.,cmpflg,'tdoc_hc13lvl')
+      endif
     endif
     if (use_AGG) then
       call wrtlvl(jlvlnos(iogrp),      LVL_NOS(iogrp),      rnacc,          0.,cmpflg,'noslvl')
@@ -897,6 +988,17 @@ contains
       call wrtlvl(jlvl_agg_b(iogrp),        LVL_agg_b(iogrp),        rnacc,          0.,cmpflg,'agg_blvl')
       call wrtlvl(jlvl_agg_Vrhof(iogrp),    LVL_agg_Vrhof(iogrp),    rnacc,          0.,cmpflg,'agg_Vrhoflvl')
       call wrtlvl(jlvl_agg_Vpor(iogrp),     LVL_agg_Vpor(iogrp),     rnacc,          0.,cmpflg,'agg_Vporlvl')
+    endif
+    if (use_DOMclasses) then
+      call wrtlvl(jlvldocsl(iogrp),     LVL_DOCSL(iogrp),   rnacc*1e3,      0.,cmpflg,'dissocsllvl')
+      call wrtlvl(jlvldocsr(iogrp),     LVL_DOCSR(iogrp),   rnacc*1e3,      0.,cmpflg,'dissocsrlvl')
+      call wrtlvl(jlvldocr(iogrp),      LVL_DOCR(iogrp),    rnacc*1e3,      0.,cmpflg,'dissocrlvl')
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
+      call wrtlvl(jlvlprefdoc(iogrp),   LVL_PREFDOC(iogrp),   rnacc*1e3,    0.,cmpflg,'p_doclvl')
+      call wrtlvl(jlvlprefdocsl(iogrp), LVL_PREFDOCSL(iogrp), rnacc*1e3,    0.,cmpflg,'p_docsllvl')
+      call wrtlvl(jlvlprefdocsr(iogrp), LVL_PREFDOCSR(iogrp), rnacc*1e3,    0.,cmpflg,'p_docsrlvl')
+      call wrtlvl(jlvlprefdocr(iogrp),  LVL_PREFDOCR(iogrp),  rnacc*1e3,    0.,cmpflg,'p_docrlvl')
     endif
 
     ! --- Store sediment fields
@@ -986,6 +1088,8 @@ contains
     call inisrf(jintnfix(iogrp),0.)
     call inisrf(jintdnit(iogrp),0.)
     call inisrf(jndepnoyfx(iogrp),0.)
+    call inisrf(jtdustfx(iogrp),0.)
+    call inisrf(jsfefx(iogrp),0.)
     call inisrf(joalkfx(iogrp),0.)
     call inisrf(jcarflx0100(iogrp),0.)
     call inisrf(jcarflx0500(iogrp),0.)
@@ -1055,7 +1159,16 @@ contains
       call inisrf(jbromo_uv(iogrp),0.)
       call inisrf(jatmbromo(iogrp),0.)
     endif
-
+    if (use_DOMclasses) then
+      call inisrf(jintexudl(iogrp),0.)
+      call inisrf(jintexudsl(iogrp),0.)
+      call inisrf(jintexcrl(iogrp),0.)
+      call inisrf(jintexcrsl(iogrp),0.)
+      call inisrf(jintdocl_rem(iogrp),0.)
+      call inisrf(jintdocsl_rem(iogrp),0.)
+      call inisrf(jintdocsr_rem(iogrp),0.)
+      call inisrf(jintdocr_rem(iogrp),0.)
+    endif
 
     call inisrf(jatmco2(iogrp),0.)
     if (use_BOXATM) then
@@ -1112,6 +1225,10 @@ contains
     if (use_shelfsea_res_time) then
       call inilyr(jshelfage(iogrp),0.)
     endif
+    if (use_river2omip) then
+      call inilyr(jtdoc_lc(iogrp),0.)
+      call inilyr(jtdoc_hc(iogrp),0.)
+    endif
     if (use_cisonew) then
       call inilyr(jdic13(iogrp),0.)
       call inilyr(jdic14(iogrp),0.)
@@ -1123,6 +1240,10 @@ contains
       call inilyr(jcalc13(iogrp),0.)
       call inilyr(jphyto13(iogrp),0.)
       call inilyr(jgrazer13(iogrp),0.)
+      if (use_river2omip) then
+        call inilyr(jtdoc_lc13(iogrp),0.)
+        call inilyr(jtdoc_hc13(iogrp),0.)
+      endif
     endif
     if (use_AGG) then
       call inilyr(jnos(iogrp),0.)
@@ -1182,6 +1303,17 @@ contains
       call inilyr(jagg_Vrhof(iogrp),0.)
       call inilyr(jagg_Vpor(iogrp),0.)
     endif
+    if (use_DOMclasses) then
+      call inilyr(jdocsl(iogrp),0.)
+      call inilyr(jdocsr(iogrp),0.)
+      call inilyr(jdocr(iogrp),0.)
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
+      call inilyr(jprefdoc(iogrp),0.)
+      call inilyr(jprefdocsl(iogrp),0.)
+      call inilyr(jprefdocsr(iogrp),0.)
+      call inilyr(jprefdocr(iogrp),0.)
+    endif
     call inilvl(jlvldic(iogrp),0.)
     call inilvl(jlvlalkali(iogrp),0.)
     call inilvl(jlvlphosy(iogrp),0.)
@@ -1216,6 +1348,10 @@ contains
     if (use_shelfsea_res_time) then
       call inilvl(jlvlshelfage(iogrp),0.)
     endif
+    if (use_river2omip) then
+      call inilvl(jlvltdoc_lc(iogrp),0.)
+      call inilvl(jlvltdoc_hc(iogrp),0.)
+    endif
     if (use_cisonew) then
       call inilvl(jlvldic13(iogrp),0.)
       call inilvl(jlvldic14(iogrp),0.)
@@ -1227,6 +1363,10 @@ contains
       call inilvl(jlvlcalc13(iogrp),0.)
       call inilvl(jlvlphyto13(iogrp),0.)
       call inilvl(jlvlgrazer13(iogrp),0.)
+      if (use_river2omip) then
+        call inilvl(jlvltdoc_lc13(iogrp),0.)
+        call inilvl(jlvltdoc_hc13(iogrp),0.)
+      endif
     endif
     if (use_AGG) then
       call inilvl(jlvlnos(iogrp),0.)
@@ -1285,6 +1425,17 @@ contains
       call inilvl(jlvl_agg_b(iogrp),0.)
       call inilvl(jlvl_agg_Vrhof(iogrp),0.)
       call inilvl(jlvl_agg_Vpor(iogrp),0.)
+    endif
+    if (use_DOMclasses) then
+      call inilvl(jlvldocsl(iogrp),0.)
+      call inilvl(jlvldocsr(iogrp),0.)
+      call inilvl(jlvldocr(iogrp),0.)
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
+      call inilvl(jlvlprefdoc(iogrp),0.)
+      call inilvl(jlvlprefdocsl(iogrp),0.)
+      call inilvl(jlvlprefdocsr(iogrp),0.)
+      call inilvl(jlvlprefdocr(iogrp),0.)
     endif
 
     if (.not. use_sedbypass) then
@@ -1347,14 +1498,17 @@ contains
                               nctime,ncfcls,ncedef,ncdefvar3d,ndouble
     use mo_control_bgc, only: use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO,                    &
                               use_sedbypass,use_BOXATM,use_extNcycle,use_pref_tracers,use_M4AGO,   &
-                              use_shelfsea_res_time,use_sediment_quality
+                              use_shelfsea_res_time,use_sediment_quality,use_river2omip,           &
+                              use_DOMclasses
     use mo_bgcmean,     only: srf_kwco2,srf_fco2,srf_pco2,srf_xco2,srf_pco2_gex,srf_dmsflux,       &
                               srf_co2fxd,srf_co2fxu,srf_kwco2sol,srf_co2sol,                       &
                               srf_oxflux,srf_niflux,srf_pn2om,srf_dms,srf_dmsprod,                 &
                               srf_dms_bac,srf_dms_uv,srf_export,srf_exposi,srf_expoca,             &
                               srf_dic,srf_alkali,srf_phosph,srf_oxygen,srf_ano3,srf_silica,        &
                               srf_iron,srf_phyto,srf_ph,int_phosy,int_nfix,int_dnit,               &
-                              flx_ndepnoy,flx_oalk,flx_car0100,flx_car0500,                        &
+                              int_exudl,int_exudsl,int_excrl,int_excrsl,                           &
+                              int_docl_rem,int_docsl_rem,int_docsr_rem,int_docr_rem,               &
+                              flx_ndepnoy,flx_tdust,flx_sfe,flx_oalk,flx_car0100,flx_car0500,      &
                               flx_car1000,flx_car2000,flx_car4000,flx_car_bot,                     &
                               flx_bsi0100,flx_bsi0500,flx_bsi1000,flx_bsi2000,flx_bsi4000,         &
                               flx_bsi_bot,flx_cal0100,flx_cal0500,flx_cal1000,flx_cal2000,         &
@@ -1369,11 +1523,13 @@ contains
                               lyr_phosy,lyr_co3,lyr_ph,lyr_omegaa,lyr_omegac,lyr_n2o,              &
                               lyr_prefo2,lyr_o2sat,lyr_prefpo4,lyr_prefalk,lyr_prefdic,            &
                               lyr_prefsilica,lyr_shelfage,                                         &
+                              lyr_prefdoc,lyr_prefdocsl,lyr_prefdocsr,lyr_prefdocr,                &
                               lyr_dicsat,lvl_dic,lvl_alkali,lvl_phosph,lvl_oxygen,lvl_ano3,        &
                               lvl_silica,lvl_doc,lvl_phyto,lvl_grazer,lvl_poc,lvl_calc,            &
                               lvl_opal,lvl_iron,lvl_phosy,lvl_co3,lvl_ph,lvl_omegaa,               &
                               lvl_omegac,lvl_n2o,lvl_prefo2,lvl_o2sat,lvl_prefpo4,                 &
                               lvl_prefalk,lvl_prefdic,lvl_dicsat,                                  &
+                              lvl_prefdoc,lvl_prefdocsl,lvl_prefdocsr,lvl_prefdocr,                &
                               lyr_nos,lyr_wphy,lyr_wnos,lyr_eps,                                   &
                               lyr_asize,lvl_nos,lvl_wphy,lvl_wnos,lvl_eps,lvl_asize,               &
                               srf_atmo2,srf_atmn2, srf_bromo,srf_bromofx,int_bromopro,             &
@@ -1386,6 +1542,7 @@ contains
                               lyr_calc13,lyr_phyto13,lyr_grazer13,lvl_dic13,lvl_dic14,             &
                               lvl_d13c,lvl_d14c,lvl_bigd14c,lvl_poc13,lvl_doc13,                   &
                               lvl_calc13,lvl_phyto13,lvl_grazer13,                                 &
+                              lyr_docsl,lyr_docsr,lyr_docr,lvl_docsl,lvl_docsr,lvl_docr,           &
                               srf_natdic,srf_natalkali,srf_natpco2,                                &
                               srf_natco2fx,srf_natph,lyr_natco3,lyr_natalkali,lyr_natdic,          &
                               lyr_natcalc,lyr_natph,lyr_natomegaa,lyr_natomegac,                   &
@@ -1395,6 +1552,8 @@ contains
                               sdm_pown2,sdm_powno3,sdm_powasi,sdm_ssso12,sdm_ssssil,               &
                               sdm_sssc12,sdm_ssster,bur_ssso12,bur_sssc12,bur_ssssil,bur_ssster,   &
                               lvl_prefsilica,lvl_shelfage,                                         &
+                              lyr_tdoc_lc,lyr_tdoc_hc,lvl_tdoc_lc,lvl_tdoc_hc,lyr_tdoc_lc13,       &
+                              lyr_tdoc_hc13,lvl_tdoc_lc13,lvl_tdoc_hc13,                           &
                               lyr_agg_ws,lyr_dynvis,lyr_agg_stick,                                 &
                               lyr_agg_stickf,lyr_agg_dmax,lyr_agg_avdp,                            &
                               lyr_agg_avrhop,lyr_agg_avdC,lyr_agg_df,                              &
@@ -1556,6 +1715,10 @@ contains
          &   'Integrated denitrification',' ','mol N m-2 s-1',0)
     call ncdefvar3d(FLX_NDEPNOY(iogrp),cmpflg,'p','ndepnoy',                    &
          &   'Nitrogen NOy deposition flux',' ','mol N m-2 s-1',0)
+    call ncdefvar3d(FLX_TDUST(iogrp),cmpflg,'p','tdustfx',                      &
+         &   'Atmospheric dust deposition flux',' ','g m-2 s-1',0)
+    call ncdefvar3d(FLX_SFE(iogrp),cmpflg,'p','sfefx',                          &
+         &   'Atmospheric deposition flux of soluble iron',' ','mol Fe m-2 s-1',0)
     call ncdefvar3d(FLX_OALK(iogrp),cmpflg,'p','oalkfx',                        &
          &   'Alkalinity flux due to OA',' ','mol TA m-2 s-1',0)
     call ncdefvar3d(FLX_CAR0100(iogrp),cmpflg,'p','carflx0100',                 &
@@ -1709,6 +1872,24 @@ contains
       call ncdefvar3d(SRF_ATMBROMO(iogrp),cmpflg,'p',                           &
            &   'atmbromo','Atmospheric bromoform',' ','ppt',0)
     endif
+    if (use_DOMclasses) then
+      call ncdefvar3d(INT_EXUDL(iogrp),cmpflg,'p','exudlint',                   &
+           &   'Integrated phy exudation to DOC-L',' ','mol C m-2 s-1',0)
+      call ncdefvar3d(INT_EXUDSL(iogrp),cmpflg,'p','exudslint',                 &
+           &   'Integrated phy exudation to DOC-SL',' ','mol C m-2 s-1',0)
+      call ncdefvar3d(INT_EXCRL(iogrp),cmpflg,'p','excrlint',                   &
+           &   'Integrated zoo excretion to DOC-L',' ','mol C m-2 s-1',0)
+      call ncdefvar3d(INT_EXCRSL(iogrp),cmpflg,'p','excrslint',                 &
+           &   'Integrated zoo excretion to DOC-SL',' ','mol C m-2 s-1',0)
+      call ncdefvar3d(INT_DOCL_REM(iogrp),cmpflg,'p','docl_remint',             &
+           &   'Integrated DOC-L remin',' ','mol C m-2 s-1',0)
+      call ncdefvar3d(INT_DOCSL_REM(iogrp),cmpflg,'p','docsl_remint',           &
+           &   'Integrated DOC-SL remin',' ','mol C m-2 s-1',0)
+      call ncdefvar3d(INT_DOCSR_REM(iogrp),cmpflg,'p','docsr_remint',           &
+           &   'Integrated DOC-SR remin',' ','mol C m-2 s-1',0)
+      call ncdefvar3d(INT_DOCR_REM(iogrp),cmpflg,'p','docr_remint',             &
+           &   'Integrated DOC-R remin',' ','mol C m-2 s-1',0)
+    endif
 
     call ncdefvar3d(SRF_ATMCO2(iogrp),cmpflg,'p',                               &
          &   'atmco2','Atmospheric CO2',' ','ppm',0)
@@ -1823,6 +2004,12 @@ contains
            &   'phyc13','Phytoplankton13',' ','mol P m-3',1)
       call ncdefvar3d(LYR_GRAZER13(iogrp),cmpflg,'p',                           &
            &   'zooc13','Zooplankton13',' ','mol P m-3',1)
+      if (use_river2omip) then
+        call ncdefvar3d(LYR_TDOC_LC13(iogrp),cmpflg,'p','tdoc_lc13',            &
+             &  'Low-C terrestrial dissolved organic carbon13',' ','mol P m-3',1)
+        call ncdefvar3d(LYR_TDOC_HC13(iogrp),cmpflg,'p','tdoc_hc13',            &
+             &  'High-C terrestrial dissolved organic carbon13',' ','mol P m-3',1)
+      endif
     endif
     if (use_AGG) then
       call ncdefvar3d(LYR_NOS(iogrp),cmpflg,'p',                                &
@@ -1930,6 +2117,30 @@ contains
       call ncdefvar3d(LYR_agg_Vpor(iogrp),cmpflg,'p',                           &
            &  'agg_Vpor','V-weighted aggregate mean porosity',' ','-',1)
     endif
+    if (use_river2omip) then
+      call ncdefvar3d(LYR_TDOC_LC(iogrp),cmpflg,'p','tdoc_lc',                  &
+           &  'Low-C terrestrial dissolved organic carbon',' ','mol P m-3',1)
+      call ncdefvar3d(LYR_TDOC_HC(iogrp),cmpflg,'p','tdoc_hc',                  &
+           &  'High-C terrestrial dissolved organic carbon',' ','mol P m-3',1)
+    endif
+    if (use_DOMclasses) then
+      call ncdefvar3d(LYR_DOCSL(iogrp),cmpflg,'p',                              &
+           &   'dissocsl','DOC semi-labile',' ','mol P m-3',1)
+      call ncdefvar3d(LYR_DOCSR(iogrp),cmpflg,'p',                              &
+           &   'dissocsr','DOC semi-refractory',' ','mol P m-3',1)
+      call ncdefvar3d(LYR_DOCR(iogrp),cmpflg,'p',                               &
+           &   'dissocr','DOC refractory',' ','mol P m-3',1)
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
+      call ncdefvar3d(LYR_PREFDOC(iogrp),cmpflg,'p',                            &
+           &   'p_doc','Preformed labile DOC',' ','mol P m-3',1)
+      call ncdefvar3d(LYR_PREFDOCSL(iogrp),cmpflg,'p',                          &
+           &   'p_docsl','Preformed semi-labile DOC',' ','mol P m-3',1)
+      call ncdefvar3d(LYR_PREFDOCSR(iogrp),cmpflg,'p',                          &
+           &   'p_docsr','Preformed semi-refractory DOC',' ','mol P m-3',1)
+      call ncdefvar3d(LYR_PREFDOCR(iogrp),cmpflg,'p',                           &
+           &   'p_docr','Preformed refractory DOC',' ','mol P m-3',1)
+    endif
     ! --- define 3d level fields
     call ncdefvar3d(LVL_DIC(iogrp),cmpflg,'p',                                  &
          &   'dissiclvl','Dissolved inorganic carbon',' ','mol C m-3',2)
@@ -2016,6 +2227,12 @@ contains
            &   'phyc13lvl','Phytoplankton13',' ','mol P m-3',2)
       call ncdefvar3d(LVL_GRAZER13(iogrp),cmpflg,'p',                           &
            &   'zooc13lvl','Zooplankton13',' ','mol P m-3',2)
+      if (use_river2omip) then
+        call ncdefvar3d(LVL_TDOC_LC13(iogrp),cmpflg,'p','tdoc_lc13lvl',         &
+             &  'Low-C terrestrial dissolved organic carbon13',' ','mol P m-3',2)
+        call ncdefvar3d(LVL_TDOC_HC13(iogrp),cmpflg,'p','tdoc_hc13lvl',         &
+             &  'High-C terrestrial dissolved organic carbon13',' ','mol P m-3',2)
+      endif
     endif
     if (use_AGG) then
       call ncdefvar3d(LVL_NOS(iogrp),cmpflg,'p','noslvl',                       &
@@ -2128,7 +2345,32 @@ contains
            &  'agg_Vrhoflvl','V-weighted aggregate mean density',' ','kg m-3',2)
       call ncdefvar3d(LVL_agg_Vpor(iogrp),cmpflg,'p',                           &
            &  'agg_Vporlvl','V-weighted aggregate mean porosity',' ','-',2)
-  endif
+    endif
+    if (use_river2omip) then
+      call ncdefvar3d(LVL_TDOC_LC(iogrp),cmpflg,'p','tdoc_lclvl',               &
+           &  'Low-C terrestrial dissolved organic carbon',' ','mol P m-3',2)
+      call ncdefvar3d(LVL_TDOC_HC(iogrp),cmpflg,'p','tdoc_hclvl',               &
+           &  'High-C terrestrial dissolved organic carbon',' ','mol P m-3',2)
+    endif
+    if (use_DOMclasses) then
+      call ncdefvar3d(LVL_DOCSL(iogrp),cmpflg,'p',                              &
+           &   'dissocsllvl','DOC semi-labile',' ','mol P m-3',2)
+      call ncdefvar3d(LVL_DOCSR(iogrp),cmpflg,'p',                              &
+           &   'dissocsrlvl','DOC semi-refractory',' ','mol P m-3',2)
+      call ncdefvar3d(LVL_DOCR(iogrp),cmpflg,'p',                               &
+           &   'dissocrlvl','DOC refractory',' ','mol P m-3',2)
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
+      call ncdefvar3d(LVL_PREFDOC(iogrp),cmpflg,'p',                            &
+           &   'p_doclvl','Preformed labile DOC',' ','mol P m-3',2)
+      call ncdefvar3d(LVL_PREFDOCSL(iogrp),cmpflg,'p',                          &
+           &   'p_docsllvl','Preformed semi-labile DOC',' ','mol P m-3',2)
+      call ncdefvar3d(LVL_PREFDOCSR(iogrp),cmpflg,'p',                          &
+           &   'p_docsrlvl','Preformed semi-refractory DOC',' ','mol P m-3',2)
+      call ncdefvar3d(LVL_PREFDOCR(iogrp),cmpflg,'p',                           &
+           &   'p_docrlvl','Preformed refractory DOC',' ','mol P m-3',2)
+    endif
+
     ! --- define sediment fields
     if (.not. use_sedbypass) then
       call ncdefvar3d(SDM_POWAIC(iogrp),cmpflg,'p',                             &

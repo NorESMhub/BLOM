@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2022 Mats Bentsen
+! Copyright (C) 2022-2025 Mats Bentsen, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -52,7 +52,7 @@ module ocn_comp_nuopc
    use mod_time,          only: blom_time
    use mod_forcing,       only: srxday, trxday
    use mod_constants,     only: epsilt
-   use mod_blom_init,     only: blom_init
+   use mod_blom_init,     only: blom_init_phase1, blom_init_phase2
    use mod_blom_step,     only: blom_step
    use mod_fill_global,   only: fill_global
    use mod_restart,       only: restart_write
@@ -64,6 +64,8 @@ module ocn_comp_nuopc
    use ocn_stream_dust,   only: ocn_stream_dust_init, ocn_stream_dust_interp
    use mod_forcing,       only: use_stream_dust
 #endif
+   use ocn_map_woa,       only: map_woa
+   use mod_inicon,        only: woa_nuopc_provided
 
    implicit none
 
@@ -84,6 +86,8 @@ module ocn_comp_nuopc
    integer              :: flds_scalar_index_nx = 0
    integer              :: flds_scalar_index_ny = 0
    integer              :: flds_scalar_index_precip_factor = 0
+
+   type(ESMF_Mesh) :: EMesh
 
    integer :: dbug = 0
    logical :: profile_memory = .false.
@@ -461,10 +465,10 @@ contains
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
 
       ! ------------------------------------------------------------------------
-      ! Initialize BLOM.
+      ! Phase 1 of BLOM initialization.
       ! ------------------------------------------------------------------------
 
-      call blom_init
+      call blom_init_phase1
 
       ! ------------------------------------------------------------------------
       ! Get ScalarField attributes.
@@ -641,7 +645,6 @@ contains
 
       ! Local variables.
       type(ESMF_DistGrid) :: DistGrid
-      type(ESMF_Mesh) :: EMesh
       type(ESMF_Array) :: elemMaskArray
       type(ESMF_Field) :: field
       real(ESMF_KIND_R8), dimension(:), pointer :: &
@@ -661,6 +664,10 @@ contains
       DistGrid = ESMF_DistGridCreate(arbSeqIndexList=gindex, rc=rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
 
+      ! ------------------------------------------------------------------------
+      ! Check for consistency of lat, lon and mask between mesh and model grid.
+      ! ------------------------------------------------------------------------
+
       ! Create the mesh.
       call NUOPC_CompAttributeGet(gcomp, name='mesh_ocn', value=cvalue, rc=rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
@@ -668,13 +675,7 @@ contains
                               fileformat=ESMF_FILEFORMAT_ESMFMESH, &
                               elementDistgrid=DistGrid, rc=rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
-      call blom_logwrite(subname//': mesh file for blom domain is '// &
-                         trim(cvalue))
-
-      ! ------------------------------------------------------------------------
-      ! Check for consistency of lat, lon and mask between mesh and model grid.
-      ! ------------------------------------------------------------------------
-
+      call blom_logwrite(subname//': mesh file for blom domain is '// trim(cvalue))
       call ESMF_MeshGet(Emesh, spatialDim=spatialDim, &
                         numOwnedElements=numOwnedElements, rc=rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
@@ -754,7 +755,6 @@ contains
       end if
 
       ! Find if restart is needed at the end of the run
-
       call NUOPC_CompAttributeGet(gcomp, name="write_restart_at_endofrun", value=cvalue, isPresent=isPresent, isSet=isSet, rc=rc)
       if (ChkErr(rc,__LINE__,u_FILE_u)) return
       if (isPresent .and. isSet) then
@@ -793,6 +793,23 @@ contains
       type(ESMF_StateItem_flag) :: itemType
 
       if (dbug > 5) call ESMF_LogWrite(subname//': called', ESMF_LOGMSG_INFO)
+
+      ! ------------------------------------------------------------------------
+      ! Phase 2 of BLOM initialization.
+      ! ------------------------------------------------------------------------
+
+      ! map woa climatological initial data to blom mesh
+      ! woa_nuopc_provided is read in as a namelist during blom_init_phase1 and
+      ! is a module variable in mod_inicon.F90
+      if (runtyp_cesm == 'initial' .and. woa_nuopc_provided) then
+         ! This allocates and fills in the following module variables in mod_inicon.F90:
+         ! t_woa, s_woa, depth_bnds_woa, depth_woa
+         ! t_woa_fval, s_woa_fval, kdm_woa
+         call map_woa(Emesh, rc)
+         if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      end if
+
+      call blom_init_phase2
 
       ! ------------------------------------------------------------------------
       ! Query the Component for its exportState.

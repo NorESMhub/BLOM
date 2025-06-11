@@ -217,6 +217,8 @@ contains
           call ncerro(nfmpi_create(mpicomm,fnm,IOR(nf_clobber,nf_format_classic),INFO,ncid))
         end if
       end if
+      ! --- Set variable id to global (needed for global attributes)
+      rhid = nf_global
       ! --- Initialise header padding
       if (rec == 1) then
         flgpad = .false.

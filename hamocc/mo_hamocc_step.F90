@@ -48,7 +48,7 @@ contains
     use mo_accfields,   only: accfields
     use mo_hamocc4bcm,  only: hamocc4bcm
     use mo_trc_limitc,  only: trc_limitc
-    use mo_param1_bgc,  only: nndep
+    use mo_param1_bgc,  only: nndep,ndust
     use mo_read_shelfmask, only: shelfmask
     use mo_param_bgc,   only: ini_bgctimes
     use mo_sedmnt_spinoff, only: sed_offline_spinup
@@ -59,7 +59,7 @@ contains
     ! Local variables
     integer :: l,ldtday
     real    :: ndep(idm,jdm,nndep)
-    real    :: dust(idm,jdm)
+    real    :: dust(idm,jdm,ndust)
     real    :: oafx(idm,jdm)
 
     call ini_bgctimes(nday_in_year) ! update days per year (leap years, restart)

@@ -24,7 +24,7 @@ module mod_blom_init
   use mod_time,            only: date, nday1, nday2, nstep1, nstep2, nstep, delt1, &
                                  time0, baclin
   use mod_timing,          only: init_timing, get_time
-  use mod_xc,              only: xcspmd, xcbcst, xctilr, mnproc, nproc, &
+  use mod_xc,              only: xcspmd, xcbcst, xctilr, xchalt, mnproc, nproc, &
                                  lp, ii, jj, kk, isp, ifp, isu, ifu, ilp, isv, ifv, &
                                  ilu, ilv, jpr, i0, nbdy, &
                                  halo_ps, halo_us, halo_vs, halo_uv, halo_vv, halo_qs
@@ -33,12 +33,13 @@ module mod_blom_init
   use mod_state,           only: dp, dpu, dpv, uflx, vflx, p, pu, pv, phi
   use mod_barotp,          only: pvtrop
   use mod_pgforc,          only: pgfxm, pgfym, xixp, xixm, xiyp, xiym
+  use mod_diffusion,       only: difiso
   use mod_niw,             only: uml, vml, umlres, vmlres
   use mod_eos,             only: inieos
   use mod_swabs,           only: iniswa
   use mod_tmsmt,           only: initms
   use mod_dia,             only: diaini, diasg1
-  use mod_inicon,          only: inicon
+  use mod_inicon,          only: inicon, woa_nuopc_provided
   use mod_budget,          only: budget_init
   use mod_cmnfld_routines, only: cmnfld1
   use mod_tke,             only: initke
@@ -58,29 +59,30 @@ module mod_blom_init
   implicit none
   private
 
-  public :: blom_init
+  logical :: icrest
+
+  public :: blom_init_phase1, blom_init_phase2
 
 contains
 
-  subroutine blom_init()
-  ! ------------------------------------------------------------------
-  ! initialize the model
-  ! ------------------------------------------------------------------
+  subroutine blom_init_phase1
+  ! ----------------------------------------------------------------------------
+  ! Phase 1 of model initialization.
+  ! ----------------------------------------------------------------------------
 
-    ! Local variables
-    integer :: istat,ncid,varid,i,j,k,l,m,n,mm,nn,k1m,k1n,mt,mmt,kn,km
-    real    :: q
-    logical :: icrest,fexist
-    integer :: icrest_int
-    ! ---------------------------------------------------------------
+    ! Local variables.
+    integer :: errstat,ncid,varid
+    logical :: fexist
+
+    ! --------------------------------------------------------------------------
     ! Initialize SPMD processing
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
 
     call xcspmd
 
-    ! ------------------------------------------------------------------
-    ! Initialize timing
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Initialize timing.
+    ! --------------------------------------------------------------------------
 
     call init_timing
 
@@ -90,28 +92,28 @@ contains
       call flush(lp)
     end if
 
-    ! ------------------------------------------------------------------
-    ! Initialize check sum algorithm
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Initialize check sum algorithm.
+    ! --------------------------------------------------------------------------
 
     call crcinit
 
-    ! ------------------------------------------------------------------
-    ! Read limits file
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Read limits file.
+    ! --------------------------------------------------------------------------
 
     call rdlim
 
-    ! ------------------------------------------------------------------
-    ! Identify processor and horizontal indexes where detailed
-    ! diagnostics are desired
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Identify processor and horizontal indexes where detailed diagnostics are
+    ! desired.
+    ! --------------------------------------------------------------------------
 
     call init_ptest
 
-    ! ------------------------------------------------------------------
-    ! Initialize the geographic environment
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Initialize the geographic environment.
+    ! --------------------------------------------------------------------------
 
     call inigeo
 
@@ -121,95 +123,112 @@ contains
 
     call inivar
 
-    ! ------------------------------------------------------------------
-    ! Initialize ALE regridding and remapping
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Initialize ALE regridding and remapping.
+    ! --------------------------------------------------------------------------
 
     call init_ale_regrid_remap
 
-    ! ------------------------------------------------------------------
-    ! Set various numerical bounds
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Set various numerical bounds.
+    ! --------------------------------------------------------------------------
 
     call numerical_bounds
 
-    ! ------------------------------------------------------------------
-    ! Initialize physical parameterizations
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Initialize physical parameterizations.
+    ! --------------------------------------------------------------------------
 
     call iniphy
 
-    ! ------------------------------------------------------------------
-    ! Initialize CPPM
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Initialize CPPM.
+    ! --------------------------------------------------------------------------
 
     call init_cppm
 
-    ! ------------------------------------------------------------------
-    ! Initialize forcing
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Initialize forcing.
+    ! --------------------------------------------------------------------------
 
     call inifrc
 
-    ! ------------------------------------------------------------------
-    ! Define coefficients for equation of state functions
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Define coefficients for equation of state functions.
+    ! --------------------------------------------------------------------------
 
     call inieos
 
-    ! ------------------------------------------------------------------
-    ! Initialize shortwave radiation absorption
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Initialize shortwave radiation absorption.
+    ! --------------------------------------------------------------------------
 
     call iniswa
 
-    ! ------------------------------------------------------------------
-    ! Initialize second order turbulence closure closure
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Initialize second order turbulence closure closure.
+    ! --------------------------------------------------------------------------
 
     if (use_TRC .and. use_TKE) then
       call initke
     end if
 
-    ! ------------------------------------------------------------------
-    ! Initialize diagnostic accumulation fields
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Initialize diagnostic accumulation fields.
+    ! --------------------------------------------------------------------------
 
     call diaini
 
-    ! ------------------------------------------------------------------
-    ! Set up initial conditions or start from restart file
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Check whether initial condition should be read from restart file.
+    ! --------------------------------------------------------------------------
 
-    ! check whether initial condition file given in namelist is a
-    ! restart file
     icrest = .false.
-    icrest_int = 0
     if (mnproc == 1) then
       if ( expcnf == 'cesm' .and. runtyp /= 'startup') then
         icrest = .true.
       else
         inquire(file=icfile,exist = fexist)
         if (fexist) then
-          istat = nf90_open(icfile,nf90_nowrite,ncid)
-          if (istat == nf90_noerr) then
-            istat = nf90_inq_varid(ncid,'dp',varid)
-            if (istat == nf90_noerr) then
-              icrest = .true.
-            end if
-          end if
-        end if
+          errstat = nf90_open(icfile,nf90_nowrite,ncid)
+          if (errstat == nf90_noerr) then
+            icrest = (nf90_inq_varid(ncid,'dp',varid) == nf90_noerr)
+            errstat = nf90_close(ncid)
+            if (errstat /= nf90_noerr) then
+              write(lp,*) 'nf90_close: '//trim(icfile)//': '// &
+                          nf90_strerror(errstat)
+              call xchalt('(blom_init_phase2)')
+                     stop '(blom_init_phase2)'
+            endif
+          endif
+        endif
       endif
-      if (icrest) icrest_int = 1
-    end if
-    call xcbcst(icrest_int)
-    icrest = (icrest_int == 1)
+    endif
+    call xcbcst(icrest)
+
+    if (icrest .and. woa_nuopc_provided) woa_nuopc_provided = .false.
+
+  end subroutine blom_init_phase1
+
+  subroutine blom_init_phase2
+  ! ----------------------------------------------------------------------------
+  ! Phase 2 of model initialization.
+  ! ----------------------------------------------------------------------------
+
+    ! Local variables.
+    integer :: i,j,k,l,m,n,mm,nn,k1m,k1n,mt,mmt,kn,km
+    real    :: q
+
+    ! --------------------------------------------------------------------------
+    ! Obtain initial conditions or start from restart file.
+    ! --------------------------------------------------------------------------
 
     if (nday1+nint(time0) == 0.and..not.icrest) then
 
-      ! ----------------------------------------------------------------
-      ! start from initial conditions derived from climatology
-      ! ----------------------------------------------------------------
+      ! ------------------------------------------------------------------------
+      ! Start from initial conditions derived from climatology or specified by
+      ! the selected experiment configuration.
+      ! ------------------------------------------------------------------------
 
       if (date%month /= 1.or.date%day /= 1) then
         if (mnproc == 1) then
@@ -228,9 +247,9 @@ contains
 
     else ! nday1+nint(time0) > 0 .or. icrest
 
-      ! ------------------------------------------------------------------
-      ! start from restart file
-      ! ------------------------------------------------------------------
+      ! ------------------------------------------------------------------------
+      ! Start from restart file.
+      ! ------------------------------------------------------------------------
 
       delt1 = baclin+baclin
 
@@ -238,10 +257,10 @@ contains
 
     endif
 
-    ! ------------------------------------------------------------------
-    ! Initialize model time step and set time level indices consistent
-    ! with starting state
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Initialize model time step and set time level indices consistent with
+    ! starting state.
+    ! --------------------------------------------------------------------------
 
     nstep = nstep1
     m = mod(nstep+1,2)+1
@@ -251,9 +270,9 @@ contains
     k1m = 1+mm
     k1n = 1+nn
 
-    ! ------------------------------------------------------------------
-    ! Initialize layer thicknesses
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Initialize layer thicknesses.
+    ! --------------------------------------------------------------------------
 
     call xctilr(dp, 1,2*kk, 3,3, halo_ps)
 
@@ -338,15 +357,15 @@ contains
 
     end if
 
-    ! ------------------------------------------------------------------
-    ! initialize budget calculations
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Initialize budget calculations.
+    ! --------------------------------------------------------------------------
 
     call budget_init
 
-    ! ------------------------------------------------------------------
-    ! update some halos
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
+    ! Update some halos.
+    ! --------------------------------------------------------------------------
 
     call xctilr(sigmar, 1,kk, 2,2, halo_ps)
     call xctilr(uflx, 1,2*kk, 1,1, halo_uv)
@@ -364,10 +383,12 @@ contains
        call xctilr(vml, 1,4, 0,1, halo_vv)
        call xctilr(umlres, 1,2, 1,0, halo_uv)
        call xctilr(vmlres, 1,2, 0,1, halo_vv)
+    else
+       call xctilr(difiso, 1,kk, 1,1, halo_ps)
     end if
 
-    ! with arctic patch, switch xixp and xixm and xiyp and xiym in the
-    ! halo region adjacent to the arctic grid intersection
+    ! With arctic patch, switch xixp and xixm and xiyp and xiym in the halo
+    ! region adjacent to the arctic grid intersection.
     if (nreg == 2.and.nproc == jpr) then
       do j = jj,jj+2
         do i = 0,ii+1
@@ -399,21 +420,21 @@ contains
       end do
     end if
 
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
     ! Initialize time smoothing variables and some common fields.
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
 
     call initms(mm)
     call cmnfld1(m,n,mm,nn,k1m,k1n)
 
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
     ! Extract reference potential density vector representative of the
-    ! dominating ocean domain
-    ! ------------------------------------------------------------------
+    ! dominating ocean domain.
+    ! --------------------------------------------------------------------------
 
     call diasg1
 
-    ! ------------------------------------------------------------------
+    ! --------------------------------------------------------------------------
 
     if (mnproc == 1.and.expcnf /= 'cesm') then
       write (lp,'(/2(a,i6),2(a,i9),a/)') &
@@ -422,18 +443,18 @@ contains
       call flush(lp)
     end if
 
-    ! print seconds elapsed since last call to system_clock (Time 0)
+    ! Print seconds elapsed since last call to system_clock (Time 0).
     if (mnproc == 1) then
       write (lp,'(f12.4,a,i8)') get_time(),' Time 1 Just before main loop'
       call flush(lp)
     end if
 
-  end subroutine blom_init
+  end subroutine blom_init_phase2
 
   subroutine numerical_bounds
-  !------------------------------------------------------------------------
+  !-----------------------------------------------------------------------------
   ! Set various numerical bounds.
-  !------------------------------------------------------------------------
+  !-----------------------------------------------------------------------------
 
     use mod_types,     only: r8
     use mod_constants, only: grav, spval
