@@ -217,9 +217,9 @@ contains
             endif
             if (use_DOMclasses .eqv. .true. .and. linit_DOMclasses_sim .eqv. .false.) then !starting DOM classes from scratch
               ocetra(i,j,k,idoc)   = 1.e-8
-              ocetra(i,j,k,idocsl) = 0.
-              ocetra(i,j,k,idocsr) = 0.
-              ocetra(i,j,k,idocr)  = 0.
+              ocetra(i,j,k,idocsl) = 1.e-8
+              ocetra(i,j,k,idocsr) = 1.e-8
+              ocetra(i,j,k,idocr)  = 1.e-8
               if (use_pref_tracers) then
                 ocetra(i,j,k,iprefdoc)   = 0.
                 ocetra(i,j,k,iprefdocsl) = 0.
