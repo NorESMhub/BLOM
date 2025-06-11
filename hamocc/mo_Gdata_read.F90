@@ -209,7 +209,7 @@ contains
 
     ! Arguments
     character(len=*), intent(in) :: vname  ! data set name to read in
-    real(rp),             intent(in) :: inddeg ! extent (in degrees) of region used for averaging
+    real(rp),         intent(in) :: inddeg ! extent (in degrees) of region used for averaging
 
     ! Valid values of vname are:
     !   'pho' - WOA phosphate
