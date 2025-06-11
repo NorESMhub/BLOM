@@ -808,7 +808,7 @@ contains
     !$OMP  ,avmass,avnos,zmornos,tdoclc_rem,tdochc_rem                    &
     !$OMP  ,tdoclc_rem13,tdochc_rem13,tdoclc_rem14,tdochc_rem14           &
     !$OMP  ,rtdoclc13,rtdochc13,rtdoclc14,rtdochc14                       &
-    !$OMP  ,docremsl,docremr,docremsr,alphasl,slphasr                     &
+    !$OMP  ,docremsl,docremr,docremsr,alphasl,alphasr                     &
     !$OMP  ,rphy13,rphy14,rzoo13,rzoo14,rdet13,rdet14,rdoc13,rdoc14       &
     !$OMP  ,sterph13,sterph14,sterzo13,sterzo14,pocrem13,pocrem14         &
     !$OMP  ,docrem13,docrem14,phyrem13,phyrem14                           &
