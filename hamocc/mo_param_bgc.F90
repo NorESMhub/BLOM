@@ -346,7 +346,7 @@ module mo_param_bgc
   ! deep sea remineralisation constants
   real, protected :: drempoc         = 0.025    ! 1/d Aerob remineralization rate detritus
   real, protected :: drempoc_anaerob = 1.25e-3  ! =0.05*drempoc - remin in sub-/anoxic environm. - not be overwritten by M4AGO
-  real, protected :: bkox_drempoc    = 1e-7     ! half-saturation constant for oxygen for ammonification (aerobic remin via drempoc)
+  real, protected :: bkox_drempoc    = 1e-5     ! half-saturation constant for oxygen for ammonification (aerobic remin via drempoc)
   real, protected :: dremopal        = 0.003    ! 1/d Dissolution rate for opal
   real, protected :: dremcalc        = 0.0007   ! 1/d Dissolution rate for CaCO3 (applied if Omega_c < 1)
   real, protected :: dremn2o         = 0.01     ! 1/d Remineralization rate of detritus on N2O
@@ -361,57 +361,20 @@ module mo_param_bgc
   !********************************************************************
   ! WATER COLUMN
   ! Phytoplankton growth
-  real, protected :: bkphyanh4     = 0.25e-6  ! Half-saturation constant for NH4 uptake by bulk phytoplankton (kmol/m3)
+  real, protected :: bkphyanh4     = 0.10e-6  ! Half-saturation constant for NH4 uptake by bulk phytoplankton (kmol/m3)
   real, protected :: bkphyano3     = 0.16e-6  ! Half-saturation constant for NO3 uptake by bulk phytoplankton (kmol/m3)
   real, protected :: bkphosph      = 0.01e-6  ! Half-saturation constant for PO4 uptake by bulk phytoplankton (kmol/m3)
   real, protected :: bkiron                   ! = bkphosph*riron - Half-saturation constant for Fe uptake by bulk phytoplankton (kmol/m3)
 
-  ! === Denitrification step NO3 -> NO2:
-  real, protected :: rano3denit    = 0.00005  ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
-  real, protected :: q10ano3denit  = 2.       ! Q10 factor for denitrification on NO3 (-)
-  real, protected :: Trefano3denit = 10.      ! Reference temperature for denitrification on NO3 (degr C)
-  real, protected :: sc_ano3denit  = 0.12e6   ! Shape factor for NO3 denitrification oxygen inhibition function (m3/kmol)
-  real, protected :: bkano3denit   = 5.e-6    ! Half-saturation constant for NO3 denitrification (kmol/m3)
-
-  ! === Anammox
-  real, protected :: rano2anmx     = 0.001    ! Maximum growth rate for anammox at reference T (1/d -> 1/dt)
-  real, protected :: q10anmx       = 1.6      ! Q10 factor for anammox (-)
-  real, protected :: Trefanmx      = 10.      ! Reference temperature for anammox (degr C)
-  real, protected :: alphaanmx     = 0.45e6   ! Shape factor for anammox oxygen inhibition function (m3/kmol)
-  real, protected :: bkoxanmx      = 11.3e-6  ! Half-saturation constant for oxygen inhibition function (kmol/m3)
-  real, protected :: bkano2anmx    = 5.e-6    ! Half-saturation constant for NO2 limitation (kmol/m3)
-  real, protected :: bkanh4anmx !   = bkano2anmx * rnh4anmx/rno2anmx !Half-saturation constant for NH4 limitation of anammox (kmol/m3)
-
-  ! === Denitrification step NO2 -> N2O
-  real, protected :: rano2denit    = 0.002    ! Maximum growth rate denitrification on NO2 at reference T (1/d -> 1/dt)
-  real, protected :: q10ano2denit  = 2.0      ! Q10 factor for denitrification on NO2 (-)
-  real, protected :: Trefano2denit = 10.      ! Reference temperature for denitrification on NO2 (degr C)
-  real, protected :: bkoxano2denit = 2.e-6    ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on NO2 (kmol/m3)
-  real, protected :: bkano2denit   = 5.6e-6   ! Half-saturation constant for denitrification on NO2 (kmol/m3)
-
-  ! === Denitrification step N2O -> N2
-  real, protected :: ran2odenit    = 0.0005   ! Maximum growth rate denitrification on N2O at reference T (1/d -> 1/dt)
-  real, protected :: q10an2odenit  = 3.       ! Q10 factor for denitrificationj on N2O (-)
-  real, protected :: Trefan2odenit = 10.      ! Reference temperature for denitrification on N2O (degr C)
-  real, protected :: bkoxan2odenit = 10e-6    ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on N2O (kmol/m3)
-  real, protected :: bkan2odenit   = 0.1e-6   ! Half-saturation constant for denitrification on N2O (kmol/m3)
-
-  ! === DNRA NO2 -> NH4
-  real, protected :: rdnra         = 0.0003   ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
-  real, protected :: q10dnra       = 2.       ! Q10 factor for DNRA on NO2 (-)
-  real, protected :: Trefdnra      = 10.      ! Reference temperature for DNRA (degr C)
-  real, protected :: bkoxdnra      = 2.5e-6   ! Half saturation constant for (quadratic) oxygen inhibition function of DNRA on NO2 (kmol/m3)
-  real, protected :: bkdnra        = 0.05e-6  ! Half-saturation constant for DNRA on NO2 (kmol/m3)
-
   ! === Nitrification on NH4
-  real, protected :: ranh4nitr     = 1.       ! Maximum growth rate nitrification on NH4 at reference T (1/d -> 1/dt)
+  real, protected :: ranh4nitr     = 0.6      ! Maximum growth rate nitrification on NH4 at reference T (1/d -> 1/dt)
   real, protected :: q10anh4nitr   = 3.3      ! Q10 factor for nitrification on NH4 (-)
   real, protected :: Trefanh4nitr  = 20.      ! Reference temperature for nitrification on NH4 (degr C)
   real, protected :: bkoxamox      = 0.333e-6 ! Half-saturation constant for oxygen limitation of nitrification on NH4 (kmol/m3)
   real, protected :: bkanh4nitr    = 0.133e-6 ! Half-saturation constant for nitrification on NH4 (kmol/m3)
-  real, protected :: bkamoxn2o     = 0.5e-6 ! Half saturation constant for NH4 in pathway splitting function N2O for nitrification on NH4 (kmol/m3)
-  real, protected :: mufn2o !       = 0.11/(50.*1e6*bkoxamox) !=6.61e-3  0.11/(50*1e6)=2.2e-9 - ~Santoro et al. 2011 with simple MM,
-  real, protected :: bn2o   !       = 0.077/(50.*mufn2o)  !=0.2331 - before set to 0.3 - base fraction entering N2O
+  real, protected :: bkamoxn2o     = 0.5e-6   ! Half saturation constant for NH4 in pathway splitting function N2O for nitrification on NH4 (kmol/m3)
+  real, protected :: mufn2o                   !       = 0.11/(50.*1e6*bkoxamox) !=6.61e-3  0.11/(50*1e6)=2.2e-9 - ~Santoro et al. 2011 with simple MM,
+  real, protected :: bn2o                     !       = 0.077/(50.*mufn2o)  !=0.2331 - before set to 0.3 - base fraction entering N2O
   real, protected :: n2omaxy       = 0.003    ! Maximum yield of OM on NH4 nitrification (-)
   real, protected :: n2oybeta      = 18.      ! Decay factor for inhibition function for yield during nitrification on NH4 (kmol/m3)
   real, protected :: bkyamox       = 0.333e-6 ! Half saturation constant for pathway splitting function OM-yield for nitrification on NH4 (kmol/m3)
@@ -424,51 +387,51 @@ module mo_param_bgc
   real, protected :: bkano2nitr    = 0.287e-6 ! Half-saturation constant for NO2 for nitrification on NO2 (kmol/m3)
   real, protected :: NOB2AOAy      = 0.44     ! Ratio of NOB versus AOA yield per energy source ~0.043/0.098 according to Zakem et al. 2022
 
+  ! === Denitrification step NO3 -> NO2:
+  real, protected :: rano3denit    = 0.0001   ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
+  real, protected :: q10ano3denit  = 2.       ! Q10 factor for denitrification on NO3 (-)
+  real, protected :: Trefano3denit = 10.      ! Reference temperature for denitrification on NO3 (degr C)
+  real, protected :: sc_ano3denit  = 0.12e6   ! Shape factor for NO3 denitrification oxygen inhibition function (m3/kmol)
+  real, protected :: bkano3denit   = 5.e-6    ! Half-saturation constant for NO3 denitrification (kmol/m3)
+
+  ! === Anammox
+  real, protected :: rano2anmx     = 0.001    ! Maximum growth rate for anammox at reference T (1/d -> 1/dt)
+  real, protected :: q10anmx       = 1.6      ! Q10 factor for anammox (-)
+  real, protected :: Trefanmx      = 10.      ! Reference temperature for anammox (degr C)
+  real, protected :: alphaanmx     = 0.45e6   ! Shape factor for anammox oxygen inhibition function (m3/kmol)
+  real, protected :: bkoxanmx      = 11.3e-6  ! Half-saturation constant for oxygen inhibition function (kmol/m3)
+  real, protected :: bkano2anmx    = 5.e-6    ! Half-saturation constant for NO2 limitation (kmol/m3)
+  real, protected :: bkanh4anmx               !   = bkano2anmx * rnh4anmx/rno2anmx !Half-saturation constant for NH4 limitation of anammox (kmol/m3)
+
+  ! === Denitrification step NO2 -> N2O
+  real, protected :: rano2denit    = 0.002    ! Maximum growth rate denitrification on NO2 at reference T (1/d -> 1/dt)
+  real, protected :: q10ano2denit  = 2.0      ! Q10 factor for denitrification on NO2 (-)
+  real, protected :: Trefano2denit = 10.      ! Reference temperature for denitrification on NO2 (degr C)
+  real, protected :: bkoxano2denit = 2.e-6    ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on NO2 (kmol/m3)
+  real, protected :: bkano2denit   = 5.6e-6   ! Half-saturation constant for denitrification on NO2 (kmol/m3)
+
+  ! === DNRA NO2 -> NH4
+  real, protected :: rdnra         = 0.0003   ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
+  real, protected :: q10dnra       = 2.       ! Q10 factor for DNRA on NO2 (-)
+  real, protected :: Trefdnra      = 10.      ! Reference temperature for DNRA (degr C)
+  real, protected :: bkoxdnra      = 2.5e-6   ! Half saturation constant for (quadratic) oxygen inhibition function of DNRA on NO2 (kmol/m3)
+  real, protected :: bkdnra        = 0.05e-6  ! Half-saturation constant for DNRA on NO2 (kmol/m3)
+
+  ! === Denitrification step N2O -> N2
+  real, protected :: ran2odenit    = 0.00045  ! Maximum growth rate denitrification on N2O at reference T (1/d -> 1/dt)
+  real, protected :: q10an2odenit  = 3.       ! Q10 factor for denitrificationj on N2O (-)
+  real, protected :: Trefan2odenit = 10.      ! Reference temperature for denitrification on N2O (degr C)
+  real, protected :: bkoxan2odenit = 10e-6    ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on N2O (kmol/m3)
+  real, protected :: bkan2odenit   = 0.1e-6   ! Half-saturation constant for denitrification on N2O (kmol/m3)
+
   !SEDIMENT
       ! === Ammonification in the sediment
   real, protected :: POM_remin_q10_sed  = 2.1     ! ammonification Q10 in sediment
   real, protected :: POM_remin_Tref_sed = 10.     ! ammonification Tref in sediment
-  real, protected :: bkox_drempoc_sed   = 1e-7    ! half saturation constant for O2 limitatio of ammonification in sediment (kmol/m3)
-
-      ! === Denitrification step NO3 -> NO2:
-  real, protected :: rano3denit_sed     = 0.05     ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
-  real, protected :: q10ano3denit_sed   = 2.       ! Q10 factor for denitrification on NO3 (-)
-  real, protected :: Trefano3denit_sed  = 10.      ! Reference temperature for denitrification on NO3 (degr C)
-  real, protected :: sc_ano3denit_sed   = 0.12e6   ! Shape factor for NO3 denitrification oxygen inhibition function (m3/kmol)
-  real, protected :: bkano3denit_sed    = 5.e-6    ! Half-saturation constant for NO3 denitrification (kmol/m3)
-
-      ! === Anammox
-  real, protected :: rano2anmx_sed      = 0.05     ! Maximum growth rate for anammox at reference T (1/d -> 1/dt)
-  real, protected :: q10anmx_sed        = 1.6      ! Q10 factor for anammox (-)
-  real, protected :: Trefanmx_sed       = 10.      ! Reference temperature for anammox (degr C)
-  real, protected :: alphaanmx_sed      = 0.45e6   ! Shape factor for anammox oxygen inhibition function (m3/kmol)
-  real, protected :: bkoxanmx_sed       = 11.3e-6  ! Half-saturation constant for oxygen inhibition function (kmol/m3)
-  real, protected :: bkano2anmx_sed     = 5.e-6    ! Half-saturation constant for NO2 limitation (kmol/m3)
-  real, protected :: bkanh4anmx_sed                ! = bkano2anmx_sed * rnh4anmx/rno2anmx !Half-saturation constant for NH4 limitation of anammox (kmol/m3)
-
-      ! === Denitrification step NO2 -> N2O
-  real, protected :: rano2denit_sed     = 0.12     ! Maximum growth rate denitrification on NO2 at reference T (1/d -> 1/dt)
-  real, protected :: q10ano2denit_sed   = 2.       ! Q10 factor for denitrification on NO2 (-)
-  real, protected :: Trefano2denit_sed  = 10.      ! Reference temperature for denitrification on NO2 (degr C)
-  real, protected :: bkoxano2denit_sed  = 2.e-6    ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on NO2 (kmol/m3)
-  real, protected :: bkano2denit_sed    = 5.6e-6   ! Half-saturation constant for denitrification on NO2 (kmol/m3)
-
-      ! === Denitrification step N2O -> N2
-  real, protected :: ran2odenit_sed     = 0.16     ! Maximum growth rate denitrification on N2O at reference T (1/d -> 1/dt)
-  real, protected :: q10an2odenit_sed   = 3.       ! Q10 factor for denitrificationj on N2O (-)
-  real, protected :: Trefan2odenit_sed  = 10.      ! Reference temperature for denitrification on N2O (degr C)
-  real, protected :: bkoxan2odenit_sed  = 5.e-6    ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on N2O (kmol/m3)
-  real, protected :: bkan2odenit_sed    = 1.e-6    ! Half-saturation constant for denitrification on N2O (kmol/m3)
-
-      ! === DNRA NO2 -> NH4
-  real, protected :: rdnra_sed          = 0.1      ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
-  real, protected :: q10dnra_sed        = 2.       ! Q10 factor for DNRA on NO2 (-)
-  real, protected :: Trefdnra_sed       = 10.      ! Reference temperature for DNRA (degr C)
-  real, protected :: bkoxdnra_sed       = 2.5e-6   ! Half saturation constant for (quadratic) oxygen inhibition function of DNRA on NO2 (kmol/m3)
-  real, protected :: bkdnra_sed         = 0.05e-6  ! Half-saturation constant for DNRA on NO2 (kmol/m3)
+  real, protected :: bkox_drempoc_sed   = 1e-5    ! half saturation constant for O2 limitation of ammonification in sediment (kmol/m3)
 
       ! === Nitrification on NH4
-  real, protected :: ranh4nitr_sed      = 1.       ! Maximum growth rate nitrification on NH4 at reference T (1/d -> 1/dt)
+  real, protected :: ranh4nitr_sed      = 20.      ! Maximum growth rate nitrification on NH4 at reference T (1/d -> 1/dt)
   real, protected :: q10anh4nitr_sed    = 3.3      ! Q10 factor for nitrification on NH4 (-)
   real, protected :: Trefanh4nitr_sed   = 20.      ! Reference temperature for nitrification on NH4 (degr C)
   real, protected :: bkoxamox_sed       = 0.333e-6 ! Half-saturation constant for oxygen limitation of nitrification on NH4 (kmol/m3)
@@ -481,12 +444,49 @@ module mo_param_bgc
   real, protected :: bkyamox_sed        = 0.333e-6 ! Half saturation constant for pathway splitting function OM-yield for nitrification on NH4 (kmol/m3)
 
       ! === Nitrification on NO2
-  real, protected :: rano2nitr_sed      = 1.54     ! Maximum growth rate nitrification on NO2 at reference T (1/d -> 1/dt)
+  real, protected :: rano2nitr_sed      = 20.      ! Maximum growth rate nitrification on NO2 at reference T (1/d -> 1/dt)
   real, protected :: q10ano2nitr_sed    = 2.7      ! Q10 factor for nitrification on NO2 (-)
   real, protected :: Trefano2nitr_sed   = 20.      ! Reference temperature for nitrification on NO2 (degr C)
   real, protected :: bkoxnitr_sed       = 0.788e-6 ! Half-saturation constant for oxygen limitation of nitrification on NO2 (kmol/m3)
   real, protected :: bkano2nitr_sed     = 0.287e-6 ! Half-saturation constant for NO2 for nitrification on NO2 (kmol/m3)
   real, protected :: NOB2AOAy_sed       = 0.44     ! Ratio of NOB versus AOA yield per energy source ~0.043/0.098 according to Zakem et al. 2022
+
+      ! === Denitrification step NO3 -> NO2:
+  real, protected :: rano3denit_sed     = 0.3      ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
+  real, protected :: q10ano3denit_sed   = 2.57     ! Q10 factor for denitrification on NO3 (-)
+  real, protected :: Trefano3denit_sed  = 10.      ! Reference temperature for denitrification on NO3 (degr C)
+  real, protected :: sc_ano3denit_sed   = 0.12e6   ! Shape factor for NO3 denitrification oxygen inhibition function (m3/kmol)
+  real, protected :: bkano3denit_sed    = 5.e-6    ! Half-saturation constant for NO3 denitrification (kmol/m3)
+
+      ! === Anammox
+  real, protected :: rano2anmx_sed      = 0.84     ! Maximum growth rate for anammox at reference T (1/d -> 1/dt)
+  real, protected :: q10anmx_sed        = 2.12     ! Q10 factor for anammox (-)
+  real, protected :: Trefanmx_sed       = 10.      ! Reference temperature for anammox (degr C)
+  real, protected :: alphaanmx_sed      = 0.45e6   ! Shape factor for anammox oxygen inhibition function (m3/kmol)
+  real, protected :: bkoxanmx_sed       = 11.3e-6  ! Half-saturation constant for oxygen inhibition function (kmol/m3)
+  real, protected :: bkano2anmx_sed     = 5.e-6    ! Half-saturation constant for NO2 limitation (kmol/m3)
+  real, protected :: bkanh4anmx_sed                ! = bkano2anmx_sed * rnh4anmx/rno2anmx !Half-saturation constant for NH4 limitation of anammox (kmol/m3)
+
+      ! === Denitrification step NO2 -> N2O
+  real, protected :: rano2denit_sed     = 2.2      ! Maximum growth rate denitrification on NO2 at reference T (1/d -> 1/dt)
+  real, protected :: q10ano2denit_sed   = 2.97     ! Q10 factor for denitrification on NO2 (-)
+  real, protected :: Trefano2denit_sed  = 10.      ! Reference temperature for denitrification on NO2 (degr C)
+  real, protected :: bkoxano2denit_sed  = 2.e-6    ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on NO2 (kmol/m3)
+  real, protected :: bkano2denit_sed    = 5.6e-6   ! Half-saturation constant for denitrification on NO2 (kmol/m3)
+
+      ! === DNRA NO2 -> NH4
+  real, protected :: rdnra_sed          = 0.5      ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
+  real, protected :: q10dnra_sed        = 2.       ! Q10 factor for DNRA on NO2 (-)
+  real, protected :: Trefdnra_sed       = 10.      ! Reference temperature for DNRA (degr C)
+  real, protected :: bkoxdnra_sed       = 2.5e-6   ! Half saturation constant for (quadratic) oxygen inhibition function of DNRA on NO2 (kmol/m3)
+  real, protected :: bkdnra_sed         = 0.05e-6  ! Half-saturation constant for DNRA on NO2 (kmol/m3)
+
+      ! === Denitrification step N2O -> N2
+  real, protected :: ran2odenit_sed     = 2.8      ! Maximum growth rate denitrification on N2O at reference T (1/d -> 1/dt)
+  real, protected :: q10an2odenit_sed   = 2.37     ! Q10 factor for denitrification on N2O (-)
+  real, protected :: Trefan2odenit_sed  = 10.      ! Reference temperature for denitrification on N2O (degr C)
+  real, protected :: bkoxan2odenit_sed  = 5.e-6    ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on N2O (kmol/m3)
+  real, protected :: bkan2odenit_sed    = 1.e-6    ! Half-saturation constant for denitrification on N2O (kmol/m3)
 
   !********************************************************************
   ! Parameters for DMS and BrO schemes
@@ -678,9 +678,12 @@ contains
       ropal  = 30.         ! iris 25 !opal to organic phosphorous production ratio
     endif
 
+    if (use_extNcycle) then
+      sed_sulf = 1.e-9
+    endif
     if (use_M4AGO) then
       ! reset drempoc and dremopal for Q10 T-dep remin/dissolution
-      drempoc  = 0.12
+      drempoc  = 0.10
       dremopal = 0.023
     endif
 
