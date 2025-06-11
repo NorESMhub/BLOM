@@ -584,7 +584,7 @@ contains
 
     days_per_year = real(nday_in_year)
 
-    if (nday_in_year /= 365 .and. mnproc==1 .and. lini .eqv. .true.) then
+    if ((nday_in_year /= 365) .and. (mnproc == 1) .and. (lini .eqv. .true.)) then
       lini=.false.
       if (.not. (expcnf == 'single_column' .or. expcnf == 'fuk95' .or. expcnf == 'channel' .or. expcnf == 'noforcing')) then
         ! for production runs, issue an error and stop
