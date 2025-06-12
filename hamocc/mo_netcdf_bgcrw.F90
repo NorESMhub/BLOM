@@ -533,6 +533,5 @@ contains
     deallocate(arr_l)
 
   end subroutine read_netcdf_var
- 
 
 end module mo_netcdf_bgcrw

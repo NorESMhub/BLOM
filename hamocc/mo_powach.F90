@@ -521,7 +521,7 @@ contains
       ! Approximation for new solid sediment, as from sedimentation flux: solrat(i,1)
 
       ! CO3 saturation concentration is aksp/calcon as in CARCHM
-      ! (calcon defined in MO_CHEMCON with 1.028e-2; 1/calcon =~ 97._rp)
+      ! (calcon defined in MO_CHEMCON with 1.028e-2; 1/calcon =~ 97.)
 
       do i = 1, kpie
         if(omask(i,j) > 0.5_rp) then

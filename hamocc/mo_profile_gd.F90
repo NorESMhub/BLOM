@@ -120,7 +120,7 @@ contains
             idx  = ifld(n)
             call get_profile(clon,clat,prf)
 
-            ! Find depest z-level with valid data
+            ! Find deepest z-level with valid data
             izmax=nz
             do l=2,nz
               if( prf(l) < fillval*0.1_rp ) then

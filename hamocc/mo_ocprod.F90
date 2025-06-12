@@ -483,7 +483,7 @@ contains
                 growth_co2  = phygrowth/(co2star(i,j,k)*1.e6_rp+safediv)              ! CO2* in [mol/kg]
                 bifr13_perm = (6.03_rp + 5.5_rp*growth_co2)/(0.225_rp + growth_co2)   ! Permil (~20)
                 bifr13_perm = max(5._rp,min(26._rp,bifr13_perm))                      ! Limit the range to [5,26]
-                bifr13      = (1000._rp - bifr13_perm) / 1000._rp                     ! Fractionation factor 13c (~0.98_rp)
+                bifr13      = (1000._rp - bifr13_perm) / 1000._rp                     ! Fractionation factor 13c (~0.98)
               endif
 
               bifr14 = bifr13**2
@@ -1362,17 +1362,17 @@ contains
                      &  + 3._rp * (TopF*alar1-alow1)                                    &
                      &  * (TopF*alar2-alow2) * e1 * e1 / (e2*e3)
                 sagg2 = TopF*((alar3 + 3._rp                                            &
-                     &  * (alar2*alow1*e1/e2 + alar1*alow2*e1/e3) + alow3*e1/e4)     &
+                     &  * (alar2*alow1*e1/e2 + alar1*alow2*e1/e3) + alow3*e1/e4)        &
                      &  - TopF*alar3*(1._rp+3._rp*(       e1/e2+       e1/e3)+     e1/e4))
                 sagg4 = TopF * TopF * 4._rp * alar3
                 shear_agg = (sagg1+sagg2+sagg4) * fshear
 
                 ! settlement kernel:
-                sagg1 = (TopF * TopF * alar2 * TSFac - alow2)                        &
-                     &   * SinkExp / (es3 * e3 * (es3 + e1))                         &
+                sagg1 = (TopF * TopF * alar2 * TSFac - alow2)                           &
+                     &   * SinkExp / (es3 * e3 * (es3 + e1))                            &
                      &   + alow2 * ((1._rp - TopF * TSFac) / (e3 * es1)                 &
                      &   - (1._rp - TopF) / (es3*e1))
-                sagg2 = TopF * e1 * (TSFac * ( alow2 - TopF * alar2) / e3            &
+                sagg2 = TopF * e1 * (TSFac * ( alow2 - TopF * alar2) / e3               &
                      &   - (alow2 - TopF * alar2 * TSFac) / es3)
                 sett_agg =  (e1*e1*sagg1+sagg2) * fse
 
@@ -1384,14 +1384,14 @@ contains
                 ! dust aggregation:
                 ! shear kernel:
                 dfirst = dustd3 + 3._rp * dustd2 * alar1 + 3._rp * dustd1 * alar2 + alar3
-                dshagg = e1 * fsh * (dfirst * TopF / e1 - (                          &
-                     &   (TopF-1._rp)/e1*dustd3 + 3._rp*(TopF*alar1-alow1)/e2*dustd2       &
+                dshagg = e1 * fsh * (dfirst * TopF / e1 - (                             &
+                     &   (TopF-1._rp)/e1*dustd3 + 3._rp*(TopF*alar1-alow1)/e2*dustd2    &
                      &   + 3._rp*(TopF*alar2-alow2)/e3*dustd1 + (TopF*alar3-alow3)/e4))
 
                 ! settlement kernel:
                 dsett = fse * dustd2 * ((e1+SinkExp*TopF*TSFac)/es1-dustsink/cellsink)
 
-                dustagg(i,j,k) = effsti * avnos * ocetra(i,j,k,ifdust)               &
+                dustagg(i,j,k) = effsti * avnos * ocetra(i,j,k,ifdust)                  &
                      &           * (dshagg+dsett)
 
                 eps3d(i,j,k)   = eps

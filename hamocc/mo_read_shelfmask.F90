@@ -22,7 +22,7 @@ module mo_read_shelfmask
   ! Routine to read and/or initialize an ocean shelf-sea mask either from netcdf file or from
   ! internal bathymetry values, if use_shelfsea_res_time = .true.
   !
-  ! If a file is read, it should hold real(rp) values with 1. for shelf-sea regions and 0 elsewhere
+  ! If a file is read, it should hold real values with 1. for shelf-sea regions and 0 elsewhere
   ! and the variable name is 'shelfmask'
   !
   ! The shelf-sea mask is currently used to calculate the shelf-sea water residence time

@@ -2207,8 +2207,8 @@ CONTAINS
     integer, intent(in) :: frmt         ! format/precision of output
                                         !  0=field is not written
                                         !  2=field is written as int2 with scale factor and offset
-                                        !  4=field is written as real(rp)4
-                                        !  8=field is written as real(rp)8
+                                        !  4=field is written as real4
+                                        !  8=field is written as real8
     real(rp),intent(in) :: sfac         ! user defined scale factor to be applied
     real(rp),intent(in) :: offs         ! user defined offset to be added
     integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1
@@ -2266,8 +2266,8 @@ CONTAINS
     integer, intent(in) :: frmt         ! format/precision of output
                                         !  0=field is not written
                                         !  2=field is written as int2 with scale factor and offset
-                                        !  4=field is written as real(rp)4
-                                        !  8=field is written as real(rp)8
+                                        !  4=field is written as real4
+                                        !  8=field is written as real8
     real(rp),intent(in) :: sfac         ! user defined scale factor to be applied
     real(rp),intent(in) :: offs         ! user defined offset to be added
     integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1
@@ -2325,8 +2325,8 @@ CONTAINS
     integer, intent(in) :: frmt         ! format/precision of output
                                         !  0=field is not written
                                         !  2=field is written as int2 with scale factor and offset
-                                        !  4=field is written as real(rp)4
-                                        !  8=field is written as real(rp)8
+                                        !  4=field is written as real4
+                                        !  8=field is written as real8
     real(rp),intent(in) :: sfac         ! user defined scale factor to be applied
     real(rp),intent(in) :: offs         ! user defined offset to be added
     integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1
@@ -2384,8 +2384,8 @@ CONTAINS
     integer, intent(in) :: frmt         ! format/precision of output
                                         !  0=field is not written
                                         !  2=field is written as int2 with scale factor and offset
-                                        !  4=field is written as real(rp)4
-                                        !  8=field is written as real(rp)8
+                                        !  4=field is written as real4
+                                        !  8=field is written as real8
     real(rp),intent(in) :: sfac         ! user defined scale factor to be applied
     real(rp),intent(in) :: offs         ! user defined offset to be added
     integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1
@@ -2443,8 +2443,8 @@ CONTAINS
     integer, intent(in) :: frmt         ! format/precision of output
                                         !  0=field is not written
                                         !  2=field is written as int2 with scale factor and offset
-                                        !  4=field is written as real(rp)4
-                                        !  8=field is written as real(rp)8
+                                        !  4=field is written as real4
+                                        !  8=field is written as real8
     real(rp),intent(in) :: sfac         ! user defined scale factor to be applied
     real(rp),intent(in) :: offs         ! user defined offset to be added
     integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1

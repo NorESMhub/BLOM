@@ -277,7 +277,7 @@ module mo_param_bgc
   ! Phytoplankton parameters (incl. cyanobacteria)
   !********************************************************************
   real(rp), protected :: phytomi    = 1.e-11_rp          ! kmol/m3 - i.e. 1e-5 mmol P/m3 minimum concentration of phyto plankton (?js)
-  real(rp), protected :: pi_alpha   = 0.02_rp*0.4_rp     ! initial slope of production vs irradiance curve (alpha) (0.002_rp for 10 steps per day)
+  real(rp), protected :: pi_alpha   = 0.02_rp*0.4_rp     ! initial slope of production vs irradiance curve (alpha) (0.002 for 10 steps per day)
   real(rp), protected :: bkphy      = 4.e-8_rp           ! kmol/m3 - i.e. 0.04 mmol P/m3 half saturation constant
   real(rp), protected :: dyphy      = 0.004_rp           ! 1/d -mortality rate of phytoplankton
 
