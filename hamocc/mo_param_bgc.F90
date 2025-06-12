@@ -1043,6 +1043,11 @@ contains
       call pinfo_add_entry('O2thresh_hypoxic',O2thresh_hypoxic)
       call pinfo_add_entry('NO3thresh_sulf',  NO3thresh_sulf)
       call pinfo_add_entry('drempoc',         drempoc*dtbinv)
+      if (lTO2depremin) then
+        call pinfo_add_entry('POM_remin_q10',   POM_remin_q10)
+        call pinfo_add_entry('POM_remin_Tref',  POM_remin_Tref)
+        call pinfo_add_entry('bkox_drempoc',    bkox_drempoc)
+      endif
       call pinfo_add_entry('drempoc_anaerob', drempoc_anaerob*dtbinv)
       call pinfo_add_entry('dremopal',    dremopal*dtbinv)
       call pinfo_add_entry('dremcalc',    dremcalc*dtbinv)
@@ -1081,11 +1086,6 @@ contains
       call pinfo_add_entry('dmsp4',       dmsp4)
       call pinfo_add_entry('dmsp5',       dmsp5)
       call pinfo_add_entry('dmsp6',       dmsp6)
-      if (lTO2depremin) then
-        call pinfo_add_entry('POM_remin_q10',   POM_remin_q10)
-        call pinfo_add_entry('POM_remin_Tref',  POM_remin_Tref)
-        call pinfo_add_entry('bkox_drempoc',    bkox_drempoc)
-      endif
       if (with_dmsph) then
         call pinfo_add_entry('dms_gamma',   dms_gamma)
       endif
