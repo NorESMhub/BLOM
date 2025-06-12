@@ -378,7 +378,7 @@ contains
     ! Define variables : advected ocean tracer
     ! ----------------------------------------------------------------------
     !
-    if((mnproc==1 .and. IOTYPE==0) .OR. IOTYPE==1) then
+    if((mnproc==1 .and. IOTYPE==0) .or. IOTYPE==1) then
       ncdimst(1) = nclonid
       ncdimst(2) = nclatid
       ncdimst(3) = nclev2id
@@ -613,7 +613,7 @@ contains
     !
     if (.not. use_sedbypass) then
 
-      if((mnproc==1 .and. IOTYPE==0) .OR. IOTYPE==1) then
+      if((mnproc==1 .and. IOTYPE==0) .or. IOTYPE==1) then
         ncdimst(1) = nclonid
         ncdimst(2) = nclatid
         ncdimst(3) = ncks2id
@@ -694,7 +694,7 @@ contains
            &    70,io_stdo_bgc)
       endif
 
-      if((mnproc==1 .and. IOTYPE==0) .OR. IOTYPE==1) then
+      if((mnproc==1 .and. IOTYPE==0) .or. IOTYPE==1) then
         ncdimst(1) = nclonid
         ncdimst(2) = nclatid
         ncdimst(3) = ncksid
@@ -707,7 +707,7 @@ contains
       ! Define variables : sediment burial
       ! ----------------------------------------------------------------------
       !
-      if((mnproc==1 .and. IOTYPE==0) .OR. IOTYPE==1) then
+      if((mnproc==1 .and. IOTYPE==0) .or. IOTYPE==1) then
         ncdimst(1) = nclonid
         ncdimst(2) = nclatid
         ncdimst(3) = nctlvl2id
@@ -752,7 +752,7 @@ contains
     !
     if (use_BOXATM) then
 
-      if((mnproc==1 .and. IOTYPE==0) .OR. IOTYPE==1) then
+      if((mnproc==1 .and. IOTYPE==0) .or. IOTYPE==1) then
         ncdimst(1) = nclonid
         ncdimst(2) = nclatid
         ncdimst(3) = nctlvl2id
@@ -972,7 +972,7 @@ contains
 #endif
     endif
 
-    if (mnproc.eq.1) then
+    if (mnproc==1) then
       write(io_stdo_bgc,*) 'End of AUFW_BGC'
       write(io_stdo_bgc,*) '***************'
     endif

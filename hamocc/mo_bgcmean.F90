@@ -2140,7 +2140,7 @@ CONTAINS
     !
     ! Local variables
     integer :: i,j,l
-    real(rp), parameter :: epsil=1e-11
+    real(rp), parameter :: epsil=1.e-11_rp
     !
     ! --- Check whether field should be initialised
     if (posacc == 0) RETURN
@@ -2171,7 +2171,7 @@ CONTAINS
     !
     ! Local variables
     integer :: i,j,k,l
-    real(rp), parameter :: epsil=1e-11
+    real(rp), parameter :: epsil=1.e-11_rp
     !
     ! --- Check whether field should be initialised
     if (posacc == 0) RETURN
@@ -2504,7 +2504,7 @@ CONTAINS
     !
     ! Local variables
     integer :: i,j,l
-    real(rp)    :: epsil=1e-11_rp
+    real(rp)    :: epsil=1.e-11_rp
     !
     ! --- Check whether field should be processed
     if (pos == 0) RETURN
@@ -2540,7 +2540,7 @@ CONTAINS
     !
     ! Local variable
     integer :: i,j,k,l
-    real(rp):: epsil=1e-11
+    real(rp):: epsil=1.e-11_rp
     !
     ! --- Check whether field should be processed
     if (pos == 0) RETURN
@@ -2577,7 +2577,7 @@ CONTAINS
     !
     ! Local variable
     integer :: i,j,k,l
-    real(rp):: epsil=1e-11
+    real(rp):: epsil=1.e-11_rp
     !
     ! --- Check whether field should be processed
     if (pos == 0) RETURN
@@ -2615,7 +2615,7 @@ CONTAINS
     !
     ! Local variable
     integer :: i,j,k,l
-    real(rp):: epsil=1e-11
+    real(rp):: epsil=1.e-11_rp
     !
     ! --- Check whether field should be processed
     if (pos == 0) RETURN
@@ -2741,7 +2741,7 @@ CONTAINS
     real(rp),save   :: ztop(idm,jdm,kdm)
     real(rp),save   :: zbot(idm,jdm,kdm)
     logical, save   :: iniflg=.true.
-    real(rp), parameter :: eps=1e-10
+    real(rp), parameter :: eps=1.e-10_rp
     !
     ! --- Adjust bounds of levitus levels according to model bathymetry
     if (iniflg) then

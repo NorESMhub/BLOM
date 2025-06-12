@@ -244,10 +244,10 @@ contains
               ! we here assume the full oxydation steo and use ro2ut
               avgDOU                    = max(eps,prorca_mavg(i,j)*ro2ut)
               ! Eq.(12) in Pika et al. 2023 * correction factor 2.48 = a (sed reactivity)
-              sed_reactivity_a(i,j,k)   = 2.48_rp * 10**(1.293_rp - 0.9822_rp*log10(avgDOU))
+              sed_reactivity_a(i,j,k)   = 2.48_rp * 10._rp**(1.293_rp - 0.9822_rp*log10(avgDOU))
               ! Calculating overall (scaled) reactivity k [1/year] -> [1/(kmol O2/m3 dt)]
               ! using 1mumol O2/m3 (=1e-6 kmol O2/m3) as reference
-              sed_reactivity_k(i,j,k)   = sed_qual_sc*dtbgc/(sec_per_year*1e-6)*0.151_rp           &
+              sed_reactivity_k(i,j,k)   = sed_qual_sc*dtbgc/(sec_per_year*1.e-6_rp)*0.151_rp       &
                                         & /(sed_reactivity_a(i,j,k) + sedlay(i,j,k,issso12_age)+eps)
             enddo
           endif

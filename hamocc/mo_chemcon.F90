@@ -77,12 +77,12 @@ module mo_chemcon
   !     DEEP-SEA RESEARCH, VOL. 17, 721-735.
   !
   real(rp), parameter :: OX0=-173.4292_rp
-  real(rp), parameter :: OX1=249.6339_rp
-  real(rp), parameter :: OX2=143.3483_rp
-  real(rp), parameter :: OX3=-21.8492_rp
-  real(rp), parameter :: OX4=-0.033096_rp
-  real(rp), parameter :: OX5=0.014259_rp
-  real(rp), parameter :: OX6=-0.0017_rp
+  real(rp), parameter :: OX1= 249.6339_rp
+  real(rp), parameter :: OX2= 143.3483_rp
+  real(rp), parameter :: OX3= -21.8492_rp
+  real(rp), parameter :: OX4=  -0.033096_rp
+  real(rp), parameter :: OX5=   0.014259_rp
+  real(rp), parameter :: OX6=  -0.0017_rp
 
   !     -----------------------------------------------------------------
   !*    VOLUMETRIC SOLUBILITY CONSTANTS FOR N2 IN ML/L from moist air at
@@ -91,12 +91,12 @@ module mo_chemcon
   !     DEEP-SEA RESEARCH, VOL. 17, 721-735.
   !
   real(rp), parameter :: AN0=-172.4965_rp
-  real(rp), parameter :: AN1=248.4262_rp
-  real(rp), parameter :: AN2=143.0738_rp
-  real(rp), parameter :: AN3=-21.7120_rp
-  real(rp), parameter :: AN4=-0.049781_rp
-  real(rp), parameter :: AN5=0.025018_rp
-  real(rp), parameter :: AN6=-0.0034861_rp
+  real(rp), parameter :: AN1= 248.4262_rp
+  real(rp), parameter :: AN2= 143.0738_rp
+  real(rp), parameter :: AN3= -21.7120_rp
+  real(rp), parameter :: AN4=  -0.049781_rp
+  real(rp), parameter :: AN5=   0.025018_rp
+  real(rp), parameter :: AN6=  -0.0034861_rp
 
   !     -----------------------------------------------------------------
   !     Constants for CO2 solubility in mol/kg/atm from moist

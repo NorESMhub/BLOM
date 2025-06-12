@@ -758,12 +758,12 @@ contains
       endif
     enddo
 
-    atmflx=0._rp ! nullifying atm flux here to have zero fluxes for stepwise inventory fluxes
-    ndepnoyflx=0._rp
-    oalkflx=0._rp
-    rivinflx=0._rp
+    atmflx     = 0._rp ! nullifying atm flux here to have zero fluxes for stepwise inventory fluxes
+    ndepnoyflx = 0._rp
+    oalkflx    = 0._rp
+    rivinflx   = 0._rp
     if (use_extNcycle) then
-      ndepnhxflx=0._rp
+      ndepnhxflx = 0._rp
     endif
 
   end subroutine accfields

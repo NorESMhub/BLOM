@@ -412,7 +412,7 @@ contains
 
     ! Fall back to regional profile if number of valid data points is smaller
     ! than 3 for the surface layer. A global mean profile is used if
-    ! get_region returns 0._rp
+    ! get_region returns 0.
     if( npts(1) < 3 ) then
 
       idx = get_region(clon_tmp,clat_tmp)
@@ -443,7 +443,7 @@ contains
     logical  :: boundwithin, found
     character(len=*), parameter    :: routinestr = 'mo_Gdata_read, get_region'
 
-    if( clon < 0     ) call moderr(routinestr, ' clon must be in the range [0,360]')
+    if( clon < 0._rp    ) call moderr(routinestr, ' clon must be in the range [0,360]')
     if( clon > 360.0_rp ) call moderr(routinestr, ' clon must be in the range [0,360]')
 
     found = .false.
@@ -672,8 +672,8 @@ contains
     logical :: gl
     character(len=*), parameter    :: routinestr = 'mo_Gdata_read, calc_mean_profile'
 
-    if( .not. lset   ) call moderr(routinestr, ' Module not initialised yet')
-    if( clon < 0     ) call moderr(routinestr, ' clon must be in the range [0,360]')
+    if( .not. lset      ) call moderr(routinestr, ' Module not initialised yet')
+    if( clon < 0._rp    ) call moderr(routinestr, ' clon must be in the range [0,360]')
     if( clon > 360.0_rp ) call moderr(routinestr, ' clon must be in the range [0,360]')
 
     prf(:)  = fillval

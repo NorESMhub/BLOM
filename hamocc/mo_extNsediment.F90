@@ -302,7 +302,7 @@ contains
           w2s         = porwat(i,j,k) / porsol(i,j,k)
           temp     = merge(ptho(i,j,kbo(i,j)),10._rp,ptho(i,j,kbo(i,j)) < 40._rp)
           Tdep     = q10anmx_sed**((temp-Trefanmx_sed)/10._rp)
-          O2inhib  = 1._rp - exp(alphaanmx_sed*(powtra(i,j,k,ipowaox)-bkoxanmx_sed))                  &
+          O2inhib  = 1._rp - exp(alphaanmx_sed*(powtra(i,j,k,ipowaox)-bkoxanmx_sed))               &
                    &      /(1._rp+ exp(alphaanmx_sed*(powtra(i,j,k,ipowaox)-bkoxanmx_sed)))
           nut1lim  = powtra(i,j,k,ipowno2)/(powtra(i,j,k,ipowno2)+bkano2anmx_sed)
           nut2lim  = powtra(i,j,k,ipownh4)/(powtra(i,j,k,ipownh4)+bkanh4anmx_sed)
@@ -310,7 +310,7 @@ contains
           ano2new  = powtra(i,j,k,ipowno2)/(1._rp + rano2anmx_sed*Tdep*O2inhib*nut1lim*nut2lim)
 
           ! Account for former changes in DIC and alkalinity
-          ano2anmx = max(0._rp,min(max_limiter*powtra(i,j,k,ipowno2) - ano2new,                       &
+          ano2anmx = max(0._rp,min(max_limiter*powtra(i,j,k,ipowno2) - ano2new,                    &
                                 max_limiter*powtra(i,j,k,ipownh4)*rno2anmx*rnh4anmxi,              &
                                 max_limiter*(powtra(i,j,k,ipowaic)+ex_ddic(i,k))*rno2anmx/rcar,    &
                                 max_limiter*powtra(i,j,k,ipowaph)*rno2anmx,                        &

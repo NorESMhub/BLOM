@@ -1500,7 +1500,7 @@ contains
             call nccheck( NF90_PUT_ATT(ncid, zt_tdoclc13_varid, 'long_name',             &
                  &    'Total terrestrial low-C dissolved organic carbon-C13 tracer') )
             call nccheck( NF90_PUT_ATT(ncid, zt_tdoclc13_varid, 'units', 'kmol') )
-    
+
             call nccheck( NF90_DEF_VAR(ncid, 'zc_tdoclc13', NF90_DOUBLE,                 &
                  &    time_dimid, zc_tdoclc13_varid) )
             call nccheck( NF90_PUT_ATT(ncid, zc_tdoclc13_varid, 'long_name',             &
@@ -1512,7 +1512,7 @@ contains
             call nccheck( NF90_PUT_ATT(ncid, zt_tdochc13_varid, 'long_name',             &
                  &    'Total terrestrial high-C dissolved organic carbon-C13 tracer') )
             call nccheck( NF90_PUT_ATT(ncid, zt_tdochc13_varid, 'units', 'kmol') )
-    
+
             call nccheck( NF90_DEF_VAR(ncid, 'zc_tdochc13', NF90_DOUBLE,                 &
                  &    time_dimid, zc_tdochc13_varid) )
             call nccheck( NF90_PUT_ATT(ncid, zc_tdochc13_varid, 'long_name',             &
@@ -1524,7 +1524,7 @@ contains
             call nccheck( NF90_PUT_ATT(ncid, zt_tdoclc14_varid, 'long_name',             &
                  &    'Total terrestrial low-C dissolved organic carbon-C14 tracer') )
             call nccheck( NF90_PUT_ATT(ncid, zt_tdoclc14_varid, 'units', 'kmol') )
-    
+
             call nccheck( NF90_DEF_VAR(ncid, 'zc_tdoclc14', NF90_DOUBLE,                 &
                  &    time_dimid, zc_tdoclc14_varid) )
             call nccheck( NF90_PUT_ATT(ncid, zc_tdoclc14_varid, 'long_name',             &
@@ -1536,7 +1536,7 @@ contains
             call nccheck( NF90_PUT_ATT(ncid, zt_tdochc14_varid, 'long_name',             &
                  &    'Total terrestrial high-C dissolved organic carbon-C14 tracer') )
             call nccheck( NF90_PUT_ATT(ncid, zt_tdochc14_varid, 'units', 'kmol') )
-    
+
             call nccheck( NF90_DEF_VAR(ncid, 'zc_tdochc14', NF90_DOUBLE,                 &
                  &    time_dimid, zc_tdochc14_varid) )
             call nccheck( NF90_PUT_ATT(ncid, zc_tdochc14_varid, 'long_name',             &

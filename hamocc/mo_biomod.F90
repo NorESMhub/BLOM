@@ -239,7 +239,7 @@ CONTAINS
     if(errstat.ne.0) stop 'not enough memory intdmsprod, intdms_bac, intdms_uv'
     intdmsprod(:,:) = 0.0_rp
     intdms_bac(:,:) = 0.0_rp
-    intdms_uv(:,:) = 0.0_rp
+    intdms_uv(:,:)  = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable carflx* ...'

@@ -429,8 +429,8 @@ contains
               rpp0  = ppao(i,j)/101325.0_rp
 
               ! calculate correction for non-ideality of CO2 (fugacity coefficient, Weiss and Price 1980)
-              Bvir  = -1636.75_rp + 12.0408_rp*tk -0.0327957_rp*tk**2 + 0.0000316528_rp*tk**3   ! temp=[-12,47]
-              delta = 57.7_rp-0.118_rp*tk                                                 ! temp=[0,40]
+              Bvir  = -1636.75_rp + 12.0408_rp*tk -0.0327957_rp*tk**2 + 0.0000316528_rp*tk**3 ! temp=[-12,47]
+              delta = 57.7_rp-0.118_rp*tk                                                     ! temp=[0,40]
               fc    = exp( rpp0*(Bvir + 2.0_rp*delta)/(82.057_rp*tk) )
 
               ! calculate water vapor pressure [atm] as function of temperature and salinity (Weiss and Price 1980)
@@ -440,7 +440,7 @@ contains
               ! Calculate the CO2 concentration in equilibrium with atmospheric x' (atco2=mole fraction of CO2 in dry air [ppm])
               cu_sat = Kh0*atco2*1.0e-6_rp*(rpp0-pH2O)*fc
 
-              fluxd = cu_sat*kwco2*dtbgc*rrho ! cu_sat and cu are in mol/kg. Multiply by rrho (g/cm^3) 
+              fluxd = cu_sat*kwco2*dtbgc*rrho ! cu_sat and cu are in mol/kg. Multiply by rrho (g/cm^3)
               fluxu = cu    *kwco2*dtbgc*rrho ! to get fluxes in kmol/m^2
 
               ! Set limit for CO2 outgassing to avoid negative DIC concentration
@@ -782,7 +782,7 @@ contains
 
 
     ! Kh0 = [CO2]/ fCO2 (fCO2 = fugacity of CO2 in air)
-    ! Weiss (1974), note this does not include a correction for the effect of moist air at 
+    ! Weiss (1974), note this does not include a correction for the effect of moist air at
     ! air-sea interface [mol/kg/atm], temp=[-1,45], saln=[0,45]
     nKhwe74 = ad1+ad2/tk100+ad3*log(tk100)+s*(bd1+bd2*tk100+bd3*tk100**2)
     Kh0     = exp( nKhwe74 )
@@ -797,7 +797,7 @@ contains
     ! Kb = [H][BO2]/[HBO2] !
     ! Millero p.669 (1995) using data from Dickson (1990), temp=[0,45], saln=[5,45]
     Kb = exp( ( -8966.90_rp - 2890.53_rp  * sqrts - 77.942_rp  * s + 1.728_rp * s15 - 0.0996_rp * s2 ) * invtk +  &
-         &    ( 148.0248_rp + 137.1942_rp * sqrts + 1.62142_rp * s ) +                                      &
+         &    ( 148.0248_rp + 137.1942_rp * sqrts + 1.62142_rp * s ) +                                            &
          &    ( -24.4344_rp - 25.085_rp   * sqrts - 0.2474_rp  * s ) * dlogtk + 0.053105_rp * sqrts * tk )
     ! K1p = [H][H2PO4]/[H3PO4] ; K2p = [H][HPO4]/[H2PO4] ; K3p = [H][PO4]/[HPO4]
     ! DOE(1994) eq 7.2.20 with footnote using data from Millero (1974), temp=[5,30], saln=[5,40]
@@ -810,7 +810,7 @@ contains
     ! Ksi = [H][SiO(OH)3]/[Si(OH)4]
     ! Millero p.671 (1995) using data from Yao and Millero (1995)
     Ksi = exp( -8904.2_rp * invtk + 117.385_rp - 19.334_rp * dlogtk + ( -458.79_rp * invtk + 3.5913_rp ) * sqrtis &
-         & + ( 188.74_rp * invtk - 1.5998_rp) * is + ( -12.1652_rp * invtk + 0.07871_rp) * is2 +               &
+         & + ( 188.74_rp * invtk - 1.5998_rp) * is + ( -12.1652_rp * invtk + 0.07871_rp) * is2 +                  &
          &     log(1.0_rp-0.001005_rp*s))
     ! Kw = [H][OH]
     ! Millero p.670 (1995) using composite data, temp=[0,45], saln=[0,45]
@@ -819,7 +819,7 @@ contains
     ! Ks = [H][SO4]/[HSO4]
     ! Dickson (1990, J. chem. Thermodynamics 22, 113), temp=[0,45], saln=[5,45]
     Ks1 = exp( -4276.1_rp * invtk + 141.328_rp - 23.093_rp * dlogtk + ( -13856._rp * invtk + 324.57_rp - 47.986_rp * &
-         &     dlogtk ) * sqrtis + ( 35474._rp * invtk - 771.54_rp + 114.723_rp * dlogtk ) * is - 2698._rp *   &
+         &     dlogtk ) * sqrtis + ( 35474._rp * invtk - 771.54_rp + 114.723_rp * dlogtk ) * is - 2698._rp *      &
          &     invtk * is**1.5_rp + 1776._rp * invtk * is2 + log(1.0_rp - 0.001005_rp * s ) )
     ! Kf = [H][F]/[HF]
     ! Dickson and Riley (1979) -- change pH scale to total, temp=[0,45], saln=[0,45]

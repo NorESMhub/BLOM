@@ -71,8 +71,8 @@ module mo_read_oafx
 
   character(len=128), protected, public  :: oalkscen   =''
   character(len=bgc_fnmlen), protected, public  :: oalkfile   =''
-  real(rp),allocatable,   protected          :: oalkflx(:,:)
-  integer,            protected          :: startyear,endyear
+  real(rp),allocatable,protected         :: oalkflx(:,:)
+  integer,             protected         :: startyear,endyear
 
   real(rp), parameter                    :: Pmol2kmol  = 1.0e12_rp
 

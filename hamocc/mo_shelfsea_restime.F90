@@ -62,7 +62,7 @@ contains
             ! but a gradual decrease in residence time off the shelf should require max function
             ! to result in zero values in open ocean regions (and not negative values)
             ocetra(i,j,k,ishelfage) = merge(       ocetra(i,j,k,ishelfage) + dtb,                  &
-                                            max(0._rp,ocetra(i,j,k,ishelfage) - dtb), shelfmask(i,j) )
+                                            max(0._rp,ocetra(i,j,k,ishelfage) - dtb),shelfmask(i,j))
           endif
         enddo
       enddo

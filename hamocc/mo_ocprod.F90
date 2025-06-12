@@ -374,7 +374,7 @@ contains
             avdic = max(0._rp,ocetra(i,j,k,isco212))
             if (use_extNcycle)then
               ano3up_inh = bkphyanh4/(bkphyanh4 + ocetra(i,j,k,ianh4)) ! inhibition of NO3 uptake
-              nutlim     = min(ocetra(i,j,k,iphosph)/(ocetra(i,j,k,iphosph)+bkphosph),                              &
+              nutlim     = min(ocetra(i,j,k,iphosph)/(ocetra(i,j,k,iphosph)+bkphosph),             &
                                ocetra(i,j,k,iiron)/(ocetra(i,j,k,iiron)+bkiron))
               anh4lim    = ocetra(i,j,k,ianh4)/(ocetra(i,j,k,ianh4) + bkphyanh4)
               nlim       = ano3up_inh*ocetra(i,j,k,iano3)/(ocetra(i,j,k,iano3) +  bkphyano3) + anh4lim
@@ -382,7 +382,7 @@ contains
 
               nh4uptfrac = anh4lim/(nlim+epsilon(1._rp))
               ! re-check avnut - can sum N avail exceed indiv. contrib?
-              avanut     = max(0._rp,min(ocetra(i,j,k,iphosph), ocetra(i,j,k,iiron)/riron,                              &
+              avanut     = max(0._rp,min(ocetra(i,j,k,iphosph), ocetra(i,j,k,iiron)/riron,         &
                          &        rnoi*((1._rp-nh4uptfrac)*ocetra(i,j,k,iano3) + nh4uptfrac*ocetra(i,j,k,ianh4))))
 
               xn         = avphy/(1._rp - pho*grlim)       ! phytoplankton growth
@@ -826,7 +826,7 @@ contains
             temp = min(40._rp,max(-3._rp,ptho(i,j,k)))
             phythresh = max(0._rp,(ocetra(i,j,k,iphy)-2._rp*phytomi))
             zoothresh = max(0._rp,(ocetra(i,j,k,izoo)-2._rp*grami))
-            sterph = 0.5_rp*dyphy*phythresh                                ! phytoplankton to detritus
+            sterph = 0.5_rp*dyphy*phythresh                             ! phytoplankton to detritus
             sterzo = spemor*zoothresh*zoothresh                         ! quadratic mortality
             if (use_cisonew) then
               rphy13 = ocetra(i,j,k,iphy13)/(ocetra(i,j,k,iphy)+safediv)
@@ -1008,7 +1008,7 @@ contains
                  &             -relaxfe*max(ocetra(i,j,k,iiron)-fesoly,0._rp)
             if (use_natDIC) then
               ocetra(i,j,k,inatsco212) = ocetra(i,j,k,inatsco212)+rcar*remin
-              ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)-(rnit+1)*remin
+              ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)-(rnit+1._rp)*remin
             endif
             if (use_cisonew) then
               ocetra(i,j,k,idet13) = ocetra(i,j,k,idet13)-pocrem13+sterph13+sterzo13
@@ -1119,7 +1119,7 @@ contains
                   rem13 = (remin+remin2o)*ocetra(i,j,k,idet13)/(ocetra(i,j,k,idet)+safediv)
                   rem14 = (remin+remin2o)*ocetra(i,j,k,idet14)/(ocetra(i,j,k,idet)+safediv)
                 endif
-                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)+(rdnit1-1)*remin-remin2o
+                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)+(rdnit1-1._rp)*remin-remin2o
                 ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+rcar*(remin+remin2o)
                 ocetra(i,j,k,idet) = ocetra(i,j,k,idet)-(remin+remin2o)
                 ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+(remin+remin2o)
@@ -1128,7 +1128,7 @@ contains
                 ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+riron*(remin+remin2o)
                 ocetra(i,j,k,ian2o) = ocetra(i,j,k,ian2o)-rdn2o1*remin2o
                 if (use_natDIC) then
-                  ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)+(rdnit1-1)*remin-remin2o
+                  ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)+(rdnit1-1._rp)*remin-remin2o
                   ocetra(i,j,k,inatsco212) = ocetra(i,j,k,inatsco212)+rcar*(remin+remin2o)
                 endif
                 if (use_cisonew) then
@@ -1211,13 +1211,13 @@ contains
                 rem14 = remin*ocetra(i,j,k,idet14)/(ocetra(i,j,k,idet)+safediv)
               endif
               ocetra(i,j,k,idet) = ocetra(i,j,k,idet)-remin
-              ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)-(rnit+1)*remin
+              ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)-(rnit+1._rp)*remin
               ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+rcar*remin
               ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+remin
               ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)+rnit*remin
               ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+riron*remin
               if (use_natDIC) then
-                ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)-(rnit+1)*remin
+                ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)-(rnit+1._rp)*remin
                 ocetra(i,j,k,inatsco212) = ocetra(i,j,k,inatsco212)+rcar*remin
               endif
               if (use_cisonew) then

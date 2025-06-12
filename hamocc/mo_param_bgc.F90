@@ -145,13 +145,13 @@ module mo_param_bgc
   real(rp), parameter :: sec_per_day   = 86400._rp           ! [s/d]  seconds per day
   real(rp), protected :: days_per_year = 365._rp             ! [d/yr] days per year
   real(rp), protected :: sec_per_year  = 365._rp*sec_per_day ! [s/yr] seconds per year
-  logical         :: lini=.true.
+  logical             :: lini=.true.
   !********************************************************************
   ! Stoichiometry and fixed parameters
   !********************************************************************
 
   ! extended redfield ratio declaration
-  ! Note: stoichiometric ratios are based on Takahashi etal. (1985)
+  ! Note: stoichiometric ratios are based on Takahashi et al. (1985)
   ! P:N:C:-O2 + 1:16:122:172
   real(rp), parameter :: ro2ut  = 172._rp                ! Oxygen utilization
   real(rp), parameter :: rcar   = 122._rp                ! mol C per mol P
@@ -1310,7 +1310,7 @@ contains
 
   subroutine pinfo_add_entry(parname,parvalue)
     character(len=*), intent(in)  :: parname
-    real(rp),             intent(in)  :: parvalue
+    real(rp),         intent(in)  :: parvalue
 
     ! local:
     type(pinfo),      allocatable :: temp(:)
