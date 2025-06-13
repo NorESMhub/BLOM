@@ -123,7 +123,7 @@
 
 
   <!-- JRA repeat year forcing - no prognostic wave -->
-  
+
   <compset>
     <alias>NOINYJRARYF1961OC</alias>
     <lname>1850_DATM%JRARYF1961_SLND_CICE_BLOM%HYB%ECO_DROF%JRARYF1961_SGLC_SWAV</lname>
@@ -142,12 +142,25 @@
     <lname>1850_DATM%JRA-RYF8485_SLND_CICE_BLOM%HYB%ECO_DROF%JRA-RYF8485_SGLC_SWAV</lname>
   </compset>
 
-  
+
   <!-- CPLHIST forcing - no prognostic wave -->
 
   <compset>
     <alias>NOICPLHISTOC</alias>
     <lname>1850_DATM%CPLHIST_SLND_CICE_BLOM%HYB%ECO_DROF%CPLHIST_SGLC_SWAV</lname>
+  </compset>
+
+  <!-- Offline sediment spinup -->
+
+  <!--<compset> EXAMPLE FROM CAM
+    <alias>FADIAB</alias>
+    <lname>2000_CAM%ADIAB_SLND_SICE_SOCN_SROF_SGLC_SWAV</lname>
+  </compset>-->
+
+  <compset>
+    <!-- offline sediment spinup for hybrid coordinates -->
+    <alias>OFFLSEDH</alias>
+    <lname>SCAM_SLND_SICE_BLOM%HYB%ECO_SROF_SGLC_SWAV</lname>
   </compset>
 
   <entries>
