@@ -878,8 +878,6 @@ contains
 
               o2csmp = merge(ro2utammo,ro2ut,use_extNcycle)
               if (use_DOMclasses) then
-                pocrem   = min(drempoc*ocetra(i,j,k,idet),0.33_rp*ocetra(i,j,k,ioxygen)/o2csmp)
-                phyrem   = min(0.5_rp*dyphy*phythresh,    0.33_rp*ocetra(i,j,k,ioxygen)/o2csmp)
                 !fractions of doc(s) remineralized into nutrients
                 docrem   = min(docl_remin*exp(-38.e3_rp/(8.314_rp*(temp+tzero)))*ocetra(i,j,k,idoc), &
                          &     doclimfct*ocetra(i,j,k,ioxygen)/o2csmp)
@@ -890,10 +888,10 @@ contains
                 docremr  = min(docr_remin*exp(-179.e3_rp/(8.314_rp*(temp+tzero)))*ocetra(i,j,k,idocr),&
                          &     doclimfct*ocetra(i,j,k,ioxygen)/o2csmp)
               else
-                pocrem = min(pocrem,                    0.33_rp*ocetra(i,j,k,ioxygen)/o2csmp)
                 docrem = min(remido*ocetra(i,j,k,idoc), doclimfct*ocetra(i,j,k,ioxygen)/o2csmp)
-                phyrem = min(0.5_rp*dyphy*phythresh,    0.33_rp*ocetra(i,j,k,ioxygen)/o2csmp)
               endif
+              pocrem = min(pocrem,                    0.33_rp*ocetra(i,j,k,ioxygen)/o2csmp)
+              phyrem = min(0.5_rp*dyphy*phythresh,    0.33_rp*ocetra(i,j,k,ioxygen)/o2csmp)
 
               if (use_river2omip) then
                 tdoclc_rem = min(rem_tdoclc*ocetra(i,j,k,itdoc_lc), doclimfct*ocetra(i,j,k,ioxygen)&
