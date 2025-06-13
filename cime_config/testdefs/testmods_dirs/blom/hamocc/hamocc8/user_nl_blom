@@ -1,0 +1,2 @@
+use_extNcycle = .true.
+use_DOMclasses = .true.
