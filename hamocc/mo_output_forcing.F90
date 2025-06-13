@@ -3,7 +3,7 @@ module mo_output_forcing
    use netcdf,    only: nf90_64bit_offset, nf90_global, nf90_noerr, nf90_nofill, nf90_def_dim,   &
                         nf90_enddef, nf90_close, nf90_create, nf90_strerror, &
                         nf90_double, nf90_def_var, nf90_put_var, nf90_put_att
-   use mod_types, only: r8
+   use mo_kind,   only: rp
    use mod_xc
 
    implicit none
@@ -19,14 +19,14 @@ contains
       character(len=*) , intent(in) :: filename
       character(len=*) , intent(in) :: varname
       integer          , intent(in) :: kpie, kpje
-      real(r8)         , intent(in) :: vardata(kpie,kpje)
+      real(rp)         , intent(in) :: vardata(kpie,kpje)
 
       ! Local variables
       integer :: ncid,ncvarid,ncstat,ncdims(2),nclatid,nclonid
       integer :: i,j
       integer :: start(2),count(2)
-      real    :: arr_g(itdm,jtdm)
-      real    :: arr_l(1-nbdy:idm+nbdy, 1-nbdy:jdm+nbdy, 1)
+      real(rp):: arr_g(itdm,jtdm)
+      real(rp):: arr_l(1-nbdy:idm+nbdy, 1-nbdy:jdm+nbdy, 1)
 
       if (mnproc==1) then
          write(lp,'(a)') 'creating netcdf file '//trim(filename)
@@ -59,7 +59,7 @@ contains
          ncstat = nf90_enddef(ncid)
       end if
 
-      arr_l(:,:,:) = 0.0
+      arr_l(:,:,:) = 0.0_rp
       start(1) = 1; count(1) = itdm
       start(2) = 1; count(2) = jtdm
 

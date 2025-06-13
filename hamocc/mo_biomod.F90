@@ -32,6 +32,8 @@ module mo_biomod
   !   new global fields for output defined here
   !*************************************************************************************************
 
+  use mo_kind,        only: rp
+
   implicit none
   private
 
@@ -41,78 +43,78 @@ module mo_biomod
 
   ! Module variables
 
-  real, dimension (:,:),   allocatable, public :: strahl
-  real, dimension (:,:),   allocatable, public :: expoor
-  real, dimension (:,:),   allocatable, public :: expoca
-  real, dimension (:,:),   allocatable, public :: exposi
-  real, dimension (:,:),   allocatable, public :: intphosy
-  real, dimension (:,:),   allocatable, public :: intdnit
-  real, dimension (:,:),   allocatable, public :: intnfix
-  real, dimension (:,:),   allocatable, public :: intdmsprod
-  real, dimension (:,:),   allocatable, public :: intdms_bac
-  real, dimension (:,:),   allocatable, public :: intdms_uv
-  real, dimension (:,:),   allocatable, public :: carflx0100
-  real, dimension (:,:),   allocatable, public :: carflx0500
-  real, dimension (:,:),   allocatable, public :: carflx1000
-  real, dimension (:,:),   allocatable, public :: carflx2000
-  real, dimension (:,:),   allocatable, public :: carflx4000
-  real, dimension (:,:),   allocatable, public :: carflx_bot
-  real, dimension (:,:),   allocatable, public :: bsiflx0100
-  real, dimension (:,:),   allocatable, public :: bsiflx0500
-  real, dimension (:,:),   allocatable, public :: bsiflx1000
-  real, dimension (:,:),   allocatable, public :: bsiflx2000
-  real, dimension (:,:),   allocatable, public :: bsiflx4000
-  real, dimension (:,:),   allocatable, public :: bsiflx_bot
-  real, dimension (:,:),   allocatable, public :: calflx0100
-  real, dimension (:,:),   allocatable, public :: calflx0500
-  real, dimension (:,:),   allocatable, public :: calflx1000
-  real, dimension (:,:),   allocatable, public :: calflx2000
-  real, dimension (:,:),   allocatable, public :: calflx4000
-  real, dimension (:,:),   allocatable, public :: calflx_bot
-  real, dimension (:,:),   allocatable, public :: dustflx0100
-  real, dimension (:,:),   allocatable, public :: dustflx0500
-  real, dimension (:,:),   allocatable, public :: dustflx1000
-  real, dimension (:,:),   allocatable, public :: dustflx2000
-  real, dimension (:,:),   allocatable, public :: dustflx4000
-  real, dimension (:,:),   allocatable, public :: dustflx_bot
-  real, dimension (:,:,:), allocatable, public :: phosy3d
-  real, dimension (:,:),   allocatable, public :: int_exudl
-  real, dimension (:,:),   allocatable, public :: int_exudsl
-  real, dimension (:,:),   allocatable, public :: int_excrl
-  real, dimension (:,:),   allocatable, public :: int_excrsl
-  real, dimension (:,:),   allocatable, public :: int_docl_rem
-  real, dimension (:,:),   allocatable, public :: int_docsl_rem
-  real, dimension (:,:),   allocatable, public :: int_docr_rem
-  real, dimension (:,:),   allocatable, public :: int_docsr_rem
+  real(rp), dimension (:,:),   allocatable, public :: strahl
+  real(rp), dimension (:,:),   allocatable, public :: expoor
+  real(rp), dimension (:,:),   allocatable, public :: expoca
+  real(rp), dimension (:,:),   allocatable, public :: exposi
+  real(rp), dimension (:,:),   allocatable, public :: intphosy
+  real(rp), dimension (:,:),   allocatable, public :: intdnit
+  real(rp), dimension (:,:),   allocatable, public :: intnfix
+  real(rp), dimension (:,:),   allocatable, public :: intdmsprod
+  real(rp), dimension (:,:),   allocatable, public :: intdms_bac
+  real(rp), dimension (:,:),   allocatable, public :: intdms_uv
+  real(rp), dimension (:,:),   allocatable, public :: carflx0100
+  real(rp), dimension (:,:),   allocatable, public :: carflx0500
+  real(rp), dimension (:,:),   allocatable, public :: carflx1000
+  real(rp), dimension (:,:),   allocatable, public :: carflx2000
+  real(rp), dimension (:,:),   allocatable, public :: carflx4000
+  real(rp), dimension (:,:),   allocatable, public :: carflx_bot
+  real(rp), dimension (:,:),   allocatable, public :: bsiflx0100
+  real(rp), dimension (:,:),   allocatable, public :: bsiflx0500
+  real(rp), dimension (:,:),   allocatable, public :: bsiflx1000
+  real(rp), dimension (:,:),   allocatable, public :: bsiflx2000
+  real(rp), dimension (:,:),   allocatable, public :: bsiflx4000
+  real(rp), dimension (:,:),   allocatable, public :: bsiflx_bot
+  real(rp), dimension (:,:),   allocatable, public :: calflx0100
+  real(rp), dimension (:,:),   allocatable, public :: calflx0500
+  real(rp), dimension (:,:),   allocatable, public :: calflx1000
+  real(rp), dimension (:,:),   allocatable, public :: calflx2000
+  real(rp), dimension (:,:),   allocatable, public :: calflx4000
+  real(rp), dimension (:,:),   allocatable, public :: calflx_bot
+  real(rp), dimension (:,:),   allocatable, public :: dustflx0100
+  real(rp), dimension (:,:),   allocatable, public :: dustflx0500
+  real(rp), dimension (:,:),   allocatable, public :: dustflx1000
+  real(rp), dimension (:,:),   allocatable, public :: dustflx2000
+  real(rp), dimension (:,:),   allocatable, public :: dustflx4000
+  real(rp), dimension (:,:),   allocatable, public :: dustflx_bot
+  real(rp), dimension (:,:,:), allocatable, public :: phosy3d
+  real(rp), dimension (:,:),   allocatable, public :: int_exudl
+  real(rp), dimension (:,:),   allocatable, public :: int_exudsl
+  real(rp), dimension (:,:),   allocatable, public :: int_excrl
+  real(rp), dimension (:,:),   allocatable, public :: int_excrsl
+  real(rp), dimension (:,:),   allocatable, public :: int_docl_rem
+  real(rp), dimension (:,:),   allocatable, public :: int_docsl_rem
+  real(rp), dimension (:,:),   allocatable, public :: int_docr_rem
+  real(rp), dimension (:,:),   allocatable, public :: int_docsr_rem
 
   ! Variables for interactive phytoplanktion absorption (use_FB_BGC_OCE=.true.)
-  real, dimension (:,:,:), allocatable, public :: abs_oce
+  real(rp), dimension (:,:,:), allocatable, public :: abs_oce
 
   ! Variables for aggregation scheme (use_AGG=.true.)
-  real, dimension (:,:,:), allocatable, public  :: wmass
-  real, dimension (:,:,:), allocatable, public  :: wnumb
-  real, dimension (:,:,:), allocatable, public  :: eps3d
-  real, dimension (:,:,:), allocatable, public  :: asize3d
+  real(rp), dimension (:,:,:), allocatable, public  :: wmass
+  real(rp), dimension (:,:,:), allocatable, public  :: wnumb
+  real(rp), dimension (:,:,:), allocatable, public  :: eps3d
+  real(rp), dimension (:,:,:), allocatable, public  :: asize3d
 
   ! Variables for bromoform scheme (use_BROMO=.true.)
-  real, dimension (:,:),   allocatable, public  :: int_chbr3_prod
-  real, dimension (:,:),   allocatable, public  :: int_chbr3_uv
+  real(rp), dimension (:,:),   allocatable, public  :: int_chbr3_prod
+  real(rp), dimension (:,:),   allocatable, public  :: int_chbr3_uv
 
-  real, dimension (:,:,:), allocatable, public :: nitr_NH4
-  real, dimension (:,:,:), allocatable, public :: nitr_NO2
-  real, dimension (:,:,:), allocatable, public :: nitr_N2O_prod
-  real, dimension (:,:,:), allocatable, public :: nitr_NH4_OM
-  real, dimension (:,:,:), allocatable, public :: nitr_NO2_OM
-  real, dimension (:,:,:), allocatable, public :: denit_NO3
-  real, dimension (:,:,:), allocatable, public :: denit_NO2
-  real, dimension (:,:,:), allocatable, public :: denit_N2O
-  real, dimension (:,:,:), allocatable, public :: DNRA_NO2
-  real, dimension (:,:,:), allocatable, public :: anmx_N2_prod
-  real, dimension (:,:,:), allocatable, public :: anmx_OM_prod
-  real, dimension (:,:,:), allocatable, public :: phosy_NH4
-  real, dimension (:,:,:), allocatable, public :: phosy_NO3
-  real, dimension (:,:,:), allocatable, public :: remin_aerob
-  real, dimension (:,:,:), allocatable, public :: remin_sulf
+  real(rp), dimension (:,:,:), allocatable, public :: nitr_NH4
+  real(rp), dimension (:,:,:), allocatable, public :: nitr_NO2
+  real(rp), dimension (:,:,:), allocatable, public :: nitr_N2O_prod
+  real(rp), dimension (:,:,:), allocatable, public :: nitr_NH4_OM
+  real(rp), dimension (:,:,:), allocatable, public :: nitr_NO2_OM
+  real(rp), dimension (:,:,:), allocatable, public :: denit_NO3
+  real(rp), dimension (:,:,:), allocatable, public :: denit_NO2
+  real(rp), dimension (:,:,:), allocatable, public :: denit_N2O
+  real(rp), dimension (:,:,:), allocatable, public :: DNRA_NO2
+  real(rp), dimension (:,:,:), allocatable, public :: anmx_N2_prod
+  real(rp), dimension (:,:,:), allocatable, public :: anmx_OM_prod
+  real(rp), dimension (:,:,:), allocatable, public :: phosy_NH4
+  real(rp), dimension (:,:,:), allocatable, public :: phosy_NO3
+  real(rp), dimension (:,:,:), allocatable, public :: remin_aerob
+  real(rp), dimension (:,:,:), allocatable, public :: remin_sulf
 
 CONTAINS
 
@@ -147,7 +149,7 @@ CONTAINS
 
     allocate (strahl(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory strahl'
-    strahl(:,:) = 0.0
+    strahl(:,:) = 0.0_rp
 
     if (use_FB_BGC_OCE ) then
       if (mnproc.eq.1) then
@@ -159,7 +161,7 @@ CONTAINS
 
       allocate (abs_oce(kpie,kpje,kpke),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory abs_oce'
-      abs_oce(:,:,:) = 0.0
+      abs_oce(:,:,:) = 0.0_rp
     endif
 
     if (mnproc.eq.1) then
@@ -170,7 +172,7 @@ CONTAINS
 
     allocate (expoor(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory expoor'
-    expoor(:,:) = 0.0
+    expoor(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable expoca ...'
@@ -180,7 +182,7 @@ CONTAINS
 
     allocate (expoca(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory expoca'
-    expoca(:,:) = 0.0
+    expoca(:,:) = 0.0_rp
 
 
     if (mnproc.eq.1) then
@@ -191,7 +193,7 @@ CONTAINS
 
     allocate (exposi(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory exposi'
-    exposi(:,:) = 0.0
+    exposi(:,:) = 0.0_rp
 
 
     if (mnproc.eq.1) then
@@ -202,7 +204,7 @@ CONTAINS
 
     allocate (intphosy(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory intphosy'
-    intphosy(:,:) = 0.0
+    intphosy(:,:) = 0.0_rp
 
 
     if (mnproc.eq.1) then
@@ -213,7 +215,7 @@ CONTAINS
 
     allocate (intdnit(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory intdnit'
-    intdnit(:,:) = 0.0
+    intdnit(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable intnfix ...'
@@ -223,7 +225,7 @@ CONTAINS
 
     allocate (intnfix(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory intnfix'
-    intnfix(:,:) = 0.0
+    intnfix(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable intdmsprod, intdms_bac, intdms_uv ...'
@@ -235,9 +237,9 @@ CONTAINS
     allocate (intdms_bac(kpie,kpje),stat=errstat)
     allocate (intdms_uv(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory intdmsprod, intdms_bac, intdms_uv'
-    intdmsprod(:,:) = 0.0
-    intdms_bac(:,:) = 0.0
-    intdms_uv(:,:) = 0.0
+    intdmsprod(:,:) = 0.0_rp
+    intdms_bac(:,:) = 0.0_rp
+    intdms_uv(:,:)  = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable carflx* ...'
@@ -252,12 +254,12 @@ CONTAINS
     allocate (carflx4000(kpie,kpje),stat=errstat)
     allocate (carflx_bot(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory carflx*'
-    carflx0100(:,:) = 0.0
-    carflx0500(:,:) = 0.0
-    carflx1000(:,:) = 0.0
-    carflx2000(:,:) = 0.0
-    carflx4000(:,:) = 0.0
-    carflx_bot(:,:) = 0.0
+    carflx0100(:,:) = 0.0_rp
+    carflx0500(:,:) = 0.0_rp
+    carflx1000(:,:) = 0.0_rp
+    carflx2000(:,:) = 0.0_rp
+    carflx4000(:,:) = 0.0_rp
+    carflx_bot(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable bsiflx* ...'
@@ -272,12 +274,12 @@ CONTAINS
     allocate (bsiflx4000(kpie,kpje),stat=errstat)
     allocate (bsiflx_bot(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory bsiflx*'
-    bsiflx0100(:,:) = 0.0
-    bsiflx0500(:,:) = 0.0
-    bsiflx1000(:,:) = 0.0
-    bsiflx2000(:,:) = 0.0
-    bsiflx4000(:,:) = 0.0
-    bsiflx_bot(:,:) = 0.0
+    bsiflx0100(:,:) = 0.0_rp
+    bsiflx0500(:,:) = 0.0_rp
+    bsiflx1000(:,:) = 0.0_rp
+    bsiflx2000(:,:) = 0.0_rp
+    bsiflx4000(:,:) = 0.0_rp
+    bsiflx_bot(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable calflx* ...'
@@ -292,12 +294,12 @@ CONTAINS
     allocate (calflx4000(kpie,kpje),stat=errstat)
     allocate (calflx_bot(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory calflx*'
-    calflx0100(:,:) = 0.0
-    calflx0500(:,:) = 0.0
-    calflx1000(:,:) = 0.0
-    calflx2000(:,:) = 0.0
-    calflx4000(:,:) = 0.0
-    calflx_bot(:,:) = 0.0
+    calflx0100(:,:) = 0.0_rp
+    calflx0500(:,:) = 0.0_rp
+    calflx1000(:,:) = 0.0_rp
+    calflx2000(:,:) = 0.0_rp
+    calflx4000(:,:) = 0.0_rp
+    calflx_bot(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable dustflx* ...'
@@ -312,12 +314,12 @@ CONTAINS
     allocate (dustflx4000(kpie,kpje),stat=errstat)
     allocate (dustflx_bot(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory dustflx*'
-    dustflx0100(:,:) = 0.0
-    dustflx0500(:,:) = 0.0
-    dustflx1000(:,:) = 0.0
-    dustflx2000(:,:) = 0.0
-    dustflx4000(:,:) = 0.0
-    dustflx_bot(:,:) = 0.0
+    dustflx0100(:,:) = 0.0_rp
+    dustflx0500(:,:) = 0.0_rp
+    dustflx1000(:,:) = 0.0_rp
+    dustflx2000(:,:) = 0.0_rp
+    dustflx4000(:,:) = 0.0_rp
+    dustflx_bot(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable phosy3d ...'
@@ -328,7 +330,7 @@ CONTAINS
 
     allocate (phosy3d(kpie,kpje,kpke),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory phosy3d'
-    phosy3d(:,:,:) = 0.0
+    phosy3d(:,:,:) = 0.0_rp
 
     if (use_AGG) then
       if (mnproc.eq.1) then
@@ -340,7 +342,7 @@ CONTAINS
 
       allocate (wmass(kpie,kpje,kpke),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory eps3d'
-      wmass(:,:,:) = 0.0
+      wmass(:,:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable wnumb ...'
@@ -351,7 +353,7 @@ CONTAINS
 
       allocate (wnumb(kpie,kpje,kpke),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory eps3d'
-      wnumb(:,:,:) = 0.0
+      wnumb(:,:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable eps3d ...'
@@ -362,7 +364,7 @@ CONTAINS
 
       allocate (eps3d(kpie,kpje,kpke),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory eps3d'
-      eps3d(:,:,:) = 0.0
+      eps3d(:,:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable asize3d ...'
@@ -373,7 +375,7 @@ CONTAINS
 
       allocate (asize3d(kpie,kpje,kpke),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory asize3d'
-      asize3d(:,:,:) = 0.0
+      asize3d(:,:,:) = 0.0_rp
     endif
 
     if (use_BROMO) then
@@ -386,8 +388,8 @@ CONTAINS
       allocate (int_chbr3_prod(kpie,kpje),stat=errstat)
       allocate (int_chbr3_uv(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory int_chbr3_prod, int_chbr3_uv'
-      int_chbr3_prod(:,:) = 0.0
-      int_chbr3_uv(:,:) = 0.0
+      int_chbr3_prod(:,:) = 0.0_rp
+      int_chbr3_uv(:,:) = 0.0_rp
     endif
 
     if (use_extNcycle) then
@@ -415,21 +417,21 @@ CONTAINS
       allocate (remin_sulf(kpie,kpje,kpke),stat=errstat)
 
       if(errstat.ne.0) stop 'not enough memory extended nitrogen cycle'
-      nitr_NH4      = 0.
-      nitr_NO2      = 0.
-      nitr_N2O_prod = 0.
-      nitr_NH4_OM   = 0.
-      nitr_NO2_OM   = 0.
-      denit_NO3     = 0.
-      denit_NO2     = 0.
-      denit_N2O     = 0.
-      DNRA_NO2      = 0.
-      anmx_N2_prod  = 0.
-      anmx_OM_prod  = 0.
-      phosy_NH4     = 0.
-      phosy_NO3     = 0.
-      remin_aerob   = 0.
-      remin_sulf    = 0.
+      nitr_NH4      = 0._rp
+      nitr_NO2      = 0._rp
+      nitr_N2O_prod = 0._rp
+      nitr_NH4_OM   = 0._rp
+      nitr_NO2_OM   = 0._rp
+      denit_NO3     = 0._rp
+      denit_NO2     = 0._rp
+      denit_N2O     = 0._rp
+      DNRA_NO2      = 0._rp
+      anmx_N2_prod  = 0._rp
+      anmx_OM_prod  = 0._rp
+      phosy_NH4     = 0._rp
+      phosy_NO3     = 0._rp
+      remin_aerob   = 0._rp
+      remin_sulf    = 0._rp
     endif
 
     if (use_DOMclasses) then
@@ -441,7 +443,7 @@ CONTAINS
 
       allocate (int_exudl(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory int_exudl'
-      int_exudl(:,:) = 0.0
+      int_exudl(:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable int_exudsl ...'
@@ -451,7 +453,7 @@ CONTAINS
 
       allocate (int_exudsl(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory int_exudsl'
-      int_exudsl(:,:) = 0.0
+      int_exudsl(:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable int_excrl ...'
@@ -461,7 +463,7 @@ CONTAINS
 
       allocate (int_excrl(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory int_excrl'
-      int_excrl(:,:) = 0.0
+      int_excrl(:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable int_excrsl ...'
@@ -471,7 +473,7 @@ CONTAINS
 
       allocate (int_excrsl(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory intexcrsl'
-      int_excrsl(:,:) = 0.0
+      int_excrsl(:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable int_docl_rem ...'
@@ -481,7 +483,7 @@ CONTAINS
 
       allocate (int_docl_rem(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory int_docl_rem'
-      int_docl_rem(:,:) = 0.0
+      int_docl_rem(:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable int_docsl_rem ...'
@@ -491,7 +493,7 @@ CONTAINS
 
       allocate (int_docsl_rem(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory int_docsl_rem'
-      int_docsl_rem(:,:) = 0.0
+      int_docsl_rem(:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable int_docsr_rem ...'
@@ -501,7 +503,7 @@ CONTAINS
 
       allocate (int_docsr_rem(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory int_docsr_rem'
-      int_docsr_rem(:,:) = 0.0
+      int_docsr_rem(:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable int_docr_rem ...'
@@ -511,7 +513,7 @@ CONTAINS
 
       allocate (int_docr_rem(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory int_docr_rem'
-      int_docr_rem(:,:) = 0.0
+      int_docr_rem(:,:) = 0.0_rp
     endif
 
   end subroutine alloc_mem_biomod

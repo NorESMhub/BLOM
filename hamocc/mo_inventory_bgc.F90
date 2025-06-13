@@ -40,6 +40,7 @@ contains
     !***********************************************************************************************
 
     use mod_xc,         only: mnproc,ips,nbdy,xcsum
+    use mo_kind,        only: rp
     use mo_carbch,      only: atm,atmflx,co3,hi,ndepnoyflx,rivinflx,ocetra,sedfluxo,ndepnhxflx
     use mo_sedmnt,      only: prcaca,prorca,silpro
     use mo_biomod,      only: expoor,expoca,exposi
@@ -68,76 +69,76 @@ contains
     ! Arguments
     integer, intent(in) :: kpie,kpje,kpke
     integer, intent(in) :: iogrp
-    real,    intent(in) :: dlxp(kpie,kpje)
-    real,    intent(in) :: dlyp(kpie,kpje)
-    real,    intent(in) :: ddpo(kpie,kpje,kpke)
-    real,    intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: dlxp(kpie,kpje)
+    real(rp),intent(in) :: dlyp(kpie,kpje)
+    real(rp),intent(in) :: ddpo(kpie,kpje,kpke)
+    real(rp),intent(in) :: omask(kpie,kpje)
 
     ! Local variables
     integer :: i,j,k,l
-    real :: ztmp1(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
-    real :: ztmp2(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
-    real :: vol
+    real(rp) :: ztmp1(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
+    real(rp) :: ztmp2(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
+    real(rp) :: vol
     ! ppm2con: atmospheric weight: ~10000kg/m^2, avrg. ~29 g/mol
     ! --> 350 kmol/m^2 --> 1ppm ~ 0.35e-3 kmol/m^2
-    real, parameter :: ppm2con = 0.35e-3
+    real(rp), parameter :: ppm2con = 0.35e-3_rp
     !=== Variables for global sums
-    real :: ztotvol                  ! Total ocean volume
-    real :: ztotarea                 ! Total sea surface area
+    real(rp) :: ztotvol                  ! Total ocean volume
+    real(rp) :: ztotarea                 ! Total sea surface area
     !--- aqueous sediment tracer
-    real :: zsedtotvol               ! Total pore water volume
-    real :: zpowtratot(npowtra)      ! Sum : Pore water tracers
-    real :: zpowtratoc(npowtra)      ! Mean concentration of pore water tracers
+    real(rp) :: zsedtotvol               ! Total pore water volume
+    real(rp) :: zpowtratot(npowtra)      ! Sum : Pore water tracers
+    real(rp) :: zpowtratoc(npowtra)      ! Mean concentration of pore water tracers
     !--- non aqueous sediment tracer
-    real :: zsedhplto                ! Total sediment accumulated hydrogen ions
-    real :: zsedlayto(nsedtra)       ! Sum : Sediment layer tracers
-    real :: zburial(nsedtra)         ! Sum : Sediment burial tracers
+    real(rp) :: zsedhplto                ! Total sediment accumulated hydrogen ions
+    real(rp) :: zsedlayto(nsedtra)       ! Sum : Sediment layer tracers
+    real(rp) :: zburial(nsedtra)         ! Sum : Sediment burial tracers
     !--- oceanic tracers
-    real :: zocetratot(nocetra)      ! Sum : Ocean tracers
-    real :: zocetratoc(nocetra)      ! Mean concentration of ocean racers
+    real(rp) :: zocetratot(nocetra)      ! Sum : Ocean tracers
+    real(rp) :: zocetratoc(nocetra)      ! Mean concentration of ocean racers
     !--- additional ocean tracer
-    real :: zhito                    ! Total hydrogen ion tracer
-    real :: zco3to                   ! Total dissolved carbonate (CO3) tracer
-    real :: ODZvol                   ! ODZ volume (O2threshold: 20 mumol)
+    real(rp) :: zhito                    ! Total hydrogen ion tracer
+    real(rp) :: zco3to                   ! Total dissolved carbonate (CO3) tracer
+    real(rp) :: ODZvol                   ! ODZ volume (O2threshold: 20 mumol)
     !--- alkalinity of the first layer
-    real :: zvoltop                  ! Total volume of top ocean layer
-    real :: zalkali                  ! Total alkalinity of top ocean layer
-    real :: zphosph                  ! Total phosphate of top ocean layer
-    real :: zano3                    ! Total nitrate of top ocean layer
+    real(rp) :: zvoltop                  ! Total volume of top ocean layer
+    real(rp) :: zalkali                  ! Total alkalinity of top ocean layer
+    real(rp) :: zphosph                  ! Total phosphate of top ocean layer
+    real(rp) :: zano3                    ! Total nitrate of top ocean layer
     !--- river fluxes
-    real :: srivflux(nriv)           ! sum of riverfluxes
+    real(rp) :: srivflux(nriv)           ! sum of riverfluxes
     !--- atmosphere flux and atmospheric CO2
-    real :: sndepnoyflux             ! sum of N dep fluxes
-    real :: sndepnhxflux             ! sum of N dep fluxes
-    real :: zatmco2,zatmo2,zatmn2
-    real :: co2flux,so2flux,sn2flux,sn2oflux,snh3flux,sdmsflux
-    real :: zprorca,zprcaca,zsilpro
+    real(rp) :: sndepnoyflux             ! sum of N dep fluxes
+    real(rp) :: sndepnhxflux             ! sum of N dep fluxes
+    real(rp) :: zatmco2,zatmo2,zatmn2
+    real(rp) :: co2flux,so2flux,sn2flux,sn2oflux,snh3flux,sdmsflux
+    real(rp) :: zprorca,zprcaca,zsilpro
     !--- total tracer budgets
-    real :: totalcarbon,totalphos,totalsil,totalnitr,totaloxy
+    real(rp) :: totalcarbon,totalphos,totalsil,totalnitr,totaloxy
     !--- sediment fluxes
-    real :: sum_zprorca
-    real :: sum_zprcaca
-    real :: sum_zsilpro
-    real :: sum_sedfluxo(npowtra)
+    real(rp) :: sum_zprorca
+    real(rp) :: sum_zprcaca
+    real(rp) :: sum_zsilpro
+    real(rp) :: sum_sedfluxo(npowtra)
     !--- export production
-    real :: sum_expoor
-    real :: sum_expoca
-    real :: sum_exposi
+    real(rp) :: sum_expoor
+    real(rp) :: sum_expoca
+    real(rp) :: sum_exposi
 
     !=== aqueous sediment tracer
     !----------------------------------------------------------------------
     if (use_sedbypass) then
 
-      zsedtotvol = 0.0
-      zpowtratot(:)=0.0
-      zpowtratoc(:)=0.0
-      zsedlayto(:)=0.0
-      zburial(:)=0.0
-      zsedhplto=0.0
+      zsedtotvol = 0.0_rp
+      zpowtratot(:)=0.0_rp
+      zpowtratoc(:)=0.0_rp
+      zsedlayto(:)=0.0_rp
+      zburial(:)=0.0_rp
+      zsedhplto=0.0_rp
 
     else
 
-      ztmp1(:,:)=0.0
+      ztmp1(:,:)=0.0_rp
       do k=1,ks
         do j=1,kpje
           do i=1,kpie
@@ -150,7 +151,7 @@ contains
       call xcsum(zsedtotvol,ztmp1,ips)
 
       do l=1,npowtra
-        ztmp1(:,:)=0.0
+        ztmp1(:,:)=0.0_rp
         do k=1,ks
           do j=1,kpje
             do i=1,kpie
@@ -169,7 +170,7 @@ contains
       zburial = sum2d_array(burial, nsedtra)
 
       do l=1,nsedtra
-        ztmp1(:,:)=0.0
+        ztmp1(:,:)=0.0_rp
         do k=1,ks
           do j=1,kpje
             do i=1,kpie
@@ -182,7 +183,7 @@ contains
         call xcsum(zsedlayto(l),ztmp1,ips)
       enddo
 
-      ztmp1(:,:)=0.0
+      ztmp1(:,:)=0.0_rp
       do k=1,ks
         do j=1,kpje
           do i=1,kpie
@@ -198,11 +199,11 @@ contains
 
     !=== oceanic tracers
     !----------------------------------------------------------------------
-    ztotvol    = 0.
-    zocetratot = 0.
-    zocetratoc = 0.
+    ztotvol    = 0._rp
+    zocetratot = 0._rp
+    zocetratoc = 0._rp
 
-    ztmp1(:,:)=0.0
+    ztmp1(:,:)=0.0_rp
     do k=1,kpke
       do j=1,kpje
         do i=1,kpie
@@ -217,14 +218,14 @@ contains
     call xcsum(ztotvol,ztmp1,ips)
 
     do l=1,nocetra
-      ztmp1(:,:)=0.0
+      ztmp1(:,:)=0.0_rp
       do k=1,kpke
         do j=1,kpje
           do i=1,kpie
             if (ddpo(i,j,k).gt.dp_min) then
               vol = dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
               ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*ocetra(i,j,k,l)*vol
-              !             if (ocetra(i,j,k,l).lt.0.0) then
+              !             if (ocetra(i,j,k,l).lt.0.0_rp) then
               !      write(io_stdo_bgc,*) 'ocetra -ve', l,ocetra(i,j,k,l)
               !             endif
             endif
@@ -238,11 +239,11 @@ contains
 
     !=== additional ocean tracer
     !----------------------------------------------------------------------
-    zhito  = 0.
-    zco3to = 0.
+    zhito  = 0._rp
+    zco3to = 0._rp
 
-    ztmp1(:,:)=0.0
-    ztmp2(:,:)=0.0
+    ztmp1(:,:)=0.0_rp
+    ztmp2(:,:)=0.0_rp
     do k=1,kpke
       do j=1,kpje
         do i=1,kpie
@@ -259,12 +260,12 @@ contains
     call xcsum(zco3to,ztmp2,ips)
 
     ! ODZ volume
-    ODZvol = 0.
-    ztmp1(:,:)=0.0
+    ODZvol = 0._rp
+    ztmp1(:,:)=0.0_rp
     do k=1,kpke
       do j=1,kpje
         do i=1,kpie
-          if (ddpo(i,j,k) > dp_min .and. ocetra(i,j,k,ioxygen) < 20.0e-6) then
+          if (ddpo(i,j,k) > dp_min .and. ocetra(i,j,k,ioxygen) < 20.0e-6_rp) then
             ! snapshot value for ODZ volume for hypoxic volume below 20mumol/L
             vol = dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
             ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*vol
@@ -276,12 +277,12 @@ contains
 
     !=== alkalinity of the first layer
     !--------------------------------------------------------------------
-    zvoltop = 0.
-    zalkali = 0.
+    zvoltop = 0._rp
+    zalkali = 0._rp
 
     k=1
-    ztmp1(:,:)=0.0
-    ztmp2(:,:)=0.0
+    ztmp1(:,:)=0.0_rp
+    ztmp2(:,:)=0.0_rp
     do j=1,kpje
       do i=1,kpie
         ztmp1(i,j) = omask(i,j)*dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
@@ -293,12 +294,12 @@ contains
     call xcsum(zalkali,ztmp2,ips)
 
     !=== phosphate and nitrate of the first layer
-    zphosph = 0.
-    zano3   = 0.
+    zphosph = 0._rp
+    zano3   = 0._rp
 
     k=1
-    ztmp1(:,:)=0.0
-    ztmp2(:,:)=0.0
+    ztmp1(:,:)=0.0_rp
+    ztmp2(:,:)=0.0_rp
     do j=1,kpje
       do i=1,kpie
         vol        = omask(i,j)*dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
@@ -311,21 +312,21 @@ contains
 
     !=== atmosphere flux and atmospheric CO2
     !--------------------------------------------------------------------
-    ztotarea =0.
-    co2flux  =0.
-    so2flux  =0.
-    sn2flux  =0.
-    sn2oflux =0.
-    snh3flux =0.
-    sdmsflux =0.
-    sndepnoyflux=0.
-    sndepnhxflux=0.
-    srivflux =0.
-    zatmco2  =0.
-    zatmo2   =0.
-    zatmn2   =0.
+    ztotarea =0._rp
+    co2flux  =0._rp
+    so2flux  =0._rp
+    sn2flux  =0._rp
+    sn2oflux =0._rp
+    snh3flux =0._rp
+    sdmsflux =0._rp
+    sndepnoyflux=0._rp
+    sndepnhxflux=0._rp
+    srivflux =0._rp
+    zatmco2  =0._rp
+    zatmo2   =0._rp
+    zatmn2   =0._rp
 
-    ztmp1(:,:)=0.0
+    ztmp1(:,:)=0.0_rp
     do j=1,kpje
       do i=1,kpie
         ztmp1(i,j) = dlxp(i,j)*dlyp(i,j)
@@ -460,27 +461,27 @@ contains
 
     totaloxy=                                                             &
          (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)              &
-         + zocetratot(izoo))*(-24.)+zocetratot(ioxygen)                   &
+         + zocetratot(izoo))*(-24._rp)+zocetratot(ioxygen)                &
          + zocetratot(iphosph)*2 +zocetratot(isco212)+zocetratot(icalc)   &
-         + zocetratot(iano3)*1.5+zocetratot(ian2o)*0.5                    &
-         + zsedlayto(issso12)*(-24.) + zsedlayto(isssc12)                 &
-        !+ zburial(issso12)*(-24.)   +   zburial(isssc12)                  &
-         + zpowtratot(ipowno3)*1.5+zpowtratot(ipowaic)                    &
+         + zocetratot(iano3)*1.5_rp+zocetratot(ian2o)*0.5_rp              &
+         + zsedlayto(issso12)*(-24._rp) + zsedlayto(isssc12)              &
+        !+ zburial(issso12)*(-24._rp)   +   zburial(isssc12)              &
+         + zpowtratot(ipowno3)*1.5_rp+zpowtratot(ipowaic)                 &
          + zpowtratot(ipowaox)+zpowtratot(ipowaph)*2                      &
-         - sndepnoyflux*1.5                                               &
-         + zprorca*(-24.)+zprcaca
+         - sndepnoyflux*1.5_rp                                            &
+         + zprorca*(-24._rp)+zprcaca
 
     if (use_BOXATM) then
       totaloxy = totaloxy + zatmo2*ppm2con+zatmco2*ppm2con
     else
-      totaloxy = totaloxy + so2flux+sn2oflux*0.5+co2flux
+      totaloxy = totaloxy + so2flux+sn2oflux*0.5_rp+co2flux
     endif
     if (use_extNcycle) then
-      totaloxy = totaloxy + zocetratot(iano2)+zpowtratot(ipown2o)*0.5+zpowtratot(ipowno2)
+      totaloxy = totaloxy + zocetratot(iano2)+zpowtratot(ipown2o)*0.5_rp+zpowtratot(ipowno2)
     endif
     if (use_DOMclasses) then
       totaloxy = totaloxy + (zocetratot(idocsl)+zocetratot(idocsr)        &
-                    + zocetratot(idocr))*(-24.)
+                    + zocetratot(idocr))*(-24._rp)
     endif
 
     if (do_rivinpt) then
@@ -502,8 +503,8 @@ contains
         totalnitr   = totalnitr  - srivflux(irtdoc)*rnit_tdochc-srivflux(irdet)*rnit_tdoclc        &
              &                   - srivflux(irdin)
         totalphos   = totalphos  - srivflux(irtdoc)-srivflux(irdet)-srivflux(irdip)
-        totaloxy    = totaloxy   - srivflux(irtdoc)*(-49.5)-srivflux(irdet)*(-10.5)                &
-             &                   - srivflux(irdin)*1.5-srivflux(irdip)*2.                          &
+        totaloxy    = totaloxy   - srivflux(irtdoc)*(-49.5_rp)-srivflux(irdet)*(-10.5_rp)          &
+             &                   - srivflux(irdin)*1.5_rp-srivflux(irdip)*2._rp                    &
              &                   - (srivflux(iralk)+srivflux(irdoc)*rcar_tdochc+srivflux(irdin)    &
              &                   + srivflux(irdip))
 
@@ -512,8 +513,8 @@ contains
              &                   - (srivflux(iralk)+srivflux(irdin)+srivflux(irdip))   ! =sco212
         totalnitr   = totalnitr  - (srivflux(irdoc)+srivflux(irdet))*rnit - srivflux(irdin)
         totalphos   = totalphos  - (srivflux(irdoc)+srivflux(irdet)+srivflux(irdip))
-        totaloxy    = totaloxy   - (srivflux(irdoc)+srivflux(irdet))*(-24.)                        &
-             &                   - srivflux(irdin)*1.5 - srivflux(irdip)*2.                        &
+        totaloxy    = totaloxy   - (srivflux(irdoc)+srivflux(irdet))*(-24._rp)                     &
+             &                   - srivflux(irdin)*1.5_rp - srivflux(irdip)*2._rp                  &
              &                   - (srivflux(iralk)+srivflux(irdin)+srivflux(irdip))
       endif
       totalsil    = totalsil   -  srivflux(irsi)
@@ -552,15 +553,15 @@ contains
       !**** Sum 2D scalar fields
       !**********************************************************************
       implicit none
-      real, dimension(kpie,kpje), intent(in) :: var2d
-      real :: total
+      real(rp), dimension(kpie,kpje), intent(in) :: var2d
+      real(rp) :: total
 
       ! Local variables
       integer :: i,j
       !--- input to xcsum require halo indices
-      real, dimension(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy) :: ztmp
+      real(rp), dimension(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy) :: ztmp
 
-      ztmp(:,:)=0.0
+      ztmp(:,:)=0.0_rp
       do j=1,kpje
         do i=1,kpie
           ztmp(i,j) = var2d(i,j)*dlxp(i,j)*dlyp(i,j)*omask(i,j)
@@ -576,15 +577,15 @@ contains
       !**********************************************************************
       implicit none
       integer, intent(in) :: narr
-      real, dimension(kpie,kpje,narr), intent(in) :: var3d
-      real, dimension(narr) :: total
+      real(rp), dimension(kpie,kpje,narr), intent(in) :: var3d
+      real(rp), dimension(narr) :: total
 
       ! Local variables
       integer :: i,j,k
       !--- input to xcsum require halo indices
-      real, dimension(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy) :: ztmp
+      real(rp), dimension(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy) :: ztmp
 
-      ztmp(:,:)=0.0
+      ztmp(:,:)=0.0_rp
       do k=1,narr
         do j=1,kpje
           do i=1,kpie
@@ -759,7 +760,6 @@ contains
                                nf90_def_var, nf90_double, nf90_enddef, nf90_global,                &
                                nf90_inq_dimid, nf90_inq_varid, nf90_open,                          &
                                nf90_put_att, nf90_put_var, nf90_unlimited, nf90_write
-      use mod_types,     only: r8
       use mod_config,    only: expcnf, runid, inst_suffix
       use mod_time,      only: date0, time0, date, time, nstep, nday_of_year, nstep_in_day,        &
                                calendar, blom_time
@@ -791,7 +791,7 @@ contains
       character(len=30) :: timeunits
       integer :: l
       integer :: ymd, tod           ! used to access blom_time
-      real(r8) :: datenum
+      real(rp):: datenum
 
       !=== Variables for netcdf
       integer :: ncid, ncvarid, ncstat
@@ -1500,7 +1500,7 @@ contains
             call nccheck( NF90_PUT_ATT(ncid, zt_tdoclc13_varid, 'long_name',             &
                  &    'Total terrestrial low-C dissolved organic carbon-C13 tracer') )
             call nccheck( NF90_PUT_ATT(ncid, zt_tdoclc13_varid, 'units', 'kmol') )
-    
+
             call nccheck( NF90_DEF_VAR(ncid, 'zc_tdoclc13', NF90_DOUBLE,                 &
                  &    time_dimid, zc_tdoclc13_varid) )
             call nccheck( NF90_PUT_ATT(ncid, zc_tdoclc13_varid, 'long_name',             &
@@ -1512,7 +1512,7 @@ contains
             call nccheck( NF90_PUT_ATT(ncid, zt_tdochc13_varid, 'long_name',             &
                  &    'Total terrestrial high-C dissolved organic carbon-C13 tracer') )
             call nccheck( NF90_PUT_ATT(ncid, zt_tdochc13_varid, 'units', 'kmol') )
-    
+
             call nccheck( NF90_DEF_VAR(ncid, 'zc_tdochc13', NF90_DOUBLE,                 &
                  &    time_dimid, zc_tdochc13_varid) )
             call nccheck( NF90_PUT_ATT(ncid, zc_tdochc13_varid, 'long_name',             &
@@ -1524,7 +1524,7 @@ contains
             call nccheck( NF90_PUT_ATT(ncid, zt_tdoclc14_varid, 'long_name',             &
                  &    'Total terrestrial low-C dissolved organic carbon-C14 tracer') )
             call nccheck( NF90_PUT_ATT(ncid, zt_tdoclc14_varid, 'units', 'kmol') )
-    
+
             call nccheck( NF90_DEF_VAR(ncid, 'zc_tdoclc14', NF90_DOUBLE,                 &
                  &    time_dimid, zc_tdoclc14_varid) )
             call nccheck( NF90_PUT_ATT(ncid, zc_tdoclc14_varid, 'long_name',             &
@@ -1536,7 +1536,7 @@ contains
             call nccheck( NF90_PUT_ATT(ncid, zt_tdochc14_varid, 'long_name',             &
                  &    'Total terrestrial high-C dissolved organic carbon-C14 tracer') )
             call nccheck( NF90_PUT_ATT(ncid, zt_tdochc14_varid, 'units', 'kmol') )
-    
+
             call nccheck( NF90_DEF_VAR(ncid, 'zc_tdochc14', NF90_DOUBLE,                 &
                  &    time_dimid, zc_tdochc14_varid) )
             call nccheck( NF90_PUT_ATT(ncid, zc_tdochc14_varid, 'long_name',             &
@@ -2484,7 +2484,7 @@ contains
            &  filemon_bgc(iogrp) .and. date%day == 1) .and.                        &
            &  mod(nstep, nstep_in_day) == 0) .or.                                  &
            &  .not.(fileann_bgc(iogrp) .or. filemon_bgc(iogrp)) .and.              &
-           &  mod(nstep + .5, filefq_bgc(iogrp)) < 1.) then
+           &  mod(nstep + .5, filefq_bgc(iogrp)) < 1._rp) then
         append2file_inv(iogrp) = .false.
         ncrec(iogrp) = 0
       else

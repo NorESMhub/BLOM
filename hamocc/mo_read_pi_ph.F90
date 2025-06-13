@@ -17,7 +17,7 @@
 
 module mo_read_pi_ph
 
-  use mo_kind, only: bgc_fnmlen
+  use mo_kind, only: bgc_fnmlen,rp
 
   implicit none
   private
@@ -42,10 +42,10 @@ module mo_read_pi_ph
   integer, parameter :: pi_ph_record = 12
 
   ! surface PI pH climatology
-  real, dimension(:,:,:), allocatable :: pi_ph_clim
+  real(rp), dimension(:,:,:), allocatable :: pi_ph_clim
 
   ! surface PI pH monthly data
-  real, dimension(:,:), allocatable :: pi_ph
+  real(rp), dimension(:,:), allocatable :: pi_ph
 
   integer :: oldmonth=0
 
@@ -64,11 +64,11 @@ contains
     ! Arguments
     integer, intent(in) :: kpie
     integer, intent(in) :: kpje
-    real,    intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: omask(kpie,kpje)
 
     ! Local variables
     integer ::i,j,l
-    real    :: pi_ph_in(kpie,kpje,pi_ph_record) ! define the fields
+    real(rp):: pi_ph_in(kpie,kpje,pi_ph_record) ! define the fields
     integer :: ncid,ncstat
 
     if(mnproc.eq.1) then
@@ -113,10 +113,10 @@ contains
       do l=1,pi_ph_record
         do j=1,kpje
           do i=1,kpie
-            if(omask(i,j).gt.0.5) then
+            if(omask(i,j).gt.0.5_rp) then
               pi_ph_clim(i,j,l) = pi_ph_in(i,j,l)
             else
-              pi_ph_clim(i,j,l) = 0.
+              pi_ph_clim(i,j,l) = 0._rp
             endif
           enddo
         enddo
@@ -150,6 +150,7 @@ contains
   subroutine alloc_pi_ph(kpie,kpje)
     !***********************************************************************************************
     use mod_xc,         only: mnproc
+    use mo_kind,        only: rp
     use mo_control_bgc, only: io_stdo_bgc
 
     ! Arguments
@@ -165,13 +166,14 @@ contains
 
     allocate (pi_ph(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory pi_ph'
-    pi_ph(:,:) = 0.0
+    pi_ph(:,:) = 0.0_rp
 
   end subroutine alloc_pi_ph
 
   subroutine alloc_pi_ph_clim(kpie,kpje)
     !***********************************************************************************************
     use mod_xc,         only: mnproc
+    use mo_kind,        only: rp
     use mo_control_bgc, only: io_stdo_bgc
 
     ! Arguments
@@ -189,7 +191,7 @@ contains
 
     allocate (pi_ph_clim(kpie,kpje,pi_ph_record),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory pi_ph_clim'
-    pi_ph_clim(:,:,:) = 0.0
+    pi_ph_clim(:,:,:) = 0.0_rp
 
   end subroutine alloc_pi_ph_clim
 

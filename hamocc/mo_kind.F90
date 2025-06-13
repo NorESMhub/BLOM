@@ -41,6 +41,10 @@ module mo_kind
   integer,parameter :: HAMOCC_CHAR_X  = blom_char_x   ! extra-long char
   integer,parameter :: HAMOCC_CHAR_XX = blom_char_xx  ! extra-extra-long char
 
+  ! NOTE: iHAMOCC currently only supports 8-byte real values.
+  ! This is mainly related to reading and writing routines in mo_netcdf_bgcrw.F90
+  ! where double precision is hard-coded (and which are used in several modules)
+  ! (note further that mo_read_rivin.F90 calls a BLOM rw-routine, which may also clash)
   integer,parameter :: bgc_fnmlen = fnmlen            ! default filename length
   integer,parameter :: rp = r8                        ! default real precision
   integer,parameter :: ip = i4                        ! default integer precision

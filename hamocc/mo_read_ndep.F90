@@ -49,7 +49,7 @@ module mo_read_ndep
   !
   !*************************************************************************************************
 
-  use mo_kind, only: bgc_fnmlen
+  use mo_kind, only: bgc_fnmlen,rp
 
   implicit none
   private
@@ -59,8 +59,8 @@ module mo_read_ndep
   public :: ndepfile
 
   character(len=bgc_fnmlen)  :: ndepfile=''
-  real,  allocatable  :: noydepread(:,:)
-  real,  allocatable  :: nhxdepread(:,:)
+  real(rp),  allocatable     :: noydepread(:,:)
+  real(rp),  allocatable     :: nhxdepread(:,:)
   integer             :: startyear,endyear
   logical             :: lini = .false.
   integer             :: oldmonth=0
@@ -125,7 +125,7 @@ contains
       endif
       allocate (nhxdepread(kpie,kpje),stat=errstat)
       if(errstat /= 0) stop 'not enough memory nhxdepread'
-      nhxdepread(:,:) = 0.0
+      nhxdepread(:,:) = 0.0_rp
 
       if (mnproc == 1) then
         write(io_stdo_bgc,*)'Memory allocation for variable noydepread ...'
@@ -134,7 +134,7 @@ contains
       endif
       allocate (noydepread(kpie,kpje),stat=errstat)
       if(errstat /= 0) stop 'not enough memory noydepread'
-      noydepread(:,:) = 0.0
+      noydepread(:,:) = 0.0_rp
 
       ! read start and end year of n-deposition file
       call ncfopn(trim(ndepfile),'r',' ',1,iotype)
@@ -176,18 +176,18 @@ contains
     integer, intent(in)  :: kbnd              !
     integer, intent(in)  :: kplyear           ! current year.
     integer, intent(in)  :: kplmon            ! current month.
-    real,    intent(in)  :: omask(kpie,kpje)  ! land/ocean mask (1=ocean)
-    real,    intent(out) :: ndep(kpie,kpje,nndep) ! N-deposition field for current year and month
-    real,    intent(in)  :: patmnhxdep(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)   ! Atmospheric NHx deposition [kgN m-2 s-1]
-    real,    intent(in)  :: patmnoydep(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)   ! Atmospheric NOy deposition [kgN m-2 s-1]
+    real(rp),intent(in)  :: omask(kpie,kpje)  ! land/ocean mask (1=ocean)
+    real(rp),intent(out) :: ndep(kpie,kpje,nndep) ! N-deposition field for current year and month
+    real(rp),intent(in)  :: patmnhxdep(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)   ! Atmospheric NHx deposition [kgN m-2 s-1]
+    real(rp),intent(in)  :: patmnoydep(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)   ! Atmospheric NOy deposition [kgN m-2 s-1]
 
 
     ! local variables
     integer  :: month_in_file, ncstat, ncid, i, j
-    real     :: fatmndep
+    real(rp) :: fatmndep
     logical  :: first_call = .true.
 
-    ndep(:,:,:) = 0.0
+    ndep(:,:,:) = 0.0_rp
 
     if (.not. do_ndep) then
       ! if N-deposition is switched off return
@@ -202,16 +202,16 @@ contains
       endif
 
       ! convert from kgN/m2/s to climatological input file units: kmolN/m2/yr
-      fatmndep = 365.*sec_per_day/mw_nitrogen
+      fatmndep = 365._rp*sec_per_day/mw_nitrogen
 
       if (use_extNcycle) then
         !$omp parallel do private(i)
         do j=1,kpje
           do i=1,kpie
-            if (patmnoydep(i,j) > 0.) then
+            if (patmnoydep(i,j) > 0._rp) then
               ndep(i,j,idepnoy) = patmnoydep(i,j)*fatmndep
             endif
-            if (patmnhxdep(i,j) > 0.) then
+            if (patmnhxdep(i,j) > 0._rp) then
               ndep(i,j,idepnhx) = patmnhxdep(i,j)*fatmndep
             endif
           enddo
@@ -221,7 +221,7 @@ contains
         !$omp parallel do private(i)
         do j=1,kpje
           do i=1,kpie
-            if (patmnoydep(i,j) > 0. .and.  patmnhxdep(i,j) > 0.) then
+            if (patmnoydep(i,j) > 0._rp .and.  patmnhxdep(i,j) > 0._rp) then
               ! reduced and oxidized forms all enter the NO3 pool
               ndep(i,j,idepnoy) = (patmnoydep(i,j)+patmnhxdep(i,j))*fatmndep
             endif

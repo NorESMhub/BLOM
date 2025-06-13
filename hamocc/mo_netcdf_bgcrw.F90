@@ -39,6 +39,7 @@ contains
     use netcdf,  only: nf90_double,nf90_noerr,nf90_put_att,nf90_def_var
     use mod_xc,  only: mnproc,xchalt
     use mod_dia, only: iotype
+    use mo_kind, only: rp
 #ifdef PNETCDF
 #   include <pnetcdf.inc>
 #   include <mpif.h>
@@ -60,7 +61,7 @@ contains
 
     ! Local variables
     integer                       :: k
-    real                          :: pmissing
+    real(rp)                      :: pmissing
     character(len=24)             :: ystring
     integer                       :: ncstat
 #ifdef PNETCDF
@@ -201,8 +202,8 @@ contains
     endif
 
   end subroutine netcdf_def_vardb
-  
-  
+
+
   subroutine write_netcdf_var(ncid,desc,arr,klev,time)
 
     !***********************************************************************************************
@@ -213,6 +214,7 @@ contains
     use netcdf,  only: nf90_noerr,nf90_inq_varid,nf90_strerror,nf90_put_var
     use mod_xc,  only: itdm,jtdm,jdm,lp,mnproc,nbdy,idm,xchalt,xcaget
     use mod_dia, only: iotype
+    use mo_kind, only: rp
 #ifdef PNETCDF
     use mod_xc,  only: i0,ii,jj,j0,mproc,mpe_1,nproc,xcgetrow
 #   include <pnetcdf.inc>
@@ -224,18 +226,18 @@ contains
     character(len=*), intent(in)  :: desc
     integer,          intent(in)  :: klev
     integer,          intent(in)  :: time
-    real,             intent(in)  :: arr(idm,jdm,klev)
+    real(rp),         intent(in)  :: arr(idm,jdm,klev)
 
     ! Local variables
     integer                       :: k,i,j
     integer                       :: ndims
-    real                          :: arr_g(itdm,jtdm)
+    real(rp)                      :: arr_g(itdm,jtdm)
     integer                       :: ncstat
     integer                       :: ncvarid
     integer, allocatable          :: start(:),count(:)
-    real,    allocatable          :: arr_l(:,:,:)
+    real(rp),    allocatable      :: arr_l(:,:,:)
 #ifdef PNETCDF
-    real,    allocatable          :: arr_g1(:,:,:)
+    real(rp),    allocatable      :: arr_g1(:,:,:)
     integer (kind=MPI_OFFSET_KIND), allocatable :: istart(:),icount(:)
 #endif
 
@@ -253,7 +255,7 @@ contains
       allocate(start(ndims))
       allocate(count(ndims))
       allocate(arr_l(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,1))
-      arr_l=0.0
+      arr_l=0.0_rp
       start(1)=1
       count(1)=itdm
       start(2)=1
@@ -318,8 +320,8 @@ contains
       allocate(arr_l(ii,jj,klev))
       allocate(arr_g1(itdm,jj,klev))
 
-      arr_l=0.0
-      arr_g1=0.0
+      arr_l=0.0_rp
+      arr_g1=0.0_rp
 
       if (klev.gt.1.or.time.gt.0) then
         if (klev.gt.1.and.time.gt.0) then
@@ -385,7 +387,7 @@ contains
     end if
 
   end subroutine write_netcdf_var
-  
+
 
   subroutine read_netcdf_var(ncid,desc,arr,klev,time,typeio)
 
@@ -396,6 +398,7 @@ contains
 
     use netcdf, only: nf90_noerr,nf90_inq_varid,nf90_strerror,nf90_get_var
     use mod_xc, only: idm,itdm,jtdm,jdm,lp,mnproc,nbdy,xchalt,xcaput
+    use mo_kind,only: rp
 #ifdef PNETCDF
     use mod_xc, only: i0,ii,jj,j0
 #   include <pnetcdf.inc>
@@ -408,15 +411,15 @@ contains
     integer,          intent(in)  :: klev
     integer,          intent(in)  :: time
     integer,          intent(in)  :: typeio
-    real,             intent(out) :: arr(idm,jdm,klev)
+    real(rp),         intent(out) :: arr(idm,jdm,klev)
 
     ! Local variables
     integer                       :: i,j,k
     integer                       :: ncstat
     integer                       :: ncvarid
     integer                       :: start(4),count(4)
-    real                          :: arr_g(itdm,jtdm)
-    real, allocatable             :: arr_l(:,:,:)
+    real(rp)                      :: arr_g(itdm,jtdm)
+    real(rp), allocatable         :: arr_l(:,:,:)
 #ifdef PNETCDF
     integer(kind=MPI_OFFSET_KIND) :: istart(4),icount(4)
 #endif
@@ -480,7 +483,7 @@ contains
 
 #ifdef PNETCDF
       allocate(arr_l(ii,jj,klev))
-      arr=0.0
+      arr=0.0_rp
       istart=1
       icount=0
       istart(1)=i0+1
@@ -530,6 +533,5 @@ contains
     deallocate(arr_l)
 
   end subroutine read_netcdf_var
- 
 
 end module mo_netcdf_bgcrw

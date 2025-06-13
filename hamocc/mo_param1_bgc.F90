@@ -29,6 +29,7 @@ module mo_param1_bgc
   !  - implement R2OMIP protocol
   !*************************************************************************************************
 
+  use mo_kind,        only: rp
   use mo_control_bgc, only: use_BROMO, use_AGG, use_WLIN, use_natDIC, use_CFC,                     &
                             use_cisonew, use_PBGC_OCNP_TIMESTEP, use_PBGC_CK_TIMESTEP,             &
                             use_FB_BGC_OCE, use_BOXATM, use_sedbypass, use_extNcycle,              &
@@ -36,8 +37,8 @@ module mo_param1_bgc
   implicit none
   public
 
-  integer, parameter :: ks=12,ksp=ks+1    ! ks: nb of sediment layers
-  real,    parameter :: safediv = 1.0e-25 ! added to the denominator of isotopic ratios (avoid div. by zero)
+  integer, parameter :: ks=12,ksp=ks+1       ! ks: nb of sediment layers
+  real(rp),parameter :: safediv = 1.0e-25_rp ! added to the denominator of isotopic ratios (avoid div. by zero)
 
   ! ------------------
   ! Tracer indices

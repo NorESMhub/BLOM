@@ -30,6 +30,7 @@ module mo_sedmnt
   !*************************************************************************************************
 
   use mod_xc,         only: mnproc
+  use mo_kind,        only: rp
   use mo_param1_bgc,  only: ks,ksp,nsedtra,npowtra
   use mo_control_bgc, only: io_stdo_bgc,use_sedbypass,use_cisonew,use_sediment_quality
 
@@ -42,42 +43,42 @@ module mo_sedmnt
   private :: ini_sedmnt_por    ! Initialize 2D and 3D sediment fields
 
   ! Module variables
-  real, protected, public :: dzs(ksp)    = 0.0
-  real, protected, public :: seddzi(ksp) = 0.0
-  real, protected, public :: seddw(ks)   = 0.0
+  real(rp), protected, public :: dzs(ksp)    = 0.0_rp
+  real(rp), protected, public :: seddzi(ksp) = 0.0_rp
+  real(rp), protected, public :: seddw(ks)   = 0.0_rp
 
-  real, dimension (:,:,:,:), allocatable, public :: sedlay
-  real, dimension (:,:,:,:), allocatable, public :: powtra
-  real, dimension (:,:,:),   allocatable, public :: sedhpl
-  real, dimension (:,:,:),   allocatable, public :: porsol
-  real, dimension (:,:,:),   allocatable, public :: porwah
-  real, dimension (:,:,:),   allocatable, public :: porwat
-  real, dimension (:,:),     allocatable, public :: solfu
-  real, dimension (:,:,:),   allocatable, public :: zcoefsu
-  real, dimension (:,:,:),   allocatable, public :: zcoeflo
+  real(rp), dimension (:,:,:,:), allocatable, public :: sedlay
+  real(rp), dimension (:,:,:,:), allocatable, public :: powtra
+  real(rp), dimension (:,:,:),   allocatable, public :: sedhpl
+  real(rp), dimension (:,:,:),   allocatable, public :: porsol
+  real(rp), dimension (:,:,:),   allocatable, public :: porwah
+  real(rp), dimension (:,:,:),   allocatable, public :: porwat
+  real(rp), dimension (:,:),     allocatable, public :: solfu
+  real(rp), dimension (:,:,:),   allocatable, public :: zcoefsu
+  real(rp), dimension (:,:,:),   allocatable, public :: zcoeflo
 
-  real, dimension (:,:),     allocatable, public :: silpro
-  real, dimension (:,:),     allocatable, public :: prorca
-  real, dimension (:,:),     allocatable, public :: prorca_mavg
-  real, dimension (:,:),     allocatable, public :: pror13
-  real, dimension (:,:),     allocatable, public :: prca13
-  real, dimension (:,:),     allocatable, public :: pror14
-  real, dimension (:,:),     allocatable, public :: prca14
-  real, dimension (:,:),     allocatable, public :: prcaca
-  real, dimension (:,:),     allocatable, public :: produs
-  real, dimension (:,:,:),   allocatable, public :: burial
+  real(rp), dimension (:,:),     allocatable, public :: silpro
+  real(rp), dimension (:,:),     allocatable, public :: prorca
+  real(rp), dimension (:,:),     allocatable, public :: prorca_mavg
+  real(rp), dimension (:,:),     allocatable, public :: pror13
+  real(rp), dimension (:,:),     allocatable, public :: prca13
+  real(rp), dimension (:,:),     allocatable, public :: pror14
+  real(rp), dimension (:,:),     allocatable, public :: prca14
+  real(rp), dimension (:,:),     allocatable, public :: prcaca
+  real(rp), dimension (:,:),     allocatable, public :: produs
+  real(rp), dimension (:,:,:),   allocatable, public :: burial
 
   ! Output diagnostics
-  real, dimension (:,:,:),   allocatable, public :: sed_rem_aerob
-  real, dimension (:,:,:),   allocatable, public :: sed_rem_denit
-  real, dimension (:,:,:),   allocatable, public :: sed_rem_sulf
+  real(rp), dimension (:,:,:),   allocatable, public :: sed_rem_aerob
+  real(rp), dimension (:,:,:),   allocatable, public :: sed_rem_denit
+  real(rp), dimension (:,:,:),   allocatable, public :: sed_rem_sulf
 
   ! values for sediment quality-driven remineralization
-  real, dimension(:,:,:),    allocatable, public :: sed_reactivity_a
-  real, dimension(:,:,:),    allocatable, public :: sed_reactivity_k
-  real, dimension(:,:,:),    allocatable, public :: sed_applied_reminrate
+  real(rp), dimension(:,:,:),    allocatable, public :: sed_reactivity_a
+  real(rp), dimension(:,:,:),    allocatable, public :: sed_reactivity_k
+  real(rp), dimension(:,:,:),    allocatable, public :: sed_applied_reminrate
 
-  real, protected, public :: calfa, oplfa, orgfa, clafa
+  real(rp), protected, public :: calfa, oplfa, orgfa, clafa
 
 CONTAINS
 
@@ -88,10 +89,10 @@ CONTAINS
 
     ! Arguments
     integer, intent(in) :: kpie,kpje
-    real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: sed_por(kpie,kpje,ks)
-    real,    intent(in) :: sed_POCage_init(kpie,kpje,ks)
-    real,    intent(in) :: prorca_mavg_init(kpie,kpje)
+    real(rp),intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: sed_por(kpie,kpje,ks)
+    real(rp),intent(in) :: sed_POCage_init(kpie,kpje,ks)
+    real(rp),intent(in) :: prorca_mavg_init(kpie,kpje)
 
     ! Local variables
     integer :: k
@@ -100,22 +101,22 @@ CONTAINS
     calfa = calcwei / calcdens
     oplfa = opalwei / opaldens
     orgfa = orgwei / orgdens
-    clafa = 1. / claydens    !clay is calculated in kg/m3
+    clafa = 1._rp / claydens    !clay is calculated in kg/m3
 
     ! sediment layer thickness
-    dzs(1) = 0.001
-    dzs(2) = 0.003
-    dzs(3) = 0.005
-    dzs(4) = 0.007
-    dzs(5) = 0.009
-    dzs(6) = 0.011
-    dzs(7) = 0.013
-    dzs(8) = 0.015
-    dzs(9) = 0.017
-    dzs(10) = 0.019
-    dzs(11) = 0.021
-    dzs(12) = 0.023
-    dzs(13) = 0.025
+    dzs(1) = 0.001_rp
+    dzs(2) = 0.003_rp
+    dzs(3) = 0.005_rp
+    dzs(4) = 0.007_rp
+    dzs(5) = 0.009_rp
+    dzs(6) = 0.011_rp
+    dzs(7) = 0.013_rp
+    dzs(8) = 0.015_rp
+    dzs(9) = 0.017_rp
+    dzs(10) = 0.019_rp
+    dzs(11) = 0.021_rp
+    dzs(12) = 0.023_rp
+    dzs(13) = 0.025_rp
 
     if (mnproc == 1) then
       write(io_stdo_bgc,*)  ' '
@@ -124,10 +125,10 @@ CONTAINS
       write(io_stdo_bgc,*)  ' '
     endif
 
-    seddzi(1) = 500.
+    seddzi(1) = 500._rp
     do k = 1, ks
-      seddzi(k+1) = 1. / dzs(k+1)          ! inverse of grid cell size
-      seddw(k) = 0.5 * (dzs(k) + dzs(k+1)) ! distance between grid cell centers (pressure points)
+      seddzi(k+1) = 1._rp / dzs(k+1)          ! inverse of grid cell size
+      seddw(k) = 0.5_rp * (dzs(k) + dzs(k+1)) ! distance between grid cell centers (pressure points)
     enddo
 
     if (.not. use_sedbypass) then
@@ -154,8 +155,8 @@ CONTAINS
 
     ! Arguments
     integer, intent(in) :: kpie,kpje
-    real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: sed_por(kpie,kpje,ks)
+    real(rp),intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: sed_por(kpie,kpje,ks)
 
     ! local
     integer :: i,j,k
@@ -167,25 +168,25 @@ CONTAINS
       do k=1,ks
         do j=1,kpje
           do i=1,kpie
-            if(omask(i,j).gt. 0.5) then
+            if(omask(i,j).gt. 0.5_rp) then
               porwat(i,j,k) = sed_por(i,j,k)
             endif
           enddo
         enddo
       enddo
     else
-      porwat(:,:,1) = 0.85
-      porwat(:,:,2) = 0.83
-      porwat(:,:,3) = 0.8
-      porwat(:,:,4) = 0.79
-      porwat(:,:,5) = 0.77
-      porwat(:,:,6) = 0.75
-      porwat(:,:,7) = 0.73
-      porwat(:,:,8) = 0.7
-      porwat(:,:,9) = 0.68
-      porwat(:,:,10) = 0.66
-      porwat(:,:,11) = 0.64
-      porwat(:,:,12) = 0.62
+      porwat(:,:,1) = 0.85_rp
+      porwat(:,:,2) = 0.83_rp
+      porwat(:,:,3) = 0.8_rp
+      porwat(:,:,4) = 0.79_rp
+      porwat(:,:,5) = 0.77_rp
+      porwat(:,:,6) = 0.75_rp
+      porwat(:,:,7) = 0.73_rp
+      porwat(:,:,8) = 0.7_rp
+      porwat(:,:,9) = 0.68_rp
+      porwat(:,:,10) = 0.66_rp
+      porwat(:,:,11) = 0.64_rp
+      porwat(:,:,12) = 0.62_rp
     endif
 
     if (mnproc == 1) then
@@ -195,15 +196,15 @@ CONTAINS
     do k = 1, ks
       do j = 1, kpje
         do i = 1, kpie
-          porsol(i,j,k) = 1. - porwat(i,j,k)                                  ! solid volume fraction at grid center
-          if(k >= 2) porwah(i,j,k) = 0.5 * (porwat(i,j,k) + porwat(i,j,k-1))  ! porosity at cell interfaces
-          if(k == 1) porwah(i,j,k) = 0.5 * (1. + porwat(i,j,1))
+          porsol(i,j,k) = 1._rp - porwat(i,j,k)                                  ! solid volume fraction at grid center
+          if(k >= 2) porwah(i,j,k) = 0.5_rp * (porwat(i,j,k) + porwat(i,j,k-1))  ! porosity at cell interfaces
+          if(k == 1) porwah(i,j,k) = 0.5_rp * (1._rp + porwat(i,j,1))
         enddo
       enddo
     enddo
 
     ! determine total solid sediment volume
-    solfu = 0.
+    solfu = 0._rp
     do i = 1, kpie
       do j = 1, kpje
         do k = 1, ks
@@ -213,7 +214,7 @@ CONTAINS
     enddo
 
     ! Initialize porosity-dependent diffusion coefficients of sediment
-    zcoefsu(:,:,0) = 0.0
+    zcoefsu(:,:,0) = 0.0_rp
     do k = 1,ks
       do j = 1, kpje
         do i = 1, kpie
@@ -223,7 +224,7 @@ CONTAINS
         enddo
       enddo
     enddo
-    zcoeflo(:,:,ks) = 0.0                    ! diffusion coefficient for bottom sediment layer
+    zcoeflo(:,:,ks) = 0.0_rp                    ! diffusion coefficient for bottom sediment layer
 
     if (mnproc == 1) then
       write(io_stdo_bgc,*)  'Pore water diffusion coefficients in sediment initialized'
@@ -242,9 +243,9 @@ CONTAINS
     implicit none
     ! Arguments
     integer, intent(in) :: kpie,kpje
-    real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: sed_POCage_init(kpie,kpje,ks)
-    real,    intent(in) :: prorca_mavg_init(kpie,kpje)
+    real(rp),intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: sed_POCage_init(kpie,kpje,ks)
+    real(rp),intent(in) :: prorca_mavg_init(kpie,kpje)
 
     ! Local variables
     integer :: i,j,k
@@ -259,7 +260,7 @@ CONTAINS
       do j = 1,kpje
           ! Units: prorca_mavg_init expected to be in [kmol P m-2 s-1]
           !        - needs to be converted to [mmol P m-2 d-1]
-          prorca_mavg(i,j)        = prorca_mavg_init(i,j)*1.0e6/sec_per_day
+          prorca_mavg(i,j)        = prorca_mavg_init(i,j)*1.0e6_rp/sec_per_day
           burial(i,j,issso12_age) = sed_POCage_init(i,j,ks)
         do k = 1,ks
           sedlay(i,j,k,issso12_age) = sed_POCage_init(i,j,k)
@@ -295,7 +296,7 @@ CONTAINS
     endif
     allocate (silpro(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory silpro'
-    silpro(:,:) = 0.0
+    silpro(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable prorca ...'
@@ -304,14 +305,14 @@ CONTAINS
     endif
     allocate (prorca(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory prorca'
-    prorca(:,:) = 0.0
+    prorca(:,:) = 0.0_rp
     if (use_cisonew) then
       allocate (pror13(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory pror13'
-      pror13(:,:) = 0.0
+      pror13(:,:) = 0.0_rp
       allocate (pror14(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory pror14'
-      pror14(:,:) = 0.0
+      pror14(:,:) = 0.0_rp
     endif
 
     if (use_sediment_quality) then
@@ -322,7 +323,7 @@ CONTAINS
       endif
       allocate (prorca_mavg(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory prorca_mavg'
-      prorca_mavg(:,:) = 0.0
+      prorca_mavg(:,:) = 0.0_rp
 
 
       if (mnproc.eq.1) then
@@ -333,7 +334,7 @@ CONTAINS
       endif
       allocate (sed_reactivity_a(kpie,kpje,ks),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory sed_reactivity_a'
-      sed_reactivity_a(:,:,:) = 0.0
+      sed_reactivity_a(:,:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable sed_reactivity_k ...'
@@ -343,7 +344,7 @@ CONTAINS
       endif
       allocate (sed_reactivity_k(kpie,kpje,ks),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory sed_reactivity_k'
-      sed_reactivity_k(:,:,:) = 0.0
+      sed_reactivity_k(:,:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable sed_applied_reminrate ...'
@@ -353,7 +354,7 @@ CONTAINS
       endif
       allocate (sed_applied_reminrate(kpie,kpje,ks),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory sed_applied_reminrate'
-      sed_applied_reminrate(:,:,:) = 0.0
+      sed_applied_reminrate(:,:,:) = 0.0_rp
     endif
 
     if (mnproc.eq.1) then
@@ -363,14 +364,14 @@ CONTAINS
     endif
     allocate (prcaca(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory prcaca'
-    prcaca(:,:) = 0.0
+    prcaca(:,:) = 0.0_rp
     if (use_cisonew) then
       allocate (prca13(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory prca13'
-      prca13(:,:) = 0.0
+      prca13(:,:) = 0.0_rp
       allocate (prca14(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory prca14'
-      prca14(:,:) = 0.0
+      prca14(:,:) = 0.0_rp
     endif
 
     if (mnproc.eq.1) then
@@ -380,7 +381,7 @@ CONTAINS
     endif
     allocate (produs(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory produs'
-    produs(:,:) = 0.0
+    produs(:,:) = 0.0_rp
 
     if (.not. use_sedbypass) then
       if (mnproc.eq.1) then
@@ -392,7 +393,7 @@ CONTAINS
       endif
       allocate (sedlay(kpie,kpje,ks,nsedtra),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory sedlay'
-      sedlay(:,:,:,:) = 0.0
+      sedlay(:,:,:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable sedhpl ...'
@@ -402,7 +403,7 @@ CONTAINS
       endif
       allocate (sedhpl(kpie,kpje,ks),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory sedhpl'
-      sedhpl(:,:,:) = 0.0
+      sedhpl(:,:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable porsol ...'
@@ -412,7 +413,7 @@ CONTAINS
       endif
       allocate (porsol(kpie,kpje,ks),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory porsol'
-      porsol(:,:,:) = 0.0
+      porsol(:,:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable porwah ...'
@@ -422,7 +423,7 @@ CONTAINS
       endif
       allocate (porwah(kpie,kpje,ks),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory porwah'
-      porwah(:,:,:) = 0.0
+      porwah(:,:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable porwat ...'
@@ -432,7 +433,7 @@ CONTAINS
       endif
       allocate (porwat(kpie,kpje,ks),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory porwat'
-      porwat(:,:,:) = 0.0
+      porwat(:,:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable solfu ...'
@@ -441,7 +442,7 @@ CONTAINS
       endif
       allocate (solfu(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory solfu'
-      solfu(:,:) = 0.0
+      solfu(:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable zcoefsu ...'
@@ -451,7 +452,7 @@ CONTAINS
       endif
       allocate (zcoefsu(kpie,kpje,0:ks),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory zcoefsu'
-      zcoefsu(:,:,:) = 0.0
+      zcoefsu(:,:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable zcoeflo ...'
@@ -461,7 +462,7 @@ CONTAINS
       endif
       allocate (zcoeflo(kpie,kpje,0:ks),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory zcoeflo'
-      zcoeflo(:,:,:) = 0.0
+      zcoeflo(:,:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable burial ...'
@@ -471,7 +472,7 @@ CONTAINS
       endif
       allocate (burial(kpie,kpje,nsedtra),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory burial'
-      burial(:,:,:) = 0.0
+      burial(:,:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable powtra ...'
@@ -482,7 +483,7 @@ CONTAINS
       endif
       allocate (powtra(kpie,kpje,ks,npowtra),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory powtra'
-      powtra(:,:,:,:) = 0.0
+      powtra(:,:,:,:) = 0.0_rp
 
       if (.not. use_extNcycle) then
         if (mnproc.eq.1) then
@@ -493,7 +494,7 @@ CONTAINS
         endif
         allocate (sed_rem_aerob(kpie,kpje,ks),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory sed_rem_aerob'
-        sed_rem_aerob(:,:,:) = 0.0
+        sed_rem_aerob(:,:,:) = 0.0_rp
 
         if (mnproc.eq.1) then
           write(io_stdo_bgc,*)'Memory allocation for variable sed_rem_denit ..'
@@ -503,7 +504,7 @@ CONTAINS
         endif
         allocate (sed_rem_denit(kpie,kpje,ks),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory sed_rem_denit'
-        sed_rem_denit(:,:,:) = 0.0
+        sed_rem_denit(:,:,:) = 0.0_rp
 
         if (mnproc.eq.1) then
           write(io_stdo_bgc,*)'Memory allocation for variable sed_rem_sulf ..'
@@ -513,7 +514,7 @@ CONTAINS
         endif
         allocate (sed_rem_sulf(kpie,kpje,ks),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory sed_rem_sulf'
-        sed_rem_sulf(:,:,:) = 0.0
+        sed_rem_sulf(:,:,:) = 0.0_rp
       endif
     endif ! use_sedbypass
 

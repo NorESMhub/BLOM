@@ -40,6 +40,7 @@ contains
     use mod_grid,       only: plon,plat,depths
     use mod_forcing,    only: use_stream_dust
     use mod_tracers,    only: ntrbgc,ntr,itrbgc,trc
+    use mo_kind,        only: rp
     use mo_control_bgc, only: bgc_namelist,get_bgc_namelist,do_ndep,do_rivinpt,do_oalk,            &
                               do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,                 &
                               dtb,dtbgc,io_stdo_bgc,ldtbgc,                                        &
@@ -80,11 +81,11 @@ contains
     character(len=*), intent(in) :: rstfnm_hamocc ! restart filename.
 
     ! Local variables
-    integer :: i,j,k,l,nt
-    integer :: iounit
-    real    :: sed_por(idm,jdm,ks)         = 0.
-    real    :: sed_POCage_init(idm,jdm,ks) = 0.
-    real    :: prorca_mavg_init(idm,jdm)   = 0.
+    integer  :: i,j,k,l,nt
+    integer  :: iounit
+    real(rp) :: sed_por(idm,jdm,ks)         = 0._rp
+    real(rp) :: sed_POCage_init(idm,jdm,ks) = 0._rp
+    real(rp) :: prorca_mavg_init(idm,jdm)   = 0._rp
 
     namelist /bgcnml/ atm_co2,fedepfile,fedep_source,do_rivinpt,rivinfile,do_ndep,ndepfile,do_oalk,&
          &            do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,                         &
@@ -100,7 +101,7 @@ contains
     io_stdo_bgc = lp                   !  standard out.
     dtbgc = nphys*baclin               !  time step length [sec].
     ndtdaybgc=NINT(sec_per_day/dtbgc)  !  time steps per day [No].
-    dtb=1./ndtdaybgc                   !  time step length [days].
+    dtb=1._rp/ndtdaybgc                   !  time step length [days].
     ldtbgc = 0
     ldtrunbgc = 0
 
@@ -165,7 +166,7 @@ contains
       do k=1,2*kk
         do j=1,jj
           do i=1,ii
-            trc(i,j,k,nt)=0.0
+            trc(i,j,k,nt)=0.0_rp
           enddo
         enddo
       enddo
@@ -176,7 +177,7 @@ contains
     do j=1,jj
       do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          omask(i,j)=1.
+          omask(i,j)=1._rp
         enddo
       enddo
     enddo

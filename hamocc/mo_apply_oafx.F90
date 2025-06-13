@@ -39,6 +39,7 @@ contains
     ! J. Schwinger            *NORCE Climate, Bergen*     2021-11-15
     !***********************************************************************************************
 
+    use mo_kind,        only: rp
     use mo_control_bgc, only: dtb,do_oalk
     use mo_param1_bgc,  only: ialkali
     use mo_carbch,      only: ocetra,oalkflx,OmegaA
@@ -48,25 +49,25 @@ contains
     integer, intent(in) :: kpie                     ! 1st dimension of model grid.
     integer, intent(in) :: kpje                     ! 2nd dimension of model grid.
     integer, intent(in) :: kpke                     ! 3rd (vertical) dimension of model grid.
-    real,    intent(in) :: pddpo(kpie,kpje,kpke)    ! size of grid cell (depth) [m].
-    real,    intent(in) :: omask(kpie,kpje)         ! land/ocean mask (1=ocean)
-    real,    intent(in) :: oafx(kpie,kpje)          ! alkalinization field to apply [kmol m-2 yr-1]
+    real(rp),intent(in) :: pddpo(kpie,kpje,kpke)    ! size of grid cell (depth) [m].
+    real(rp),intent(in) :: omask(kpie,kpje)         ! land/ocean mask (1=ocean)
+    real(rp),intent(in) :: oafx(kpie,kpje)          ! alkalinization field to apply [kmol m-2 yr-1]
 
     ! local variables
     integer :: i,j
 
     ! oalkflx stores the applied alaklinity flux for inventory calculations
     ! and output
-    oalkflx(:,:)=0.0
+    oalkflx(:,:)=0.0_rp
 
     if (.not. do_oalk) return
 
     ! alkalinization in topmost layer
     do j=1,kpje
       do i=1,kpie
-        if (omask(i,j).gt.0.5) then
-          if (thrh_omegaa > 0.0 .and. OmegaA(i,j,1) > thrh_omegaa) cycle
-          oalkflx(i,j) = oafx(i,j)*dtb/365.
+        if (omask(i,j).gt.0.5_rp) then
+          if (thrh_omegaa > 0.0_rp .and. OmegaA(i,j,1) > thrh_omegaa) cycle
+          oalkflx(i,j) = oafx(i,j)*dtb/365._rp
           ocetra(i,j,1,ialkali)=ocetra(i,j,1,ialkali)+oalkflx(i,j)/pddpo(i,j,1)
         endif
       enddo

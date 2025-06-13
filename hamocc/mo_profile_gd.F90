@@ -28,9 +28,9 @@ contains
   subroutine profile_gd(kpie,kpje,kpke,kbnd,pglon,pglat,omask)
 
     !***********************************************************************************************
-    ! Initialise HAMOCC fields with gridded (1x1 deg) WOA and GLODAP data. 
+    ! Initialise HAMOCC fields with gridded (1x1 deg) WOA and GLODAP data.
     !
-    ! Note that the routine get_profile returns the mean of all data profiles within a rectangular 
+    ! Note that the routine get_profile returns the mean of all data profiles within a rectangular
     ! region ("smoothing region") of dxy x dxy degrees extent, where dxy is an adjustable parameter.
     !
     ! J.Schwinger,      *Gfi, Bergen*            2011-05-19
@@ -45,6 +45,7 @@ contains
     !***********************************************************************************************
 
     use mod_xc,          only: xchalt
+    use mo_kind,         only: rp
     use mo_carbch,       only: ocetra
     use mo_Gdata_read,   only: set_Gdata,clean_Gdata,get_profile,nzmax,nz,zlev_bnds,fillval
     use mo_control_bgc,  only: io_stdo_bgc,use_natDIC,use_cisonew,use_DOMclasses,use_pref_tracers
@@ -55,15 +56,15 @@ contains
 
     ! Arguments
     integer, intent(in) :: kpie,kpje,kpke,kbnd
-    real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: pglon(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-    real,    intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+    real(rp),intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: pglon(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+    real(rp),intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
 
     ! Local variables
     integer             :: i,j,k,l,ll,n
     integer             :: idx,izmax
-    real                :: prf(nzmax),wgt(nzmax),zbnds(2,nzmax),clon,clat
-    real,     parameter :: dxy = 5.0 ! Extent of "smoothing region"
+    real(rp)            :: prf(nzmax),wgt(nzmax),zbnds(2,nzmax),clon,clat
+    real(rp), parameter :: dxy = 5.0_rp ! Extent of "smoothing region"
     integer,  parameter :: nread_base = 6 ! Number of fields to read
     integer,  parameter :: nread_ndic = 2 ! Number of fields to read
     integer,  parameter :: nread_ciso = 2 ! Number of fields to read
@@ -112,17 +113,17 @@ contains
       do j=1,kpje
         do i=1,kpie
 
-          If(omask(i,j) > 0.5) then
+          If(omask(i,j) > 0.5_rp) then
 
             clon = pglon(i,j)
             clat = pglat(i,j)
             idx  = ifld(n)
             call get_profile(clon,clat,prf)
 
-            ! Find depest z-level with valid data
+            ! Find deepest z-level with valid data
             izmax=nz
             do l=2,nz
-              if( prf(l) < fillval*0.1 ) then
+              if( prf(l) < fillval*0.1_rp ) then
                 izmax = l-1
                 exit
               endif
@@ -130,14 +131,14 @@ contains
             ! Set data level-boundaries for this profile
             zbnds         = fillval
             zbnds(:,1:nz) = zlev_bnds
-            zbnds(1,1)    = 0.0                          ! make sure that upper data bnd is 0
+            zbnds(1,1)    = 0.0_rp                          ! make sure that upper data bnd is 0
             if(zbnds(2,izmax) < ptiestw(i,j,kpke+1)) then
-              zbnds(2,izmax) = ptiestw(i,j,kpke+1)+10.0 ! extend lower bound of bottom layer
+              zbnds(2,izmax) = ptiestw(i,j,kpke+1)+10.0_rp  ! extend lower bound of bottom layer
             endif
 
             Do k=1,kpke
 
-              wgt(:)=0.0
+              wgt(:)=0.0_rp
 
               loop_obs: do l=1,izmax
 
@@ -155,16 +156,16 @@ contains
                 !    Calculate the corresponding weight.
                 if(zbnds(2,l) > ptiestw(i,j,k) .and. zbnds(1,l) <= ptiestw(i,j,k+1))               &
                      wgt(l) =     zbnds(2,l)-ptiestw(i,j,k)                                        &
-                     &      - max(zbnds(1,l)-ptiestw(i,j,k),  0.0)                                 &
-                     &      - max(zbnds(2,l)-ptiestw(i,j,k+1),0.0)
+                     &      - max(zbnds(1,l)-ptiestw(i,j,k),  0.0_rp)                              &
+                     &      - max(zbnds(2,l)-ptiestw(i,j,k+1),0.0_rp)
 
                 ! b) The upper data level-boundary is lower than the lower model level-interface
                 !    => all weights have been calculated, calculate concentration and exit
                 if(zbnds(1,l) > ptiestw(i,j,k+1) .or. l==izmax) then
                   wgt(:) = wgt(:)/(ptiestw(i,j,k+1)-ptiestw(i,j,k))
-                  if( abs(sum(wgt(:))-1.0) > 1.0e-6 ) then
+                  if( abs(sum(wgt(:))-1.0_rp) > 1.0e-6_rp ) then
                     write(io_stdo_bgc,*) 'profile_gd error: inconsisten weihts'
-                    write(io_stdo_bgc,*) 'profile_gd error: ', k,l,abs(sum(wgt(:))-1.0)
+                    write(io_stdo_bgc,*) 'profile_gd error: ', k,l,abs(sum(wgt(:))-1.0_rp)
                     write(io_stdo_bgc,*) 'profile_gd error: ', wgt(1:izmax)
                     write(io_stdo_bgc,*) 'profile_gd error: ', ptiestw(i,j,k),ptiestw(i,j,k+1)
                     call flush(io_stdo_bgc)

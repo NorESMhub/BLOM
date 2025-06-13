@@ -43,6 +43,7 @@ contains
 
     use mod_xc,           only: mnproc
     use mod_dia,          only: ddm
+    use mo_kind,          only: rp
     use mo_carbch,        only: atm,atmflx,co2fxd,co2fxu,co3,hi,kwco2sol,                          &
                                 ndepnoyflx,ndepnhxflx,dustflx,rivinflx,oalkflx,ocetra,             &
                                 omegaa,omegac,fco2,pco2,xco2,pco2_gex,satoxy,sedfluxo,sedfluxb,    &
@@ -183,35 +184,35 @@ contains
     integer , intent(in) :: kpie                  ! 1st dimension of model grid.
     integer , intent(in) :: kpje                  ! 2nd dimension of model grid.
     integer , intent(in) :: kpke                  ! 3rd (vertical) dimension of model grid.
-    real    , intent(in) :: pdlxp(kpie,kpje)      ! size of grid cell (1st dimension) [m].
-    real    , intent(in) :: pdlyp(kpie,kpje)      ! size of grid cell (2nd dimension) [m].
-    real    , intent(in) :: pddpo(kpie,kpje,kpke) ! size of grid cell (3rd dimension) [m].
-    real    , intent(in) :: omask(kpie,kpje)      ! land/ocean mask
+    real(rp), intent(in) :: pdlxp(kpie,kpje)      ! size of grid cell (1st dimension) [m].
+    real(rp), intent(in) :: pdlyp(kpie,kpje)      ! size of grid cell (2nd dimension) [m].
+    real(rp), intent(in) :: pddpo(kpie,kpje,kpke) ! size of grid cell (3rd dimension) [m].
+    real(rp), intent(in) :: omask(kpie,kpje)      ! land/ocean mask
 
     ! Local variables
-    integer :: i,j,k,l
-    integer :: ind1(kpie,kpje),ind2(kpie,kpje)
-    real    :: wghts(kpie,kpje,ddm)
-    real    :: di12C                   ! cisonew
-    real    :: d13C(kpie,kpje,kpke)    ! cisonew
-    real    :: d14C(kpie,kpje,kpke)    ! cisonew
-    real    :: bigd14C(kpie,kpje,kpke) ! cisonew
+    integer  :: i,j,k,l
+    integer  :: ind1(kpie,kpje),ind2(kpie,kpje)
+    real(rp) :: wghts(kpie,kpje,ddm)
+    real(rp) :: di12C                   ! cisonew
+    real(rp) :: d13C(kpie,kpje,kpke)    ! cisonew
+    real(rp) :: d14C(kpie,kpje,kpke)    ! cisonew
+    real(rp) :: bigd14C(kpie,kpje,kpke) ! cisonew
 
     if (use_cisonew) then
       ! Calculation d13C, d14C and Dd14C: Delta notation for output
-      d13C(:,:,:)=0.
-      d14C(:,:,:)=0.
-      bigd14C(:,:,:)=0.
+      d13C(:,:,:)=0._rp
+      d14C(:,:,:)=0._rp
+      bigd14C(:,:,:)=0._rp
       do k=1,kpke
         do j=1,kpje
           do i=1,kpie
-            if(omask(i,j).gt.0.5.and.pddpo(i,j,k).gt.dp_min) then
+            if(omask(i,j).gt.0.5_rp.and.pddpo(i,j,k).gt.dp_min) then
 
-              di12C=max(ocetra(i,j,k,isco212)-ocetra(i,j,k,isco213),0.)
-              d13C(i,j,k)=(ocetra(i,j,k,isco213)/(di12C+safediv)/re1312-1.)*1000.
+              di12C=max(ocetra(i,j,k,isco212)-ocetra(i,j,k,isco213),0._rp)
+              d13C(i,j,k)=(ocetra(i,j,k,isco213)/(di12C+safediv)/re1312-1._rp)*1000._rp
               d14C(i,j,k)=(ocetra(i,j,k,isco214)*c14fac/                                           &
-                          (ocetra(i,j,k,isco212)+safediv)/re14to-1.)*1000.
-              bigd14C(i,j,k)=d14C(i,j,k)-2.*(d13C(i,j,k)+25.)*(1.+d14C(i,j,k)/1000.)
+                          (ocetra(i,j,k,isco212)+safediv)/re14to-1._rp)*1000._rp
+              bigd14C(i,j,k)=d14C(i,j,k)-2._rp*(d13C(i,j,k)+25._rp)*(1._rp+d14C(i,j,k)/1000._rp)
 
             endif
           enddo
@@ -224,42 +225,42 @@ contains
     ! Division by 2 is to account for leap-frog timestepping (but this is not exact)
     do j=1,kpje
       do i=1,kpie
-        if(omask(i,j).gt.0.5) then
+        if(omask(i,j).gt.0.5_rp) then
 
           ! Atmosphere-ocean fluxes
-          bgct2d(i,j,jco2flux) = bgct2d(i,j,jco2flux) + atmflx(i,j,iatmco2)/2.0
-          bgct2d(i,j,jo2flux)  = bgct2d(i,j,jo2flux)  + atmflx(i,j,iatmo2)/2.0
-          bgct2d(i,j,jn2flux)  = bgct2d(i,j,jn2flux)  + atmflx(i,j,iatmn2)/2.0
-          bgct2d(i,j,jn2oflux) = bgct2d(i,j,jn2oflux) + atmflx(i,j,iatmn2o)/2.0
+          bgct2d(i,j,jco2flux) = bgct2d(i,j,jco2flux) + atmflx(i,j,iatmco2)/2.0_rp
+          bgct2d(i,j,jo2flux)  = bgct2d(i,j,jo2flux)  + atmflx(i,j,iatmo2)/2.0_rp
+          bgct2d(i,j,jn2flux)  = bgct2d(i,j,jn2flux)  + atmflx(i,j,iatmn2)/2.0_rp
+          bgct2d(i,j,jn2oflux) = bgct2d(i,j,jn2oflux) + atmflx(i,j,iatmn2o)/2.0_rp
           if (use_extNcycle) then
-            bgct2d(i,j,jnh3flux) = bgct2d(i,j,jnh3flux) + atmflx(i,j,iatmnh3)/2.0
-            bgct2d(i,j,jndepnhx) = bgct2d(i,j,jndepnhx) + ndepnhxflx(i,j)/2.0
+            bgct2d(i,j,jnh3flux) = bgct2d(i,j,jnh3flux) + atmflx(i,j,iatmnh3)/2.0_rp
+            bgct2d(i,j,jndepnhx) = bgct2d(i,j,jndepnhx) + ndepnhxflx(i,j)/2.0_rp
           endif
           ! Particle fluxes between water-column and sediment
-          bgct2d(i,j,jprorca)  = bgct2d(i,j,jprorca)  + carflx_bot(i,j)/2.0
-          bgct2d(i,j,jprcaca)  = bgct2d(i,j,jprcaca)  + calflx_bot(i,j)/2.0
-          bgct2d(i,j,jsilpro)  = bgct2d(i,j,jsilpro)  + bsiflx_bot(i,j)/2.0
+          bgct2d(i,j,jprorca)  = bgct2d(i,j,jprorca)  + carflx_bot(i,j)/2.0_rp
+          bgct2d(i,j,jprcaca)  = bgct2d(i,j,jprcaca)  + calflx_bot(i,j)/2.0_rp
+          bgct2d(i,j,jsilpro)  = bgct2d(i,j,jsilpro)  + bsiflx_bot(i,j)/2.0_rp
           if (.not. use_sedbypass) then
             ! Diffusive fluxes between water-column and sediment
-            bgct2d(i,j,jpodiic)  = bgct2d(i,j,jpodiic)  + sedfluxo(i,j,ipowaic)/2.0
-            bgct2d(i,j,jpodial)  = bgct2d(i,j,jpodial)  + sedfluxo(i,j,ipowaal)/2.0
-            bgct2d(i,j,jpodiph)  = bgct2d(i,j,jpodiph)  + sedfluxo(i,j,ipowaph)/2.0
-            bgct2d(i,j,jpodiox)  = bgct2d(i,j,jpodiox)  + sedfluxo(i,j,ipowaox)/2.0
-            bgct2d(i,j,jpodin2)  = bgct2d(i,j,jpodin2)  + sedfluxo(i,j,ipown2)/2.0
-            bgct2d(i,j,jpodino3) = bgct2d(i,j,jpodino3) + sedfluxo(i,j,ipowno3)/2.0
-            bgct2d(i,j,jpodisi)  = bgct2d(i,j,jpodisi)  + sedfluxo(i,j,ipowasi)/2.0
+            bgct2d(i,j,jpodiic)  = bgct2d(i,j,jpodiic)  + sedfluxo(i,j,ipowaic)/2.0_rp
+            bgct2d(i,j,jpodial)  = bgct2d(i,j,jpodial)  + sedfluxo(i,j,ipowaal)/2.0_rp
+            bgct2d(i,j,jpodiph)  = bgct2d(i,j,jpodiph)  + sedfluxo(i,j,ipowaph)/2.0_rp
+            bgct2d(i,j,jpodiox)  = bgct2d(i,j,jpodiox)  + sedfluxo(i,j,ipowaox)/2.0_rp
+            bgct2d(i,j,jpodin2)  = bgct2d(i,j,jpodin2)  + sedfluxo(i,j,ipown2)/2.0_rp
+            bgct2d(i,j,jpodino3) = bgct2d(i,j,jpodino3) + sedfluxo(i,j,ipowno3)/2.0_rp
+            bgct2d(i,j,jpodisi)  = bgct2d(i,j,jpodisi)  + sedfluxo(i,j,ipowasi)/2.0_rp
           endif
           ! N-deposition, ocean alkalinization, and riverine input fluxes
-          bgct2d(i,j,jndepnoy) = bgct2d(i,j,jndepnoy) + ndepnoyflx(i,j)/2.0
-          bgct2d(i,j,joalk)    = bgct2d(i,j,joalk)    + oalkflx(i,j)/2.0
-          bgct2d(i,j,jirdin)   = bgct2d(i,j,jirdin)   + rivinflx(i,j,irdin)/2.0
-          bgct2d(i,j,jirdip)   = bgct2d(i,j,jirdip)   + rivinflx(i,j,irdip)/2.0
-          bgct2d(i,j,jirsi)    = bgct2d(i,j,jirsi)    + rivinflx(i,j,irsi)/2.0
-          bgct2d(i,j,jiralk)   = bgct2d(i,j,jiralk)   + rivinflx(i,j,iralk)/2.0
-          bgct2d(i,j,jiriron)  = bgct2d(i,j,jiriron)  + rivinflx(i,j,iriron)/2.0
-          bgct2d(i,j,jirdoc)   = bgct2d(i,j,jirdoc)   + rivinflx(i,j,irdoc)/2.0
-          bgct2d(i,j,jirtdoc)  = bgct2d(i,j,jirtdoc)  + rivinflx(i,j,irtdoc)/2.0
-          bgct2d(i,j,jirdet)   = bgct2d(i,j,jirdet)   + rivinflx(i,j,irdet)/2.0
+          bgct2d(i,j,jndepnoy) = bgct2d(i,j,jndepnoy) + ndepnoyflx(i,j)/2.0_rp
+          bgct2d(i,j,joalk)    = bgct2d(i,j,joalk)    + oalkflx(i,j)/2.0_rp
+          bgct2d(i,j,jirdin)   = bgct2d(i,j,jirdin)   + rivinflx(i,j,irdin)/2.0_rp
+          bgct2d(i,j,jirdip)   = bgct2d(i,j,jirdip)   + rivinflx(i,j,irdip)/2.0_rp
+          bgct2d(i,j,jirsi)    = bgct2d(i,j,jirsi)    + rivinflx(i,j,irsi)/2.0_rp
+          bgct2d(i,j,jiralk)   = bgct2d(i,j,jiralk)   + rivinflx(i,j,iralk)/2.0_rp
+          bgct2d(i,j,jiriron)  = bgct2d(i,j,jiriron)  + rivinflx(i,j,iriron)/2.0_rp
+          bgct2d(i,j,jirdoc)   = bgct2d(i,j,jirdoc)   + rivinflx(i,j,irdoc)/2.0_rp
+          bgct2d(i,j,jirtdoc)  = bgct2d(i,j,jirtdoc)  + rivinflx(i,j,irtdoc)/2.0_rp
+          bgct2d(i,j,jirdet)   = bgct2d(i,j,jirdet)   + rivinflx(i,j,irdet)/2.0_rp
 
         endif
       enddo
@@ -757,12 +758,12 @@ contains
       endif
     enddo
 
-    atmflx=0. ! nullifying atm flux here to have zero fluxes for stepwise inventory fluxes
-    ndepnoyflx=0.
-    oalkflx=0.
-    rivinflx=0.
+    atmflx     = 0._rp ! nullifying atm flux here to have zero fluxes for stepwise inventory fluxes
+    ndepnoyflx = 0._rp
+    oalkflx    = 0._rp
+    rivinflx   = 0._rp
     if (use_extNcycle) then
-      ndepnhxflx=0.
+      ndepnhxflx = 0._rp
     endif
 
   end subroutine accfields
