@@ -162,6 +162,11 @@
     <alias>OFFLSEDH</alias>
     <lname>SCAM_SLND_SICE_BLOM%HYB%ECO_SROF_SGLC_SWAV</lname>
   </compset>
+  <compset>
+    <!-- offline sediment spinup for hybrid coordinates -->
+    <alias>OFFLSED</alias>
+    <lname>SCAM_SLND_SICE_BLOM%ECO_SROF_SGLC_SWAV</lname>
+  </compset>
 
   <entries>
     <entry id="RUN_STARTDATE">
