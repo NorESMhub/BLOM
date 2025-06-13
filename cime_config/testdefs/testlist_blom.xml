@@ -206,6 +206,15 @@
       <option name="comment">test extended N-cycle</option>
     </options>
   </test>
+  <test name="SMS_D_Ld1" grid="T62_tn14" compset="NOINYOC" testmods="blom/hamocc/hamocc6">
+    <machines>
+      <machine name="betzy" compiler="intel" category="aux_hamocc_noresm"/>
+    </machines>
+    <options>
+      <option name="wallclock">00:20:00</option>
+      <option name="comment">test river2omip protocol</option>
+    </options>
+  </test>
   <!-- New test for on-line interpolation of WOA initial conditions -->
   <test name="ERS_Ld5" grid="T62_tn14" compset="NOINY" testmods="blom/woa_nuopc">
     <machines>
