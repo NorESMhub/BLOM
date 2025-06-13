@@ -888,6 +888,7 @@ contains
 
     real :: shear
 
+    dustd3   = dustd1**3
     SinkExp  = 0.62
     FractDim = 1.62
     !Stick = 0.40
@@ -1138,7 +1139,7 @@ contains
         write(io_stdo_bgc,*) '* maximum size ', alar1, ' cm is '
         write(io_stdo_bgc,*)   cellsink/dtb*(alar1/alow1)**SinkExp, ' m/day'
         call pinfo_add_entry('dust diameter (cm)',       dustd1)
-        call pinfo_add_entry('dust sinking speed (m/d)', dustsink / dtb)
+        call pinfo_add_entry('dust sinking speed (m d^-1)', dustsink / dtb)
       endif
       if (use_M4AGO) then
         call pinfo_add_entry('opal_remin_q10', opal_remin_q10)
