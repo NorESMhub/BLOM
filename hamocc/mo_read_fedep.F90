@@ -29,7 +29,7 @@ module mo_read_fedep
   !    and a module that applies the fluxes in core hamocc (mo_apply_fedep)
   !*************************************************************************************************
 
-  use mo_kind, only: bgc_fnmlen
+  use mo_kind, only: bgc_fnmlen,rp
 
   implicit none
   private
@@ -42,8 +42,8 @@ module mo_read_fedep
   character(len=64),         public :: fedep_source=''
 
   ! Array to store iron deposition fluxes after reading from file
-  real, allocatable,  private :: dustflx_tot(:,:,:)
-  real, allocatable,  private :: dustflx_sfe(:,:,:)
+  real(rp), allocatable,  private :: dustflx_tot(:,:,:)
+  real(rp), allocatable,  private :: dustflx_sfe(:,:,:)
 
 contains
 
@@ -65,7 +65,7 @@ contains
     ! Arguments
     integer,          intent(in) :: kpie              ! 1st dimension of model grid.
     integer,          intent(in) :: kpje              ! 2nd dimension of model grid.
-    real,             intent(in) :: omask(kpie,kpje)  ! land/ocean mask (1=ocean)
+    real(rp),         intent(in) :: omask(kpie,kpje)  ! land/ocean mask (1=ocean)
 
     ! Local variables
     integer             :: i,j,l
@@ -87,7 +87,7 @@ contains
     endif
     allocate (dustflx_tot(kpie,kpje,12),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory dustflx_tot'
-    dustflx_tot(:,:,:) = 0.0
+    dustflx_tot(:,:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable dustflx_sfe ...'
@@ -97,7 +97,7 @@ contains
     endif
     allocate (dustflx_sfe(kpie,kpje,12),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory dustflx_sfe'
-    dustflx_sfe(:,:,:) = 0.0
+    dustflx_sfe(:,:,:) = 0.0_rp
 
     ! Open netCDF data file
     if (mnproc==1) then
@@ -120,7 +120,7 @@ contains
         ! total iron. A tuning factor 'fetune' is applied to the soluble fraction of iron.
         ! Note the conversion kg/m2/month -> kg/m2/s is assuming 30 days per month.
         call read_netcdf_var(ncid,'DUST',dustflx_tot(1,1,1),12,0,0)
-        dustflx_tot(:,:,:) = dustflx_tot(:,:,:)/30.0/sec_per_day
+        dustflx_tot(:,:,:) = dustflx_tot(:,:,:)/30.0_rp/sec_per_day
         dustflx_sfe(:,:,:) = dustflx_tot(:,:,:)*frac_ironindust*frac_soliron/mw_fe*fetune
 
       case('GESAMP2018')
@@ -164,9 +164,9 @@ contains
       do j=1,kpje
         do i=1,kpie
 
-          if(omask(i,j).lt.0.5) then
-            dustflx_tot(i,j,l) = 0.0
-            dustflx_sfe(i,j,l) = 0.0
+          if(omask(i,j).lt.0.5_rp) then
+            dustflx_tot(i,j,l) = 0.0_rp
+            dustflx_sfe(i,j,l) = 0.0_rp
           endif
 
         enddo
@@ -194,8 +194,8 @@ contains
     integer,        intent(in)  :: kpje                   ! 2nd dimension of model grid
     integer,        intent(in)  :: kbnd                   ! nb of halo-rows
     integer,        intent(in)  :: kplmon                 ! current month.
-    real,           intent(out) :: dust(kpie,kpje,ndust)  ! dust/sFe flux for current month
-    real, optional, intent(in)  :: dust_stream(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,ndust)
+    real(rp),       intent(out) :: dust(kpie,kpje,ndust)  ! dust/sFe flux for current month
+    real(rp), optional, intent(in)  :: dust_stream(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,ndust)
 
     integer :: i,j,n
     logical :: debug = .true.

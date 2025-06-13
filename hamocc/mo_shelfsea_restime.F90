@@ -36,6 +36,7 @@ contains
 
   subroutine shelfsea_residence_time(kpie,kpje,kpke,pddpo,shelfmask,omask)
 
+    use mo_kind,        only : rp
     use mo_vgrid,       only : dp_min
     use mo_carbch,      only : ocetra
     use mo_param1_bgc,  only : ishelfage
@@ -45,9 +46,9 @@ contains
     integer, intent(in) :: kpie                   ! 1st dimension of model grid
     integer, intent(in) :: kpje                   ! 2nd dimension of model grid
     integer, intent(in) :: kpke                   ! 3rd dimension of model grid
-    real,    intent(in) :: pddpo(kpie,kpje,kpke)  ! size of grid cell (3rd dimension) [m].
+    real(rp),intent(in) :: pddpo(kpie,kpje,kpke)  ! size of grid cell (3rd dimension) [m].
     logical, intent(in) :: shelfmask(kpie,kpje)   ! shelf-sea mask True: shelf, False: else
-    real,    intent(in) :: omask(kpie,kpje)       ! land-ocean mask
+    real(rp),intent(in) :: omask(kpie,kpje)       ! land-ocean mask
 
     ! Local variables
     integer :: i,j,k
@@ -56,12 +57,12 @@ contains
     do k=1,kpke
       do j=1,kpje
         do i=1,kpie
-          if (pddpo(i,j,k)>dp_min .and. omask(i,j)>0.5) then
+          if (pddpo(i,j,k)>dp_min .and. omask(i,j)>0.5_rp) then
             ! Note that in Liu et al. 2019, min function is written,
             ! but a gradual decrease in residence time off the shelf should require max function
             ! to result in zero values in open ocean regions (and not negative values)
             ocetra(i,j,k,ishelfage) = merge(       ocetra(i,j,k,ishelfage) + dtb,                  &
-                                            max(0.,ocetra(i,j,k,ishelfage) - dtb), shelfmask(i,j) )
+                                            max(0._rp,ocetra(i,j,k,ishelfage) - dtb),shelfmask(i,j))
           endif
         enddo
       enddo

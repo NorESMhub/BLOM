@@ -47,6 +47,7 @@ contains
 
     use mod_xc,         only: mnproc,xchalt
     use mod_dia,        only: iotype
+    use mo_kind,        only: rp
     use mo_control_bgc, only: use_shelfsea_res_time,io_stdo_bgc
     use mo_param_bgc,   only: shelfbreak_depth
     use netcdf,         only: nf90_open,nf90_close,nf90_nowrite
@@ -56,13 +57,13 @@ contains
     integer, intent(in) :: kpie                                     ! 1st dimension of model grid
     integer, intent(in) :: kpje                                     ! 2nd dimension of model grid
     integer, intent(in) :: kbnd                                     ! number of halo grid points
-    real,    intent(in) :: pbath(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd) ! bathymetry fields - water depth [m]
-    real,    intent(in) :: omask(kpie,kpje)                         ! land/ocean mask.
+    real(rp),intent(in) :: pbath(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd) ! bathymetry fields - water depth [m]
+    real(rp),intent(in) :: omask(kpie,kpje)                         ! land/ocean mask.
 
     ! Local variables
     logical :: file_exists=.false.
     integer :: i,j,errstat,ncid,ncstat
-    real,allocatable  :: mask(:,:)
+    real(rp),allocatable  :: mask(:,:)
 
     ! Always allocate field to hold shelfsea mask
     if(mnproc.eq.1) then
@@ -74,7 +75,7 @@ contains
     allocate(mask(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory shelfmask'
     shelfmask(:,:) = .false.
-    mask = 0.
+    mask = 0._rp
 
     ! Check, if we are going to run with shelf-sea water residence time tracers
     if (.not.use_shelfsea_res_time) then
@@ -110,8 +111,8 @@ contains
       !$OMP PARALLEL DO PRIVATE (i,j)
       do j=1,kpje
         do i=1,kpie
-          if((omask(i,j) > 0.5) .and. (pbath(i,j) <= shelfbreak_depth)) then
-            mask(i,j) = 1.
+          if((omask(i,j) > 0.5_rp) .and. (pbath(i,j) <= shelfbreak_depth)) then
+            mask(i,j) = 1._rp
           endif
         enddo
       enddo

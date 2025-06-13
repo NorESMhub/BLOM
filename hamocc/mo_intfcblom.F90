@@ -26,6 +26,7 @@ module mo_intfcblom
   !  J.Schwinger,        *NORCE Climate, Bergen*    2020-05-19
   !*************************************************************************************************
 
+  use mo_kind,        only: rp
   use mo_control_bgc, only: use_sedbypass,use_BOXATM,use_sediment_quality
 
   implicit none
@@ -41,12 +42,12 @@ module mo_intfcblom
 
   integer, parameter, public :: nphys=2       ! number of bgc timesteps per ocean timestep.
 
-  real, allocatable, public  :: bgc_dx(:,:)    ! size of grid cell (longitudinal) [m].
-  real, allocatable, public  :: bgc_dy(:,:)    ! size of grid cell (latitudinal) [m].
-  real, allocatable, public  :: bgc_dp(:,:,:)  ! size of grid cell (depth) [m].
-  real, allocatable, public  :: bgc_rho(:,:,:) ! sea water density [kg/m^3].
+  real(rp), allocatable, public  :: bgc_dx(:,:)    ! size of grid cell (longitudinal) [m].
+  real(rp), allocatable, public  :: bgc_dy(:,:)    ! size of grid cell (latitudinal) [m].
+  real(rp), allocatable, public  :: bgc_dp(:,:,:)  ! size of grid cell (depth) [m].
+  real(rp), allocatable, public  :: bgc_rho(:,:,:) ! sea water density [kg/m^3].
 
-  real, allocatable, public :: omask(:,:)     ! land ocean mask.
+  real(rp), allocatable, public :: omask(:,:)     ! land ocean mask.
 
   ! The following arrays are used to keep a two time-level copy of sediment
   ! and prognostic atmosphere fields. These arrays are copied back and forth
@@ -54,13 +55,13 @@ module mo_intfcblom
   ! Also, they written/read to and from restart files:
 
   ! Two time-level copy of sediment fields
-  real, allocatable, public :: sedlay2(:,:,:,:)
-  real, allocatable, public :: powtra2(:,:,:,:)
-  real, allocatable, public :: burial2(:,:,:,:)
-  real, allocatable, public :: prorca_mavg2(:,:,:)
+  real(rp), allocatable, public :: sedlay2(:,:,:,:)
+  real(rp), allocatable, public :: powtra2(:,:,:,:)
+  real(rp), allocatable, public :: burial2(:,:,:,:)
+  real(rp), allocatable, public :: prorca_mavg2(:,:,:)
 
   ! Two time level copy of prognostic atmosphere field used if BOXATM is activated
-  real, allocatable, public :: atm2(:,:,:,:)
+  real(rp), allocatable, public :: atm2(:,:,:,:)
 
 contains
 
@@ -97,8 +98,8 @@ contains
     allocate (bgc_dx(kpie,kpje),stat=errstat)
     allocate (bgc_dy(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory bgc_dx, bgc_dy'
-    bgc_dx(:,:) = 0.0
-    bgc_dy(:,:) = 0.0
+    bgc_dx(:,:) = 0.0_rp
+    bgc_dy(:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable bgc_dp ...'
@@ -108,7 +109,7 @@ contains
     endif
     allocate (bgc_dp(kpie,kpje,kpke),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory bgc_dp'
-    bgc_dp(:,:,:) = 0.0
+    bgc_dp(:,:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable bgc_rho ...'
@@ -118,7 +119,7 @@ contains
     endif
     allocate (bgc_rho(kpie,kpje,kpke),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory bgc_dp'
-    bgc_rho(:,:,:) = 0.0
+    bgc_rho(:,:,:) = 0.0_rp
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable omask ...'
@@ -127,7 +128,7 @@ contains
     endif
     allocate(omask(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory omask'
-    omask(:,:) = 0.0
+    omask(:,:) = 0.0_rp
 
     if (.not. use_sedbypass) then
       if(use_sediment_quality) then
@@ -139,7 +140,7 @@ contains
         endif
         allocate (prorca_mavg2(kpie,kpje,2),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory prorca_mavg2'
-        prorca_mavg2(:,:,:) = 0.0
+        prorca_mavg2(:,:,:) = 0.0_rp
       endif
 
       if (mnproc.eq.1) then
@@ -151,7 +152,7 @@ contains
       endif
       allocate (sedlay2(kpie,kpje,2*ks,nsedtra),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory sedlay2'
-      sedlay2(:,:,:,:) = 0.0
+      sedlay2(:,:,:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable powtra2 ...'
@@ -162,7 +163,7 @@ contains
       endif
       allocate (powtra2(kpie,kpje,2*ks,npowtra),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory powtra2'
-      powtra2(:,:,:,:) = 0.0
+      powtra2(:,:,:,:) = 0.0_rp
 
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable burial2 ...'
@@ -173,7 +174,7 @@ contains
       endif
       allocate (burial2(kpie,kpje,2,nsedtra),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory burial2'
-      burial2(:,:,:,:) = 0.0
+      burial2(:,:,:,:) = 0.0_rp
     endif
 
     if (use_BOXATM) then
@@ -186,7 +187,7 @@ contains
       endif
       allocate (atm2(kpie,kpje,2,natm),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory atm2'
-      atm2(:,:,:,:) = 0.0
+      atm2(:,:,:,:) = 0.0_rp
     endif
 
   end subroutine alloc_mem_intfcblom
@@ -227,12 +228,12 @@ contains
 
     ! Local variables
     integer :: i,j,k,l,nns,kn
-    real    :: p1,p2,ldp,th,s,pa
-    real    :: rp(idm,jdm,kdm+1)
+    real(rp):: p1,p2,ldp,th,s,pa
+    real(rp):: rpr(idm,jdm,kdm+1)
 
     nns=(n-1)*ks
 
-    rp(:,:,:) = 0.0
+    rpr(:,:,:) = 0.0_rp
 
     ! --- calculate pressure at interfaces (necesarry since p has
     ! --- not been calculated at restart)
@@ -242,7 +243,7 @@ contains
       do j=1,jj
         do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            rp(i,j,k+1) = rp(i,j,k) + dp(i,j,kn)
+            rpr(i,j,k+1) = rpr(i,j,k) + dp(i,j,kn)
           enddo
         enddo
       enddo
@@ -282,11 +283,11 @@ contains
             ! --- - integrated specific volume
             th = temp(i,j,kn)
             s  = saln(i,j,kn)
-            p1 = rp(i,j,k)
-            if(dp(i,j,kn) == 0.0) then
-              ldp = 1.0
+            p1 = rpr(i,j,k)
+            if(dp(i,j,kn) == 0.0_rp) then
+              ldp = 1.0_rp
               pa  = ldp/rho(p1,th,s)
-            else if(dp(i,j,kn) <  1.0e-3) then
+            else if(dp(i,j,kn) <  1.0e-3_rp) then
               ldp = dp(i,j,kn)
               pa  = ldp/rho(p1,th,s)
             else
@@ -299,8 +300,8 @@ contains
             bgc_rho(i,j,k)=ldp/(pa*rho0)
             !
             ! --- - layer thickness in meters
-            bgc_dp(i,j,k) = 0.0
-            if(dp(i,j,kn).ne.0.0) bgc_dp(i,j,k) = rho0*pa / onem
+            bgc_dp(i,j,k) = 0.0_rp
+            if(dp(i,j,kn).ne.0.0_rp) bgc_dp(i,j,k) = rho0*pa / onem
           enddo
         enddo
       enddo

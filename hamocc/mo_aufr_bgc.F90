@@ -79,6 +79,7 @@ CONTAINS
                                   nf90_open,nf90_get_att,nf90_inq_varid
     use mod_xc,             only: nbdy,mnproc,iqr,jqr,xcbcst,xchalt
     use mod_dia,            only: iotype
+    use mo_kind,            only: rp
     use mo_carbch,          only: co2star,co3,hi,satoxy,ocetra,atm,nathi
     use mo_control_bgc,     only: io_stdo_bgc,ldtbgc,use_cisonew,use_AGG,                          &
                                   use_BOXATM,use_BROMO,use_CFC,use_natDIC,use_sedbypass,           &
@@ -114,15 +115,15 @@ CONTAINS
     integer,          intent(in)    :: ntr                                               ! number of tracers in tracer field
     integer,          intent(in)    :: ntrbgc                                            ! number of biogechemical tracers in tracer field
     integer,          intent(in)    :: itrbgc                                            ! start index for biogeochemical tracers in tracer field
-    real,             intent(inout) :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,2*kpke,ntr) ! initial/restart tracer field to be passed to the ocean model [mol/kg]
+    real(rp),         intent(inout) :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,2*kpke,ntr) ! initial/restart tracer field to be passed to the ocean model [mol/kg]
     integer,          intent(in)    :: kplyear                                           ! year  in ocean restart date
     integer,          intent(in)    :: kplmon                                            ! month in ocean restart date
     integer,          intent(in)    :: kplday                                            ! day   in ocean restart date
-    real,             intent(in)    :: omask(kpie,kpje)                                  ! land/ocean mask
+    real(rp),         intent(in)    :: omask(kpie,kpje)                                  ! land/ocean mask
     character(len=*), intent(in)    :: rstfnm                                            ! restart file name-informations
 
     ! Local variables
-    real, allocatable :: locetra(:,:,:,:)          ! local array for reading
+    real(rp), allocatable :: locetra(:,:,:,:)          ! local array for reading
     integer   :: errstat
     integer   :: restyear                          !  year of restart file
     integer   :: restmonth                         !  month of restart file
@@ -132,7 +133,7 @@ CONTAINS
     logical   :: lread_cfc,lread_nat,lread_iso,lread_atm,lread_bro,lread_extn,lread_prefsi,        &
               &  lread_sedqual
     logical   :: lread_shelfage
-    real      :: rco213,rco214,alpha14,beta13,beta14,d13C_atm,d14cat
+    real(rp)  :: rco213,rco214,alpha14,beta13,beta14,d13C_atm,d14cat
     integer   :: ncid,ncstat,ncvarid
 
 #ifdef PNETCDF
@@ -149,7 +150,7 @@ CONTAINS
     !
     allocate(locetra(kpie,kpje,2*kpke,nocetra),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory for locetra allocation'
-    locetra(:,:,:,:) = 0.0
+    locetra(:,:,:,:) = 0.0_rp
     !
     ! Open netCDF data file
     !
@@ -592,11 +593,11 @@ CONTAINS
             ! that is just read in from restart files. Normalize atmc14 using beleg c14fac.
             do j=1,kpje
               do i=1,kpie
-                beta13 = (prei13/1000.)+1.
-                alpha14 = 2.*(prei13+25.)
-                d14cat  = (prei14+alpha14)/(1.-alpha14/1000.)
-                atm(i,j,iatmc13) = beta13*re1312*atm2(i,j,1,iatmco2)/(1.+beta13*re1312)
-                atm(i,j,iatmc14) = ((d14cat/1000.)+1.)*re14to*atm2(i,j,1,iatmco2)/c14fac
+                beta13 = (prei13/1000._rp)+1._rp
+                alpha14 = 2._rp*(prei13+25._rp)
+                d14cat  = (prei14+alpha14)/(1._rp-alpha14/1000._rp)
+                atm(i,j,iatmc13) = beta13*re1312*atm2(i,j,1,iatmco2)/(1._rp+beta13*re1312)
+                atm(i,j,iatmc14) = ((d14cat/1000._rp)+1._rp)*re14to*atm2(i,j,1,iatmco2)/c14fac
               enddo
             enddo
             ! Copy the isotope atmosphere fields into both timelevels of atm2.
@@ -636,14 +637,14 @@ CONTAINS
       do k=1,2*kpke
         do j=1,kpje
           do i=1,kpie
-            if(omask(i,j)  >  0.5) then
+            if(omask(i,j)  >  0.5_rp) then
               ! 13C is read in as delta13C, convert to 13C using model restart total C
-              beta13=locetra(i,j,k,isco213)/1000.+1.
-              locetra(i,j,k,isco213)=locetra(i,j,k,isco212)*beta13*re1312/(1.+beta13*re1312)
+              beta13=locetra(i,j,k,isco213)/1000._rp+1._rp
+              locetra(i,j,k,isco213)=locetra(i,j,k,isco212)*beta13*re1312/(1._rp+beta13*re1312)
 
               ! 14C is read in as delta14C, convert to 14C using model restart total C,
               ! normalize 14C by c14fac to prevent numerical errors
-              beta14=locetra(i,j,k,isco214)/1000.+1.
+              beta14=locetra(i,j,k,isco214)/1000._rp+1._rp
               locetra(i,j,k,isco214)=locetra(i,j,k,isco212)*beta14*re14to/c14fac
 
               ! Initialise the remaining 13C and 14C fields, using the restart isco212 field
@@ -672,7 +673,7 @@ CONTAINS
         do  k=1,2*ks
           do  j=1,kpje
             do  i=1,kpie
-              if(omask(i,j)  >  0.5) then
+              if(omask(i,j)  >  0.5_rp) then
                 rco213=locetra(i,j,kbo(i,j),isco213)/(locetra(i,j,kbo(i,j),isco212)+safediv)
                 rco214=locetra(i,j,kbo(i,j),isco214)/(locetra(i,j,kbo(i,j),isco212)+safediv)
                 powtra2(i,j,k,ipowc13)=powtra2(i,j,k,ipowaic)*rco213
@@ -689,7 +690,7 @@ CONTAINS
         do  k=1,2
           do  j=1,kpje
             do  i=1,kpie
-              if(omask(i,j)  >  0.5) then
+              if(omask(i,j)  >  0.5_rp) then
                 rco213=locetra(i,j,kbo(i,j),isco213)/(locetra(i,j,kbo(i,j),isco212)+safediv)
                 rco214=locetra(i,j,kbo(i,j),isco214)/(locetra(i,j,kbo(i,j),isco212)+safediv)
                 burial2(i,j,k,issso13)=burial2(i,j,k,issso12)*rco213*bifr13_ini
@@ -709,7 +710,7 @@ CONTAINS
         ! if (hybrid) restart, but age and mavgs should be started with filled values, if provided
         do j=1,kpje
           do i=1,kpie
-            if (omask(i,j) > 0.) then
+            if (omask(i,j) > 0._rp) then
               burial2(i,j,1,issso12_age)      = burial(i,j,issso12_age)
               burial2(i,j,2,issso12_age)      = burial(i,j,issso12_age)
               prorca_mavg2(i,j,1)             = prorca_mavg(i,j)

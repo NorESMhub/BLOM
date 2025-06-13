@@ -40,6 +40,7 @@ module mo_extNsediment
   ! nitrogen cycle is handled inside powach.F90.
   !
   !**********************************************************************
+  use mo_kind,        only: rp
   use mo_param1_bgc,  only: issso12,ipowaic,ipowaal,ipowaph,ipowaox,ipown2,ipowno3,ipownh4,ipown2o,&
                           & ipowno2,ks
   use mo_vgrid,       only: kbo
@@ -74,7 +75,7 @@ module mo_extNsediment
           & ised_anmx_OM_prod,ised_remin_aerob,ised_remin_sulf,extNsed_diagnostics
 
   ! output
-  real, dimension (:,:,:,:), allocatable :: extNsed_diagnostics
+  real(rp), dimension (:,:,:,:), allocatable :: extNsed_diagnostics
   integer, parameter ::               &
              ised_nitr_NH4      = 1,  &
              ised_nitr_NO2      = 2,  &
@@ -91,8 +92,8 @@ module mo_extNsediment
              ised_remin_sulf    = 13, &
              n_seddiag          = 13
 
-  real :: eps    = epsilon(1.)
-  real :: minlim = 1.e-9
+  real(rp) :: eps    = epsilon(1._rp)
+  real(rp) :: minlim = 1.e-9_rp
 
 contains
 
@@ -123,78 +124,78 @@ contains
   ! ================================================================================================================================
   subroutine sed_nitrification(j,kpie,kpje,kpke,kbnd,ptho,omask,ex_ddic,ex_dalk)
     integer, intent(in) :: j,kpie,kpje,kpke,kbnd
-    real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+    real(rp),intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
     ! for calculation of pore water DIC and alkalinity changes [P-units]!
-    real,    intent(inout) :: ex_ddic(kpie,ks)
-    real,    intent(inout) :: ex_dalk(kpie,ks)
+    real(rp),intent(inout) :: ex_ddic(kpie,ks)
+    real(rp),intent(inout) :: ex_dalk(kpie,ks)
 
     ! local variables
     integer :: i,k
 
-    real    :: Tdepanh4,O2limanh4,nut1lim,anh4new,potdnh4amox,fdetamox,fno2,fn2o,ftotnh4
-    real    :: Tdepano2,O2limano2,nut2lim,ano2new,potdno2nitr,fdetnitr,no2fn2o,no2fno2,no2fdetamox
-    real    :: amoxfrac,nitrfrac,totd,amox,nitr,temp,w2s
+    real(rp) :: Tdepanh4,O2limanh4,nut1lim,anh4new,potdnh4amox,fdetamox,fno2,fn2o,ftotnh4
+    real(rp) :: Tdepano2,O2limano2,nut2lim,ano2new,potdno2nitr,fdetnitr,no2fn2o,no2fno2,no2fdetamox
+    real(rp) :: amoxfrac,nitrfrac,totd,amox,nitr,temp,w2s
 
     do i = 1,kpie
       do k = 1,ks
-        if (omask(i,j) > 0.5) then
-          potdnh4amox = 0.
-          fn2o        = 0.
-          fno2        = 0.
-          fdetamox    = 0.
-          potdno2nitr = 0.
-          fdetnitr    = 0.
+        if (omask(i,j) > 0.5_rp) then
+          potdnh4amox = 0._rp
+          fn2o        = 0._rp
+          fno2        = 0._rp
+          fdetamox    = 0._rp
+          potdno2nitr = 0._rp
+          fdetnitr    = 0._rp
           w2s         = porwat(i,j,k) / porsol(i,j,k)
 
-          temp = merge(ptho(i,j,kbo(i,j)),10.,ptho(i,j,kbo(i,j))<40.)
+          temp = merge(ptho(i,j,kbo(i,j)),10._rp,ptho(i,j,kbo(i,j))<40._rp)
           ! Ammonium oxidation step of nitrification
-          Tdepanh4    = q10anh4nitr_sed**((temp-Trefanh4nitr_sed)/10.)
+          Tdepanh4    = q10anh4nitr_sed**((temp-Trefanh4nitr_sed)/10._rp)
           O2limanh4   = powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox) + bkoxamox_sed)
           nut1lim     = powtra(i,j,k,ipownh4)/(powtra(i,j,k,ipownh4) + bkanh4nitr_sed)
-          anh4new     = powtra(i,j,k,ipownh4)/(1. + ranh4nitr_sed*Tdepanh4*O2limanh4*nut1lim)
-          potdnh4amox = max(0.,powtra(i,j,k,ipownh4) - anh4new)
+          anh4new     = powtra(i,j,k,ipownh4)/(1._rp + ranh4nitr_sed*Tdepanh4*O2limanh4*nut1lim)
+          potdnh4amox = max(0._rp,powtra(i,j,k,ipownh4) - anh4new)
 
           ! pathway splitting functions similar to Santoros et al. 2021, Ji et al. 2018
-          fn2o     = mufn2o_sed * (bn2o_sed + (1.-bn2o_sed)*bkoxamox_sed                           &
+          fn2o     = mufn2o_sed * (bn2o_sed + (1._rp-bn2o_sed)*bkoxamox_sed                        &
                    &                          /(powtra(i,j,k,ipowaox)+bkoxamox_sed))               &
                    &            * powtra(i,j,k,ipownh4)/(powtra(i,j,k,ipownh4)+bkamoxn2o_sed)
 
           fno2     = powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox) + bkoxamox_sed)
-          fdetamox = n2omaxy_sed*2.*(1. + n2oybeta_sed)*powtra(i,j,k,ipowaox)*bkyamox_sed          &
-                   & /(powtra(i,j,k,ipowaox)**2 + 2.*powtra(i,j,k,ipowaox)*bkyamox_sed + bkyamox_sed**2)
+          fdetamox = n2omaxy_sed*2._rp*(1._rp + n2oybeta_sed)*powtra(i,j,k,ipowaox)*bkyamox_sed    &
+                   & /(powtra(i,j,k,ipowaox)**2 + 2._rp*powtra(i,j,k,ipowaox)*bkyamox_sed + bkyamox_sed**2)
 
           ! normalization of pathway splitting functions to sum=1
           ftotnh4  = fn2o + fno2 + fdetamox + eps
           fn2o     = fn2o/ftotnh4
           fno2     = fno2/ftotnh4
-          fdetamox = 1. - (fn2o + fno2)
+          fdetamox = 1._rp - (fn2o + fno2)
 
           ! NO2 oxidizing step of nitrification
-          Tdepano2    = q10ano2nitr_sed**((temp-Trefano2nitr_sed)/10.)
+          Tdepano2    = q10ano2nitr_sed**((temp-Trefano2nitr_sed)/10._rp)
           O2limano2   = powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox) + bkoxnitr_sed)
           nut2lim     = powtra(i,j,k,ipowno2)/(powtra(i,j,k,ipowno2) + bkano2nitr_sed)
-          ano2new     = powtra(i,j,k,ipowno2)/(1. + rano2nitr_sed*Tdepano2*O2limano2*nut2lim)
-          potdno2nitr = max(0.,powtra(i,j,k,ipowno2) - ano2new)
+          ano2new     = powtra(i,j,k,ipowno2)/(1._rp + rano2nitr_sed*Tdepano2*O2limano2*nut2lim)
+          potdno2nitr = max(0._rp,powtra(i,j,k,ipowno2) - ano2new)
 
           ! pathway splitting functions for NO2 nitrification - assuming to be the same as for NH4
           ! but with reduced OM gain per used NO2 as energy source (in amox: NH4)
-          no2fn2o     = mufn2o_sed * (bn2o_sed + (1.-bn2o_sed)*bkoxamox_sed                        &
+          no2fn2o     = mufn2o_sed * (bn2o_sed + (1._rp-bn2o_sed)*bkoxamox_sed                     &
                       &                          /(powtra(i,j,k,ipowaox)+bkoxamox_sed))            &
                       &        * powtra(i,j,k,ipownh4)/(powtra(i,j,k,ipownh4)+bkamoxn2o_sed)
           no2fno2     = powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox) + bkoxamox_sed)
-          no2fdetamox = NOB2AOAy_sed*n2omaxy_sed*2.*(1. + n2oybeta_sed)*powtra(i,j,k,ipowaox)*bkyamox_sed  &
-                      & /(powtra(i,j,k,ipowaox)**2 + 2.*powtra(i,j,k,ipowaox)*bkyamox_sed + bkyamox_sed**2)
+          no2fdetamox = NOB2AOAy_sed*n2omaxy_sed*2._rp*(1._rp + n2oybeta_sed)*powtra(i,j,k,ipowaox)*bkyamox_sed  &
+                      & /(powtra(i,j,k,ipowaox)**2 + 2._rp*powtra(i,j,k,ipowaox)*bkyamox_sed + bkyamox_sed**2)
 
           fdetnitr = no2fdetamox/(no2fno2 + no2fn2o + eps)   ! yield to energy usage ratio for NO2 -> ratio equals 16:x
 
           ! limitation of the two processes through available nutrients, etc.
           totd     = potdnh4amox + potdno2nitr
           amoxfrac = potdnh4amox/(totd + eps)
-          nitrfrac = 1. - amoxfrac
+          nitrfrac = 1._rp - amoxfrac
 
           ! Account for potential earlier changes in DIC and alkalinity in finiding the minimum
-          totd  = max(0.,                                                                          &
+          totd  = max(0._rp,                                                                       &
                 &    min(totd,                                                                     &
                 &       max_limiter*powtra(i,j,k,ipownh4)/(amoxfrac + fdetnitr*nitrfrac + eps),    & ! ammonium
                 &       max_limiter*(powtra(i,j,k,ipowaic) + ex_ddic(i,k))                         &
@@ -203,33 +204,33 @@ contains
                 &       max_limiter*powtra(i,j,k,ipowaph)                                          &
                 &                            /(rnoi*(fdetamox*amoxfrac+fdetnitr*nitrfrac) + eps),  & ! PO4
                 &       max_limiter*powtra(i,j,k,ipowaox)                                          &
-                &       /((1.5*fno2 + fn2o - ro2nnit*fdetamox)*amoxfrac                            &
-                &                          + (0.5 - ro2nnit*fdetnitr)*nitrfrac + eps),             & ! O2
+                &       /((1.5_rp*fno2 + fn2o - ro2nnit*fdetamox)*amoxfrac                         &
+                &                          + (0.5_rp - ro2nnit*fdetnitr)*nitrfrac + eps),          & ! O2
                 &       max_limiter*(powtra(i,j,k,ipowaal) + ex_dalk(i,k))                         &
-                &       /((2.*fno2 + fn2o + rnm1*rnoi*fdetamox)*amoxfrac                           &
+                &       /((2._rp*fno2 + fn2o + rnm1*rnoi*fdetamox)*amoxfrac                        &
                 &                         + (rnm1*rnoi*fdetnitr)*nitrfrac + eps)))                   ! alkalinity
           amox  = amoxfrac*totd
           nitr  = nitrfrac*totd
 
           powtra(i,j,k,ipownh4) = powtra(i,j,k,ipownh4) - amox - fdetnitr*nitr
-          powtra(i,j,k,ipown2o) = powtra(i,j,k,ipown2o) + 0.5*fn2o*amox
+          powtra(i,j,k,ipown2o) = powtra(i,j,k,ipown2o) + 0.5_rp*fn2o*amox
           powtra(i,j,k,ipowno2) = powtra(i,j,k,ipowno2) + fno2*amox - nitr
           powtra(i,j,k,ipowno3) = powtra(i,j,k,ipowno3) + nitr
           sedlay(i,j,k,issso12) = sedlay(i,j,k,issso12) + rnoi*(fdetamox*amox + fdetnitr*nitr)*w2s
           powtra(i,j,k,ipowaph) = powtra(i,j,k,ipowaph) - rnoi*(fdetamox*amox + fdetnitr*nitr)
-          powtra(i,j,k,ipowaox) = powtra(i,j,k,ipowaox) - (1.5*fno2 + fn2o - ro2nnit*fdetamox)*amox&
-                                &                       - (0.5 - ro2nnit*fdetnitr)*nitr
+          powtra(i,j,k,ipowaox) = powtra(i,j,k,ipowaox) - (1.5_rp*fno2 + fn2o - ro2nnit*fdetamox)*amox&
+                                &                       - (0.5_rp - ro2nnit*fdetnitr)*nitr
 
           ! update of DIC and alkalinity through ex_ddic and ex_dalk fields
           ! at later stage, when undersaturation of CaCO3 has been calculted
           ex_ddic(i,k) = ex_ddic(i,k) - rc2n*(fdetamox*amox + fdetnitr*nitr)
-          ex_dalk(i,k) = ex_dalk(i,k) - (2.*fno2 + fn2o + rnm1*rnoi*fdetamox)*amox                 &
+          ex_dalk(i,k) = ex_dalk(i,k) - (2._rp*fno2 + fn2o + rnm1*rnoi*fdetamox)*amox              &
                                       - rnm1*rnoi*fdetnitr*nitr
 
           ! output:
           extNsed_diagnostics(i,j,k,ised_nitr_NH4)      = amox
           extNsed_diagnostics(i,j,k,ised_nitr_NO2)      = nitr
-          extNsed_diagnostics(i,j,k,ised_nitr_N2O_prod) = 0.5*fn2o*amox
+          extNsed_diagnostics(i,j,k,ised_nitr_N2O_prod) = 0.5_rp*fn2o*amox
           extNsed_diagnostics(i,j,k,ised_nitr_NH4_OM)   = rnoi*fdetamox*amox * w2s
           extNsed_diagnostics(i,j,k,ised_nitr_NO2_OM)   = rnoi*fdetnitr*nitr * w2s
         endif
@@ -240,28 +241,28 @@ contains
   ! ================================================================================================================================
   subroutine sed_denit_NO3_to_NO2(j,kpie,kpje,kpke,kbnd,ptho,omask,ex_ddic,ex_dalk)
     integer, intent(in) :: j,kpie,kpje,kpke,kbnd
-    real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+    real(rp),intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
     ! for calculation of pore water DIC and alkalinity changes [P-units]!
-    real,    intent(inout) :: ex_ddic(kpie,ks)
-    real,    intent(inout) :: ex_dalk(kpie,ks)
+    real(rp),intent(inout) :: ex_ddic(kpie,ks)
+    real(rp),intent(inout) :: ex_dalk(kpie,ks)
 
     ! local variables
-    integer :: i,k
-    real    :: Tdep,O2inhib,nutlim,ano3new,ano3denit,temp,s2w
+    integer  :: i,k
+    real(rp) :: Tdep,O2inhib,nutlim,ano3new,ano3denit,temp,s2w
 
     do i = 1,kpie
       do k = 1,ks
-        if (omask(i,j) > 0.5) then
+        if (omask(i,j) > 0.5_rp) then
           s2w       = porsol(i,j,k) / porwat(i,j,k)
-          temp      = merge(ptho(i,j,kbo(i,j)),10.,ptho(i,j,kbo(i,j)) < 40.)
-          Tdep      = q10ano3denit_sed**((temp-Trefano3denit_sed)/10.)
-          O2inhib   = 1. - tanh(sc_ano3denit_sed*powtra(i,j,k,ipowaox))
+          temp      = merge(ptho(i,j,kbo(i,j)),10._rp,ptho(i,j,kbo(i,j)) < 40._rp)
+          Tdep      = q10ano3denit_sed**((temp-Trefano3denit_sed)/10._rp)
+          O2inhib   = 1._rp - tanh(sc_ano3denit_sed*powtra(i,j,k,ipowaox))
           nutlim    = powtra(i,j,k,ipowno3)/(powtra(i,j,k,ipowno3) + bkano3denit_sed)
 
-          ano3new   = powtra(i,j,k,ipowno3)/(1. + rano3denit_sed*Tdep*O2inhib*nutlim)
+          ano3new   = powtra(i,j,k,ipowno3)/(1._rp + rano3denit_sed*Tdep*O2inhib*nutlim)
 
-          ano3denit = max(0.,min(powtra(i,j,k,ipowno3) - ano3new,                                  &
+          ano3denit = max(0._rp,min(powtra(i,j,k,ipowno3) - ano3new,                               &
                     &                      max_limiter*sedlay(i,j,k,issso12)*rnoxp*s2w))
 
           powtra(i,j,k,ipowno3) = powtra(i,j,k,ipowno3) - ano3denit
@@ -285,31 +286,31 @@ contains
   ! ================================================================================================================================
   subroutine sed_anammox(j,kpie,kpje,kpke,kbnd,ptho,omask,ex_ddic,ex_dalk)
     integer, intent(in) :: j,kpie,kpje,kpke,kbnd
-    real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+    real(rp),intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
     ! for calculation of pore water DIC and alkalinity changes [P-units]!
-    real,    intent(inout) :: ex_ddic(kpie,ks)
-    real,    intent(inout) :: ex_dalk(kpie,ks)
+    real(rp),intent(inout) :: ex_ddic(kpie,ks)
+    real(rp),intent(inout) :: ex_dalk(kpie,ks)
 
     ! local variables
     integer :: i,k
-    real    :: Tdep,O2inhib,nut1lim,nut2lim,ano2new,ano2anmx,temp,w2s
+    real(rp):: Tdep,O2inhib,nut1lim,nut2lim,ano2new,ano2anmx,temp,w2s
 
     do i = 1,kpie
       do k = 1,ks
-        if(omask(i,j)>0.5) then
+        if(omask(i,j)>0.5_rp) then
           w2s         = porwat(i,j,k) / porsol(i,j,k)
-          temp     = merge(ptho(i,j,kbo(i,j)),10.,ptho(i,j,kbo(i,j)) < 40.)
-          Tdep     = q10anmx_sed**((temp-Trefanmx_sed)/10.)
-          O2inhib  = 1. - exp(alphaanmx_sed*(powtra(i,j,k,ipowaox)-bkoxanmx_sed))                  &
-                   &      /(1.+ exp(alphaanmx_sed*(powtra(i,j,k,ipowaox)-bkoxanmx_sed)))
+          temp     = merge(ptho(i,j,kbo(i,j)),10._rp,ptho(i,j,kbo(i,j)) < 40._rp)
+          Tdep     = q10anmx_sed**((temp-Trefanmx_sed)/10._rp)
+          O2inhib  = 1._rp - exp(alphaanmx_sed*(powtra(i,j,k,ipowaox)-bkoxanmx_sed))               &
+                   &      /(1._rp+ exp(alphaanmx_sed*(powtra(i,j,k,ipowaox)-bkoxanmx_sed)))
           nut1lim  = powtra(i,j,k,ipowno2)/(powtra(i,j,k,ipowno2)+bkano2anmx_sed)
           nut2lim  = powtra(i,j,k,ipownh4)/(powtra(i,j,k,ipownh4)+bkanh4anmx_sed)
 
-          ano2new  = powtra(i,j,k,ipowno2)/(1. + rano2anmx_sed*Tdep*O2inhib*nut1lim*nut2lim)
+          ano2new  = powtra(i,j,k,ipowno2)/(1._rp + rano2anmx_sed*Tdep*O2inhib*nut1lim*nut2lim)
 
           ! Account for former changes in DIC and alkalinity
-          ano2anmx = max(0.,min(max_limiter*powtra(i,j,k,ipowno2) - ano2new,                       &
+          ano2anmx = max(0._rp,min(max_limiter*powtra(i,j,k,ipowno2) - ano2new,                    &
                                 max_limiter*powtra(i,j,k,ipownh4)*rno2anmx*rnh4anmxi,              &
                                 max_limiter*(powtra(i,j,k,ipowaic)+ex_ddic(i,k))*rno2anmx/rcar,    &
                                 max_limiter*powtra(i,j,k,ipowaph)*rno2anmx,                        &
@@ -338,58 +339,58 @@ contains
   ! ================================================================================================================================
   subroutine sed_denit_DNRA(j,kpie,kpje,kpke,kbnd,ptho,omask,ex_ddic,ex_dalk)
     integer, intent(in) :: j,kpie,kpje,kpke,kbnd
-    real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+    real(rp),intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
     ! for calculation of pore water DIC and alkalinity changes [P-units]!
-    real,    intent(inout) :: ex_ddic(kpie,ks)
-    real,    intent(inout) :: ex_dalk(kpie,ks)
+    real(rp),intent(inout) :: ex_ddic(kpie,ks)
+    real(rp),intent(inout) :: ex_dalk(kpie,ks)
 
     ! local variables
-    integer :: i,k
-    real    :: Tdepano2,O2inhibano2,nutlimano2,rpotano2denit,ano2denit
-    real    :: Tdepdnra,O2inhibdnra,nutlimdnra,rpotano2dnra,ano2dnra
-    real    :: fdenit,fdnra,potano2new,potdano2,potddet,fdetano2denit,fdetan2odenit,fdetdnra
-    real    :: Tdepan2o,O2inhiban2o,nutliman2o,an2onew,an2odenit
-    real    :: temp,s2w
+    integer  :: i,k
+    real(rp) :: Tdepano2,O2inhibano2,nutlimano2,rpotano2denit,ano2denit
+    real(rp) :: Tdepdnra,O2inhibdnra,nutlimdnra,rpotano2dnra,ano2dnra
+    real(rp) :: fdenit,fdnra,potano2new,potdano2,potddet,fdetano2denit,fdetan2odenit,fdetdnra
+    real(rp) :: Tdepan2o,O2inhiban2o,nutliman2o,an2onew,an2odenit
+    real(rp) :: temp,s2w
 
 
     do i = 1,kpie
       do k = 1,ks
-        if (omask(i,j) > 0.5) then
-          potddet       = 0.
-          an2odenit     = 0.
-          ano2denit     = 0.
-          ano2dnra      = 0.
+        if (omask(i,j) > 0.5_rp) then
+          potddet       = 0._rp
+          an2odenit     = 0._rp
+          ano2denit     = 0._rp
+          ano2dnra      = 0._rp
           s2w           =  porsol(i,j,k) / porwat(i,j,k)
-          temp          = merge(ptho(i,j,kbo(i,j)),10.,ptho(i,j,kbo(i,j)) < 40.)
+          temp          = merge(ptho(i,j,kbo(i,j)),10._rp,ptho(i,j,kbo(i,j)) < 40._rp)
 
            ! === denitrification on N2O
-          Tdepan2o    = q10an2odenit_sed**((temp-Trefan2odenit_sed)/10.)
+          Tdepan2o    = q10an2odenit_sed**((temp-Trefan2odenit_sed)/10._rp)
           O2inhiban2o = bkoxan2odenit_sed**2/(powtra(i,j,k,ipowaox)**2 + bkoxan2odenit_sed**2)
           nutliman2o  = powtra(i,j,k,ipown2o)/(powtra(i,j,k,ipown2o) + bkan2odenit_sed)
-          an2onew     = powtra(i,j,k,ipown2o)/(1. + ran2odenit_sed*Tdepan2o*O2inhiban2o*nutliman2o)
-          an2odenit   = max(0.,min(powtra(i,j,k,ipown2o),powtra(i,j,k,ipown2o) - an2onew))
+          an2onew     = powtra(i,j,k,ipown2o)/(1._rp + ran2odenit_sed*Tdepan2o*O2inhiban2o*nutliman2o)
+          an2odenit   = max(0._rp,min(powtra(i,j,k,ipown2o),powtra(i,j,k,ipown2o) - an2onew))
 
           ! denitrification on NO2
-          Tdepano2    = q10ano2denit_sed**((temp-Trefano2denit_sed)/10.)
+          Tdepano2    = q10ano2denit_sed**((temp-Trefano2denit_sed)/10._rp)
           O2inhibano2 = bkoxano2denit_sed**2/(powtra(i,j,k,ipowaox)**2 + bkoxano2denit_sed**2)
           nutlimano2  = powtra(i,j,k,ipowno2)/(powtra(i,j,k,ipowno2) + bkano2denit_sed)
-          rpotano2denit = max(0.,rano2denit_sed*Tdepano2*O2inhibano2*nutlimano2) ! potential rate of denit
+          rpotano2denit = max(0._rp,rano2denit_sed*Tdepano2*O2inhibano2*nutlimano2) ! potential rate of denit
 
           ! DNRA on NO2
-          Tdepdnra    = q10dnra_sed**((temp-Trefdnra_sed)/10.)
+          Tdepdnra    = q10dnra_sed**((temp-Trefdnra_sed)/10._rp)
           O2inhibdnra = bkoxdnra_sed**2/(powtra(i,j,k,ipowaox)**2 + bkoxdnra_sed**2)
           nutlimdnra  = powtra(i,j,k,ipowno2)/(powtra(i,j,k,ipowno2) + bkdnra_sed)
-          rpotano2dnra = max(0.,rdnra_sed*Tdepdnra*O2inhibdnra*nutlimdnra) ! pot. rate of dnra
+          rpotano2dnra = max(0._rp,rdnra_sed*Tdepdnra*O2inhibdnra*nutlimdnra) ! pot. rate of dnra
 
           ! potential new conc of NO2 due to denitrification and DNRA
-          potano2new = powtra(i,j,k,ipowno2)/(1. + rpotano2denit + rpotano2dnra)
-          potdano2   = max(0.,min(powtra(i,j,k,ipowno2), powtra(i,j,k,ipowno2) - potano2new))
+          potano2new = powtra(i,j,k,ipowno2)/(1._rp + rpotano2denit + rpotano2dnra)
+          potdano2   = max(0._rp,min(powtra(i,j,k,ipowno2), powtra(i,j,k,ipowno2) - potano2new))
 
           ! === limitation due to NO2:
           ! fraction on potential change of NO2:
           fdenit = rpotano2denit/(rpotano2denit + rpotano2dnra + eps)
-          fdnra  = 1. - fdenit
+          fdnra  = 1._rp - fdenit
 
           ! potential fractional change
           ano2denit  = fdenit * potdano2
@@ -399,8 +400,8 @@ contains
           potddet       = rnoxpi*(ano2denit + an2odenit) + rno2dnrai*ano2dnra  ! P units
           fdetano2denit = rnoxpi*ano2denit/(potddet + eps)
           fdetan2odenit = rnoxpi*an2odenit/(potddet + eps)
-          fdetdnra      = 1. - fdetano2denit - fdetan2odenit
-          potddet       = max(0.,min(potddet,max_limiter*sedlay(i,j,k,issso12)*s2w))
+          fdetdnra      = 1._rp - fdetano2denit - fdetan2odenit
+          potddet       = max(0._rp,min(potddet,max_limiter*sedlay(i,j,k,issso12)*s2w))
 
           ! change of NO2 and N2O in N units
           ano2denit     = fdetano2denit*rnoxp*potddet
@@ -409,7 +410,7 @@ contains
 
           ! change in tracer concentrations due to denit (NO2->N2O->N2) and DNRA (NO2->NH4)
           powtra(i,j,k,ipowno2) = powtra(i,j,k,ipowno2) - ano2denit - ano2dnra
-          powtra(i,j,k,ipown2o) = powtra(i,j,k,ipown2o) - an2odenit + 0.5*ano2denit
+          powtra(i,j,k,ipown2o) = powtra(i,j,k,ipown2o) - an2odenit + 0.5_rp*ano2denit
           powtra(i,j,k,ipown2)  = powtra(i,j,k,ipown2)  + an2odenit
           powtra(i,j,k,ipownh4) = powtra(i,j,k,ipownh4) + rnit*rnoxpi*(ano2denit+an2odenit)        &
                                 &                       + rnh4dnra*rno2dnrai*ano2dnra
@@ -422,8 +423,8 @@ contains
           ! at later stage, when undersaturation of CaCO3 has been calculted
           ex_ddic(i,k)          = ex_ddic(i,k) + rcar*rnoxpi*(ano2denit + an2odenit)               &
                                 &              + rcar*rno2dnrai*ano2dnra
-          ex_dalk(i,k)          = ex_dalk(i,k) + (295.*ano2denit + rnm1*an2odenit)*rnoxpi          &
-                                &                 + (rno2dnra + rnh4dnra - 1.)*rno2dnrai*ano2dnra
+          ex_dalk(i,k)          = ex_dalk(i,k) + (295._rp*ano2denit + rnm1*an2odenit)*rnoxpi       &
+                                &                 + (rno2dnra + rnh4dnra - 1._rp)*rno2dnrai*ano2dnra
 
           extNsed_diagnostics(i,j,k,ised_denit_NO2) = ano2denit
           extNsed_diagnostics(i,j,k,ised_denit_N2O) = an2odenit
