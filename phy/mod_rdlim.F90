@@ -82,7 +82,7 @@ module mod_rdlim
                              msc_massgs, msc_volgs, msc_salnga, msc_tempga, msc_sssga,  &
                              msc_sstga,  &
                              h2d_abswnd, h2d_alb, h2d_btmstr, h2d_brnflx, h2d_brnpd,  &
-                             h2d_dfl, h2d_eva, h2d_fice, h2d_fmltfz, h2d_hice,  &
+                             h2d_dfl, h2d_eva, h2d_fice, h2d_fmltfz, h2d_hice, h2d_hmat,  &
                              h2d_hmltfz, h2d_hsnw, h2d_iage, h2d_idkedt, h2d_lamult,  &
                              h2d_lasl, h2d_lip, h2d_maxmld, h2d_mld, h2d_mlts,  &
                              h2d_mltsmn, h2d_mltsmx, h2d_mltssq, h2d_mtkeus, h2d_mtkeni,  &
@@ -479,6 +479,7 @@ contains
       write (lp,*) 'H2D_FMLTFZ  ',H2D_FMLTFZ(1:nphy)
       write (lp,*) 'H2D_FICE    ',H2D_FICE(1:nphy)
       write (lp,*) 'H2D_HICE    ',H2D_HICE(1:nphy)
+      write (lp,*) 'H2D_HMAT    ',H2D_HMAT(1:nphy)
       write (lp,*) 'H2D_HMLTFZ  ',H2D_HMLTFZ(1:nphy)
       write (lp,*) 'H2D_HSNW    ',H2D_HSNW(1:nphy)
       write (lp,*) 'H2D_IAGE    ',H2D_IAGE(1:nphy)
@@ -657,6 +658,7 @@ contains
     call xcbcst(H2D_FICE)
     call xcbcst(H2D_FMLTFZ)
     call xcbcst(H2D_HICE)
+    call xcbcst(H2D_HMAT)
     call xcbcst(H2D_HMLTFZ)
     call xcbcst(H2D_HSNW)
     call xcbcst(H2D_IAGE)

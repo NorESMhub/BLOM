@@ -57,7 +57,7 @@ module mod_dia
                            usflsm, vsflsm, usflld, vsflld
   use mod_cmnfld,    only: z, bfsql, dz, mlts
   use mod_seaice,    only: ficem, hicem, hsnwm, uicem, vicem, iagem
-  use mod_forcing,   only: swa, nsf, hmltfz, lip, sop, eva, rnf, rfi, &
+  use mod_forcing,   only: swa, nsf, hmat, hmltfz, lip, sop, eva, rnf, rfi, &
                            fmltfz, sfl, ztx, mty, abswnd, &
                            lamult, lasl, ustokes, vstokes, surflx, &
                            surrlx, salflx, brnflx, salrlx, taux, tauy, &
@@ -197,7 +197,7 @@ module mod_dia
   integer, dimension(nphymax), public :: &
        H2D_ABSWND ,H2D_ALB    ,H2D_BTMSTR ,H2D_BRNFLX ,H2D_BRNPD  , &
        H2D_DFL    ,H2D_EVA    ,H2D_FICE   ,H2D_FMLTFZ ,H2D_HICE   , &
-       H2D_HMLTFZ ,H2D_HSNW   ,H2D_IAGE   ,H2D_IDKEDT ,H2D_LAMULT , &
+       H2D_HMLTFZ ,H2D_HSNW   ,H2D_IAGE   ,H2D_IDKEDT ,H2D_LAMULT , H2D_HMAT, &
        H2D_LASL   ,H2D_LIP    ,H2D_MAXMLD ,H2D_MLD    ,H2D_MLTS   , &
        H2D_MLTSMN ,H2D_MLTSMX ,H2D_MLTSSQ ,H2D_MTKEUS ,H2D_MTKENI , &
        H2D_MTKEBF ,H2D_MTKERS ,H2D_MTKEPE ,H2D_MTKEKE ,H2D_MTY    , &
@@ -234,7 +234,7 @@ module mod_dia
 
   integer, dimension(nphymax), public :: &
        ACC_ABSWND ,ACC_ALB    ,ACC_BRNFLX ,ACC_BRNPD  ,ACC_DFL    , &
-       ACC_EVA    ,ACC_FICE   ,ACC_FMLTFZ ,ACC_HICE   ,ACC_HMLTFZ , &
+       ACC_EVA    ,ACC_FICE   ,ACC_FMLTFZ ,ACC_HICE   ,ACC_HMAT   , ACC_HMLTFZ , &
        ACC_HSNW   ,ACC_IAGE   ,ACC_IDKEDT ,ACC_LAMULT ,ACC_LASL   , &
        ACC_LIP    ,ACC_MAXMLD ,ACC_MLD    ,ACC_MLTS   ,ACC_MLTSMN , &
        ACC_MLTSMX ,ACC_MLTSSQ ,ACC_MTKEUS ,ACC_MTKENI ,ACC_MTKEBF , &
@@ -285,7 +285,7 @@ module mod_dia
 
   namelist /DIAPHY/ &
        H2D_ABSWND ,H2D_ALB    ,H2D_BTMSTR ,H2D_BRNFLX ,H2D_BRNPD  , &
-       H2D_DFL    ,H2D_EVA    ,H2D_FICE   ,H2D_FMLTFZ ,H2D_HICE   , &
+       H2D_DFL    ,H2D_EVA    ,H2D_FICE   ,H2D_FMLTFZ ,H2D_HICE   , H2D_HMAT, &
        H2D_HMLTFZ ,H2D_HSNW   ,H2D_IAGE   ,H2D_IDKEDT ,H2D_LAMULT , &
        H2D_LASL   ,H2D_LIP    ,H2D_MAXMLD ,H2D_MLD    ,H2D_MLTS   , &
        H2D_MLTSMN ,H2D_MLTSMX ,H2D_MLTSSQ ,H2D_MTKEUS ,H2D_MTKENI , &
@@ -501,6 +501,7 @@ contains
       ACC_FICE(n)     = H2D_FICE(n)   + H2D_HICE(n)   + H2D_UICE(n) &
            + H2D_VICE(n)   + H2D_HSNW(n)
       ACC_HICE(n)     = H2D_HICE(n)   + H2D_UICE(n)   + H2D_VICE(n)
+      ACC_HMAT(n)     = H2D_HMAT(n)
       ACC_HMLTFZ(n)   = H2D_HMLTFZ(n)
       ACC_HSNW(n)     = H2D_HSNW(n)
       ACC_IAGE(n)     = H2D_IAGE(n)
@@ -696,6 +697,8 @@ contains
       ACC_FICE(n) = nphyh2d*min(1,ACC_FICE(n))
       if (acc_hice(n) /= 0) nphyh2d = nphyh2d+1
       ACC_HICE(n) = nphyh2d*min(1,ACC_HICE(n))
+      if (acc_hmat(n) /= 0) nphyh2d = nphyh2d+1
+      ACC_HMAT(n) = nphyh2d*min(1,ACC_HMAT(n))
       if (acc_hmltfz(n) /= 0) nphyh2d = nphyh2d+1
       ACC_HMLTFZ(n) = nphyh2d*min(1,ACC_HMLTFZ(n))
       if (acc_hsnw(n) /= 0) nphyh2d = nphyh2d+1
@@ -1397,6 +1400,9 @@ contains
 
     ! non-solar heat flux [W/m^2]
     call acch2d(ACC_NSF,nsf,dummy,0,'p')
+
+    ! heat flux due to material enthalpy flux [W/m^2]
+    call acch2d(ACC_HMAT,hmat,dummy,0,'p')
 
     ! heat flux due to melting/freezing [W/m^2]
     call acch2d(ACC_HMLTFZ,hmltfz,dummy,0,'p')
@@ -2471,6 +2477,10 @@ contains
 
     call wrth2d(ACC_NSF(iogrp),H2D_NSF(iogrp),rnacc,0., &
          cmpflg,ip,'p','nsf','Non-solar heat flux',' ','W m-2')
+
+    call wrth2d(ACC_HMAT(iogrp),H2D_HMAT(iogrp),rnacc,0., &
+         cmpflg,ip,'p','hmat','Heat flux due to material enthalpy flux', &
+         ' ','W m-2')
 
     call wrth2d(ACC_HMLTFZ(iogrp),H2D_HMLTFZ(iogrp),rnacc,0., &
          cmpflg,ip,'p','hmltfz','Heat flux due to melting/freezing',' ','W m-2')
@@ -5361,6 +5371,7 @@ contains
     call inih2d(ACC_ALB(iogrp),'p',0.)
     call inih2d(ACC_SWA(iogrp),'p',0.)
     call inih2d(ACC_NSF(iogrp),'p',0.)
+    call inih2d(ACC_HMAT(iogrp),'p',0.)
     call inih2d(ACC_DFL(iogrp),'p',0.)
     call inih2d(ACC_LIP(iogrp),'p',0.)
     call inih2d(ACC_SOP(iogrp),'p',0.)
@@ -6274,6 +6285,9 @@ contains
 
     call ncdefvar3d(H2D_NSF(iogrp),cmpflg,'p','nsf', &
          'Non-solar heat flux',' ','W m-2',0)
+
+    call ncdefvar3d(H2D_HMAT(iogrp),cmpflg,'p','hmat', &
+         'Heat flux due to material enthalpy flux',' ','W m-2',0)
 
     call ncdefvar3d(H2D_HMLTFZ(iogrp),cmpflg,'p','hmltfz', &
          'Heat flux due to melting/freezing',' ','W m-2',0)

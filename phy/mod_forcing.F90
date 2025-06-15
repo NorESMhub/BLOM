@@ -123,6 +123,7 @@ module mod_forcing
       hmltfz, &       ! Heat flux due to melting and freezing [W m-2].
       lip, &          ! Liquid water flux [kg m-2 s-1].
       sop, &          ! Solid precipitation [kg m-2 s-1].
+      hmat, &         ! Surface material enthalpy flux [W m-2].
       eva, &          ! Evaporation [kg m-2 s-1].
       rnf, &          ! Liquid runoff [kg m-2 s-1].
       rfi, &          ! Frozen runoff [kg m-2 s-1].
@@ -191,8 +192,8 @@ module mod_forcing
              wavsrc, wavsrc_opt, wavsrc_none, wavsrc_param, wavsrc_extern, &
              sref, tflxap, sflxap, tflxdi, sflxdi, nflxdi, &
              sstclm, ricclm, sssclm, prfac, eiacc, pracc, &
-             swa, nsf, hmltfz, lip, sop, eva, rnf, rfi, fmltfz, sfl, ztx, mty, &
-             ustarw, slp, abswnd, lamult, lasl, ustokes, vstokes, &
+             swa, nsf, hmltfz, hmat, lip, sop, eva, rnf, rfi, fmltfz, sfl, &
+             ztx, mty, ustarw, slp, abswnd, lamult, lasl, ustokes, vstokes, &
              atmco2, flxco2, flxdms, flxbrf, atmbrf, &
              atmn2o,flxn2o,atmnh3,flxnh3, atmnhxdep,atmnoydep, &
              surflx, surrlx, sswflx, salflx, brnflx, salrlx, taux, tauy, &
@@ -216,6 +217,7 @@ contains
       swa(:,:) = spval
       nsf(:,:) = spval
       hmltfz(:,:) = spval
+      hmat(:,:) = spval
       lip(:,:) = spval
       sop(:,:) = spval
       eva(:,:) = spval
