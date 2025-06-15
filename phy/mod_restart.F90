@@ -58,7 +58,7 @@ module mod_restart
                                  nphy, nacc_phy, &
                                  acc_abswnd, acc_alb, acc_brnflx, acc_brnpd, &
                                  acc_dfl, acc_eva, acc_fice, acc_fmltfz, &
-                                 acc_hice, acc_hmltfz, acc_hsnw, acc_iage, &
+                                 acc_hice, acc_hmat, acc_hmltfz, acc_hsnw, acc_iage, &
                                  acc_idkedt, acc_lamult, acc_lasl, acc_lip, &
                                  acc_maxmld, acc_mld, acc_mlts, acc_mltsmn, &
                                  acc_mltsmx, acc_mltssq, acc_mtkeus, &
@@ -121,7 +121,7 @@ module mod_restart
    use mod_eddtra,         only: tau_growing_hbl, tau_decaying_hbl, &
                                  tau_growing_hml, tau_decaying_hml, &
                                  hbl_tf, wpup_tf, hml_tf1, hml_tf
-   use mod_cesm,           only: frzpot, mltpot, swa_da, nsf_da, hmlt_da, &
+   use mod_cesm,           only: frzpot, mltpot, swa_da, nsf_da, hmat_da, hmlt_da, &
                                  lip_da, sop_da, eva_da, rnf_da, rfi_da, &
                                  fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da, &
                                  slp_da, abswnd_da, atmco2_da, atmbrf_da, &
@@ -530,6 +530,8 @@ contains
                          swa_da, ip, defmode)
          call defwrtfld('nsf_da', trim(c5p)//' k2 time', &
                          nsf_da, ip, defmode)
+         call defwrtfld('hmat_da', trim(c5p)//' k2 time', &
+                         hmat_da, ip, defmode)
          call defwrtfld('hmlt_da', trim(c5p)//' k2 time', &
                          hmlt_da, ip, defmode)
          call defwrtfld('slp_da', trim(c5p)//' k2 time', &
@@ -683,6 +685,9 @@ contains
             if (ACC_NSF(n) /= 0) &
                call defwrtfld('nsf_phy'//c2, trim(c5p)//' time', &
                               phyh2d(1-nbdy,1-nbdy,ACC_NSF(n)), ip, defmode)
+            if (ACC_HMAT(n) /= 0) &
+               call defwrtfld('hmat_phy'//c2, trim(c5p)//' time', &
+                              phyh2d(1-nbdy,1-nbdy,ACC_HMAT(n)), ip, defmode)
             if (ACC_DFL(n) /= 0) &
                call defwrtfld('dfl_phy'//c2, trim(c5p)//' time', &
                               phyh2d(1-nbdy,1-nbdy,ACC_DFL(n)), ip, defmode)
@@ -1874,6 +1879,7 @@ contains
          call readfld('sfl_da', no_unitconv, sfl_da, ip, required = .false.)
          call readfld('swa_da', no_unitconv, swa_da, ip, required = .false.)
          call readfld('nsf_da', no_unitconv, nsf_da, ip, required = .false.)
+         call readfld('hmat_da', no_unitconv, hmat_da, ip, required = .false.)
          call readfld('hmlt_da', no_unitconv, hmlt_da, ip, required = .false.)
          call readfld('slp_da', no_unitconv, slp_da, ip, required = .false.)
          call readfld('ficem_da', no_unitconv, ficem_da, ip, required = .false.)
@@ -2053,6 +2059,9 @@ contains
                if (ACC_NSF(n) /= 0) &
                   call readfld('nsf_phy'//c2, no_unitconv, &
                                phyh2d(1-nbdy,1-nbdy,ACC_NSF(n)), ip)
+               if (ACC_HMAT(n) /= 0) &
+                  call readfld('hmat_phy'//c2, no_unitconv, &
+                               phyh2d(1-nbdy,1-nbdy,ACC_HMAT(n)), ip)
                if (ACC_DFL(n) /= 0) &
                   call readfld('dfl_phy'//c2, no_unitconv, &
                                phyh2d(1-nbdy,1-nbdy,ACC_DFL(n)), ip)
