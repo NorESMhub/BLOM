@@ -825,4 +825,44 @@
     </mach>
   </grid>
 
+  <!-- Offline sediment spinup - testwise - needs adjustment to reduce idling -->
+  <grid name="a%null.+oi%tnx2v1">
+    <mach name="any">
+      <pes pesize="M" compset="SCAM.*_BLOM.*%ECO">
+        <comment>Medium sized pe-layout with 384 pes in total</comment>
+        <ntasks>
+          <ntasks_atm>18</ntasks_atm>
+          <ntasks_rof>18</ntasks_rof>
+          <ntasks_ice>76</ntasks_ice>
+          <ntasks_ocn>272</ntasks_ocn>
+          <ntasks_cpl>76</ntasks_cpl>
+          <ntasks_lnd>1</ntasks_lnd>
+          <ntasks_glc>1</ntasks_glc>
+          <ntasks_wav>1</ntasks_wav>
+        </ntasks>
+        <nthrds>
+          <nthrds_atm>1</nthrds_atm>
+          <nthrds_lnd>1</nthrds_lnd>
+          <nthrds_rof>1</nthrds_rof>
+          <nthrds_ice>1</nthrds_ice>
+          <nthrds_ocn>1</nthrds_ocn>
+          <nthrds_glc>1</nthrds_glc>
+          <nthrds_wav>1</nthrds_wav>
+          <nthrds_cpl>1</nthrds_cpl>
+        </nthrds>
+        <rootpe>
+          <rootpe_atm>76</rootpe_atm>
+          <rootpe_lnd>0</rootpe_lnd>
+          <rootpe_rof>94</rootpe_rof>
+          <rootpe_ice>0</rootpe_ice>
+          <rootpe_ocn>112</rootpe_ocn>
+          <rootpe_glc>0</rootpe_glc>
+          <rootpe_wav>0</rootpe_wav>
+          <rootpe_cpl>0</rootpe_cpl>
+        </rootpe>
+      </pes>
+    </mach>
+  </grid>
+
+
 </config_pes>
