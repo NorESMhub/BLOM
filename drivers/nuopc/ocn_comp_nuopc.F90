@@ -371,6 +371,9 @@ contains
    ! The NUOPC layer uses these to match fields between components in the
    ! coupled system.
    ! ---------------------------------------------------------------------------
+!jm offline sediment spinup
+      use shr_sys_mod         , only : shr_sys_abort
+!jm end offline sediment spinup
 
       ! Input/output arguments.
       type(ESMF_GridComp)  :: gcomp
@@ -406,21 +409,21 @@ contains
       use_BROMO = .false.
 #endif
 
-      !jm offline sediment spinup
+!jm offline sediment spinup
       ! Get info if mediator is present
       call NUOPC_CompAttributeGet(gcomp, name="mediator_present", value=cvalue, &
                                   isPresent=isPresent, isSet=isSet, rc=rc)
       if (ChkErr(rc,__LINE__,u_FILE_u)) return
       if (isPresent .and. isSet) then
         read (cvalue,*) mediator_present
-        if (mediator_present) then
-          call advertise_fields(gcomp, flds_scalar_name, rc)
-          if (ChkErr(rc,__LINE__,u_FILE_u)) return
-        end if
+!        if (mediator_present) then
+!          call advertise_fields(gcomp, flds_scalar_name, rc)
+!          if (ChkErr(rc,__LINE__,u_FILE_u)) return
+!        end if
       else
        call shr_sys_abort(subname//'Need to set attribute mediator_present')
       endif
-      !jm end offline sediment spinup
+!jm end offline sediment spinup
 
       ! Get debug flag.
       call NUOPC_CompAttributeGet(gcomp, name='dbug_flag', value=cvalue, &
@@ -613,6 +616,7 @@ contains
       write(msg,'(a,l1)') subname//': export brf ', flds_brf
       call blom_logwrite(msg)
 
+if (mediator_present) then !jm offline-sediment-spinup
       ! ------------------------------------------------------------------------
       ! Advertise import fields.
       ! ------------------------------------------------------------------------
@@ -638,6 +642,7 @@ contains
                               TransferOfferGeomObject='will provide', rc=rc)
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
       enddo
+endif ! mediator_present jm offline-sediment-spinup
 
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
 
