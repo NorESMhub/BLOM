@@ -84,7 +84,8 @@ module mod_vcoord
    real(r8) :: &
       dpmin_surface          = 1.5_r8, &
       dpmin_inflation_factor = 1._r8, &
-      sra_ts                 = 5._r8, &
+      sra_clim_ts            = 5._r8, &
+      sra_param_ts           = 5._r8, &
       sra_massfrac_bot       = .01, &
       sra_massfrac_eps       = .0001
    type(sigref_fun_spec_type) :: &
@@ -106,8 +107,11 @@ module mod_vcoord
                                   ! within density classes.
    real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,sra_tlev_num) :: &
       sra_dpml_sum, &             ! Sum of pressure at mixed layer base.
-      sra_sigmlb_sum              ! Sum of potential density at mixed layer
+      sra_sigmlb_sum, &           ! Sum of potential density at mixed layer
                                   ! base.
+      sra_dpml_clim, &            ! Climatology of pressure at mixed layer base.
+      sra_sigmlb_clim             ! Climatology of potential density at mixed
+                                  ! layer base.
    real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
       sra_dpml_dmax, &            ! Daily maximum mixed layer pressure
                                   ! thickness.
@@ -133,8 +137,8 @@ module mod_vcoord
              vcoord_cntiso_hybrid, vcoord_plevel, sra_tlev_num, sigref_spec, &
              sigmar, sigref_fun_spec, sigref, plevel, sigref_adaption, &
              sra_massdc_colsum, sra_sigmassdc_colsum, sra_massgs_colsum, &
-             sra_dpml_sum, sra_sigmlb_sum, sra_sigref_sum, sra_s_bot_sum, &
-             sra_tlev_accnum, sra_accnum, &
+             sra_dpml_sum, sra_sigmlb_sum, sra_dpml_clim, sra_sigmlb_clim, &
+             sra_sigref_sum, sra_s_bot_sum, sra_tlev_accnum, sra_accnum, &
              sigref_fun_spec_old, sigref_fun_spec_new, &
              readnml_vcoord, inivar_vcoord, sigref_adapt
 
@@ -258,17 +262,14 @@ contains
 
    end function sigref_fun
 
-   function sra_cost(dpml_clim, sigmlb_clim, wgt, plevel_test, sigref_test) &
-      result(cost)
+   function sra_cost(plevel_test, sigref_test) result(cost)
    ! ---------------------------------------------------------------------------
    ! Return the cost that measures the deviation from mixed layer pressure
    ! thickness (dpml) and the pressure pressure thickness occupied by constant
-   ! pressure levels (dpml_plev). The norm used is log(dpml_plev/dpml)**2*wgt
+   ! pressure levels (dpml_plev). The norm used is:
+   !   log(dpml_plev/dpml)**2*sra_cost_wgt
    ! ---------------------------------------------------------------------------
 
-      real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,sra_tlev_num), &
-                intent(in) :: dpml_clim, sigmlb_clim
-      real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), intent(in) :: wgt
       real(r8), dimension(kdm), intent(in) :: plevel_test, sigref_test
 
       real(r8) :: cost
@@ -283,9 +284,9 @@ contains
          do j = 1, jj
             do l = 1, isp(j)
             do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
-               dpml = dpml_clim(i,j,tlev)
+               dpml = sra_dpml_clim(i,j,tlev)
                if (dpml /= spval) then
-                  sigmlb = sigmlb_clim(i,j,tlev)
+                  sigmlb = sra_sigmlb_clim(i,j,tlev)
                   k = 2
                   do while (k <= kdm)
                      if (sigmlb < sigref_test(k)) then
@@ -294,7 +295,8 @@ contains
                         dpml_plev = (1._r8 - w)*plevel_test(k-1) &
                                   +          w *plevel_test(k  )
                         logdiff = log(dpml_plev/dpml)
-                        cost_2d(i,j) = cost_2d(i,j) + logdiff*logdiff*wgt(i,j)
+                        cost_2d(i,j) = cost_2d(i,j) &
+                                     + logdiff*logdiff*sra_cost_wgt(i,j)
                         exit
                      endif
                      k = k + 1
@@ -309,16 +311,13 @@ contains
       
    end function sra_cost
 
-   function sra_cost_grad(dpml_clim, sigmlb_clim, wgt, plevel_test, &
-                          sigref_fun_spec_base, x, dx) result(cost_grad)
+   function sra_cost_grad(plevel_test, sigref_fun_spec_base, x, dx) &
+      result(cost_grad)
    ! ---------------------------------------------------------------------------
    ! Estimate the cost gradient with respect to sp1 and zp2 of the reference
    ! potential density function specification.
    ! ---------------------------------------------------------------------------
 
-      real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,sra_tlev_num), &
-                intent(in) :: dpml_clim, sigmlb_clim
-      real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy), intent(in) :: wgt
       real(r8), dimension(kdm), intent(in) :: plevel_test
       type(sigref_fun_spec_type), intent(in) :: sigref_fun_spec_base
       real(r8), dimension(2), intent(in) :: x, dx
@@ -332,20 +331,16 @@ contains
 
       sigref_fun_spec_test%zp2 = x(2)
       sigref_fun_spec_test%sp1 = x(1) - .5_r8*dx(1)
-      cost_m  = sra_cost(dpml_clim, sigmlb_clim, wgt, plevel_test, &
-                         sigref_fun(sigref_fun_spec_test, kdm))
+      cost_m  = sra_cost(plevel_test, sigref_fun(sigref_fun_spec_test, kdm))
       sigref_fun_spec_test%sp1 = x(1) + .5_r8*dx(1)
-      cost_p  = sra_cost(dpml_clim, sigmlb_clim, wgt, plevel_test, &
-                         sigref_fun(sigref_fun_spec_test, kdm))
+      cost_p  = sra_cost(plevel_test, sigref_fun(sigref_fun_spec_test, kdm))
       cost_grad(1) = (cost_p - cost_m)/dx(1)
 
       sigref_fun_spec_test%sp1 = x(1)
       sigref_fun_spec_test%zp2 = x(2) - .5_r8*dx(2)
-      cost_m  = sra_cost(dpml_clim, sigmlb_clim, wgt, plevel_test, &
-                         sigref_fun(sigref_fun_spec_test, kdm))
+      cost_m  = sra_cost(plevel_test, sigref_fun(sigref_fun_spec_test, kdm))
       sigref_fun_spec_test%zp2 = x(2) + .5_r8*dx(2)
-      cost_p  = sra_cost(dpml_clim, sigmlb_clim, wgt, plevel_test, &
-                         sigref_fun(sigref_fun_spec_test, kdm))
+      cost_p  = sra_cost(plevel_test, sigref_fun(sigref_fun_spec_test, kdm))
       cost_grad(2) = (cost_p - cost_m)/dx(2)
 
    end function sra_cost_grad
@@ -357,31 +352,35 @@ contains
 
       integer, intent(in) :: m, n, mm, nn, k1m, k1n
 
-      real(r8) :: w1, w2, sp1_tf1, zp2_tf1, sp4_tf1, s_bot_tf1
+      real(r8) :: wgt_tf1, wgt_tf2, sp1_tf1, zp2_tf1, sp4_tf1, s_bot_tf1
       integer :: i, j, k
 
       ! Time filter weights.
-      w1 = ( real(nday_of_year - 1, r8) &
-           + real(mod(nstep, nstep_in_day), r8)/real(nstep_in_day, r8)) &
-           /real(nday_in_year, r8)
-      w2 = baclin/(86400._r8*real(nday_in_year, r8)*sra_ts + baclin)
+      wgt_tf1 = ( real(nday_of_year - 1, r8) &
+                + real(mod(nstep, nstep_in_day), r8)/real(nstep_in_day, r8)) &
+                /real(nday_in_year, r8)
+      wgt_tf2 = baclin/(86400._r8*real(nday_in_year, r8)*sra_param_ts + baclin)
 
       ! Create signals, which vary linearly from old to new parameter values
       ! over a year, for the final time filter.
-      sp1_tf1   = (1._r8 - w1)*sigref_fun_spec_old%sp1 &
-                +          w1 *sigref_fun_spec_new%sp1
-      zp2_tf1   = (1._r8 - w1)*sigref_fun_spec_old%zp2 &
-                +          w1 *sigref_fun_spec_new%zp2
-      sp4_tf1   = (1._r8 - w1)*sigref_fun_spec_old%sp4 &
-                +          w1 *sigref_fun_spec_new%sp4
-      s_bot_tf1 = (1._r8 - w1)*sigref_fun_spec_old%s_bot &
-                +          w1 *sigref_fun_spec_new%s_bot
+      sp1_tf1   = (1._r8 - wgt_tf1)*sigref_fun_spec_old%sp1 &
+                +          wgt_tf1 *sigref_fun_spec_new%sp1
+      zp2_tf1   = (1._r8 - wgt_tf1)*sigref_fun_spec_old%zp2 &
+                +          wgt_tf1 *sigref_fun_spec_new%zp2
+      sp4_tf1   = (1._r8 - wgt_tf1)*sigref_fun_spec_old%sp4 &
+                +          wgt_tf1 *sigref_fun_spec_new%sp4
+      s_bot_tf1 = (1._r8 - wgt_tf1)*sigref_fun_spec_old%s_bot &
+                +          wgt_tf1 *sigref_fun_spec_new%s_bot
 
       ! Apply final time filter.
-      sigref_fun_spec%sp1   = (1._r8 - w2)*sigref_fun_spec%sp1   + w2*sp1_tf1
-      sigref_fun_spec%zp2   = (1._r8 - w2)*sigref_fun_spec%zp2   + w2*zp2_tf1
-      sigref_fun_spec%sp4   = (1._r8 - w2)*sigref_fun_spec%sp4   + w2*sp4_tf1
-      sigref_fun_spec%s_bot = (1._r8 - w2)*sigref_fun_spec%s_bot + w2*s_bot_tf1
+      sigref_fun_spec%sp1   = (1._r8 - wgt_tf2)*sigref_fun_spec%sp1 &
+                            +          wgt_tf2 *sp1_tf1
+      sigref_fun_spec%zp2   = (1._r8 - wgt_tf2)*sigref_fun_spec%zp2 &
+                            +          wgt_tf2 *zp2_tf1
+      sigref_fun_spec%sp4   = (1._r8 - wgt_tf2)*sigref_fun_spec%sp4 &
+                            +          wgt_tf2 *sp4_tf1
+      sigref_fun_spec%s_bot = (1._r8 - wgt_tf2)*sigref_fun_spec%s_bot &
+                            +          wgt_tf2 *s_bot_tf1
 
       ! Obtain updated reference potential densities.
       sigref(1:kdm) = sigref_fun(sigref_fun_spec, kdm)
@@ -579,13 +578,12 @@ contains
       integer, parameter :: &
          adam_maxiter = 500
 
-      real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,sra_tlev_num) :: &
-         dpml_mean, sigmlb_mean
       real(r8), dimension(kdm) :: massfracdc, sigdc, sigref_mean
       real(r8), dimension(2) :: adam_m, adam_v, adam_mhat, adam_vhat, &
                                 x, dx, cost_grad
-      real(r8) :: q, massgs, massdc, sigmassdc, s_bot_mean, rktb, &
-                  massfrac_bot, cost, adam_beta1pt, adam_beta2pt
+      real(r8) :: wgt_tf, q, massgs, massdc, sigmassdc, s_bot_mean, rktb, &
+                  massfrac_bot, sp4_new, s_bot_new, cost, adam_beta1pt, &
+                  adam_beta2pt
       integer :: i, j, l, tlev, kdc, ktb
       type(sigref_fun_spec_type) :: sigref_fun_spec_test
 
@@ -593,19 +591,26 @@ contains
       ! old.
       sigref_fun_spec_old = sigref_fun_spec_new
 
-      ! Obtain time-level means of mixed layer depth and associated potential
-      ! density at mixed layer base.
+      ! Obtain time-level climatology of mixed layer depth and associated
+      ! potential density at mixed layer base.
+      wgt_tf = 1._r8/(sra_clim_ts + 1._r8)
       do tlev = 1, sra_tlev_num
          q = 1./real(sra_tlev_accnum(tlev), r8)
          do j = 1, jj
             do l = 1, isp(j)
             do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
                if (sra_dpml_sum(i,j,tlev) /= spval) then
-                  dpml_mean(i,j,tlev) = sra_dpml_sum(i,j,tlev)*q
-                  sigmlb_mean(i,j,tlev) = sra_sigmlb_sum(i,j,tlev)*q
-               else
-                  dpml_mean(i,j,tlev) = spval
-                  sigmlb_mean(i,j,tlev) = spval
+                  if (sra_dpml_clim(i,j,tlev) /= spval) then
+                     sra_dpml_clim(i,j,tlev) = &
+                        (1._r8 - wgt_tf)*sra_dpml_clim(i,j,tlev) &
+                      +          wgt_tf *sra_dpml_sum(i,j,tlev)*q
+                     sra_sigmlb_clim(i,j,tlev) = &
+                        (1._r8 - wgt_tf)*sra_sigmlb_clim(i,j,tlev) &
+                      +          wgt_tf *sra_sigmlb_sum(i,j,tlev)*q
+                  else
+                     sra_dpml_clim(i,j,tlev) = sra_dpml_sum(i,j,tlev)*q
+                     sra_sigmlb_clim(i,j,tlev) = sra_sigmlb_sum(i,j,tlev)*q
+                  endif
                endif
             enddo
             enddo
@@ -672,16 +677,16 @@ contains
             kdc = kdc - 1
             if (massfrac_bot + massfracdc(kdc) > sra_massfrac_bot) then
                if     (kdc == kdm) then
-                  sigref_fun_spec_new%sp4 = &
+                  sp4_new = &
                      sigref_mean(kdc) &
                    + (1._r8 - sigref_fun_spec%z_bot)*sigref_fun_spec%dsdz_bot
                elseif (massfracdc(kdc) < sra_massfrac_eps) then
-                  sigref_fun_spec_new%sp4 = &
+                  sp4_new = &
                      .5_r8*(sigref_mean(kdc) + sigref_mean(kdc+1)) &
                    + (1._r8 - sigref_fun_spec%z_bot)*sigref_fun_spec%dsdz_bot
                else
                   q = (sra_massfrac_bot - massfrac_bot)/massfracdc(kdc)
-                  sigref_fun_spec_new%sp4 = &
+                  sp4_new = &
                      sigref_mean(kdc)*q + sigref_mean(kdc+1)*(1._r8 - q) &
                    + (1._r8 - sigref_fun_spec%z_bot)*sigref_fun_spec%dsdz_bot
                endif
@@ -701,30 +706,29 @@ contains
             do while (massfracdc(kdc) < sra_massfrac_eps)
                kdc = kdc - 1
             enddo
-            sigref_fun_spec_new%s_bot = sigref_mean(kdc)
+            s_bot_new = sigref_mean(kdc)
          else
             ! Adjust s_bot to balance the mass fraction of the two densest
             ! layers.
             if (massfracdc(kdm-1) > massfracdc(kdm)) then
-               sigref_fun_spec_new%s_bot = &
+               s_bot_new = &
                   s_bot_mean &
                - .5_r8*(massfracdc(kdm-1) - massfracdc(kdm)) &
                       *(s_bot_mean - sigref_mean(kdm-1))/massfracdc(kdm-1)
             else
-               sigref_fun_spec_new%s_bot = &
+               s_bot_new = &
                   s_bot_mean &
                 + (massfracdc(kdm) - massfracdc(kdm-1)) &
                   *(sigdc(kdm) - s_bot_mean)/massfracdc(kdm)
             endif
          endif
-         sigref_fun_spec_new%s_bot = max(sigref_fun_spec_new%s_bot, &
-                                         sigref_fun_spec_new%sp4)
+         s_bot_new = max(s_bot_new, sp4_new)
 
          if (mnproc == 1) then
             write(lp,*) 'sra_optimize: sp4   old/new:', &
-                        sigref_fun_spec_old%sp4, sigref_fun_spec_new%sp4
+                        sigref_fun_spec_old%sp4, sp4_new
             write(lp,*) 'sra_optimize: s_bot old/new:', &
-                        sigref_fun_spec_old%s_bot, sigref_fun_spec_new%s_bot
+                        sigref_fun_spec_old%s_bot, s_bot_new
          endif
 
       endif
@@ -734,13 +738,12 @@ contains
       ! pressure levels and simulated mixed layer depth is minimized.
       ! ------------------------------------------------------------------------
 
-      cost = sra_cost(dpml_mean, sigmlb_mean, sra_cost_wgt, plevel, sigref)
-      if (mnproc == 1) &
-         write(lp,'(a,f15.7)') ' sra_optimize: cost current sigref:     ', cost
-      cost = sra_cost(dpml_mean, sigmlb_mean, sra_cost_wgt, plevel, &
-                      sigref_fun(sigref_fun_spec_old, kdm))
+      cost = sra_cost(plevel, sigref_fun(sigref_fun_spec_old, kdm))
       if (mnproc == 1) &
          write(lp,'(a,f15.7)') ' sra_optimize: cost prev. optim. sigref:', cost
+      cost = sra_cost(plevel, sigref)
+      if (mnproc == 1) &
+         write(lp,'(a,f15.7)') ' sra_optimize: cost current sigref:     ', cost
 
       ! Use ADAM optimizer to find new sp1 and zp2.
 
@@ -749,14 +752,13 @@ contains
       adam_beta1pt = 1._r8
       adam_beta2pt = 1._r8
 
-      x = [sigref_fun_spec_new%sp1, sigref_fun_spec_new%zp2]
+      x = [sigref_fun_spec%sp1, sigref_fun_spec%zp2]
       dx = [1.e-6_r8, 1.e-6_r8]
-      sigref_fun_spec_test = sigref_fun_spec_new
+      sigref_fun_spec_test = sigref_fun_spec
 
       do i = 1, adam_maxiter
 
-         cost_grad(:) = sra_cost_grad(dpml_mean, sigmlb_mean, sra_cost_wgt, &
-                                      plevel, sigref_fun_spec_new, x, dx)
+         cost_grad(:) = sra_cost_grad(plevel, sigref_fun_spec, x, dx)
          adam_m(:) = adam_beta1*adam_m(:) &
                    + (1._r8 - adam_beta1)*cost_grad(:)
          adam_v(:) = adam_beta2*adam_v(:) &
@@ -770,8 +772,7 @@ contains
          if ( mod(i, 100) == 0) then
             sigref_fun_spec_test%sp1 = x(1)
             sigref_fun_spec_test%zp2 = x(2)
-            cost = sra_cost(dpml_mean, sigmlb_mean, sra_cost_wgt, plevel, &
-                            sigref_fun(sigref_fun_spec_test, kdm))
+            cost = sra_cost(plevel, sigref_fun(sigref_fun_spec_test, kdm))
             if (mnproc == 1) &
                write(lp,'(a,3e15.7)') ' sra_optimize: sp1, zp2, cost:', &
                                       x(1), x(2), cost
@@ -779,8 +780,11 @@ contains
 
       enddo
 
-      sigref_fun_spec_new%sp1 = x(1)
-      sigref_fun_spec_new%zp2 = x(2)
+      sigref_fun_spec_new       = sigref_fun_spec
+      sigref_fun_spec_new%sp1   = x(1)
+      sigref_fun_spec_new%zp2   = x(2)
+      sigref_fun_spec_new%sp4   = sp4_new
+      sigref_fun_spec_new%s_bot = s_bot_new
 
       if (mnproc == 1) then
         write(lp,*) 'sra_optimize: optimized sigref_fun_spec:'
@@ -814,7 +818,8 @@ contains
       namelist /vcoord/ &
          vcoord_type, dpmin_surface, dpmin_inflation_factor, &
          sigref_spec, plevel_spec, sigref_fun_spec, sigref, plevel, &
-         sigref_adaption, sra_ts, sra_massfrac_bot, sra_massfrac_eps
+         sigref_adaption, sra_clim_ts, sra_param_ts, sra_massfrac_bot, &
+         sra_massfrac_eps
 
       ! Read variables in the namelist group 'vcoord'.
       if (mnproc == 1) then
@@ -861,7 +866,8 @@ contains
          call xcbcst(sigref)
          call xcbcst(plevel)
          call xcbcst(sigref_adaption)
-         call xcbcst(sra_ts)
+         call xcbcst(sra_clim_ts)
+         call xcbcst(sra_param_ts)
          call xcbcst(sra_massfrac_bot)
          call xcbcst(sra_massfrac_eps)
       endif
@@ -874,7 +880,8 @@ contains
          write (lp,*) '  sigref_spec =            ', trim(sigref_spec)
          write (lp,*) '  plevel_spec =            ', trim(plevel_spec)
          write (lp,*) '  sigref_adaption =        ', sigref_adaption
-         write (lp,*) '  sra_ts =                 ', sra_ts
+         write (lp,*) '  sra_clim_ts =            ', sra_clim_ts
+         write (lp,*) '  sra_param_ts =           ', sra_param_ts
          write (lp,*) '  sra_massfrac_bot =       ', sra_massfrac_bot
          write (lp,*) '  sra_massfrac_eps =       ', sra_massfrac_eps
       endif
@@ -984,6 +991,8 @@ contains
             sra_tlev_accnum(:) = 0
             sra_dpml_sum(:,:,:) = 0._r8
             sra_sigmlb_sum(:,:,:) = 0._r8
+            sra_dpml_clim(:,:,:) = spval
+            sra_sigmlb_clim(:,:,:) = spval
             sra_massgs_colsum(:,:) = 0._r8
             sra_massdc_colsum(:,:,:) = 0._r8
             sra_sigmassdc_colsum(:,:,:) = 0._r8
