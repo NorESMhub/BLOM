@@ -1078,7 +1078,17 @@
     <desc>Flag to enable adaption of reference potential densities to model state</desc>
   </entry>
 
-  <entry id="sra_ts">
+  <entry id="sra_clim_ts">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>5.0</value>
+    </values>
+    <desc>e-folding time scale (years) for adjusting mixed layer climatology</desc>
+  </entry>
+
+  <entry id="sra_param_ts">
     <type>real</type>
     <category>vcoord</category>
     <group>vcoord</group>
