@@ -859,8 +859,8 @@ contains
       call write_netcdf_var(ncid,'calciu14' ,locetra(1,1,1,icalc14) ,2*kpke,0)
       if (use_river2omip) then
         call write_netcdf_var(ncid,'tdoc_lc13',locetra(1,1,1,itdoc_lc13),2*kpke,0)
-        call write_netcdf_var(ncid,'tdoc_lc14',locetra(1,1,1,itdoc_lc13),2*kpke,0)
-        call write_netcdf_var(ncid,'tdoc_hc13',locetra(1,1,1,itdoc_hc14),2*kpke,0)
+        call write_netcdf_var(ncid,'tdoc_lc14',locetra(1,1,1,itdoc_lc14),2*kpke,0)
+        call write_netcdf_var(ncid,'tdoc_hc13',locetra(1,1,1,itdoc_hc13),2*kpke,0)
         call write_netcdf_var(ncid,'tdoc_hc14',locetra(1,1,1,itdoc_hc14),2*kpke,0)
       endif
     endif
