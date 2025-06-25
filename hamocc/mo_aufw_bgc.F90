@@ -840,6 +840,10 @@ contains
     if (use_shelfsea_res_time) then
       call write_netcdf_var(ncid,'shelfage',locetra(1,1,1,ishelfage),2*kpke,0)
     endif
+    if (use_river2omip) then
+      call write_netcdf_var(ncid,'tdoc_lc',locetra(1,1,1,itdoc_lc),2*kpke,0)
+      call write_netcdf_var(ncid,'tdoc_hc',locetra(1,1,1,itdoc_hc),2*kpke,0)
+    endif
     if (use_cisonew) then
       call write_netcdf_var(ncid,'sco213'   ,locetra(1,1,1,isco213) ,2*kpke,0)
       call write_netcdf_var(ncid,'sco214'   ,locetra(1,1,1,isco214) ,2*kpke,0)
@@ -853,6 +857,13 @@ contains
       call write_netcdf_var(ncid,'grazer14' ,locetra(1,1,1,izoo14)  ,2*kpke,0)
       call write_netcdf_var(ncid,'calciu13' ,locetra(1,1,1,icalc13) ,2*kpke,0)
       call write_netcdf_var(ncid,'calciu14' ,locetra(1,1,1,icalc14) ,2*kpke,0)
+      if (use_river2omip) then
+        call write_netcdf_var(ncid,'tdoc_lc13',locetra(1,1,1,itdoc_lc13),2*kpke,0)
+        call write_netcdf_var(ncid,'tdoc_lc14',locetra(1,1,1,itdoc_lc13),2*kpke,0)
+        call write_netcdf_var(ncid,'tdoc_hc13',locetra(1,1,1,itdoc_hc14),2*kpke,0)
+        call write_netcdf_var(ncid,'tdoc_hc14',locetra(1,1,1,itdoc_hc14),2*kpke,0)
+      endif
+    endif
     endif
     if (use_AGG) then
       call write_netcdf_var(ncid,'snos',locetra(1,1,1,inos),2*kpke,0)
