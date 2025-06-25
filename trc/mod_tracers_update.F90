@@ -163,9 +163,11 @@ contains
 #ifdef HAMOCC
     call hamocc_step(m,n,mm,nn,k1m,k1n)
 #endif
+#ifndef OFFLINE_SEDIMENT_SPINUP
     if (use_IDLAGE) then
       call idlage_step(m,n,mm,nn,k1m,k1n)
     end if
+#endif
   end subroutine updtrc
 
   ! ============================================================================
