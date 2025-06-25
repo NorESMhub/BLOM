@@ -864,7 +864,6 @@ contains
         call write_netcdf_var(ncid,'tdoc_hc14',locetra(1,1,1,itdoc_hc14),2*kpke,0)
       endif
     endif
-    endif
     if (use_AGG) then
       call write_netcdf_var(ncid,'snos',locetra(1,1,1,inos),2*kpke,0)
       call write_netcdf_var(ncid,'adust',locetra(1,1,1,iadust),2*kpke,0)
