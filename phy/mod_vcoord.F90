@@ -32,6 +32,7 @@ module mod_vcoord
    use mod_grid,      only: scp2, area
    use mod_state,     only: dp, sigma, p
    use mod_cmnfld,    only: dpml
+   use mod_utility,   only: util1
    use mod_checksum,  only: csdiag, chksummsk
 
    implicit none
@@ -140,7 +141,7 @@ module mod_vcoord
              sra_dpml_sum, sra_sigmlb_sum, sra_dpml_clim, sra_sigmlb_clim, &
              sra_sigref_sum, sra_s_bot_sum, sra_tlev_accnum, sra_accnum, &
              sigref_fun_spec_old, sigref_fun_spec_new, &
-             readnml_vcoord, inivar_vcoord, sigref_adapt
+             readnml_vcoord, inivar_vcoord, extract_sigref, sigref_adapt
 
 contains
 
@@ -1011,15 +1012,57 @@ contains
 
    end subroutine inivar_vcoord
 
+   subroutine extract_sigref
+   ! ---------------------------------------------------------------------------
+   ! In case it is not otherwise specified, extract reference potential density
+   ! vector representative of the dominating ocean domain.
+   ! ---------------------------------------------------------------------------
+
+      real(r8), dimension(itdm,jtdm) :: tmp2d
+      integer :: i, j, k, i1, j1
+      logical :: sigref_found
+
+      if (vcoord_tag == vcoord_isopyc_bulkml .or. &
+          trim(sigref_spec) == 'inicon') then
+         !$omp parallel do private(i)
+         do j = 1, jj
+           do i = 1, ii
+             util1(i,j) = real(ipwocn(i,j), r8)
+           enddo
+         enddo
+         !$omp end parallel do
+         call xcaget(tmp2d, util1, 1)
+         if (mnproc == 1) then
+            sigref_found = .false.
+            do j = 1, jtdm
+               do i = 1, itdm
+                 if (tmp2d(i,j) > 0._r8) then
+                    i1 = i
+                    j1 = j
+                    sigref_found = .true.
+                    exit
+                 endif
+              enddo
+              if (sigref_found) exit
+            enddo
+         endif
+         call xcbcst(i1)
+         call xcbcst(j1)
+         do k = 1, kk
+            call xceget(sigref(k),sigmar(1-nbdy,1-nbdy,k),i1,j1)
+         enddo
+      endif
+      if (mnproc == 1) then
+         write(lp,*) 'sigma layers = ',sigref(1:kk)
+      endif
+
+   end subroutine extract_sigref
+
    subroutine sigref_adapt(m, n, mm, nn, k1m, k1n)
 
       integer, intent(in) :: m, n, mm, nn, k1m, k1n
 
       if (.not. sigref_adaption) return
-
-!     call sra_optimize
-!     call xcstop('(sigref_adapt)')
-!            stop '(sigref_adapt)' 
 
       ! Update reference potential densities.
       call sra_update(m, n, mm, nn, k1m, k1n)
