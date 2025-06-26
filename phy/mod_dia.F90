@@ -32,7 +32,7 @@ module mod_dia
   use mod_xc,        only: xcstop, xchalt, xcaget, xcbcst, xcaput, &
                            xceget, xctilr, xcsum, &
                            isp, ifp, ilp, isu, ifu, ilu, isv, ifv, ilv, &
-                           isu, ifu, ilu, isv, ip, halo_ps, ipwocn, &
+                           isu, ifu, ilu, isv, ip, halo_ps, &
                            iu, iv, ips, halo_qs, halo_uv, halo_vv
   use mod_nctools
   use netcdf,        only: nf90_fill_double
@@ -172,7 +172,6 @@ module mod_dia
   integer, public :: mer_nreg
   integer :: lmax
   real, dimension(ldm) :: mtlat
-  real, dimension(kdm), public :: sigmar1
 
   real, allocatable, dimension(:,:,:) :: &
        mmflxl,mmftdl,mmfsml,mmflxd,mmftdd,mmfsmd
@@ -329,7 +328,6 @@ module mod_dia
   ! Public routines
   public :: diafnm
   public :: diaini
-  public :: diasg1
   public :: diaacc
   public :: diaout
   public :: diasec
@@ -1048,51 +1046,6 @@ contains
     !$omp end parallel do
 
   end subroutine diaini
-
-
-  subroutine diasg1
-  !---------------------------------------------------------------
-  ! Extract reference potential density vector representative of the
-  ! dominating ocean domain
-  !---------------------------------------------------------------
-
-    integer :: i,j,k,i1,j1
-    logical :: lsigmar1
-    real, dimension (itdm,jtdm) :: tmp2d
-
-    !$omp parallel do private(i)
-    do j = 1,jj
-      do i = 1,ii
-        util1(i,j) = real(ipwocn(i,j))
-      end do
-    end do
-    !$omp end parallel do
-    call xcaget(tmp2d,util1,1)
-    if (mnproc == 1) then
-      lsigmar1 = .false.
-      do j = 1,jtdm
-        do i = 1,itdm
-          if (tmp2d(i,j) > 0.) then
-            i1 = i
-            j1 = j
-            lsigmar1 = .true.
-            exit
-          end if
-        end do
-        if (lsigmar1) exit
-      end do
-    end if
-    call xcbcst(i1)
-    call xcbcst(j1)
-    do k = 1,kk
-      call xceget(sigmar1(k),sigmar(1-nbdy,1-nbdy,k),i1,j1)
-    end do
-    if (mnproc == 1) then
-      write(lp,*) 'sigma layers = ',sigmar1
-    end if
-
-  end subroutine diasg1
-
 
 
   subroutine diaacc(m,n,mm,nn,k1m,k1n)
@@ -2382,11 +2335,7 @@ contains
     ! write auxillary dimension information
     if (irec(iogrp) == 1) then
       ! sigma levels
-      if (sigref_adaption) then
-        call ncwrt1('sigma','sigma',sigref(1:kk))
-      else
-        call ncwrt1('sigma','sigma',sigmar1)
-      endif
+      call ncwrt1('sigma','sigma',sigref(1:kk))
       call ncattr('long_name','Potential density')
       call ncattr('standard_name','sea_water_sigma_theta')
       call ncattr('units','kg m-3')
