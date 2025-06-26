@@ -1504,7 +1504,7 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>0.5</value>
+      <value>5.0</value>
     </values>
     <desc>Linear scaling parameter for topographic rhines scale () (f)</desc>
   </entry>
