@@ -306,7 +306,7 @@ module mo_param_bgc
   real(rp), protected :: grami      = 1.e-10_rp       ! kmol/m3 - i.e. 1e-5 mmol P/m3 minimum concentration of zooplankton
   real(rp), protected :: bkzoo      = 8.e-8_rp        ! kmol/m3 - i.e. 0.08 mmol P/m3 half saturation constant
   real(rp), protected :: grazra     = 1.2_rp          ! 1/d - grazing rate
-  real(rp), protected :: spemor     = 3.*1.e6_rp      ! 1/d - mortality rate
+  real(rp), protected :: spemor     = 3._rp*1.e6_rp   ! 1/d - mortality rate
   real(rp), protected :: gammap     = 0.04_rp         ! 1/d - exudation rate
   real(rp), protected :: gammaz     = 0.06_rp         ! 1/d - excretion rate
   real(rp), protected :: ecan       = 0.95_rp         ! fraction of mortality as PO_4
