@@ -30,12 +30,13 @@ contains
     ! **********************************************************************************************
 
     use mod_xc,         only: idm,jdm,kdm,nbdy
-    use mod_time,       only: date,nday_of_year,nstep,nstep_in_day
+    use mod_time,       only: date,nday_of_year,nstep,nstep_in_day,nday_in_year
     use mod_grid,       only: plat
     use mod_state,      only: temp,saln
     use mod_forcing,    only: swa,slp,abswnd,atmco2,flxco2,flxdms,atmbrf,flxbrf,                   &
                               atmn2o,flxn2o,atmnh3,flxnh3,atmnhxdep,atmnoydep
     use mod_seaice,     only: ficem
+    use mo_kind,        only: rp
     use mo_bgcmean,     only: nbgc,bgcwrt, diagfq_bgc,diagmon_bgc,diagann_bgc
     use mo_intfcblom,   only: bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask,blom2hamocc,hamocc2blom
     use mo_read_rivin,  only: rivflx
@@ -48,15 +49,19 @@ contains
     use mo_hamocc4bcm,  only: hamocc4bcm
     use mo_trc_limitc,  only: trc_limitc
     use mo_param1_bgc,  only: nndep
+    use mo_read_shelfmask, only: shelfmask
+    use mo_param_bgc,   only: ini_bgctimes
 
     ! Arguments
     integer, intent(in) :: m,n,mm,nn,k1m,k1n
 
     ! Local variables
-    integer :: l,ldtday
-    real    :: ndep(idm,jdm,nndep)
-    real    :: dust(idm,jdm)
-    real    :: oafx(idm,jdm)
+    integer  :: l,ldtday
+    real(rp) :: ndep(idm,jdm,nndep)
+    real(rp) :: dust(idm,jdm)!,ndust)
+    real(rp) :: oafx(idm,jdm)
+
+    call ini_bgctimes(nday_in_year) ! update days per year (leap years, restart)
 
     call trc_limitc(nn)
 
@@ -69,7 +74,7 @@ contains
       if (((diagann_bgc(l).and.nday_of_year.eq.1.or.diagmon_bgc(l)                                 &
            &   .and.date%day.eq.1).and.mod(nstep,nstep_in_day).eq.0).or.                           &
            &   .not.(diagann_bgc(l).or.diagmon_bgc(l)).and.                                        &
-           &   mod(nstep+.5,diagfq_bgc(l)).lt.1.) then
+           &   mod(nstep+.5_rp,diagfq_bgc(l)).lt.1._rp) then
         bgcwrt(l)=.true.
       end if
     enddo
@@ -83,7 +88,7 @@ contains
          &          bgc_rho,plat,omask,dust,rivflx,ndep,oafx,pi_ph,swa,ficem,slp,abswnd,           &
          &          temp(1-nbdy,1-nbdy,1+nn),saln(1-nbdy,1-nbdy,1+nn),                             &
          &          atmco2,flxco2,flxdms,atmbrf,flxbrf,                                            &
-         &          atmn2o,flxn2o,atmnh3,flxnh3)
+         &          atmn2o,flxn2o,atmnh3,flxnh3,shelfmask)
 
     !
     ! --- accumulate fields and write output

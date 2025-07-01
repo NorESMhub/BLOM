@@ -46,6 +46,7 @@ contains
     ! js: not mass conserving check c13/powtra/ocetra
     !***********************************************************************************************
 
+    use mo_kind,        only: rp
     use mo_carbch,      only: ocetra, sedfluxo
     use mo_sedmnt,      only: powtra,porwat,porwah,seddw,zcoefsu,zcoeflo
     use mo_param1_bgc,  only: ks,npowtra,map_por2octra
@@ -56,15 +57,15 @@ contains
 
     ! Arguments
     integer, intent(in) :: kpie, kpje, kpke
-    real,    intent(in) :: omask(kpie,kpje)
+    real(rp),intent(in) :: omask(kpie,kpje)
     logical, intent(in) :: lspin
 
     ! Local variables
-    integer :: i,j,k,l,iv
-    integer :: iv_oc                    ! index of ocetra in powtra loop
-    real    :: sedb1(kpie,0:ks,npowtra) ! ????
-    real    :: tredsy(kpie,0:kpke,3)    ! redsy for 'reduced system'?
-    real    :: aprior                   ! start value of oceanic tracer in bottom layer
+    integer  :: i,j,k,l,iv
+    integer  :: iv_oc                    ! index of ocetra in powtra loop
+    real(rp) :: sedb1(kpie,0:ks,npowtra) ! ????
+    real(rp) :: tredsy(kpie,0:kpke,3)    ! redsy for 'reduced system'?
+    real(rp) :: aprior                   ! start value of oceanic tracer in bottom layer
 
     !$OMP PARALLEL DO PRIVATE(i,k,iv,l,tredsy,sedb1,aprior,iv_oc)
     j_loop: do j=1,kpje
@@ -81,8 +82,8 @@ contains
       do iv = 1,npowtra      ! loop over pore water tracers
         iv_oc = map_por2octra(iv)
         do i = 1,kpie
-          sedb1(i,k,iv) = 0.
-          if (omask(i,j) > 0.5) then
+          sedb1(i,k,iv) = 0._rp
+          if (omask(i,j) > 0.5_rp) then
             sedb1(i,k,iv) = ocetra(i,j,kbo(i,j),iv_oc) * bolay(i,j)
             !               tracer_concentration(kbo)  * dz(kbo)
           endif
@@ -108,7 +109,7 @@ contains
 
       do k = 1,ks
         do i = 1,kpie
-          if (omask(i,j) > 0.5) then
+          if (omask(i,j) > 0.5_rp) then
             ! this overwrites tredsy(k=0) for k=1
             tredsy(i,k-1,1) = tredsy(i,k,1) / tredsy(i,k-1,2)
             !                 diff upper    / conc (k-1)
@@ -131,7 +132,7 @@ contains
       k = ks
       do iv = 1,npowtra
         do i = 1,kpie
-          if (omask(i,j) > 0.5) then
+          if (omask(i,j) > 0.5_rp) then
             powtra(i,j,k,iv) = sedb1(i,k,iv) / tredsy(i,k,2)
           endif
         enddo
@@ -142,7 +143,7 @@ contains
         do k = 1,ks-1
           l = ks-k
           do i = 1,kpie
-            if (omask(i,j) > 0.5) then
+            if (omask(i,j) > 0.5_rp) then
               powtra(i,j,l,iv) = ( sedb1(i,l,iv)                                                   &
                    &  - tredsy(i,l,3) * powtra(i,j,l+1,iv) ) / tredsy(i,l,2)
             endif
@@ -156,7 +157,7 @@ contains
           iv_oc = map_por2octra(iv)
           do i = 1,kpie
             l = 0
-            if (omask(i,j) > 0.5) then
+            if (omask(i,j) > 0.5_rp) then
               aprior = ocetra(i,j,kbo(i,j),iv_oc)
               ocetra(i,j,kbo(i,j),iv_oc) =                                                         &
                    &  ( sedb1(i,l,iv) - tredsy(i,l,3) * powtra(i,j,l+1,iv) )                       &
