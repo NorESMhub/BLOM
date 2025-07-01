@@ -1,0 +1,25 @@
+Matlab/Octave scripts for creating BLOM/iHAMOCC river nutrient input files
+
+Jörg Schwinger  20-02-2025  based on scripts originally by Shuang Gao
+
+
+These set of scripts reads in river nutrient data from GNEWS2 data base and either interpolates to 
+the BLOM model grid or puts the data on a regular 0.5x0.5 grid (the so-called run-off grid). The GNEWs 
+input data is located in excel files in the sub-directory RiverineData. In order to run these script, the 
+relevant data has been extracted into .csv files.
+
+If the data needs to be interpolated onto the model grid, grid files and mapping files are needed. These
+can be copied from the NorESM inputdata directory $INP_ROOT/ocn/blom/grid/ and $INP_ROOT/cpl/cpl6/ where
+$INP_ROOT is the base-path of the NorESM input data directory (/cluster/shared/noresm/inputdata/ on betzy).
+Note the script expects the grid filenames without a date tag, so it should be created a link, e.g. 
+grid_tnx1v4.nc -> grid_tnx1v4_20170622.nc
+
+The mapping files used for the grids used in NorESM1/2 are as follows:
+
+map_r05_to_gx1v6_e1000r300_090226.nc
+map_r05_to_tnx2v1_e1000r300_130206.nc
+map_r05_to_tnx1v2_e1000r300_140828.nc
+map_r05_to_tnx1v4_e1000r300_170609.nc
+map_r05_to_tnx0.5v1_e300r100_20240702.nc
+map_r05_to_tnx0.25v4_e300r100_170629.nc
+
