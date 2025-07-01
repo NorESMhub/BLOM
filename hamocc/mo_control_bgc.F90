@@ -64,7 +64,7 @@ module mo_control_bgc
   logical           :: do_oalk                = .false. ! apply ocean alkalinization
   logical           :: with_dmsph             = .false. ! apply DMS with pH dependence
   logical           :: use_M4AGO              = .false. ! run with M4AGO settling scheme
-  logical           :: lkwrbioz_off           = .true.  ! if true, allow remin and primary prod throughout full water column
+  logical           :: lkwrbioz_off           = .false.  ! if true, allow remin and primary prod throughout full water column
   logical           :: lTO2depremin           = .true.  ! Temperature- and O2-dependent remineralization of POM
   logical           :: ldyn_sed_age           = .false. ! switch for dynamic sediment age in combination with use_sediment_quality
   integer           :: sedspin_yr_s           = -1      ! start year for sediment spin-up
@@ -87,7 +87,7 @@ module mo_control_bgc
   logical           :: use_FB_BGC_OCE         = .false. ! Interactive phytoplankton absorption
   logical           :: use_BOXATM             = .false. ! Atmosphere in box mode (would need to be re-checked)
   logical           :: use_sedbypass          = .false. ! By-passing sediment code (running iHAMOCC without sediment)
-  logical           :: use_extNcycle          = .false. ! Extended nitrogen cycle - with explicit NH4 and NO2 tracers and processes
+  logical           :: use_extNcycle          = .true. ! Extended nitrogen cycle - with explicit NH4 and NO2 tracers and processes
   logical           :: use_coupler_ndep       = .false. ! Receive nitrogen deposition through the coupler/mediator
   logical           :: use_pref_tracers       = .true.  ! Run code with pre-formed tracers
   logical           :: use_shelfsea_res_time  = .false. ! Include shelf sea residence time tracer
