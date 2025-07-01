@@ -13,6 +13,15 @@
     <desc>Name of ocean component</desc>
   </entry>
 
+  <entry id="BLOM_CMIP6">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <group>build_component_blom</group>
+    <file>env_build.xml</file>
+    <desc>Run BLOM with CMIP6 settings, if TRUE</desc>
+  </entry>
+
   <entry id="BLOM_TRACER_MODULES">
     <type>char</type>
     <valid_values>iage,iage ecosys</valid_values>
@@ -182,11 +191,38 @@
     <type>char</type>
     <valid_values>WLIN,M4AGO,AGG,CONST</valid_values>
     <default_value>WLIN</default_value>
-     <group>run_component_blom</group>
-     <file>env_run.xml</file>
-    <desc>Set namelist option to activate the M4AGO sinking scheme. Requires module ecosys</desc>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
     <desc>Namelist option to set sinking scheme. Requires module ecosys</desc>
   </entry>
+
+  <entry id="HAMOCC_PREF_TRACERS">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>TRUE</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Set namelist option to activate the preformed tracer code. Requires module ecosys</desc>
+  </entry>
+
+  <entry id="HAMOCC_SHELFSEA_RES_TIME">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Set namelist option to activate the shelfsea water residence time code. Requires module ecosys</desc>
+  </entry>
+
+  <entry id="HAMOCC_SEDIMENT_QUALITY">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Set namelist option to activate the sediment quality-based remineralization code. Requires module ecosys</desc>
+  </entry>
+
 
   <entry id="HAMOCC_CISO">
     <type>logical</type>

@@ -71,8 +71,10 @@ def buildnml(case, caseroot, compname):
     ocn_ncpl                  = case.get_value("OCN_NCPL")
     pio_typename_ocn          = case.get_value("PIO_TYPENAME_OCN")
     pio_netcdf_format_ocn     = case.get_value("PIO_NETCDF_FORMAT_OCN")
+    blom_cmip6_settings       = case.get_value("BLOM_CMIP6")
     blom_unit                 = case.get_value("BLOM_UNIT")
     blom_vcoord               = case.get_value("BLOM_VCOORD")
+    turbclo                   = case.get_value("BLOM_TURBULENT_CLOSURE")
     blom_river_nutrients      = case.get_value("BLOM_RIVER_NUTRIENTS")
     blom_n_deposition         = case.get_value("BLOM_N_DEPOSITION")
     blom_ndep_scenario        = case.get_value("BLOM_NDEP_SCENARIO")
@@ -84,16 +86,16 @@ def buildnml(case, caseroot, compname):
     hamocc_n2oc               = case.get_value("HAMOCC_N2OC")
     hamocc_atmndepc           = case.get_value("HAMOCC_ATMNDEPC")
     hamocc_sinking_scheme     = case.get_value("HAMOCC_SINKING_SCHEME")
+    hamocc_shelf_res_time     = case.get_value("HAMOCC_SHELFSEA_RES_TIME")
     hamocc_sedbypass          = case.get_value("HAMOCC_SEDBYPASS")
     hamocc_sedspinup          = case.get_value("HAMOCC_SEDSPINUP")
     hamocc_sedspinup_yr_start = case.get_value("HAMOCC_SEDSPINUP_YR_START")
     hamocc_sedspinup_yr_end   = case.get_value("HAMOCC_SEDSPINUP_YR_END")
     hamocc_sedspinup_ncycle   = case.get_value("HAMOCC_SEDSPINUP_NCYCLE")
+    hamocc_sediment_quality   = case.get_value("HAMOCC_SEDIMENT_QUALITY")
     is_test                   = case.get_value("TEST")
     comp_interface            = case.get_value("COMP_INTERFACE")
 
-    blom_vcoord = case.get_value("BLOM_VCOORD")
-    turbclo = case.get_value("BLOM_TURBULENT_CLOSURE")
     expect(blom_vcoord != "cntiso_hybrid" or not turbclo,
            f"BLOM_VCOORD == {blom_vcoord} and BLOM_TURBULENT_CLOSURE == {turbclo} is not a valid combination")
 
@@ -180,6 +182,7 @@ def buildnml(case, caseroot, compname):
         config['pio_typename_ocn'] = pio_typename_ocn
         config['pio_netcdf_format_ocn'] = pio_netcdf_format_ocn
         config["continue_run"] = "yes" if continue_run else "no"
+        config["blom_cmip6_settings"] = "yes" if blom_cmip6_settings else "no"
         config['blom_unit'] = blom_unit if blom_unit else "unset"
         config['blom_vcoord'] = blom_vcoord
         config["blom_river_nutrients"] = "yes" if blom_river_nutrients else "no"
@@ -197,8 +200,16 @@ def buildnml(case, caseroot, compname):
         config["hamocc_sedspinup_yr_start"] = hamocc_sedspinup_yr_start
         config["hamocc_sedspinup_yr_end"] = hamocc_sedspinup_yr_end
         config["hamocc_sedspinup_ncycle"] = hamocc_sedspinup_ncycle
+        config["hamocc_sediment_quality"] = "yes" if hamocc_sediment_quality else "no"
         config["is_test"] = "yes" if is_test else "no"
         config["comp_interface"] = comp_interface
+        config["hamocc_shelf_res_time"] = "yes" if hamocc_shelf_res_time else "no"
+    
+        if config["blom_cmip6_settings"] == "yes":
+          # Reset values for vertical coordinates and units
+          # in the case of running in CMIP6 compatible mode
+          config["blom_vcoord"] = "isopyc_bulkml"
+          config["blom_unit"]   = 'cgs'
 
         # Set the sinking scheme in iHAMOCC 
         # Note: the following part requires to have set options for no/yes 
@@ -279,7 +290,7 @@ def buildnml(case, caseroot, compname):
 
         groups.append('cwmod')
 
-        if case.get_value("BLOM_VCOORD") == "cntiso_hybrid":
+        if config['blom_vcoord'] != "isopyc_bulkml":
             groups.append('vcoord')
 
         if "ecosys" in case.get_value("BLOM_TRACER_MODULES"):
