@@ -1079,7 +1079,7 @@
       <value>2500.</value>
       <value blom_cmip6_settings="no" blom_unit="cgs">2500.e4</value>
       <value blom_cmip6_settings="yes" ocn_grid="tnx2v1">1000.e4</value>
-      <value blom_cmip6_settings="yes" ocn_grid="tnx1v2">1500.e4</value>
+      <value blom_cmip6_settings="yes" ocn_grid="tnx1v4">1500.e4</value>
       <value ocn_grid="tnx0.125v4">0.</value>
       <value ocn_grid="tnx0.125v4" blom_unit="mks">0.</value>
     </values>
