@@ -39,20 +39,22 @@ contains
     !--------------------------------------------------------------------------------
 
     use mo_control_bgc, only: dtb
+    use mo_kind,        only: rp
     use mo_param1_bgc,  only: ifdust,iiron
+    use mo_param_bgc,   only: sec_per_day
     use mo_param_bgc,   only: perc_diron
     use mo_carbch,      only: ocetra
 
-    integer,intent(in) :: kpie                      ! 1st dimension of model grid.
-    integer,intent(in) :: kpje                      ! 2nd dimension of model grid.
-    integer,intent(in) :: kpke                      ! 3rd (vertical) dimension of model grid.
-    real,   intent(in) :: pddpo(kpie,kpje,kpke)     ! size of scalar grid cell (3rd dimension) [m].
-    real,   intent(in) :: omask(kpie,kpje)          ! ocean mask
-    real,   intent(in) :: dust(kpie,kpje)           ! dust deposition flux [kg/m2/month].
+    integer,  intent(in) :: kpie                      ! 1st dimension of model grid.
+    integer,  intent(in) :: kpje                      ! 2nd dimension of model grid.
+    integer,  intent(in) :: kpke                      ! 3rd (vertical) dimension of model grid.
+    real(rp), intent(in) :: pddpo(kpie,kpje,kpke)     ! size of scalar grid cell (3rd dimension) [m].
+    real(rp), intent(in) :: omask(kpie,kpje)          ! ocean mask
+    real(rp), intent(in) :: dust(kpie,kpje)           ! dust deposition flux [kg/m2/month].
 
     ! local variables
-    integer :: i,j
-    real    :: dustinp
+    integer  :: i,j
+    real(rp) :: dustinp
 
     ! dust flux from the atmosphere to the surface layer; dust fields are
     ! monthly mean values (kg/m2/month - assume 30 days per month here)
@@ -61,8 +63,8 @@ contains
     !$OMP PARALLEL DO PRIVATE(i,dustinp)
     do j = 1,kpje
       do i = 1,kpie
-        if(omask(i,j) > 0.5) then
-          dustinp = dust(i,j) / 30. * dtb / pddpo(i,j,1)
+        if(omask(i,j) > 0.5_rp) then
+          dustinp = dust(i,j) / 30._rp * dtb / pddpo(i,j,1)
           ocetra(i,j,1,ifdust) = ocetra(i,j,1,ifdust) + dustinp
           ocetra(i,j,1,iiron) = ocetra(i,j,1,iiron) + dustinp * perc_diron
         endif

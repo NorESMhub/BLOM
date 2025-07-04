@@ -388,7 +388,7 @@
                elseif (cplmsk(i,j) == 0) then
                   atmnh3_da(i,j,l2ci) = fval
                else
-                  ! Atmospheric nitrous oxide concentration [ppt]
+                  ! Atmospheric ammonia concentration [ppt]
                   atmnh3_da(i,j,l2ci) =
      .               x2o_o%rAttr(index_x2o_Sa_nh3prog,n)
                endif

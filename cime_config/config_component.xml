@@ -13,6 +13,15 @@
     <desc>Name of ocean component</desc>
   </entry>
 
+  <entry id="BLOM_CMIP6">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <group>build_component_blom</group>
+    <file>env_build.xml</file>
+    <desc>Run BLOM with CMIP6 settings, if TRUE</desc>
+  </entry>
+
   <entry id="BLOM_TRACER_MODULES">
     <type>char</type>
     <valid_values>iage,iage ecosys</valid_values>
@@ -137,23 +146,24 @@
      </values>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>Scenario for nitrogen deposition data. Requires module ecosys</desc>
+    <desc>Scenario for nitrogen deposition data. Requires module ecosys.
+    Not used when coupling with nuopc-cmeps</desc>
   </entry>
 
   <entry id="HAMOCC_EXTNCYCLE">
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
-    <default_value>FALSE</default_value>
+    <default_value>TRUE</default_value>
     <values>
        <value compset="_BGC.*%N2OC">TRUE</value>
        <value compset="_BGC.*%NH3C">TRUE</value>
        <value compset="_BGC.*%ATMNDEPC">TRUE</value>
-    </values>	    
+    </values>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>Set preprocessor option to activate the extended nitrogen cycle code. Requires module ecosys</desc>
+    <desc>Set namelist option to activate the extended nitrogen cycle code. Requires module ecosys</desc>
   </entry>
-  
+
   <entry id="HAMOCC_ATMNDEPC">
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
@@ -163,30 +173,79 @@
     </values>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>Nitrogen deposition coupled from atmosphere. Requires module ecosys and extncycle</desc>
+    <desc>Nitrogen deposition coupled from atmosphere. Requires module ecosys and extncycle.
+    Not used when coupling with nuopc-cmeps</desc>
   </entry>
-  
+
   <entry id="HAMOCC_N2OC">
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
     <default_value>FALSE</default_value>
     <values>
-       <value compset="_BGC.*%N2OC%NH3C">TRUE</value>
+       <value compset="_BGC.*%N2OC">TRUE</value>
     </values>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>N2O and NH3 fluxes coupled from atmosphere. Requires module ecosys and extncycle</desc>
+    <desc>N2O fluxes coupled from atmosphere. Requires module ecosys and extncycle</desc>
+  </entry>
+  
+  <entry id="HAMOCC_NH3C">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <values>
+       <value compset="_BGC.*%NH3C">TRUE</value>
+    </values>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>NH3 fluxes coupled from atmosphere. Requires module ecosys and extncycle</desc>
   </entry>
 
   <entry id="HAMOCC_SINKING_SCHEME">
     <type>char</type>
     <valid_values>WLIN,M4AGO,AGG,CONST</valid_values>
     <default_value>WLIN</default_value>
-     <group>run_component_blom</group>
-     <file>env_run.xml</file>
-    <desc>Set namelist option to activate the M4AGO sinking scheme. Requires module ecosys</desc>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
     <desc>Namelist option to set sinking scheme. Requires module ecosys</desc>
   </entry>
+
+  <entry id="HAMOCC_OUTPUT_SIZE">
+    <type>char</type>
+    <valid_values>spinup,default</valid_values>
+    <default_value>default</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Namelist option to set iHAMOCC output option. Requires module ecosys</desc>
+  </entry>
+
+  <entry id="HAMOCC_PREF_TRACERS">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>TRUE</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Set namelist option to activate the preformed tracer code. Requires module ecosys</desc>
+  </entry>
+
+  <entry id="HAMOCC_SHELFSEA_RES_TIME">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Set namelist option to activate the shelfsea water residence time code. Requires module ecosys</desc>
+  </entry>
+
+  <entry id="HAMOCC_SEDIMENT_QUALITY">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Set namelist option to activate the sediment quality-based remineralization code. Requires module ecosys</desc>
+  </entry>
+
 
   <entry id="HAMOCC_CISO">
     <type>logical</type>
@@ -194,7 +253,7 @@
     <default_value>FALSE</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>Set preprocessor option to activate the carbon isotope code. Requires module ecosys</desc>
+    <desc>Set namelist option to activate the carbon isotope code. Requires module ecosys</desc>
   </entry>
 
   <entry id="HAMOCC_SEDBYPASS">
@@ -203,7 +262,7 @@
     <default_value>FALSE</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>Set preprocessor option to bypass the sediment code. Requires module ecosys</desc>
+    <desc>Set namelist option to bypass the sediment code. Requires module ecosys</desc>
   </entry>
 
   <entry id="HAMOCC_SEDSPINUP">
@@ -212,7 +271,7 @@
     <default_value>TRUE</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>Activate sediment spinup. HAMOCC_SEDSPINUP_YR_START and HAMOCC_SEDSPINUP_YR_END 
+    <desc>Activate sediment spinup. HAMOCC_SEDSPINUP_YR_START and HAMOCC_SEDSPINUP_YR_END
       need to be set to valid values for this option to take effect. Requires module ecosys</desc>
   </entry>
 
@@ -222,27 +281,27 @@
     <default_value>1</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>Set start year for HAMOCC sediment spin-up if HAMOCC_SEDSPINUP == TRUE. 
+    <desc>Set start year for HAMOCC sediment spin-up if HAMOCC_SEDSPINUP == TRUE.
       Requires module ecosys</desc>
   </entry>
 
   <entry id="HAMOCC_SEDSPINUP_YR_END">
     <type>integer</type>
     <valid_values/>
-    <default_value>800</default_value>
+    <default_value>500</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>Set end year for HAMOCC sediment spin-up if HAMOCC_SEDSPINUP == TRUE. 
+    <desc>Set end year for HAMOCC sediment spin-up if HAMOCC_SEDSPINUP == TRUE.
       Requires module ecosys</desc>
   </entry>
- 
+
   <entry id="HAMOCC_SEDSPINUP_NCYCLE">
     <type>integer</type>
     <valid_values/>
-    <default_value>20</default_value>
+    <default_value>30</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>Set the number of sub-cycles for HAMOCC sediment spin-up if HAMOCC_SEDSPINUP == TRUE. 
+    <desc>Set the number of sub-cycles for HAMOCC sediment spin-up if HAMOCC_SEDSPINUP == TRUE.
       Requires module ecosys</desc>
   </entry>
 

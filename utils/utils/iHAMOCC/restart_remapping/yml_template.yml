@@ -1,0 +1,47 @@
+# ----- Coarse restart file information
+coarse_blom       : 'orig_tnx2_blom.nc'   # the coarse grid blom restart file
+coarse_hamocc     : 'orig_tnx2_hamocc.nc' # the coarse grid hamocc restart file to be interpolated to the fine grid
+  
+
+# ----- Fine restart file information to which iHAMOCC will be remapped
+fine_blom         : 'orig_tnx1_micom.nc' # the fine grid BLOM restart file 
+#fine_blom        : 'orig_tnx2_blom_hybrid.nc' 
+
+# InterpCase provides different ways to interpolate the data from tnx2 to tnx1
+#  - isopycnic_interp:   just do an interpolation along the isopycnic layers
+#                        NOTE: this is very limited with potential issues in empty layers
+#                              and reqires to hold the same number of purely isopyncnic levels 
+#  - sigma_plvl_interp:  interpolate pressure and data to fine grid and then vertically interpolate 
+#                        to different pressure levels of the fine sigma/hybrid coordinates
+#  - levitus_plvl_inter: interpolate to levitus pressure/depth levels, interpolate horizontally,
+#                        and performa vertical interpolation to isopycnal pressure levels
+#                        NOTE: Not yet implemented
+#  - skip_interp:        enables to pass the previously written new restart file directly 
+#                        on to the AdjustInventory routine, if needed 
+#                        Requires:
+#                            - previously written new restart file (with un-adjusted inventories)
+#                            - coarse HAMOCC file information (to get the inventories of variables)
+#                            - coarse BLOM file information (to calculate the inventory of coarse HAMOCC)
+#                            - fine BLOM file information (to calculate the current and ajusted inventory)
+#
+#  DEFAULT: sigma_plvl_interp
+  
+#InterpCase : 'isopycnic_interp'
+InterpCase : 'sigma_plvl_interp'
+#InterpCase : 'skip_interp'
+
+# Perform an inventory adjustment (e.g. thickness of isopycnals can vary, leading to different inventories
+AdjustInventory : True 
+  
+# The time step, when the diagnostic iHAMOCC variables were written 
+# As a simple test, remap to original BLOM grid and check the differences
+# They look minor and the shock due to regridding is likely more than the shock due 
+# wrong time step for the diagnostics (while they seem to be used unchanged after restart
+# which makes it likely, that always the same time step is at the end of the year reached)    
+diag_tstep  : 0 
+
+# The input restart file that will be adjusted, in case that no interpolation is carried out
+# else, the newly generated restart file is adjusted 
+restart_file_to_adjust  :  'my_alternative_restart_file_to_adjust.nc'
+      
+

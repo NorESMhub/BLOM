@@ -41,15 +41,19 @@ module mo_bgcmean
   ! - removed output of AOU and added O2_sat instead
   ! - added output of omegaA
   ! - added sediment bypass preprocessor option
+  !  T. Bourgeois,     *NORCE climate, Bergen*   2025-04-14
+  !  - implement R2OMIP protocol
   !*************************************************************************************************
 
   use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,ifp,isp,ilp,mnproc,ip
   use mod_dia,        only: ddm,depthslev,depthslev_bnds,nstepinday,pbath
   use mod_nctools,    only: ncpack,nccomp,nccopa,ncwrtr
   use netcdf,         only: nf90_fill_double
+  use mo_kind,        only: rp
   use mo_param1_bgc,  only: ks
   use mo_control_bgc, only: use_sedbypass,use_cisonew,use_CFC,use_natDIC,use_BROMO,use_BOXATM,     &
-                            use_AGG,use_M4AGO,use_extNcycle
+                            use_AGG,use_M4AGO,use_extNcycle,use_pref_tracers,use_shelfsea_res_time,&
+                            use_sediment_quality,use_river2omip,use_DOMclasses
 
   implicit none
 
@@ -87,15 +91,15 @@ module mo_bgcmean
   ! --- Averaging and writing frequencies for diagnostic output
   integer                     :: nbgc
   integer, parameter          :: nbgcmax=10
-  real,    dimension(nbgcmax) :: diagfq_bgc,filefq_bgc
+  real(rp),dimension(nbgcmax) :: diagfq_bgc,filefq_bgc
   integer, dimension(nbgcmax) :: nacc_bgc
   logical, dimension(nbgcmax) :: diagmon_bgc,diagann_bgc,filemon_bgc,fileann_bgc,bgcwrt
 
   ! --- Namelist for diagnostic output
   integer, dimension(nbgcmax) ::                                          &
-       & SRF_KWCO2     =0    ,SRF_PCO2      =0    ,SRF_DMSFLUX   =0    ,  &
-       & SRF_KWCO2KHM  =0    ,SRF_CO2KHM    =0    ,SRF_CO2KH     =0    ,  &
-       & SRF_PCO2M     =0    ,                                            &
+       & SRF_KWCO2     =0    ,SRF_FCO2      =0    ,SRF_PCO2      =0    ,  &
+       & SRF_XCO2      =0    ,SRF_PCO2_GEX  =0    ,                       &
+       & SRF_DMSFLUX   =0    ,SRF_KWCO2SOL  =0    ,SRF_CO2SOL    =0    ,  &
        & SRF_CO2FXD    =0    ,SRF_CO2FXU    =0    ,SRF_CO213FXD  =0    ,  &
        & SRF_CO213FXU  =0    ,SRF_CO214FXD  =0    ,SRF_CO214FXU  =0    ,  &
        & SRF_OXFLUX    =0    ,SRF_NIFLUX    =0    ,SRF_DMS       =0    ,  &
@@ -107,16 +111,18 @@ module mo_bgcmean
        & SRF_SF6       =0    ,SRF_PHOSPH    =0    ,SRF_OXYGEN    =0    ,  &
        & SRF_IRON      =0    ,SRF_ANO3      =0    ,SRF_ALKALI    =0    ,  &
        & SRF_SILICA    =0    ,SRF_DIC       =0    ,SRF_PHYTO     =0    ,  &
-       & SRF_PH        =0    ,                                            &
-       & SRF_NATDIC    =0    ,SRF_NATALKALI =0    ,SRF_NATPCO2   =0    ,  &
-       & SRF_NATCO2FX  =0    ,SRF_NATPH     =0    ,                       &
+       & SRF_PH        =0    ,SRF_NATDIC    =0    ,SRF_NATALKALI =0    ,  &
+       & SRF_NATPCO2   =0    ,SRF_NATCO2FX  =0    ,SRF_NATPH     =0    ,  &
        & SRF_ATMBROMO  =0    ,SRF_BROMO     =0    ,SRF_BROMOFX   =0    ,  &
        & SRF_ANH4      =0    ,SRF_ANO2      =0    ,SRF_ANH3FX    =0    ,  &
        & SRF_PN2OM     =0    ,SRF_PNH3      =0    ,SRF_ATMNH3    =0    ,  &
-       & SRF_ATMN2O    =0    ,                                            &
-       & INT_BROMOPRO  =0    ,INT_BROMOUV   =0    ,                       &
+       & SRF_ATMN2O    =0    ,INT_BROMOPRO  =0    ,INT_BROMOUV   =0    ,  &
        & INT_PHOSY     =0    ,INT_NFIX      =0    ,INT_DNIT      =0    ,  &
-       & FLX_NDEPNOY   =0    ,FLX_NDEPNHX   =0    ,FLX_OALK      =0    ,  &
+       & INT_EXUDL     =0    ,INT_EXUDSL    =0    ,INT_EXCRL     =0    ,  &
+       & INT_EXCRSL    =0    ,INT_DOCL_REM  =0    ,INT_DOCSL_REM =0    ,  &
+       & INT_DOCSR_REM =0    ,INT_DOCR_REM  =0    ,                       &
+       & FLX_NDEPNOY   =0    ,FLX_NDEPNHX   =0    ,FLX_TDUST     =0    ,  &
+       & FLX_SFE       =0    ,FLX_OALK      =0    ,                       &
        & FLX_CAR0100   =0    ,FLX_CAR0500   =0    ,FLX_CAR1000   =0    ,  &
        & FLX_CAR2000   =0    ,FLX_CAR4000   =0    ,FLX_CAR_BOT   =0    ,  &
        & FLX_BSI0100   =0    ,FLX_BSI0500   =0    ,FLX_BSI1000   =0    ,  &
@@ -132,6 +138,8 @@ module mo_bgcmean
        & FLX_BURSSO12  =0    ,FLX_BURSSSC12 =0    ,FLX_BURSSSSIL =0    ,  &
        & FLX_BURSSSTER =0    ,                                            &
        & LYR_PHYTO     =0    ,LYR_GRAZER    =0    ,LYR_DOC       =0    ,  &
+       & LYR_TDOC_LC   =0    ,LYR_TDOC_HC   =0    ,LYR_TDOC_LC13 =0    ,  &
+       & LYR_TDOC_HC13 =0    ,                                            &
        & LYR_PHOSY     =0    ,LYR_PHOSPH    =0    ,LYR_OXYGEN    =0    ,  &
        & LYR_IRON      =0    ,LYR_ANO3      =0    ,LYR_ALKALI    =0    ,  &
        & LYR_SILICA    =0    ,LYR_DIC       =0    ,LYR_POC       =0    ,  &
@@ -142,15 +150,16 @@ module mo_bgcmean
        & LYR_EPS       =0    ,LYR_ASIZE     =0    ,LYR_N2O       =0    ,  &
        & LYR_PREFO2    =0    ,LYR_O2SAT     =0    ,LYR_PREFPO4   =0    ,  &
        & LYR_PREFALK   =0    ,LYR_PREFDIC   =0    ,LYR_DICSAT    =0    ,  &
-       & LYR_PREFSILICA=0    ,                                            &
+       & LYR_PREFSILICA=0    ,LYR_SHELFAGE  =0    ,                       &
        & LYR_CFC11     =0    ,LYR_CFC12     =0    ,LYR_SF6       =0    ,  &
        & LYR_NATDIC    =0    ,LYR_NATALKALI =0    ,LYR_NATCALC   =0    ,  &
        & LYR_NATPH     =0    ,LYR_NATOMEGAA =0    ,LYR_NATOMEGAC =0    ,  &
-       & LYR_NATCO3    =0    ,                                            &
-       & LYR_BROMO     =0    ,                                            &
+       & LYR_NATCO3    =0    ,LYR_BROMO     =0    ,                       &
+       & LYR_DOCSL     =0    ,LYR_DOCSR     =0    ,LYR_DOCR      =0    ,  &
        & LYR_D13C      =0    ,LYR_D14C      =0    ,LYR_BIGD14C   =0    ,  &
        & LYR_POC13     =0    ,LYR_DOC13     =0    ,LYR_CALC13    =0    ,  &
-       & LYR_PHYTO13   =0    ,LYR_GRAZER13  =0    ,                       &
+       & LYR_PHYTO13   =0    ,LYR_GRAZER13  =0    ,LYR_PREFDOC   =0    ,  &
+       & LYR_PREFDOCSL =0    ,LYR_PREFDOCSR =0    ,LYR_PREFDOCR  =0    ,  &
        ! extNcycle LYR
        & LYR_ANH4      =0    ,LYR_ANO2      =0    ,                       &
        & LYR_nitr_NH4  =0    ,LYR_nitr_NO2  =0    ,LYR_nitr_N2O_prod =0,  &
@@ -165,6 +174,8 @@ module mo_bgcmean
        & LYR_agg_b     =0    ,LYR_agg_Vrhof =0    ,LYR_agg_Vpor  =0    ,  &
        !========== LVLs
        & LVL_PHYTO     =0    ,LVL_GRAZER    =0    ,LVL_DOC       =0    ,  &
+       & LVL_TDOC_LC   =0    ,LVL_TDOC_HC   =0    ,LVL_TDOC_LC13 =0    ,  &
+       & LVL_TDOC_HC13 =0    ,                                            &
        & LVL_PHOSY     =0    ,LVL_PHOSPH    =0    ,LVL_OXYGEN    =0    ,  &
        & LVL_IRON      =0    ,LVL_ANO3      =0    ,LVL_ALKALI    =0    ,  &
        & LVL_SILICA    =0    ,LVL_DIC       =0    ,LVL_POC       =0    ,  &
@@ -175,22 +186,26 @@ module mo_bgcmean
        & LVL_ASIZE     =0    ,LVL_N2O       =0    ,LVL_PREFO2    =0    ,  &
        & LVL_O2SAT     =0    ,LVL_PREFPO4   =0    ,LVL_PREFALK   =0    ,  &
        & LVL_PREFDIC   =0    ,LVL_DICSAT    =0    ,                       &
-       & LVL_PREFSILICA=0    ,                                            &
+       & LVL_PREFSILICA=0    ,LVL_SHELFAGE  =0    ,                       &
        & LVL_CFC11     =0    ,LVL_CFC12     =0    ,LVL_SF6       =0    ,  &
        & LVL_NATDIC    =0    ,LVL_NATALKALI =0    ,LVL_NATCALC   =0    ,  &
        & LVL_NATPH     =0    ,LVL_NATOMEGAA =0    ,LVL_NATOMEGAC =0    ,  &
-       & LVL_NATCO3    =0    ,                                            &
-       & LVL_BROMO     =0    ,                                            &
+       & LVL_NATCO3    =0    ,LVL_BROMO     =0    ,                       &
        & LVL_D13C      =0    ,LVL_D14C      =0    ,LVL_BIGD14C   =0    ,  &
        & LVL_POC13     =0    ,LVL_DOC13     =0    ,LVL_CALC13    =0    ,  &
        & LVL_PHYTO13   =0    ,LVL_GRAZER13  =0    ,                       &
+       & LVL_DOCSL     =0    ,LVL_DOCSR     =0    ,LVL_DOCR      =0    ,  &
+       & LVL_PREFDOC   =0    ,LVL_PREFDOCSL =0    ,LVL_PREFDOCSR =0    ,  &
+       & LVL_PREFDOCR  =0    ,                                            &
+       & LVL_NUTLIM_FE =0    ,LVL_NUTLIM_N  =0    ,LVL_NUTLIM_PHOSPH=0 ,  &
+       & ZEU_NUTLIM_FE =0    ,ZEU_NUTLIM_N  =0    ,ZEU_NUTLIM_PHOSPH=0 ,  &
        ! extNcycle LVL
        & LVL_ANH4      =0    ,LVL_ANO2      =0    ,                       &
        & LVL_nitr_NH4  =0    ,LVL_nitr_NO2  =0    ,LVL_nitr_N2O_prod =0,  &
        & LVL_nitr_NH4_OM =0  ,LVL_nitr_NO2_OM =0  ,LVL_denit_NO3     =0,  &
        & LVL_denit_NO2 = 0   ,LVL_denit_N2O = 0   ,LVL_DNRA_NO2      =0,  &
        & LVL_anmx_N2_prod=0  ,LVL_anmx_OM_prod=0  ,LVL_phosy_NH4     =0,  &
-       & LVL_phosy_NO3 = 0   ,LVL_remin_aerob =0  ,LVL_remin_sulf    =0,  & 
+       & LVL_phosy_NO3 = 0   ,LVL_remin_aerob =0  ,LVL_remin_sulf    =0,  &
        ! M4AGO LVL
        & LVL_agg_ws    =0    ,LVL_dynvis    =0    ,LVL_agg_stick =0    ,  &
        & LVL_agg_stickf=0    ,LVL_agg_dmax  =0    ,LVL_agg_avdp  =0    ,  &
@@ -202,6 +217,7 @@ module mo_bgcmean
        & SDM_SSSC12    =0    ,SDM_SSSTER    =0                         ,  &
        & BUR_SSSO12    =0    ,BUR_SSSC12    =0    ,BUR_SSSSIL    =0    ,  &
        & BUR_SSSTER    =0                                              ,  &
+       & SDM_rem_aerob =0   , SDM_rem_denit =0    , SDM_rem_sulf =0    ,  &
        !extNcycle
        & SDM_POWNH4    =0    ,SDM_POWN2O    =0    ,SDM_POWNO2    =0    ,  &
        & SDM_nitr_NH4  =0    ,SDM_nitr_NO2  =0    ,SDM_nitr_N2O_prod =0,  &
@@ -209,14 +225,16 @@ module mo_bgcmean
        & SDM_denit_NO2 = 0   ,SDM_denit_N2O = 0   ,SDM_DNRA_NO2      =0,  &
        & SDM_anmx_N2_prod=0  ,SDM_anmx_OM_prod=0  ,SDM_remin_aerob =0  ,  &
        & SDM_remin_sulf  =0  ,                                            &
+       & SDM_qual_a    =0    ,SDM_qual_k    =0    ,SDM_qual_app  =0,      &
+       & SDM_MAVG_prorca=0   ,SDM_ssso12_age=0,                           &
        & GLB_AVEPERIO  =0    ,GLB_FILEFREQ  =0    ,GLB_COMPFLAG  =0    ,  &
        & GLB_NCFORMAT  =0    ,GLB_INVENTORY =0
 
   character(len=10), dimension(nbgcmax) :: glb_fnametag
   namelist /diabgc/                                                       &
-       & SRF_KWCO2         ,SRF_PCO2          ,SRF_DMSFLUX       ,        &
-       & SRF_KWCO2KHM      ,SRF_CO2KHM        ,SRF_CO2KH         ,        &
-       & SRF_PCO2M         ,                                              &
+       & SRF_KWCO2         ,SRF_FCO2          ,SRF_PCO2          ,        &
+       & SRF_XCO2          ,SRF_PCO2_GEX      ,                           &
+       & SRF_DMSFLUX       ,SRF_KWCO2SOL      ,SRF_CO2SOL        ,        &
        & SRF_CO2FXD        ,SRF_CO2FXU        ,SRF_CO213FXD      ,        &
        & SRF_CO213FXU      ,SRF_CO214FXD      ,SRF_CO214FXU      ,        &
        & SRF_OXFLUX        ,SRF_NIFLUX        ,SRF_DMS           ,        &
@@ -228,16 +246,18 @@ module mo_bgcmean
        & SRF_SF6           ,SRF_PHOSPH        ,SRF_OXYGEN        ,        &
        & SRF_IRON          ,SRF_ANO3          ,SRF_ALKALI        ,        &
        & SRF_SILICA        ,SRF_DIC           ,SRF_PHYTO         ,        &
-       & SRF_PH            ,                                              &
-       & SRF_NATDIC        ,SRF_NATALKALI     ,SRF_NATPCO2       ,        &
-       & SRF_NATCO2FX      ,SRF_NATPH         ,                           &
+       & SRF_PH            ,SRF_NATDIC        ,SRF_NATALKALI     ,        &
+       & SRF_NATPCO2       ,SRF_NATCO2FX      ,SRF_NATPH         ,        &
        & SRF_ATMBROMO      ,SRF_BROMO         ,SRF_BROMOFX       ,        &
        & SRF_ANH4          ,SRF_ANO2          ,SRF_ANH3FX        ,        &
        & SRF_PN2OM         ,SRF_PNH3          ,SRF_ATMNH3        ,        &
-       & SRF_ATMN2O        ,                                              &
-       & INT_BROMOPRO      ,INT_BROMOUV       ,                           &
+       & SRF_ATMN2O        ,INT_BROMOPRO      ,INT_BROMOUV       ,        &
        & INT_PHOSY         ,INT_NFIX          ,INT_DNIT          ,        &
-       & FLX_NDEPNOY       ,FLX_NDEPNHX       ,FLX_OALK          ,        &
+       & INT_EXUDL         ,INT_EXUDSL        ,INT_EXCRL         ,        &
+       & INT_EXCRSL        ,INT_DOCL_REM      ,INT_DOCSL_REM     ,        &
+       & INT_DOCSL_REM     ,INT_DOCSR_REM     ,INT_DOCR_REM      ,        &
+       & FLX_NDEPNOY       ,FLX_NDEPNHX       ,FLX_TDUST         ,        &
+       & FLX_SFE           ,FLX_OALK          ,                           &
        & FLX_CAR0100       ,FLX_CAR0500       ,FLX_CAR1000       ,        &
        & FLX_CAR2000       ,FLX_CAR4000       ,FLX_CAR_BOT       ,        &
        & FLX_BSI0100       ,FLX_BSI0500       ,FLX_BSI1000       ,        &
@@ -263,15 +283,18 @@ module mo_bgcmean
        & LYR_EPS           ,LYR_ASIZE         ,LYR_N2O           ,        &
        & LYR_PREFO2        ,LYR_O2SAT         ,LYR_PREFPO4       ,        &
        & LYR_PREFALK       ,LYR_PREFDIC       ,LYR_DICSAT        ,        &
-       & LYR_PREFSILICA    ,                                              &
+       & LYR_PREFSILICA    ,LYR_SHELFAGE      ,LYR_TDOC_LC       ,        &
+       & LYR_TDOC_HC       ,LYR_TDOC_LC13     ,LYR_TDOC_HC13     ,        &
        & LYR_CFC11         ,LYR_CFC12         ,LYR_SF6           ,        &
        & LYR_NATDIC        ,LYR_NATALKALI     ,LYR_NATCALC       ,        &
        & LYR_NATPH         ,LYR_NATOMEGAA     ,LYR_NATOMEGAC     ,        &
-       & LYR_NATCO3        ,                                              &
-       & LYR_BROMO         ,                                              &
+       & LYR_NATCO3        ,LYR_BROMO         ,                           &
+       & LYR_DOCSL         ,LYR_DOCSR         ,LYR_DOCR          ,        &
        & LYR_D13C          ,LYR_D14C          ,LYR_BIGD14C       ,        &
        & LYR_PHYTO13       ,LYR_GRAZER13      ,LYR_POC13         ,        &
        & LYR_DOC13         ,LYR_CALC13        ,                           &
+       & LYR_PREFDOC       ,LYR_PREFDOCSL     ,LYR_PREFDOCSR     ,        &
+       & LYR_PREFDOCR      ,                                              &
        & LYR_ANH4          ,LYR_ANO2          ,                           &
        & LYR_nitr_NH4      ,LYR_nitr_NO2      ,LYR_nitr_N2O_prod ,        &
        & LYR_nitr_NH4_OM   ,LYR_nitr_NO2_OM   ,LYR_denit_NO3     ,        &
@@ -292,16 +315,21 @@ module mo_bgcmean
        & LVL_WPHY          ,LVL_WNOS          ,LVL_EPS           ,        &
        & LVL_ASIZE         ,LVL_N2O           ,LVL_PREFO2        ,        &
        & LVL_O2SAT         ,LVL_PREFPO4       ,LVL_PREFALK       ,        &
-       & LVL_PREFDIC       ,LVL_DICSAT        ,                           &
-       & LVL_PREFSILICA    ,                                              &
+       & LVL_PREFDIC       ,LVL_DICSAT        ,LVL_PREFSILICA    ,        &
+       & LVL_SHELFAGE      ,LVL_TDOC_LC       ,LVL_TDOC_HC       ,        &
+       & LVL_TDOC_LC13     ,LVL_TDOC_HC13     ,                           &
        & LVL_CFC11         ,LVL_CFC12         ,LVL_SF6           ,        &
        & LVL_NATDIC        ,LVL_NATALKALI     ,LVL_NATCALC       ,        &
        & LVL_NATPH         ,LVL_NATOMEGAA     ,LVL_NATOMEGAC     ,        &
-       & LVL_NATCO3        ,                                              &
-       & LVL_BROMO         ,                                              &
+       & LVL_NATCO3        ,LVL_BROMO         ,                           &
+       & LVL_DOCSL         ,LVL_DOCSR         ,LVL_DOCR          ,        &
+       & LVL_PREFDOC       ,LVL_PREFDOCSL     ,LVL_PREFDOCSR     ,        &
+       & LVL_PREFDOCR      ,                                              &
        & LVL_D13C          ,LVL_D14C          ,LVL_BIGD14C       ,        &
        & LVL_PHYTO13       ,LVL_GRAZER13      ,LVL_POC13         ,        &
        & LVL_DOC13         ,LVL_CALC13        ,                           &
+       & LVL_NUTLIM_FE     ,LVL_NUTLIM_N      ,LVL_NUTLIM_PHOSPH ,        &
+       & ZEU_NUTLIM_FE     ,ZEU_NUTLIM_N      ,ZEU_NUTLIM_PHOSPH ,        &
        & LVL_ANH4          ,LVL_ANO2          ,                           &
        & LVL_nitr_NH4      ,LVL_nitr_NO2      ,LVL_nitr_N2O_prod ,        &
        & LVL_nitr_NH4_OM   ,LVL_nitr_NO2_OM   ,LVL_denit_NO3     ,        &
@@ -318,12 +346,15 @@ module mo_bgcmean
        & SDM_SSSC12        ,SDM_SSSTER                           ,        &
        & BUR_SSSO12        ,BUR_SSSC12        ,BUR_SSSSIL        ,        &
        & BUR_SSSTER                                              ,        &
+       & SDM_rem_aerob     ,SDM_rem_denit     , SDM_rem_sulf     ,        &
        & SDM_POWNH4        ,SDM_POWN2O        ,SDM_POWNO2        ,        &
        & SDM_nitr_NH4      ,SDM_nitr_NO2      ,SDM_nitr_N2O_prod ,        &
        & SDM_nitr_NH4_OM   ,SDM_nitr_NO2_OM   ,SDM_denit_NO3     ,        &
        & SDM_denit_NO2     ,SDM_denit_N2O     ,SDM_DNRA_NO2      ,        &
        & SDM_anmx_N2_prod  ,SDM_anmx_OM_prod  ,SDM_remin_aerob   ,        &
        & SDM_remin_sulf    ,                                              &
+       & SDM_qual_a        ,SDM_qual_k        ,SDM_qual_app      ,        &
+       & SDM_MAVG_prorca   ,SDM_ssso12_age    ,                           &
        & GLB_AVEPERIO      ,GLB_FILEFREQ      ,GLB_COMPFLAG      ,        &
        & GLB_NCFORMAT      ,GLB_FNAMETAG      ,GLB_INVENTORY
 
@@ -354,20 +385,22 @@ module mo_bgcmean
        &          jiralk    =20,                                          &
        &          jiriron   =21,                                          &
        &          jirdoc    =22,                                          &
-       &          jirdet    =23,                                          &
-       &          jnh3flux  =24,                                          &
-       &          jndepnhx  =25,                                          &
-       &          nbgct2d   =25
+       &          jirtdoc   =23,                                          &
+       &          jirdet    =24,                                          &
+       &          jnh3flux  =25,                                          &
+       &          jndepnhx  =26,                                          &
+       &          nbgct2d   =27
 
   !----------------------------------------------------------------
   integer :: i_bsc_m2d
   integer, dimension(nbgcmax) ::                                          &
        &          jkwco2     = 0 ,                                        &
-       &          jkwco2khm  = 0 ,                                        &
-       &          jco2kh     = 0 ,                                        &
-       &          jco2khm    = 0 ,                                        &
+       &          jkwco2sol  = 0 ,                                        &
+       &          jco2sol    = 0 ,                                        &
+       &          jfco2      = 0 ,                                        &
        &          jpco2      = 0 ,                                        &
-       &          jpco2m     = 0 ,                                        &
+       &          jxco2      = 0 ,                                        &
+       &          jpco2_gex  = 0 ,                                        &
        &          jdmsflux   = 0 ,                                        &
        &          jco2fxd    = 0 ,                                        &
        &          jco2fxu    = 0 ,                                        &
@@ -400,8 +433,18 @@ module mo_bgcmean
        &          jintphosy  = 0 ,                                        &
        &          jintnfix   = 0 ,                                        &
        &          jintdnit   = 0 ,                                        &
+       &          jintexudl  = 0 ,                                        &
+       &          jintexudsl = 0 ,                                        &
+       &          jintexcrl  = 0 ,                                        &
+       &          jintexcrsl = 0 ,                                        &
+       &          jintdocl_rem = 0 ,                                      &
+       &          jintdocsl_rem= 0 ,                                      &
+       &          jintdocr_rem = 0 ,                                      &
+       &          jintdocsr_rem= 0 ,                                      &
        &          jndepnoyfx = 0 ,                                        &
        &          jndepnhxfx = 0 ,                                        &
+       &          jtdustfx   = 0 ,                                        &
+       &          jsfefx     = 0 ,                                        &
        &          joalkfx    = 0 ,                                        &
        &          jcarflx0100= 0 ,                                        &
        &          jcarflx0500= 0 ,                                        &
@@ -426,7 +469,10 @@ module mo_bgcmean
        &          jdustflx1000= 0 ,                                       &
        &          jdustflx2000= 0 ,                                       &
        &          jdustflx4000= 0 ,                                       &
-       &          jdustflx_bot= 0
+       &          jdustflx_bot= 0 ,                                       &
+       &          jzeunutlim_fe      = 0 ,                                &
+       &          jzeunutlim_phosph  = 0 ,                                &
+       &          jzeunutlim_n       = 0
 
   integer, dimension(nbgcmax) ::                                          &
        &          jsediffic  = 0 ,                                        &
@@ -442,7 +488,8 @@ module mo_bgcmean
        &          jburflxsso12  = 0 ,                                     &
        &          jburflxsssc12 = 0 ,                                     &
        &          jburflxssssil = 0 ,                                     &
-       &          jburflxssster = 0
+       &          jburflxssster = 0 ,                                     &
+       &          jsed_mavg_prorca=0
 
   integer, dimension(nbgcmax) ::                                          &
        &          jsrfnatdic = 0 ,                                        &
@@ -486,6 +533,8 @@ module mo_bgcmean
        &          jphyto     = 0 ,                                        &
        &          jgrazer    = 0 ,                                        &
        &          jdoc       = 0 ,                                        &
+       &          jtdoc_lc   = 0 ,                                        &
+       &          jtdoc_hc   = 0 ,                                        &
        &          jphosy     = 0 ,                                        &
        &          jphosph    = 0 ,                                        &
        &          joxygen    = 0 ,                                        &
@@ -508,13 +557,19 @@ module mo_bgcmean
        &          jprefsilica= 0 ,                                        &
        &          jprefalk   = 0 ,                                        &
        &          jprefdic   = 0 ,                                        &
+       &          jshelfage  = 0 ,                                        &
        &          jdicsat    = 0 ,                                        &
        &          jcfc11     = 0 ,                                        &
        &          jcfc12     = 0 ,                                        &
        &          jsf6       = 0 ,                                        &
        &          jlvlphyto  = 0 ,                                        &
+       &          jlvlnutlim_fe=0,                                        &
+       &          jlvlnutlim_n =0,                                        &
+       &          jlvlnutlim_phosph=0,                                    &
        &          jlvlgrazer = 0 ,                                        &
        &          jlvldoc    = 0 ,                                        &
+       &          jlvltdoc_lc = 0 ,                                       &
+       &          jlvltdoc_hc = 0 ,                                       &
        &          jlvlphosy  = 0 ,                                        &
        &          jlvlphosph = 0 ,                                        &
        &          jlvloxygen = 0 ,                                        &
@@ -537,6 +592,7 @@ module mo_bgcmean
        &          jlvlprefsilica= 0 ,                                     &
        &          jlvlprefalk= 0 ,                                        &
        &          jlvlprefdic= 0 ,                                        &
+       &          jlvlshelfage= 0 ,                                       &
        &          jlvldicsat = 0 ,                                        &
        &          jlvlcfc11  = 0 ,                                        &
        &          jlvlcfc12  = 0 ,                                        &
@@ -550,6 +606,8 @@ module mo_bgcmean
        &          jbigd14c   = 0 ,                                        &
        &          jpoc13     = 0 ,                                        &
        &          jdoc13     = 0 ,                                        &
+       &          jtdoc_lc13 = 0 ,                                        &
+       &          jtdoc_hc13 = 0 ,                                        &
        &          jcalc13    = 0 ,                                        &
        &          jphyto13   = 0 ,                                        &
        &          jgrazer13  = 0 ,                                        &
@@ -560,6 +618,8 @@ module mo_bgcmean
        &          jlvlbigd14c= 0 ,                                        &
        &          jlvlpoc13  = 0 ,                                        &
        &          jlvldoc13  = 0 ,                                        &
+       &          jlvltdoc_lc13 = 0 ,                                     &
+       &          jlvltdoc_hc13 = 0 ,                                     &
        &          jlvlcalc13 = 0 ,                                        &
        &          jlvlphyto13 = 0,                                        &
        &          jlvlgrazer13= 0
@@ -613,7 +673,7 @@ module mo_bgcmean
        &          jphosy_NH4         = 0 ,                                &
        &          jphosy_NO3         = 0 ,                                &
        &          jremin_aerob       = 0 ,                                &
-       &          jremin_sulf        = 0 ,                                & 
+       &          jremin_sulf        = 0 ,                                &
        &          jagg_ws            = 0 ,                                &
        &          jdynvis            = 0 ,                                &
        &          jagg_stick         = 0 ,                                &
@@ -625,9 +685,9 @@ module mo_bgcmean
        &          jagg_df            = 0 ,                                &
        &          jagg_b             = 0 ,                                &
        &          jagg_Vrhof         = 0 ,                                &
-       &          jagg_Vpor          = 0 ,                                &        
+       &          jagg_Vpor          = 0 ,                                &
        &          jlvlanh4   = 0 ,                                        &
-       &          jlvlano2   = 0 ,                                        &  
+       &          jlvlano2   = 0 ,                                        &
        &          jlvl_nitr_NH4      = 0 ,                                &
        &          jlvl_nitr_NO2      = 0 ,                                &
        &          jlvl_nitr_N2O_prod = 0 ,                                &
@@ -656,6 +716,22 @@ module mo_bgcmean
        &          jlvl_agg_Vrhof     = 0 ,                                &
        &          jlvl_agg_Vpor      = 0
 
+  integer, dimension(nbgcmax) ::                                          &
+       &          jdocsl     = 0 ,                                        &
+       &          jdocsr     = 0 ,                                        &
+       &          jdocr      = 0 ,                                        &
+       &          jlvldocsl  = 0 ,                                        &
+       &          jlvldocsr  = 0 ,                                        &
+       &          jlvldocr   = 0 ,                                        &
+       &          jprefdoc   = 0 ,                                        &
+       &          jprefdocsl = 0 ,                                        &
+       &          jprefdocsr = 0 ,                                        &
+       &          jprefdocr  = 0 ,                                        &
+       &          jlvlprefdoc  = 0 ,                                      &
+       &          jlvlprefdocsl= 0 ,                                      &
+       &          jlvlprefdocsr= 0 ,                                      &
+       &          jlvlprefdocr = 0
+
   integer :: nbgcm3d,nbgcm3dlvl
 
   !----------------------------------------------------------------
@@ -676,6 +752,9 @@ module mo_bgcmean
        &          jpownh4 = 0 ,                                           &
        &          jpown2o = 0 ,                                           &
        &          jpowno2 = 0 ,                                           &
+       &          jsdm_rem_aerob     = 0 ,                                &
+       &          jsdm_rem_denit     = 0 ,                                &
+       &          jsdm_rem_sulf      = 0 ,                                &
        &          jsdm_nitr_NH4      = 0 ,                                &
        &          jsdm_nitr_NO2      = 0 ,                                &
        &          jsdm_nitr_N2O_prod = 0 ,                                &
@@ -688,7 +767,11 @@ module mo_bgcmean
        &          jsdm_anmx_N2_prod  = 0 ,                                &
        &          jsdm_anmx_OM_prod  = 0 ,                                &
        &          jsdm_remin_aerob   = 0 ,                                &
-       &          jsdm_remin_sulf    = 0
+       &          jsdm_remin_sulf    = 0 ,                                &
+       &          jsdm_qual_a        = 0 ,                                &
+       &          jsdm_qual_k        = 0 ,                                &
+       &          jsdm_qual_app      = 0 ,                                &
+       &          jsdm_ssso12_age    = 0
 
 
   integer :: nbgct_sed
@@ -706,11 +789,11 @@ module mo_bgcmean
   integer :: nbgct_bur
 
   !----------------------------------------------------------------
-  real, dimension (:,:,:),   allocatable :: bgct2d
-  real, dimension (:,:,:),   allocatable :: bgcm2d
-  real, dimension (:,:,:,:), allocatable :: bgcm3d,bgcm3dlvl
-  real, dimension (:,:,:,:), allocatable :: bgct_sed
-  real, dimension (:,:,:),   allocatable :: bgct_bur
+  real(rp), dimension (:,:,:),   allocatable :: bgct2d
+  real(rp), dimension (:,:,:),   allocatable :: bgcm2d
+  real(rp), dimension (:,:,:,:), allocatable :: bgcm3d,bgcm3dlvl
+  real(rp), dimension (:,:,:,:), allocatable :: bgct_sed
+  real(rp), dimension (:,:,:),   allocatable :: bgct_bur
 
 CONTAINS
 
@@ -768,21 +851,26 @@ CONTAINS
       endif
     enddo
 
+    ! Only allow inventory output to netcdf file at one interval
+    call check_glb_inventory(glb_inventory,nbgc)
+
     ! Re-define index variables according to namelist
     i_bsc_m2d=0
     do n=1,nbgc
       if (SRF_KWCO2(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jkwco2(n)=i_bsc_m2d*min(1,SRF_KWCO2(n))
-      if (SRF_KWCO2KHM(n) > 0) i_bsc_m2d=i_bsc_m2d+1
-      jkwco2khm(n)=i_bsc_m2d*min(1,SRF_KWCO2KHM(n))
-      if (SRF_CO2KH(n) > 0) i_bsc_m2d=i_bsc_m2d+1
-      jco2kh(n)=i_bsc_m2d*min(1,SRF_CO2KH(n))
-      if (SRF_CO2KHM(n) > 0) i_bsc_m2d=i_bsc_m2d+1
-      jco2khm(n)=i_bsc_m2d*min(1,SRF_CO2KHM(n))
+      if (SRF_KWCO2SOL(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jkwco2sol(n)=i_bsc_m2d*min(1,SRF_KWCO2SOL(n))
+      if (SRF_CO2SOL(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jco2sol(n)=i_bsc_m2d*min(1,SRF_CO2SOL(n))
+      if (SRF_FCO2(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jfco2(n)=i_bsc_m2d*min(1,SRF_FCO2(n))
       if (SRF_PCO2(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jpco2(n)=i_bsc_m2d*min(1,SRF_PCO2(n))
-      if (SRF_PCO2M(n) > 0) i_bsc_m2d=i_bsc_m2d+1
-      jpco2m(n)=i_bsc_m2d*min(1,SRF_PCO2M(n))
+      if (SRF_XCO2(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jxco2(n)=i_bsc_m2d*min(1,SRF_XCO2(n))
+      if (SRF_PCO2_GEX(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jpco2_gex(n)=i_bsc_m2d*min(1,SRF_PCO2_GEX(n))
       if (SRF_DMSFLUX(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jdmsflux(n)=i_bsc_m2d*min(1,SRF_DMSFLUX(n))
       if (SRF_CO2FXD(n) > 0) i_bsc_m2d=i_bsc_m2d+1
@@ -837,6 +925,10 @@ CONTAINS
       jintdnit(n)=i_bsc_m2d*min(1,INT_DNIT(n))
       if (FLX_NDEPNOY(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jndepnoyfx(n)=i_bsc_m2d*min(1,FLX_NDEPNOY(n))
+      if (FLX_TDUST(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jtdustfx(n)=i_bsc_m2d*min(1,FLX_TDUST(n))
+      if (FLX_SFE(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jsfefx(n)=i_bsc_m2d*min(1,FLX_SFE(n))
       if (FLX_OALK(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       joalkfx(n)=i_bsc_m2d*min(1,FLX_OALK(n))
       if (FLX_CAR0100(n) > 0) i_bsc_m2d=i_bsc_m2d+1
@@ -887,6 +979,12 @@ CONTAINS
       jdustflx4000(n)=i_bsc_m2d*min(1,FLX_DUST4000(n))
       if (FLX_DUST_BOT(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jdustflx_bot(n)=i_bsc_m2d*min(1,FLX_DUST_BOT(n))
+      if (ZEU_NUTLIM_FE(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jzeunutlim_fe(n)=i_bsc_m2d*min(1,ZEU_NUTLIM_FE(n))
+      if (ZEU_NUTLIM_PHOSPH(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jzeunutlim_phosph(n)=i_bsc_m2d*min(1,ZEU_NUTLIM_PHOSPH(n))
+      if (ZEU_NUTLIM_N(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jzeunutlim_N(n)=i_bsc_m2d*min(1,ZEU_NUTLIM_N(n))
 
       if (.not. use_sedbypass) then
         if (FLX_SEDIFFIC(n) > 0) i_bsc_m2d=i_bsc_m2d+1
@@ -918,6 +1016,10 @@ CONTAINS
           jsediffn2o(n)=i_bsc_m2d*min(1,FLX_SEDIFFN2O(n))
           if (FLX_SEDIFFNO2(n) > 0) i_bsc_m2d=i_bsc_m2d+1
           jsediffno2(n)=i_bsc_m2d*min(1,FLX_SEDIFFNO2(n))
+        endif
+        if (use_sediment_quality) then
+          if (SDM_MAVG_PRORCA(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+          jsed_mavg_prorca(n)=i_bsc_m2d*min(1,SDM_MAVG_PRORCA(n))
         endif
       endif
       if (use_cisonew) then
@@ -971,6 +1073,24 @@ CONTAINS
         jsrfano2(n)=i_bsc_m2d*min(1,SRF_ANO2(n))
         if (FLX_NDEPNHX(n) > 0) i_bsc_m2d=i_bsc_m2d+1
         jndepnhxfx(n)=i_bsc_m2d*min(1,FLX_NDEPNHX(n))
+      endif
+      if (use_DOMclasses) then
+        if (INT_EXUDL(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        jintexudl(n)=i_bsc_m2d*min(1,INT_EXUDL(n))
+        if (INT_EXUDSL(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        jintexudsl(n)=i_bsc_m2d*min(1,INT_EXUDSL(n))
+        if (INT_EXCRL(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        jintexcrl(n)=i_bsc_m2d*min(1,INT_EXCRL(n))
+        if (INT_EXCRSL(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        jintexcrsl(n)=i_bsc_m2d*min(1,INT_EXCRSL(n))
+        if (INT_DOCL_REM(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        jintdocl_rem(n)=i_bsc_m2d*min(1,INT_DOCL_REM(n))
+        if (INT_DOCSL_REM(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        jintdocsl_rem(n)=i_bsc_m2d*min(1,INT_DOCSL_REM(n))
+        if (INT_DOCSR_REM(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        jintdocsr_rem(n)=i_bsc_m2d*min(1,INT_DOCSR_REM(n))
+        if (INT_DOCSL_REM(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+        jintdocr_rem(n)=i_bsc_m2d*min(1,INT_DOCR_REM(n))
       endif
     enddo
 
@@ -1060,18 +1180,30 @@ CONTAINS
       jprefo2(n)=i_bsc_m3d*min(1,LYR_PREFO2(n))
       if (LYR_O2SAT(n) > 0) i_bsc_m3d=i_bsc_m3d+1
       jo2sat(n)=i_bsc_m3d*min(1,LYR_O2SAT(n))
-      if (LYR_PREFPO4(n) > 0) i_bsc_m3d=i_bsc_m3d+1
-      jprefpo4(n)=i_bsc_m3d*min(1,LYR_PREFPO4(n))
-      if (LYR_PREFSILICA(n) > 0) i_bsc_m3d=i_bsc_m3d+1
-      jprefsilica(n)=i_bsc_m3d*min(1,LYR_PREFSILICA(n))
-      if (LYR_PREFALK(n) > 0) i_bsc_m3d=i_bsc_m3d+1
-      jprefalk(n)=i_bsc_m3d*min(1,LYR_PREFALK(n))
-      if (LYR_PREFDIC(n) > 0) i_bsc_m3d=i_bsc_m3d+1
-      jprefdic(n)=i_bsc_m3d*min(1,LYR_PREFDIC(n))
       if (LYR_DICSAT(n) > 0) i_bsc_m3d=i_bsc_m3d+1
       jdicsat(n)=i_bsc_m3d*min(1,LYR_DICSAT(n))
       if (LYR_DP(n) > 0) i_bsc_m3d=i_bsc_m3d+1
       jdp(n)=i_bsc_m3d*min(1,LYR_DP(n))
+      if (use_pref_tracers) then
+        if (LYR_PREFPO4(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jprefpo4(n)=i_bsc_m3d*min(1,LYR_PREFPO4(n))
+        if (LYR_PREFSILICA(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jprefsilica(n)=i_bsc_m3d*min(1,LYR_PREFSILICA(n))
+        if (LYR_PREFALK(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jprefalk(n)=i_bsc_m3d*min(1,LYR_PREFALK(n))
+        if (LYR_PREFDIC(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jprefdic(n)=i_bsc_m3d*min(1,LYR_PREFDIC(n))
+      endif
+      if (use_shelfsea_res_time) then
+        if (LYR_SHELFAGE(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jshelfage(n)=i_bsc_m3d*min(1,LYR_SHELFAGE(n))
+      endif
+      if (use_river2omip) then
+        if (LYR_TDOC_LC(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jtdoc_lc(n)=i_bsc_m3d*min(1,LYR_TDOC_LC(n))
+        if (LYR_TDOC_HC(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jtdoc_hc(n)=i_bsc_m3d*min(1,LYR_TDOC_HC(n))
+      endif
       if (use_CFC) then
         if (LYR_CFC11(n) > 0) i_bsc_m3d=i_bsc_m3d+1
         jcfc11(n)=i_bsc_m3d*min(1,LYR_CFC11(n))
@@ -1101,6 +1233,12 @@ CONTAINS
         jphyto13(n)=i_bsc_m3d*min(1,LYR_PHYTO13(n))
         if (LYR_GRAZER13(n) > 0) i_bsc_m3d=i_bsc_m3d+1
         jgrazer13(n)=i_bsc_m3d*min(1,LYR_GRAZER13(n))
+        if (use_river2omip) then
+          if (LYR_TDOC_LC13(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+          jtdoc_lc13(n)=i_bsc_m3d*min(1,LYR_TDOC_LC13(n))
+          if (LYR_TDOC_HC13(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+          jtdoc_hc13(n)=i_bsc_m3d*min(1,LYR_TDOC_HC13(n))
+        endif
       endif
       if (use_AGG) then
         if (LYR_NOS(n) > 0) i_bsc_m3d=i_bsc_m3d+1
@@ -1197,8 +1335,33 @@ CONTAINS
         if (LYR_agg_Vpor(n) > 0) i_bsc_m3d=i_bsc_m3d+1
         jagg_Vpor(n)=i_bsc_m3d*min(1,LYR_agg_Vpor(n))
       endif
+      if (use_DOMclasses) then
+        if (LYR_DOCSL(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jdocsl(n)=i_bsc_m3d*min(1,LYR_DOCSL(n))
+        if (LYR_DOCSR(n) > 0) i_bsc_m3d=i_bsc_m3d+1
+        jdocsr(n)=i_bsc_m3d*min(1,LYR_DOCSR(n))
+        if (LYR_DOCR(n)  > 0) i_bsc_m3d=i_bsc_m3d+1
+        jdocr(n) =i_bsc_m3d*min(1,LYR_DOCR(n))
+      endif
+      if (use_DOMclasses .and. use_pref_tracers) then
+        if (LYR_PREFDOC(n)  > 0) i_bsc_m3d=i_bsc_m3d+1
+        jprefdoc(n)=i_bsc_m3d*min(1,LYR_PREFDOC(n))
+        if (LYR_PREFDOCSL(n)  > 0) i_bsc_m3d=i_bsc_m3d+1
+        jprefdocsl(n)=i_bsc_m3d*min(1,LYR_PREFDOCSL(n))
+        if (LYR_PREFDOCSR(n)  > 0) i_bsc_m3d=i_bsc_m3d+1
+        jprefdocsr(n)=i_bsc_m3d*min(1,LYR_PREFDOCSR(n))
+        if (LYR_PREFDOCR(n)  > 0) i_bsc_m3d=i_bsc_m3d+1
+        jprefdocr(n)=i_bsc_m3d*min(1,LYR_PREFDOCR(n))
+      endif
+
       if (LVL_PHYTO(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
       jlvlphyto(n)=ilvl_bsc_m3d*min(1,LVL_PHYTO(n))
+      if (LVL_NUTLIM_FE(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+      jlvlnutlim_fe(n)=ilvl_bsc_m3d*min(1,LVL_NUTLIM_FE(n))
+      if (LVL_NUTLIM_N(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+      jlvlnutlim_n(n)=ilvl_bsc_m3d*min(1,LVL_NUTLIM_N(n))
+      if (LVL_NUTLIM_PHOSPH(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+      jlvlnutlim_phosph(n)=ilvl_bsc_m3d*min(1,LVL_NUTLIM_PHOSPH(n))
       if (LVL_GRAZER(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
       jlvlgrazer(n)=ilvl_bsc_m3d*min(1,LVL_GRAZER(n))
       if (LVL_DOC(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
@@ -1239,16 +1402,28 @@ CONTAINS
       jlvlprefo2(n)=ilvl_bsc_m3d*min(1,LVL_PREFO2(n))
       if (LVL_O2SAT(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
       jlvlo2sat(n)=ilvl_bsc_m3d*min(1,LVL_O2SAT(n))
-      if (LVL_PREFPO4(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
-      jlvlprefpo4(n)=ilvl_bsc_m3d*min(1,LVL_PREFPO4(n))
-      if (LVL_PREFSILICA(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
-      jlvlprefsilica(n)=ilvl_bsc_m3d*min(1,LVL_PREFSILICA(n))
-      if (LVL_PREFALK(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
-      jlvlprefalk(n)=ilvl_bsc_m3d*min(1,LVL_PREFALK(n))
-      if (LVL_PREFDIC(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
-      jlvlprefdic(n)=ilvl_bsc_m3d*min(1,LVL_PREFDIC(n))
       if (LVL_DICSAT(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
       jlvldicsat(n)=ilvl_bsc_m3d*min(1,LVL_DICSAT(n))
+      if (use_pref_tracers) then
+        if (LVL_PREFPO4(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlprefpo4(n)=ilvl_bsc_m3d*min(1,LVL_PREFPO4(n))
+        if (LVL_PREFSILICA(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlprefsilica(n)=ilvl_bsc_m3d*min(1,LVL_PREFSILICA(n))
+        if (LVL_PREFALK(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlprefalk(n)=ilvl_bsc_m3d*min(1,LVL_PREFALK(n))
+        if (LVL_PREFDIC(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlprefdic(n)=ilvl_bsc_m3d*min(1,LVL_PREFDIC(n))
+      endif
+      if (use_shelfsea_res_time) then
+        if (LVL_SHELFAGE(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlshelfage(n)=ilvl_bsc_m3d*min(1,LVL_SHELFAGE(n))
+      endif
+      if (use_river2omip) then
+        if (LVL_TDOC_LC(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvltdoc_lc(n)=ilvl_bsc_m3d*min(1,LVL_TDOC_LC(n))
+        if (LVL_TDOC_HC(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvltdoc_hc(n)=ilvl_bsc_m3d*min(1,LVL_TDOC_HC(n))
+      endif
       if (use_CFC) then
         if (LVL_CFC11(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlcfc11(n)=ilvl_bsc_m3d*min(1,LVL_CFC11(n))
@@ -1278,6 +1453,12 @@ CONTAINS
         jlvlphyto13(n)=ilvl_bsc_m3d*min(1,LVL_PHYTO13(n))
         if (LVL_GRAZER13(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlgrazer13(n)=ilvl_bsc_m3d*min(1,LVL_GRAZER13(n))
+        if (use_river2omip) then
+          if (LVL_TDOC_LC13(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+          jlvltdoc_lc13(n)=ilvl_bsc_m3d*min(1,LVL_TDOC_LC13(n))
+          if (LVL_TDOC_HC13(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+          jlvltdoc_hc13(n)=ilvl_bsc_m3d*min(1,LVL_TDOC_HC13(n))
+        endif
       endif
       if (use_AGG) then
         if (LVL_NOS(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
@@ -1374,6 +1555,25 @@ CONTAINS
         if (LVL_agg_Vpor(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvl_agg_Vpor(n)=ilvl_bsc_m3d*min(1,LVL_agg_Vpor(n))
       endif
+      if (use_DOMclasses) then
+        if (LVL_DOCSL(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvldocsl(n)=ilvl_bsc_m3d*min(1,LVL_DOCSL(n))
+        if (LVL_DOCSR(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvldocsr(n)=ilvl_bsc_m3d*min(1,LVL_DOCSR(n))
+        if (LVL_DOCR(n)  > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvldocr(n) =ilvl_bsc_m3d*min(1,LVL_DOCR(n))
+      endif
+      if (use_DOMclasses .and. use_pref_tracers) then
+        if (LVL_PREFDOC(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlprefdoc(n)=ilvl_bsc_m3d*min(1,LVL_PREFDOC(n))
+        if (LVL_PREFDOCSL(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlprefdocsl(n)=ilvl_bsc_m3d*min(1,LVL_PREFDOCSL(n))
+        if (LVL_PREFDOCSR(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlprefdocsr(n)=ilvl_bsc_m3d*min(1,LVL_PREFDOCSR(n))
+        if (LVL_PREFDOCR(n) > 0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlprefdocr(n)=ilvl_bsc_m3d*min(1,LVL_PREFDOCR(n))
+      endif
+
       if (i_bsc_m3d /= 0) checkdp(n)=1
     enddo
 
@@ -1459,6 +1659,27 @@ CONTAINS
           if (SDM_remin_sulf(n) > 0) i_bsc_sed=i_bsc_sed+1
           jsdm_remin_sulf(n)=i_bsc_sed*min(1,SDM_remin_sulf(n))
         enddo
+      else
+        do n=1,nbgc
+          if (SDM_rem_aerob(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_rem_aerob(n)=i_bsc_sed*min(1,SDM_rem_aerob(n))
+          if (SDM_rem_denit(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_rem_denit(n)=i_bsc_sed*min(1,SDM_rem_denit(n))
+          if (SDM_rem_sulf(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_rem_sulf(n)=i_bsc_sed*min(1,SDM_rem_sulf(n))
+        enddo
+      endif
+      if (use_sediment_quality) then
+        do n=1,nbgc
+          if (SDM_qual_a(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_qual_a(n)=i_bsc_sed*min(1,SDM_qual_a(n))
+          if (SDM_qual_k(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_qual_k(n)=i_bsc_sed*min(1,SDM_qual_k(n))
+          if (SDM_qual_app(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_qual_app(n)=i_bsc_sed*min(1,SDM_qual_app(n))
+          if (SDM_ssso12_age(n) > 0) i_bsc_sed=i_bsc_sed+1
+          jsdm_ssso12_age(n)=i_bsc_sed*min(1,SDM_ssso12_age(n))
+        enddo
       endif
     endif
     nbgcm2d    = i_bsc_m2d+i_atm_m2d
@@ -1486,7 +1707,7 @@ CONTAINS
 
     allocate (bgct2d(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,nbgct2d),stat=errstat)
     if (errstat /= 0) STOP 'not enough memory bgct2d'
-    if (nbgct2d /= 0) bgct2d=0.
+    if (nbgct2d /= 0) bgct2d=0._rp
 
     if (mnproc == 1) then
       write(io_stdo_bgc,*)'Memory allocation for variable bgcm2d ...'
@@ -1497,7 +1718,7 @@ CONTAINS
 
     allocate (bgcm2d(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,nbgcm2d),stat=errstat)
     if (errstat /= 0) STOP 'not enough memory bgcm2d'
-    if (nbgcm2d /= 0) bgcm2d=0.
+    if (nbgcm2d /= 0) bgcm2d=0._rp
 
     if (mnproc == 1) then
       write(io_stdo_bgc,*)'Memory allocation for variable bgcm3d ...'
@@ -1509,7 +1730,7 @@ CONTAINS
 
     allocate (bgcm3d(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,kpke,nbgcm3d),stat=errstat)
     if (errstat /= 0) STOP 'not enough memory bgcm3d'
-    if (nbgcm3d /= 0) bgcm3d=0.
+    if (nbgcm3d /= 0) bgcm3d=0._rp
 
     if (mnproc == 1) then
       write(io_stdo_bgc,*)'Memory allocation for variable bgcm3dlvl '
@@ -1521,7 +1742,7 @@ CONTAINS
 
     allocate (bgcm3dlvl(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,ddm,nbgcm3dlvl),stat=errstat)
     if (errstat /= 0) STOP 'not enough memory bgcm3dlvl'
-    if (nbgcm3dlvl /= 0) bgcm3dlvl=0.
+    if (nbgcm3dlvl /= 0) bgcm3dlvl=0._rp
 
     if (.not. use_sedbypass) then
       if (mnproc == 1) then
@@ -1534,7 +1755,7 @@ CONTAINS
 
       allocate (bgct_sed(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,ks,nbgct_sed),stat=errstat)
       if (errstat /= 0) STOP 'not enough memory bgct_sed'
-      if (nbgct_sed /= 0) bgct_sed=0.
+      if (nbgct_sed /= 0) bgct_sed=0._rp
 
       if (mnproc == 1) then
         write(io_stdo_bgc,*)'Memory allocation for variable bgctbur ...'
@@ -1545,7 +1766,7 @@ CONTAINS
 
       allocate (bgct_bur(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,nbgct_bur),stat=errstat)
       if (errstat /= 0) STOP 'not enough memory bgct_sed'
-      if (nbgct_bur /= 0) bgct_bur=0.
+      if (nbgct_bur /= 0) bgct_bur=0._rp
     endif
 
   end subroutine alloc_mem_bgcmean
@@ -1560,7 +1781,7 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos    ! position in common buffer
-    real,    intent(in) :: inival ! value used for initalisation
+    real(rp),intent(in) :: inival ! value used for initalisation
     !
     ! Local variables
     integer :: i,j,l
@@ -1590,7 +1811,7 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos    ! position in common buffer
-    real,    intent(in) :: inival ! value used for initalisation
+    real(rp),intent(in) :: inival ! value used for initalisation
     !
     ! Local variables
     integer :: i,j,k,l
@@ -1622,7 +1843,7 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos    ! position in common buffer
-    real,    intent(in) :: inival ! value used for initalisation
+    real(rp),intent(in) :: inival ! value used for initalisation
     !
     ! Local variables
     integer :: i,j,k,l
@@ -1654,7 +1875,7 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos    ! position in common buffer
-    real,    intent(in) :: inival ! value used for initalisation
+    real(rp),intent(in) :: inival ! value used for initalisation
     !
     ! Local variables
     integer :: i,j,k,l
@@ -1686,7 +1907,7 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos    ! position in common buffer
-    real,    intent(in) :: inival ! value used for initalisation
+    real(rp),intent(in) :: inival ! value used for initalisation
     !
     ! Local variables
     integer :: i,j,k,l
@@ -1716,8 +1937,8 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos(nbgcmax)   ! position in 3d buffer
-    real,    intent(in) :: fld(idm,jdm)   ! input data used for accumulation
-    real,    intent(in) :: wghts(idm,jdm) ! weights used for accumulation
+    real(rp),intent(in) :: fld(idm,jdm)   ! input data used for accumulation
+    real(rp),intent(in) :: wghts(idm,jdm) ! weights used for accumulation
     integer, intent(in) :: wghtsflg
     !
     ! Local variables
@@ -1762,8 +1983,8 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos(nbgcmax)       ! position in 3d layer buffer
-    real,    intent(in) :: fld(idm,jdm,kdm)   ! input data used for accumulation
-    real,    intent(in) :: wghts(idm,jdm,kdm) ! weights used for accumulation
+    real(rp),intent(in) :: fld(idm,jdm,kdm)   ! input data used for accumulation
+    real(rp),intent(in) :: wghts(idm,jdm,kdm) ! weights used for accumulation
     integer, intent(in) :: wghtsflg
     !
     ! Local variables
@@ -1812,11 +2033,11 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos(nbgcmax)       ! position in buffer
-    real,    intent(in) :: fld(idm,jdm,ddm)   ! input data used for accumulation
+    real(rp),intent(in) :: fld(idm,jdm,kdm)   ! input data used for accumulation
     integer, intent(in) :: k                  ! layer index of fld
     integer, intent(in) :: ind1(idm,jdm)      ! index field for first accumulated level
     integer, intent(in) :: ind2(idm,jdm)      ! index field for last accumulated level
-    real,    intent(in) :: wghts(idm,jdm,ddm) ! weights used for accumulation
+    real(rp),intent(in) :: wghts(idm,jdm,ddm) ! weights used for accumulation
     !
     ! Local variables
     integer :: d,i,j,l,o
@@ -1850,7 +2071,7 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos(nbgcmax)    ! position in 3d layer buffer
-    real,    intent(in) :: fld(idm,jdm,ks) ! input data used for accumulation
+    real(rp),intent(in) :: fld(idm,jdm,ks) ! input data used for accumulation
     !
     ! Local variables
     integer :: i,j,k,l,o
@@ -1884,9 +2105,9 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos(nbgcmax) ! position in 3d layer buffer
-    real,    intent(in) :: fld(idm,jdm) ! input data used for accumulation
+    real(rp),intent(in) :: fld(idm,jdm) ! input data used for accumulation
     !
-    ! Local varaibles
+    ! Local variables
     integer :: i,j,l,o
     !
     ! --- Check whether field should be accumulated
@@ -1919,7 +2140,7 @@ CONTAINS
     !
     ! Local variables
     integer :: i,j,l
-    real, parameter :: epsil=1e-11
+    real(rp), parameter :: epsil=1.e-11_rp
     !
     ! --- Check whether field should be initialised
     if (posacc == 0) RETURN
@@ -1950,7 +2171,7 @@ CONTAINS
     !
     ! Local variables
     integer :: i,j,k,l
-    real, parameter :: epsil=1e-11
+    real(rp), parameter :: epsil=1.e-11_rp
     !
     ! --- Check whether field should be initialised
     if (posacc == 0) RETURN
@@ -1988,8 +2209,8 @@ CONTAINS
                                         !  2=field is written as int2 with scale factor and offset
                                         !  4=field is written as real4
                                         !  8=field is written as real8
-    real,    intent(in) :: sfac         ! user defined scale factor to be applied
-    real,    intent(in) :: offs         ! user defined offset to be added
+    real(rp),intent(in) :: sfac         ! user defined scale factor to be applied
+    real(rp),intent(in) :: offs         ! user defined offset to be added
     integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1
     character(len=*), intent(in) :: vnm ! variable name used in nc-file
     !
@@ -2047,8 +2268,8 @@ CONTAINS
                                         !  2=field is written as int2 with scale factor and offset
                                         !  4=field is written as real4
                                         !  8=field is written as real8
-    real,    intent(in) :: sfac         ! user defined scale factor to be applied
-    real,    intent(in) :: offs         ! user defined offset to be added
+    real(rp),intent(in) :: sfac         ! user defined scale factor to be applied
+    real(rp),intent(in) :: offs         ! user defined offset to be added
     integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1
     character(len=*), intent(in) :: vnm ! variable name used in nc-file
     !
@@ -2106,8 +2327,8 @@ CONTAINS
                                         !  2=field is written as int2 with scale factor and offset
                                         !  4=field is written as real4
                                         !  8=field is written as real8
-    real,    intent(in) :: sfac         ! user defined scale factor to be applied
-    real,    intent(in) :: offs         ! user defined offset to be added
+    real(rp),intent(in) :: sfac         ! user defined scale factor to be applied
+    real(rp),intent(in) :: offs         ! user defined offset to be added
     integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1
     character(len=*), intent(in) :: vnm ! variable name used in nc-file
     !
@@ -2165,8 +2386,8 @@ CONTAINS
                                         !  2=field is written as int2 with scale factor and offset
                                         !  4=field is written as real4
                                         !  8=field is written as real8
-    real,    intent(in) :: sfac         ! user defined scale factor to be applied
-    real,    intent(in) :: offs         ! user defined offset to be added
+    real(rp),intent(in) :: sfac         ! user defined scale factor to be applied
+    real(rp),intent(in) :: offs         ! user defined offset to be added
     integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1
     character(len=*), intent(in) :: vnm ! variable name used in nc-file
     !
@@ -2224,8 +2445,8 @@ CONTAINS
                                         !  2=field is written as int2 with scale factor and offset
                                         !  4=field is written as real4
                                         !  8=field is written as real8
-    real,    intent(in) :: sfac         ! user defined scale factor to be applied
-    real,    intent(in) :: offs         ! user defined offset to be added
+    real(rp),intent(in) :: sfac         ! user defined scale factor to be applied
+    real(rp),intent(in) :: offs         ! user defined offset to be added
     integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1
     character(len=*), intent(in) :: vnm ! variable name used in nc-file
     !
@@ -2278,12 +2499,12 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos  ! field position in layer buffer
-    real,    intent(in) :: sfac ! scale factor to be applied before log10
-    real,    intent(in) :: offs ! offset to be added before log10
+    real(rp),intent(in) :: sfac ! scale factor to be applied before log10
+    real(rp),intent(in) :: offs ! offset to be added before log10
     !
     ! Local variables
     integer :: i,j,l
-    real    :: epsil=1e-11
+    real(rp)    :: epsil=1.e-11_rp
     !
     ! --- Check whether field should be processed
     if (pos == 0) RETURN
@@ -2293,7 +2514,7 @@ CONTAINS
       do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
           if (bgcm2d(i,j,pos) < epsil) then
-            bgcm2d(i,j,pos)=0.
+            bgcm2d(i,j,pos)=0._rp
           else
             bgcm2d(i,j,pos)=log10(bgcm2d(i,j,pos)*sfac+offs)
           endif
@@ -2314,12 +2535,12 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos  ! field position in layer buffer
-    real,    intent(in) :: sfac ! scale factor to be applied before log10
-    real,    intent(in) :: offs ! offset to be added before log10
+    real(rp),intent(in) :: sfac ! scale factor to be applied before log10
+    real(rp),intent(in) :: offs ! offset to be added before log10
     !
     ! Local variable
     integer :: i,j,k,l
-    real    :: epsil=1e-11
+    real(rp):: epsil=1.e-11_rp
     !
     ! --- Check whether field should be processed
     if (pos == 0) RETURN
@@ -2330,7 +2551,7 @@ CONTAINS
         do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             if (bgcm3d(i,j,k,pos) < epsil) then
-              bgcm3d(i,j,k,pos)=0.
+              bgcm3d(i,j,k,pos)=0._rp
             elseif (bgcm3d(i,j,k,pos) /= nf90_fill_double) then
               bgcm3d(i,j,k,pos)=log10(bgcm3d(i,j,k,pos)*sfac+offs)
             endif
@@ -2350,13 +2571,13 @@ CONTAINS
     ! --- ------------------------------------------------------------------
     !
     ! Arguments
-    real,    intent(in) :: sfac ! field position in layer buffer
-    real,    intent(in) :: offs ! scale factor to be applied before log10
+    real(rp),intent(in) :: sfac ! field position in layer buffer
+    real(rp),intent(in) :: offs ! scale factor to be applied before log10
     integer, intent(in) :: pos  ! offset to be added before log10
     !
     ! Local variable
     integer :: i,j,k,l
-    real    :: epsil=1e-11
+    real(rp):: epsil=1.e-11_rp
     !
     ! --- Check whether field should be processed
     if (pos == 0) RETURN
@@ -2367,7 +2588,7 @@ CONTAINS
         do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             if (bgcm3dlvl(i,j,k,pos) < epsil) then
-              bgcm3dlvl(i,j,k,pos)=0.
+              bgcm3dlvl(i,j,k,pos)=0._rp
             elseif (bgcm3dlvl(i,j,k,pos) /= nf90_fill_double) then
               bgcm3dlvl(i,j,k,pos)=log10(bgcm3dlvl(i,j,k,pos)*sfac+offs)
             endif
@@ -2389,12 +2610,12 @@ CONTAINS
     !
     ! Arguments
     integer, intent(in) :: pos  ! field position in layer buffer
-    real,    intent(in) :: sfac ! scale factor to be applied before log10
-    real,    intent(in) :: offs ! offset to be added before log10
+    real(rp),    intent(in) :: sfac ! scale factor to be applied before log10
+    real(rp),    intent(in) :: offs ! offset to be added before log10
     !
     ! Local variable
     integer :: i,j,k,l
-    real    :: epsil=1e-11
+    real(rp):: epsil=1.e-11_rp
     !
     ! --- Check whether field should be processed
     if (pos == 0) RETURN
@@ -2405,7 +2626,7 @@ CONTAINS
         do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             if (bgct_sed(i,j,k,pos) < epsil) then
-              bgct_sed(i,j,k,pos)=0.
+              bgct_sed(i,j,k,pos)=0._rp
             else
               bgct_sed(i,j,k,pos)=log10(bgct_sed(i,j,k,pos)*sfac+offs)
             endif
@@ -2430,7 +2651,7 @@ CONTAINS
     !
     ! Local variables
     integer :: i,j,l
-    real, parameter :: mskval=nf90_fill_double
+    real(rp), parameter :: mskval=nf90_fill_double
     !
     ! --- Check whether field should be initia
     if (pos == 0) RETURN
@@ -2456,13 +2677,13 @@ CONTAINS
 
     ! Arguments
     integer, intent(in)  :: pos                                     ! field position in level buffer
-    real,    intent(in)  :: depths(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ! bathymetry field
+    real(rp),intent(in)  :: depths(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ! bathymetry field
     !
     ! Local variables
     integer         :: i,j,k,l
     logical, save   :: iniflg=.true.
     integer, save   :: kmax(idm,jdm)
-    real, parameter :: mskval=nf90_fill_double
+    real(rp), parameter :: mskval=nf90_fill_double
     !
     ! --- Check whether field should be processed
     if (pos == 0) RETURN
@@ -2507,20 +2728,20 @@ CONTAINS
     !-----------------------------------------------------------------------
     !
     ! Arguments
-    real,    intent(in)    :: pddpo(idm,jdm,kdm)
+    real(rp),intent(in)    :: pddpo(idm,jdm,kdm)
     integer, intent(in)    :: kin
     integer, intent(inout) :: ind1(idm,jdm)
     integer, intent(inout) :: ind2(idm,jdm)
-    real,    intent(inout) :: weights(idm,jdm,ddm)
+    real(rp),intent(inout) :: weights(idm,jdm,ddm)
     !
     ! Local variables
     ! TODO: why do the following have save attributes?
     integer         :: d,i,j,k,l
-    real,    save   :: dlev(idm,jdm,ddm)
-    real,    save   :: ztop(idm,jdm,kdm)
-    real,    save   :: zbot(idm,jdm,kdm)
+    real(rp),save   :: dlev(idm,jdm,ddm)
+    real(rp),save   :: ztop(idm,jdm,kdm)
+    real(rp),save   :: zbot(idm,jdm,kdm)
     logical, save   :: iniflg=.true.
-    real, parameter :: eps=1e-10
+    real(rp), parameter :: eps=1.e-10_rp
     !
     ! --- Adjust bounds of levitus levels according to model bathymetry
     if (iniflg) then
@@ -2565,7 +2786,7 @@ CONTAINS
         do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             zbot(i,j,1)=zbot(i,j,1)*pbath(i,j)/zbot(i,j,kk)
-            ztop(i,j,1)=0.
+            ztop(i,j,1)=0._rp
             ind1(i,j)=1
           enddo
         enddo
@@ -2611,5 +2832,35 @@ CONTAINS
     !$OMP END PARALLEL DO
     !
   end subroutine bgczlv
+
+  subroutine check_glb_inventory(glb_inventory,nbgc)
+    !
+    ! --- ------------------------------------------------------------------
+    ! --- Description: check that we only write inventory to netcdf file at
+    ! ---              a single time interval, set by glb_inventory(n) == 2.
+    ! ---              If there are multiple instances where glb_inventory
+    ! ---              is 2, keep only the first instance.
+    ! --- ------------------------------------------------------------------
+
+    ! Arguments
+    integer, intent(inout) :: glb_inventory(nbgcmax)
+    integer, intent(in)    :: nbgc
+    !
+    ! Local variables
+    integer :: i,maxval_glb_inventory, maxloc_glb_inventory
+
+    maxval_glb_inventory = maxval(glb_inventory)
+    if (maxval_glb_inventory == 2) then
+       maxloc_glb_inventory = maxloc(glb_inventory, 1)
+       if (maxloc_glb_inventory < nbgc) then
+          ! Set subsequent instances of glb_inventory to max 1
+          do i=maxloc_glb_inventory+1,nbgc
+             if (glb_inventory(i) == 2) then
+                glb_inventory(i) = 1
+             endif
+          enddo
+       endif
+    endif
+  end subroutine check_glb_inventory
 
 end module mo_bgcmean

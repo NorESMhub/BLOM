@@ -28,7 +28,7 @@ contains
   subroutine hamocc4bcm(kpie,kpje,kpke,kbnd,kplyear,kplmon,kplday,kldtday,pdlxp,pdlyp,pddpo,prho,  &
                         pglat,omask, dust,rivin,ndep,oafx,pi_ph,pfswr,psicomo,ppao,pfu10,ptho,psao,&
                         patmco2,pflxco2,pflxdms,patmbromo,pflxbromo,                               &
-                        patmn2o,pflxn2o,patmnh3,pflxnh3)
+                        patmn2o,pflxn2o,patmnh3,pflxnh3,shelfmask)
 
     !***********************************************************************************************
     ! Main routine of iHAMOCC.
@@ -48,6 +48,7 @@ contains
     !***********************************************************************************************
 
     use mod_xc,           only: mnproc
+    use mo_kind,          only: rp
     use mo_carbch,        only: atmflx,ocetra,atm,atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,          &
                                 atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh
     use mo_biomod,        only: strahl
@@ -55,7 +56,8 @@ contains
                                 do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,               &
                                 use_BROMO, use_CFC, use_PBGC_CK_TIMESTEP,                          &
                                 use_BOXATM, use_sedbypass,ocn_co2_type,                            &
-                                do_n2onh3_coupled,use_extNcycle
+                                do_n2o_coupled,use_extNcycle,use_pref_tracers,                     &
+                                use_shelfsea_res_time,do_nh3_coupled
     use mo_param1_bgc,    only: iatmco2,iatmdms,nocetra,nriv,iatmbromo,nndep,iatmn2o,iatmnh3
     use mo_vgrid,         only: set_vgrid
     use mo_apply_fedep,   only: apply_fedep
@@ -72,6 +74,7 @@ contains
     use mo_ocprod,        only: ocprod
     use mo_carchm,        only: carchm
     use mo_chemcon,       only: mw_nh3,mw_n2o
+    use mo_shelfsea_restime,only: shelfsea_residence_time
 
     ! Arguments
     integer, intent(in)  :: kpie                                            ! 1st dimension of model grid.
@@ -82,32 +85,33 @@ contains
     integer, intent(in)  :: kplmon                                          ! current month.
     integer, intent(in)  :: kplday                                          ! current day.
     integer, intent(in)  :: kldtday                                         ! number of time step in current day.
-    real,    intent(in)  :: pdlxp  (kpie,kpje)                              ! size of grid cell (longitudinal) [m].
-    real,    intent(in)  :: pdlyp  (kpie,kpje)                              ! size of grid cell (latitudinal) [m].
-    real,    intent(in)  :: pddpo  (kpie,kpje,kpke)                         ! size of grid cell (depth) [m].
-    real,    intent(in)  :: prho   (kpie,kpje,kpke)                         ! density [g/cm^3].
-    real,    intent(in)  :: pglat  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! latitude of grid cells [deg north].
-    real,    intent(in)  :: omask  (kpie,kpje)                              ! land/ocean mask.
+    real(rp),intent(in)  :: pdlxp  (kpie,kpje)                              ! size of grid cell (longitudinal) [m].
+    real(rp),intent(in)  :: pdlyp  (kpie,kpje)                              ! size of grid cell (latitudinal) [m].
+    real(rp),intent(in)  :: pddpo  (kpie,kpje,kpke)                         ! size of grid cell (depth) [m].
+    real(rp),intent(in)  :: prho   (kpie,kpje,kpke)                         ! density [g/cm^3].
+    real(rp),intent(in)  :: pglat  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! latitude of grid cells [deg north].
+    real(rp),intent(in)  :: omask  (kpie,kpje)                              ! land/ocean mask.
     real,    intent(in)  :: dust   (kpie,kpje)                              ! dust deposition flux [kg/m2/month].
-    real,    intent(in)  :: rivin  (kpie,kpje,nriv)                         ! riverine input [kmol m-2 yr-1].
-    real,    intent(in)  :: ndep   (kpie,kpje,nndep)                        ! nitrogen deposition [kmol m-2 yr-1].
-    real,    intent(in)  :: oafx   (kpie,kpje)                              ! alkalinity flux from alkalinization [kmol m-2 yr-1]
-    real,    intent(in)  :: pi_ph  (kpie,kpje)                              ! pre-ind. pH climatology used for pH-dependent DMS fluxes [log10([H+])]
-    real,    intent(in)  :: pfswr  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! solar radiation [W/m**2].
-    real,    intent(in)  :: psicomo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! sea ice concentration
-    real,    intent(in)  :: ppao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! sea level pressure [Pascal].
-    real,    intent(in)  :: pfu10  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! absolute wind speed at 10m height [m/s]
-    real,    intent(in)  :: ptho   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! potential temperature [deg C].
-    real,    intent(in)  :: psao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! salinity [psu.].
-    real,    intent(in)  :: patmco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! atmospheric CO2 concentration [ppm] used in fully coupled mode
-    real,    intent(out) :: pflxco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! CO2 flux [kg/m^2/s].
-    real,    intent(out) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! DMS flux [kg/m^2/s].
-    real,    intent(in)  :: patmbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)    ! atmospheric bromoform concentration [ppt] used in fully coupled mode.
-    real,    intent(out) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)    ! Bromoform flux [kg/m^2/s].
-    real,    intent(in)  :: patmn2o(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! atmospheric nitrous oxide concentration [ppt] used in fully coupled mode.
-    real,    intent(out) :: pflxn2o(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! Nitrous oxide flux [kg N2O m-2 s-1].
-    real,    intent(in)  :: patmnh3(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! atmospheric ammonia concentration [ppt] used in fully coupled mode
-    real,    intent(out) :: pflxnh3(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! Ammonia flux [kg NH3 m-2 s-1].
+    real(rp),intent(in)  :: rivin  (kpie,kpje,nriv)                         ! riverine input [kmol m-2 yr-1].
+    real(rp),intent(in)  :: ndep   (kpie,kpje,nndep)                        ! nitrogen deposition [kmol m-2 yr-1].
+    real(rp),intent(in)  :: oafx   (kpie,kpje)                              ! alkalinity flux from alkalinization [kmol m-2 yr-1]
+    real(rp),intent(in)  :: pi_ph  (kpie,kpje)                              ! pre-ind. pH climatology used for pH-dependent DMS fluxes [log10([H+])]
+    real(rp),intent(in)  :: pfswr  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! solar radiation [W/m**2].
+    real(rp),intent(in)  :: psicomo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! sea ice concentration
+    real(rp),intent(in)  :: ppao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! sea level pressure [Pascal].
+    real(rp),intent(in)  :: pfu10  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! absolute wind speed at 10m height [m/s]
+    real(rp),intent(in)  :: ptho   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! potential temperature [deg C].
+    real(rp),intent(in)  :: psao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! salinity [psu.].
+    real(rp),intent(in)  :: patmco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! atmospheric CO2 concentration [ppm] used in fully coupled mode
+    real(rp),intent(out) :: pflxco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! CO2 flux [kg/m^2/s].
+    real(rp),intent(out) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! DMS flux [kg/m^2/s].
+    real(rp),intent(in)  :: patmbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)    ! atmospheric bromoform concentration [ppt] used in fully coupled mode.
+    real(rp),intent(out) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)    ! Bromoform flux [kg/m^2/s].
+    real(rp),intent(in)  :: patmn2o(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! atmospheric nitrous oxide concentration [ppt] used in fully coupled mode.
+    real(rp),intent(out) :: pflxn2o(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! Nitrous oxide flux [kg N2O m-2 s-1].
+    real(rp),intent(in)  :: patmnh3(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! atmospheric ammonia concentration [ppt] used in fully coupled mode
+    real(rp),intent(out) :: pflxnh3(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! Ammonia flux [kg NH3 m-2 s-1].
+    logical, intent(in)  :: shelfmask(kpie,kpje)                            ! mask for shelf sea regions (1=shelf, 0 elsewhere)
 
     ! Local variables
     integer :: i,j,k,l
@@ -162,7 +166,7 @@ contains
       !$OMP PARALLEL DO PRIVATE(i)
       do  j=1,kpje
         do  i=1,kpie
-          if (patmbromo(i,j).gt.0.) then
+          if (patmbromo(i,j).gt.0._rp) then
             atm(i,j,iatmbromo)=patmbromo(i,j)
           endif
         enddo
@@ -172,20 +176,29 @@ contains
     endif
 
     if (use_extNcycle) then
-      if (do_n2onh3_coupled) then
+      if (do_n2o_coupled) then
         !$OMP PARALLEL DO PRIVATE(i)
         do  j=1,kpje
           do  i=1,kpie
-            if (patmn2o(i,j) > 0.) then
+            if (patmn2o(i,j) > 0._rp) then
               atm(i,j,iatmn2o)=patmn2o(i,j)
             endif
-            if (patmnh3(i,j) > 0.) then
+          enddo
+        enddo
+        !$OMP END PARALLEL DO
+        if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting N2O conc. from atm'
+      endif
+      if (do_nh3_coupled) then
+        !$OMP PARALLEL DO PRIVATE(i)
+        do  j=1,kpje
+          do  i=1,kpie
+            if (patmnh3(i,j) > 0._rp) then
               atm(i,j,iatmnh3)=patmnh3(i,j)
             endif
           enddo
         enddo
         !$OMP END PARALLEL DO
-        if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting N2O and NH3 conc. from atm'
+        if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting NH3 conc. from atm'
       endif
     endif
 
@@ -223,8 +236,8 @@ contains
         !$OMP PARALLEL DO PRIVATE(i)
         do J=1,kpje
           do I=1,kpie
-            if (OMASK(I,J) .gt. 0.5 ) then
-              OCETRA(I,J,K,L)=max(0.,OCETRA(I,J,K,L))
+            if (OMASK(I,J) .gt. 0.5_rp ) then
+              OCETRA(I,J,K,L)=max(0._rp,OCETRA(I,J,K,L))
             endif
           enddo
         enddo
@@ -309,8 +322,15 @@ contains
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
 
-    ! update preformed tracers
-    call preftrc(kpie,kpje,omask)
+    if (use_pref_tracers) then
+      ! update preformed tracers
+      call preftrc(kpie,kpje,omask)
+    endif
+
+    if (use_shelfsea_res_time) then
+      ! Update shelf sea residence time tracer
+      call shelfsea_residence_time(kpie,kpje,kpke,pddpo,shelfmask,omask)
+    endif
 
     !--------------------------------------------------------------------
     !     Sediment module
@@ -351,12 +371,13 @@ contains
       endif
 
       ! Sediment is shifted once a day (on both time levels!)
+      ! sedshi relies on the choice that it is only called once per day
       if (KLDTDAY == 1 .OR. KLDTDAY == 2) then
         if (mnproc.eq.1) then
           write(io_stdo_bgc,*)' '
           write(io_stdo_bgc,*) 'Sediment shifting ...'
         endif
-        call sedshi(kpie,kpje,omask)
+        call sedshi(kpie,kpje,omask,kplyear)
       endif
 
     endif ! .not. use_sedbypass
@@ -375,7 +396,7 @@ contains
     !$OMP PARALLEL DO PRIVATE(i)
     do  j=1,kpje
       do  i=1,kpie
-        if(omask(i,j) .gt. 0.5) pflxco2(i,j)=-44.*atmflx(i,j,iatmco2)/dtbgc
+        if(omask(i,j) .gt. 0.5_rp) pflxco2(i,j)=-44._rp*atmflx(i,j,iatmco2)/dtbgc
       enddo
     enddo
     !$OMP END PARALLEL DO
@@ -386,7 +407,7 @@ contains
     !$OMP PARALLEL DO PRIVATE(i)
     do  j=1,kpje
       do  i=1,kpie
-        if(omask(i,j) .gt. 0.5) pflxdms(i,j)=-62.13*atmflx(i,j,iatmdms)/dtbgc
+        if(omask(i,j) .gt. 0.5_rp) pflxdms(i,j)=-62.13_rp*atmflx(i,j,iatmdms)/dtbgc
       enddo
     enddo
     !$OMP END PARALLEL DO
@@ -399,9 +420,9 @@ contains
     do  j=1,kpje
       do  i=1,kpie
         if (use_BROMO) then
-          if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=-252.7*atmflx(i,j,iatmbromo)/dtbgc
+          if(omask(i,j) .gt. 0.5_rp) pflxbromo(i,j)=-252.7_rp*atmflx(i,j,iatmbromo)/dtbgc
         else
-          if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=0.0
+          if(omask(i,j) .gt. 0.5_rp) pflxbromo(i,j)=0.0_rp
         endif
       enddo
     enddo
@@ -413,16 +434,19 @@ contains
     do  j=1,kpje
       do  i=1,kpie
         if (use_extNcycle) then
-          if (do_n2onh3_coupled) then
-              if(omask(i,j) > 0.5) pflxn2o(i,j)=-mw_n2o*atmflx(i,j,iatmn2o)/dtbgc  ! conversion factor checked against CAM
-              if(omask(i,j) > 0.5) pflxnh3(i,j)=-mw_nh3*atmflx(i,j,iatmnh3)/dtbgc  ! conversion factor checked against CAM
+          if (do_n2o_coupled) then
+              if(omask(i,j) > 0.5_rp) pflxn2o(i,j)=-mw_n2o*atmflx(i,j,iatmn2o)/dtbgc  ! conversion factor checked against CAM
           else
-              if(omask(i,j) > 0.5) pflxn2o(i,j)=0.0
-              if(omask(i,j) > 0.5) pflxnh3(i,j)=0.0
+              if(omask(i,j) > 0.5_rp) pflxn2o(i,j)=0.0_rp
+          endif
+          if (do_nh3_coupled) then
+              if(omask(i,j) > 0.5_rp) pflxnh3(i,j)=-mw_nh3*atmflx(i,j,iatmnh3)/dtbgc  ! conversion factor checked against CAM
+          else
+              if(omask(i,j) > 0.5_rp) pflxnh3(i,j)=0.0_rp
           endif
         else
-          if(omask(i,j) > 0.5) pflxn2o(i,j)=0.0
-          if(omask(i,j) > 0.5) pflxnh3(i,j)=0.0
+          if(omask(i,j) > 0.5_rp) pflxn2o(i,j)=0.0_rp
+          if(omask(i,j) > 0.5_rp) pflxnh3(i,j)=0.0_rp
         endif
       enddo
     enddo

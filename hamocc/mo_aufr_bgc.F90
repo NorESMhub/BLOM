@@ -79,27 +79,34 @@ CONTAINS
                                   nf90_open,nf90_get_att,nf90_inq_varid
     use mod_xc,             only: nbdy,mnproc,iqr,jqr,xcbcst,xchalt
     use mod_dia,            only: iotype
+    use mo_kind,            only: rp
     use mo_carbch,          only: co2star,co3,hi,satoxy,ocetra,atm,nathi
     use mo_control_bgc,     only: io_stdo_bgc,ldtbgc,use_cisonew,use_AGG,                          &
                                   use_BOXATM,use_BROMO,use_CFC,use_natDIC,use_sedbypass,           &
-                                  use_extNcycle
+                                  use_extNcycle,use_pref_tracers,use_shelfsea_res_time,            &
+                                  use_sediment_quality,use_river2omip,use_DOMclasses
     use mo_param1_bgc,      only: ialkali,ian2o,iano3,icalc,idet,idicsat,                          &
                                   idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,       &
-                                  iprefalk,iprefdic,iprefo2,iprefpo4,iprefsilica,                  &
-                                  isco212,isilica,izoo,nocetra,                                    &
+                                  iprefalk,iprefdic,iprefo2,iprefpo4,iprefsilica,ishelfage,        &
+                                  isco212,isilica,izoo,nocetra,itdoc_lc,itdoc_hc,                  &
+                                  itdoc_lc13,itdoc_hc13,itdoc_lc14,itdoc_hc14,                     &
                                   iadust,inos,iatmco2,iatmn2,iatmo2,ibromo,icfc11,icfc12,isf6,     &
+                                  idocsl,idocsr,idocr,iprefdoc,iprefdocsl,iprefdocsr,iprefdocr,    &
                                   icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,       &
                                   isco213,isco214,izoo13,izoo14,safediv,                           &
                                   issso13,issso14,isssc13,isssc14,ipowc13,ipowc14,                 &
                                   iatmc13,iatmc14,iatmnco2,inatalkali,inatcalc,inatsco212,         &
                                   ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,          &
                                   isssc12,issso12,issssil,issster,ks,ianh4,iano2,ipownh4,ipown2o,  &
-                                  ipowno2
+                                  ipowno2,issso12_age
     use mo_vgrid,           only: kbo
-    use mo_sedmnt,          only: sedhpl
-    use mo_intfcblom,       only: sedlay2,powtra2,burial2,atm2
+    use mo_sedmnt,          only: sedhpl,prorca_mavg,burial,sedlay
+    use mo_intfcblom,       only: sedlay2,powtra2,burial2,atm2,prorca_mavg2
     use mo_param_bgc,       only: bifr13_ini,bifr14_ini,c14fac,re1312,re14to,prei13,prei14
     use mo_netcdf_bgcrw,    only: read_netcdf_var
+#ifdef PNETCDF
+    use mod_xc,             only: mpicomm
+#endif
 
     ! Arguments
     integer,          intent(in)    :: kpie                                              ! 1st dimension of model grid.
@@ -108,32 +115,31 @@ CONTAINS
     integer,          intent(in)    :: ntr                                               ! number of tracers in tracer field
     integer,          intent(in)    :: ntrbgc                                            ! number of biogechemical tracers in tracer field
     integer,          intent(in)    :: itrbgc                                            ! start index for biogeochemical tracers in tracer field
-    real,             intent(inout) :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,2*kpke,ntr) ! initial/restart tracer field to be passed to the ocean model [mol/kg]
+    real(rp),         intent(inout) :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,2*kpke,ntr) ! initial/restart tracer field to be passed to the ocean model [mol/kg]
     integer,          intent(in)    :: kplyear                                           ! year  in ocean restart date
     integer,          intent(in)    :: kplmon                                            ! month in ocean restart date
     integer,          intent(in)    :: kplday                                            ! day   in ocean restart date
-    real,             intent(in)    :: omask(kpie,kpje)                                  ! land/ocean mask
+    real(rp),         intent(in)    :: omask(kpie,kpje)                                  ! land/ocean mask
     character(len=*), intent(in)    :: rstfnm                                            ! restart file name-informations
 
     ! Local variables
-    real, allocatable :: locetra(:,:,:,:)          ! local array for reading
+    real(rp), allocatable :: locetra(:,:,:,:)          ! local array for reading
     integer   :: errstat
     integer   :: restyear                          !  year of restart file
     integer   :: restmonth                         !  month of restart file
     integer   :: restday                           !  day of restart file
     integer   :: restdtoce                         !  time step number from bgc ocean file
     integer   :: idate(5),i,j,k
-    logical   :: lread_cfc,lread_nat,lread_iso,lread_atm,lread_bro,lread_extn,lread_prefsi
-    real      :: rco213,rco214,alpha14,beta13,beta14,d13C_atm,d14cat
+    logical   :: lread_cfc,lread_nat,lread_iso,lread_atm,lread_bro,lread_extn,lread_prefsi,        &
+              &  lread_sedqual
+    logical   :: lread_shelfage
+    real(rp)  :: rco213,rco214,alpha14,beta13,beta14,d13C_atm,d14cat
     integer   :: ncid,ncstat,ncvarid
 
 #ifdef PNETCDF
 #   include <pnetcdf.inc>
 #   include <mpif.h>
     integer*4, save  :: info=MPI_INFO_NULL
-    integer          :: mpicomm,mpierr,mpireq,mpistat
-    common/xcmpii/ mpicomm,mpierr,mpireq(4),mpistat(mpi_status_size,4*max(iqr,jqr))
-    save  /xcmpii/
 #endif
     character(len=3) :: stripestr
     character(len=9) :: stripestr2
@@ -144,7 +150,7 @@ CONTAINS
     !
     allocate(locetra(kpie,kpje,2*kpke,nocetra),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory for locetra allocation'
-    locetra(:,:,:,:) = 0.0
+    locetra(:,:,:,:) = 0.0_rp
     !
     ! Open netCDF data file
     !
@@ -380,6 +386,44 @@ CONTAINS
         write(io_stdo_bgc,*) 'Initialising preformed tracer from scratch'
       endif
 
+    if (use_shelfsea_res_time) then
+      lread_shelfage=.true.
+      if(IOTYPE==0) then
+        if(mnproc==1) ncstat=nf90_inq_varid(ncid,'shelfage',ncvarid)
+        call xcbcst(ncstat)
+        if(ncstat.ne.nf90_noerr) lread_shelfage=.false.
+      else if(IOTYPE==1) then
+#ifdef PNETCDF
+        ncstat=nfmpi_inq_varid(ncid,'shelfage',ncvarid)
+        if(ncstat.ne.nf_noerr) lread_shelfage=.false.
+#endif
+      endif
+      if(mnproc==1 .and. .not. lread_shelfage) then
+        write(io_stdo_bgc,*) ' '
+        write(io_stdo_bgc,*) 'AUFR_BGC info: shelfage not in restart file '
+        write(io_stdo_bgc,*) 'Initialising shelfage from scratch'
+      endif
+    endif
+
+    if (use_sediment_quality) then
+      lread_sedqual=.true.
+      if(IOTYPE==0) then
+        if(mnproc==1) ncstat=nf90_inq_varid(ncid,'ssso12_age',ncvarid)
+        call xcbcst(ncstat)
+        if(ncstat.ne.nf90_noerr) lread_sedqual=.false.
+      else if(IOTYPE==1) then
+#ifdef PNETCDF
+        ncstat=nfmpi_inq_varid(ncid,'ssso12_age',ncvarid)
+        if(ncstat.ne.nf_noerr) lread_sedqual=.false.
+#endif
+      endif
+      if(mnproc==1 .and. .not. lread_sedqual) then
+        write(io_stdo_bgc,*) ' '
+        write(io_stdo_bgc,*) 'AUFR_BGC info: ssso12_age not in restart file '
+        write(io_stdo_bgc,*) 'Initialising ssso12_age from scratch'
+      endif
+    endif
+
     !
     ! Read restart data : ocean aquateous tracer
     !
@@ -400,15 +444,23 @@ CONTAINS
     call read_netcdf_var(ncid,'dms',locetra(1,1,1,idms),2*kpke,0,iotype)
     call read_netcdf_var(ncid,'fdust',locetra(1,1,1,ifdust),2*kpke,0,iotype)
     call read_netcdf_var(ncid,'iron',locetra(1,1,1,iiron),2*kpke,0,iotype)
-    call read_netcdf_var(ncid,'prefo2',locetra(1,1,1,iprefo2),2*kpke,0,iotype)
-    call read_netcdf_var(ncid,'prefpo4',locetra(1,1,1,iprefpo4),2*kpke,0,iotype)
-    call read_netcdf_var(ncid,'prefalk',locetra(1,1,1,iprefalk),2*kpke,0,iotype)
-    call read_netcdf_var(ncid,'prefdic',locetra(1,1,1,iprefdic),2*kpke,0,iotype)
     call read_netcdf_var(ncid,'dicsat',locetra(1,1,1,idicsat),2*kpke,0,iotype)
-    if(lread_prefsi) then
-      call read_netcdf_var(ncid,'prefsilica',locetra(1,1,1,iprefsilica),2*kpke,0,iotype)
+    if (use_pref_tracers) then
+      call read_netcdf_var(ncid,'prefo2',locetra(1,1,1,iprefo2),2*kpke,0,iotype)
+      call read_netcdf_var(ncid,'prefpo4',locetra(1,1,1,iprefpo4),2*kpke,0,iotype)
+      call read_netcdf_var(ncid,'prefalk',locetra(1,1,1,iprefalk),2*kpke,0,iotype)
+      call read_netcdf_var(ncid,'prefdic',locetra(1,1,1,iprefdic),2*kpke,0,iotype)
+      if(lread_prefsi) then
+        call read_netcdf_var(ncid,'prefsilica',locetra(1,1,1,iprefsilica),2*kpke,0,iotype)
+      endif
     endif
-
+    if (use_shelfsea_res_time .and. lread_shelfage) then
+      call read_netcdf_var(ncid,'shelfage',locetra(1,1,1,ishelfage),2*kpke,0,iotype)
+    endif
+    if (use_river2omip) then
+      call read_netcdf_var(ncid,'tdoc_lc',locetra(1,1,1,itdoc_lc),2*kpke,0,iotype)
+      call read_netcdf_var(ncid,'tdoc_hc',locetra(1,1,1,itdoc_hc),2*kpke,0,iotype)
+    endif
     if (use_cisonew .and. lread_iso) then
       call read_netcdf_var(ncid,'sco213',locetra(1,1,1,isco213),2*kpke,0,iotype)
       call read_netcdf_var(ncid,'sco214',locetra(1,1,1,isco214),2*kpke,0,iotype)
@@ -422,6 +474,12 @@ CONTAINS
       call read_netcdf_var(ncid,'poc14',locetra(1,1,1,idet14),2*kpke,0,iotype)
       call read_netcdf_var(ncid,'calciu13',locetra(1,1,1,icalc13),2*kpke,0,iotype)
       call read_netcdf_var(ncid,'calciu14',locetra(1,1,1,icalc14),2*kpke,0,iotype)
+      if (use_river2omip) then
+       call read_netcdf_var(ncid,'tdoc_lc13',locetra(1,1,1,itdoc_lc13),2*kpke,0,iotype)
+       call read_netcdf_var(ncid,'tdoc_hc13',locetra(1,1,1,itdoc_hc13),2*kpke,0,iotype)
+       call read_netcdf_var(ncid,'tdoc_lc14',locetra(1,1,1,itdoc_lc14),2*kpke,0,iotype)
+       call read_netcdf_var(ncid,'tdoc_hc14',locetra(1,1,1,itdoc_hc14),2*kpke,0,iotype)
+      endif
     endif
     if (use_AGG)then
       call read_netcdf_var(ncid,'snos',locetra(1,1,1,inos),2*kpke,0,iotype)
@@ -453,6 +511,17 @@ CONTAINS
         call read_netcdf_var(ncid,'anh4',locetra(1,1,1,ianh4),2*kpke,0,iotype)
         call read_netcdf_var(ncid,'ano2',locetra(1,1,1,iano2),2*kpke,0,iotype)
       endif
+    endif
+    if (use_DOMclasses) then
+      call read_netcdf_var(ncid,'docsl',locetra(1,1,1,idocsl),2*kpke,0,iotype)
+      call read_netcdf_var(ncid,'docsr',locetra(1,1,1,idocsr),2*kpke,0,iotype)
+      call read_netcdf_var(ncid,'docr' ,locetra(1,1,1,idocr),2*kpke,0,iotype)
+    endif
+    if (use_DOMclasses .and. use_pref_tracers) then
+      call read_netcdf_var(ncid,'prefdoc',locetra(1,1,1,iprefdoc),2*kpke,0,iotype)
+      call read_netcdf_var(ncid,'prefdocsl',locetra(1,1,1,iprefdocsl),2*kpke,0,iotype)
+      call read_netcdf_var(ncid,'prefdocsr',locetra(1,1,1,iprefdocsr),2*kpke,0,iotype)
+      call read_netcdf_var(ncid,'prefdocr',locetra(1,1,1,iprefdocr),2*kpke,0,iotype)
     endif
 
     !
@@ -494,6 +563,11 @@ CONTAINS
         call read_netcdf_var(ncid,'powc13',powtra2(1,1,1,ipowc13),2*ks,0,iotype)
         call read_netcdf_var(ncid,'powc14',powtra2(1,1,1,ipowc14),2*ks,0,iotype)
       endif
+      if (use_sediment_quality .and. lread_sedqual) then
+        call read_netcdf_var(ncid,'ssso12_age',sedlay2(1,1,1,issso12_age),2*ks,0,iotype)
+        call read_netcdf_var(ncid,'bur_o12_age',burial2(1,1,1,issso12_age),2,0,iotype)
+        call read_netcdf_var(ncid,'prorca_mavg',prorca_mavg2(1,1,1),2,0,iotype)
+      endif
       if (use_extNcycle) then
         if(lread_extn) then
           call read_netcdf_var(ncid,'pownh4',powtra2(1,1,1,ipownh4),2*ks,0,iotype)
@@ -519,11 +593,11 @@ CONTAINS
             ! that is just read in from restart files. Normalize atmc14 using beleg c14fac.
             do j=1,kpje
               do i=1,kpie
-                beta13 = (prei13/1000.)+1.
-                alpha14 = 2.*(prei13+25.)
-                d14cat  = (prei14+alpha14)/(1.-alpha14/1000.)
-                atm(i,j,iatmc13) = beta13*re1312*atm2(i,j,1,iatmco2)/(1.+beta13*re1312)
-                atm(i,j,iatmc14) = ((d14cat/1000.)+1.)*re14to*atm2(i,j,1,iatmco2)/c14fac
+                beta13 = (prei13/1000._rp)+1._rp
+                alpha14 = 2._rp*(prei13+25._rp)
+                d14cat  = (prei14+alpha14)/(1._rp-alpha14/1000._rp)
+                atm(i,j,iatmc13) = beta13*re1312*atm2(i,j,1,iatmco2)/(1._rp+beta13*re1312)
+                atm(i,j,iatmc14) = ((d14cat/1000._rp)+1._rp)*re14to*atm2(i,j,1,iatmco2)/c14fac
               enddo
             enddo
             ! Copy the isotope atmosphere fields into both timelevels of atm2.
@@ -563,14 +637,14 @@ CONTAINS
       do k=1,2*kpke
         do j=1,kpje
           do i=1,kpie
-            if(omask(i,j)  >  0.5) then
+            if(omask(i,j)  >  0.5_rp) then
               ! 13C is read in as delta13C, convert to 13C using model restart total C
-              beta13=locetra(i,j,k,isco213)/1000.+1.
-              locetra(i,j,k,isco213)=locetra(i,j,k,isco212)*beta13*re1312/(1.+beta13*re1312)
+              beta13=locetra(i,j,k,isco213)/1000._rp+1._rp
+              locetra(i,j,k,isco213)=locetra(i,j,k,isco212)*beta13*re1312/(1._rp+beta13*re1312)
 
               ! 14C is read in as delta14C, convert to 14C using model restart total C,
               ! normalize 14C by c14fac to prevent numerical errors
-              beta14=locetra(i,j,k,isco214)/1000.+1.
+              beta14=locetra(i,j,k,isco214)/1000._rp+1._rp
               locetra(i,j,k,isco214)=locetra(i,j,k,isco212)*beta14*re14to/c14fac
 
               ! Initialise the remaining 13C and 14C fields, using the restart isco212 field
@@ -586,6 +660,10 @@ CONTAINS
               locetra(i,j,k,idet14)=locetra(i,j,k,idet)*rco214*bifr14_ini
               locetra(i,j,k,icalc13)=locetra(i,j,k,icalc)*rco213
               locetra(i,j,k,icalc14)=locetra(i,j,k,icalc)*rco214
+              if (use_river2omip) then
+                locetra(i,j,k,itdoc_lc13)=locetra(i,j,k,itdoc_lc13)*rco213*bifr13_ini
+                locetra(i,j,k,itdoc_lc14)=locetra(i,j,k,itdoc_lc14)*rco214*bifr14_ini
+              endif
             endif
           enddo
         enddo
@@ -595,7 +673,7 @@ CONTAINS
         do  k=1,2*ks
           do  j=1,kpje
             do  i=1,kpie
-              if(omask(i,j)  >  0.5) then
+              if(omask(i,j)  >  0.5_rp) then
                 rco213=locetra(i,j,kbo(i,j),isco213)/(locetra(i,j,kbo(i,j),isco212)+safediv)
                 rco214=locetra(i,j,kbo(i,j),isco214)/(locetra(i,j,kbo(i,j),isco212)+safediv)
                 powtra2(i,j,k,ipowc13)=powtra2(i,j,k,ipowaic)*rco213
@@ -612,7 +690,7 @@ CONTAINS
         do  k=1,2
           do  j=1,kpje
             do  i=1,kpie
-              if(omask(i,j)  >  0.5) then
+              if(omask(i,j)  >  0.5_rp) then
                 rco213=locetra(i,j,kbo(i,j),isco213)/(locetra(i,j,kbo(i,j),isco212)+safediv)
                 rco214=locetra(i,j,kbo(i,j),isco214)/(locetra(i,j,kbo(i,j),isco212)+safediv)
                 burial2(i,j,k,issso13)=burial2(i,j,k,issso12)*rco213*bifr13_ini
@@ -626,6 +704,26 @@ CONTAINS
 
       endif  ! .not. use_sedbypass
     endif ! use_cisonew .and. .not. lread_iso
+
+    if (.not. use_sedbypass) then
+      if (use_sediment_quality .and. .not. lread_sedqual) then
+        ! if (hybrid) restart, but age and mavgs should be started with filled values, if provided
+        do j=1,kpje
+          do i=1,kpie
+            if (omask(i,j) > 0._rp) then
+              burial2(i,j,1,issso12_age)      = burial(i,j,issso12_age)
+              burial2(i,j,2,issso12_age)      = burial(i,j,issso12_age)
+              prorca_mavg2(i,j,1)             = prorca_mavg(i,j)
+              prorca_mavg2(i,j,2)             = prorca_mavg(i,j)
+              do k=1,ks
+                sedlay2(i,j,k,issso12_age)    = sedlay(i,j,k,issso12_age)
+                sedlay2(i,j,ks+k,issso12_age) = sedlay(i,j,k,issso12_age)
+              enddo
+            endif
+          enddo
+        enddo
+      endif
+    endif
 
     ! return tracer fields to ocean model (both timelevels); No unit
     ! conversion here, since tracers in the restart file are in

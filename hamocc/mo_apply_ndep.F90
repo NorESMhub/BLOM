@@ -54,6 +54,7 @@ contains
     !  Tjiputra (18.09.2017): add 1 mol [H+], per mol [NO3] deposition, to alkalinity (minus 1 mol)
     !***********************************************************************************************
 
+    use mo_kind,        only: rp
     use mo_control_bgc, only: dtb,do_ndep,use_extNcycle
     use mo_carbch,      only: ocetra,ndepnoyflx,ndepnhxflx
     use mo_param1_bgc,  only: iano3,ialkali,inatalkali,nndep,idepnoy,ianh4,idepnhx
@@ -63,32 +64,32 @@ contains
     integer, intent(in) :: kpie                  ! 1st dimension of model grid.
     integer, intent(in) :: kpje                  ! 2nd dimension of model grid.
     integer, intent(in) :: kpke                  ! 3rd (vertical) dimension of model grid.
-    real,    intent(in) :: pddpo(kpie,kpje,kpke) ! size of grid cell (depth) [m].
-    real,    intent(in) :: omask(kpie,kpje)      ! land/ocean mask (1=ocean)
-    real,    intent(in) :: ndep(kpie,kpje,nndep) ! N-deposition field to apply
+    real(rp),intent(in) :: pddpo(kpie,kpje,kpke) ! size of grid cell (depth) [m].
+    real(rp),intent(in) :: omask(kpie,kpje)      ! land/ocean mask (1=ocean)
+    real(rp),intent(in) :: ndep(kpie,kpje,nndep) ! N-deposition field to apply
 
     ! local variables
     integer :: i,j
 
     ! ndepflx stores the applied n-deposition flux for inventory calculations and output
-    ndepnoyflx(:,:)=0.0
+    ndepnoyflx(:,:)=0.0_rp
     if (use_extNcycle) then
-      ndepnhxflx(:,:)=0.0
+      ndepnhxflx(:,:)=0.0_rp
     endif
     if (.not. do_ndep) return
 
     ! deposit N in topmost layer
     do j=1,kpje
       do i=1,kpie
-        if (omask(i,j).gt.0.5) then
-          ndepnoyflx(i,j) = ndep(i,j,idepnoy)*dtb/365.
+        if (omask(i,j).gt.0.5_rp) then
+          ndepnoyflx(i,j) = ndep(i,j,idepnoy)*dtb/365._rp
           ocetra(i,j,1,iano3)=ocetra(i,j,1,iano3)+ndepnoyflx(i,j)/pddpo(i,j,1)
           ocetra(i,j,1,ialkali)=ocetra(i,j,1,ialkali)-ndepnoyflx(i,j)/pddpo(i,j,1)
           if (use_natDIC) then
             ocetra(i,j,1,inatalkali)=ocetra(i,j,1,inatalkali)-ndepnoyflx(i,j)/pddpo(i,j,1)
           endif
           if (use_extNcycle) then
-            ndepnhxflx(i,j)       = ndep(i,j,idepnhx)*dtb/365.
+            ndepnhxflx(i,j)       = ndep(i,j,idepnhx)*dtb/365._rp
             ocetra(i,j,1,ianh4)   = ocetra(i,j,1,ianh4)   + ndepnhxflx(i,j)/pddpo(i,j,1)
             ocetra(i,j,1,ialkali) = ocetra(i,j,1,ialkali) + ndepnhxflx(i,j)/pddpo(i,j,1)
           endif

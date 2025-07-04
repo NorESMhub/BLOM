@@ -36,6 +36,8 @@ contains
     !  Modified
     !  J.Schwinger,        *NORCE Climate, Bergen*    2020-05-19
     !  -split the original BELEG_BGC in two parts, BELEG_PARM (NOW MO_PARAM_BGC) and BELEG_VARS
+    !  T. Bourgeois,     *NORCE climate, Bergen*   2025-04-14
+    !  - implement R2OMIP protocol
     !***********************************************************************************************
 
     use mo_control_bgc, only: use_natDIC,use_cisonew,use_BROMO,use_extNcycle
@@ -90,19 +92,25 @@ contains
     !  -split the original BELEG_BGC in two parts, BELEG_PARM (NOW MO_PARAM_BGC) and BELEG_VARS
     !***********************************************************************************************
 
+    use mo_kind,        only: rp
     use mo_carbch,      only: co2star,co3,hi,ocetra
     use mo_param_bgc,   only: fesoly,cellmass,fractdim,bifr13_ini,bifr14_ini,c14fac,re1312,re14to
     use mo_biomod,      only: abs_oce
     use mo_control_bgc, only: rmasks,use_FB_BGC_OCE,use_cisonew,use_AGG,use_CFC,use_natDIC,        &
-                              use_BROMO, use_sedbypass,use_extNcycle
+                              use_BROMO, use_sedbypass,use_extNcycle,use_pref_tracers,             &
+                              use_shelfsea_res_time,use_sediment_quality,use_river2omip,           &
+                              use_DOMclasses,linit_DOMclasses_sim
     use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,     &
                               iiron,iopal,ioxygen,iphosph,iphy,iprefalk,iprefdic,iprefo2,iprefpo4, &
                               isco212,isilica,izoo,iadust,inos,ibromo,icfc11,icfc12,isf6,          &
                               icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,           &
-                              isco213,isco214,izoo13,izoo14,safediv,inatcalc,                      &
+                              isco213,isco214,izoo13,izoo14,safediv,inatcalc,itdoc_lc,itdoc_hc,    &
+                              itdoc_lc13,itdoc_hc13,itdoc_lc14,itdoc_hc14,                         &
+                              idocsl,idocsr,idocr,iprefdoc,iprefdocsl,iprefdocsr,iprefdocr,        &
                               ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,      &
                               issso12,issssil,issster,ks,nsedtra,ipowc13,ipowc13,issso13,issso13,  &
-                              isssc13,ipowc14,isssc14,issso14,iprefsilica,iano2,ianh4
+                              isssc13,ipowc14,isssc14,issso14,iprefsilica,iano2,ianh4,ishelfage,   &
+                              issso12_age
     use mo_vgrid,       only: kmle,kbo
     use mo_carbch,      only: nathi,natco3
     use mo_sedmnt,      only: sedhpl,burial,powtra,sedlay
@@ -114,22 +122,22 @@ contains
     integer, intent(in) :: kpje                                     ! 2nd dimension of model grid.
     integer, intent(in) :: kpke                                     ! 3rd (vertical) dimension of model grid.
     integer, intent(in) :: kbnd                                     ! nb of halo grid points
-    real,    intent(in) :: pddpo(kpie,kpje,kpke)                    ! size of grid cell (3rd dimension) [m].
-    real,    intent(in) :: prho (kpie,kpje,kpke)                    ! density [g/cm^3].
-    real,    intent(in) :: omask(kpie,kpje)                         ! ocean mask.
-    real,    intent(in) :: pglon(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd) ! longitude of grid cell [deg].
-    real,    intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd) ! latitude  of grid cell [deg].
+    real(rp),intent(in) :: pddpo(kpie,kpje,kpke)                    ! size of grid cell (3rd dimension) [m].
+    real(rp),intent(in) :: prho (kpie,kpje,kpke)                    ! density [g/cm^3].
+    real(rp),intent(in) :: omask(kpie,kpje)                         ! ocean mask.
+    real(rp),intent(in) :: pglon(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd) ! longitude of grid cell [deg].
+    real(rp),intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd) ! latitude  of grid cell [deg].
 
     ! local variables
     integer :: i,j,k,l
-    real    :: rco213,rco214,beta13,beta14 ! cisonew
-    real    :: snow ! AGG
+    real(rp):: rco213,rco214,beta13,beta14 ! cisonew
+    real(rp):: snow ! AGG
 
     if (use_FB_BGC_OCE) then
       do k=1,kpke
         do j=1,kpje
           do i=1,kpie
-            abs_oce(i,j,k)=1.
+            abs_oce(i,j,k)=1._rp
           enddo
         enddo
       enddo
@@ -148,7 +156,7 @@ contains
     do k=1,kpke
       do j=1,kpje
         do i=1,kpie
-          if (omask(i,j) > 0.5 ) then
+          if (omask(i,j) > 0.5_rp ) then
             ! convert WOA tracers kmol/m^3 -> mol/kg; GLODAP dic and alk
             ! are already in mol/kg. We need these units here, since after
             ! initialisation the tracer field is passed to the ocean model
@@ -161,13 +169,25 @@ contains
               ! d13C based on Eide data is read in above (profile_gd)
               ! Convert to 13C using model initial (ie GLODAP) total C
               ! If restarting, this is redone with model total C from restart in aufr_bgc.F90
-              beta13=ocetra(i,j,k,isco213)/1000.+1.
-              ocetra(i,j,k,isco213) = ocetra(i,j,k,isco212)*beta13*re1312/(1.+beta13*re1312)
+              beta13=ocetra(i,j,k,isco213)/1000._rp+1._rp
+              ocetra(i,j,k,isco213) = ocetra(i,j,k,isco212)*beta13*re1312/(1._rp+beta13*re1312)
 
               ! 14C is read in as small delta14C (calculated from R. Key, 2003 and Eide et al. 2017)
               ! Convert to 14C using model total C, and normalize by c14fac to prevent numerical errors
-              beta14=ocetra(i,j,k,isco214)/1000.+1.
+              beta14=ocetra(i,j,k,isco214)/1000._rp+1._rp
               ocetra(i,j,k,isco214) = ocetra(i,j,k,isco212)*beta14*re14to/c14fac
+            endif
+            if (use_DOMclasses) then
+              ocetra(i,j,k,idoc)       = ocetra(i,j,k,idoc)      /prho(i,j,k)
+              ocetra(i,j,k,idocsl)     = ocetra(i,j,k,idocsl)    /prho(i,j,k)
+              ocetra(i,j,k,idocsr)     = ocetra(i,j,k,idocsr)    /prho(i,j,k)
+              ocetra(i,j,k,idocr )     = ocetra(i,j,k,idocr)     /prho(i,j,k)
+            endif
+            if (use_DOMclasses .and. use_pref_tracers) then
+              ocetra(i,j,k,iprefdoc)   = ocetra(i,j,k,iprefdoc)  /prho(i,j,k)
+              ocetra(i,j,k,iprefdocsl) = ocetra(i,j,k,iprefdocsl)/prho(i,j,k)
+              ocetra(i,j,k,iprefdocsr) = ocetra(i,j,k,iprefdocsr)/prho(i,j,k)
+              ocetra(i,j,k,iprefdocr)  = ocetra(i,j,k,iprefdocr) /prho(i,j,k)
             endif
           endif
         enddo
@@ -178,42 +198,71 @@ contains
     do k=1,kpke
       do j=1,kpje
         do i=1,kpie
-          if (omask(i,j) > 0.5) then
-            ocetra(i,j,k,igasnit)=1.e-10
-            ocetra(i,j,k,idoc)   =1.e-8
-            ocetra(i,j,k,iphy)   =1.e-8
-            ocetra(i,j,k,izoo)   =1.e-8
-            ocetra(i,j,k,idet)   =1.e-8
-            ocetra(i,j,k,icalc)  =0.
-            ocetra(i,j,k,iopal)  =1.e-8
-            ocetra(i,j,k,ian2o)  =0.
-            ocetra(i,j,k,idms)   =0.
-            ocetra(i,j,k,ifdust) =0.
+          if (omask(i,j) > 0.5_rp) then
+            ocetra(i,j,k,igasnit)=1.e-10_rp
+            ocetra(i,j,k,iphy)   =1.e-8_rp
+            ocetra(i,j,k,izoo)   =1.e-8_rp
+            ocetra(i,j,k,idet)   =1.e-8_rp
+            ocetra(i,j,k,icalc)  =0._rp
+            ocetra(i,j,k,iopal)  =1.e-8_rp
+            ocetra(i,j,k,ian2o)  =0._rp
+            ocetra(i,j,k,idms)   =0._rp
+            ocetra(i,j,k,ifdust) =0._rp
             ocetra(i,j,k,iiron)  =fesoly
-            ocetra(i,j,k,iprefo2)=0.
-            ocetra(i,j,k,iprefpo4)=0.
-            ocetra(i,j,k,iprefsilica)=0.
-            ocetra(i,j,k,iprefalk)=0.
-            ocetra(i,j,k,iprefdic)=0.
-            ocetra(i,j,k,idicsat)=1.e-8
-            hi(i,j,k)            =1.e-8
-            co3(i,j,k)           =0.
-            co2star(i,j,k)       =20.e-6
+            ocetra(i,j,k,idicsat)=1.e-8_rp
+            hi(i,j,k)            =1.e-8_rp
+            co3(i,j,k)           =0._rp
+            co2star(i,j,k)       =20.e-6_rp
+            if (.not. use_DOMclasses) then
+              ocetra(i,j,k,idoc)   =1.e-8_rp
+            endif
+            if ((use_DOMclasses .eqv. .true.) .and. (linit_DOMclasses_sim .eqv. .false.)) then !starting DOM classes from scratch
+              ocetra(i,j,k,idoc)   = 1.e-8_rp
+              ocetra(i,j,k,idocsl) = 1.e-8_rp
+              ocetra(i,j,k,idocsr) = 1.e-8_rp
+              ocetra(i,j,k,idocr)  = 1.e-8_rp
+              if (use_pref_tracers) then
+                ocetra(i,j,k,iprefdoc)   = 0._rp
+                ocetra(i,j,k,iprefdocsl) = 0._rp
+                ocetra(i,j,k,iprefdocsr) = 0._rp
+                ocetra(i,j,k,iprefdocr)  = 0._rp
+              endif
+            endif
+            if (use_pref_tracers) then
+              ocetra(i,j,k,iprefo2)     = 0._rp
+              ocetra(i,j,k,iprefpo4)    = 0._rp
+              ocetra(i,j,k,iprefsilica) = 0._rp
+              ocetra(i,j,k,iprefalk)    = 0._rp
+              ocetra(i,j,k,iprefdic)    = 0._rp
+            endif
+            if (use_shelfsea_res_time) then
+              ocetra(i,j,k,ishelfage)   = 0._rp
+            endif
+            if (use_river2omip) then
+              ocetra(i,j,k,itdoc_lc)    = 0._rp
+              ocetra(i,j,k,itdoc_hc)    = 0._rp
+              if (use_cisonew) then
+                ocetra(i,j,k,itdoc_lc13)  = 0._rp
+                ocetra(i,j,k,itdoc_hc13)  = 0._rp
+                ocetra(i,j,k,itdoc_lc14)  = 0._rp
+                ocetra(i,j,k,itdoc_hc14)  = 0._rp
+              endif
+            endif
             if (use_AGG) then
               ! calculate initial numbers from mass, to start with appropriate size distribution
-              snow = (ocetra(i,j,k,iphy)+ocetra(i,j,k,idet))*1.e+6
-              ocetra(i,j,k,inos)   = snow / cellmass / (FractDim+1.)
-              ocetra(i,j,k,iadust) =0.
+              snow = (ocetra(i,j,k,iphy)+ocetra(i,j,k,idet))*1.e+6_rp
+              ocetra(i,j,k,inos)   = snow / cellmass / (FractDim+1._rp)
+              ocetra(i,j,k,iadust) =0._rp
             endif
             if (use_CFC) then
-              ocetra(i,j,k,icfc11)   =0.
-              ocetra(i,j,k,icfc12)   =0.
-              ocetra(i,j,k,isf6)     =0.
+              ocetra(i,j,k,icfc11)   =0._rp
+              ocetra(i,j,k,icfc12)   =0._rp
+              ocetra(i,j,k,isf6)     =0._rp
             endif
             if (use_natDIC) then
-              nathi(i,j,k)           =1.e-8
-              natco3(i,j,k)          =0.
-              ocetra(i,j,k,inatcalc) =0.
+              nathi(i,j,k)           =1.e-8_rp
+              natco3(i,j,k)          =0._rp
+              ocetra(i,j,k,inatcalc) =0._rp
             endif
             if (use_cisonew) then
               rco213=ocetra(i,j,k,isco213)/(ocetra(i,j,k,isco212)+safediv)
@@ -231,50 +280,57 @@ contains
             endif
             if (use_BROMO) then
               ! Initialise to 0,01 pmol L-1 (Stemmler et al., 2015) => mol/kg
-              ocetra(i,j,k,ibromo)= 1.e-14/prho(i,j,k)
+              ocetra(i,j,k,ibromo)= 1.e-14_rp/prho(i,j,k)
             endif
             if (use_extNcycle) then
-              ocetra(i,j,k,iano2) =1.e-9   ! expecting fast cycling
-              ocetra(i,j,k,ianh4) =0.5e-9  ! expecting fast cycling
-              ocetra(i,j,k,ian2o) =6.e-9   ! 6 to 8 nmol/kg = ca. value in near surface regions Toyoda et al. 2019, prevent from too long outgassing
+              ocetra(i,j,k,iano2) =1.e-9_rp   ! expecting fast cycling
+              ocetra(i,j,k,ianh4) =0.5e-9_rp  ! expecting fast cycling
+              ocetra(i,j,k,ian2o) =6.e-9_rp   ! 6 to 8 nmol/kg = ca. value in near surface regions Toyoda et al. 2019, prevent from too long outgassing
             endif
           endif ! omask > 0.5
         enddo
       enddo
     enddo
 
-    ! Initialise preformed tracers in the mixed layer; note that the
-    ! whole field has been initialised to zero above
-    do j=1,kpje
-      do i=1,kpie
-        if (omask(i,j) > 0.5) then
-          ocetra(i,j,1:kmle(i,j),iprefo2)  = ocetra(i,j,1:kmle(i,j),ioxygen)
-          ocetra(i,j,1:kmle(i,j),iprefpo4) = ocetra(i,j,1:kmle(i,j),iphosph)
-          ocetra(i,j,1:kmle(i,j),iprefsilica)= ocetra(i,j,1:kmle(i,j),isilica)
-          ocetra(i,j,1:kmle(i,j),iprefalk) = ocetra(i,j,1:kmle(i,j),ialkali)
-          ocetra(i,j,1:kmle(i,j),iprefdic) = ocetra(i,j,1:kmle(i,j),isco212)
-        endif
+    if (use_pref_tracers) then
+      ! Initialise preformed tracers in the mixed layer; note that the
+      ! whole field has been initialised to zero above (except prefdocx)
+      do j=1,kpje
+        do i=1,kpie
+          if (omask(i,j) > 0.5_rp) then
+            ocetra(i,j,1:kmle(i,j),iprefo2)     = ocetra(i,j,1:kmle(i,j),ioxygen)
+            ocetra(i,j,1:kmle(i,j),iprefpo4)    = ocetra(i,j,1:kmle(i,j),iphosph)
+            ocetra(i,j,1:kmle(i,j),iprefsilica) = ocetra(i,j,1:kmle(i,j),isilica)
+            ocetra(i,j,1:kmle(i,j),iprefalk)    = ocetra(i,j,1:kmle(i,j),ialkali)
+            ocetra(i,j,1:kmle(i,j),iprefdic)    = ocetra(i,j,1:kmle(i,j),isco212)
+            if (use_DOMclasses) then
+              ocetra(i,j,1:kmle(i,j),iprefdoc)   = ocetra(i,j,1:kmle(i,j),idoc)
+              ocetra(i,j,1:kmle(i,j),iprefdocsl) = ocetra(i,j,1:kmle(i,j),idocsl)
+              ocetra(i,j,1:kmle(i,j),iprefdocsr) = ocetra(i,j,1:kmle(i,j),idocsr)
+              ocetra(i,j,1:kmle(i,j),iprefdocr)  = ocetra(i,j,1:kmle(i,j),idocr)
+            endif
+          endif
+        enddo
       enddo
-    enddo
-
+    endif
 
     ! Initial values for sediment
     if (.not. use_sedbypass) then
       do  k=1,ks
         do  j=1,kpje
           do  i=1,kpie
-            if (omask(i,j) > 0.5) then
+            if (omask(i,j) > 0.5_rp) then
               powtra(i,j,k,ipowaic)=ocetra(i,j,kbo(i,j),isco212)
               powtra(i,j,k,ipowaal)=ocetra(i,j,kbo(i,j),ialkali)
               powtra(i,j,k,ipowaph)=ocetra(i,j,kbo(i,j),iphosph)
               powtra(i,j,k,ipowaox)=ocetra(i,j,kbo(i,j),ioxygen)
-              powtra(i,j,k,ipown2) =0.
+              powtra(i,j,k,ipown2) =0._rp
               powtra(i,j,k,ipowno3)=ocetra(i,j,kbo(i,j),iano3)
               powtra(i,j,k,ipowasi)=ocetra(i,j,kbo(i,j),isilica)
-              sedlay(i,j,k,issso12)=1.e-8
-              sedlay(i,j,k,isssc12)=1.e-8
-              sedlay(i,j,k,issster)=30.
-              sedlay(i,j,k,issssil)=1.e-8
+              sedlay(i,j,k,issso12)=1.e-8_rp
+              sedlay(i,j,k,isssc12)=1.e-8_rp
+              sedlay(i,j,k,issster)=30._rp
+              sedlay(i,j,k,issssil)=1.e-8_rp
               sedhpl(i,j,k)        =hi(i,j,kbo(i,j))
               if (use_cisonew) then
                 rco213=ocetra(i,j,kbo(i,j),isco213)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
@@ -285,6 +341,9 @@ contains
                 sedlay(i,j,k,issso14)=sedlay(i,j,k,issso12)*rco214*bifr14_ini
                 sedlay(i,j,k,isssc13)=sedlay(i,j,k,isssc12)*rco213
                 sedlay(i,j,k,isssc14)=sedlay(i,j,k,isssc12)*rco214
+              endif
+              if (use_sediment_quality) then
+                sedlay(i,j,k,issso12_age)=0._rp
               endif
             else
               powtra(i,j,k,ipowno3)=rmasks
@@ -308,6 +367,9 @@ contains
                 sedlay(i,j,k,isssc13)=rmasks
                 sedlay(i,j,k,isssc14)=rmasks
               endif
+              if (use_sediment_quality) then
+                sedlay(i,j,k,issso12_age)=rmasks
+              endif
             endif
           enddo
         enddo
@@ -317,7 +379,7 @@ contains
       do  l=1,nsedtra
         do  j=1,kpje
           do  i=1,kpie
-            burial(i,j,l)=0.
+            burial(i,j,l)=0._rp
           enddo
         enddo
       enddo

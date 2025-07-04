@@ -29,6 +29,8 @@ module mo_read_fedep
   !    and a module that applies the fluxes in core hamocc (mo_apply_fedep)
   !*************************************************************************************************
 
+  use mo_kind, only: bgc_fnmlen,rp
+
   implicit none
   private
 
@@ -36,10 +38,10 @@ module mo_read_fedep
   public :: get_fedep      ! Get the iron (dust) deposition for a given month
 
   ! File name (incl. full path) for input data, set through namelist in hamocc_init
-  character(len=512), public :: fedepfile=''
+  character(len=bgc_fnmlen), public :: fedepfile=''
 
   ! Array to store dust deposition flux after reading from file
-  real, allocatable,  public :: dustflx(:,:,:)
+  real(rp), allocatable,  public :: dustflx(:,:,:)
 
 contains
 
@@ -59,7 +61,7 @@ contains
     ! Arguments
     integer, intent(in) :: kpie              ! 1st dimension of model grid.
     integer, intent(in) :: kpje              ! 2nd dimension of model grid.
-    real,    intent(in) :: omask(kpie,kpje)  ! land/ocean mask (1=ocean)
+    real(rp),    intent(in) :: omask(kpie,kpje)  ! land/ocean mask (1=ocean)
 
     ! Local variables
     integer             :: i,j,l
@@ -82,7 +84,7 @@ contains
 
     allocate (dustflx(kpie,kpje,12),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory dustflx'
-    dustflx(:,:,:) = 0.0
+    dustflx(:,:,:) = 0.0_rp
 
     ! Open netCDF data file
     if (mnproc==1) then
@@ -115,7 +117,7 @@ contains
       do j=1,kpje
         do i=1,kpie
 
-          if(omask(i,j).lt.0.5) dustflx(i,j,l) = 0.0
+          if(omask(i,j).lt.0.5_rp) dustflx(i,j,l) = 0.0_rp
 
         enddo
       enddo

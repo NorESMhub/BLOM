@@ -45,6 +45,7 @@ contains
   subroutine update_boxatm(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask)
 
     use mod_xc,         only: mnproc,nbdy,ips,xcsum
+    use mo_kind,        only: rp
     use mo_control_bgc, only: io_stdo_bgc, use_cisonew, use_sedbypass
     use mo_carbch,      only: atmflx, atm, ocetra
     use mo_param_bgc,   only: rcar,c14dec
@@ -53,24 +54,24 @@ contains
     use mo_sedmnt,      only: powtra,sedlay,seddw,porwat,porsol
 
     ! Arguments
-    integer,intent(in) :: kpie,kpje,kpke
-    real,   intent(in) :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)
-    real,   intent(in) :: pddpo(kpie,kpje,kpke),omask(kpie,kpje)
+    integer,  intent(in) :: kpie,kpje,kpke
+    real(rp), intent(in) :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)
+    real(rp), intent(in) :: pddpo(kpie,kpje,kpke),omask(kpie,kpje)
 
     ! Local variables
-    real, parameter :: pg2ppm = 1.0/2.13  ! conversion factor PgC -> ppm CO2
-    integer :: i,j,k
-    real    :: ztmp1(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
-    real    :: co2flux, co2flux_ppm
-    real    :: ztmp2(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy) ! cisonew
-    real    :: co213flux, co213flux_ppm ! cisonew
-    real    :: co214flux, co214flux_ppm ! cisonew
-    real    :: totc14dec, vol ! cisonew
+    real(rp), parameter :: pg2ppm = 1.0_rp/2.13_rp  ! conversion factor PgC -> ppm CO2
+    integer  :: i,j,k
+    real(rp) :: ztmp1(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
+    real(rp) :: co2flux, co2flux_ppm
+    real(rp) :: ztmp2(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy) ! cisonew
+    real(rp) :: co213flux, co213flux_ppm ! cisonew
+    real(rp) :: co214flux, co214flux_ppm ! cisonew
+    real(rp) :: totc14dec, vol ! cisonew
 
-    co2flux      = 0.0
+    co2flux      = 0.0_rp
 
     ! Calculate global total air-sea flux [kmol]
-    ztmp1(:,:)   = 0.0
+    ztmp1(:,:)   = 0.0_rp
     do j=1,kpje
       do i=1,kpie
         ztmp1(i,j) = atmflx(i,j,iatmco2)*pdlxp(i,j)*pdlyp(i,j) ![kmol CO2/ m2] * [m] * [m]
@@ -80,7 +81,7 @@ contains
     call xcsum(co2flux,ztmp1,ips)
 
     ! Convert global CO2 flux to ppm
-    co2flux_ppm  = co2flux*12.*1.e-12*pg2ppm ! [kmol C] -> [ppm]
+    co2flux_ppm  = co2flux*12._rp*1.e-12_rp*pg2ppm ! [kmol C] -> [ppm]
 
     ! Update atmospheric pCO2
     do  j=1,kpje
@@ -90,12 +91,12 @@ contains
     enddo
 
     if (use_cisonew) then
-      co213flux    = 0.0
-      co214flux    = 0.0
+      co213flux    = 0.0_rp
+      co214flux    = 0.0_rp
 
       ! Calculate global total air-sea flux for C isotopes [kmol]
-      ztmp1(:,:)   = 0.0
-      ztmp2(:,:)   = 0.0
+      ztmp1(:,:)   = 0.0_rp
+      ztmp2(:,:)   = 0.0_rp
       do j=1,kpje
         do i=1,kpie
           ztmp1(i,j) = atmflx(i,j,iatmc13)*pdlxp(i,j)*pdlyp(i,j) ![kmol 13CO2/ m2] * [m] * [m]
@@ -107,28 +108,28 @@ contains
       call xcsum(co214flux,ztmp2,ips)
 
       ! Convert global CO2 isotope fluxes to ppm isotope fluxes
-      co213flux_ppm  = co213flux*13.*1.e-12*pg2ppm*12./13. ! [kmol 13CO2] -> [ppm]
-      co214flux_ppm  = co214flux*14.*1.e-12*pg2ppm*12./14. ! [kmol 14CO2] -> [ppm]
+      co213flux_ppm  = co213flux*13._rp*1.e-12_rp*pg2ppm*12._rp/13._rp ! [kmol 13CO2] -> [ppm]
+      co214flux_ppm  = co214flux*14._rp*1.e-12_rp*pg2ppm*12._rp/14._rp ! [kmol 14CO2] -> [ppm]
 
       ! Calculate sum of 14C decay. Only decay in ocean, so only ocean tracers.
-      totc14dec    = 0.0
-      ztmp1(:,:)   = 0.0
+      totc14dec    = 0.0_rp
+      ztmp1(:,:)   = 0.0_rp
       do k=1,kpke
         do j=1,kpje
           do i=1,kpie
             vol        = pdlxp(i,j)*pdlyp(i,j)*pddpo(i,j,k)*omask(i,j) ! ocean volume
-            ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,isco214)*vol*(1.0-c14dec)
-            ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,idet14) *vol*(1.0-c14dec)*rcar
-            ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,icalc14)*vol*(1.0-c14dec)
-            ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,idoc14) *vol*(1.0-c14dec)*rcar
-            ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,iphy14) *vol*(1.0-c14dec)*rcar
-            ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,izoo14) *vol*(1.0-c14dec)*rcar
+            ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,isco214)*vol*(1.0_rp-c14dec)
+            ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,idet14) *vol*(1.0_rp-c14dec)*rcar
+            ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,icalc14)*vol*(1.0_rp-c14dec)
+            ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,idoc14) *vol*(1.0_rp-c14dec)*rcar
+            ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,iphy14) *vol*(1.0_rp-c14dec)*rcar
+            ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,izoo14) *vol*(1.0_rp-c14dec)*rcar
             if (.not. use_sedbypass) then
               vol        = seddw(k)*pdlxp(i,j)*pdlyp(i,j)*porwat(i,j,k)*omask(i,j) ! porewater volume
-              ztmp1(i,j) = ztmp1(i,j)+powtra(i,j,k,ipowc14) *vol*(1.0-c14dec)
+              ztmp1(i,j) = ztmp1(i,j)+powtra(i,j,k,ipowc14) *vol*(1.0_rp-c14dec)
               vol        = seddw(k)*pdlxp(i,j)*pdlyp(i,j)*porsol(i,j,k)*omask(i,j) ! sediment volume
-              ztmp1(i,j) = ztmp1(i,j)+sedlay(i,j,k,issso14) *vol*(1.0-c14dec)*rcar
-              ztmp1(i,j) = ztmp1(i,j)+sedlay(i,j,k,isssc14) *vol*(1.0-c14dec)
+              ztmp1(i,j) = ztmp1(i,j)+sedlay(i,j,k,issso14) *vol*(1.0_rp-c14dec)*rcar
+              ztmp1(i,j) = ztmp1(i,j)+sedlay(i,j,k,isssc14) *vol*(1.0_rp-c14dec)
             endif
           enddo
         enddo
@@ -141,7 +142,7 @@ contains
         do  i=1,kpie
           atm(i,j,iatmc13)=atm(i,j,iatmc13) + co213flux_ppm
           atm(i,j,iatmc14)=atm(i,j,iatmc14) + co214flux_ppm
-          atm(i,j,iatmc14)=atm(i,j,iatmc14) + totc14dec*14.*1.e-12*pg2ppm*12./14. ! add 14C decay (ppm)
+          atm(i,j,iatmc14)=atm(i,j,iatmc14) + totc14dec*14._rp*1.e-12_rp*pg2ppm*12._rp/14._rp ! add 14C decay (ppm)
         enddo
       enddo
 
@@ -150,7 +151,7 @@ contains
         write(io_stdo_bgc,*) 'Boxatm fluxes (ppm)'
         write(io_stdo_bgc,*) ' co213flux_ppm: ',co213flux_ppm
         write(io_stdo_bgc,*) ' co214flux_ppm: ',co214flux_ppm
-        write(io_stdo_bgc,*) ' totc14dec (ppm): ',(totc14dec*14.*1.e-12*pg2ppm*12./14.)
+        write(io_stdo_bgc,*) ' totc14dec (ppm): ',(totc14dec*14._rp*1.e-12_rp*pg2ppm*12._rp/14._rp)
         write(io_stdo_bgc,*) ' '
       endif
 
