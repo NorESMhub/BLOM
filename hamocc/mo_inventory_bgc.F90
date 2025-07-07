@@ -1737,7 +1737,7 @@ contains
                &    time_dimid, zc_docsr_varid) )
           call nccheck( NF90_PUT_ATT(ncid, zc_docsr_varid, 'long_name',             &
                &    'Mean semi-refractory dom concentration') )
-          call nccheck( NF90_PUT_ATT(ncid, zc_docsl_varid, 'units', 'kmol/m^3') )
+          call nccheck( NF90_PUT_ATT(ncid, zc_docsr_varid, 'units', 'kmol/m^3') )
 
           call nccheck( NF90_DEF_VAR(ncid, 'zt_docr', NF90_DOUBLE,                  &
                &    time_dimid, zt_docr_varid) )
