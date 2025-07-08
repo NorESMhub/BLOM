@@ -1139,7 +1139,7 @@ contains
         call nccheck( NF90_DEF_VAR(ncid, 'zc_ano3srf', NF90_DOUBLE,               &
              &    time_dimid, zc_ano3srf_varid) )
         call nccheck( NF90_PUT_ATT(ncid, zc_ano3srf_varid, 'long_name',           &
-             &    'Mean syrface dissolved nitrate concentration') )
+             &    'Mean surface dissolved nitrate concentration') )
         call nccheck( NF90_PUT_ATT(ncid, zc_ano3srf_varid, 'units', 'kmol/m^3') )
 
         call nccheck( NF90_DEF_VAR(ncid, 'zt_silica', NF90_DOUBLE,                &
