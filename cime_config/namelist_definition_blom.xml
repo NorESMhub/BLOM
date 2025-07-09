@@ -3676,7 +3676,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>.true.</value>
+      <value>.false.</value>
     </values>
     <desc>Switch for primary production and remineralization throughout the whole water column</desc>
   </entry>
