@@ -18,14 +18,16 @@
 module mo_read_sedpor
 
   !*************************************************************************************************
-  ! Routine for reading sediment porosity from netcdf file L_SED_POR must be set to true in nml 
+  ! Routine for reading sediment porosity from netcdf file L_SED_POR must be set to true in nml
   ! to activate lon-lat variable sediment porosity.
   !
   ! The model attempts to read lon-lat-sediment depth variable porosity
   ! from the input file 'SEDPORFILE' (incl. full path)
   !
-  ! sed_por holds then the porosity that can be applied later via mo_apply_sedpor
+  ! sed_por holds then the porosity that can be applied later in mo_sedmnt (ini_sedmnt_por)
   !*************************************************************************************************
+
+  use mo_kind, only: bgc_fnmlen
 
   implicit none
   private
@@ -34,13 +36,14 @@ module mo_read_sedpor
   public :: read_sedpor ! read sediment porosity file
 
   ! Module variables
-  character(len=512), public :: sedporfile = ''
+  character(len=bgc_fnmlen), public :: sedporfile = ''
 
 contains
 
   subroutine read_sedpor(kpie,kpje,ks,omask,sed_por)
 
     use mod_xc,             only: mnproc,xchalt
+    use mo_kind,            only: rp
     use mo_control_bgc,     only: io_stdo_bgc,l_3Dvarsedpor
     use netcdf,             only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
     use mo_netcdf_bgcrw,    only: read_netcdf_var
@@ -51,12 +54,12 @@ contains
     integer, intent(in)    :: kpie
     integer, intent(in)    :: kpje
     integer, intent(in)    :: ks
-    real,    intent(in)    :: omask(kpie,kpje)
-    real,    intent(inout) :: sed_por(kpie,kpje,ks)
+    real(rp),intent(in)    :: omask(kpie,kpje)
+    real(rp),intent(inout) :: sed_por(kpie,kpje,ks)
 
     !local variables
     integer :: i,j,k
-    real    :: sed_por_in(kpie,kpje,ks)
+    real(rp):: sed_por_in(kpie,kpje,ks)
     logical :: file_exists = .false.
     integer :: ncid,ncstat
 
@@ -108,10 +111,10 @@ contains
     do k=1,ks
       do j=1,kpje
         do i=1,kpie
-          if(omask(i,j).gt. 0.5)then
+          if(omask(i,j).gt. 0.5_rp)then
             sed_por(i,j,k)=sed_por_in(i,j,k)
           else
-            sed_por(i,j,k)=0.
+            sed_por(i,j,k)=0._rp
           endif
         enddo
       enddo

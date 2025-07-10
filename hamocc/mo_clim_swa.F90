@@ -25,6 +25,8 @@ module mo_clim_swa
   !  J.Tjiputra,        *NORCE Climate, Bergen*    2021-04-15
   !*************************************************************************************************
 
+  use mo_kind, only: bgc_fnmlen,rp
+
   implicit none
   private
 
@@ -34,10 +36,10 @@ module mo_clim_swa
   ! Module variables
 
   ! File name (incl. full path) for input data, set through namelist in hamocc_init.F
-  character(len=512), public :: swaclimfile=''
+  character(len=bgc_fnmlen), public :: swaclimfile=''
 
   ! Array to store swa flux after reading from file
-  real, allocatable, public :: swa_clim(:,:,:)
+  real(rp), allocatable, public :: swa_clim(:,:,:)
 
 contains
 
@@ -57,7 +59,7 @@ contains
     ! Arguments
     integer, intent(in) :: kpie              !  1st dimension of model grid.
     integer, intent(in) :: kpje              !  2nd dimension of model grid.
-    real,    intent(in) :: omask(kpie,kpje)  !  land/ocean mask (1=ocean)
+    real(rp),intent(in) :: omask(kpie,kpje)  !  land/ocean mask (1=ocean)
 
     ! Local variables
     integer :: i,j
@@ -78,7 +80,7 @@ contains
     endif
     allocate (swa_clim(kpie,kpje,1),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory swa_clim'
-    swa_clim(:,:,1) = 0.0
+    swa_clim(:,:,1) = 0.0_rp
 
     ! Open netCDF data file
     if (mnproc==1) then
@@ -110,7 +112,7 @@ contains
     do j=1,kpje
       do i=1,kpie
 
-        if(omask(i,j).lt.0.5) swa_clim(i,j,1) = 0.0
+        if(omask(i,j).lt.0.5_rp) swa_clim(i,j,1) = 0.0_rp
 
       enddo
     enddo
