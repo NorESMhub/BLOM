@@ -1206,6 +1206,7 @@ contains
         call pinfo_add_entry('alphaanmx',     alphaanmx)
         call pinfo_add_entry('bkoxanmx',      bkoxanmx)
         call pinfo_add_entry('bkano2anmx',    bkano2anmx)
+        call pinfo_add_entry('yield_n2o_inf', yield_n2o_inf)
         call pinfo_add_entry('bkanh4anmx',    bkanh4anmx)
         call pinfo_add_entry('rano2denit',    rano2denit    *dtbinv)
         call pinfo_add_entry('q10ano2denit',  q10ano2denit)
