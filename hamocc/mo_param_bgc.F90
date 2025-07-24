@@ -374,6 +374,7 @@ module mo_param_bgc
   real(rp), protected :: bkoxamox      = 0.333e-6_rp ! Half-saturation constant for oxygen limitation of nitrification on NH4 (kmol/m3)
   real(rp), protected :: bkanh4nitr    = 0.133e-6_rp ! Half-saturation constant for nitrification on NH4 (kmol/m3)
   real(rp), protected :: bkamoxn2o     = 0.5e-6_rp   ! Half saturation constant for NH4 in pathway splitting function N2O for nitrification on NH4 (kmol/m3)
+  real(rp), protected :: yield_n2o_inf = 0.077_rp    ! Santoro et al. a_2 = 0.077+-0.07
   real(rp), protected :: mufn2o                      !       = 0.11/(50.*1e6*bkoxamox) !=6.61e-3  0.11/(50*1e6)=2.2e-9 - ~Santoro et al. 2011 with simple MM,
   real(rp), protected :: bn2o                        !       = 0.077/(50.*mufn2o)  !=0.2331 - before set to 0.3 - base fraction entering N2O
   real(rp), protected :: n2omaxy       = 0.003_rp    ! Maximum yield of OM on NH4 nitrification (-)
@@ -726,7 +727,7 @@ contains
                          sed_denit,sed_sulf,                                     &
                          sed_O2thresh_hypoxic,sed_O2thresh_sulf,sed_NO3thresh_sulf,&
                          gammapsl,gammazsl,alphasl,alphasr,docl_remin,docsl_remin, &
-                         docsr_remin,docr_remin
+                         docsr_remin,docr_remin,yield_n2o_inf
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)
@@ -761,10 +762,10 @@ contains
       bkiron        = bkphosph*riron                 ! Half-saturation constant for Fe uptake by bulk phytoplankton (kmol/m3)
       bkanh4anmx    = bkano2anmx * rnh4anmx/rno2anmx ! Half-saturation constant for NH4 limitation of anammox (kmol/m3)
       mufn2o        = 0.11_rp/(50._rp*1.e6_rp*bkoxamox)   ! =6.61e-3  0.11/(50*1e6)=2.2e-9 - ~Santoro et al. 2011 with simple MM,
-      bn2o          = 0.077_rp/(50._rp*mufn2o)            ! =0.2331 - before set to 0.3 - base fraction entering N2O
+      bn2o          = yield_n2o_inf/(50._rp*mufn2o)            ! =0.2331 - before set to 0.3 - base fraction entering N2O
       bkanh4anmx_sed = bkano2anmx_sed * rnh4anmx/rno2anmx !Half-saturation constant for NH4 limitation of anammox (kmol/m3)
       mufn2o_sed     = 0.11_rp/(50._rp*1.e6_rp*bkoxamox_sed) !=6.61e-3  0.11/(50*1e6)=2.2e-9 - ~Santoro et al. 2011 with simple MM
-      bn2o_sed       = 0.077_rp/(50._rp*mufn2o_sed)       !=0.2331 - before set to 0.3 - base fraction entering N2O
+      bn2o_sed       = yield_n2o_inf/(50._rp*mufn2o_sed)       !=0.2331 - before set to 0.3 - base fraction entering N2O
       lTO2depremin   = .true.
     endif
     if (use_M4AGO) lTO2depremin = .true.
@@ -1206,6 +1207,7 @@ contains
         call pinfo_add_entry('alphaanmx',     alphaanmx)
         call pinfo_add_entry('bkoxanmx',      bkoxanmx)
         call pinfo_add_entry('bkano2anmx',    bkano2anmx)
+        call pinfo_add_entry('yield_n2o_inf', yield_n2o_inf)
         call pinfo_add_entry('bkanh4anmx',    bkanh4anmx)
         call pinfo_add_entry('rano2denit',    rano2denit    *dtbinv)
         call pinfo_add_entry('q10ano2denit',  q10ano2denit)
