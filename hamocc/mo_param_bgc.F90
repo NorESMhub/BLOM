@@ -373,7 +373,7 @@ module mo_param_bgc
   real(rp), protected :: bkoxamox      = 0.333e-6_rp ! Half-saturation constant for oxygen limitation of nitrification on NH4 (kmol/m3)
   real(rp), protected :: bkanh4nitr    = 0.133e-6_rp ! Half-saturation constant for nitrification on NH4 (kmol/m3)
   real(rp), protected :: bkamoxn2o     = 0.5e-6_rp   ! Half saturation constant for NH4 in pathway splitting function N2O for nitrification on NH4 (kmol/m3)
-  real(rp), protected :: yield_n2o_inf = 0.077_rp    ! Sanoro et al. a_2 = 0.077+-0.07
+  real(rp), protected :: yield_n2o_inf = 0.077_rp    ! Santoro et al. a_2 = 0.077+-0.07
   real(rp), protected :: mufn2o                      !       = 0.11/(50.*1e6*bkoxamox) !=6.61e-3  0.11/(50*1e6)=2.2e-9 - ~Santoro et al. 2011 with simple MM,
   real(rp), protected :: bn2o                        !       = 0.077/(50.*mufn2o)  !=0.2331 - before set to 0.3 - base fraction entering N2O
   real(rp), protected :: n2omaxy       = 0.003_rp    ! Maximum yield of OM on NH4 nitrification (-)
