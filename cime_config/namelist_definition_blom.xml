@@ -5254,6 +5254,16 @@
     <desc>Maximum growth rate nitrification on NH4 at reference T (1/d)</desc>
   </entry>
 
+  <entry id="yield_n2o_inf">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Base N2O yield at infinite oxygen availability according to Santoro et al. 2021 0.077 plus/minus 0.07</desc>
+  </entry>
+
   <entry id="rano2nitr">
     <type>real</type>
     <category>bgcparams</category>
