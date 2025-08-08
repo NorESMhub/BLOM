@@ -725,7 +725,7 @@ contains
                          sed_denit,sed_sulf,                                     &
                          sed_O2thresh_hypoxic,sed_O2thresh_sulf,sed_NO3thresh_sulf,&
                          gammapsl,gammazsl,alphasl,alphasr,docl_remin,docsl_remin, &
-                         docsr_remin,docr_remin,yield_n2o_inf
+                         docsr_remin,docr_remin,yield_n2o_inf,bkamoxn2o
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)
