@@ -41,12 +41,13 @@ contains
     real(rp),intent(out) :: atm_cfc11_sh,atm_cfc12_sh,atm_sf6_sh
 
     ! Local variables
-    integer :: i
-    integer :: yr_dat(113)
-    integer :: start_yr
-    real(rp):: cfc_11_nh(113),cfc_12_nh(113),sf_6_nh(113)
-    real(rp):: cfc_11_sh(113),cfc_12_sh(113),sf_6_sh(113)
-    integer, save :: kplyear_old = 0
+    integer, parameter   :: nyears = 113
+    integer              :: i
+    integer              :: yr_dat(nyears)
+    integer              :: start_yr
+    real(rp)             :: cfc_11_nh(nyears),cfc_12_nh(nyears),sf_6_nh(nyears)
+    real(rp)             :: cfc_11_sh(nyears),cfc_12_sh(nyears),sf_6_sh(nyears)
+    integer, save        :: kplyear_old = 0
 
     ! **********************************************************************************************
     ! Data from taken from Bullister, John L.; Warner, Mark J. (2017).
@@ -163,7 +164,7 @@ contains
      &    10.44_rp,10.82_rp/
 
     start_yr=1910
-    do i=1,105
+    do i=1,nyears
       yr_dat(i)=start_yr+i-1
     enddo
 
@@ -176,7 +177,7 @@ contains
     atm_sf6_nh=0.0_rp
     atm_sf6_sh=0.0_rp
 
-    do i=1,113
+    do i=1,nyears
       if (kplyear.eq.yr_dat(i)) then
         atm_cfc11_nh=cfc_11_nh(i)
         atm_cfc11_sh=cfc_11_sh(i)
