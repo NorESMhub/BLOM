@@ -1427,7 +1427,7 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>3.0</value>
+      <value>2.0</value>
     </values>
     <desc>Parameter c in Eden and Greatbatch (2008) parameterization (f)</desc>
   </entry>
@@ -1457,7 +1457,7 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>1.</value>
+      <value>50.</value>
       <value ocn_grid="tnx0.125v4">0.</value>
     </values>
     <desc>Minimum diffusivity in E. and G. (2008) param. (m**2/s) (f)</desc>
@@ -1479,7 +1479,7 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>1.</value>
+      <value>.8</value>
     </values>
     <desc>Factor relating the isopycnal diffusivity to the layer</desc>
   </entry>
