@@ -1602,6 +1602,16 @@
     <desc>Make the background mixing latitude dependent according to</desc>
   </entry>
 
+  <entry id="nubmin">
+    <type>real</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>1.e-6</value>
+    </values>
+    <desc>Minimum background diapycnal diffusivity (m**2/s) (f)</desc>
+  </entry>
+
   <entry id="tkepf">
     <type>real</type>
     <category>diffusion</category>
