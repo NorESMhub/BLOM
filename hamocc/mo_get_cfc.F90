@@ -41,10 +41,10 @@ contains
     real(rp),intent(out) :: atm_cfc11_sh,atm_cfc12_sh,atm_sf6_sh
 
     ! Local variables
-    integer, parameter   :: nyears = 113
+    integer, parameter   :: start_yr = 1910   ! first year of data
+    integer, parameter   :: nyears   = 113    ! nb of years in data
     integer              :: i
     integer              :: yr_dat(nyears)
-    integer              :: start_yr
     real(rp)             :: cfc_11_nh(nyears),cfc_12_nh(nyears),sf_6_nh(nyears)
     real(rp)             :: cfc_11_sh(nyears),cfc_12_sh(nyears),sf_6_sh(nyears)
     integer, save        :: kplyear_old = 0
@@ -163,7 +163,6 @@ contains
      &     7.15_rp, 7.43_rp, 7.73_rp, 8.06_rp, 8.40_rp, 8.72_rp, 9.06_rp, 9.42_rp, 9.76_rp,10.08_rp,  &
      &    10.44_rp,10.82_rp/
 
-    start_yr=1910
     do i=1,nyears
       yr_dat(i)=start_yr+i-1
     enddo
