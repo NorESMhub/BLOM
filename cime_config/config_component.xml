@@ -92,7 +92,7 @@
     <valid_values/>
     <default_value>53</default_value>
     <values>
-      <value compset="_BLOM%HYB">56</value>
+      <value compset="_BLOM%HYB">72</value>
       <value compset="_BLOM%LVL">56</value>
     </values>
     <group>build_component_blom</group>

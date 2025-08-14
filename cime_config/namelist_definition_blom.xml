@@ -149,7 +149,7 @@
     <group>limits</group>
     <values>
       <value>.false.</value>
-      <value comp_interface="nuopc">.false.</value>
+      <value comp_interface="nuopc">.true.</value>
     </values>
     <desc>if .true., use NUOPC capability to read WOA climatology</desc>
   </entry>
@@ -963,7 +963,8 @@
     <category>vcoord</category>
     <group>vcoord</group>
     <values>
-      <value>'inicon'</value>
+      <value>function</value>
+      <value blom_vcoord="isopyc_bulkml">inicon</value>
     </values>
     <desc>Reference potential density specification: Valid specs.: 'inicon', 'namelist'</desc>
   </entry>
@@ -973,7 +974,8 @@
     <category>vcoord</category>
     <group>vcoord</group>
     <values>
-      <value>'inflation'</value>
+      <value>namelist</value>
+      <value blom_vcoord="plevel">inflation</value>
     </values>
     <desc>Pressure level specification: Valid specs.: 'inflation', 'namelist'</desc>
   </entry>
@@ -993,7 +995,7 @@
     <category>vcoord</category>
     <group>vcoord</group>
     <values>
-      <value>23.70</value>
+      <value>23.0</value>
     </values>
     <desc>Sigma value at Bezier point 1 (z = 0) [kg m-3]</desc>
   </entry>
@@ -1003,7 +1005,7 @@
     <category>vcoord</category>
     <group>vcoord</group>
     <values>
-      <value>0.21</value>
+      <value>0.27</value>
     </values>
     <desc>z value at Bezier point 2 []</desc>
   </entry>
@@ -1063,7 +1065,7 @@
     <category>vcoord</category>
     <group>vcoord</group>
     <values>
-      <value>38.0</value>
+      <value>37.8</value>
     </values>
     <desc>Sigma value of parabola at z = 1 [kg m-3]</desc>
   </entry>
@@ -1073,7 +1075,7 @@
     <category>vcoord</category>
     <group>vcoord</group>
     <values>
-      <value>.false.</value>
+      <value>.true.</value>
     </values>
     <desc>Flag to enable adaption of reference potential densities to model state</desc>
   </entry>
@@ -1155,7 +1157,7 @@
     <category>vcoord</category>
     <group>vcoord</group>
     <values>
-      <value>-1.,-1.</value>
+      <value>0.000,    2.000,    4.061,    6.185,    8.374,   10.631,   12.959,   15.362,   17.843,   20.408,   23.061,   25.808,   28.659,   31.621,   34.706,   37.925,   41.294,   44.830,   48.553,   52.487,   56.661,61.104,   65.854,   70.953,   76.446,   82.389,   88.841,   95.868,  103.544,  111.949,  121.172,  131.306,  142.450,  154.708,  168.188,  182.999,  199.248,  217.040,  236.479,  257.657,  280.661,  305.568,  332.442,  361.336,  392.292,  425.339,  460.498,  497.778,  537.183,  578.707,  622.344,  668.083,  715.914, 765.827,  817.814,  871.871,  927.997,  986.197, 1046.481, 1108.863, 1173.364, 1240.010, 1308.833, 1379.870, 1453.162, 1528.755, 1606.702, 1687.056, 1769.879, 1855.233, 1943.185, 2033.806</value>
     </values>
     <desc>Array of pressure levels (m)</desc>
   </entry>
