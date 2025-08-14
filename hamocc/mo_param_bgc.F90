@@ -658,7 +658,7 @@ contains
     if (use_AGG) then
       zinges  = 0.5_rp        ! dimensionless fraction -assimilation efficiency
       epsher  = 0.9_rp        ! dimensionless fraction -fraction of grazing egested
-    else if (use_WLIN) then
+    else if ((use_WLIN .eqv. .true.) .or. (use_M4AGO .eqv. .true.))  then
       zinges  = 0.7_rp        ! dimensionless fraction -assimilation efficiency
       epsher  = 0.75_rp       ! dimensionless fraction -fraction of grazing egested
     else
@@ -673,7 +673,7 @@ contains
       rcalc  = 14._rp         ! calcium carbonate to organic phosphorous production ratio
       ropal  = 10.5_rp        ! opal to organic phosphorous production ratio
       calmax = 0.20_rp
-    else if (use_WLIN) then
+    else if ((use_WLIN .eqv. .true.) .or. (use_M4AGO .eqv. .true.)) then
       rcalc  =  8._rp         ! calcium carbonate to organic phosphorous production ratio
       ropal  = 70._rp         ! opal to organic phosphorous production ratio
     else
