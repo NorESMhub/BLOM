@@ -191,7 +191,6 @@ module mod_difest
   real    , parameter :: niwls=300.*onem
   real    , parameter :: cori30 = 7.2722e-5
   real    , parameter :: bvf0=5.24e-3
-  real    , parameter :: nubmin = 1.e-6
   real    , parameter :: dpgc=300.*onem
   real    , parameter :: dpgrav=100.*onem
   real    , parameter :: dpdiav = 100.*onem
