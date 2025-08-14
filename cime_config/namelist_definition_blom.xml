@@ -1607,7 +1607,7 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>1.e-6</value>
+      <value>2.e-6</value>
     </values>
     <desc>Minimum background diapycnal diffusivity (m**2/s) (f)</desc>
   </entry>
