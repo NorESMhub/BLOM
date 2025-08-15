@@ -32,8 +32,8 @@ module mod_difest
   use mod_state,             only: u, v, dp, dpu, dpv, temp, saln, sigma, p, &
                                    pbu, pbv, ubflxs_p, vbflxs_p, kfpla
   use mod_diffusion,         only: egc, eggam, eglsmn, egmndf, egmxdf, &
-                                   egidfq, rhiscf, ri0, bdmc1, bdmc2, &
-                                   bdmldp, tkepf, bdmtyp, eddf2d, edsprs, &
+                                   egidfq, rhiscf, ri0, bdmc1, bdmc2, bdmldp, &
+                                   nubmin, tkepf, bdmtyp, eddf2d, edsprs, &
                                    edanis, redi3d, rhsctp, edfsmo, smobld, &
                                    lngmtp, edritp_opt, edritp_shear, &
                                    edritp_large_scale, edwmth_opt, &
@@ -148,7 +148,6 @@ module mod_difest
   !   cori30 - coriolis parameter at 30N [1/s].
   !   bvf0   - reference stratification in the parameterization of
   !            latitude dependent background diapycnal mixing [1/s].
-  !   nubmin - minimum background diapycnal diffusivity [m^2/s].
   !   dpgc   - thickness of region near the bottom where the maximum
   !            diffusivity is increased due to gravity current mixing
   !            processes [kg/m/s^2].
@@ -192,7 +191,6 @@ module mod_difest
   real    , parameter :: niwls=300.*onem
   real    , parameter :: cori30 = 7.2722e-5
   real    , parameter :: bvf0=5.24e-3
-  real    , parameter :: nubmin = 1.e-6
   real    , parameter :: dpgc=300.*onem
   real    , parameter :: dpgrav=100.*onem
   real    , parameter :: dpdiav = 100.*onem
