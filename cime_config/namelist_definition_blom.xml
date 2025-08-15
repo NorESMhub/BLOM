@@ -404,6 +404,16 @@
     <desc>Advection method. Valid methods: 'remap', 'cppm'.</desc>
   </entry>
 
+  <entry id="cppm_compatibility">
+    <type>char</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>full</value>
+    </values>
+    <desc>CPPM compatibility. Valid options: 'full', 'partial'.</desc>
+  </entry>
+
   <entry id="cppm_limiting">
     <type>char</type>
     <category>limits</category>
