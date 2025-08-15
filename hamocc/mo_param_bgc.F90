@@ -521,7 +521,7 @@ module mo_param_bgc
   real(rp), protected :: wdust_const                    ! m/d   Sinking speed of dust
   real(rp), protected :: wmin        =  5._rp           ! m/d   minimum sinking speed
   real(rp), protected :: wmax        = 60._rp           ! m/d   maximum sinking speed
-  real(rp), protected :: wlin        = 60._rp/2400._rp  ! m/d/m constant describing incr. with depth, r/a=1.0
+  real(rp), protected :: wlin        = 60._rp/3120._rp  ! m/d/m constant describing incr. with depth, r/a=1.3 (r=0.025)
   real(rp), protected :: dustd1      = 0.0001_rp        ! cm = 1 um, boundary between clay and silt
   real(rp), protected :: dustd2                         ! dust diameter squared
   real(rp), protected :: dustd3                         ! dust diameter cubed
@@ -660,7 +660,7 @@ contains
       epsher  = 0.9_rp        ! dimensionless fraction -fraction of grazing egested
     else if ((use_WLIN .eqv. .true.) .or. (use_M4AGO .eqv. .true.))  then
       zinges  = 0.7_rp        ! dimensionless fraction -assimilation efficiency
-      epsher  = 0.75_rp       ! dimensionless fraction -fraction of grazing egested
+      epsher  = 0.8_rp        ! dimensionless fraction -fraction of grazing egested
     else
       zinges  = 0.6_rp        ! dimensionless fraction -assimilation efficiency
       epsher  = 0.8_rp        ! dimensionless fraction -fraction of grazing egest
@@ -675,7 +675,7 @@ contains
       calmax = 0.20_rp
     else if ((use_WLIN .eqv. .true.) .or. (use_M4AGO .eqv. .true.)) then
       rcalc  =  8._rp         ! calcium carbonate to organic phosphorous production ratio
-      ropal  = 70._rp         ! opal to organic phosphorous production ratio
+      ropal  = 75._rp         ! opal to organic phosphorous production ratio
     else
       rcalc  = 40._rp         ! iris 40 !calcium carbonate to organic phosphorous production ratio
       ropal  = 30._rp         ! iris 25 !opal to organic phosphorous production ratio
