@@ -430,6 +430,7 @@
     <group>limits</group>
     <values>
       <value>bod23</value>
+      <value blom_vcoord="isopyc_bulkml">fox08</value>
     </values>
     <desc>Mixed layer restratification method</desc>
   </entry>
