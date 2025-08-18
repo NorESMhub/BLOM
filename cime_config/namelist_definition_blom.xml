@@ -132,8 +132,10 @@
     <group>limits</group>
     <values>
       <value>unset</value>
-      <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx2v1_20130419.nc</value>
-      <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx1v4_20170622.nc</value>
+      <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/inicon/woa18_decav_ts13_01_tnx2v1_20250514.nc</value>
+      <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/inicon/woa18_decav_ts13_01_tnx1v4_20250514.nc</value>
+      <value ocn_grid="tnx2v1" blom_vcoord="isopyc_bulkml">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx2v1_20130419.nc</value>
+      <value ocn_grid="tnx1v4" blom_vcoord="isopyc_bulkml">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx1v4_20170622.nc</value>
       <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.5v1_20240702.nc</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.25v4_20170623.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.125v4_20230318.nc</value>
@@ -149,7 +151,7 @@
     <group>limits</group>
     <values>
       <value>.false.</value>
-      <value comp_interface="nuopc">.true.</value>
+      <value comp_interface="nuopc">.false.</value>
     </values>
     <desc>if .true., use NUOPC capability to read WOA climatology</desc>
   </entry>
