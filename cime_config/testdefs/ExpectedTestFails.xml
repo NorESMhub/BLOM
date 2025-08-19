@@ -28,7 +28,7 @@
   -->
 
 
-  <!-- aux_clm test suite failures -->
+  <!-- aux_blom_noresm test suite failures -->
 
   <test name="ERP_Ld3_P256.T62_tn14.NOINYOC.betzy_intel">
     <phase name="COMPARE_base_rest">
@@ -62,6 +62,15 @@
     <phase name="RUN">
       <status>FAIL</status>
       <issue>NorESMhub/NorESM_CICE#9</issue>
+    </phase>
+  </test>
+
+  <!-- aux_hamocc_noresm test suite failures -->
+
+  <test name="SMS_D_Ld1.T62_tn14.NOINYOC.betzy_intel.blom-hamocc-hamocc6">
+    <phase name="RUN">
+      <status>FAIL</status>
+      <issue>BLOM#645</issue>
     </phase>
   </test>
 </expectedFails>
