@@ -26,15 +26,12 @@ module mod_io_output
    use pio               , only : pio_syncfile
    use pio               , only : PIO_NOCLOBBER, PIO_IOTYPE_NETCDF, PIO_IOTYPE_PNETCDF, PIO_CLOBBER
    use mod_xc            , only : mnproc, lp
+   use ocn_pio_share     , only : pio_subsystem, io_type, io_format
 
    implicit none
    private
 
    public :: io_write
-
-   type(iosystem_desc_t), pointer :: pio_subsystem => null()     ! pio info
-   integer                        :: io_type                     ! pio info
-   integer                        :: io_format                   ! pio info
 
    logical :: debug = .false.
 
@@ -81,8 +78,8 @@ contains
       integer, pointer              :: dof3d(:)
       type(io_desc_t)               :: iodesc
       type(io_desc_t)               :: iodesc3d
-      logical                       :: create_iodesc
-      logical                       :: create_iodesc3d
+      logical                       :: created_iodesc
+      logical                       :: created_iodesc3d
       character(CL)                 :: itemc            ! string converted to char
       logical                       :: luse_float
       real(r8), pointer             :: fldptr1(:)
@@ -238,8 +235,8 @@ contains
       end if
 
       ! Create iodesc and iodesc3d
-      create_iodesc = .true.
-      create_iodesc3d = .true.
+      created_iodesc = .false.
+      created_iodesc3d = .false.
       do k = 1,size(fieldNameList)
          itemc = trim(fieldNameList(k))
 
@@ -250,7 +247,7 @@ contains
          if (chkerr(rc,__LINE__,u_FILE_u)) return
 
          if (rank == 2) then
-            if (create_iodesc3d) then
+            if (.not. created_iodesc3d) then
                if (mnproc == 1) then
                   write(lp,'(a,i8,2x,i8,2x,i8)') trim(subname)//' setting iodesc for : '//trim(itemc)//' with dims = ',nx,ny,nz
                end if
@@ -259,10 +256,10 @@ contains
                else
                   call pio_initdecomp(pio_subsystem, pio_double, (/nx,ny,nz/), dof3d, iodesc3d)
                end if
-               create_iodesc3d = .false.
+               created_iodesc3d = .true.
             end if
          else if (rank == 1) then
-            if (create_iodesc) then
+            if (.not. created_iodesc) then
                if (mnproc == 1) then
                   write(lp,'(a,i2,2x,i8)') trim(subname)//' setting iodesc for : '//trim(itemc)//' with dims = ',nx,ny
                end if
@@ -271,7 +268,7 @@ contains
                else
                   call pio_initdecomp(pio_subsystem, pio_double, (/nx,ny/), dof, iodesc)
                end if
-               create_iodesc = .false.
+               created_iodesc = .true.
             end if
          end if
       end do
@@ -328,6 +325,12 @@ contains
       end do  ! end loop over fields in fldbun
 
       call pio_closefile(io_file)
+      if (created_iodesc3d) then
+         call pio_freedecomp(io_file, iodesc3d)
+      end if
+      if (created_iodesc) then
+         call pio_freedecomp(io_file, iodesc)
+      end if
 
    end subroutine io_write
 
