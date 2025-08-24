@@ -1,0 +1,12 @@
+!----------------------------------------------------------------------------------
+! configure BLOM/iHAMOCC with CMIP6 settings  - tn21 grid
+!----------------------------------------------------------------------------------
+
+EDANIS = .false.
+EDDF2D = .false.
+EDSPRS = .true.
+RHSCTP = .false.
+EGC = 0.5
+EGMNDF = 100.e4
+EGMXDF = 1000.e4
+RHISCF = 0.
