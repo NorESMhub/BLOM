@@ -109,11 +109,6 @@ contains
          return
       endif
 
-      ! Initialize PIO
-      pio_subsystem => shr_pio_getiosys('OCN')
-      io_type       =  shr_pio_getiotype('OCN')
-      io_format     =  shr_pio_getioformat('OCN')
-
       nmode = pio_clobber
       ! only applies to classic NETCDF files.
       if (io_type == PIO_IOTYPE_NETCDF .or. io_type == PIO_IOTYPE_PNETCDF) then
@@ -249,7 +244,7 @@ contains
          if (rank == 2) then
             if (.not. created_iodesc3d) then
                if (mnproc == 1) then
-                  write(lp,'(a,i8,2x,i8,2x,i8)') trim(subname)//' setting iodesc for : '//trim(itemc)//' with dims = ',nx,ny,nz
+                  write(lp,'(a,i8,2x,i8,2x,i8)') trim(subname)//' setting iodesc3d for : '//trim(itemc)//' with dims = ',nx,ny,nz
                end if
                if (luse_float) then
                   call pio_initdecomp(pio_subsystem, pio_real, (/nx,ny,nz/), dof3d, iodesc3d)
@@ -324,13 +319,14 @@ contains
 
       end do  ! end loop over fields in fldbun
 
-      call pio_closefile(io_file)
       if (created_iodesc3d) then
          call pio_freedecomp(io_file, iodesc3d)
       end if
       if (created_iodesc) then
          call pio_freedecomp(io_file, iodesc)
       end if
+
+      call pio_closefile(io_file)
 
    end subroutine io_write
 
