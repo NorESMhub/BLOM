@@ -152,6 +152,7 @@
     <values>
       <value>.false.</value>
       <value comp_interface="nuopc">.true.</value>
+      <value comp_interface="nuopc" blom_vcoord="isopyc_bulkml">.false.</value>
     </values>
     <desc>if .true., use NUOPC capability to read WOA climatology</desc>
   </entry>
