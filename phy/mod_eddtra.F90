@@ -85,12 +85,17 @@ module mod_eddtra
       nstar = .066_r8, &               ! Scaling of boundary layer turbulence
                                        ! due to convective velocity (Bodner et
                                        ! al., 2023) [].
-      wpup_min = 1.e-3_r8              ! Minimum vertical momentum flux.
+      wpup_min = 1.e-3_r8, &           ! Minimum vertical momentum flux.
                                        ! According to Eq. (24) of Bodner et al.
                                        ! (2023), this minimum value should give
                                        ! a frontal length scale of abont 1 m for
                                        ! a 100 m thick boundary layer and f =
                                        ! 1/(86400 s).
+      mlbl_max_ratio = 3._r8           ! Maximum ratio between mixed and
+                                       ! boundary layer depths, used to bound
+                                       ! the mixed layer depth applied in the
+                                       ! mixed layer restratification
+                                       ! parameterizations [].
 
    ! Option derived from string option.
    integer :: mlrmth_opt
@@ -105,7 +110,7 @@ module mod_eddtra
    public :: inivar_eddtra, init_eddtra, eddtra, &
              mlrmth, ce, cl, tau_mlr, tau_growing_hbl, tau_decaying_hbl, &
              tau_growing_hml, tau_decaying_hml, lfmin, mstar, nstar, wpup_min, &
-             hbl_tf, wpup_tf, hml_tf1, hml_tf
+             mlbl_max_ratio, hbl_tf, wpup_tf, hml_tf1, hml_tf
 
 contains
 
@@ -1011,7 +1016,7 @@ contains
          c5_21 = 5._r8/21._r8
 
       real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
-         upssmx, upssmy, ptu, ptv
+         hml_tfbnd, upssmx, upssmy, ptu, ptv
       real(r8), dimension(kdm+1) :: puv, mflgm, mflsm, mfl
       real(r8), dimension(kdm) :: dlm, dlp
       real(r8) :: wf_growing_hbl, wf_decaying_hbl, &
@@ -1066,27 +1071,32 @@ contains
                                  wf_growing_hbl, wf_decaying_hbl)
                   call rmeanfilt(hml_tf(i,j) , hml_tf1(i,j), &
                                  wf_growing_hml, wf_decaying_hml)
+                  hml_tfbnd(i,j) = min(hml_tf(i,j), mlbl_max_ratio*hbl_tf(i,j))
                enddo
                enddo
             enddo
             !$omp end parallel do
             call xctilr(hbl_tf, 1, 1, 1, 1, halo_ps)
             call xctilr(wpup_tf, 1, 1, 1, 1, halo_ps)
-            call xctilr(hml_tf, 1, 1, 1, 1, halo_ps)
+            call xctilr(hml_tfbnd, 1, 1, 1, 1, halo_ps)
          else
             !$omp parallel do private(l, i)
             do j = 1, jj
                do l = 1, isp(j)
                do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                  hbl = OBLdepth(i,j)
+                  call rmeanfilt(hbl_tf(i,j) , hbl , &
+                                 wf_growing_hbl, wf_decaying_hbl)
                   call rmeanfilt(hml_tf1(i,j), mlts(i,j)   , &
                                  wf_growing_hbl, wf_decaying_hbl)
                   call rmeanfilt(hml_tf(i,j) , hml_tf1(i,j), &
                                  wf_growing_hml, wf_decaying_hml)
+                  hml_tfbnd(i,j) = min(hml_tf(i,j), mlbl_max_ratio*hbl_tf(i,j))
                enddo
                enddo
             enddo
             !$omp end parallel do
-            call xctilr(hml_tf, 1, 1, 1, 1, halo_ps)
+            call xctilr(hml_tfbnd, 1, 1, 1, 1, halo_ps)
          endif
 
          ! Compute vertically averaged mixed layer density [kg m-3].
@@ -1094,7 +1104,7 @@ contains
          do j = 1, jj
             do l = 1, isp(j)
             do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
-               pml = min(p(i,j,1) + hml_tf(i,j)*onem, p(i,j,kk+1))
+               pml = min(p(i,j,1) + hml_tfbnd(i,j)*onem, p(i,j,kk+1))
                dpmli = 1._r8/(pml - p(i,j,1))
                tmldp = 0._r8
                smldp = 0._r8
@@ -1124,7 +1134,7 @@ contains
                do l = 1, isu(j)
                do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
                   hbl = .5_r8*(hbl_tf(i-1,j) + hbl_tf(i,j))
-                  hml = .5_r8*(hml_tf(i-1,j) + hml_tf(i,j))
+                  hml = .5_r8*(hml_tfbnd(i-1,j) + hml_tfbnd(i,j))
                   absf = .5_r8*abs(coriop(i-1,j) + coriop(i,j))
                   wpup = .5_r8*(wpup_tf(i-1,j) + wpup_tf(i,j))
                   drho = util1(i,j) - util1(i-1,j)
@@ -1134,7 +1144,7 @@ contains
                do l = 1, isv(j)
                do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
                   hbl = .5_r8*(hbl_tf(i,j-1) + hbl_tf(i,j))
-                  hml = .5_r8*(hml_tf(i,j-1) + hml_tf(i,j))
+                  hml = .5_r8*(hml_tfbnd(i,j-1) + hml_tfbnd(i,j))
                   absf = .5_r8*abs(coriop(i,j-1) + coriop(i,j))
                   wpup = .5_r8*(wpup_tf(i,j-1) + wpup_tf(i,j))
                   drho = util1(i,j) - util1(i,j-1)
@@ -1150,7 +1160,7 @@ contains
             do j = 1, jj
                do l = 1, isu(j)
                do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
-                  hml = .5_r8*(hml_tf(i-1,j) + hml_tf(i,j))
+                  hml = .5_r8*(hml_tfbnd(i-1,j) + hml_tfbnd(i,j))
                   f = .5_r8*(coriop(i-1,j) + coriop(i,j))
                   absfi = 1._r8/sqrt(f*f + rtau*rtau)
                   lfi = 1._r8/max(sqrt(dbcrit*hml)*absfi, lfmin)
@@ -1161,7 +1171,7 @@ contains
                enddo
                do l = 1, isv(j)
                do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
-                  hml = .5_r8*(hml_tf(i,j-1) + hml_tf(i,j))
+                  hml = .5_r8*(hml_tfbnd(i,j-1) + hml_tfbnd(i,j))
                   f = .5_r8*(coriop(i,j-1) + coriop(i,j))
                   absfi = 1._r8/sqrt(f*f + rtau*rtau)
                   lfi = 1._r8/max(sqrt(dbcrit*hml)*absfi, lfmin)
@@ -1228,7 +1238,7 @@ contains
             enddo
 
             ! Mixed layer thickness [m].
-            hml = .5_r8*(hml_tf(i-1,j) + hml_tf(i,j))
+            hml = .5_r8*(hml_tfbnd(i-1,j) + hml_tfbnd(i,j))
 
             ! Pressure of mixed layer base [kg m-1 s-2].
             pml = min(puv(1) + hml*onem, puv(kmax+1))
@@ -1492,7 +1502,7 @@ contains
             enddo
 
             ! Mixed layer thickness [m].
-            hml = .5_r8*(hml_tf(i,j-1) + hml_tf(i,j))
+            hml = .5_r8*(hml_tfbnd(i,j-1) + hml_tfbnd(i,j))
 
             ! Pressure of mixed layer base [kg m-1 s-2].
             pml = min(puv(1) + hml*(onem), puv(kmax+1))
