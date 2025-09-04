@@ -1307,7 +1307,7 @@
     <values>
       <value>.1</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Minimum interior layer thickness [m]</desc>
   </entry>
 
   <entry id="regrid_method">
@@ -1337,7 +1337,7 @@
     <values>
       <value>86400.</value>
     </values>
-    <desc>add desc</desc>
+    <desc>e-folding time scale of interface nudging during regridding [s]</desc>
   </entry>
 
   <entry id="stab_fac_limit">
@@ -1347,7 +1347,17 @@
     <values>
       <value>.75</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Limit of stability factor (actual/reference vertical potential density difference) to contrain interface nudging and activate interface smoothing</desc>
+  </entry>
+
+  <entry id="dpvar_fac">
+    <type>real</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>.75</value>
+    </values>
+    <desc>Factor determining the maximum local vertical layer thicknesses variation []</desc>
   </entry>
 
   <entry id="smooth_diff_max">
@@ -1359,7 +1369,7 @@
       <value ocn_grid="tnx0.25v4" >40000.</value>
       <value ocn_grid="tnx0.125v4">20000.</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Maximum diffusivity of interface smoothing after regridding [m2 s-1]</desc>
   </entry>
 
   <entry id="dktzu">
@@ -1369,7 +1379,7 @@
     <values>
       <value>4</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Upper layer range of the transition zone between pressure levels and isopycnic interfaces</desc>
   </entry>
 
   <entry id="dktzl">
@@ -1379,7 +1389,7 @@
     <values>
       <value>2</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Lower layer range of the transition zone between pressure levels and isopycnic interfaces</desc>
   </entry>
 
   <!-- ========================= -->
