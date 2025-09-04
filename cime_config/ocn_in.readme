@@ -71,6 +71,8 @@
 !            velocity (Bodner et al., 2023) () (f)
 ! WPUP_MIN : Minimum vertical momentum flux (Bodner et al., 2023)
 !            (m**2/s**2) (f)
+! MLBL_MAX_RATIO   : Maximum ratio between mixed and boundary layer
+!                    depths in restratification parameterizations () (f)
 ! MLRTTP   : Type of mixed layer restratification time scale. Valid
 !            types: 'variable', 'constant', 'limited' (a)
 ! RM0      : Efficiency factor of wind TKE generation in the Oberhuber

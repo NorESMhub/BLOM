@@ -477,7 +477,7 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>0.</value>
+      <value>300.</value>
     </values>
     <desc>Time-scale for running mean filter when signal is greater than filtered value (used for boundary layer thickness and vertical momentum flux)</desc>
   </entry>
@@ -487,7 +487,7 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>0.</value>
+      <value>86400.</value>
     </values>
     <desc>Time-scale for running mean filter when signal is less than filtered value (used for boundary layer thickness and vertical momentum flux)</desc>
   </entry>
@@ -550,6 +550,16 @@
       <value>1.e-7</value>
     </values>
     <desc>Minimum vertical momentum flux (Bodner et al., 2023)</desc>
+  </entry>
+
+  <entry id="mlbl_max_ratio">
+    <type>real</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>3.</value>
+    </values>
+    <desc>Maximum ratio between mixed and boundary layer depths in restratification parameterizations []</desc>
   </entry>
 
   <entry id="mlrttp">
