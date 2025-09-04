@@ -30,6 +30,7 @@ module mod_io_input
    use pio               , only : pio_read_darray, pio_setframe, pio_fill_double, pio_get_att, pio_inq_att
    use pio               , only : PIO_BCAST_ERROR, PIO_RETURN_ERROR, PIO_NOERR, PIO_INTERNAL_ERROR
    use mod_xc            , only : mnproc, lp
+   use ocn_pio_share     , only : pio_subsystem, io_type, io_format
 
    implicit none
    private
@@ -40,9 +41,6 @@ module mod_io_input
    private :: set_iodesc
 
    type(ESMF_DynamicMask)         :: dynamicOcnMask
-   type(iosystem_desc_t), pointer :: pio_subsystem => null()     ! pio info
-   integer                        :: io_type                     ! pio info
-   integer                        :: io_format                   ! pio info
    logical                        :: debug = .false.
 
    character(len=*), parameter :: u_FILE_u = &
@@ -111,14 +109,6 @@ contains
       ! nullify local pointers
       nullify(dataptr1d)
       nullify(dataptr2d)
-
-      ! ******************************************************************************
-      ! Initialize PIO
-      ! ******************************************************************************
-
-      pio_subsystem => shr_pio_getiosys('OCN')
-      io_type       =  shr_pio_getiotype('OCN')
-      io_format     =  shr_pio_getioformat('OCN')
 
       ! ******************************************************************************
       ! Open file
