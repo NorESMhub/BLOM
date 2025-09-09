@@ -94,6 +94,7 @@ contains
                               iprefdoc,iprefdocsl,iprefdocsr,iprefdocr
     use mo_netcdf_bgcrw,only: write_netcdf_var,netcdf_def_vardb
 #ifdef PNETCDF
+    use mod_types,      only: i4
     use mod_xc,         only: mpicomm
 #endif
 
@@ -129,7 +130,7 @@ contains
 #   include <pnetcdf.inc>
 #   include <mpif.h>
     integer(kind=MPI_OFFSET_KIND) :: clen
-    integer*4 ,save               :: info=MPI_INFO_NULL
+    integer(i4) ,save             :: info=MPI_INFO_NULL
 #endif
 
     ! pass tracer fields in from ocean model, note that both timelevels

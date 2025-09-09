@@ -20,6 +20,8 @@
 
 module mod_wtime
 
+  use mod_types,  only: r8
+
   implicit none
   public
 
@@ -27,31 +29,31 @@ contains
 
 #if defined(AIX)
 
-  real*8 function wtime()
+  real(r8) function wtime()
     ! use the function  rtc  to return wall time.
-    real*8 rtc
+    real(r8) rtc
     wtime = rtc()
   end function wtime
 
 #elif defined(MPI)
 
-  real*8 function wtime()
+  real(r8) function wtime()
     ! use the mpi function  mpi_wtime  to return wall time.
-    real*8 mpi_wtime
+    real(r8) mpi_wtime
     wtime = mpi_wtime()
   end function wtime
 
 #else
 
-  real*8 function wtime()
+  real(r8) function wtime()
     ! use the f90 intrinsic  system_clock  to return wall time.
     ! will fail if the count is ever negative, but the standard
     ! says that it is aways non-negative if a clock exists.
     ! not thread-safe, unless lcount and iover are threadprivate.
-    real*8, parameter :: zero= 0.0
-    real*8, parameter :: one = 1.0
+    real(r8), parameter :: zero= 0.0
+    real(r8), parameter :: one = 1.0
     integer :: count, mcount, rate
-    real*8 , save :: offsec, offset, persec
+    real(r8) , save :: offsec, offset, persec
     integer, save :: icount, iover,  lcount, ncount
     data iover, lcount / -1, -1 /
     !

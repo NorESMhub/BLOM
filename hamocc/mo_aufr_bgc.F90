@@ -105,6 +105,7 @@ CONTAINS
     use mo_param_bgc,       only: bifr13_ini,bifr14_ini,c14fac,re1312,re14to,prei13,prei14
     use mo_netcdf_bgcrw,    only: read_netcdf_var
 #ifdef PNETCDF
+    use mod_types,          only: i4
     use mod_xc,             only: mpicomm
 #endif
 
@@ -139,7 +140,7 @@ CONTAINS
 #ifdef PNETCDF
 #   include <pnetcdf.inc>
 #   include <mpif.h>
-    integer*4, save  :: info=MPI_INFO_NULL
+    integer(i4), save  :: info=MPI_INFO_NULL
 #endif
     character(len=3) :: stripestr
     character(len=9) :: stripestr2
