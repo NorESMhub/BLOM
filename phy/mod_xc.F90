@@ -774,7 +774,7 @@ contains
   !-----------------------------------------------------------------------
   subroutine xclput4(aline,nl, a, i1,j1,iinc,jinc)
 
-    integer, intent(in)    ::  nl,i1,j1,iinc,jinc
+    integer,   intent(in)    ::  nl,i1,j1,iinc,jinc
     real(r4),  intent(in)    ::  aline(nl)
     real(r4),  intent(inout) ::  a(ii,jj)
 

@@ -31,7 +31,7 @@ contains
 
   real(r8) function wtime()
     ! use the function  rtc  to return wall time.
-    real(r8) rtc
+    real(r8) :: rtc
     wtime = rtc()
   end function wtime
 
@@ -39,7 +39,7 @@ contains
 
   real(r8) function wtime()
     ! use the mpi function  mpi_wtime  to return wall time.
-    real(r8) mpi_wtime
+    real(r8) :: mpi_wtime
     wtime = mpi_wtime()
   end function wtime
 
