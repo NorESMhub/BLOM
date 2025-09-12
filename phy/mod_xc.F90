@@ -22,6 +22,7 @@
 module mod_xc
 
   ! Note that dimensions.F is auto-generated
+  use mod_types,  only: i2, r4
   use dimensions, only: idm,jdm,kdm,itdm,jtdm,iqr,jqr,ijqr,&
                         ii_pe,jj_pe,i0_pe,j0_pe,nreg
   use mod_wtime,  only: wtime
@@ -773,9 +774,9 @@ contains
   !-----------------------------------------------------------------------
   subroutine xclput4(aline,nl, a, i1,j1,iinc,jinc)
 
-    integer, intent(in)    ::  nl,i1,j1,iinc,jinc
-    real*4,  intent(in)    ::  aline(nl)
-    real*4,  intent(inout) ::  a(ii,jj)
+    integer,   intent(in)    ::  nl,i1,j1,iinc,jinc
+    real(r4),  intent(in)    ::  aline(nl)
+    real(r4),  intent(inout) ::  a(ii,jj)
 
     !-----------
     !  1) fill a line of elements in the non-tiled 2-D grid.
@@ -3296,17 +3297,17 @@ contains
 
   !-----------------------------------------------------------------------
   subroutine xcgetrow4(outm,inm, kt)
-    integer, intent(in)      :: kt
-    real*4,    intent(out)   :: outm(itdm,jj,kt)
-    real*4,    intent(in)    :: inm(ii,jj,kt)
+    integer,   intent(in)    :: kt
+    real(r4),  intent(out)   :: outm(itdm,jj,kt)
+    real(r4),  intent(in)    :: inm(ii,jj,kt)
 
     !-----------
     !  convert an entire 2-D array from tiled to non-tiled layout.
     !-----------
 
-    integer :: mpireqb(ipr)
-    real*4  :: at(idm*jdm*2*kk),ata(idm*jdm*2*kk,iqr)
-    integer :: i,j,k,l,mp
+    integer  :: mpireqb(ipr)
+    real(r4) :: at(idm*jdm*2*kk),ata(idm*jdm*2*kk,iqr)
+    integer  :: i,j,k,l,mp
 
     !  gather each row of tiles onto the first tile in the row.
     if (mproc == mpe_1(nproc)) then
@@ -3356,17 +3357,17 @@ contains
 
   !-----------------------------------------------------------------------
   subroutine xcgetrowint2(outm,inm, kt)
-    integer,   intent(in)  :: kt
-    integer*2, intent(out) :: outm(itdm,jj,kt)
-    integer*2, intent(in)  :: inm(ii,jj,kt)
+    integer,   intent(in)    :: kt
+    integer(i2), intent(out) :: outm(itdm,jj,kt)
+    integer(i2), intent(in)  :: inm(ii,jj,kt)
 
     !-----------
     ! convert an entire 2-D array from tiled to non-tiled layout.
     !-----------
 
-    integer   :: mpireqb(ipr)
-    integer*2 :: at(idm*jdm*kt),ata(idm*jdm*kt,iqr)
-    integer   :: i,j,k,l,mp,np
+    integer     :: mpireqb(ipr)
+    integer(i2) :: at(idm*jdm*kt),ata(idm*jdm*kt,iqr)
+    integer     :: i,j,k,l,mp,np
 
     !     gather each row of tiles onto the first tile in the row.
 

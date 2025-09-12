@@ -129,7 +129,7 @@ contains
 #   include <pnetcdf.inc>
 #   include <mpif.h>
     integer(kind=MPI_OFFSET_KIND) :: clen
-    integer*4 ,save               :: info=MPI_INFO_NULL
+    integer, save                 :: info=MPI_INFO_NULL
 #endif
 
     ! pass tracer fields in from ocean model, note that both timelevels

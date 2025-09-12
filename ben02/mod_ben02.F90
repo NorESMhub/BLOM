@@ -321,8 +321,8 @@ contains
     character :: filename*(*)
 
     integer :: status,ncid,varid,i,j
-    real*4 r4lon(atm_idm),r4lat(atm_jdm)
-    integer*2 i2field(atm_idm,atm_jdm)
+    real(r4) :: r4lon(atm_idm),r4lat(atm_jdm)
+    integer(i2) :: i2field(atm_idm,atm_jdm)
 
     ! --- Open netcdf file.
     status = nf90_open(filename,nf90_nowrite,ncid)
@@ -408,7 +408,7 @@ contains
     character :: filename*(*)
 
     integer :: status,ncid,varid,i,j
-    real*4 r4field(atm_idm,atm_jdm)
+    real(r4) :: r4field(atm_idm,atm_jdm)
 
     ! --- Open netcdf file.
     status = nf90_open(filename,nf90_nowrite,ncid)
@@ -468,9 +468,9 @@ contains
 
     integer :: status,ncid,dimid,atm_idm_t,atm_jdm_t,timeid,varid, &
          vartype,start(3),count(3),stride(3),i,j
-    integer*2 i2field(atm_idm,atm_jdm),i2_mval
+    integer(i2) :: i2field(atm_idm,atm_jdm),i2_mval
     real :: time
-    real*4 offset,scale_factor
+    real(r4) :: offset,scale_factor
 
     ! --- open netcdf file
     status = nf90_open(filename,nf90_nowrite,ncid)
@@ -910,7 +910,7 @@ contains
           do n = 1,atm_nwgt
             is = atm_iwgt(n,it,jt)
             js = atm_jwgt(n,it,jt)
-            if (atm_mask(is,js) == 1.and. &
+            if (atm_mask(is,js) == 1 .and. &
                  adata(is,js) /= atm_mval) then
               w = atm_wgt(n,it,jt)
               w_sum = w_sum+w
@@ -1926,7 +1926,7 @@ contains
     ! --- ------------------------------------------------------------------
 
     real, dimension(atm_idm,atm_jdm) :: atm_field
-    real*4, dimension(atm_idm,atm_jdm) :: atm_field_r4
+    real(r4), dimension(atm_idm,atm_jdm) :: atm_field_r4
     real, dimension(itdm,jtdm) :: tmp2d
     integer :: i,j,k,nfu
 
@@ -1978,7 +1978,7 @@ contains
     ! --- ------------------------------------------------------------------
 
     real, dimension(atm_idm,atm_jdm) :: atm_field
-    real*4, dimension(atm_idm,atm_jdm) :: atm_field_r4
+    real(r4), dimension(atm_idm,atm_jdm) :: atm_field_r4
     real, dimension(itdm,jtdm) :: tmp2d
     real :: dx2,dy2
     integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: smtmsk
@@ -2088,15 +2088,15 @@ contains
 
     real, allocatable, dimension(:,:,:) :: atm_sktclm
     real, allocatable, dimension(:,:) :: atm_field
-    real*4, allocatable, dimension(:,:) :: atm_field_r4
+    real(r4), allocatable, dimension(:,:) :: atm_field_r4
     real, dimension(itdm,jtdm) :: tmp2d
     integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12) :: smtmsk
     real :: dx2,dy2,prc_sum,eva_sum,rnf_sum,swa_sum,lwa_sum,lht_sum, &
          sht_sum,fwf_fac,dangle,garea,le,albedo,fac,swa_ave,lwa_ave, &
          lht_ave,sht_ave,crnf,cswa
-    real*4 :: rw4
+    real(r4) :: rw4
     integer :: i,j,k,l,il,jl,nfu
-    integer*2 :: rn2,ri2,rj2
+    integer(i2) :: rn2,ri2,rj2
 
     ! --- Allocate memory for additional monthly forcing fields.
     allocate(taud  (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12), &
@@ -2921,9 +2921,9 @@ contains
     ! --- ------------------------------------------------------------------
 
     real :: dx2,dy2
-    real*4 :: rw4
+    real(r4) :: rw4
     integer :: errstat,i,j,k,l,nfu
-    integer*2 :: rn2,ri2,rj2
+    integer(i2) :: rn2,ri2,rj2
 
     ! --- Allocate memory for daily forcing fields.
     allocate(taud  (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &
