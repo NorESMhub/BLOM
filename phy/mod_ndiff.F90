@@ -825,22 +825,24 @@ contains
         if (p_nslp_dst > p_nslp_src(1)) exit
         nslpxy(i_p,j_p,kd) = nslp_src(1)
       enddo
-      ks = 1
-      interp_loop: do
-        do while (p_nslp_dst > p_nslp_src(ks))
-          if (ks == nns) exit interp_loop
-          ks = ks + 1
+      if (kd <= kk) then
+        ks = 1
+        interp_loop: do
+          do while (p_nslp_dst > p_nslp_src(ks))
+            if (ks == nns) exit interp_loop
+            ks = ks + 1
+          enddo
+          q = (p_nslp_src(ks) - p_nslp_dst) &
+               /max(p_nslp_src(ks) - p_nslp_src(ks-1), epsilp)
+          nslpxy(i_p,j_p,kd) = q*nslp_src(ks-1) + (1._r8 - q)*nslp_src(ks)
+          kd = kd + 1
+          if (kd > kk) exit
+          p_nslp_dst = .5_r8*(p_dst_m(kd) + p_dst_p(kd))
+        enddo interp_loop
+        do kd = kd, kk
+          nslpxy(i_p,j_p,kd) = nslp_src(nns)
         enddo
-        q = (p_nslp_src(ks) - p_nslp_dst) &
-             /max(p_nslp_src(ks) - p_nslp_src(ks-1), epsilp)
-        nslpxy(i_p,j_p,kd) = q*nslp_src(ks-1) + (1._r8 - q)*nslp_src(ks)
-        kd = kd + 1
-        if (kd > kk) exit
-        p_nslp_dst = .5_r8*(p_dst_m(kd) + p_dst_p(kd))
-      enddo interp_loop
-      do kd = kd, kk
-        nslpxy(i_p,j_p,kd) = nslp_src(nns)
-      enddo
+      endif
     endif
 
   end subroutine ndiff_flx

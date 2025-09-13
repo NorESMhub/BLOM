@@ -64,7 +64,6 @@ contains
 
     ! Local variables
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: tfrz, tfrzm, vrtsfl
-    real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ntr) :: trflxc_aw
     integer :: i,j,k,l,m1,m2,m3,m4,m5,ntld,kn,kl,nt
     real :: y,dpotl,hotl,totl,sotl,tice_f,fwflx,sstc,rice,dpmxl,hmxl
     real :: tmxl,trxflx,pbot,dprsi,sssc,smxl,srxflx,sflxc
@@ -167,7 +166,6 @@ contains
               if (use_TKE) then
                 if (nt == itrtke) then
                   trflx(nt,i,j) = 0.
-                  trflxc_aw(i,j,nt) = 0.
                   cycle
                 end if
                 if (use_GLS) then
@@ -175,22 +173,16 @@ contains
                     trflx(nt,i,j) = -gls_n*difdia(i,j,1)*(gls_cmu0**gls_p) &
                          *(trc(i,j,k1n,itrtke)**gls_m) &
                          *(vonKar**gls_n)*Zos**(gls_n-1.)
-                    trflxc_aw(i,j,nt) = 0.
                     cycle
                   end if
                 else
                   if (nt == itrgls) then
                     trflx(nt,i,j) = 0.
-                    trflxc_aw(i,j,nt) = 0.
                     cycle
                   end if
                 end if
               end if
               trflx(nt,i,j) = -trc(i,j,k1n,nt)*fwflx
-              trflxc_aw(i,j,nt) = -(trflx(nt,i,j) &
-                                   +trc_corr(i,j,nt)/(2.*baclin)) &
-                                   *scp2(i,j)
-              trc_corr(i,j,nt) = 0.
             end do
           end if
 
@@ -392,7 +384,18 @@ contains
         if (use_TKE) then
           if (nt == itrtke.or.nt == itrgls) cycle
         end if
-        call xcsum(trflxc,trflxc_aw(1-nbdy,1-nbdy,nt),ips)
+        !$omp parallel do private(l,i)
+        do j = 1,jj
+          do l = 1,isp(j)
+            do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
+              util1(i,j) = -(trflx(nt,i,j)+trc_corr(i,j,nt)/(2.*baclin)) &
+                            *scp2(i,j)
+              trc_corr(i,j,nt) = 0.
+            end do
+          end do
+        end do
+        !$omp end parallel do
+        call xcsum(trflxc,util1,ips)
         trflxc = trflxc/area
         !$omp parallel do private(l,i)
         do j = 1,jj

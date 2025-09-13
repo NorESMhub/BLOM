@@ -36,6 +36,7 @@ module mod_inivar
   use mod_niw,         only: inivar_niw
   use mod_tidaldissip, only: inivar_tidaldissip
   use mod_tracers,     only: inivar_tracers
+  use mod_cesm,        only: inivar_cesm
 
   implicit none
   private
@@ -67,6 +68,7 @@ contains
     call inivar_cmnfld
     call inivar_niw
     call inivar_tidaldissip
+    call inivar_cesm
 
   end subroutine inivar
 
