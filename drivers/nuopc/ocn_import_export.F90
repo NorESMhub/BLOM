@@ -812,6 +812,8 @@ contains
                slp_da(i,j,l2ci) = mval
                abswnd_da(i,j,l2ci) = mval
                ficem_da(i,j,l2ci) = mval
+               atmnhxdep_da(i,j,l2ci) = mval
+               atmnoydep_da(i,j,l2ci) = mval
             elseif (cplmsk(i,j) == 0) then
                lip_da(i,j,l2ci) = 0._r8
                sop_da(i,j,l2ci) = 0._r8
@@ -826,6 +828,8 @@ contains
                slp_da(i,j,l2ci) = fval
                abswnd_da(i,j,l2ci) = fval
                ficem_da(i,j,l2ci) = fval
+               atmnhxdep_da(i,j,l2ci) = 0._r8
+               atmnoydep_da(i,j,l2ci) = 0._r8
             else
                n = (j - 1)*ii + i
                afac = med2mod_areacor(n)
@@ -973,6 +977,27 @@ contains
          enddo
          !$omp end parallel do
 
+      else
+         !$omp parallel do private(i)
+         do j = 1, jj
+            do i = 1, ii
+               if (ip(i,j) == 0) then
+                  lamult_da(i,j,l2ci) = mval
+                  lasl_da(i,j,l2ci) = mval
+                  ustokes_da(i,j,l2ci) = mval
+                  vstokes_da(i,j,l2ci) = mval
+               else
+                  lamult_da(i,j,l2ci) = 0._r8
+                  lasl_da(i,j,l2ci) = 0._r8
+                  ustokes_da(i,j,l2ci) = 0._r8
+                  vstokes_da(i,j,l2ci) = 0._r8
+               endif
+            enddo
+         enddo
+         !$omp end parallel do
+         if (mnproc == 1 .and. first_call)  then
+            write(lp,*) subname//': wave fields not obtained from mediator'
+         endif
       end if
 
       ! CO2 flux
@@ -1011,7 +1036,7 @@ contains
                if (ip(i,j) == 0) then
                   atmco2_da(i,j,l2ci) = mval
                else
-                  atmco2_da(i,j,l2ci) = -1
+                  atmco2_da(i,j,l2ci) = -1._r8
                endif
             enddo
          enddo
