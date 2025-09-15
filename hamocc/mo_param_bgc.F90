@@ -390,7 +390,7 @@ module mo_param_bgc
   real(rp), protected :: NOB2AOAy      = 0.44_rp     ! Ratio of NOB versus AOA yield per energy source ~0.043/0.098 according to Zakem et al. 2022
 
   ! === Denitrification step NO3 -> NO2:
-  real(rp), protected :: rano3denit    = 0.0002_rp   ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
+  real(rp), protected :: rano3denit    = 0.00014_rp   ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
   real(rp), protected :: q10ano3denit  = 2._rp       ! Q10 factor for denitrification on NO3 (-)
   real(rp), protected :: Trefano3denit = 10._rp      ! Reference temperature for denitrification on NO3 (degr C)
   real(rp), protected :: sc_ano3denit  = 0.12e6_rp   ! Shape factor for NO3 denitrification oxygen inhibition function (m3/kmol)
@@ -413,14 +413,14 @@ module mo_param_bgc
   real(rp), protected :: bkano2denit   = 5.6e-6_rp   ! Half-saturation constant for denitrification on NO2 (kmol/m3)
 
   ! === DNRA NO2 -> NH4
-  real(rp), protected :: rdnra         = 0.0002_rp   ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
+  real(rp), protected :: rdnra         = 0.0001_rp   ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
   real(rp), protected :: q10dnra       = 2._rp       ! Q10 factor for DNRA on NO2 (-)
   real(rp), protected :: Trefdnra      = 10._rp      ! Reference temperature for DNRA (degr C)
   real(rp), protected :: bkoxdnra      = 2.5e-6_rp   ! Half saturation constant for (quadratic) oxygen inhibition function of DNRA on NO2 (kmol/m3)
   real(rp), protected :: bkdnra        = 0.05e-6_rp  ! Half-saturation constant for DNRA on NO2 (kmol/m3)
 
   ! === Denitrification step N2O -> N2
-  real(rp), protected :: ran2odenit    = 0.0002_rp  ! Maximum growth rate denitrification on N2O at reference T (1/d -> 1/dt)
+  real(rp), protected :: ran2odenit    = 0.00035_rp  ! Maximum growth rate denitrification on N2O at reference T (1/d -> 1/dt)
   real(rp), protected :: q10an2odenit  = 3._rp       ! Q10 factor for denitrificationj on N2O (-)
   real(rp), protected :: Trefan2odenit = 10._rp      ! Reference temperature for denitrification on N2O (degr C)
   real(rp), protected :: bkoxan2odenit = 10.e-6_rp   ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on N2O (kmol/m3)
