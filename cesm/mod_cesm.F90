@@ -25,7 +25,7 @@ module mod_cesm
 ! ------------------------------------------------------------------------------
 
    use mod_types,      only: r8
-   use mod_constants,  only: pi
+   use mod_constants,  only: pi, spval
    use mod_time,       only: nstep
    use mod_xc
    use mod_forcing,    only: trxday, srxday, swa, nsf, lip, sop, eva, rnf, rfi, &
@@ -103,25 +103,66 @@ module mod_cesm
    public :: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm, nstep_in_cpl, hmlt, &
              frzpot, mltpot, swa_da, nsf_da, hmlt_da, lip_da, sop_da, eva_da, &
              rnf_da, rfi_da, fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da, &
-             slp_da, abswnd_da, ficem_da, lamult_da, lasl_da, flxdms_da, flxbrf_da, &
-             ustokes_da, vstokes_da, atmco2_da, atmbrf_da,atmn2o_da,atmnh3_da,&
-             atmnhxdep_da,atmnoydep_da, &
-             smtfrc, l1ci, l2ci,inicon_cesm, inifrc_cesm, getfrc_cesm
+             slp_da, abswnd_da, ficem_da, lamult_da, lasl_da, flxdms_da, &
+             flxbrf_da, ustokes_da, vstokes_da, atmco2_da, atmbrf_da, &
+             atmn2o_da, atmnh3_da, atmnhxdep_da,atmnoydep_da, smtfrc, &
+             l1ci, l2ci, inivar_cesm, inicon_cesm, inifrc_cesm, getfrc_cesm
 
 contains
+
+   subroutine inivar_cesm
+   ! ---------------------------------------------------------------------------
+   ! Initialize arrays.
+   ! ---------------------------------------------------------------------------
+
+      hmlt(:,:) = spval
+      frzpot(:,:) = spval
+      mltpot(:,:) = spval
+      swa_da(:,:,:) = spval
+      nsf_da(:,:,:) = spval
+      hmlt_da(:,:,:) = spval
+      lip_da(:,:,:) = spval
+      sop_da(:,:,:) = spval
+      eva_da(:,:,:) = spval
+      rnf_da(:,:,:) = spval
+      rfi_da(:,:,:) = spval
+      fmltfz_da(:,:,:) = spval
+      sfl_da(:,:,:) = spval
+      ztx_da(:,:,:) = spval
+      mty_da(:,:,:) = spval
+      ustarw_da(:,:,:) = spval
+      slp_da(:,:,:) = spval
+      abswnd_da(:,:,:) = spval
+      ficem_da(:,:,:) = spval
+      lamult_da(:,:,:) = spval
+      lasl_da(:,:,:) = spval
+      ustokes_da(:,:,:) = spval
+      vstokes_da(:,:,:) = spval
+      atmco2_da(:,:,:) = spval
+      atmbrf_da(:,:,:) = spval
+      flxdms_da(:,:,:) = spval
+      flxbrf_da(:,:,:) = spval
+      atmn2o_da(:,:,:) = spval
+      atmnh3_da(:,:,:) = spval
+      atmnhxdep_da(:,:,:) = spval
+      atmnoydep_da(:,:,:) = spval
+
+   end subroutine inivar_cesm
 
    subroutine inicon_cesm
    ! ---------------------------------------------------------------------------
    ! Set initial conditions for variables specifically when coupled to CESM.
    ! ---------------------------------------------------------------------------
 
-      integer :: i, j
+      integer :: i, j, l
 
-      !$omp parallel do private(i)
-      do j = 1, jj
-         do i = 1, ii
+      !$omp parallel do private(l,i)
+      do j = 1,jj
+         do l = 1,isp(j)
+         do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
             frzpot(i, j) = 0._r8
             mltpot(i, j) = 0._r8
+         enddo
          enddo
       enddo
       !$omp end parallel do
@@ -197,9 +238,9 @@ contains
            ustokes(i, j) = w1*ustokes_da(i, j, l1ci) + w2*ustokes_da(i, j, l2ci)
            vstokes(i, j) = w1*vstokes_da(i, j, l1ci) + w2*vstokes_da(i, j, l2ci)
            atmco2(i, j)  = w1*atmco2_da(i, j, l1ci)  + w2*atmco2_da(i, j, l2ci)
-           atmbrf(i, j)  = w1*atmbrf_da(i, j, l1ci)  + w2*atmbrf_da(i, j, l2ci)
-           atmn2o(i, j)  = w1*atmn2o_da(i, j, l1ci)  + w2*atmn2o_da(i, j, l2ci)
-           atmnh3(i, j)  = w1*atmnh3_da(i, j, l1ci)  + w2*atmnh3_da(i, j, l2ci)
+           atmbrf(i, j)  = - 1._r8
+           atmn2o(i, j)  = - 1._r8
+           atmnh3(i, j)  = - 1._r8
            atmnhxdep(i, j)  = w1*atmnhxdep_da(i, j, l1ci)  + w2*atmnhxdep_da(i, j, l2ci)
            atmnoydep(i, j)  = w1*atmnoydep_da(i, j, l1ci)  + w2*atmnoydep_da(i, j, l2ci)
         enddo
