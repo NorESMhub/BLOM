@@ -35,7 +35,7 @@ module mod_tmsmt
   use mod_constants, only: epsilp, spval
   use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml
   use mod_state,     only: dp, dpu, dpv, temp, saln, p, pb
-  use mod_checksum,  only: csdiag, chksummsk
+  use mod_checksum,  only: csdiag, chksum
   use mod_tracers,   only: ntr, trc, trcold
   use mod_ifdefs,    only: use_TRC
 
@@ -150,8 +150,8 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'inivar_tmsmt:'
       end if
-      call chksummsk(dpuold,iu,kk,'dpuold')
-      call chksummsk(dpvold,iv,kk,'dpvold')
+      call chksum(dpuold, kk, halo_us, 'dpuold')
+      call chksum(dpvold, kk, halo_vs, 'dpvold')
     end if
 
   end subroutine inivar_tmsmt
@@ -169,6 +169,7 @@ contains
     ! Local variables
     integer :: nt
     integer :: i,j,k,l,km
+    character(len = 2) cnt
 
     !$omp parallel do private(k,km,l,i,nt)
     do j = 1,jj
@@ -193,14 +194,13 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'initms:'
       end if
-      call chksummsk(dpold,ip,2*kk,'dpold')
-      call chksummsk(told,ip,kk,'told')
-      call chksummsk(sold,ip,kk,'sold')
-      if (use_TRC) then
-        do nt = 1,ntr
-          call chksummsk(trcold(1-nbdy,1-nbdy,1,nt),ip,kk,'trcold')
-        end do
-      end if
+      call chksum(dpold, 2*kk, halo_ps, 'dpold')
+      call chksum(told , kk  , halo_ps, 'told' )
+      call chksum(sold , kk  , halo_ps, 'sold' )
+      do nt = 1,ntr
+        write(cnt, '(i2.2)') nt
+        call chksum(trcold(1-nbdy,1-nbdy,1,nt), kk, halo_ps, 'trcold'//cnt)
+      end do
     end if
 
   end subroutine initms
@@ -240,11 +240,11 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'tmsmt1:'
       end if
-      call chksummsk(dpold,ip,2*kk,'dpold')
-      call chksummsk(told,ip,kk,'told')
-      call chksummsk(sold,ip,kk,'sold')
-      call chksummsk(dpuold,iu,kk,'dpuold')
-      call chksummsk(dpvold,iv,kk,'dpvold')
+      call chksum(dpold , 2*kk, halo_ps, 'dpold' )
+      call chksum(told  , kk  , halo_ps, 'told'  )
+      call chksum(sold  , kk  , halo_ps, 'sold'  )
+      call chksum(dpuold, kk  , halo_us, 'dpuold')
+      call chksum(dpvold, kk  , halo_vs, 'dpvold')
     end if
 
   end subroutine tmsmt1
@@ -263,6 +263,7 @@ contains
     integer :: i,j,k,l,kn,km,kp
     real :: pold,pmid,pnew,q
     integer :: nt
+    character(len = 2) cnt
 
     !$omp parallel do private( &
     !$omp l,i,pbfaco,pbfacn,k,kn,km,kp,pold,pmid,pnew,q,nt)
@@ -387,16 +388,15 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'tmsmt2:'
       end if
-      call chksummsk(dp,ip,2*kk,'dp')
-      call chksummsk(temp,ip,2*kk,'temp')
-      call chksummsk(saln,ip,2*kk,'saln')
-      call chksummsk(dpu,iu,2*kk,'dpu')
-      call chksummsk(dpv,iv,2*kk,'dpv')
-      if (use_TRC) then
-        do nt = 1,ntr
-          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,2*kk,'trc')
-        end do
-      end if
+      call chksum(dp  , 2*kk, halo_ps, 'dp'  )
+      call chksum(temp, 2*kk, halo_ps, 'temp')
+      call chksum(saln, 2*kk, halo_ps, 'saln')
+      call chksum(dpu , 2*kk, halo_us, 'dpu' )
+      call chksum(dpv , 2*kk, halo_vs, 'dpv' )
+      do nt = 1,ntr
+        write(cnt, '(i2.2)') nt
+        call chksum(trc(1-nbdy,1-nbdy,1,nt), 2*kk, halo_ps, 'trc'//cnt)
+      end do
     end if
 
   end subroutine tmsmt2

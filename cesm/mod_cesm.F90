@@ -38,7 +38,7 @@ module mod_cesm
    use mod_rdcsss,     only: rdcsss
    use mod_idarlx,     only: idarlx
    use mod_seaice,     only: ficem
-   use mod_checksum,   only: csdiag, chksummsk
+   use mod_checksum,   only: csdiag, chksum
 #ifdef HAMOCC
    use mo_control_bgc, only: use_bromo
 #endif
@@ -349,32 +349,32 @@ contains
          if (mnproc == 1) then
             write (lp, *) 'getfrc_cesm:'
          endif
-         call chksummsk(ustarw, ip, 1, 'ustarw')
-         call chksummsk(ztx, iu, 1, 'ztx')
-         call chksummsk(mty, iv, 1, 'mty')
-         call chksummsk(lip, ip, 1, 'lip')
-         call chksummsk(sop, ip, 1, 'sop')
-         call chksummsk(eva, ip, 1, 'eva')
-         call chksummsk(rnf, ip, 1, 'rnf')
-         call chksummsk(rfi, ip, 1, 'rfi')
-         call chksummsk(fmltfz, ip, 1, 'fmltfz')
-         call chksummsk(sfl, ip, 1, 'sfl')
-         call chksummsk(swa, ip, 1, 'swa')
-         call chksummsk(nsf, ip, 1, 'nsf')
-         call chksummsk(hmlt, ip, 1, 'hmlt')
-         call chksummsk(slp, ip, 1, 'slp')
-         call chksummsk(abswnd, ip, 1, 'abswnd')
-         call chksummsk(ficem, ip, 1, 'ficem')
-         call chksummsk(lamult, ip, 1, 'lamult')
-         call chksummsk(lasl, ip, 1, 'lasl')
-         call chksummsk(ustokes, ip, 1, 'ustokes')
-         call chksummsk(vstokes, ip, 1, 'vstokes')
-         call chksummsk(atmco2, ip, 1, 'atmco2')
-         call chksummsk(atmbrf, ip, 1, 'atmbrf')
-         call chksummsk(atmn2o, ip, 1, 'atmn2o')
-         call chksummsk(atmnh3, ip, 1, 'atmnh3')
-         call chksummsk(atmnhxdep, ip, 1, 'atmnhxdep')
-         call chksummsk(atmnoydep, ip, 1, 'atmnoydep')
+         call chksum(ustarw, 1, halo_ps, 'ustarw')
+         call chksum(ztx, 1, halo_uv, 'ztx')
+         call chksum(mty, 1, halo_vv, 'mty')
+         call chksum(lip, 1, halo_ps, 'lip')
+         call chksum(sop, 1, halo_ps, 'sop')
+         call chksum(eva, 1, halo_ps, 'eva')
+         call chksum(rnf, 1, halo_ps, 'rnf')
+         call chksum(rfi, 1, halo_ps, 'rfi')
+         call chksum(fmltfz, 1, halo_ps, 'fmltfz')
+         call chksum(sfl, 1, halo_ps, 'sfl')
+         call chksum(swa, 1, halo_ps, 'swa')
+         call chksum(nsf, 1, halo_ps, 'nsf')
+         call chksum(hmlt, 1, halo_ps, 'hmlt')
+         call chksum(slp, 1, halo_ps, 'slp')
+         call chksum(abswnd, 1, halo_ps, 'abswnd')
+         call chksum(ficem, 1, halo_ps, 'ficem')
+         call chksum(lamult, 1, halo_ps, 'lamult')
+         call chksum(lasl, 1, halo_ps, 'lasl')
+         call chksum(ustokes, 1, halo_ps, 'ustokes')
+         call chksum(vstokes, 1, halo_ps, 'vstokes')
+         call chksum(atmco2, 1, halo_ps, 'atmco2')
+         call chksum(atmbrf, 1, halo_ps, 'atmbrf')
+         call chksum(atmn2o, 1, halo_ps, 'atmn2o')
+         call chksum(atmnh3, 1, halo_ps, 'atmnh3')
+         call chksum(atmnhxdep, 1, halo_ps, 'atmnhxdep')
+         call chksum(atmnoydep, 1, halo_ps, 'atmnoydep')
       endif
 
    end subroutine getfrc_cesm

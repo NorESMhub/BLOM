@@ -46,7 +46,7 @@ module ocn_import_export
                              atmnhxdep_da, atmnoydep_da, &
                              l1ci, l2ci
    use mod_utility,    only: util1, util2
-   use mod_checksum,   only: csdiag, chksummsk
+   use mod_checksum,   only: csdiag, chksum
 #ifdef HAMOCC
    use mo_control_bgc, only: use_BROMO, ocn_co2_type
 #endif
@@ -1050,25 +1050,25 @@ contains
          if (mnproc == 1 .and. first_call) then
             write(lp,*) subname//':'
          endif
-         call chksummsk(ustarw_da(1-nbdy,1-nbdy,l2ci),ip,1,'ustarw')
-         call chksummsk(   ztx_da(1-nbdy,1-nbdy,l2ci),iu,1,'ztx')
-         call chksummsk(   mty_da(1-nbdy,1-nbdy,l2ci),iv,1,'mty')
-         call chksummsk(   lip_da(1-nbdy,1-nbdy,l2ci),ip,1,'lip')
-         call chksummsk(   sop_da(1-nbdy,1-nbdy,l2ci),ip,1,'sop')
-         call chksummsk(   eva_da(1-nbdy,1-nbdy,l2ci),ip,1,'eva')
-         call chksummsk(   rnf_da(1-nbdy,1-nbdy,l2ci),ip,1,'rnf')
-         call chksummsk(   rfi_da(1-nbdy,1-nbdy,l2ci),ip,1,'rfi')
-         call chksummsk(fmltfz_da(1-nbdy,1-nbdy,l2ci),ip,1,'fmltfz')
-         call chksummsk(   sfl_da(1-nbdy,1-nbdy,l2ci),ip,1,'sfl')
-         call chksummsk(   swa_da(1-nbdy,1-nbdy,l2ci),ip,1,'swa')
-         call chksummsk(   nsf_da(1-nbdy,1-nbdy,l2ci),ip,1,'nsf')
-         call chksummsk(  hmlt_da(1-nbdy,1-nbdy,l2ci),ip,1,'hmlt')
-         call chksummsk(   slp_da(1-nbdy,1-nbdy,l2ci),ip,1,'slp')
-         call chksummsk(abswnd_da(1-nbdy,1-nbdy,l2ci),ip,1,'abswnd')
-         call chksummsk( ficem_da(1-nbdy,1-nbdy,l2ci),ip,1,'ficem')
-         call chksummsk(atmco2_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmco2')
-         call chksummsk(atmnhxdep_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmnhxdep')
-         call chksummsk(atmnoydep_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmnoydep')
+         call chksum(ustarw_da   (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'ustarw'   )
+         call chksum(ztx_da      (1-nbdy,1-nbdy,l2ci), 1, halo_uv, 'ztx'      )
+         call chksum(mty_da      (1-nbdy,1-nbdy,l2ci), 1, halo_vv, 'mty'      )
+         call chksum(lip_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'lip'      )
+         call chksum(sop_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'sop'      )
+         call chksum(eva_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'eva'      )
+         call chksum(rnf_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'rnf'      )
+         call chksum(rfi_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'rfi'      )
+         call chksum(fmltfz_da   (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'fmltfz'   )
+         call chksum(sfl_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'sfl'      )
+         call chksum(swa_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'swa'      )
+         call chksum(nsf_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'nsf'      )
+         call chksum(hmlt_da     (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'hmlt'     )
+         call chksum(slp_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'slp'      )
+         call chksum(abswnd_da   (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'abswnd'   )
+         call chksum(ficem_da    (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'ficem'    )
+         call chksum(atmco2_da   (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'atmco2'   )
+         call chksum(atmnhxdep_da(1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'atmnhxdep')
+         call chksum(atmnoydep_da(1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'atmnoydep')
       endif
 
       if (first_call) then

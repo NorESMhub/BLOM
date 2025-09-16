@@ -41,7 +41,7 @@ module mod_inigeo
                                   area, nwp, inivar_grid
   use mod_utility,          only: util1, util2
   use mod_dia,              only: iotype
-  use mod_checksum,         only: csdiag, chksummsk
+  use mod_checksum,         only: csdiag, chksum
   use mod_bigrid,           only: bigrid
   use mod_fill_global,      only: fill_global
   use mod_nctools
@@ -359,32 +359,32 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'inigeo:'
       end if
-      call chksummsk(depths,ip,1,'depths')
-      call chksummsk(plat,ip,1,'plat')
-      call chksummsk(plon,ip,1,'plon')
-      call chksummsk(pclat,ip,4,'pclat')
-      call chksummsk(pclon,ip,4,'pclon')
-      call chksummsk(corioq,iq,1,'corioq')
-      call chksummsk(coriop,ip,1,'coriop')
-      call chksummsk(betafp,ip,1,'betafp')
-      call chksummsk(scqx,iq,1,'scqx')
-      call chksummsk(scqy,iq,1,'scqy')
-      call chksummsk(scpx,ip,1,'scpx')
-      call chksummsk(scpy,ip,1,'scpy')
-      call chksummsk(scux,iu,1,'scux')
-      call chksummsk(scuy,iu,1,'scuy')
-      call chksummsk(scvx,iv,1,'scvx')
-      call chksummsk(scvy,iv,1,'scvy')
-      call chksummsk(scq2,iq,1,'scq2')
-      call chksummsk(scp2,ip,1,'scp2')
-      call chksummsk(scu2,iu,1,'scu2')
-      call chksummsk(scv2,iv,1,'scv2')
-      call chksummsk(scp2i,ip,1,'scp2i')
-      call chksummsk(scq2i,iq,1,'scq2i')
-      call chksummsk(scuxi,iu,1,'scuxi')
-      call chksummsk(scvyi,iv,1,'scvyi')
-      call chksummsk(scuyi,iu,1,'scuyi')
-      call chksummsk(scvxi,iv,1,'scvxi')
+      call chksum(depths, 1, halo_ps, 'depths')
+      call chksum(plat  , 1, halo_ps, 'plat'  )
+      call chksum(plon  , 1, halo_ps, 'plon'  )
+      call chksum(pclat , 4, halo_ps, 'pclat' )
+      call chksum(pclon , 4, halo_ps, 'pclon' )
+      call chksum(corioq, 1, halo_qs, 'corioq')
+      call chksum(coriop, 1, halo_ps, 'coriop')
+      call chksum(betafp, 1, halo_ps, 'betafp')
+      call chksum(scqx  , 1, halo_qs, 'scqx'  )
+      call chksum(scqy  , 1, halo_qs, 'scqy'  )
+      call chksum(scpx  , 1, halo_ps, 'scpx'  )
+      call chksum(scpy  , 1, halo_ps, 'scpy'  )
+      call chksum(scux  , 1, halo_us, 'scux'  )
+      call chksum(scuy  , 1, halo_us, 'scuy'  )
+      call chksum(scvx  , 1, halo_vs, 'scvx'  )
+      call chksum(scvy  , 1, halo_vs, 'scvy'  )
+      call chksum(scq2  , 1, halo_qs, 'scq2'  )
+      call chksum(scp2  , 1, halo_ps, 'scp2'  )
+      call chksum(scu2  , 1, halo_us, 'scu2'  )
+      call chksum(scv2  , 1, halo_vs, 'scv2'  )
+      call chksum(scp2i , 1, halo_ps, 'scp2i' )
+      call chksum(scq2i , 1, halo_qs, 'scq2i' )
+      call chksum(scuxi , 1, halo_us, 'scuxi' )
+      call chksum(scvyi , 1, halo_vs, 'scvyi' )
+      call chksum(scuyi , 1, halo_us, 'scuyi' )
+      call chksum(scvxi , 1, halo_vs, 'scvxi' )
     end if
 
   end subroutine inigeo

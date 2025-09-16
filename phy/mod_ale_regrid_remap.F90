@@ -46,7 +46,7 @@ module mod_ale_regrid_remap
    use mod_diffusion, only: ltedtp_opt, ltedtp_neutral, difiso, difmxp
    use mod_ndiff,     only: ndiff_prep_jslice, ndiff_uflx_jslice, &
                             ndiff_vflx_jslice, ndiff_update_trc_jslice
-   use mod_checksum,  only: csdiag, chksummsk
+   use mod_checksum,  only: csdiag, chksum
    use mod_tracers,   only: ntr, trc
 
    implicit none
@@ -1370,6 +1370,7 @@ contains
                  jlb_ndiff_vflx, jlb_ndiff_update_trc, &
                  js1, js2, js3, j, nt, i, k, l, kn, errstat
       logical :: do_regrid_smooth, do_ndiff
+      character(len = 2) cnt
 
       ! ------------------------------------------------------------------------
       ! Regrid and remap tracers. Also carry out neutral diffusion if requested.
@@ -1705,17 +1706,18 @@ contains
          if (mnproc == 1) then
             write (lp,*) 'ale_regrid_remap:'
          endif
-         call chksummsk(dp   (1-nbdy,1-nbdy,k1n), ip, kk, 'dp')
-         call chksummsk(temp (1-nbdy,1-nbdy,k1n), ip, kk, 'temp')
-         call chksummsk(saln (1-nbdy,1-nbdy,k1n), ip, kk, 'saln')
-         call chksummsk(sigma(1-nbdy,1-nbdy,k1n), ip, kk, 'sigma')
+         call chksum(dp   (1-nbdy,1-nbdy,k1n), kk, halo_ps, 'dp'   )
+         call chksum(temp (1-nbdy,1-nbdy,k1n), kk, halo_ps, 'temp' )
+         call chksum(saln (1-nbdy,1-nbdy,k1n), kk, halo_ps, 'saln' )
+         call chksum(sigma(1-nbdy,1-nbdy,k1n), kk, halo_ps, 'sigma')
          do nt = 1, ntr
-            call chksummsk(trc(1-nbdy,1-nbdy,k1n,nt), ip, kk, 'trc')
+            write(cnt, '(i2.2)') nt
+            call chksum(trc(1-nbdy,1-nbdy,k1n,nt), kk, halo_ps, 'trc'//cnt)
          enddo
-         call chksummsk(dpu(1-nbdy,1-nbdy,k1n), iu, kk, 'dpu')
-         call chksummsk(dpv(1-nbdy,1-nbdy,k1n), iv, kk, 'dpv')
-         call chksummsk(u  (1-nbdy,1-nbdy,k1n), iu, kk, 'u')
-         call chksummsk(v  (1-nbdy,1-nbdy,k1n), iv, kk, 'v')
+         call chksum(dpu(1-nbdy,1-nbdy,k1n), kk, halo_us, 'dpu')
+         call chksum(dpv(1-nbdy,1-nbdy,k1n), kk, halo_vs, 'dpv')
+         call chksum(u  (1-nbdy,1-nbdy,k1n), kk, halo_uv, 'u'  )
+         call chksum(v  (1-nbdy,1-nbdy,k1n), kk, halo_vv, 'v'  )
       endif
 
    end subroutine ale_regrid_remap

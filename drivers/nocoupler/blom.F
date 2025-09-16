@@ -26,7 +26,7 @@ c
       use mod_time, only: nstep2, nstep
       use mod_xc
       use mod_state, only: dp
-      use mod_checksum, only: chksummsk
+      use mod_checksum, only: chksum
       use mod_blom_init, only: blom_init_phase1, blom_init_phase2
       use mod_blom_step, only: blom_step
 c
@@ -45,7 +45,8 @@ c --- advance the model from time step nstep1 to nstep2
       enddo blom_loop
 c
 c --- write check sum of layer thickness
-      call chksummsk(dp(1-nbdy,1-nbdy,1+mod(nstep2,2)*kk),ip,kk,'dp')
+      call chksum(dp(1-nbdy,1-nbdy,1+mod(nstep2,2)*kk),
+     .            kk, halo_ps, 'dp')
 c
       if (mnproc.eq.1) then
         open (newunit=nfu,file='run.status',status='unknown')

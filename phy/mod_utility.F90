@@ -25,7 +25,6 @@ module mod_utility
    use mod_types, only: r8, blom_char_x
    use mod_constants, only: spval
    use mod_xc
-   use mod_checksum, only: csdiag, chksummsk
 
    implicit none
 
@@ -149,22 +148,6 @@ contains
       call xctilr(vflux,  1, 1, nbdy, nbdy, halo_vs)
       call xctilr(vflux2, 1, 1, nbdy, nbdy, halo_vs)
       call xctilr(vflux3, 1, 1, nbdy, nbdy, halo_vs)
-
-      if (csdiag) then
-         if (mnproc == 1) then
-            write (lp, *) 'inivar_utility:'
-         endif
-!        call chksummsk(utotm, iu, 1, 'utotm')
-!        call chksummsk(vtotm, iv, 1, 'vtotm')
-!        call chksummsk(utotn, iu, 1, 'utotn')
-!        call chksummsk(vtotn, iv, 1, 'vtotn')
-!        call chksummsk(uflux, iu, 1, 'uflux')
-!        call chksummsk(vflux, iv, 1, 'vflux')
-!        call chksummsk(uflux2, iu, 1, 'uflux2')
-!        call chksummsk(vflux2, iv, 1, 'vflux2')
-!        call chksummsk(uflux3, iu, 1, 'uflux3')
-!        call chksummsk(vflux3, iv, 1, 'vflux3')
-      endif
 
    end subroutine inivar_utility
 

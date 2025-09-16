@@ -26,14 +26,15 @@ module mod_pgforc
   use dimensions,    only: idm, jdm, kdm
   use mod_xc,        only: xctilr, nbdy, ii, jj, kk, &
                            isp, ifp, ilp, isu, ifu, ilu, isv, ifv, ilv, &
-                           halo_ps, mnproc, lp, ip, iu, iv, xcstop
+                           halo_ps, halo_us, halo_vs, halo_uv, halo_vv, &
+                           mnproc, lp, ip, iu, iv, xcstop
   use mod_types,     only: r8
   use mod_constants, only: grav, epsilp, onemm, spval
   use mod_state,     only: dp, dpu, dpv, temp, saln, p, pu, pv, phi, &
                            pb_p, pbu_p, pbv_p, sealv
   use mod_eos,       only: pref, alp, p_alpha, delphi, dalpdt, dalpds, &
                            dynh_derivatives
-  use mod_checksum,  only: csdiag, chksummsk
+  use mod_checksum,  only: csdiag, chksum
 
   implicit none
   private
@@ -600,15 +601,15 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'pgforc:'
       end if
-      call chksummsk(phi   ,ip, kk+1, 'phi')
-      call chksummsk(pgfx  ,iu, 2*kk, 'pgfx')
-      call chksummsk(pgfy  ,iv, 2*kk, 'pgfy')
-      call chksummsk(pgfxm ,iu, 2,    'pgfxm')
-      call chksummsk(pgfym ,iv, 2,    'pgfym')
-      call chksummsk(xixp  ,iu, 2,    'xixp')
-      call chksummsk(xixm  ,iu, 2,    'xixm')
-      call chksummsk(xiyp  ,iv, 2,    'xiyp')
-      call chksummsk(xiym  ,iv, 2,    'xiym')
+      call chksum(phi  , kk+1, halo_ps, 'phi'  )
+      call chksum(pgfx , 2*kk, halo_uv, 'pgfx' )
+      call chksum(pgfy , 2*kk, halo_vv, 'pgfy' )
+      call chksum(pgfxm, 2   , halo_uv, 'pgfxm')
+      call chksum(pgfym, 2   , halo_vv, 'pgfym')
+      call chksum(xixp , 2   , halo_us, 'xixp' )
+      call chksum(xixm , 2   , halo_us, 'xixm' )
+      call chksum(xiyp , 2   , halo_vs, 'xiyp' )
+      call chksum(xiym , 2   , halo_vs, 'xiym' )
     end if
 
   end subroutine pgforc

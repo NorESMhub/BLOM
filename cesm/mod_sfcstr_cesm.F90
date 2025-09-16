@@ -21,7 +21,7 @@ module mod_sfcstr_cesm
 
   use mod_xc
   use mod_forcing,   only: ztx, mty, taux, tauy
-  use mod_checksum,  only: csdiag, chksummsk
+  use mod_checksum,  only: csdiag, chksum
 
   implicit none
   private
@@ -58,8 +58,8 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'sfcstr_cesm:'
       end if
-      call chksummsk(taux,iu,1,'taux')
-      call chksummsk(tauy,iv,1,'tauy')
+      call chksum(taux, 1, halo_uv, 'taux')
+      call chksum(tauy, 1, halo_vv, 'tauy')
     end if
 
   end subroutine sfcstr_cesm

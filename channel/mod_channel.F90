@@ -44,7 +44,7 @@ module mod_channel
                           fmltfz, sfl, abswnd, flxco2, flxdms, sstclm, sssclm
    !use mod_mxlayr, only: mltmin
    use mod_state, only:  temp, saln, sigma, phi
-   use mod_checksum, only: csdiag, chksummsk
+   use mod_checksum, only: csdiag, chksum
 
    implicit none
 
@@ -449,8 +449,8 @@ contains
         if (mnproc.eq.1) then
           write (lp,*) 'sfcstr:'
         endif
-        call chksummsk(taux,iu,1,'taux')
-        call chksummsk(tauy,iv,1,'tauy')
+        call chksum(taux, 1, halo_uv, 'taux')
+        call chksum(tauy, 1, halo_vv, 'tauy')
       endif
       !
       end subroutine sfcstr_channel

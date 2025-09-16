@@ -27,7 +27,7 @@ module mod_diffus
                            utflx, vtflx, usflx, vsflx
   use mod_diffusion, only: ltedtp_opt, ltedtp_neutral, difiso, &
                            utflld, vtflld, usflld, vsflld
-  use mod_checksum,  only: csdiag, chksummsk
+  use mod_checksum,  only: csdiag, chksum
   use mod_tracers,   only: ntr, itrtke, itrgls, trc, uflxtr, vflxtr
   use mod_ifdefs,    only: use_TRC, use_TKE, use_TKEIDF
 
@@ -51,6 +51,7 @@ contains
     integer :: i,j,k,l,kn,km
     real :: q
     integer :: nt
+    character(len = 2) cnt
     real :: dpeps
     parameter (dpeps = 1.e-5)
 
@@ -165,13 +166,12 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'diffus:'
       end if
-      call chksummsk(temp,ip,2*kk,'temp')
-      call chksummsk(saln,ip,2*kk,'saln')
-      if (use_TRC) then
-        do nt = 1,ntr
-          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,2*kk,'trc')
-        end do
-      end if
+      call chksum(temp, 2*kk, halo_ps, 'temp')
+      call chksum(saln, 2*kk, halo_ps, 'saln')
+      do nt = 1,ntr
+        write(cnt, '(i2.2)') nt
+        call chksum(trc(1-nbdy,1-nbdy,1,nt), 2*kk, halo_ps, 'trc'//cnt)
+      end do
     end if
 
   end subroutine diffus
