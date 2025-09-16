@@ -349,7 +349,7 @@ module mo_param_bgc
   real(rp), protected :: drempoc_anaerob = 1.25e-3_rp  ! =0.05*drempoc - remin in sub-/anoxic environm. - not be overwritten by M4AGO
   real(rp), protected :: bkox_drempoc    = 1.e-5_rp    ! half-saturation constant for oxygen for ammonification (aerobic remin via drempoc)
   real(rp), protected :: dremopal        = 0.003_rp    ! 1/d Dissolution rate for opal
-  real(rp), protected :: dremcalc        = 0.02_rp     ! 1/d Dissolution rate for CaCO3 (applied if Omega_c < 1)
+  real(rp), protected :: dremcalc        = 0.018_rp    ! 1/d Dissolution rate for CaCO3 (applied if Omega_c < 1)
   real(rp), protected :: dremn2o         = 0.01_rp     ! 1/d Remineralization rate of detritus on N2O
   real(rp), protected :: dremsul         = 0.005_rp    ! 1/d Remineralization rate for sulphate reduction
   real(rp), protected :: POM_remin_q10   = 2.1_rp      ! Bidle et al. 2002: Regulation of Oceanic Silicon...
@@ -547,9 +547,9 @@ module mo_param_bgc
   real(rp), protected :: sed_NO3thresh_sulf   = 3.e-6_rp   ! Below sed_NO3thresh_sulf 'sufate reduction' takes place
   real(rp), protected :: sedict      = 1.e-9_rp            ! m2/s Molecular diffusion coefficient
   real(rp), protected :: silsat      = 0.001_rp            ! kmol/m3 Silicate saturation concentration is 1 mol/m3
-  real(rp), protected :: disso_poc   = 1.3e-6_rp           ! 1/(kmol O2/m3 s)      Degradation rate constant of POP
+  real(rp), protected :: disso_poc   = 8.0e-7_rp           ! 1/(kmol O2/m3 s)      Degradation rate constant of POP
 ! real(rp), protected :: disso_poc   = 0.19_rp/sec_per_day ! 1/(kmol O2/m3 s)      Degradation rate constant of POP
-  real(rp), protected :: disso_sil   = 1.4e-7_rp           ! 1/(kmol Si(OH)4/m3 s) Dissolution rate constant of opal
+  real(rp), protected :: disso_sil   = 1.3e-7_rp           ! 1/(kmol Si(OH)4/m3 s) Dissolution rate constant of opal
   real(rp), protected :: disso_caco3 = 1.e-7_rp            ! 1/(kmol CO3--/m3 s) Dissolution rate constant of CaCO3
   real(rp), protected :: sed_denit   = 0.01_rp/sec_per_day ! 1/s Denitrification rate constant of POP
   real(rp), protected :: sed_sulf    = 0.01_rp/sec_per_day ! 1/s "Sulfate reduction" rate constant of POP
