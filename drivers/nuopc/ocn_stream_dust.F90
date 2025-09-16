@@ -213,7 +213,7 @@ contains
 
       use dshr_strdata_mod   , only : shr_strdata_advance
       use dshr_methods_mod   , only : dshr_fldbun_getfldptr
-      use mod_checksum       , only : csdiag, chksummsk
+      use mod_checksum       , only : csdiag, chksum
       use mo_read_fedep      , only : fedep_source
 
       ! input/output variables
@@ -289,13 +289,14 @@ contains
 
          call fill_global(mval, fval, halo_ps, dust_stream(1-nbdy,1-nbdy,nfld))
 
-         if (csdiag) then
-            if (mnproc == 1) then
-               write(lp,*) 'ocn_stream_dust_interp:'
-            end if
-            call chksummsk(dust_stream,ip,n,'dust_stream')
-         end if
       end do
+
+      if (csdiag) then
+         if (mnproc == 1) then
+            write(lp,*) 'ocn_stream_dust_interp:'
+         end if
+         call chksum(dust_stream, ndust, halo_ps, 'dust_stream')
+      end if
 
    end subroutine ocn_stream_dust_interp
 

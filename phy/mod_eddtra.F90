@@ -40,7 +40,7 @@ module mod_eddtra
    use mod_forcing,   only: ustar3, wstar3
    use mod_difest,    only: OBLdepth
    use mod_utility,   only: util1
-   use mod_checksum,  only: csdiag, chksummsk
+   use mod_checksum,  only: csdiag, chksum
 
    implicit none
 
@@ -1906,22 +1906,22 @@ contains
          if (mnproc == 1) then
             write(lp,*) 'eddtra:'
          endif
-         call chksummsk(hbl_tf, ip, 1, 'hbl_tf')
-         call chksummsk(wpup_tf, ip, 1, 'wpup_tf')
-         call chksummsk(hml_tf1, ip, 1, 'hml_tf1')
-         call chksummsk(hml_tf, ip, 1, 'hml_tf')
-         call chksummsk(umfltd(1-nbdy, 1-nbdy, k1m), iu, kk, 'umfltd')
-         call chksummsk(vmfltd(1-nbdy, 1-nbdy, k1m), iv, kk, 'vmfltd')
-         call chksummsk(umflsm(1-nbdy, 1-nbdy, k1m), iu, kk, 'umflsm')
-         call chksummsk(vmflsm(1-nbdy, 1-nbdy, k1m), iv, kk, 'vmflsm')
-         call chksummsk(utfltd(1-nbdy, 1-nbdy, k1m), iu, kk, 'utfltd')
-         call chksummsk(vtfltd(1-nbdy, 1-nbdy, k1m), iv, kk, 'vtfltd')
-         call chksummsk(utflsm(1-nbdy, 1-nbdy, k1m), iu, kk, 'utflsm')
-         call chksummsk(vtflsm(1-nbdy, 1-nbdy, k1m), iv, kk, 'vtflsm')
-         call chksummsk(usfltd(1-nbdy, 1-nbdy, k1m), iu, kk, 'usfltd')
-         call chksummsk(vsfltd(1-nbdy, 1-nbdy, k1m), iv, kk, 'vsfltd')
-         call chksummsk(usflsm(1-nbdy, 1-nbdy, k1m), iu, kk, 'usflsm')
-         call chksummsk(vsflsm(1-nbdy, 1-nbdy, k1m), iv, kk, 'vsflsm')
+         call chksum(hbl_tf , 1, halo_ps, 'hbl_tf' )
+         call chksum(wpup_tf, 1, halo_ps, 'wpup_tf')
+         call chksum(hml_tf1, 1, halo_ps, 'hml_tf1')
+         call chksum(hml_tf , 1, halo_ps, 'hml_tf' )
+         call chksum(umfltd(1-nbdy, 1-nbdy, k1m), kk, halo_uv, 'umfltd')
+         call chksum(vmfltd(1-nbdy, 1-nbdy, k1m), kk, halo_vv, 'vmfltd')
+         call chksum(umflsm(1-nbdy, 1-nbdy, k1m), kk, halo_uv, 'umflsm')
+         call chksum(vmflsm(1-nbdy, 1-nbdy, k1m), kk, halo_vv, 'vmflsm')
+         call chksum(utfltd(1-nbdy, 1-nbdy, k1m), kk, halo_uv, 'utfltd')
+         call chksum(vtfltd(1-nbdy, 1-nbdy, k1m), kk, halo_vv, 'vtfltd')
+         call chksum(utflsm(1-nbdy, 1-nbdy, k1m), kk, halo_uv, 'utflsm')
+         call chksum(vtflsm(1-nbdy, 1-nbdy, k1m), kk, halo_vv, 'vtflsm')
+         call chksum(usfltd(1-nbdy, 1-nbdy, k1m), kk, halo_uv, 'usfltd')
+         call chksum(vsfltd(1-nbdy, 1-nbdy, k1m), kk, halo_vv, 'vsfltd')
+         call chksum(usflsm(1-nbdy, 1-nbdy, k1m), kk, halo_uv, 'usflsm')
+         call chksum(vsflsm(1-nbdy, 1-nbdy, k1m), kk, halo_vv, 'vsflsm')
       endif
 
    end subroutine eddtra

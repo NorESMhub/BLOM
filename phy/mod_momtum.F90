@@ -45,7 +45,7 @@ module mod_momtum
   use mod_utility,   only: utotm, vtotm, utotn, vtotn, uflux, vflux, &
                            uflux2, vflux2, uflux3, vflux3, &
                            util1, util2, umax, vmax
-  use mod_checksum,  only: csdiag, chksummsk
+  use mod_checksum,  only: csdiag, chksum
 
   implicit none
   private
@@ -207,16 +207,6 @@ contains
 
     call xctilr(via,    1,   1, nbdy,nbdy, halo_vs)
     call xctilr(vib,    1,   1, nbdy,nbdy, halo_vs)
-
-    if (csdiag) then
-      if (mnproc == 1) then
-        write (lp,*) 'inivar_momtum:'
-      end if
-      ! call chksummsk(uja,iu,1,'uja')
-      ! call chksummsk(ujb,iu,1,'ujb')
-      ! call chksummsk(via,iv,1,'via')
-      ! call chksummsk(vib,iv,1,'vib')
-    end if
 
   end subroutine inivar_momtum
 
@@ -1281,15 +1271,15 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'momtum:'
       end if
-      call chksummsk(drag,ip,1,'drag')
-      call chksummsk(ubrhs,iu,1,'ubrhs')
-      call chksummsk(vbrhs,iv,1,'vbrhs')
-      call chksummsk(dpu,iu,2*kk,'dpu')
-      call chksummsk(dpv,iv,2*kk,'dpv')
-      call chksummsk(u,iu,2*kk,'u')
-      call chksummsk(v,iv,2*kk,'v')
-      call chksummsk(utotn,iu,1,'utotn')
-      call chksummsk(vtotn,iv,1,'vtotn')
+      call chksum(drag , 1   , halo_ps, 'drag' )
+      call chksum(ubrhs, 1   , halo_uv, 'ubrhs')
+      call chksum(vbrhs, 1   , halo_vv, 'vbrhs')
+      call chksum(dpu  , 2*kk, halo_us, 'dpu'  )
+      call chksum(dpv  , 2*kk, halo_vs, 'dpv'  )
+      call chksum(u    , 2*kk, halo_uv, 'u'    )
+      call chksum(v    , 2*kk, halo_vv, 'v'    )
+      call chksum(utotn, 1   , halo_uv, 'utotn')
+      call chksum(vtotn, 1   , halo_vv, 'vtotn')
     end if
 
   end subroutine momtum

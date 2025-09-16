@@ -39,7 +39,7 @@ module mod_thermf_channel
                            fmltfz, sfl, ustarw, surflx, surrlx, &
                            sswflx, salflx, brnflx, salrlx, ustar
   use mod_utility,   only: util1, util2, util3, util4
-  use mod_checksum,  only: csdiag, chksummsk
+  use mod_checksum,  only: csdiag, chksum
   use mod_tracers,   only: ntr, itrtke, itrgls, trc, trflx
   use mod_diffusion, only: difdia
   use mod_tke,       only: gls_cmu0, zos, gls_p, gls_m, gls_n, vonKar
@@ -357,13 +357,13 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'thermf_channel:'
       end if
-      ! call chksummsk(rnfres,ip,1,'rnfres')
-      call chksummsk(surflx,ip,1,'surflx')
-      call chksummsk(sswflx,ip,1,'sswflx')
-      call chksummsk(salflx,ip,1,'salflx')
-      call chksummsk(surrlx,ip,1,'surrlx')
-      call chksummsk(salrlx,ip,1,'salrlx')
-      call chksummsk(ustar,ip,1,'ustar')
+      ! call chksum(rnfres,ip,1,'rnfres')
+      call chksum(surflx, 1, halo_ps, 'surflx')
+      call chksum(sswflx, 1, halo_ps, 'sswflx')
+      call chksum(salflx, 1, halo_ps, 'salflx')
+      call chksum(surrlx, 1, halo_ps, 'surrlx')
+      call chksum(salrlx, 1, halo_ps, 'salrlx')
+      call chksum(ustar , 1, halo_ps, 'ustar' )
     end if
 
   end subroutine thermf_channel

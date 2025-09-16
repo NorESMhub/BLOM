@@ -41,7 +41,7 @@ module mod_thermf_cesm
                            use_stream_relaxation
   use mod_cesm,      only: hmlt, frzpot, mltpot
   use mod_utility,   only: util1, util2, util3
-  use mod_checksum,  only: csdiag, chksummsk
+  use mod_checksum,  only: csdiag, chksum
   use mod_tracers,   only: ntr, itrtke, itrgls, trc, trflx
   use mod_diffusion, only: difdia
   use mod_tke,       only: gls_cmu0, Zos, gls_p, gls_m, gls_n, vonKar
@@ -413,19 +413,19 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'thermf_cesm:'
       end if
-      call chksummsk(surflx,ip,1,'surflx')
-      call chksummsk(sswflx,ip,1,'sswflx')
-      call chksummsk(salflx,ip,1,'salflx')
-      call chksummsk(brnflx,ip,1,'brnflx')
-      call chksummsk(surrlx,ip,1,'surrlx')
-      call chksummsk(salrlx,ip,1,'salrlx')
-      call chksummsk(hmltfz,ip,1,'hmltfz')
-      call chksummsk(ustar,ip,1,'ustar')
-      call chksummsk(frzpot,ip,1,'frzpot')
-      call chksummsk(mltpot,ip,1,'mltpot')
+      call chksum(surflx, 1, halo_ps, 'surflx')
+      call chksum(sswflx, 1, halo_ps, 'sswflx')
+      call chksum(salflx, 1, halo_ps, 'salflx')
+      call chksum(brnflx, 1, halo_ps, 'brnflx')
+      call chksum(surrlx, 1, halo_ps, 'surrlx')
+      call chksum(salrlx, 1, halo_ps, 'salrlx')
+      call chksum(hmltfz, 1, halo_ps, 'hmltfz')
+      call chksum(ustar , 1, halo_ps, 'ustar' )
+      call chksum(frzpot, 1, halo_ps, 'frzpot')
+      call chksum(mltpot, 1, halo_ps, 'mltpot')
       if (vcoord_tag /= vcoord_isopyc_bulkml) then
-        call chksummsk(t_rs_nonloc, ip, kk+1, 't_rs_nonloc')
-        call chksummsk(s_rs_nonloc, ip, kk+1, 's_rs_nonloc')
+        call chksum(t_rs_nonloc, kk+1, halo_ps, 't_rs_nonloc')
+        call chksum(s_rs_nonloc, kk+1, halo_ps, 's_rs_nonloc')
       end if
     end if
 

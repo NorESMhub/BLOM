@@ -183,7 +183,7 @@ contains
       use dshr_strdata_mod , only : shr_strdata_advance
       use dshr_methods_mod , only : dshr_fldbun_getfldptr
       use mod_forcing      , only : sst_stream, ice_stream
-      use mod_checksum     , only : csdiag, chksummsk
+      use mod_checksum     , only : csdiag, chksum
 
       ! input/output variables
       type(ESMF_Clock), intent(in)  :: model_clock
@@ -268,8 +268,8 @@ contains
          if (mnproc == 1) then
             write(lp,*) 'ocn_stream_sst_interp:'
          end if
-         call chksummsk(sst_stream(1-nbdy,1-nbdy),ip,1,'sst_stream')
-         call chksummsk(ice_stream(1-nbdy,1-nbdy),ip,1,'ice_stream')
+         call chksum(sst_stream, 1, halo_ps, 'sst_stream')
+         call chksum(ice_stream, 1, halo_ps, 'ice_stream')
       end if
 
    end subroutine ocn_stream_sst_interp

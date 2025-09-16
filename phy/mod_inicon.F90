@@ -32,7 +32,8 @@ module mod_inicon
   use mod_xc,        only: xchalt, xcmax, xcbcst, xcaput, xcstop, xctilr, &
                            mnproc, lp, ii, jj, kk, isp, ifp, ilp, &
                            isu, ifu, ilu, isv, ifv, ilv, isq, ifq, ilq, &
-                           i0, j0, ip, iu, iv, iq, halo_ps, nbdy, nreg
+                           i0, j0, ip, iu, iv, iq, &
+                           halo_ps, halo_us, halo_vs, halo_qs, nbdy, nreg
   use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml, &
                            vcoord_cntiso_hybrid, sigref_spec, sigmar
   use mod_ale_regrid_remap, only: regrid_method_tag, regrid_method_direct, &
@@ -55,7 +56,7 @@ module mod_inicon
   use mod_eos,       only: rho, sig, sofsig, delphi
   use mod_swtfrz,    only: swtfrz
   use mod_pointtest, only: itest, jtest, ptest
-  use mod_checksum,  only: csdiag, chksummsk
+  use mod_checksum,  only: csdiag, chksum
   use mod_inicon_ben02, only: inicon_ben02
   use mod_utility,   only: fnmlen
   use mod_fill_global, only: fill_global
@@ -1442,17 +1443,17 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'inicon:'
       end if
-      call chksummsk(p,ip,kk+1,'p')
-      call chksummsk(dp,ip,2*kk,'dp')
-      call chksummsk(temp,ip,2*kk,'temp')
-      call chksummsk(saln,ip,2*kk,'saln')
-      call chksummsk(sigma,ip,2*kk,'sigma')
-      call chksummsk(pb,ip,3,'pb')
-      call chksummsk(pbu,iu,2,'pbu')
-      call chksummsk(pbv,iv,2,'pbv')
-      call chksummsk(pvtrop,iq,2,'pvtrop')
-      call chksummsk(pu,iu,kk+1,'pu')
-      call chksummsk(pv,iv,kk+1,'pv')
+      call chksum(p     , kk+1, halo_ps, 'p'     )
+      call chksum(dp    , 2*kk, halo_ps, 'dp'    )
+      call chksum(temp  , 2*kk, halo_ps, 'temp'  )
+      call chksum(saln  , 2*kk, halo_ps, 'saln'  )
+      call chksum(sigma , 2*kk, halo_ps, 'sigma' )
+      call chksum(pb    , 3   , halo_ps, 'pb'    )
+      call chksum(pbu   , 2   , halo_us, 'pbu'   )
+      call chksum(pbv   , 2   , halo_vs, 'pbv'   )
+      call chksum(pvtrop, 2   , halo_qs, 'pvtrop')
+      call chksum(pu    , kk+1, halo_us, 'pu'    )
+      call chksum(pv    , kk+1, halo_vs, 'pv'    )
     end if
 
   end subroutine inicon

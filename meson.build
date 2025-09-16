@@ -1,4 +1,4 @@
-project('BLOM', ['fortran', 'c'],
+project('BLOM', ['fortran'],
         version: '1.0.0',
         license: 'LGPL',
         meson_version: '>= 0.54.0',
@@ -56,7 +56,7 @@ subdir('bld')
 deps = [netcdf, omp, quadmath]
 
 # List of directories to include, usually with C headers
-includes = [phy_inc]
+includes = []
 
 # List of all sources in the project (should be added to in subfolders)
 sources = []

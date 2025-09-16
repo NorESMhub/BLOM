@@ -94,12 +94,6 @@ contains
     end if
 
     ! --------------------------------------------------------------------------
-    ! Initialize check sum algorithm.
-    ! --------------------------------------------------------------------------
-
-    call crcinit
-
-    ! --------------------------------------------------------------------------
     ! Read limits file.
     ! --------------------------------------------------------------------------
 
@@ -464,7 +458,7 @@ contains
     use mod_grid,      only: scqx, scqy, scpx, scpy, scuy, scvx, scp2, depths
     use mod_diffusion, only: difmxp, difmxq
     use mod_utility,   only: umax, vmax
-    use mod_checksum,  only: csdiag, chksummsk
+    use mod_checksum,  only: csdiag, chksum
 
     ! Local variables
     real(r8) :: dx2, dy2, btdtmx, umaxmin, vmaxmin, umaxmax, vmaxmax
@@ -555,10 +549,10 @@ contains
       if (mnproc == 1) then
         write (lp, *) 'numerical_bounds:'
       endif
-      call chksummsk(difmxp, ip, 1,'difmxp')
-      call chksummsk(difmxq, iq, 1,'difmxq')
-      call chksummsk(umax, iu, 1,'umax')
-      call chksummsk(vmax, iv, 1,'vmax')
+      call chksum(difmxp, 1, halo_ps, 'difmxp')
+      call chksum(difmxq, 1, halo_ps, 'difmxq')
+      call chksum(umax  , 1, halo_us, 'umax'  )
+      call chksum(vmax  , 1, halo_vs, 'vmax'  )
     endif
 
   end subroutine numerical_bounds

@@ -53,7 +53,7 @@ module mod_swabs
                            nbdy, ii, jj, ip, isp, ifp, ilp, lp, &
                            halo_ps, mnproc
    use mod_time,     only: xmi, l1mi, l2mi, l3mi, l4mi, l5mi
-   use mod_checksum, only: csdiag, chksummsk
+   use mod_checksum, only: csdiag, chksum
    use mod_intp1d,   only: intp1d
    use mod_utility,  only: fnmlen
    use netcdf
@@ -587,10 +587,10 @@ contains
          if (mnproc == 1) then
             write (lp,*) 'updswa:'
          endif
-         call chksummsk(swfc1, ip, 1, 'swfc1')
-         call chksummsk(swfc2, ip, 1, 'swfc2')
-         call chksummsk(swal1, ip, 1, 'swal1')
-         call chksummsk(swal2, ip, 1, 'swal2')
+         call chksum(swfc1, 1, halo_ps, 'swfc1')
+         call chksum(swfc2, 1, halo_ps, 'swfc2')
+         call chksum(swal1, 1, halo_ps, 'swal1')
+         call chksum(swal2, 1, halo_ps, 'swal2')
       endif
 
    end subroutine updswa

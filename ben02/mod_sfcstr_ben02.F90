@@ -19,11 +19,11 @@
 
 module mod_sfcstr_ben02
 
-  use mod_xc,        only: xctilr, ii, jj, isu, ilu, ifu, isv, ifv, ilv, iu, iv, lp, &
-                           halo_ps, mnproc
+  use mod_xc,        only: xctilr, ii, jj, isu, ilu, ifu, isv, ifv, ilv, &
+                           iu, iv, lp, halo_ps, halo_uv, halo_vv, mnproc
   use mod_forcing,   only: ztx, mty, taux, tauy
   use mod_seaice,    only: ficem, hicem, tauxice, tauyice
-  use mod_checksum,  only: csdiag, chksummsk
+  use mod_checksum,  only: csdiag, chksum
 
   implicit none
   private
@@ -65,8 +65,8 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'sfcstr:'
       end if
-      call chksummsk(taux,iu,1,'taux')
-      call chksummsk(tauy,iv,1,'tauy')
+      call chksum(taux, 1, halo_uv, 'taux')
+      call chksum(tauy, 1, halo_vv, 'tauy')
     end if
 
   end subroutine sfcstr_ben02
