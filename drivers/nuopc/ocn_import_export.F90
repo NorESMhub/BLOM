@@ -734,7 +734,7 @@ contains
          fval = - 1.e13_r8
 
       logical :: first_call = .true.
-      integer :: hmat_method = 4
+      integer :: hmat_method = 2
 
       ! Local variables.
       real(r8) :: afac, utmp, vtmp, rofi_heat_flx, snow_heat_flx, &
