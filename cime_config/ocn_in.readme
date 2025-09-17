@@ -162,6 +162,7 @@
 ! BDMC2    : Background diapycnal diffusivity (m**2/s) (f)
 ! BDMLDP   : Make the background mixing latitude dependent according to
 !            Gregg et al. (2003) (l)
+! NUBMIN   : Minimum background diapycnal diffusivity (m**2/s) (f)
 ! TKEPF    : Fraction of surface TKE that penetrates beneath mixed layer
 !            () (f)
 ! SMOBLD   : If true, apply lateral smoothing of CVMix estimated

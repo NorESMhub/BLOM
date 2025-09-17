@@ -33,7 +33,7 @@ module mod_rdlim
   use mod_eos,         only: pref
   use mod_inicon,      only: icfile, woa_nuopc_provided
   use mod_advect,      only: advmth
-  use mod_cppm,        only: cppm_limiting
+  use mod_cppm,        only: cppm_compatibility, cppm_limiting
   use mod_pbcor,       only: bmcmth
   use mod_momtum,      only: mdv2hi, mdv2lo, mdv4hi, mdv4lo, mdc2hi, &
                              mdc2lo, vsc2hi, vsc2lo, vsc4hi, vsc4lo, &
@@ -135,7 +135,7 @@ contains
          grfile,icfile,woa_nuopc_provided,pref,baclin,batrop, &
          mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo, &
          vsc2hi,vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls, &
-         mommth,pgfmth,bmcmth,advmth,cppm_limiting, &
+         mommth,pgfmth,bmcmth,advmth,cppm_compatibility,cppm_limiting, &
          mlrmth,ce,cl,tau_mlr,tau_growing_hbl,tau_decaying_hbl, &
          tau_growing_hml,tau_decaying_hml,lfmin,mstar,nstar,wpup_min, &
          mlrttp,rm0,rm5,tdfile,niwgf,niwbf,niwlf, &
@@ -209,6 +209,7 @@ contains
       write (lp,*) 'PGFMTH ',trim(PGFMTH)
       write (lp,*) 'BMCMTH ',trim(BMCMTH)
       write (lp,*) 'ADVMTH ',trim(ADVMTH)
+      write (lp,*) 'CPPM_COMPATIBILITY ',trim(CPPM_COMPATIBILITY)
       write (lp,*) 'CPPM_LIMITING ',trim(CPPM_LIMITING)
       write (lp,*) 'MLRMTH ',trim(MLRMTH)
       write (lp,*) 'CE',CE
@@ -299,6 +300,7 @@ contains
     call xcbcst(pgfmth)
     call xcbcst(bmcmth)
     call xcbcst(advmth)
+    call xcbcst(cppm_compatibility)
     call xcbcst(cppm_limiting)
     call xcbcst(mlrmth)
     call xcbcst(ce)

@@ -269,10 +269,10 @@ module mo_param_bgc
   !********************************************************************
   !ik weight percent iron in dust deposition times Fe solubility
   ! the latter three values come from Johnson et al., 1997
-  real(rp), protected :: fetune          = 0.6_rp        ! factor introduced to tune deposition/solubility
+  real(rp), protected :: fetune          = 1.0_rp        ! factor introduced to tune deposition/solubility
   real(rp), protected :: frac_ironindust = 0.035_rp      ! fraction of total iron in dust (typically 3.5%)
   real(rp), protected :: frac_soliron    = 0.01_rp       ! fraction of total iron that is immediately soluble
-  real(rp), protected :: fesoly          = 0.5e-9_rp     ! max. diss. iron concentration in deep water
+  real(rp), protected :: fesoly          = 0.55e-9_rp    ! max. diss. iron concentration in deep water
   real(rp), protected :: relaxfe         = 0.05_rp/365._rp  ! 1/d complexation rate to relax iron concentration to fesoly
 
   !********************************************************************
@@ -308,7 +308,7 @@ module mo_param_bgc
   real(rp), protected :: bkzoo      = 1.e-7_rp        ! kmol/m3 - i.e. 0.08 mmol P/m3 half saturation constant
   real(rp), protected :: grazra     = 1.5_rp          ! 1/d - grazing rate
   real(rp), protected :: spemor     = 3._rp*1.e6_rp   ! 1/d - mortality rate
-  real(rp), protected :: gammap     = 0.04_rp         ! 1/d - exudation rate
+  real(rp), protected :: gammap     = 0.03_rp         ! 1/d - exudation rate
   real(rp), protected :: gammaz     = 0.06_rp         ! 1/d - excretion rate
   real(rp), protected :: ecan       = 0.95_rp         ! fraction of mortality as PO_4
   real(rp), protected :: zinges                       ! dimensionless fraction - assimilation efficiency
@@ -349,7 +349,7 @@ module mo_param_bgc
   real(rp), protected :: drempoc_anaerob = 1.25e-3_rp  ! =0.05*drempoc - remin in sub-/anoxic environm. - not be overwritten by M4AGO
   real(rp), protected :: bkox_drempoc    = 1.e-5_rp    ! half-saturation constant for oxygen for ammonification (aerobic remin via drempoc)
   real(rp), protected :: dremopal        = 0.003_rp    ! 1/d Dissolution rate for opal
-  real(rp), protected :: dremcalc        = 0.0007_rp   ! 1/d Dissolution rate for CaCO3 (applied if Omega_c < 1)
+  real(rp), protected :: dremcalc        = 0.02_rp     ! 1/d Dissolution rate for CaCO3 (applied if Omega_c < 1)
   real(rp), protected :: dremn2o         = 0.01_rp     ! 1/d Remineralization rate of detritus on N2O
   real(rp), protected :: dremsul         = 0.005_rp    ! 1/d Remineralization rate for sulphate reduction
   real(rp), protected :: POM_remin_q10   = 2.1_rp      ! Bidle et al. 2002: Regulation of Oceanic Silicon...
@@ -373,7 +373,8 @@ module mo_param_bgc
   real(rp), protected :: Trefanh4nitr  = 20._rp      ! Reference temperature for nitrification on NH4 (degr C)
   real(rp), protected :: bkoxamox      = 0.333e-6_rp ! Half-saturation constant for oxygen limitation of nitrification on NH4 (kmol/m3)
   real(rp), protected :: bkanh4nitr    = 0.133e-6_rp ! Half-saturation constant for nitrification on NH4 (kmol/m3)
-  real(rp), protected :: bkamoxn2o     = 0.5e-6_rp   ! Half saturation constant for NH4 in pathway splitting function N2O for nitrification on NH4 (kmol/m3)
+  real(rp), protected :: bkamoxn2o     = 0.1e-6_rp   ! Half saturation constant for NH4 in pathway splitting function N2O for nitrification on NH4 (kmol/m3)
+  real(rp), protected :: yield_n2o_inf = 0.077_rp    ! Santoro et al. a_2 = 0.077+-0.07
   real(rp), protected :: mufn2o                      !       = 0.11/(50.*1e6*bkoxamox) !=6.61e-3  0.11/(50*1e6)=2.2e-9 - ~Santoro et al. 2011 with simple MM,
   real(rp), protected :: bn2o                        !       = 0.077/(50.*mufn2o)  !=0.2331 - before set to 0.3 - base fraction entering N2O
   real(rp), protected :: n2omaxy       = 0.003_rp    ! Maximum yield of OM on NH4 nitrification (-)
@@ -389,7 +390,7 @@ module mo_param_bgc
   real(rp), protected :: NOB2AOAy      = 0.44_rp     ! Ratio of NOB versus AOA yield per energy source ~0.043/0.098 according to Zakem et al. 2022
 
   ! === Denitrification step NO3 -> NO2:
-  real(rp), protected :: rano3denit    = 0.0001_rp   ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
+  real(rp), protected :: rano3denit    = 0.0002_rp   ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
   real(rp), protected :: q10ano3denit  = 2._rp       ! Q10 factor for denitrification on NO3 (-)
   real(rp), protected :: Trefano3denit = 10._rp      ! Reference temperature for denitrification on NO3 (degr C)
   real(rp), protected :: sc_ano3denit  = 0.12e6_rp   ! Shape factor for NO3 denitrification oxygen inhibition function (m3/kmol)
@@ -412,14 +413,14 @@ module mo_param_bgc
   real(rp), protected :: bkano2denit   = 5.6e-6_rp   ! Half-saturation constant for denitrification on NO2 (kmol/m3)
 
   ! === DNRA NO2 -> NH4
-  real(rp), protected :: rdnra         = 0.0003_rp   ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
+  real(rp), protected :: rdnra         = 0.0002_rp   ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
   real(rp), protected :: q10dnra       = 2._rp       ! Q10 factor for DNRA on NO2 (-)
   real(rp), protected :: Trefdnra      = 10._rp      ! Reference temperature for DNRA (degr C)
   real(rp), protected :: bkoxdnra      = 2.5e-6_rp   ! Half saturation constant for (quadratic) oxygen inhibition function of DNRA on NO2 (kmol/m3)
   real(rp), protected :: bkdnra        = 0.05e-6_rp  ! Half-saturation constant for DNRA on NO2 (kmol/m3)
 
   ! === Denitrification step N2O -> N2
-  real(rp), protected :: ran2odenit    = 0.00045_rp  ! Maximum growth rate denitrification on N2O at reference T (1/d -> 1/dt)
+  real(rp), protected :: ran2odenit    = 0.0002_rp  ! Maximum growth rate denitrification on N2O at reference T (1/d -> 1/dt)
   real(rp), protected :: q10an2odenit  = 3._rp       ! Q10 factor for denitrificationj on N2O (-)
   real(rp), protected :: Trefan2odenit = 10._rp      ! Reference temperature for denitrification on N2O (degr C)
   real(rp), protected :: bkoxan2odenit = 10.e-6_rp   ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on N2O (kmol/m3)
@@ -520,7 +521,7 @@ module mo_param_bgc
   real(rp), protected :: wdust_const                    ! m/d   Sinking speed of dust
   real(rp), protected :: wmin        =  5._rp           ! m/d   minimum sinking speed
   real(rp), protected :: wmax        = 60._rp           ! m/d   maximum sinking speed
-  real(rp), protected :: wlin        = 60._rp/2400._rp  ! m/d/m constant describing incr. with depth, r/a=1.0
+  real(rp), protected :: wlin        = 60._rp/3120._rp  ! m/d/m constant describing incr. with depth, r/a=1.3 (r=0.025)
   real(rp), protected :: dustd1      = 0.0001_rp        ! cm = 1 um, boundary between clay and silt
   real(rp), protected :: dustd2                         ! dust diameter squared
   real(rp), protected :: dustd3                         ! dust diameter cubed
@@ -546,7 +547,8 @@ module mo_param_bgc
   real(rp), protected :: sed_NO3thresh_sulf   = 3.e-6_rp   ! Below sed_NO3thresh_sulf 'sufate reduction' takes place
   real(rp), protected :: sedict      = 1.e-9_rp            ! m2/s Molecular diffusion coefficient
   real(rp), protected :: silsat      = 0.001_rp            ! kmol/m3 Silicate saturation concentration is 1 mol/m3
-  real(rp), protected :: disso_poc   = 0.19_rp/sec_per_day ! 1/(kmol O2/m3 s)      Degradation rate constant of POP
+  real(rp), protected :: disso_poc   = 1.3e-6_rp           ! 1/(kmol O2/m3 s)      Degradation rate constant of POP
+! real(rp), protected :: disso_poc   = 0.19_rp/sec_per_day ! 1/(kmol O2/m3 s)      Degradation rate constant of POP
   real(rp), protected :: disso_sil   = 1.4e-7_rp           ! 1/(kmol Si(OH)4/m3 s) Dissolution rate constant of opal
   real(rp), protected :: disso_caco3 = 1.e-7_rp            ! 1/(kmol CO3--/m3 s) Dissolution rate constant of CaCO3
   real(rp), protected :: sed_denit   = 0.01_rp/sec_per_day ! 1/s Denitrification rate constant of POP
@@ -656,9 +658,9 @@ contains
     if (use_AGG) then
       zinges  = 0.5_rp        ! dimensionless fraction -assimilation efficiency
       epsher  = 0.9_rp        ! dimensionless fraction -fraction of grazing egested
-    else if (use_WLIN) then
+    else if ((use_WLIN .eqv. .true.) .or. (use_M4AGO .eqv. .true.))  then
       zinges  = 0.7_rp        ! dimensionless fraction -assimilation efficiency
-      epsher  = 0.75_rp       ! dimensionless fraction -fraction of grazing egested
+      epsher  = 0.8_rp        ! dimensionless fraction -fraction of grazing egested
     else
       zinges  = 0.6_rp        ! dimensionless fraction -assimilation efficiency
       epsher  = 0.8_rp        ! dimensionless fraction -fraction of grazing egest
@@ -671,9 +673,9 @@ contains
       rcalc  = 14._rp         ! calcium carbonate to organic phosphorous production ratio
       ropal  = 10.5_rp        ! opal to organic phosphorous production ratio
       calmax = 0.20_rp
-    else if (use_WLIN) then
+    else if ((use_WLIN .eqv. .true.) .or. (use_M4AGO .eqv. .true.)) then
       rcalc  =  8._rp         ! calcium carbonate to organic phosphorous production ratio
-      ropal  = 70._rp         ! opal to organic phosphorous production ratio
+      ropal  = 75._rp         ! opal to organic phosphorous production ratio
     else
       rcalc  = 40._rp         ! iris 40 !calcium carbonate to organic phosphorous production ratio
       ropal  = 30._rp         ! iris 25 !opal to organic phosphorous production ratio
@@ -725,7 +727,7 @@ contains
                          sed_denit,sed_sulf,                                     &
                          sed_O2thresh_hypoxic,sed_O2thresh_sulf,sed_NO3thresh_sulf,&
                          gammapsl,gammazsl,alphasl,alphasr,docl_remin,docsl_remin, &
-                         docsr_remin,docr_remin
+                         docsr_remin,docr_remin,yield_n2o_inf,bkamoxn2o
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)
@@ -760,10 +762,10 @@ contains
       bkiron        = bkphosph*riron                 ! Half-saturation constant for Fe uptake by bulk phytoplankton (kmol/m3)
       bkanh4anmx    = bkano2anmx * rnh4anmx/rno2anmx ! Half-saturation constant for NH4 limitation of anammox (kmol/m3)
       mufn2o        = 0.11_rp/(50._rp*1.e6_rp*bkoxamox)   ! =6.61e-3  0.11/(50*1e6)=2.2e-9 - ~Santoro et al. 2011 with simple MM,
-      bn2o          = 0.077_rp/(50._rp*mufn2o)            ! =0.2331 - before set to 0.3 - base fraction entering N2O
+      bn2o          = yield_n2o_inf/(50._rp*mufn2o)            ! =0.2331 - before set to 0.3 - base fraction entering N2O
       bkanh4anmx_sed = bkano2anmx_sed * rnh4anmx/rno2anmx !Half-saturation constant for NH4 limitation of anammox (kmol/m3)
       mufn2o_sed     = 0.11_rp/(50._rp*1.e6_rp*bkoxamox_sed) !=6.61e-3  0.11/(50*1e6)=2.2e-9 - ~Santoro et al. 2011 with simple MM
-      bn2o_sed       = 0.077_rp/(50._rp*mufn2o_sed)       !=0.2331 - before set to 0.3 - base fraction entering N2O
+      bn2o_sed       = yield_n2o_inf/(50._rp*mufn2o_sed)       !=0.2331 - before set to 0.3 - base fraction entering N2O
       lTO2depremin   = .true.
     endif
     if (use_M4AGO) lTO2depremin = .true.
@@ -1205,6 +1207,7 @@ contains
         call pinfo_add_entry('alphaanmx',     alphaanmx)
         call pinfo_add_entry('bkoxanmx',      bkoxanmx)
         call pinfo_add_entry('bkano2anmx',    bkano2anmx)
+        call pinfo_add_entry('yield_n2o_inf', yield_n2o_inf)
         call pinfo_add_entry('bkanh4anmx',    bkanh4anmx)
         call pinfo_add_entry('rano2denit',    rano2denit    *dtbinv)
         call pinfo_add_entry('q10ano2denit',  q10ano2denit)

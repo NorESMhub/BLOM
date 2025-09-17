@@ -92,7 +92,7 @@
     <valid_values/>
     <default_value>53</default_value>
     <values>
-      <value compset="_BLOM%HYB">56</value>
+      <value compset="_BLOM%HYB">72</value>
       <value compset="_BLOM%LVL">56</value>
     </values>
     <group>build_component_blom</group>
@@ -131,7 +131,7 @@
   <entry id="HAMOCC_FEDEP_SOURCE">
     <type>char</type>
     <valid_values>mahw2006,GESAMP2018</valid_values>
-    <default_value>mahw2006</default_value>
+    <default_value>GESAMP2018</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
     <desc>Source of dust/iron deposition data. Requires module ecosys</desc>
@@ -174,7 +174,7 @@
   <entry id="HAMOCC_EXTNCYCLE">
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
-    <default_value>FALSE</default_value>
+    <default_value>TRUE</default_value>
     <values>
        <value compset="_BGC.*%N2OC">TRUE</value>
        <value compset="_BGC.*%NH3C">TRUE</value>
@@ -309,7 +309,7 @@
   <entry id="HAMOCC_SEDSPINUP_YR_END">
     <type>integer</type>
     <valid_values/>
-    <default_value>800</default_value>
+    <default_value>500</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
     <desc>Set end year for HAMOCC sediment spin-up if HAMOCC_SEDSPINUP == TRUE.
@@ -319,7 +319,7 @@
   <entry id="HAMOCC_SEDSPINUP_NCYCLE">
     <type>integer</type>
     <valid_values/>
-    <default_value>20</default_value>
+    <default_value>30</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
     <desc>Set the number of sub-cycles for HAMOCC sediment spin-up if HAMOCC_SEDSPINUP == TRUE.

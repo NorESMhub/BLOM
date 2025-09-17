@@ -36,7 +36,8 @@ module mod_restart
                                  sigref_fun_spec, sigref_adaption, &
                                  sra_massdc_colsum, sra_sigmassdc_colsum, &
                                  sra_massgs_colsum, sra_dpml_sum, &
-                                 sra_sigmlb_sum, sra_sigref_sum, &
+                                 sra_sigmlb_sum, sra_dpml_clim, &
+                                 sra_sigmlb_clim, sra_sigref_sum, &
                                  sra_s_bot_sum, sra_tlev_accnum, sra_accnum, &
                                  sigref_fun_spec_old, sigref_fun_spec_new
    use mod_inicon,         only: icfile
@@ -390,6 +391,10 @@ contains
             call defwrtfld('sra_sigmlb_sum', trim(c5p)//' sratlev', &
                             sra_sigmlb_sum, ip, defmode)
          endif
+         call defwrtfld('sra_dpml_clim', trim(c5p)//' sratlev', &
+                         sra_dpml_clim, ip, defmode)
+         call defwrtfld('sra_sigmlb_clim', trim(c5p)//' sratlev', &
+                         sra_sigmlb_clim, ip, defmode)
       endif
 
       if (vcoord_tag == vcoord_isopyc_bulkml) then
@@ -1787,6 +1792,10 @@ contains
             call readfld('sra_dpml_sum', p_unitconv, sra_dpml_sum, ip)
             call readfld('sra_sigmlb_sum', r_unitconv, sra_sigmlb_sum, ip)
          endif
+         call readfld('sra_dpml_clim', p_unitconv, &
+                       sra_dpml_clim, ip, required = .false.)
+         call readfld('sra_sigmlb_clim', r_unitconv, &
+                       sra_sigmlb_clim, ip, required = .false.)
       endif
 
       if (vcoord_tag == vcoord_isopyc_bulkml) then

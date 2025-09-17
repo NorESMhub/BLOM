@@ -38,7 +38,7 @@ module mod_blom_init
   use mod_eos,             only: inieos
   use mod_swabs,           only: iniswa
   use mod_tmsmt,           only: initms
-  use mod_dia,             only: diaini, diasg1
+  use mod_dia,             only: diaini
   use mod_inicon,          only: inicon, woa_nuopc_provided
   use mod_budget,          only: budget_init
   use mod_cmnfld_routines, only: cmnfld1
@@ -46,7 +46,8 @@ module mod_blom_init
   use mod_rdlim,           only: rdlim
   use mod_inifrc,          only: inifrc
   use mod_inivar,          only: inivar
-  use mod_vcoord,          only: vcoord_tag, vcoord_isopyc_bulkml, sigmar
+  use mod_vcoord,          only: vcoord_tag, vcoord_isopyc_bulkml, sigmar, &
+                                 extract_sigref
   use mod_ale_regrid_remap, only: init_ale_regrid_remap
   use mod_cppm,            only: init_cppm
   use mod_inigeo,          only: inigeo
@@ -428,11 +429,11 @@ contains
     call cmnfld1(m,n,mm,nn,k1m,k1n)
 
     ! --------------------------------------------------------------------------
-    ! Extract reference potential density vector representative of the
-    ! dominating ocean domain.
+    ! In case it is not otherwise specified, extract reference potential density
+    ! vector representative of the dominating ocean domain.
     ! --------------------------------------------------------------------------
 
-    call diasg1
+    call extract_sigref
 
     ! --------------------------------------------------------------------------
 

@@ -132,8 +132,10 @@
     <group>limits</group>
     <values>
       <value>unset</value>
-      <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx2v1_20130419.nc</value>
-      <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx1v4_20170622.nc</value>
+      <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/inicon/woa18_decav_ts13_01_tnx2v1_20250514.nc</value>
+      <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/inicon/woa18_decav_ts13_01_tnx1v4_20250514.nc</value>
+      <value ocn_grid="tnx2v1" blom_vcoord="isopyc_bulkml">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx2v1_20130419.nc</value>
+      <value ocn_grid="tnx1v4" blom_vcoord="isopyc_bulkml">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx1v4_20170622.nc</value>
       <value ocn_grid="tnx0.5v1">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.5v1_20240702.nc</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.25v4_20170623.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.125v4_20230318.nc</value>
@@ -404,6 +406,16 @@
     <desc>Advection method. Valid methods: 'remap', 'cppm'.</desc>
   </entry>
 
+  <entry id="cppm_compatibility">
+    <type>char</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>full</value>
+    </values>
+    <desc>CPPM compatibility. Valid options: 'full', 'partial'.</desc>
+  </entry>
+
   <entry id="cppm_limiting">
     <type>char</type>
     <category>limits</category>
@@ -419,7 +431,8 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>fox08</value>
+      <value>bod23</value>
+      <value blom_vcoord="isopyc_bulkml">fox08</value>
     </values>
     <desc>Mixed layer restratification method</desc>
   </entry>
@@ -443,7 +456,7 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>.25</value>
+      <value>20.</value>
     </values>
     <desc>Scaling of the efficiency factor for the restratification by mixed layer eddies (Bodner et al., 2023)</desc>
   </entry>
@@ -963,7 +976,8 @@
     <category>vcoord</category>
     <group>vcoord</group>
     <values>
-      <value>'inicon'</value>
+      <value>function</value>
+      <value blom_vcoord="isopyc_bulkml">inicon</value>
     </values>
     <desc>Reference potential density specification: Valid specs.: 'inicon', 'namelist'</desc>
   </entry>
@@ -973,7 +987,8 @@
     <category>vcoord</category>
     <group>vcoord</group>
     <values>
-      <value>'inflation'</value>
+      <value>namelist</value>
+      <value blom_vcoord="plevel">inflation</value>
     </values>
     <desc>Pressure level specification: Valid specs.: 'inflation', 'namelist'</desc>
   </entry>
@@ -993,7 +1008,7 @@
     <category>vcoord</category>
     <group>vcoord</group>
     <values>
-      <value>23.70</value>
+      <value>23.0</value>
     </values>
     <desc>Sigma value at Bezier point 1 (z = 0) [kg m-3]</desc>
   </entry>
@@ -1003,7 +1018,7 @@
     <category>vcoord</category>
     <group>vcoord</group>
     <values>
-      <value>0.21</value>
+      <value>0.27</value>
     </values>
     <desc>z value at Bezier point 2 []</desc>
   </entry>
@@ -1063,7 +1078,7 @@
     <category>vcoord</category>
     <group>vcoord</group>
     <values>
-      <value>38.0</value>
+      <value>37.8</value>
     </values>
     <desc>Sigma value of parabola at z = 1 [kg m-3]</desc>
   </entry>
@@ -1073,12 +1088,22 @@
     <category>vcoord</category>
     <group>vcoord</group>
     <values>
-      <value>.false.</value>
+      <value>.true.</value>
     </values>
     <desc>Flag to enable adaption of reference potential densities to model state</desc>
   </entry>
 
-  <entry id="sra_ts">
+  <entry id="sra_clim_ts">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>5.0</value>
+    </values>
+    <desc>e-folding time scale (years) for adjusting mixed layer climatology</desc>
+  </entry>
+
+  <entry id="sra_param_ts">
     <type>real</type>
     <category>vcoord</category>
     <group>vcoord</group>
@@ -1145,7 +1170,7 @@
     <category>vcoord</category>
     <group>vcoord</group>
     <values>
-      <value>-1.,-1.</value>
+      <value>0.000,    2.000,    4.061,    6.185,    8.374,   10.631,   12.959,   15.362,   17.843,   20.408,   23.061,   25.808,   28.659,   31.621,   34.706,   37.925,   41.294,   44.830,   48.553,   52.487,   56.661,61.104,   65.854,   70.953,   76.446,   82.389,   88.841,   95.868,  103.544,  111.949,  121.172,  131.306,  142.450,  154.708,  168.188,  182.999,  199.248,  217.040,  236.479,  257.657,  280.661,  305.568,  332.442,  361.336,  392.292,  425.339,  460.498,  497.778,  537.183,  578.707,  622.344,  668.083,  715.914, 765.827,  817.814,  871.871,  927.997,  986.197, 1046.481, 1108.863, 1173.364, 1240.010, 1308.833, 1379.870, 1453.162, 1528.755, 1606.702, 1687.056, 1769.879, 1855.233, 1943.185, 2033.806</value>
     </values>
     <desc>Array of pressure levels (m)</desc>
   </entry>
@@ -1417,7 +1442,7 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>3.0</value>
+      <value>2.0</value>
     </values>
     <desc>Parameter c in Eden and Greatbatch (2008) parameterization (f)</desc>
   </entry>
@@ -1447,7 +1472,7 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>1.</value>
+      <value>50.</value>
       <value ocn_grid="tnx0.125v4">0.</value>
     </values>
     <desc>Minimum diffusivity in E. and G. (2008) param. (m**2/s) (f)</desc>
@@ -1469,7 +1494,7 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>1.</value>
+      <value>.8</value>
     </values>
     <desc>Factor relating the isopycnal diffusivity to the layer</desc>
   </entry>
@@ -1494,7 +1519,7 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>0.5</value>
+      <value>5.0</value>
     </values>
     <desc>Linear scaling parameter for topographic rhines scale () (f)</desc>
   </entry>
@@ -1590,6 +1615,16 @@
       <value>.true.</value>
     </values>
     <desc>Make the background mixing latitude dependent according to</desc>
+  </entry>
+
+  <entry id="nubmin">
+    <type>real</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>2.e-6</value>
+    </values>
+    <desc>Minimum background diapycnal diffusivity (m**2/s) (f)</desc>
   </entry>
 
   <entry id="tkepf">
@@ -5242,6 +5277,26 @@
       <value>None</value>
     </values>
     <desc>Maximum growth rate nitrification on NH4 at reference T (1/d)</desc>
+  </entry>
+
+  <entry id="yield_n2o_inf">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Base N2O yield at infinite oxygen availability according to Santoro et al. 2021 0.077 plus/minus 0.07</desc>
+  </entry>
+
+  <entry id="bkamoxn2o">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Half-saturation constant for N2O/NO2 yield function on NH4 (kmol/m3)</desc>
   </entry>
 
   <entry id="rano2nitr">

@@ -29,7 +29,7 @@ module mod_inicon
   use mod_config,    only: expcnf
   use mod_constants, only: grav, epsilp, epsilz, onem
   use mod_time,      only: nstep, delt1, dlt
-  use mod_xc,        only: xchalt, xcbcst, xcaput, xcstop, xctilr, &
+  use mod_xc,        only: xchalt, xcmax, xcbcst, xcaput, xcstop, xctilr, &
                            mnproc, lp, ii, jj, kk, isp, ifp, ilp, &
                            isu, ifu, ilu, isv, ifv, ilv, isq, ifq, ilq, &
                            i0, j0, ip, iu, iv, iq, halo_ps, nbdy, nreg
@@ -354,8 +354,7 @@ contains
     type(recon_grd_struct) :: rcgs
     type(recon_src_struct) :: pt_rcss, sp_rcss
     type(remap_struct) :: rms
-    integer :: errstat, k_woa, i, j, k, l
-    logical :: filling_failed
+    integer :: errstat, filling_failed, k_woa, i, j, k, l
 
     if (trim(sigref_spec) /= 'function' .and. &
         trim(sigref_spec) /= 'namelist') then
@@ -411,17 +410,19 @@ contains
     enddo
 
     ! Check that there are no missing values in the shallowest depth level.
-    filling_failed = .false.
+    filling_failed = 0
     do j = 1, jj
       do l = 1, isp(j)
-      do i = ifp(j,l), ilp(j,l)
+      do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
         if (t_woa(i,j,1) == t_woa_fval .or. &
-            s_woa(i,j,1) == s_woa_fval) filling_failed = .true.
+            t_woa(i,j,1) == t_woa_mval .or. &
+            s_woa(i,j,1) == s_woa_fval .or. &
+            s_woa(i,j,1) == s_woa_mval) filling_failed = 1
       enddo
       enddo
     enddo
-    call xcbcst(filling_failed)
-    if (filling_failed) then
+    call xcmax(filling_failed)
+    if (filling_failed == 1) then
       if (mnproc == 1) &
         write(lp,*) 'Failed to fill missing values in shallowest WOA depth level!'
       call xcstop('(inicon_woa_file)')
@@ -463,7 +464,7 @@ contains
 
     do j = 1, jj
       do l = 1, isp(j)
-      do i = ifp(j,l), ilp(j,l)
+      do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
 
         ! Create source arrays of practical salinity (sp_src), potential
         ! temperature (pt_src) and source interface depths bounded by model

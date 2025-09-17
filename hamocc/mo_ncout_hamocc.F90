@@ -33,7 +33,8 @@ contains
     use mod_time,       only: date0,date,calendar,nstep,nstep_in_day,nday_of_year,time0,time
     use mod_xc,         only: kdm,mnproc,itdm,jtdm,lp,idm,jdm,nbdy
     use mod_grid,       only: depths,plat,plon
-    use mod_dia,        only: diafnm,sigmar1,iotype,ddm,depthslev,depthslev_bnds
+    use mod_vcoord,     only: sigref
+    use mod_dia,        only: diafnm,iotype,ddm,depthslev,depthslev_bnds
     use mo_control_bgc, only: dtbgc,use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO,              &
                               use_sedbypass,use_BOXATM,use_M4AGO,use_extNcycle,use_pref_tracers,   &
                               use_shelfsea_res_time,use_sediment_quality,use_river2omip,           &
@@ -322,7 +323,7 @@ contains
     call nctime(datenum,calendar,timeunits,startdate)
 
     ! --- write auxillary dimension information
-    call ncwrt1('sigma','sigma',sigmar1)
+    call ncwrt1('sigma','sigma',sigref(1:kdm))
     call ncwrt1('depth','depth',depthslev)
     call ncwrt1('depth_bnds','bounds depth',depthslev_bnds)
     dummy = 0
