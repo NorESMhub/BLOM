@@ -30,6 +30,8 @@ module ocn_map_woa
 
    public :: map_woa
 
+   logical :: plot_woa_data = .false.
+
    character(len=*), parameter :: u_FILE_u = &
       __FILE__
 
@@ -165,12 +167,14 @@ contains
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
       ! Plot mapped fldbun temperature
-      if (mnproc == 1) then
-         write(lp,*)
-         write(lp,'(a)') trim(subname) //' plotting mapped data for '//trim(woa_varname_t)
+      if (plot_woa_data) then
+         if (mnproc == 1) then
+            write(lp,*)
+            write(lp,'(a)') trim(subname) //' plotting mapped data for '//trim(woa_varname_t)
+         end if
+         call io_write(filename="woa18_t_an.nc", fldbun=fldbun_blom, use_float=.false., rc=rc)
+         if (chkerr(rc,__LINE__,u_FILE_u)) return
       end if
-      call io_write(filename="woa18_t_an.nc", fldbun=fldbun_blom, use_float=.false., rc=rc)
-      if (chkerr(rc,__LINE__,u_FILE_u)) return
 
       ! Extract the data from the field bundle
       call ESMF_FieldBundleGet(fldbun_blom, fieldName='field_blom', field=field_blom, rc=rc)
@@ -213,12 +217,14 @@ contains
       if (chkerr(rc,__LINE__,u_FILE_u)) return
 
       ! Plot mapped fldbun salinity
-      if (mnproc == 1) then
-         write(lp,*)
-         write(lp,'(a)') trim(subname) // ' plotting mapped data for '//trim(woa_varname_s)
+      if (plot_woa_data) then
+         if (mnproc == 1) then
+            write(lp,*)
+            write(lp,'(a)') trim(subname) // ' plotting mapped data for '//trim(woa_varname_s)
+         end if
+         call io_write(filename="woa18_s_an.nc", fldbun=fldbun_blom, use_float=.false., rc=rc)
+         if (chkerr(rc,__LINE__,u_FILE_u)) return
       end if
-      call io_write(filename="woa18_s_an.nc", fldbun=fldbun_blom, use_float=.false., rc=rc)
-      if (chkerr(rc,__LINE__,u_FILE_u)) return
 
       ! Extract the data from the field bundle
       call ESMF_FieldBundleGet(fldbun_blom, fieldName='field_blom', field=field_blom, rc=rc)
