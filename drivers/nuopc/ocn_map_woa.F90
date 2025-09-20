@@ -131,6 +131,8 @@ contains
          call xchalt('(ocn_map_woa)')
          stop '(ocn_map_woa)'
       endif
+      t_woa(:,:,:) = t_woa_fval
+      s_woa(:,:,:) = s_woa_fval
 
       ! ---------------------------
       ! Create input data mesh

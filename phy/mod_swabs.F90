@@ -47,15 +47,16 @@ module mod_swabs
 !     1103-1118.
 ! ------------------------------------------------------------------------------
 
-   use mod_types,    only: r8
-   use dimensions,   only: idm, jdm, itdm, jtdm
-   use mod_xc,       only: xcstop, xchalt, xcaput, xctilr, &
-                           nbdy, ii, jj, ip, isp, ifp, ilp, lp, &
-                           halo_ps, mnproc
-   use mod_time,     only: xmi, l1mi, l2mi, l3mi, l4mi, l5mi
-   use mod_checksum, only: csdiag, chksum
-   use mod_intp1d,   only: intp1d
-   use mod_utility,  only: fnmlen
+   use mod_types,     only: r8
+   use mod_constants, only: spval
+   use dimensions,    only: idm, jdm, itdm, jtdm
+   use mod_xc,        only: xcstop, xchalt, xcaput, xctilr, &
+                            nbdy, ii, jj, ip, isp, ifp, ilp, lp, &
+                            halo_ps, mnproc
+   use mod_time,      only: xmi, l1mi, l2mi, l3mi, l4mi, l5mi
+   use mod_checksum,  only: csdiag, chksum
+   use mod_intp1d,    only: intp1d
+   use mod_utility,   only: fnmlen
    use netcdf
 
    implicit none
@@ -135,7 +136,7 @@ module mod_swabs
 
   public :: swamth, chlopt, ccfile, svfile, jwtype, &
             swamxd, swfc1, swfc2, swal1, swal2, &
-            iniswa, updswa
+            inivar_swabs, iniswa, updswa
 
 contains
 
@@ -143,7 +144,21 @@ contains
    ! Public procedures.
    ! ---------------------------------------------------------------------------
 
-   subroutine iniswa()
+   subroutine inivar_swabs
+   ! ---------------------------------------------------------------------------
+   ! Initialize arrays.
+   ! ---------------------------------------------------------------------------
+
+      chl10c(:,:,:) = spval
+      chl10(:,:) = spval
+      swfc1(:,:) = spval
+      swfc2(:,:) = spval
+      swal1(:,:) = spval
+      swal2(:,:) = spval
+
+   end subroutine inivar_swabs
+
+   subroutine iniswa
    ! ---------------------------------------------------------------------------
    ! Initialize shortwave radiation absorption functionality.
    ! ---------------------------------------------------------------------------
@@ -501,7 +516,7 @@ contains
 
    end subroutine iniswa
 
-   subroutine updswa()
+   subroutine updswa
    ! ---------------------------------------------------------------------------
    ! Update arrays related to shortwave radiation absorption.
    ! ---------------------------------------------------------------------------
