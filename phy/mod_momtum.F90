@@ -1271,9 +1271,6 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'momtum:'
       end if
-      call chksum(drag , 1   , halo_ps, 'drag' )
-      call chksum(ubrhs, 1   , halo_uv, 'ubrhs')
-      call chksum(vbrhs, 1   , halo_vv, 'vbrhs')
       call chksum(dpu  , 2*kk, halo_us, 'dpu'  )
       call chksum(dpv  , 2*kk, halo_vs, 'dpv'  )
       call chksum(u    , 2*kk, halo_uv, 'u'    )

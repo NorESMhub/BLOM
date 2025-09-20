@@ -47,7 +47,7 @@ module mod_eddtra
    private
 
    real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
-      hbl_tf, wpup_tf, hml_tf1, hml_tf
+      hbl_tf, wpup_tf, hml_tf1, hml_tf, hml_tfbnd
 
    ! Options with default values, modifiable by namelist.
    character(len = 80) :: &
@@ -1016,7 +1016,7 @@ contains
          c5_21 = 5._r8/21._r8
 
       real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
-         hml_tfbnd, upssmx, upssmy, ptu, ptv
+         upssmx, upssmy, ptu, ptv
       real(r8), dimension(kdm+1) :: puv, mflgm, mflsm, mfl
       real(r8), dimension(kdm) :: dlm, dlp
       real(r8) :: wf_growing_hbl, wf_decaying_hbl, &
@@ -1753,6 +1753,7 @@ contains
       wpup_tf(:,:) = spval
       hml_tf1(:,:) = spval
       hml_tf(:,:) = spval
+      hml_tfbnd(:,:) = spval
 
       !$omp parallel do private(l, i)
       do j = 1, jj
