@@ -28,13 +28,13 @@ module mod_cesm
    use mod_constants,  only: pi
    use mod_time,       only: nstep
    use mod_xc
-   use mod_forcing,    only: trxday, srxday, swa, nsf, hmat, &
-                             lip, sop, eva, rnf, rfi, fmltfz, sfl, &
-                             ztx, mty, ustarw, slp, abswnd, &
-                             lamult, lasl, ustokes, vstokes, &
-                             atmco2, atmbrf, flxdms, flxbrf, &
+   use mod_forcing,    only: trxday, srxday, swa, nsf, lip, sop, eva, rnf, rfi, &
+                             fmltfz, sfl, ztx, mty, ustarw, slp, abswnd, &
+                             lamult, lasl, ustokes, vstokes, atmco2, atmbrf, &
+                             flxdms, flxbrf, &
                              atmn2o, atmnh3, atmnhxdep, atmnoydep, &
-                             use_stream_relaxation
+                             use_stream_relaxation, &
+                             hmat
    use mod_ben02,      only: initai, rdcsic, rdctsf, fnlzai
    use mod_rdcsss,     only: rdcsss
    use mod_idarlx,     only: idarlx
@@ -103,13 +103,14 @@ module mod_cesm
       l1ci, l2ci         ! Time-level indices for time smoothing of CESM fields.
 
    public :: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm, nstep_in_cpl, hmlt, &
-             frzpot, mltpot, swa_da, nsf_da, hmat_da, hmlt_da, &
-             lip_da, sop_da, eva_da, rnf_da, rfi_da, fmltfz_da, sfl_da, &
-             ztx_da, mty_da, ustarw_da, slp_da, abswnd_da, ficem_da, &
-             lamult_da, lasl_da, flxdms_da, flxbrf_da, ustokes_da, vstokes_da, &
-             atmco2_da, atmbrf_da, atmn2o_da, atmnh3_da, &
-             atmnhxdep_da, atmnoydep_da, &
-             smtfrc, l1ci, l2ci,inicon_cesm, inifrc_cesm, getfrc_cesm
+             frzpot, mltpot, swa_da, nsf_da, hmlt_da, lip_da, sop_da, eva_da, &
+             rnf_da, rfi_da, fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da, &
+             slp_da, abswnd_da, ficem_da, lamult_da, lasl_da, flxdms_da, flxbrf_da, &
+             ustokes_da, vstokes_da, atmco2_da, atmbrf_da,atmn2o_da,atmnh3_da,&
+             atmnhxdep_da,atmnoydep_da, &
+             smtfrc, l1ci, l2ci,inicon_cesm, inifrc_cesm, getfrc_cesm, &
+             hmat_da
+
 
 contains
 

@@ -39,13 +39,13 @@ module ocn_import_export
    use mod_difest,     only: obldepth
    use mod_vcoord,     only: vcoord_tag, vcoord_isopyc_bulkml
    use mod_cesm,       only: frzpot, mltpot, &
-                             swa_da, nsf_da, hmat_da, hmlt_da, &
-                             lip_da, sop_da, eva_da, rnf_da, rfi_da, &
-                             fmltfz_da, sfl_da, ztx_da, mty_da, &
-                             ustarw_da, slp_da, abswnd_da, ficem_da, &
-                             lamult_da, lasl_da, ustokes_da, vstokes_da, &
-                             atmco2_da, atmnhxdep_da, atmnoydep_da, &
-                             l1ci, l2ci
+                             swa_da, nsf_da, hmlt_da, lip_da, sop_da, eva_da, &
+                             rnf_da, rfi_da, fmltfz_da, sfl_da, ztx_da, mty_da, &
+                             ustarw_da, slp_da, abswnd_da, ficem_da, lamult_da, &
+                             lasl_da, ustokes_da, vstokes_da, atmco2_da, &
+                             atmnhxdep_da, atmnoydep_da, &
+                             l1ci, l2ci, &
+                             hmat_da
    use mod_utility,    only: util1, util2, util3, util4
    use mod_checksum,   only: csdiag, chksummsk
 #ifdef HAMOCC
@@ -890,7 +890,7 @@ contains
                ! is related to enthalpy flux of evaporation and index_Faxa_hmoa
                ! related to the ocean average of all other enthalpy flux
                ! components.
-               util1(i,j) = fldlist(index_Faxa_hmat)%dataptr(n)*afac 
+               util1(i,j) = fldlist(index_Faxa_hmat)%dataptr(n)*afac
                util2(i,j) = fldlist(index_Faxa_hmoa)%dataptr(n)*afac
 
                ! Heat flux due to melting, positive downwards [W m-2].
