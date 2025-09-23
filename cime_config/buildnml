@@ -277,7 +277,8 @@ def buildnml(case, caseroot, compname):
         if is_test:
             testcase = case.get_value("TESTCASE")
             config["is_test_pfs"] = "yes" if testcase == "PFS" else "no"
-            config["empty_hist"] = "yes" if testcase == "PFS" else "no"
+            config["is_test_eri"] = "yes" if testcase == "ERI" else "no"
+            config["empty_hist"] = "yes" if (testcase == "PFS" or testcase == "ERI") else "no"
 
         #---------------------------------
         # Set all ParamGen namelist values:

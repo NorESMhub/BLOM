@@ -1796,9 +1796,18 @@
       <value>30,30,365</value>
       <value is_test="yes">1,30,365</value>
       <value is_test="yes" is_test_pfs="yes">30,30,365</value>
+      <value is_test="yes" is_test_eri="yes">30,30,365</value>
       <value blom_output_size="spinup">30,30,365</value>
     </values>
-    <desc>how often to start a new file in days</desc>
+    <desc>A positive integer for glb_filefreq indicates number of days
+    between new files while a negative integer indicates number of
+    files per day (glb_filefreq = -4 gives output files every 6
+    hours). Special cases are that glb_filefreq = 30 is interpreted as
+    monthly files (no matter which calendar is used) and 360 &lt;=
+    glb_filefreq &lt;= 366 is interpreted as yearly files (no matter
+    which calendar is used). There is currently no way to turn off
+    writing of hd,hm or hy files.
+    </desc>
   </entry>
 
   <entry id="glb_compflag@diaphy">
@@ -6007,7 +6016,16 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">30,365</value>
     </values>
-    <desc>Frequency for writing the BGC output</desc>
+    <desc>Frequency for writing the BGC output. A positive integer for
+    glb_filefreq indicates number of days between new files while a
+    negative integer indicates number of files per day (glb_filefreq =
+    -4 gives output files every 6 hours). Special cases are that
+    glb_filefreq = 30 is interpreted as monthly files (no matter which
+    calendar is used) and 360 &lt;= glb_filefreq &lt;= 366 is
+    interpreted as yearly files (no matter which calendar is
+    used). There is currently no way to turn off writing of hd,hm or
+    hy files.
+    </desc>
   </entry>
 
   <entry id="glb_compflag@diabgc">
@@ -6925,6 +6943,7 @@
       <value blom_n_deposition="yes">0,2,2</value>
       <value blom_n_deposition="yes" is_test="yes">4,2,2</value>
       <value hamocc_output_size="spinup">2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>NOy nitrogen deposition flux [mol N m-2 s-1]</desc>
   </entry>
@@ -6938,6 +6957,7 @@
       <value blom_n_deposition="yes">0,2,2</value>
       <value blom_n_deposition="yes" is_test="yes">4,2,2</value>
       <value hamocc_output_size="spinup">2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>NHx nitrogen deposition flux [mol N m-2 s-1] - extended N cycle only</desc>
   </entry>
