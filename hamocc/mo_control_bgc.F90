@@ -95,6 +95,12 @@ module mo_control_bgc
   logical           :: use_river2omip         = .false. ! River2ocean MIP protocol
   logical           :: use_DOMclasses         = .false. ! DOM classes (labile, semi-labile,semi-refractory and refractory)
 
+#ifdef OFFLINE_SEDIMENT_SPINUP
+  logical           :: offline_sediment_spinup = .true.
+#else
+  logical           :: offline_sediment_spinup = .false.
+#endif
+
 contains
 
   subroutine get_bgc_namelist
