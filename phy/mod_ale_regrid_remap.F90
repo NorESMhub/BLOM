@@ -43,7 +43,7 @@ module mod_ale_regrid_remap
                             extract_polycoeff, regrid, &
                             prepare_remapping, remap, &
                             hor3map_noerr, hor3map_errstr
-   use mod_diffusion, only: ltedtp_opt, ltedtp_neutral, difiso, difmxp
+   use mod_diffusion, only: ltedtp_opt, ltedtp_neutral, difmxp
    use mod_ndiff,     only: ndiff_prep_jslice, ndiff_uflx_jslice, &
                             ndiff_vflx_jslice, ndiff_update_trc_jslice
    use mod_checksum,  only: csdiag, chksum
@@ -975,7 +975,7 @@ contains
          do i = max(ilb, ifp(j,l)), min(iub, ilp(j,l))
             do k = 2, kk
                p_dst_js(k,i,js2) = p_dst_js(k,i,js2) &
-                                   - smtflxconv_js(k,i,js2)*scp2i(i,j)
+                                 - smtflxconv_js(k,i,js2)*scp2i(i,j)
             enddo
          enddo
       enddo
@@ -1353,8 +1353,9 @@ contains
 
       integer, parameter :: p_ord = 4
 
+      real(r8), dimension(kdm,1-nbdy:idm+nbdy,3) :: smtflxconv_js
       real(r8), dimension(kdm+1,1-nbdy:idm+nbdy,3) :: &
-         p_src_js, p_dst_js, smooth_fac_js, smtflxconv_js
+         p_src_js, p_dst_js, smooth_fac_js
       real(r8), dimension(p_ord+1,kdm,ntr_loc,1-nbdy:idm+nbdy,3) :: tpc_src_js
       real(r8), dimension(2,kdm,ntr_loc,1-nbdy:idm+nbdy,3) :: t_srcdi_js
       real(r8), dimension(2,kdm,1-nbdy:idm+nbdy,3) :: &
