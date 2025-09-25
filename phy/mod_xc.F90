@@ -2087,7 +2087,7 @@ contains
 
     real(8), parameter :: zero8 = 0.0
     integer, parameter :: mxsum = (idm+3*nbdy)/(2*nbdy+1)
-    real(8) :: sum8t(mxsum*jdm),sum8j(jdm),sum8s
+    real(8) :: arow(1-nbdy:idm+nbdy),sum8t(mxsum*jdm),sum8j(jdm),sum8s
     real(8) :: sum8
     real    :: vsave
     integer :: i,i1,j,l,mp,np
@@ -2101,6 +2101,9 @@ contains
 
     ! halo update so that 2*nbdy+1 wide strips are on chip.
 
+    if (nreg == 2 .and. nproc == jpr) then
+      arow(:) = a(:,jj)
+    endif
     vsave = vland
     vland = 0.0
     call xctilr(a,1,1, nbdy,0, halo_ps)
@@ -2174,6 +2177,12 @@ contains
     call mpi_bcast(sum8s,1,MTYPED,idproc1(1),mpicomm,mpierr)
     sum = sum8s
 
+    ! in case of arctic patch, copy back the final global j-row to undo any
+    ! changes the call to xctilr might have caused.
+    if (nreg == 2 .and. nproc == jpr) then
+      a(:,jj) = arow(:)
+    endif
+
     if (use_TIMER) then
       if (nxc ==  6) then
         call xctmr1( 6)
@@ -2184,11 +2193,11 @@ contains
 
   !-----------------------------------------------------------------------
   subroutine xccrc(crc, a, ld, mask, itype)
-    integer, intent(out) :: crc ! checksum of a
-    integer, intent(in)  :: ld
-    integer, intent(in)  :: itype
-    real,    intent(in)  :: a(   1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ld)
-    integer, intent(in)  :: mask(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy)
+    integer, intent(out)   :: crc ! checksum of a
+    integer, intent(in)    :: ld
+    integer, intent(in)    :: itype
+    real,    intent(inout) :: a(   1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ld)
+    integer, intent(in)    :: mask(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy)
 
     !-----------
     !  1) checksum a 3-d array, where mask==1
@@ -2205,9 +2214,9 @@ contains
 
     integer, parameter :: mxsum = (idm+3*nbdy)/(2*nbdy+1)
     integer :: crc8t(mxsum*jdm),crc8j(jdm),crc8s,crc8
-    real    :: atmp(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ld)
+    real    :: arow(1-nbdy:idm+nbdy,ld)
     real    :: vsave
-    integer :: i,i1,j,l,mp,np
+    integer :: i,i1,j,k,l,mp,np
 
     if (use_TIMER) then
       if (nxc == 0) then
@@ -2216,14 +2225,16 @@ contains
       end if
     end if
 
-    ! make a copy of source array
-    atmp(:,:,:) = a(:,:,:)
-
     ! halo update so that 2*nbdy+1 wide strips are on chip.
 
+    if (nreg == 2 .and. nproc == jpr) then
+      do k = 1,ld
+        arow(:,k) = a(:,jj,k)
+      end do
+    endif
     vsave = vland
     vland = 0.0
-    call xctilr(atmp,1,ld, nbdy,0, itype)
+    call xctilr(a,1,ld, nbdy,0, itype)
     vland = vsave
 
     ! row checksums in 2*nbdy+1 wide strips.
@@ -2236,7 +2247,7 @@ contains
         crc8 = 0
         do i= max(i1,1-nbdy),min(i1+2*nbdy,ii+nbdy,itdm-i0)
           if (mask(i,j) == 1) then
-            crc8 = crc32(atmp(i,j,:), crc8)
+            crc8 = crc32(a(i,j,:), crc8)
           end if
         end do
         crc8t(l + (j-1)*iisum(mproc,nproc)) = crc8
@@ -2293,6 +2304,14 @@ contains
     ! broadcast result to all processors.
     call mpi_bcast(crc8s,1,mpi_integer,idproc1(1),mpicomm,mpierr)
     crc = crc8s
+
+    ! in case of arctic patch, copy back the final global j-row to undo any
+    ! changes the call to xctilr might have caused.
+    if (nreg == 2 .and. nproc == jpr) then
+      do k = 1,ld
+        a(:,jj,k) = arow(:,k)
+      end do
+    endif
 
     if (use_TIMER) then
       if (nxc ==  7) then
