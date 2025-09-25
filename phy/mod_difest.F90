@@ -984,17 +984,13 @@ contains
             ww = .125*ip(i-1,j  )*min(onem,dp(i-1,j  ,kn))/onem
             we = .125*ip(i+1,j  )*min(onem,dp(i+1,j  ,kn))/onem
             wn = .125*ip(i  ,j+1)*min(onem,dp(i  ,j+1,kn))/onem
-            wc = 1. - (ws + ww + we + wn)
-            rig_lf(i,j,k) =   ws*rig(i  ,j-1,k) &
-                            + ww*rig(i-1,j  ,k) &
-                            + wc*rig(i  ,j  ,k) &
-                            + we*rig(i+1,j  ,k) &
-                            + wn*rig(i  ,j+1,k)
-            bfsqi_lf(i,j,k) =   ws*bfsqi(i  ,j-1,k) &
-                              + ww*bfsqi(i-1,j  ,k) &
-                              + wc*bfsqi(i  ,j  ,k) &
-                              + we*bfsqi(i+1,j  ,k) &
-                              + wn*bfsqi(i  ,j+1,k)
+            wc = - ((ws + ww) + (we + wn)) + 1.
+            rig_lf(i,j,k) = (ws*rig(i  ,j-1,k) + ww*rig(i-1,j  ,k)) &
+                          + (we*rig(i+1,j  ,k) + wn*rig(i  ,j+1,k)) &
+                          + wc*rig(i,j,k)
+            bfsqi_lf(i,j,k) = (ws*bfsqi(i  ,j-1,k) + ww*bfsqi(i-1,j  ,k)) &
+                            + (we*bfsqi(i+1,j  ,k) + wn*bfsqi(i  ,j+1,k)) &
+                            + wc*bfsqi(i,j,k)
           end do
         end do
       end do
@@ -1173,12 +1169,10 @@ contains
             ww = .125*ip(i-1,j  )
             we = .125*ip(i+1,j  )
             wn = .125*ip(i  ,j+1)
-            wc = 1. - (ws + ww + we + wn)
-            OBLdepth(i,j) = ws*util1(i  ,j-1) &
-                          + ww*util1(i-1,j  ) &
-                          + wc*util1(i  ,j  ) &
-                          + we*util1(i+1,j  ) &
-                          + wn*util1(i  ,j+1)
+            wc = - ((ws + ww) + (we + wn)) + 1._r8
+            OBLdepth(i,j) = (ws*util1(i  ,j-1) + ww*util1(i-1,j  )) &
+                          + (we*util1(i+1,j  ) + wn*util1(i  ,j+1)) &
+                          + wc*util1(i,j)
             OBLdepth(i,j) = min(OBLdepth(i,j), -z_int(i,j,kk+1))
           end do
         end do
@@ -2017,22 +2011,18 @@ contains
         util2(:,:) = difiso(:,:,k)
         do j = 1 - mrg, jj + mrg
           do l = 1, isp(j)
-          do i = max(1 - mrg, ifp(j, l)), min(ii + mrg, ilp(j, l))
+          do i = max(1 - mrg, ifp(j,l)), min(ii + mrg, ilp(j,l))
             ws = .125_r8*ip(i  ,j-1)*min(onem,dp(i  ,j-1,kn))/onem
             ww = .125_r8*ip(i-1,j  )*min(onem,dp(i-1,j  ,kn))/onem
             we = .125_r8*ip(i+1,j  )*min(onem,dp(i+1,j  ,kn))/onem
             wn = .125_r8*ip(i  ,j+1)*min(onem,dp(i  ,j+1,kn))/onem
-            wc = 1._r8 - (ws + ww + we + wn)
-            difint(i,j,k) = ws*util1(i  ,j-1) &
-                          + ww*util1(i-1,j  ) &
-                          + wc*util1(i  ,j  ) &
-                          + we*util1(i+1,j  ) &
-                          + wn*util1(i  ,j+1)
-            difiso(i,j,k) = ws*util2(i  ,j-1) &
-                          + ww*util2(i-1,j  ) &
-                          + wc*util2(i  ,j  ) &
-                          + we*util2(i+1,j  ) &
-                          + wn*util2(i  ,j+1)
+            wc = 1._r8 - ((ws + ww) + (we + wn))
+            difint(i,j,k) = (ws*util1(i  ,j-1) + ww*util1(i-1,j  )) &
+                          + (we*util1(i+1,j  ) + wn*util1(i  ,j+1)) &
+                          + wc*util1(i,j)
+            difiso(i,j,k) = (ws*util2(i  ,j-1) + ww*util2(i-1,j  )) &
+                          + (we*util2(i+1,j  ) + wn*util2(i  ,j+1)) &
+                          + wc*util2(i,j)
           enddo
           enddo
         enddo
@@ -2610,22 +2600,18 @@ contains
         util2(:,:) = difiso(:,:,k)
         do j = 1 - mrg, jj + mrg
           do l = 1, isp(j)
-          do i = max(1 - mrg, ifp(j, l)), min(ii + mrg, ilp(j, l))
+          do i = max(1 - mrg, ifp(j,l)), min(ii + mrg, ilp(j,l))
             ws = .125_r8*ip(i  ,j-1)*min(onem,dp(i  ,j-1,kn))/onem
             ww = .125_r8*ip(i-1,j  )*min(onem,dp(i-1,j  ,kn))/onem
             we = .125_r8*ip(i+1,j  )*min(onem,dp(i+1,j  ,kn))/onem
             wn = .125_r8*ip(i  ,j+1)*min(onem,dp(i  ,j+1,kn))/onem
-            wc = 1._r8 - (ws + ww + we + wn)
-            difint(i,j,k) = ws*util1(i  ,j-1) &
-                          + ww*util1(i-1,j  ) &
-                          + wc*util1(i  ,j  ) &
-                          + we*util1(i+1,j  ) &
-                          + wn*util1(i  ,j+1)
-            difiso(i,j,k) = ws*util2(i  ,j-1) &
-                          + ww*util2(i-1,j  ) &
-                          + wc*util2(i  ,j  ) &
-                          + we*util2(i+1,j  ) &
-                          + wn*util2(i  ,j+1)
+            wc = - ((ws + ww) + (we + wn)) + 1._r8
+            difint(i,j,k) = (ws*util1(i  ,j-1) + ww*util1(i-1,j  )) &
+                          + (we*util1(i+1,j  ) + wn*util1(i  ,j+1)) &
+                          + wc*util1(i,j)
+            difiso(i,j,k) = (ws*util2(i  ,j-1) + ww*util2(i-1,j  )) &
+                          + (we*util2(i+1,j  ) + wn*util2(i  ,j+1)) &
+                          + wc*util2(i,j)
           enddo
           enddo
         enddo
