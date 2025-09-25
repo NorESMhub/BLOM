@@ -246,7 +246,6 @@ def buildnml(case, caseroot, compname):
         config["hamocc_sedspinup_yr_end"] = hamocc_sedspinup_yr_end
         config["hamocc_sedspinup_ncycle"] = hamocc_sedspinup_ncycle
         config["hamocc_sediment_quality"] = "yes" if hamocc_sediment_quality else "no"
-        config["is_test"] = "yes" if is_test else "no"
         config["comp_interface"] = comp_interface
         config["hamocc_shelf_res_time"] = "yes" if hamocc_shelf_res_time else "no"
 
@@ -274,10 +273,13 @@ def buildnml(case, caseroot, compname):
            print('Unknown sinking scheme option in BLOM buildnml- exit now')
            exit
 
+        config["is_test"] = "yes" if is_test else "no"
+        config["empty_hist"] = "no"
         if is_test:
             testcase = case.get_value("TESTCASE")
-            config["is_test_pfs"] = "yes" if testcase == "PFS" else "no"
-            config["empty_hist"] = "yes" if testcase == "PFS" else "no"
+            test_argv = case.get_value("TEST_ARGV")
+            if (testcase == "PFS") or (testcase == "ERI" and "defaultio" not in test_argv):
+                config["empty_hist"] = "yes"
 
         #---------------------------------
         # Set all ParamGen namelist values:
