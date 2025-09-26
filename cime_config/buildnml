@@ -278,6 +278,7 @@ def buildnml(case, caseroot, compname):
         if is_test:
             testcase = case.get_value("TESTCASE")
             test_argv = case.get_value("TEST_ARGV")
+            config["is_test_pfs"] = "yes" if testcase == "PFS" else "no"
             if (testcase == "PFS") or (testcase == "ERI" and "defaultio" not in test_argv):
                 config["empty_hist"] = "yes"
 
