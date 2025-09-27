@@ -1815,7 +1815,8 @@
     <group>diaphy</group>
     <values>
       <value>30,30,365</value>
-      <value is_test="yes" empty_hist="no" >1,30,365</value>
+      <value is_test="yes" >1,30,365</value>
+      <value is_test="yes" is_test_pfs="yes">30,30,365</value>
       <value blom_output_size="spinup">30,30,365</value>
     </values>
     <desc>A positive integer for glb_filefreq indicates number of days
@@ -6031,8 +6032,9 @@
     <group>diabgc</group>
     <values>
       <value>30,30,365</value>
-      <value is_test="yes" empty_hist="no">1,30,365</value>
-      <value hamocc_output_size="spinup">30,365</value>
+      <value is_test="yes" >1,30,365</value>
+      <value is_test="yes" is_test_pfs="yes">30,30,365</value>
+      <value blom_output_size="spinup">30,30,365</value>
     </values>
     <desc>Frequency for writing the BGC output. A positive integer for
     glb_filefreq indicates number of days between new files while a
