@@ -390,6 +390,7 @@ contains
       character(len=cllen) :: msg, cvalue
       logical :: isPresent, isSet
       logical :: ocn2glc_coupling
+      logical :: atm_computes_enthalpy_flux
       logical :: flds_co2a, flds_co2c, flds_dms, flds_brf
       logical :: hamocc_defined
 #ifndef HAMOCC
@@ -538,6 +539,13 @@ contains
       read(cvalue,*) flds_co2c
       call blom_logwrite(subname//': flds_co2c = '//trim(cvalue))
 
+      ! Determine if atm computes enthalpy fluxes
+      call NUOPC_CompAttributeGet(gcomp, name="atm_computes_enthalpy_flux", value=cvalue, rc=rc)
+      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      read(cvalue,*) atm_computes_enthalpy_flux
+      write(msg,'(a,l1)') subname//': atm_computes_enthalpy_flux is ', atm_computes_enthalpy_flux
+      call blom_logwrite(msg)
+
       ! Determine if ocn is sending temperature and salinity data to glc
       ! If data is sent to glc will need to determine number of ocean
       ! levels and ocean level indices
@@ -594,12 +602,14 @@ contains
       write(msg,'(a,l1)') subname//': export brf ', flds_brf
       call blom_logwrite(msg)
 
+
+
       ! ------------------------------------------------------------------------
       ! Advertise import fields.
       ! ------------------------------------------------------------------------
 
       call blom_advertise_imports(flds_scalar_name, fldsToOcn_num, fldsToOcn, &
-           flds_co2a, flds_co2c)
+           flds_co2a, flds_co2c, atm_computes_enthalpy_flux)
 
       do n = 1,fldsToOcn_num
          call NUOPC_Advertise(importState, standardName=fldsToOcn(n)%stdname, &
