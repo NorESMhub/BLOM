@@ -145,6 +145,7 @@ module ocn_import_export
         index_Faxa_rain   = -1, &
         index_Faxa_ndep   = -1, &
         index_Faxa_hmat   = -1, &
+        index_Faxa_hlat   = -1, &
         index_Faxa_hmoa   = -1, &
         index_Sa_pslv     = -1, &
         index_Sa_co2diag  = -1, &
@@ -278,6 +279,9 @@ contains
           ungridded_lbound=1, ungridded_ubound=2)
      if (atm_computes_enthalpy) then
         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_hmat'    , index_Faxa_hmat)
+        ! Note the following was added to avoid a mapping in the mediator of
+        ! Faxa_hlat from the atm to the ocn grid - it is not used in BLOM at the moment
+        call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_hlat'    , index_Faxa_hlat)
         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_hmat_oa' , index_Faxa_hmoa)
      end if
      if (flds_co2a .or. flds_co2c) then
