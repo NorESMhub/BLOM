@@ -33,7 +33,8 @@ module mod_ale_regrid_remap
                             vcoord_cntiso_hybrid, vcoord_plevel, &
                             sigmar, plevel
    use mod_eos,       only: sig, dsigdt, dsigds
-   use mod_state,     only: u, v, dp, dpu, dpv, temp, saln, sigma, p, pu, pv
+   use mod_state,     only: u, v, dp, dpu, dpv, temp, saln, sigma, p, pu, pv, &
+                            ub, vb
    use mod_hor3map,   only: recon_grd_struct, recon_src_struct, remap_struct, &
                             hor3map_plm, hor3map_ppm, hor3map_pqm, &
                             hor3map_monotonic, hor3map_non_oscillatory, &
@@ -46,8 +47,15 @@ module mod_ale_regrid_remap
    use mod_diffusion, only: ltedtp_opt, ltedtp_neutral, difmxp
    use mod_ndiff,     only: ndiff_prep_jslice, ndiff_uflx_jslice, &
                             ndiff_vflx_jslice, ndiff_update_trc_jslice
+   use mod_dia,       only: ddm, nphy, alarm_phy, &
+                            depthslev_bnds, pbath, ubath, vbath, phylvl, &
+                            acc_templvl, acc_salnlvl, &
+                            acc_uvellvl, acc_vvellvl, &
+                            acc_idlagelvl
    use mod_checksum,  only: csdiag, chksum
-   use mod_tracers,   only: ntr, trc
+   use mod_tracers,   only: ntr, itriag, trc
+   use mod_ifdefs,    only: use_TRC, use_IDLAGE
+   use mod_utility,   only: util1
 
    implicit none
    private
@@ -96,7 +104,7 @@ module mod_ale_regrid_remap
                                       ! construction of Bezier curves.
    integer, parameter :: &
         regrid_method_direct = 1, &   ! Regrid method (vcoord_tag ==
-                                      ! vcoord_cntiso_hybrid): On the basis of 
+                                      ! vcoord_cntiso_hybrid): On the basis of
                                       ! reconstructed potential density, regrid
                                       ! interface pressures so interface
                                       ! potential densities match target values.
@@ -111,11 +119,11 @@ module mod_ale_regrid_remap
    type(recon_grd_struct) :: rcgs
    type(recon_src_struct) :: d_rcss, v_rcss
    type(recon_src_struct), allocatable, dimension(:) :: trc_rcss
-   type(remap_struct) :: rms
+   type(remap_struct) :: rms, rms_diazlv
 
    public :: regrid_method_tag, regrid_method_direct, &
              readnml_ale_regrid_remap, init_ale_regrid_remap, &
-             ale_regrid_remap
+             ale_regrid_remap, ale_remap_diazlv
 
 contains
 
@@ -1000,7 +1008,6 @@ contains
             errstat = prepare_remapping(rcgs, rms, p_dst(:,i), i, js)
             if (errstat /= hor3map_noerr) then
                write(lp,*) trim(hor3map_errstr(errstat))
-               write(lp,*) 'i,j',i+i0,j+j0
                call xchalt('(remap_trc_jslice)')
                stop '(remap_trc_jslice)'
             endif
@@ -1019,6 +1026,100 @@ contains
       enddo
 
    end subroutine remap_trc_jslice
+
+   subroutine remap_trc_diazlv_jslice(p_src, ilb, iub, j, js, &
+                                      do_acc_templvl, do_acc_salnlvl, &
+                                      do_acc_idlagelvl)
+   ! ---------------------------------------------------------------------------
+   ! Remap tracers from source to diagnostic z-levels.
+   ! ---------------------------------------------------------------------------
+
+      real(r8), dimension(:,1-nbdy:), intent(in) :: p_src
+      integer, intent(in) :: ilb, iub, j, js
+      logical, intent(in) :: do_acc_templvl, do_acc_salnlvl, do_acc_idlagelvl
+
+      real(r8), dimension(ddm+1) :: p_dst
+      real(r8), dimension(ddm) :: trc_rm
+      real(r8) :: q
+      integer :: l, i, kd, errstat, iogrp
+
+      if (.not. (do_acc_templvl .or. do_acc_salnlvl .or. &
+                 do_acc_idlagelvl)) return
+
+      do l = 1, isp(j)
+         do i = max(ilb, ifp(j,l)), min(iub, ilp(j,l))
+
+            ! Prepare remapping to destination z-levels.
+            p_dst(1) = p_src(1,i)
+            q = 1._r8/pbath(i,j)
+            do kd = 2, ddm
+               p_dst(kd) = min(depthslev_bnds(1,kd)*q, 1._r8) &
+                           *(p_src(kk+1,i) - p_src(1,i)) + p_src(1,i)
+            enddo
+            p_dst(ddm+1) = p_src(kk+1,i)
+            errstat = prepare_remapping(rcgs, rms_diazlv, p_dst, i, js)
+            if (errstat /= hor3map_noerr) then
+               write(lp,*) trim(hor3map_errstr(errstat))
+               call xchalt('(remap_trc_diazlv_jslice)')
+               stop '(remap_trc_diazlv_jslice)'
+            endif
+
+            ! Remap tracers.
+
+            if (do_acc_templvl) then
+               errstat = remap(trc_rcss(1), rms_diazlv, trc_rm, i, js)
+               if (errstat /= hor3map_noerr) then
+                  write(lp,*) trim(hor3map_errstr(errstat))
+                  call xchalt('(remap_trc_diazlv_jslice)')
+                  stop '(remap_trc_diazlv_jslice)'
+               endif
+               do iogrp = 1, nphy
+                  if (acc_templvl(iogrp) /= 0) then
+                     do kd = 1, ddm
+                        phylvl(i,j,kd,acc_templvl(iogrp)) = &
+                           phylvl(i,j,kd,acc_templvl(iogrp)) + trc_rm(kd)
+                     enddo
+                  endif
+               enddo
+            endif
+
+            if (do_acc_salnlvl) then
+               errstat = remap(trc_rcss(2), rms_diazlv, trc_rm, i, js)
+               if (errstat /= hor3map_noerr) then
+                  write(lp,*) trim(hor3map_errstr(errstat))
+                  call xchalt('(remap_trc_diazlv_jslice)')
+                  stop '(remap_trc_diazlv_jslice)'
+               endif
+               do iogrp = 1, nphy
+                  if (acc_salnlvl(iogrp) /= 0) then
+                     do kd = 1, ddm
+                        phylvl(i,j,kd,acc_salnlvl(iogrp)) = &
+                           phylvl(i,j,kd,acc_salnlvl(iogrp)) + trc_rm(kd)
+                     enddo
+                  endif
+               enddo
+            endif
+
+            if (do_acc_idlagelvl) then
+               errstat = remap(trc_rcss(itriag+2), rms_diazlv, trc_rm, i, js)
+               if (errstat /= hor3map_noerr) then
+                  write(lp,*) trim(hor3map_errstr(errstat))
+                  call xchalt('(remap_trc_diazlv_jslice)')
+                  stop '(remap_trc_diazlv_jslice)'
+               endif
+               do iogrp = 1, nphy
+                  if (acc_idlagelvl(iogrp) /= 0) then
+                     do kd = 1, ddm
+                        phylvl(i,j,kd,acc_idlagelvl(iogrp)) = trc_rm(kd)
+                     enddo
+                  endif
+               enddo
+            endif
+
+         enddo
+      enddo
+
+   end subroutine remap_trc_diazlv_jslice
 
    subroutine copy_jslice_to_3d(p_dst, trc_rm, ilb, iub, j, nn)
 
@@ -1302,6 +1403,9 @@ contains
       ! Configuration of remapping data structure.
       rms%n_dst = kk
 
+      ! Configuration of remapping data structure for diagnostic z-levels.
+      rms_diazlv%n_dst = ddm
+
       ! Initialize reconstruction and remapping data structures.
 
       errstat = initialize_rcgs(rcgs)
@@ -1341,12 +1445,20 @@ contains
          stop '(init_ale_regrid_remap)'
       endif
 
+      errstat = initialize_rms(rcgs, rms_diazlv)
+      if (errstat /= hor3map_noerr) then
+         write(lp,*) trim(hor3map_errstr(errstat))
+         call xchalt('(init_ale_regrid_remap)')
+         stop '(init_ale_regrid_remap)'
+      endif
+
    end subroutine init_ale_regrid_remap
 
    subroutine ale_regrid_remap(m, n, mm, nn, k1m, k1n)
    ! ---------------------------------------------------------------------------
-   ! Regrid, remap and carry out additional operations that makes use of the
-   ! reconstructed vertical profiles, such as neutral diffusion.
+   ! Regrid, remap and carry out additional operations that make use of the
+   ! reconstructed vertical profiles, such as neutral diffusion and remapping to
+   ! diagnostic z-levels.
    ! ---------------------------------------------------------------------------
 
       integer, intent(in) :: m, n, mm, nn, k1m, k1n
@@ -1362,16 +1474,33 @@ contains
          p_srcdi_js, drhodt_srcdi_js, drhods_srcdi_js
       real(r8), dimension(kdm,ntr_loc,1-nbdy:idm+nbdy,3) :: flxconv_js
       real(r8), dimension(kdm,ntr_loc,1-nbdy:idm+nbdy) :: trc_rm
-      real(r8), dimension(kdm+1) :: p_1d, p_dst_1d
-      real(r8), dimension(kdm) :: u_1d, v_1d
+      real(r8), dimension(kdm+1) :: p_src, p_dst
+      real(r8), dimension(kdm) :: v_src, v_rm
+      real(r8), dimension(ddm+1) :: p_dst_diazlv
+      real(r8), dimension(ddm) :: v_rm_diazlv
       real(r8) :: q
       integer, dimension(1-nbdy:idm+nbdy,3) :: ksmx_js, kdmx_js
       integer :: ilb1, ilb2, ilb3, iub1, iub2, iub3, jofs2, jofs3, &
                  jlb_regrid_smooth, jlb_ndiff_prep, jlb_ndiff_uflx, &
                  jlb_ndiff_vflx, jlb_ndiff_update_trc, &
-                 js1, js2, js3, j, nt, i, k, l, kn, errstat
-      logical :: do_regrid_smooth, do_ndiff
+                 js1, js2, js3, j, nt, i, k, l, kn, kd, iogrp, errstat
+      logical :: do_regrid_smooth, do_ndiff, do_acc_templvl, do_acc_salnlvl, &
+                 do_acc_uvellvl, do_acc_vvellvl, do_acc_idlagelvl
       character(len = 2) cnt
+
+      ! ------------------------------------------------------------------------
+      ! Check if accumulation of diagnostic variables should be done.
+      ! ------------------------------------------------------------------------
+
+      do_acc_templvl = sum(acc_templvl(1:nphy)) /= 0 .and. &
+                       sum(acc_templvl(1:nphy)*alarm_phy(1:nphy)) == 0
+      do_acc_salnlvl = sum(acc_salnlvl(1:nphy)) /= 0 .and. &
+                       sum(acc_salnlvl(1:nphy)*alarm_phy(1:nphy)) == 0
+      do_acc_uvellvl = sum(acc_uvellvl(1:nphy)) /= 0 .and. &
+                       sum(acc_uvellvl(1:nphy)*alarm_phy(1:nphy)) == 0
+      do_acc_vvellvl = sum(acc_vvellvl(1:nphy)) /= 0 .and. &
+                       sum(acc_vvellvl(1:nphy)*alarm_phy(1:nphy)) == 0
+      do_acc_idlagelvl = .false.
 
       ! ------------------------------------------------------------------------
       ! Regrid and remap tracers. Also carry out neutral diffusion if requested.
@@ -1438,7 +1567,6 @@ contains
 
       ! Update halos as needed.
       if (jofs3 > 0) then
-         call xctilr(dp   (1-nbdy,1-nbdy,k1n), 1, kk, jofs3, jofs3, halo_ps)
          call xctilr(temp (1-nbdy,1-nbdy,k1n), 1, kk, jofs3, jofs3, halo_ps)
          call xctilr(saln (1-nbdy,1-nbdy,k1n), 1, kk, jofs3, jofs3, halo_ps)
          call xctilr(sigma(1-nbdy,1-nbdy,k1n), 1, kk, jofs3, jofs3, halo_ps)
@@ -1509,10 +1637,15 @@ contains
                                    ntr_loc, ilb1, iub1, j+jofs2, &
                                    js1, js2, mm, nn)
 
-         ! Remap tracers to the regridded layers.
-         if (j >= 1) &
+         ! Remap tracers to regridded layers and diagnostic z-levels.
+         if (j >= 1) then
             call remap_trc_jslice(p_dst_js(:,:,js1), trc_rm, &
                                   ilb1, iub1, j, js1)
+            call remap_trc_diazlv_jslice(p_src_js(:,:,js1), &
+                                         ilb1, iub1, j, js1, &
+                                         do_acc_templvl, do_acc_salnlvl, &
+                                         do_acc_idlagelvl)
+         endif
 
          ! If requested, update the tracers by applying the neutral diffusion
          ! flux convergence.
@@ -1552,6 +1685,11 @@ contains
 
       !$omp parallel do private(k, kn, l, i)
       do j = -2, jj+3
+          do l = 1, isp(j)
+             do i = max(-1, ifp(j,l)), min(ii, ilp(j,l))
+                util1(i,j) = p(i,j,kk+1)
+             enddo
+          enddo
          do k = 1, kk
             kn = k + nn
             do l = 1, isp(j)
@@ -1572,7 +1710,7 @@ contains
                   q = min(p(i,j,kk+1), p(i-1,j,kk+1))
                   dpu(i,j,kn) = &
                        .5_r8*( (min(q, p(i-1,j,k+1)) - min(q, p(i-1,j,k))) &
-                       + (min(q, p(i  ,j,k+1)) - min(q, p(i  ,j,k))))
+                             + (min(q, p(i  ,j,k+1)) - min(q, p(i  ,j,k))))
                enddo
             enddo
             do l = 1, isv(j)
@@ -1580,7 +1718,7 @@ contains
                   q = min(p(i,j,kk+1), p(i,j-1,kk+1))
                   dpv(i,j,kn) = &
                        .5_r8*( (min(q, p(i,j-1,k+1)) - min(q, p(i,j-1,k))) &
-                       + (min(q, p(i,j  ,k+1)) - min(q, p(i,j  ,k))))
+                             + (min(q, p(i,j  ,k+1)) - min(q, p(i,j  ,k))))
                enddo
             enddo
          enddo
@@ -1594,19 +1732,19 @@ contains
 
                ! Copy variables into 1D arrays. Rescale source interfaces so the
                ! pressure range of source and destination columns match.
-               p_dst_1d(1) = pu(i,j,1)
+               p_dst(1) = pu(i,j,1)
                do k = 1, kk
                   kn = k + nn
-                  u_1d(k) = u(i,j,kn)
-                  p_dst_1d(k+1) = p_dst_1d(k) + dpu(i,j,kn)
+                  v_src(k) = u(i,j,kn)
+                  p_dst(k+1) = p_dst(k) + dpu(i,j,kn)
                enddo
-               q = p_dst_1d(kk+1)/pu(i,j,kk+1)
+               q = min(util1(i-1,j), util1(i,j))/pu(i,j,kk+1)
                do k = 1, kk+1
-                  p_1d(k) = pu(i,j,k)*q
+                  p_src(k) = pu(i,j,k)*q
                enddo
 
                ! Prepare reconstruction with current interface pressures.
-               errstat = prepare_reconstruction(rcgs, p_1d, i, 1)
+               errstat = prepare_reconstruction(rcgs, p_src, i, 1)
                if (errstat /= hor3map_noerr) then
                   write(lp,*) trim(hor3map_errstr(errstat))
                   call xchalt('(ale_regrid_remap)')
@@ -1615,32 +1753,72 @@ contains
 
                ! Prepare remapping to layer structure with regridded interface
                ! pressures.
-               errstat = prepare_remapping(rcgs, rms, p_dst_1d, i, 1)
+               errstat = prepare_remapping(rcgs, rms, p_dst, i, 1)
                if (errstat /= hor3map_noerr) then
                   write(lp,*) trim(hor3map_errstr(errstat))
                   call xchalt('(ale_regrid_remap)')
                   stop '(ale_regrid_remap)'
                endif
 
-               ! Reconstruct and remap u-component of velocity.
-               errstat = reconstruct(rcgs, v_rcss, u_1d, i, 1)
-               if (errstat /= hor3map_noerr) then
-                  write(lp,*) trim(hor3map_errstr(errstat))
-                  call xchalt('(ale_regrid_remap)')
-                  stop '(ale_regrid_remap)'
-               endif
-               errstat = remap(v_rcss, rms, u_1d, i, 1)
+               ! Reconstruct u-component of velocity.
+               errstat = reconstruct(rcgs, v_rcss, v_src, i, 1)
                if (errstat /= hor3map_noerr) then
                   write(lp,*) trim(hor3map_errstr(errstat))
                   call xchalt('(ale_regrid_remap)')
                   stop '(ale_regrid_remap)'
                endif
 
-               ! Update 3D arrays
+               ! Remap u-component of velocity to regridded layers.
+               errstat = remap(v_rcss, rms, v_rm, i, 1)
+               if (errstat /= hor3map_noerr) then
+                  write(lp,*) trim(hor3map_errstr(errstat))
+                  call xchalt('(ale_regrid_remap)')
+                  stop '(ale_regrid_remap)'
+               endif
+
+               ! Update 3D array.
                do k = 1, kk
                   kn = k + nn
-                  u(i,j,kn) = u_1d(k)
+                  u(i,j,kn) = v_rm(k)
                enddo
+
+               if (do_acc_uvellvl) then
+
+                  ! Prepare remapping to destination z-levels.
+                  p_dst_diazlv(1) = p_src(1)
+                  q = 1._r8/ubath(i,j)
+                  do kd = 2, ddm
+                     p_dst_diazlv(kd) = min(depthslev_bnds(1,kd)*q, 1._r8) &
+                                        *(p_src(kk+1) - p_src(1)) + p_src(1)
+                  enddo
+                  p_dst_diazlv(ddm+1) = p_src(kk+1)
+                  errstat = prepare_remapping(rcgs, rms_diazlv, p_dst_diazlv, &
+                                              i, 1)
+                  if (errstat /= hor3map_noerr) then
+                     write(lp,*) trim(hor3map_errstr(errstat))
+                     call xchalt('(ale_regrid_remap)')
+                     stop '(ale_regrid_remap)'
+                  endif
+
+                  ! Remap u-component of velocity to diagnostic z-levels and
+                  ! accumulate.
+                  errstat = remap(v_rcss, rms_diazlv, v_rm_diazlv, i, 1)
+                  if (errstat /= hor3map_noerr) then
+                     write(lp,*) trim(hor3map_errstr(errstat))
+                     call xchalt('(ale_regrid_remap)')
+                     stop '(ale_regrid_remap)'
+                  endif
+                  do iogrp = 1, nphy
+                     if (acc_uvellvl(iogrp) /= 0) then
+                        do kd = 1, ddm
+                           phylvl(i,j,kd,acc_uvellvl(iogrp)) = &
+                                phylvl(i,j,kd,acc_uvellvl(iogrp)) &
+                              + v_rm_diazlv(kd) + ub(i,j,n)
+                        enddo
+                     endif
+                  enddo
+
+               endif
 
             enddo
          enddo
@@ -1650,19 +1828,19 @@ contains
 
                ! Copy variables into 1D arrays. Rescale source interfaces so the
                ! pressure range of source and destination columns match.
-               p_dst_1d(1) = pv(i,j,1)
+               p_dst(1) = pv(i,j,1)
                do k = 1, kk
                   kn = k + nn
-                  v_1d(k) = v(i,j,kn)
-                  p_dst_1d(k+1) = p_dst_1d(k) + dpv(i,j,kn)
+                  v_src(k) = v(i,j,kn)
+                  p_dst(k+1) = p_dst(k) + dpv(i,j,kn)
                enddo
-               q = p_dst_1d(kk+1)/pv(i,j,kk+1)
+               q = min(util1(i,j-1), util1(i,j))/pv(i,j,kk+1)
                do k = 1, kk+1
-                  p_1d(k) = pv(i,j,k)*q
+                  p_src(k) = pv(i,j,k)*q
                enddo
 
                ! Prepare reconstruction with current interface pressures.
-               errstat = prepare_reconstruction(rcgs, p_1d, i, 1)
+               errstat = prepare_reconstruction(rcgs, p_src, i, 1)
                if (errstat /= hor3map_noerr) then
                   write(lp,*) trim(hor3map_errstr(errstat))
                   call xchalt('(ale_regrid_remap)')
@@ -1671,32 +1849,72 @@ contains
 
                ! Prepare remapping to layer structure with regridded interface
                ! pressures.
-               errstat = prepare_remapping(rcgs, rms, p_dst_1d, i, 1)
+               errstat = prepare_remapping(rcgs, rms, p_dst, i, 1)
                if (errstat /= hor3map_noerr) then
                   write(lp,*) trim(hor3map_errstr(errstat))
                   call xchalt('(ale_regrid_remap)')
                   stop '(ale_regrid_remap)'
                endif
 
-               ! Reconstruct and remap v-component of velocity.
-               errstat = reconstruct(rcgs, v_rcss, v_1d, i, 1)
-               if (errstat /= hor3map_noerr) then
-                  write(lp,*) trim(hor3map_errstr(errstat))
-                  call xchalt('(ale_regrid_remap)')
-                  stop '(ale_regrid_remap)'
-               endif
-               errstat = remap(v_rcss, rms, v_1d, i, 1)
+               ! Reconstruct v-component of velocity.
+               errstat = reconstruct(rcgs, v_rcss, v_src, i, 1)
                if (errstat /= hor3map_noerr) then
                   write(lp,*) trim(hor3map_errstr(errstat))
                   call xchalt('(ale_regrid_remap)')
                   stop '(ale_regrid_remap)'
                endif
 
-               ! Update 3D arrays
+               ! Remap v-component of velocity to regridded layers.
+               errstat = remap(v_rcss, rms, v_rm, i, 1)
+               if (errstat /= hor3map_noerr) then
+                  write(lp,*) trim(hor3map_errstr(errstat))
+                  call xchalt('(ale_regrid_remap)')
+                  stop '(ale_regrid_remap)'
+               endif
+
+               ! Update 3D array.
                do k = 1, kk
                   kn = k + nn
-                  v(i,j,kn) = v_1d(k)
+                  v(i,j,kn) = v_rm(k)
                enddo
+
+               if (do_acc_vvellvl) then
+
+                  ! Prepare remapping to destination z-levels.
+                  p_dst_diazlv(1) = p_src(1)
+                  q = 1._r8/vbath(i,j)
+                  do kd = 2, ddm
+                     p_dst_diazlv(kd) = min(depthslev_bnds(1,kd)*q, 1._r8) &
+                                        *(p_src(kk+1) - p_src(1)) + p_src(1)
+                  enddo
+                  p_dst_diazlv(ddm+1) = p_src(kk+1)
+                  errstat = prepare_remapping(rcgs, rms_diazlv, p_dst_diazlv, &
+                                              i, 1)
+                  if (errstat /= hor3map_noerr) then
+                     write(lp,*) trim(hor3map_errstr(errstat))
+                     call xchalt('(ale_regrid_remap)')
+                     stop '(ale_regrid_remap)'
+                  endif
+
+                  ! Remap v-component of velocity to diagnostic z-levels and
+                  ! accumulate.
+                  errstat = remap(v_rcss, rms_diazlv, v_rm_diazlv, i, 1)
+                  if (errstat /= hor3map_noerr) then
+                     write(lp,*) trim(hor3map_errstr(errstat))
+                     call xchalt('(ale_regrid_remap)')
+                     stop '(ale_regrid_remap)'
+                  endif
+                  do iogrp = 1, nphy
+                     if (acc_vvellvl(iogrp) /= 0) then
+                        do kd = 1, ddm
+                           phylvl(i,j,kd,acc_vvellvl(iogrp)) = &
+                                phylvl(i,j,kd,acc_vvellvl(iogrp)) &
+                              + v_rm_diazlv(kd) + vb(i,j,n)
+                        enddo
+                     endif
+                  enddo
+
+               endif
 
             enddo
          enddo
@@ -1722,5 +1940,236 @@ contains
       endif
 
    end subroutine ale_regrid_remap
+
+   subroutine ale_remap_diazlv(m, n, mm, nn, k1m, k1n)
+   ! ---------------------------------------------------------------------------
+   ! Remap mid time-level variables to diagnostic z-levels.
+   ! ---------------------------------------------------------------------------
+
+      integer, intent(in) :: m, n, mm, nn, k1m, k1n
+
+      integer, parameter :: p_ord = 4
+
+      real(r8), dimension(kdm+1,1-nbdy:idm+nbdy) :: p_src_js
+      real(r8), dimension(p_ord+1,kdm,ntr_loc,1-nbdy:idm+nbdy) :: tpc_src_js
+      real(r8), dimension(2,kdm,ntr_loc,1-nbdy:idm+nbdy) :: t_srcdi_js
+      real(r8), dimension(kdm+1) :: p_src
+      real(r8), dimension(kdm) :: v_src
+      real(r8), dimension(ddm+1) :: p_dst_diazlv
+      real(r8), dimension(ddm) :: v_rm_diazlv
+      real(r8) :: q
+      integer, dimension(1-nbdy:idm+nbdy) :: ksmx_js
+      integer :: j, i, k, l, km, kd, iogrp, errstat
+      logical :: do_acc_templvl  , do_acc_salnlvl, &
+                 do_acc_uvellvl  , do_acc_vvellvl, &
+                 do_acc_idlagelvl
+
+      ! ------------------------------------------------------------------------
+      ! Check if diagnostic variables should be remapped, either to be
+      ! accumulated or instantaneously recorded.
+      ! ------------------------------------------------------------------------
+
+      do_acc_templvl = sum(acc_templvl  (1:nphy)*alarm_phy(1:nphy)) /= 0
+      do_acc_salnlvl = sum(acc_salnlvl  (1:nphy)*alarm_phy(1:nphy)) /= 0
+      do_acc_uvellvl = sum(acc_uvellvl  (1:nphy)*alarm_phy(1:nphy)) /= 0
+      do_acc_vvellvl = sum(acc_vvellvl  (1:nphy)*alarm_phy(1:nphy)) /= 0
+      do_acc_idlagelvl = &
+         sum(acc_idlagelvl(1:nphy)*alarm_phy(1:nphy)) /= 0 .and. &
+         use_TRC .and. use_IDLAGE
+
+      ! ------------------------------------------------------------------------
+      ! Remap tracers.
+      ! ------------------------------------------------------------------------
+
+      if (do_acc_templvl .or. do_acc_salnlvl .or. do_acc_idlagelvl) then
+
+         do j = 1, jj
+
+            ! Vertically reconstruct tracers.
+            call reconstruct_trc_jslice(p_src_js, ksmx_js, &
+                                        tpc_src_js, t_srcdi_js, &
+                                        1, ii, j, 1, mm)
+
+            ! Remap tracers to diagnostic z-levels.
+            call remap_trc_diazlv_jslice(p_src_js, &
+                                         1, ii, j, 1, &
+                                         do_acc_templvl, do_acc_salnlvl, &
+                                         do_acc_idlagelvl)
+
+         enddo
+
+      endif
+
+      ! ------------------------------------------------------------------------
+      ! Remap velocity.
+      ! ------------------------------------------------------------------------
+
+      if (.not. (do_acc_uvellvl .or. do_acc_vvellvl)) return
+
+      !$omp parallel do private(k, km, l, i)
+      do j = 1, jj
+         do k = 1, kk
+            km = k + mm
+            do l = 1, isu(j)
+               do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
+                  pu(i,j,k+1) = pu(i,j,k) + dpu(i,j,km)
+               enddo
+            enddo
+            do l = 1, isv(j)
+               do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
+                  pv(i,j,k+1) = pv(i,j,k) + dpv(i,j,km)
+               enddo
+            enddo
+         enddo
+      enddo
+      !$omp end parallel do
+
+      do j = 1, jj
+
+         if (do_acc_uvellvl) then
+
+            do l = 1, isu(j)
+               do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
+
+                  ! Copy variables into 1D arrays. Rescale source interfaces so
+                  ! the pressure range of source and destination columns match.
+                  do k = 1, kk
+                     km = k + mm
+                     v_src(k) = u(i,j,km)
+                  enddo
+                  q = min(p(i-1,j,kk+1), p(i,j,kk+1))/pu(i,j,kk+1)
+                  do k = 1, kk+1
+                     p_src(k) = pu(i,j,k)*q
+                  enddo
+
+                  ! Prepare reconstruction with current interface pressures.
+                  errstat = prepare_reconstruction(rcgs, p_src, i, 1)
+                  if (errstat /= hor3map_noerr) then
+                     write(lp,*) trim(hor3map_errstr(errstat))
+                     call xchalt('(ale_regrid_remap)')
+                     stop '(ale_regrid_remap)'
+                  endif
+
+                  ! Reconstruct u-component of velocity.
+                  errstat = reconstruct(rcgs, v_rcss, v_src, i, 1)
+                  if (errstat /= hor3map_noerr) then
+                     write(lp,*) trim(hor3map_errstr(errstat))
+                     call xchalt('(ale_regrid_remap)')
+                     stop '(ale_regrid_remap)'
+                  endif
+
+                  ! Prepare remapping to destination z-levels.
+                  p_dst_diazlv(1) = p_src(1)
+                  q = 1._r8/ubath(i,j)
+                  do kd = 2, ddm
+                     p_dst_diazlv(kd) = min(depthslev_bnds(1,kd)*q, 1._r8) &
+                                        *(p_src(kk+1) - p_src(1)) + p_src(1)
+                  enddo
+                  p_dst_diazlv(ddm+1) = p_src(kk+1)
+                  errstat = prepare_remapping(rcgs, rms_diazlv, p_dst_diazlv, &
+                                              i, 1)
+                  if (errstat /= hor3map_noerr) then
+                     write(lp,*) trim(hor3map_errstr(errstat))
+                     call xchalt('(ale_regrid_remap)')
+                     stop '(ale_regrid_remap)'
+                  endif
+
+                  ! Remap u-component of velocity to diagnostic z-levels and
+                  ! accumulate.
+                  errstat = remap(v_rcss, rms_diazlv, v_rm_diazlv, i, 1)
+                  if (errstat /= hor3map_noerr) then
+                     write(lp,*) trim(hor3map_errstr(errstat))
+                     call xchalt('(ale_regrid_remap)')
+                     stop '(ale_regrid_remap)'
+                  endif
+                  do iogrp = 1, nphy
+                     if (acc_uvellvl(iogrp) /= 0) then
+                        do kd = 1, ddm
+                           phylvl(i,j,kd,acc_uvellvl(iogrp)) = &
+                                phylvl(i,j,kd,acc_uvellvl(iogrp)) &
+                              + v_rm_diazlv(kd) + ub(i,j,m)
+                        enddo
+                     endif
+                  enddo
+
+               enddo
+            enddo
+
+         endif
+
+         if (do_acc_vvellvl) then
+
+            do l = 1, isv(j)
+               do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
+
+                  ! Copy variables into 1D arrays. Rescale source interfaces so
+                  ! the pressure range of source and destination columns match.
+                  do k = 1, kk
+                     km = k + mm
+                     v_src(k) = v(i,j,km)
+                  enddo
+                  q = min(p(i,j-1,kk+1), p(i,j,kk+1))/pv(i,j,kk+1)
+                  do k = 1, kk+1
+                     p_src(k) = pv(i,j,k)*q
+                  enddo
+
+                  ! Prepare reconstruction with current interface pressures.
+                  errstat = prepare_reconstruction(rcgs, p_src, i, 1)
+                  if (errstat /= hor3map_noerr) then
+                     write(lp,*) trim(hor3map_errstr(errstat))
+                     call xchalt('(ale_regrid_remap)')
+                     stop '(ale_regrid_remap)'
+                  endif
+
+                  ! Reconstruct v-component of velocity.
+                  errstat = reconstruct(rcgs, v_rcss, v_src, i, 1)
+                  if (errstat /= hor3map_noerr) then
+                     write(lp,*) trim(hor3map_errstr(errstat))
+                     call xchalt('(ale_regrid_remap)')
+                     stop '(ale_regrid_remap)'
+                  endif
+
+                  ! Prepare remapping to destination z-levels.
+                  p_dst_diazlv(1) = p_src(1)
+                  q = 1._r8/vbath(i,j)
+                  do kd = 2, ddm
+                     p_dst_diazlv(kd) = min(depthslev_bnds(1,kd)*q, 1._r8) &
+                                        *(p_src(kk+1) - p_src(1)) + p_src(1)
+                  enddo
+                  p_dst_diazlv(ddm+1) = p_src(kk+1)
+                  errstat = prepare_remapping(rcgs, rms_diazlv, p_dst_diazlv, &
+                                              i, 1)
+                  if (errstat /= hor3map_noerr) then
+                     write(lp,*) trim(hor3map_errstr(errstat))
+                     call xchalt('(ale_regrid_remap)')
+                     stop '(ale_regrid_remap)'
+                  endif
+
+                  ! Remap v-component of velocity to diagnostic z-levels and
+                  ! accumulate.
+                  errstat = remap(v_rcss, rms_diazlv, v_rm_diazlv, i, 1)
+                  if (errstat /= hor3map_noerr) then
+                     write(lp,*) trim(hor3map_errstr(errstat))
+                     call xchalt('(ale_regrid_remap)')
+                     stop '(ale_regrid_remap)'
+                  endif
+                  do iogrp = 1, nphy
+                     if (acc_vvellvl(iogrp) /= 0) then
+                        do kd = 1, ddm
+                           phylvl(i,j,kd,acc_vvellvl(iogrp)) = &
+                                phylvl(i,j,kd,acc_vvellvl(iogrp)) &
+                              + v_rm_diazlv(kd) + vb(i,j,m)
+                        enddo
+                     endif
+                  enddo
+
+               enddo
+            enddo
+
+         endif
+
+      enddo
+
+   end subroutine ale_remap_diazlv
 
 end module mod_ale_regrid_remap
