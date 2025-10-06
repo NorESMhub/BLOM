@@ -3139,6 +3139,12 @@ contains
         else
           dims = 'x y sigma time'
         end if
+      else if (isize  ==  11) then
+        if (cmpflg == 1) then
+          dims = gridid(1:1)//'comp layer time'
+        else
+          dims = 'x y layer time'
+        end if
       else if (isize  ==  2) then
         if (cmpflg == 1) then
           dims = gridid(1:1)//'comp depth time'

@@ -326,22 +326,22 @@ contains
     end do
     !$omp end parallel do
 
-    if (vcoord_tag == vcoord_isopyc_bulkml) then
+    call xctilr(dp(1-nbdy,1-nbdy,k1m), 1,kk, 3,3, halo_ps)
 
-      call xctilr(dp(1-nbdy,1-nbdy,k1m), 1,kk, 3,3, halo_ps)
-
-      !$omp parallel do private(k,km,l,i)
-      do j = -2,jj+2
-        do k = 1,kk
-          km = k+mm
-          do l = 1,isp(j)
-            do i = max(-2,ifp(j,l)),min(ii+2,ilp(j,l))
-              p(i,j,k+1) = p(i,j,k)+dp(i,j,km)
-            end do
+    !$omp parallel do private(k,km,l,i)
+    do j = -2,jj+2
+      do k = 1,kk
+        km = k+mm
+        do l = 1,isp(j)
+          do i = max(-2,ifp(j,l)),min(ii+2,ilp(j,l))
+            p(i,j,k+1) = p(i,j,k)+dp(i,j,km)
           end do
         end do
       end do
-      !$omp end parallel do
+    end do
+    !$omp end parallel do
+
+    if (vcoord_tag == vcoord_isopyc_bulkml) then
 
       !$omp parallel do private(k,km,l,i,q)
       do j = -1,jj+2
@@ -361,21 +361,6 @@ contains
               dpv(i,j,km)= &
                    .5*((min(q,p(i,j-1,k+1))-min(q,p(i,j-1,k))) &
                       +(min(q,p(i,j  ,k+1))-min(q,p(i,j  ,k))))
-            end do
-          end do
-        end do
-      end do
-      !$omp end parallel do
-
-    else
-
-      !$omp parallel do private(k,km,l,i)
-      do j = 1,jj
-        do k = 1,kk
-          km = k+mm
-          do l = 1,isp(j)
-            do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-              p(i,j,k+1) = p(i,j,k)+dp(i,j,km)
             end do
           end do
         end do

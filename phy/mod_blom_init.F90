@@ -38,7 +38,7 @@ module mod_blom_init
   use mod_eos,             only: inieos
   use mod_swabs,           only: iniswa
   use mod_tmsmt,           only: initms
-  use mod_dia,             only: diaini
+  use mod_dia,             only: diaini, diaout_alarms
   use mod_inicon,          only: inicon, woa_nuopc_provided
   use mod_budget,          only: budget_init
   use mod_cmnfld_routines, only: cmnfld1
@@ -428,6 +428,12 @@ contains
     ! --------------------------------------------------------------------------
 
     call extract_sigref
+
+    ! --------------------------------------------------------------------------
+    ! Set output io group alarms.
+    ! --------------------------------------------------------------------------
+
+    call diaout_alarms
 
     ! --------------------------------------------------------------------------
 

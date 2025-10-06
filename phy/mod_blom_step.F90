@@ -36,7 +36,7 @@ module mod_blom_step
                                  get_time
   use mod_xc,              only: lp, kk, mnproc, xctilr, xcsum
   use mod_vcoord,          only: vcoord_tag, vcoord_isopyc_bulkml, sigref_adapt
-  use mod_ale_regrid_remap, only: ale_regrid_remap
+  use mod_ale_regrid_remap, only: ale_regrid_remap, ale_remap_diazlv
   use mod_ale_vdiff,       only: ale_vdifft, ale_vdiffm
   use mod_swabs,           only: updswa
   use mod_tmsmt,           only: tmsmt1, tmsmt2
@@ -55,8 +55,7 @@ module mod_blom_step
   use mod_difest,          only: difest_isobml, difest_lateral_hybrid, &
                                  difest_vertical_hybrid
   use mod_chkvar,          only: chkvar
-  use mod_dia,             only: diaacc, diaout, nphy, &
-                                 diagann_phy, diagmon_phy, diagfq_phy, &
+  use mod_dia,             only: diaacc, diaout_alarms, diaout, &
                                  rstann, rstmon, rstfrq
   use mod_diapfl,          only: diapfl
   use mod_state,           only: temp, saln, dp, init_fluxes
@@ -283,13 +282,13 @@ contains
     ! output of BLOM diagnostics
     ! ------------------------------------------------------------------
 
-    do i = 1,nphy
-      if (((diagann_phy(i).and.nday_of_year == 1.or.diagmon_phy(i) &
-           .and.date%day == 1).and.mod(nstep,nstep_in_day) == 0).or. &
-           .not.(diagann_phy(i).or.diagmon_phy(i)).and. &
-           mod(nstep+.5,diagfq_phy(i)) < 1.) &
-           call diaout(i,m,n,mm,nn,k1m,k1n)
-    end do
+    call diaout_alarms
+
+    if (vcoord_tag /= vcoord_isopyc_bulkml) then
+      call ale_remap_diazlv(m,n,mm,nn,k1m,k1n)
+    end if
+
+    call diaout(m,n,mm,nn,k1m,k1n)
 
     ! update total time spent by various tasks
     auxil_total_time = auxil_total_time+auxil_time
