@@ -31,7 +31,7 @@ module mod_forcing
    use mod_grid, only: scp2
    use mod_tracers, only: ntr
    use mod_ifdefs, only: use_TRC
-   use mod_checksum, only: csdiag, chksummsk
+   use mod_checksum, only: csdiag, chksum
    use mod_utility, only: fnmlen
 
    implicit none
@@ -430,8 +430,8 @@ contains
          if (mnproc == 1) then
             write (lp, *) 'fwbbal:'
          endif
-         call chksummsk(eiacc, ip, 1, 'eiacc')
-         call chksummsk(pracc, ip, 1, 'pracc')
+         call chksum(eiacc, 1, halo_ps, 'eiacc')
+         call chksum(pracc, 1, halo_ps, 'pracc')
       endif
 
    end subroutine fwbbal

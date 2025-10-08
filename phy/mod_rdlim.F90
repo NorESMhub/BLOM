@@ -52,7 +52,7 @@ module mod_rdlim
   use mod_eddtra,      only: mlrmth, ce, cl, tau_mlr, tau_growing_hbl, &
                              tau_decaying_hbl, tau_growing_hml, &
                              tau_decaying_hml, lfmin, mstar, nstar, &
-                             wpup_min
+                             wpup_min, mlbl_max_ratio
   use mod_mxlayr,      only: rm0, rm5, mlrttp
   use mod_niw,         only: niwgf, niwbf, niwlf
   use mod_tidaldissip, only: tdfile
@@ -138,7 +138,7 @@ contains
          mommth,pgfmth,bmcmth,advmth,cppm_compatibility,cppm_limiting, &
          mlrmth,ce,cl,tau_mlr,tau_growing_hbl,tau_decaying_hbl, &
          tau_growing_hml,tau_decaying_hml,lfmin,mstar,nstar,wpup_min, &
-         mlrttp,rm0,rm5,tdfile,niwgf,niwbf,niwlf, &
+         mlbl_max_ratio,mlrttp,rm0,rm5,tdfile,niwgf,niwbf,niwlf, &
          swamth,jwtype,chlopt,ccfile,svfile, &
          trxday,srxday,trxdpt,srxdpt,trxlim,srxlim, &
          aptflx,apsflx,ditflx,disflx,srxbal,scfile, &
@@ -223,6 +223,7 @@ contains
       write (lp,*) 'MSTAR',MSTAR
       write (lp,*) 'NSTAR',NSTAR
       write (lp,*) 'WPUP_MIN',WPUP_MIN
+      write (lp,*) 'MLBL_MAX_RATIO',MLBL_MAX_RATIO
       write (lp,*) 'MLRTTP ',trim(MLRTTP)
       write (lp,*) 'RM0',RM0
       write (lp,*) 'RM5',RM5
@@ -314,6 +315,7 @@ contains
     call xcbcst(mstar)
     call xcbcst(nstar)
     call xcbcst(wpup_min)
+    call xcbcst(mlbl_max_ratio)
     call xcbcst(mlrttp)
     call xcbcst(rm0)
     call xcbcst(rm5)

@@ -32,7 +32,7 @@ module mod_ale_forcing
   use mod_forcing,   only: surflx, sswflx, salflx, brnflx, buoyfl, &
                            t_sw_nonloc, s_br_nonloc
   use mod_cmnfld,    only: mlts
-  use mod_checksum,  only: csdiag, chksummsk
+  use mod_checksum,  only: csdiag, chksum
 
   implicit none
   private
@@ -209,9 +209,9 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'ale_forcing:'
       endif
-      call chksummsk(t_sw_nonloc, ip, kk+1, 't_sw_nonloc')
-      call chksummsk(s_br_nonloc, ip, kk+1, 's_br_nonloc')
-      call chksummsk(buoyfl, ip, kk+1, 'buoyfl')
+      call chksum(t_sw_nonloc, kk+1, halo_ps, 't_sw_nonloc')
+      call chksum(s_br_nonloc, kk+1, halo_ps, 's_br_nonloc')
+      call chksum(buoyfl     , kk+1, halo_ps, 'buoyfl'     )
     endif
 
   end subroutine ale_forcing

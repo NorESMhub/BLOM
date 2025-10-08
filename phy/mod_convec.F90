@@ -23,12 +23,13 @@ module mod_convec
   use mod_constants, only: epsilp
   use mod_xc,        only: xctilr, ii, jj, kk, isp, ifp, ilp, &
                            isu, ifu, ilu, ifv, ilv, ip, iu, &
-                           lp, i0, j0, isv, iv, mnproc, nbdy, halo_ps
+                           lp, i0, j0, isv, iv, mnproc, nbdy, &
+                           halo_ps, halo_uv, halo_vv
   use mod_vcoord,    only: sigmar
   use mod_eos,       only: rho, sig, sofsig
   use mod_state,     only: u, v, dp, dpu, dpv, temp, saln, sigma, &
                            p, pu, pv, kfpla
-  use mod_checksum,  only: csdiag, chksummsk
+  use mod_checksum,  only: csdiag, chksum
   use mod_tracers,   only: ntr, trc
   use mod_ifdefs,    only: use_TRC
 
@@ -59,6 +60,7 @@ contains
     real, dimension(ntr,kdm) :: ttrc
     real, dimension(ntr) :: trdps
     integer :: nt
+    character(len = 2) cnt
 
     !$omp parallel do private( &
     !$omp l,i,k,kn,ttem,ssal,delp,dens,densr,dps,kfpl,kfplo,tdps,sdps,q, &
@@ -432,17 +434,16 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'convec:'
       end if
-      call chksummsk(dp,ip,2*kk,'dp')
-      call chksummsk(temp,ip,2*kk,'temp')
-      call chksummsk(saln,ip,2*kk,'saln')
-      call chksummsk(sigma,ip,2*kk,'sigma')
-      call chksummsk(u,iu,2*kk,'u')
-      call chksummsk(v,iv,2*kk,'v')
-      if (use_TRC) then
-        do nt = 1,ntr
-          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,2*kk,'trc')
-        end do
-      end if
+      call chksum(dp   , 2*kk, halo_ps, 'dp'   )
+      call chksum(temp , 2*kk, halo_ps, 'temp' )
+      call chksum(saln , 2*kk, halo_ps, 'saln' )
+      call chksum(sigma, 2*kk, halo_ps, 'sigma')
+      call chksum(u    , 2*kk, halo_uv, 'u'    )
+      call chksum(v    , 2*kk, halo_vv, 'v'    )
+      do nt = 1,ntr
+        write(cnt, '(i2.2)') nt
+        call chksum(trc(1-nbdy,1-nbdy,1,nt), 2*kk, halo_ps, 'trc')
+      end do
     end if
 
   end subroutine convec

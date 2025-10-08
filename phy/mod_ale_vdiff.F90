@@ -29,7 +29,7 @@ module mod_ale_vdiff
   use mod_xc
   use mod_eos,       only: sig
   use mod_state,     only: u, v, dp, dpu, dpv, temp, saln, sigma
-  use mod_checksum,  only: csdiag, chksummsk
+  use mod_checksum,  only: csdiag, chksum
   use mod_diffusion, only: Kvisc_m, Kdiff_t, Kdiff_s, t_ns_nonloc, s_nb_nonloc
   use mod_forcing,   only: surflx, sswflx, surrlx, salflx, brnflx, salrlx, &
                            salt_corr, trc_corr, &
@@ -54,13 +54,10 @@ contains
     real(r8), dimension(kdm) :: dp_1d, temp_1d, saln_1d
     real(r8), dimension(kdm) :: nut_1d, nus_1d, nutrc_1d
     real(r8), dimension(2:kdm) :: fpbase, fp, gam
+    real(r8), dimension(kdm, ntr) :: trc_1d
     real(r8) :: cpi, dtg, c, hfsw, hfns, hfrs, sfbr, sfnb, sfrs, bei, rhs
     integer :: i, j, k, l, kn, nt
-    real(r8), dimension(kdm, ntr) :: trc_1d ! TRC
-
-    real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
-         util5
-    real(r8) :: totscr
+    character(len = 2) cnt
 
     cpi = 1._r8/spcifh    ! Multiplicative inverse of specific heat capacity.
     dtg = delt1*grav
@@ -232,12 +229,13 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'ale_vdifft:'
       endif
-      call chksummsk(temp, ip, 2*kk, 'temp')
-      call chksummsk(saln, ip, 2*kk, 'saln')
-      call chksummsk(sigma, ip, 2*kk, 'sigma')
+      call chksum(temp , 2*kk, halo_ps, 'temp' )
+      call chksum(saln , 2*kk, halo_ps, 'saln' )
+      call chksum(sigma, 2*kk, halo_ps, 'sigma')
       if (use_TRC) then
         do nt = 1, ntr
-          call chksummsk(trc(1-nbdy,1-nbdy,1,nt), ip, 2*kk, 'trc')
+          write(cnt, '(i2.2)') nt
+          call chksum(trc(1-nbdy,1-nbdy,1,nt), 2*kk, halo_ps, 'trc')
         enddo
       end if
     endif
@@ -369,8 +367,8 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'ale_vdiffm:'
       endif
-      call chksummsk(u, iu, 2*kk, 'u')
-      call chksummsk(v, iv, 2*kk, 'v')
+      call chksum(u, 2*kk, halo_uv, 'u')
+      call chksum(v, 2*kk, halo_vv, 'v')
     endif
 
   end subroutine ale_vdiffm

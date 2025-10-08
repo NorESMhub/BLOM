@@ -44,10 +44,9 @@ module ocn_import_export
                              ustarw_da, slp_da, abswnd_da, ficem_da, lamult_da, &
                              lasl_da, ustokes_da, vstokes_da, atmco2_da, &
                              atmnhxdep_da, atmnoydep_da, &
-                             l1ci, l2ci, &
-                             hmat_da
+                             l1ci, l2ci, hmat_da
    use mod_utility,    only: util1, util2, util3, util4
-   use mod_checksum,   only: csdiag, chksummsk
+   use mod_checksum,   only: csdiag, chksum
 #ifdef HAMOCC
    use mo_control_bgc, only: use_BROMO, ocn_co2_type
 #endif
@@ -279,10 +278,10 @@ contains
           ungridded_lbound=1, ungridded_ubound=2)
      if (atm_computes_enthalpy) then
         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_hmat'    , index_Faxa_hmat)
+        call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_hmat_oa' , index_Faxa_hmoa)
         ! Note the following was added to avoid a mapping in the mediator of
         ! Faxa_hlat from the atm to the ocn grid - it is not used in BLOM at the moment
         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_hlat'    , index_Faxa_hlat)
-        call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_hmat_oa' , index_Faxa_hmoa)
      end if
      if (flds_co2a .or. flds_co2c) then
         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sa_co2diag' ,index_Sa_co2diag)
@@ -824,6 +823,8 @@ contains
                slp_da(i,j,l2ci) = mval
                abswnd_da(i,j,l2ci) = mval
                ficem_da(i,j,l2ci) = mval
+               atmnhxdep_da(i,j,l2ci) = mval
+               atmnoydep_da(i,j,l2ci) = mval
             elseif (cplmsk(i,j) == 0) then
                lip_da(i,j,l2ci) = 0._r8
                sop_da(i,j,l2ci) = 0._r8
@@ -837,6 +838,8 @@ contains
                slp_da(i,j,l2ci) = fval
                abswnd_da(i,j,l2ci) = fval
                ficem_da(i,j,l2ci) = fval
+               atmnhxdep_da(i,j,l2ci) = 0._r8
+               atmnoydep_da(i,j,l2ci) = 0._r8
             else
                n = (j - 1)*ii + i
                afac = med2mod_areacor(n)
@@ -1023,9 +1026,9 @@ contains
          call xctilr(sfl_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
          call xctilr(swa_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
          call xctilr(nsf_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
-         if (index_Faxa_hmat > 0 .and. index_Faxa_hmoa > 0) then
+         call xctilr(hmlt_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
+         if (index_Faxa_hmat > 0) then
             call xctilr(hmat_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
-            call xctilr(hmlt_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
          end if
          call xctilr(atmnhxdep_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
          call xctilr(atmnoydep_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
@@ -1093,6 +1096,27 @@ contains
          enddo
          !$omp end parallel do
 
+      else
+         !$omp parallel do private(i)
+         do j = 1, jj
+            do i = 1, ii
+               if (ip(i,j) == 0) then
+                  lamult_da(i,j,l2ci) = mval
+                  lasl_da(i,j,l2ci) = mval
+                  ustokes_da(i,j,l2ci) = mval
+                  vstokes_da(i,j,l2ci) = mval
+               else
+                  lamult_da(i,j,l2ci) = 0._r8
+                  lasl_da(i,j,l2ci) = 0._r8
+                  ustokes_da(i,j,l2ci) = 0._r8
+                  vstokes_da(i,j,l2ci) = 0._r8
+               endif
+            enddo
+         enddo
+         !$omp end parallel do
+         if (mnproc == 1 .and. first_call)  then
+            write(lp,*) subname//': wave fields not obtained from mediator'
+         endif
       end if
 
       ! CO2 flux
@@ -1131,7 +1155,7 @@ contains
                if (ip(i,j) == 0) then
                   atmco2_da(i,j,l2ci) = mval
                else
-                  atmco2_da(i,j,l2ci) = -1
+                  atmco2_da(i,j,l2ci) = -1._r8
                endif
             enddo
          enddo
@@ -1145,28 +1169,28 @@ contains
          if (mnproc == 1 .and. first_call) then
             write(lp,*) subname//':'
          endif
-         call chksummsk(ustarw_da(1-nbdy,1-nbdy,l2ci),ip,1,'ustarw')
-         call chksummsk(   ztx_da(1-nbdy,1-nbdy,l2ci),iu,1,'ztx')
-         call chksummsk(   mty_da(1-nbdy,1-nbdy,l2ci),iv,1,'mty')
-         call chksummsk(   lip_da(1-nbdy,1-nbdy,l2ci),ip,1,'lip')
-         call chksummsk(   sop_da(1-nbdy,1-nbdy,l2ci),ip,1,'sop')
-         call chksummsk(   eva_da(1-nbdy,1-nbdy,l2ci),ip,1,'eva')
-         call chksummsk(   rnf_da(1-nbdy,1-nbdy,l2ci),ip,1,'rnf')
-         call chksummsk(   rfi_da(1-nbdy,1-nbdy,l2ci),ip,1,'rfi')
-         call chksummsk(fmltfz_da(1-nbdy,1-nbdy,l2ci),ip,1,'fmltfz')
-         call chksummsk(   sfl_da(1-nbdy,1-nbdy,l2ci),ip,1,'sfl')
-         call chksummsk(   swa_da(1-nbdy,1-nbdy,l2ci),ip,1,'swa')
-         call chksummsk(   nsf_da(1-nbdy,1-nbdy,l2ci),ip,1,'nsf')
-         if (index_Faxa_hmat > 0 .and. index_Faxa_hmoa > 0) then
-            call chksummsk(  hmat_da(1-nbdy,1-nbdy,l2ci),ip,1,'hmat')
-            call chksummsk(  hmlt_da(1-nbdy,1-nbdy,l2ci),ip,1,'hmlt')
+         call chksum(ustarw_da   (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'ustarw'   )
+         call chksum(ztx_da      (1-nbdy,1-nbdy,l2ci), 1, halo_uv, 'ztx'      )
+         call chksum(mty_da      (1-nbdy,1-nbdy,l2ci), 1, halo_vv, 'mty'      )
+         call chksum(lip_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'lip'      )
+         call chksum(sop_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'sop'      )
+         call chksum(eva_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'eva'      )
+         call chksum(rnf_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'rnf'      )
+         call chksum(rfi_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'rfi'      )
+         call chksum(fmltfz_da   (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'fmltfz'   )
+         call chksum(sfl_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'sfl'      )
+         call chksum(swa_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'swa'      )
+         call chksum(nsf_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'nsf'      )
+         call chksum(hmlt_da     (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'hmlt'     )
+         call chksum(slp_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'slp'      )
+         call chksum(abswnd_da   (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'abswnd'   )
+         call chksum(ficem_da    (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'ficem'    )
+         call chksum(atmco2_da   (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'atmco2'   )
+         call chksum(atmnhxdep_da(1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'atmnhxdep')
+         call chksum(atmnoydep_da(1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'atmnoydep')
+         if (index_Faxa_hmat > 0) then
+            call chksummsk(hmat_da(1-nbdy,1-nbdy,l2ci),1,halo_ps,'hmat')
          end if
-         call chksummsk(   slp_da(1-nbdy,1-nbdy,l2ci),ip,1,'slp')
-         call chksummsk(abswnd_da(1-nbdy,1-nbdy,l2ci),ip,1,'abswnd')
-         call chksummsk( ficem_da(1-nbdy,1-nbdy,l2ci),ip,1,'ficem')
-         call chksummsk(atmco2_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmco2')
-         call chksummsk(atmnhxdep_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmnhxdep')
-         call chksummsk(atmnoydep_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmnoydep')
       endif
 
       if (first_call) then

@@ -40,7 +40,7 @@ module mod_advect
   use mod_remap,     only: remap
   use mod_cppm,      only: cppm
   use mod_utility,   only: utotm, vtotm, umax, vmax
-  use mod_checksum,  only: csdiag, chksummsk
+  use mod_checksum,  only: csdiag, chksum
   use mod_tracers,   only: ntr, itrtke, itrgls, trc, uflxtr, vflxtr
   use mod_ifdefs,    only: use_TRC, use_TKE, use_TKEADV
 
@@ -66,6 +66,7 @@ contains
     integer :: i,j,k,l,km,kn,iw,ie,js,jn,isw,jsw,ise,jse,inw,jnw,ine,jne
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: pbmin,umflei,vmflei
     integer :: nt
+    character(len = 2) cnt
 
     do j = 1, jj
       do k = 1, kk
@@ -174,16 +175,15 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'advect:'
       end if
-      call chksummsk(dp,ip,2*kk,'dp')
-      call chksummsk(temp,ip,2*kk,'temp')
-      call chksummsk(saln,ip,2*kk,'saln')
-      call chksummsk(uflx,iu,2*kk,'uflx')
-      call chksummsk(vflx,iv,2*kk,'vflx')
-      if (use_TRC) then
-        do nt = 1,ntr
-          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,2*kk,'trc')
-        end do
-      end if
+      call chksum(dp  , 2*kk, halo_ps, 'dp'  )
+      call chksum(temp, 2*kk, halo_ps, 'temp')
+      call chksum(saln, 2*kk, halo_ps, 'saln')
+      call chksum(uflx, 2*kk, halo_uv, 'uflx')
+      call chksum(vflx, 2*kk, halo_vv, 'vflx')
+      do nt = 1,ntr
+        write(cnt, '(i2.2)') nt
+        call chksum(trc(1-nbdy,1-nbdy,1,nt), 2*kk, halo_ps, 'trc'//cnt)
+      end do
     end if
 
   end subroutine advect

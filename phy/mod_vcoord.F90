@@ -33,7 +33,7 @@ module mod_vcoord
    use mod_state,     only: dp, sigma, p
    use mod_cmnfld,    only: dpml
    use mod_utility,   only: util1
-   use mod_checksum,  only: csdiag, chksummsk
+   use mod_checksum,  only: csdiag, chksum
 
    implicit none
    private
@@ -399,7 +399,7 @@ contains
          if (mnproc == 1) then
             write (lp,*) 'sra_update:'
          endif
-         call chksummsk(sigmar, ip, kk, 'sigmar')
+         call chksum(sigmar, kk, halo_ps, 'sigmar')
       endif
 
    end subroutine sra_update
@@ -456,8 +456,8 @@ contains
          if (mnproc == 1) then
             write (lp,*) 'sra_find_ml_dmax:'
          endif
-         call chksummsk(sra_dpml_dmax, ip, 1, 'sra_dpml_dmax')
-         call chksummsk(sra_sigmlb_dmax, ip, 1, 'sra_sigmlb_dmax')
+         call chksum(sra_dpml_dmax  , 1, halo_ps, 'sra_dpml_dmax'  )
+         call chksum(sra_sigmlb_dmax, 1, halo_ps, 'sra_sigmlb_dmax')
       endif
 
    end subroutine sra_find_ml_dmax
@@ -556,11 +556,11 @@ contains
          if (mnproc == 1) then
             write (lp,*) 'sra_accumulate:'
          endif
-         call chksummsk(sra_dpml_sum, ip, sra_tlev_num, 'sra_dpml_sum')
-         call chksummsk(sra_sigmlb_sum, ip, sra_tlev_num, 'sra_sigmlb_sum')
-         call chksummsk(sra_massgs_colsum, ip, 1, 'sra_massgs_colsum')
-         call chksummsk(sra_massdc_colsum, ip, kk, 'sra_massdc_colsum')
-         call chksummsk(sra_sigmassdc_colsum, ip, kk, 'sra_sigmassdc_colsum')
+         call chksum(sra_dpml_sum, sra_tlev_num, halo_ps, 'sra_dpml_sum')
+         call chksum(sra_sigmlb_sum, sra_tlev_num, halo_ps, 'sra_sigmlb_sum')
+         call chksum(sra_massgs_colsum, 1, halo_ps, 'sra_massgs_colsum')
+         call chksum(sra_massdc_colsum, kk, halo_ps, 'sra_massdc_colsum')
+         call chksum(sra_sigmassdc_colsum, kk, halo_ps, 'sra_sigmassdc_colsum')
       endif
 
    end subroutine sra_accumulate

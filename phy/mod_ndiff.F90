@@ -795,9 +795,9 @@ contains
           do nt = 3, ntr_loc
             dt = t_nl_m(nt) - t_nl_p(nt)
             if (dt*( trc(i_m,j_m,ks_m+nn,nt-2) &
-                 - trc(i_p,j_p,ks_p+nn,nt-2)) >= 0._r8 .and. &
-                 dt*( t_ni_m(nt,nip) - t_ni_p(nt,nip)) >= 0._r8 .and. &
-                 dt*( t_ni_m(nt,nic) - t_ni_p(nt,nic)) >= 0._r8) then
+                   - trc(i_p,j_p,ks_p+nn,nt-2)) >= 0._r8 .and. &
+                dt*( t_ni_m(nt,nip) - t_ni_p(nt,nip)) >= 0._r8 .and. &
+                dt*( t_ni_m(nt,nic) - t_ni_p(nt,nic)) >= 0._r8) then
               tflx = q*dt
               flxconv_js(kd_m,nt,i_m,js_m) = flxconv_js(kd_m,nt,i_m,js_m) + tflx
               flxconv_js(kd_p,nt,i_p,js_p) = flxconv_js(kd_p,nt,i_p,js_p) - tflx
@@ -825,22 +825,24 @@ contains
         if (p_nslp_dst > p_nslp_src(1)) exit
         nslpxy(i_p,j_p,kd) = nslp_src(1)
       enddo
-      ks = 1
-      interp_loop: do
-        do while (p_nslp_dst > p_nslp_src(ks))
-          if (ks == nns) exit interp_loop
-          ks = ks + 1
+      if (kd <= kk) then
+        ks = 1
+        interp_loop: do
+          do while (p_nslp_dst > p_nslp_src(ks))
+            if (ks == nns) exit interp_loop
+            ks = ks + 1
+          enddo
+          q = (p_nslp_src(ks) - p_nslp_dst) &
+              /max(p_nslp_src(ks) - p_nslp_src(ks-1), epsilp)
+          nslpxy(i_p,j_p,kd) = q*nslp_src(ks-1) + (1._r8 - q)*nslp_src(ks)
+          kd = kd + 1
+          if (kd > kk) exit
+          p_nslp_dst = .5_r8*(p_dst_m(kd) + p_dst_p(kd))
+        enddo interp_loop
+        do kd = kd, kk
+          nslpxy(i_p,j_p,kd) = nslp_src(nns)
         enddo
-        q = (p_nslp_src(ks) - p_nslp_dst) &
-             /max(p_nslp_src(ks) - p_nslp_src(ks-1), epsilp)
-        nslpxy(i_p,j_p,kd) = q*nslp_src(ks-1) + (1._r8 - q)*nslp_src(ks)
-        kd = kd + 1
-        if (kd > kk) exit
-        p_nslp_dst = .5_r8*(p_dst_m(kd) + p_dst_p(kd))
-      enddo interp_loop
-      do kd = kd, kk
-        nslpxy(i_p,j_p,kd) = nslp_src(nns)
-      enddo
+      endif
     endif
 
   end subroutine ndiff_flx
@@ -867,7 +869,7 @@ contains
     integer :: l, i, nt, k, km, errstat
 
     do l = 1, isp(j)
-      do i = max(ilb, ifp(j, l)), min(iub, ilp(j, l))
+      do i = max(ilb, ifp(j,l)), min(iub, ilp(j,l))
 
         ! Find index of deepest destination layer with non-zero thickness.
         kdmx_js(i,js) = kk
@@ -903,13 +905,13 @@ contains
     do k = 1, kk
       km = k + mm
       do l = 1, isu(j)
-        do i = max(ilb, ifu(j, l)), min(iub, ilu(j, l))
+        do i = max(ilb, ifu(j,l)), min(iub, ilu(j,l))
           utflld(i,j,km) = 0._r8
           usflld(i,j,km) = 0._r8
         enddo
       enddo
       do l = 1, isv(j)
-        do i = max(ilb, ifv(j, l)), min(iub, ilv(j, l))
+        do i = max(ilb, ifv(j,l)), min(iub, ilv(j,l))
           vtflld(i,j,km) = 0._r8
           vsflld(i,j,km) = 0._r8
         enddo
@@ -944,7 +946,7 @@ contains
     integer :: l, i, ksmx_m, ksmx_p, kdmx_m, kdmx_p
 
     do l = 1, isu(j)
-      do i = max(ilb, ifu(j, l)), min(iub, ilu(j, l))
+      do i = max(ilb, ifu(j,l)), min(iub, ilu(j,l))
 
         p_srcdi_m => p_srcdi_js(:,:,i-1,js)
         p_srcdi_p => p_srcdi_js(:,:,i  ,js)
@@ -1006,7 +1008,7 @@ contains
     integer :: l, i, ksmx_m, ksmx_p, kdmx_m, kdmx_p
 
     do l = 1, isv(j)
-      do i = max(ilb, ifv(j, l)), min(iub, ilv(j, l))
+      do i = max(ilb, ifv(j,l)), min(iub, ilv(j,l))
 
         p_srcdi_m => p_srcdi_js(:,:,i,js_m)
         p_srcdi_p => p_srcdi_js(:,:,i,js_p)
@@ -1054,7 +1056,7 @@ contains
     integer :: k, l, i, nt
 
     do l = 1, isp(j)
-      do i = max(ilb, ifp(j, l)), min(iub, ilp(j, l))
+      do i = max(ilb, ifp(j,l)), min(iub, ilp(j,l))
         do k = 1, kk
           q = 1._r8/(scp2(i,j)*max( p_dst_js(k+1,i,js) &
                                   - p_dst_js(k  ,i,js), dp_eps))

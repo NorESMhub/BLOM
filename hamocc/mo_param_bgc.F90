@@ -349,7 +349,7 @@ module mo_param_bgc
   real(rp), protected :: drempoc_anaerob = 1.25e-3_rp  ! =0.05*drempoc - remin in sub-/anoxic environm. - not be overwritten by M4AGO
   real(rp), protected :: bkox_drempoc    = 1.e-5_rp    ! half-saturation constant for oxygen for ammonification (aerobic remin via drempoc)
   real(rp), protected :: dremopal        = 0.003_rp    ! 1/d Dissolution rate for opal
-  real(rp), protected :: dremcalc        = 0.02_rp     ! 1/d Dissolution rate for CaCO3 (applied if Omega_c < 1)
+  real(rp), protected :: dremcalc        = 0.018_rp    ! 1/d Dissolution rate for CaCO3 (applied if Omega_c < 1)
   real(rp), protected :: dremn2o         = 0.01_rp     ! 1/d Remineralization rate of detritus on N2O
   real(rp), protected :: dremsul         = 0.005_rp    ! 1/d Remineralization rate for sulphate reduction
   real(rp), protected :: POM_remin_q10   = 2.1_rp      ! Bidle et al. 2002: Regulation of Oceanic Silicon...
@@ -390,7 +390,7 @@ module mo_param_bgc
   real(rp), protected :: NOB2AOAy      = 0.44_rp     ! Ratio of NOB versus AOA yield per energy source ~0.043/0.098 according to Zakem et al. 2022
 
   ! === Denitrification step NO3 -> NO2:
-  real(rp), protected :: rano3denit    = 0.0002_rp   ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
+  real(rp), protected :: rano3denit    = 0.00014_rp   ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
   real(rp), protected :: q10ano3denit  = 2._rp       ! Q10 factor for denitrification on NO3 (-)
   real(rp), protected :: Trefano3denit = 10._rp      ! Reference temperature for denitrification on NO3 (degr C)
   real(rp), protected :: sc_ano3denit  = 0.12e6_rp   ! Shape factor for NO3 denitrification oxygen inhibition function (m3/kmol)
@@ -413,14 +413,14 @@ module mo_param_bgc
   real(rp), protected :: bkano2denit   = 5.6e-6_rp   ! Half-saturation constant for denitrification on NO2 (kmol/m3)
 
   ! === DNRA NO2 -> NH4
-  real(rp), protected :: rdnra         = 0.0002_rp   ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
+  real(rp), protected :: rdnra         = 0.0001_rp   ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
   real(rp), protected :: q10dnra       = 2._rp       ! Q10 factor for DNRA on NO2 (-)
   real(rp), protected :: Trefdnra      = 10._rp      ! Reference temperature for DNRA (degr C)
   real(rp), protected :: bkoxdnra      = 2.5e-6_rp   ! Half saturation constant for (quadratic) oxygen inhibition function of DNRA on NO2 (kmol/m3)
   real(rp), protected :: bkdnra        = 0.05e-6_rp  ! Half-saturation constant for DNRA on NO2 (kmol/m3)
 
   ! === Denitrification step N2O -> N2
-  real(rp), protected :: ran2odenit    = 0.0002_rp  ! Maximum growth rate denitrification on N2O at reference T (1/d -> 1/dt)
+  real(rp), protected :: ran2odenit    = 0.00035_rp  ! Maximum growth rate denitrification on N2O at reference T (1/d -> 1/dt)
   real(rp), protected :: q10an2odenit  = 3._rp       ! Q10 factor for denitrificationj on N2O (-)
   real(rp), protected :: Trefan2odenit = 10._rp      ! Reference temperature for denitrification on N2O (degr C)
   real(rp), protected :: bkoxan2odenit = 10.e-6_rp   ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on N2O (kmol/m3)
@@ -547,9 +547,9 @@ module mo_param_bgc
   real(rp), protected :: sed_NO3thresh_sulf   = 3.e-6_rp   ! Below sed_NO3thresh_sulf 'sufate reduction' takes place
   real(rp), protected :: sedict      = 1.e-9_rp            ! m2/s Molecular diffusion coefficient
   real(rp), protected :: silsat      = 0.001_rp            ! kmol/m3 Silicate saturation concentration is 1 mol/m3
-  real(rp), protected :: disso_poc   = 1.3e-6_rp           ! 1/(kmol O2/m3 s)      Degradation rate constant of POP
+  real(rp), protected :: disso_poc   = 8.0e-7_rp           ! 1/(kmol O2/m3 s)      Degradation rate constant of POP
 ! real(rp), protected :: disso_poc   = 0.19_rp/sec_per_day ! 1/(kmol O2/m3 s)      Degradation rate constant of POP
-  real(rp), protected :: disso_sil   = 1.4e-7_rp           ! 1/(kmol Si(OH)4/m3 s) Dissolution rate constant of opal
+  real(rp), protected :: disso_sil   = 1.3e-7_rp           ! 1/(kmol Si(OH)4/m3 s) Dissolution rate constant of opal
   real(rp), protected :: disso_caco3 = 1.e-7_rp            ! 1/(kmol CO3--/m3 s) Dissolution rate constant of CaCO3
   real(rp), protected :: sed_denit   = 0.01_rp/sec_per_day ! 1/s Denitrification rate constant of POP
   real(rp), protected :: sed_sulf    = 0.01_rp/sec_per_day ! 1/s "Sulfate reduction" rate constant of POP

@@ -23,7 +23,7 @@ module mod_rdcsss
   use mod_xc,       only: mnproc, lp, nbdy, halo_ps, ip, &
                           xchalt, xcaput, xctilr
   use mod_forcing,  only: sssclm, scfile
-  use mod_checksum, only: csdiag, chksummsk
+  use mod_checksum, only: csdiag, chksum
   use netcdf
 
   implicit none
@@ -130,7 +130,7 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'rdcsss:'
       end if
-      call chksummsk(sssclm,ip,12,'sssclm')
+      call chksum(sssclm, 12, halo_ps, 'sssclm')
     end if
 
   end subroutine rdcsss

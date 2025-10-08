@@ -24,7 +24,7 @@ module mod_diapfl
   use mod_time,      only: delt1
   use mod_xc,        only: xchalt, xctilr, ii, jj, kk, isp, ifp, ilp, &
                            i0, j0, lp, isu, ifu, ilu, isv, ifv, ilv, &
-                           iu, iv, nbdy, halo_ps, mnproc, ip
+                           iu, iv, nbdy, halo_ps, halo_uv, halo_vv, mnproc, ip
   use mod_vcoord,    only: sigmar
   use mod_grid,      only: coriop
   use mod_eos,       only: sig, dsigdt, dsigds, sofsig
@@ -34,7 +34,7 @@ module mod_diapfl
   use mod_diffusion, only: difdia
   use mod_forcing,   only: ustarb
   use mod_utility,   only: util1
-  use mod_checksum,  only: csdiag, chksummsk
+  use mod_checksum,  only: csdiag, chksum
   use mod_tracers,   only: ntr, itrtke, itrgls, trc
   use mod_tke,       only: tke_min, gls_psi_min
   use mod_ifdefs,    only: use_TRC, use_TKE, use_GLS
@@ -70,6 +70,7 @@ contains
     integer :: niter
     real, dimension(ntr,kdm) :: ttrc
     integer :: nt
+    character(len = 2) cnt
 
     ! Parameters:
     !   dsgmnr - minimum ratio of linearized density jump to target
@@ -1029,18 +1030,17 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'diapfl:'
       end if
-      call chksummsk(p,ip,kk+1,'p')
-      call chksummsk(dp,ip,2*kk,'dp')
-      call chksummsk(temp,ip,2*kk,'temp')
-      call chksummsk(saln,ip,2*kk,'saln')
-      call chksummsk(sigma,ip,2*kk,'sigma')
-      call chksummsk(u,iu,2*kk,'u')
-      call chksummsk(v,iv,2*kk,'v')
-      if (use_TRC) then
-        do nt = 1,ntr
-          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,2*kk,'trc')
-        end do
-      end if
+      call chksum(p    , kk+1, halo_ps, 'p'    )
+      call chksum(dp   , 2*kk, halo_ps, 'dp'   )
+      call chksum(temp , 2*kk, halo_ps, 'temp' )
+      call chksum(saln , 2*kk, halo_ps, 'saln' )
+      call chksum(sigma, 2*kk, halo_ps, 'sigma')
+      call chksum(u    , 2*kk, halo_uv, 'u'    )
+      call chksum(v    , 2*kk, halo_vv, 'v'    )
+      do nt = 1,ntr
+        write(cnt, '(i2.2)') nt
+        call chksum(trc(1-nbdy,1-nbdy,1,nt), 2*kk, halo_ps, 'trc'//cnt)
+      end do
     end if
 
   end subroutine diapfl

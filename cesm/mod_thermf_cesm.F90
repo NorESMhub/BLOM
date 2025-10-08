@@ -41,7 +41,7 @@ module mod_thermf_cesm
                            use_stream_relaxation
   use mod_cesm,      only: hmlt, frzpot, mltpot
   use mod_utility,   only: util1, util2, util3
-  use mod_checksum,  only: csdiag, chksummsk
+  use mod_checksum,  only: csdiag, chksum
   use mod_tracers,   only: ntr, itrtke, itrgls, trc, trflx
   use mod_diffusion, only: difdia
   use mod_tke,       only: gls_cmu0, Zos, gls_p, gls_m, gls_n, vonKar
@@ -64,7 +64,6 @@ contains
 
     ! Local variables
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: tfrz, tfrzm, vrtsfl
-    real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ntr) :: trflxc_aw
     integer :: i,j,k,l,m1,m2,m3,m4,m5,ntld,kn,kl,nt
     real :: y,dpotl,hotl,totl,sotl,tice_f,fwflx,sstc,rice,dpmxl,hmxl
     real :: tmxl,trxflx,pbot,dprsi,sssc,smxl,srxflx,sflxc
@@ -167,7 +166,6 @@ contains
               if (use_TKE) then
                 if (nt == itrtke) then
                   trflx(nt,i,j) = 0.
-                  trflxc_aw(i,j,nt) = 0.
                   cycle
                 end if
                 if (use_GLS) then
@@ -175,22 +173,16 @@ contains
                     trflx(nt,i,j) = -gls_n*difdia(i,j,1)*(gls_cmu0**gls_p) &
                          *(trc(i,j,k1n,itrtke)**gls_m) &
                          *(vonKar**gls_n)*Zos**(gls_n-1.)
-                    trflxc_aw(i,j,nt) = 0.
                     cycle
                   end if
                 else
                   if (nt == itrgls) then
                     trflx(nt,i,j) = 0.
-                    trflxc_aw(i,j,nt) = 0.
                     cycle
                   end if
                 end if
               end if
               trflx(nt,i,j) = -trc(i,j,k1n,nt)*fwflx
-              trflxc_aw(i,j,nt) = -(trflx(nt,i,j) &
-                                   +trc_corr(i,j,nt)/(2.*baclin)) &
-                                   *scp2(i,j)
-              trc_corr(i,j,nt) = 0.
             end do
           end if
 
@@ -392,7 +384,18 @@ contains
         if (use_TKE) then
           if (nt == itrtke.or.nt == itrgls) cycle
         end if
-        call xcsum(trflxc,trflxc_aw(1-nbdy,1-nbdy,nt),ips)
+        !$omp parallel do private(l,i)
+        do j = 1,jj
+          do l = 1,isp(j)
+            do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
+              util1(i,j) = -(trflx(nt,i,j)+trc_corr(i,j,nt)/(2.*baclin)) &
+                            *scp2(i,j)
+              trc_corr(i,j,nt) = 0.
+            end do
+          end do
+        end do
+        !$omp end parallel do
+        call xcsum(trflxc,util1,ips)
         trflxc = trflxc/area
         !$omp parallel do private(l,i)
         do j = 1,jj
@@ -410,19 +413,19 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'thermf_cesm:'
       end if
-      call chksummsk(surflx,ip,1,'surflx')
-      call chksummsk(sswflx,ip,1,'sswflx')
-      call chksummsk(salflx,ip,1,'salflx')
-      call chksummsk(brnflx,ip,1,'brnflx')
-      call chksummsk(surrlx,ip,1,'surrlx')
-      call chksummsk(salrlx,ip,1,'salrlx')
-      call chksummsk(hmltfz,ip,1,'hmltfz')
-      call chksummsk(ustar,ip,1,'ustar')
-      call chksummsk(frzpot,ip,1,'frzpot')
-      call chksummsk(mltpot,ip,1,'mltpot')
+      call chksum(surflx, 1, halo_ps, 'surflx')
+      call chksum(sswflx, 1, halo_ps, 'sswflx')
+      call chksum(salflx, 1, halo_ps, 'salflx')
+      call chksum(brnflx, 1, halo_ps, 'brnflx')
+      call chksum(surrlx, 1, halo_ps, 'surrlx')
+      call chksum(salrlx, 1, halo_ps, 'salrlx')
+      call chksum(hmltfz, 1, halo_ps, 'hmltfz')
+      call chksum(ustar , 1, halo_ps, 'ustar' )
+      call chksum(frzpot, 1, halo_ps, 'frzpot')
+      call chksum(mltpot, 1, halo_ps, 'mltpot')
       if (vcoord_tag /= vcoord_isopyc_bulkml) then
-        call chksummsk(t_rs_nonloc, ip, kk+1, 't_rs_nonloc')
-        call chksummsk(s_rs_nonloc, ip, kk+1, 's_rs_nonloc')
+        call chksum(t_rs_nonloc, kk+1, halo_ps, 't_rs_nonloc')
+        call chksum(s_rs_nonloc, kk+1, halo_ps, 's_rs_nonloc')
       end if
     end if
 

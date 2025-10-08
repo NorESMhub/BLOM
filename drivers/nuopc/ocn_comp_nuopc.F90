@@ -786,6 +786,10 @@ contains
    !================================================================================
 
    subroutine DataInitialize(gcomp, rc)
+
+      use shr_pio_mod  , only : shr_pio_getiosys, shr_pio_getiotype, shr_pio_getioformat
+      use ocn_pio_share, only : pio_subsystem, io_type, io_format
+
    ! ---------------------------------------------------------------------------
    ! Called by NUOPC to do the initial data export from ocean to mediator.
    ! ---------------------------------------------------------------------------
@@ -807,6 +811,11 @@ contains
       ! ------------------------------------------------------------------------
       ! Phase 2 of BLOM initialization.
       ! ------------------------------------------------------------------------
+
+      ! Initialize pio
+      pio_subsystem => shr_pio_getiosys('OCN')
+      io_type       =  shr_pio_getiotype('OCN')
+      io_format     =  shr_pio_getioformat('OCN')
 
       ! map woa climatological initial data to blom mesh
       ! woa_nuopc_provided is read in as a namelist during blom_init_phase1 and

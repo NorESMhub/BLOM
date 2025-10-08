@@ -152,6 +152,7 @@
     <values>
       <value>.false.</value>
       <value comp_interface="nuopc">.false.</value>
+      <value comp_interface="nuopc" blom_vcoord="isopyc_bulkml">.false.</value>
     </values>
     <desc>if .true., use NUOPC capability to read WOA climatology</desc>
   </entry>
@@ -476,7 +477,7 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>0.</value>
+      <value>300.</value>
     </values>
     <desc>Time-scale for running mean filter when signal is greater than filtered value (used for boundary layer thickness and vertical momentum flux)</desc>
   </entry>
@@ -486,7 +487,7 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>0.</value>
+      <value>86400.</value>
     </values>
     <desc>Time-scale for running mean filter when signal is less than filtered value (used for boundary layer thickness and vertical momentum flux)</desc>
   </entry>
@@ -549,6 +550,16 @@
       <value>1.e-7</value>
     </values>
     <desc>Minimum vertical momentum flux (Bodner et al., 2023)</desc>
+  </entry>
+
+  <entry id="mlbl_max_ratio">
+    <type>real</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>3.</value>
+    </values>
+    <desc>Maximum ratio between mixed and boundary layer depths in restratification parameterizations []</desc>
   </entry>
 
   <entry id="mlrttp">
@@ -1306,7 +1317,7 @@
     <values>
       <value>.1</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Minimum interior layer thickness [m]</desc>
   </entry>
 
   <entry id="regrid_method">
@@ -1336,7 +1347,7 @@
     <values>
       <value>86400.</value>
     </values>
-    <desc>add desc</desc>
+    <desc>e-folding time scale of interface nudging during regridding [s]</desc>
   </entry>
 
   <entry id="stab_fac_limit">
@@ -1346,7 +1357,17 @@
     <values>
       <value>.75</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Limit of stability factor (actual/reference vertical potential density difference) to contrain interface nudging and activate interface smoothing</desc>
+  </entry>
+
+  <entry id="dpvar_fac">
+    <type>real</type>
+    <category>ale_regrid_remap</category>
+    <group>ale_regrid_remap</group>
+    <values>
+      <value>.75</value>
+    </values>
+    <desc>Factor determining the maximum local vertical layer thicknesses variation []</desc>
   </entry>
 
   <entry id="smooth_diff_max">
@@ -1358,7 +1379,7 @@
       <value ocn_grid="tnx0.25v4" >40000.</value>
       <value ocn_grid="tnx0.125v4">20000.</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Maximum diffusivity of interface smoothing after regridding [m2 s-1]</desc>
   </entry>
 
   <entry id="dktzu">
@@ -1368,7 +1389,7 @@
     <values>
       <value>4</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Upper layer range of the transition zone between pressure levels and isopycnic interfaces</desc>
   </entry>
 
   <entry id="dktzl">
@@ -1378,7 +1399,7 @@
     <values>
       <value>2</value>
     </values>
-    <desc>add desc</desc>
+    <desc>Lower layer range of the transition zone between pressure levels and isopycnic interfaces</desc>
   </entry>
 
   <!-- ========================= -->
@@ -1794,11 +1815,19 @@
     <group>diaphy</group>
     <values>
       <value>30,30,365</value>
-      <value is_test="yes">1,30,365</value>
+      <value is_test="yes" >1,30,365</value>
       <value is_test="yes" is_test_pfs="yes">30,30,365</value>
       <value blom_output_size="spinup">30,30,365</value>
     </values>
-    <desc>how often to start a new file in days</desc>
+    <desc>A positive integer for glb_filefreq indicates number of days
+    between new files while a negative integer indicates number of
+    files per day (glb_filefreq = -4 gives output files every 6
+    hours). Special cases are that glb_filefreq = 30 is interpreted as
+    monthly files (no matter which calendar is used) and 360 &lt;=
+    glb_filefreq &lt;= 366 is interpreted as yearly files (no matter
+    which calendar is used). There is currently no way to turn off
+    writing of hd,hm or hy files.
+    </desc>
   </entry>
 
   <entry id="glb_compflag@diaphy">
@@ -6003,11 +6032,20 @@
     <group>diabgc</group>
     <values>
       <value>30,30,365</value>
-      <value is_test="yes">1,30,365</value>
-      <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value hamocc_output_size="spinup">30,365</value>
+      <value is_test="yes" >1,30,365</value>
+      <value is_test="yes" is_test_pfs="yes">30,30,365</value>
+      <value blom_output_size="spinup">30,30,365</value>
     </values>
-    <desc>Frequency for writing the BGC output</desc>
+    <desc>Frequency for writing the BGC output. A positive integer for
+    glb_filefreq indicates number of days between new files while a
+    negative integer indicates number of files per day (glb_filefreq =
+    -4 gives output files every 6 hours). Special cases are that
+    glb_filefreq = 30 is interpreted as monthly files (no matter which
+    calendar is used) and 360 &lt;= glb_filefreq &lt;= 366 is
+    interpreted as yearly files (no matter which calendar is
+    which calendar is used). There is currently no way to turn off
+    writing of hd,hm or hy files.
+    </desc>
   </entry>
 
   <entry id="glb_compflag@diabgc">
@@ -6925,6 +6963,7 @@
       <value blom_n_deposition="yes">0,2,2</value>
       <value blom_n_deposition="yes" is_test="yes">4,2,2</value>
       <value hamocc_output_size="spinup">2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>NOy nitrogen deposition flux [mol N m-2 s-1]</desc>
   </entry>
@@ -6938,6 +6977,7 @@
       <value blom_n_deposition="yes">0,2,2</value>
       <value blom_n_deposition="yes" is_test="yes">4,2,2</value>
       <value hamocc_output_size="spinup">2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>NHx nitrogen deposition flux [mol N m-2 s-1] - extended N cycle only</desc>
   </entry>

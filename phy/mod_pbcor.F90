@@ -40,7 +40,7 @@ module mod_pbcor
                            ubflxs, vbflxs, pb, ubflxs_p, vbflxs_p, pb_p
   use mod_utility,   only: utotm, vtotm, utotn, vtotn, uflux, vflux, &
                            uflux2, vflux2, uflux3, vflux3
-  use mod_checksum,  only: csdiag, chksummsk
+  use mod_checksum,  only: csdiag, chksum
   use mod_tracers,   only: ntr, trc, uflxtr, vflxtr, itrtke, itrgls
   use mod_ifdefs,    only: use_TRC, use_TKE, use_TKEADV
 
@@ -79,6 +79,7 @@ contains
     real :: dpo,dpni
     integer :: i,j,k,l,kn,km
     integer :: nt
+    character(len = 2) cnt
 
     !$omp parallel do private(k,kn,l,i)
     do j = 0,jj+1
@@ -395,14 +396,15 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'pbcor1:'
       end if
-      call chksummsk(dp,ip,2*kk,'dp')
-      call chksummsk(temp,ip,2*kk,'temp')
-      call chksummsk(saln,ip,2*kk,'saln')
-      call chksummsk(uflx,iu,2*kk,'uflx')
-      call chksummsk(vflx,iv,2*kk,'vflx')
+      call chksum(dp  , 2*kk, halo_ps, 'dp'  )
+      call chksum(temp, 2*kk, halo_ps, 'temp')
+      call chksum(saln, 2*kk, halo_ps, 'saln')
+      call chksum(uflx, 2*kk, halo_uv, 'uflx')
+      call chksum(vflx, 2*kk, halo_vv, 'vflx')
       if (use_TRC) then
         do nt = 1,ntr
-          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,2*kk,'trc')
+          write(cnt, '(i2.2)') nt
+          call chksum(trc(1-nbdy,1-nbdy,1,nt), 2*kk, halo_ps, 'trc'//cnt)
         end do
       end if
     end if
@@ -427,6 +429,7 @@ contains
     real :: dpo,dpni
     integer :: i,j,k,l,kn,km
     integer :: nt
+    character(len = 2) cnt
 
     call xctilr(ubflxs(1-nbdy,1-nbdy,n), 1,1, 1,1, halo_uv)
     call xctilr(vbflxs(1-nbdy,1-nbdy,n), 1,1, 1,1, halo_vv)
@@ -724,18 +727,17 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'pbcor2:'
       end if
-      call chksummsk(dp,ip,2*kk,'dp')
-      call chksummsk(temp,ip,2*kk,'temp')
-      call chksummsk(saln,ip,2*kk,'saln')
-      call chksummsk(p,ip,kk+1,'p')
-      call chksummsk(sigma,ip,2*kk,'sigma')
-      call chksummsk(uflx,iu,2*kk,'uflx')
-      call chksummsk(vflx,iv,2*kk,'vflx')
-      if (use_TRC) then
-        do nt = 1,ntr
-          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,2*kk,'trc')
-        end do
-      end if
+      call chksum(dp   , 2*kk, halo_ps, 'dp'   )
+      call chksum(temp , 2*kk, halo_ps, 'temp' )
+      call chksum(saln , 2*kk, halo_ps, 'saln' )
+      call chksum(p    , kk+1, halo_ps, 'p'    )
+      call chksum(sigma, 2*kk, halo_ps, 'sigma')
+      call chksum(uflx , 2*kk, halo_uv, 'uflx' )
+      call chksum(vflx , 2*kk, halo_vv, 'vflx' )
+      do nt = 1,ntr
+        write(cnt, '(i2.2)') nt
+        call chksum(trc(1-nbdy,1-nbdy,1,nt), 2*kk, halo_ps, 'trc'//cnt)
+      end do
     end if
 
   end subroutine pbcor2

@@ -22,6 +22,7 @@ module ocn_map_woa
    use mod_inicon        , only : t_woa_fval, s_woa_fval, kdm_woa
    use mod_utility       , only : fnmlen
    use mod_config        , only : inst_suffix
+   use ocn_pio_share     , only : pio_subsystem, io_type, io_format
    use mod_xc
 
    implicit none
@@ -58,11 +59,8 @@ contains
       type(file_desc_t)      :: pioid
       integer                :: dimid
       integer                :: rcode
-      integer                :: io_type        ! pio info
-      integer                :: io_format      ! pio info
       integer                :: nu_nml         ! unit for namelist file
       integer                :: nml_error      ! namelist i/o error flag
-      type(iosystem_desc_t), pointer :: pio_subsystem => null() ! pio info
       character(*), parameter :: subname = '(map_woa) '
       !-------------------------------------------------------------------------------
 
@@ -104,9 +102,6 @@ contains
       ! Determine vertical dimension
       ! ---------------------------
 
-      pio_subsystem => shr_pio_getiosys('OCN')
-      io_type       =  shr_pio_getiotype('OCN')
-      io_format     =  shr_pio_getioformat('OCN')
       if (mnproc == 1) then
          write(lp,'(a)') trim(subname) // ' determining vertical dimension of WOA climatology from '//trim(woa_filename_t)
       end if
@@ -136,6 +131,8 @@ contains
          call xchalt('(ocn_map_woa)')
          stop '(ocn_map_woa)'
       endif
+      t_woa(:,:,:) = t_woa_fval
+      s_woa(:,:,:) = s_woa_fval
 
       ! ---------------------------
       ! Create input data mesh
