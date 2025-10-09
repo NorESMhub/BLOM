@@ -219,7 +219,7 @@ contains
    ! ---------------------------------------------------------------------------
 
    subroutine blom_advertise_imports(flds_scalar_name, fldsToOcn_num, fldsToOcn, &
-        flds_co2a, flds_co2c, atm_computes_enthalpy)
+        flds_co2a, flds_co2c, component_computes_enthalpy_flux)
 
      ! -------------------------------------------------------------------
      ! Determine fldsToOcn for import fields
@@ -230,7 +230,7 @@ contains
      type(fldlist_type) , intent(inout) :: fldsToOcn(:)
      logical            , intent(in)    :: flds_co2a
      logical            , intent(in)    :: flds_co2c
-     logical            , intent(in)    :: atm_computes_enthalpy
+     character(len=*)   , intent(in)    :: component_computes_enthalpy_flux
 
      integer :: index_scalar
 
@@ -276,7 +276,7 @@ contains
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_rain' , index_Faxa_rain)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_ndep' , index_Faxa_ndep, &
           ungridded_lbound=1, ungridded_ubound=2)
-     if (atm_computes_enthalpy) then
+     if (trim(component_computes_enthalpy_flux) == 'atm') then
         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_hmat'    , index_Faxa_hmat)
         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_hmat_oa' , index_Faxa_hmoa)
         ! Note the following was added to avoid a mapping in the mediator of
@@ -1009,7 +1009,7 @@ contains
          case default
             write(lp,*) subname//': BLOM ERROR: Unsupported hmat_method'
             call xcstop(subname)
-            stop(subname)
+            stop subname
          end select
       else
          hmat_da(:,:,:) = mval
@@ -1189,7 +1189,7 @@ contains
          call chksum(atmnhxdep_da(1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'atmnhxdep')
          call chksum(atmnoydep_da(1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'atmnoydep')
          if (index_Faxa_hmat > 0) then
-            call chksummsk(hmat_da(1-nbdy,1-nbdy,l2ci),1,halo_ps,'hmat')
+            call chksum(hmat_da(1-nbdy,1-nbdy,l2ci),1,halo_ps,'hmat')
          end if
       endif
 
