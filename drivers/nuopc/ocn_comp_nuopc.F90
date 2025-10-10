@@ -540,9 +540,13 @@ contains
       call blom_logwrite(subname//': flds_co2c = '//trim(cvalue))
 
       ! Determine if atm computes enthalpy fluxes
-      call NUOPC_CompAttributeGet(gcomp, name="component_computes_enthalpy_flux", value=cvalue, rc=rc)
+      call NUOPC_CompAttributeGet(gcomp, name="component_computes_enthalpy_flux", value=cvalue, &
+           ispresent=ispresent, isset=isset, rc=rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
-      component_computes_enthalpy_flux = trim(cvalue)
+      component_computes_enthalpy_flux = 'none'
+      if (isPresent .and. isSet) then
+         component_computes_enthalpy_flux = trim(cvalue)
+      end if
       write(msg,'(a)') subname//': component_computes_enthalpy_flux is '//trim(component_computes_enthalpy_flux)
       call blom_logwrite(msg)
 
