@@ -820,6 +820,7 @@ contains
                sfl_da(i,j,l2ci) = mval
                swa_da(i,j,l2ci) = mval
                nsf_da(i,j,l2ci) = mval
+               hmlt_da(i,j,l2ci) = mval
                slp_da(i,j,l2ci) = mval
                abswnd_da(i,j,l2ci) = mval
                ficem_da(i,j,l2ci) = mval
@@ -835,6 +836,7 @@ contains
                sfl_da(i,j,l2ci) = 0._r8
                swa_da(i,j,l2ci) = 0._r8
                nsf_da(i,j,l2ci) = 0._r8
+               hmlt_da(i,j,l2ci) = 0._r8
                slp_da(i,j,l2ci) = fval
                abswnd_da(i,j,l2ci) = fval
                ficem_da(i,j,l2ci) = fval
@@ -916,10 +918,8 @@ contains
             do i = 1, ii
                if (ip(i,j) == 0) then
                   hmat_da(i,j,l1ci)= mval
-                  hmlt_da(i,j,l2ci) = mval
                elseif (cplmsk(i,j) == 0) then
                   hmat_da(i,j,l1ci) = 0._r8
-                  hmlt_da(i,j,l2ci) = 0._r8
                else
                   n = (j - 1)*ii + i
                   afac = med2mod_areacor(n)
@@ -933,6 +933,8 @@ contains
                end if
             end do
          end do
+         !$omp end parallel do
+
          select case (hmat_method)
          case (1)
             ! Apply enthalpy flux components directly.
@@ -1013,7 +1015,6 @@ contains
          end select
       else
          hmat_da(:,:,:) = mval
-         hmlt_da(:,:,:) = mval
       end if
 
       if (nreg == 2) then
