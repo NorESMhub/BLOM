@@ -44,13 +44,6 @@
     </phase>
   </test>
 
-  <test name="ERS_Ld3.TL319_tn05.NOIIAJRA.betzy_intel">
-    <phase name="COMPARE_base_rest">
-      <status>FAIL</status>
-      <issue>BLOM#664</issue>
-    </phase>
-  </test>
-
   <test name="SMS_D_Ld1.T62_tn14.NOIIAOC20TR.betzy_intel">
     <phase name="RUN">
       <status>FAIL</status>

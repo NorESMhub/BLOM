@@ -33,7 +33,8 @@ module mod_cesm
                              lamult, lasl, ustokes, vstokes, atmco2, atmbrf, &
                              flxdms, flxbrf, &
                              atmn2o, atmnh3, atmnhxdep, atmnoydep, &
-                             use_stream_relaxation
+                             use_stream_relaxation, &
+                             hmat
    use mod_ben02,      only: initai, rdcsic, rdctsf, fnlzai
    use mod_rdcsss,     only: rdcsss
    use mod_idarlx,     only: idarlx
@@ -66,6 +67,7 @@ module mod_cesm
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy, 2) :: &
       swa_da, &          ! Solar heat flux [W m-2].
       nsf_da, &          ! Non-solar heat flux [W m-2].
+      hmat_da, &         ! surf.mat.enth.flx
       hmlt_da, &         ! Heat flux due to melting [W m-2].
       lip_da, &          ! Liquid water flux [kg m-2 s-1].
       sop_da, &          ! Solid precipitation [kg m-2 s-1].
@@ -106,7 +108,8 @@ module mod_cesm
              slp_da, abswnd_da, ficem_da, lamult_da, lasl_da, flxdms_da, &
              flxbrf_da, ustokes_da, vstokes_da, atmco2_da, atmbrf_da, &
              atmn2o_da, atmnh3_da, atmnhxdep_da,atmnoydep_da, smtfrc, &
-             l1ci, l2ci, inivar_cesm, inicon_cesm, inifrc_cesm, getfrc_cesm
+             l1ci, l2ci, inivar_cesm, inicon_cesm, inifrc_cesm, getfrc_cesm, &
+             hmat_da
 
 contains
 
@@ -229,6 +232,7 @@ contains
            sfl(i, j)     = w1*sfl_da(i, j, l1ci)     + w2*sfl_da(i, j, l2ci)
            swa(i, j)     = w1*swa_da(i, j, l1ci)     + w2*swa_da(i, j, l2ci)
            nsf(i, j)     = w1*nsf_da(i, j, l1ci)     + w2*nsf_da(i, j, l2ci)
+           hmat(i, j)    = w1*hmat_da(i, j, l1ci)    + w2*hmat_da(i, j, l2ci)
            hmlt(i, j)    = w1*hmlt_da(i, j, l1ci)    + w2*hmlt_da(i, j, l2ci)
            slp(i, j)     = w1*slp_da(i, j, l1ci)     + w2*slp_da(i, j, l2ci)
            abswnd(i, j)  = w1*abswnd_da(i, j, l1ci)  + w2*abswnd_da(i, j, l2ci)
@@ -272,6 +276,7 @@ contains
         call ncdefvar('sfl_da', 'x y', ndouble, 8)
         call ncdefvar('swa_da', 'x y', ndouble, 8)
         call ncdefvar('nsf_da', 'x y', ndouble, 8)
+        call ncdefvar('hmat_da', 'x y', ndouble, 8)
         call ncdefvar('hmlt_da', 'x y', ndouble, 8)
         call ncdefvar('slp_da', 'x y', ndouble, 8)
         call ncdefvar('abswnd_da', 'x y', ndouble, 8)
@@ -309,6 +314,8 @@ contains
         call ncwrtr('swa_da', 'x y', swa_da(1 - nbdy, 1 - nbdy, l2ci), &
              ip, 1, 1._r8, 0._r8, 8)
         call ncwrtr('nsf_da', 'x y', nsf_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('hmat_da', 'x y', hmat_da(1 - nbdy, 1 - nbdy, l2ci), &
              ip, 1, 1._r8, 0._r8, 8)
         call ncwrtr('hmlt_da', 'x y', hmlt_da(1 - nbdy, 1 - nbdy, l2ci), &
              ip, 1, 1._r8, 0._r8, 8)
@@ -362,6 +369,7 @@ contains
          call chksum(swa, 1, halo_ps, 'swa')
          call chksum(nsf, 1, halo_ps, 'nsf')
          call chksum(hmlt, 1, halo_ps, 'hmlt')
+         call chksum(hmat, 1, halo_ps, 'hmat')
          call chksum(slp, 1, halo_ps, 'slp')
          call chksum(abswnd, 1, halo_ps, 'abswnd')
          call chksum(ficem, 1, halo_ps, 'ficem')
