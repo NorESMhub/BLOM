@@ -44,13 +44,6 @@
     </phase>
   </test>
 
-  <test name="SMS_D_Ld1.T62_tn14.NOIIAOC20TR.betzy_intel">
-    <phase name="RUN">
-      <status>FAIL</status>
-      <issue>BLOM#510</issue>
-    </phase>
-  </test>
-
   <test name="SMS_D_Ld1.T62_tn14_wtn14nw.NOINYOC_WW3.betzy_gnu.blom-wavice">
     <phase name="RUN">
       <status>FAIL</status>
@@ -71,6 +64,17 @@
     <phase name="RUN">
       <status>FAIL</status>
       <issue>BLOM#645</issue>
+    </phase>
+  </test>
+
+  <!-- failing outdated tests -->
+
+  <!-- The NOIIAOC20TR compset is currently not working with NorESM3.
+       This test can be re-activated if we decide to update the compset. -->
+  <test name="SMS_D_Ld1.T62_tn14.NOIIAOC20TR.betzy_intel">
+    <phase name="RUN">
+      <status>FAIL</status>
+      <issue>BLOM#510</issue>
     </phase>
   </test>
 </expectedFails>
