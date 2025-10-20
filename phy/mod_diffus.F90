@@ -172,6 +172,14 @@ contains
         write(cnt, '(i2.2)') nt
         call chksum(trc(1-nbdy,1-nbdy,1,nt), 2*kk, halo_ps, 'trc'//cnt)
       end do
+      call chksum(utflld(1-nbdy,1-nbdy,k1m), kk, halo_uv, 'utflld')
+      call chksum(vtflld(1-nbdy,1-nbdy,k1m), kk, halo_vv, 'vtflld')
+      call chksum(usflld(1-nbdy,1-nbdy,k1m), kk, halo_uv, 'usflld')
+      call chksum(vsflld(1-nbdy,1-nbdy,k1m), kk, halo_vv, 'vsflld')
+      call chksum(utflx (1-nbdy,1-nbdy,k1m), kk, halo_uv, 'utflx')
+      call chksum(vtflx (1-nbdy,1-nbdy,k1m), kk, halo_vv, 'vtflx')
+      call chksum(usflx (1-nbdy,1-nbdy,k1m), kk, halo_uv, 'usflx')
+      call chksum(vsflx (1-nbdy,1-nbdy,k1m), kk, halo_vv, 'vsflx')
     end if
 
   end subroutine diffus
