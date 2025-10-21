@@ -34,7 +34,7 @@ module mod_ale_regrid_remap
                             sigmar, plevel
    use mod_eos,       only: sig, dsigdt, dsigds
    use mod_state,     only: u, v, dp, dpu, dpv, temp, saln, sigma, p, pu, pv, &
-                            ub, vb
+                            ub, vb, utflx, vtflx, usflx, vsflx
    use mod_hor3map,   only: recon_grd_struct, recon_src_struct, remap_struct, &
                             hor3map_plm, hor3map_ppm, hor3map_pqm, &
                             hor3map_monotonic, hor3map_non_oscillatory, &
@@ -44,7 +44,8 @@ module mod_ale_regrid_remap
                             extract_polycoeff, regrid, &
                             prepare_remapping, remap, &
                             hor3map_noerr, hor3map_errstr
-   use mod_diffusion, only: ltedtp_opt, ltedtp_neutral, difmxp
+   use mod_diffusion, only: ltedtp_opt, ltedtp_neutral, difmxp, &
+                            utflld, vtflld, usflld, vsflld
    use mod_ndiff,     only: ndiff_prep_jslice, ndiff_uflx_jslice, &
                             ndiff_vflx_jslice, ndiff_update_trc_jslice
    use mod_dia,       only: ddm, nphy, alarm_phy, &
@@ -1933,6 +1934,16 @@ contains
             write(cnt, '(i2.2)') nt
             call chksum(trc(1-nbdy,1-nbdy,k1n,nt), kk, halo_ps, 'trc'//cnt)
          enddo
+         if (ltedtp_opt == ltedtp_neutral) then
+            call chksum(utflld(1-nbdy,1-nbdy,k1m), kk, halo_uv, 'utflld')
+            call chksum(vtflld(1-nbdy,1-nbdy,k1m), kk, halo_vv, 'vtflld')
+            call chksum(usflld(1-nbdy,1-nbdy,k1m), kk, halo_uv, 'usflld')
+            call chksum(vsflld(1-nbdy,1-nbdy,k1m), kk, halo_vv, 'vsflld')
+            call chksum(utflx (1-nbdy,1-nbdy,k1m), kk, halo_uv, 'utflx')
+            call chksum(vtflx (1-nbdy,1-nbdy,k1m), kk, halo_vv, 'vtflx')
+            call chksum(usflx (1-nbdy,1-nbdy,k1m), kk, halo_uv, 'usflx')
+            call chksum(vsflx (1-nbdy,1-nbdy,k1m), kk, halo_vv, 'vsflx')
+         endif
          call chksum(dpu(1-nbdy,1-nbdy,k1n), kk, halo_us, 'dpu')
          call chksum(dpv(1-nbdy,1-nbdy,k1n), kk, halo_vs, 'dpv')
          call chksum(u  (1-nbdy,1-nbdy,k1n), kk, halo_uv, 'u'  )
@@ -1953,7 +1964,7 @@ contains
       real(r8), dimension(kdm+1,1-nbdy:idm+nbdy) :: p_src_js
       real(r8), dimension(p_ord+1,kdm,ntr_loc,1-nbdy:idm+nbdy) :: tpc_src_js
       real(r8), dimension(2,kdm,ntr_loc,1-nbdy:idm+nbdy) :: t_srcdi_js
-      real(r8), dimension(kdm+1) :: p_src
+      real(r8), dimension(kdm+1) :: pu_tmp, pv_tmp, p_src
       real(r8), dimension(kdm) :: v_src
       real(r8), dimension(ddm+1) :: p_dst_diazlv
       real(r8), dimension(ddm) :: v_rm_diazlv
@@ -2006,24 +2017,6 @@ contains
 
       if (.not. (do_acc_uvellvl .or. do_acc_vvellvl)) return
 
-      !$omp parallel do private(k, km, l, i)
-      do j = 1, jj
-         do k = 1, kk
-            km = k + mm
-            do l = 1, isu(j)
-               do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
-                  pu(i,j,k+1) = pu(i,j,k) + dpu(i,j,km)
-               enddo
-            enddo
-            do l = 1, isv(j)
-               do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
-                  pv(i,j,k+1) = pv(i,j,k) + dpv(i,j,km)
-               enddo
-            enddo
-         enddo
-      enddo
-      !$omp end parallel do
-
       do j = 1, jj
 
          if (do_acc_uvellvl) then
@@ -2033,13 +2026,15 @@ contains
 
                   ! Copy variables into 1D arrays. Rescale source interfaces so
                   ! the pressure range of source and destination columns match.
+                  pu_tmp(1) = pu(i,j,1)
                   do k = 1, kk
                      km = k + mm
                      v_src(k) = u(i,j,km)
+                     pu_tmp(k+1) = pu_tmp(k) + dpu(i,j,km)
                   enddo
-                  q = min(p(i-1,j,kk+1), p(i,j,kk+1))/pu(i,j,kk+1)
+                  q = min(p(i-1,j,kk+1), p(i,j,kk+1))/pu_tmp(kk+1)
                   do k = 1, kk+1
-                     p_src(k) = pu(i,j,k)*q
+                     p_src(k) = pu_tmp(k)*q
                   enddo
 
                   ! Prepare reconstruction with current interface pressures.
@@ -2104,13 +2099,15 @@ contains
 
                   ! Copy variables into 1D arrays. Rescale source interfaces so
                   ! the pressure range of source and destination columns match.
+                  pv_tmp(1) = pv(i,j,1)
                   do k = 1, kk
                      km = k + mm
                      v_src(k) = v(i,j,km)
+                     pv_tmp(k+1) = pv_tmp(k) + dpv(i,j,km)
                   enddo
-                  q = min(p(i,j-1,kk+1), p(i,j,kk+1))/pv(i,j,kk+1)
+                  q = min(p(i,j-1,kk+1), p(i,j,kk+1))/pv_tmp(kk+1)
                   do k = 1, kk+1
-                     p_src(k) = pv(i,j,k)*q
+                     p_src(k) = pv_tmp(k)*q
                   enddo
 
                   ! Prepare reconstruction with current interface pressures.

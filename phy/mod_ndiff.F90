@@ -19,7 +19,7 @@
 
 module mod_ndiff
 ! ------------------------------------------------------------------------------
-! This module contains procedures for solving vertical diffusion equations.
+! This module contains procedures for neutral diffusion of tracers.
 ! ------------------------------------------------------------------------------
 
   use mod_types,     only: r8
