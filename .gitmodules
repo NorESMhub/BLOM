@@ -3,7 +3,7 @@
 	url = https://github.com/CVMix/CVMix-src
 	fxtag = v0.98-beta
 	fxrequired = AlwaysRequired
-        fxDONOTUSEurl = https://github.com/CVMix/CVMix-src
+	fxDONOTUSEurl = https://github.com/CVMix/CVMix-src
 [submodule "pkgs/M4AGO-sinking-scheme"]
 	path = pkgs/M4AGO-sinking-scheme
 	url = https://github.com/jmaerz/M4AGO-sinking-scheme
@@ -12,4 +12,7 @@
 	fxDONOTUSEurl = https://github.com/jmaerz/M4AGO-sinking-scheme
 [submodule "pkgs/GSW-Fortran"]
 	path = pkgs/GSW-Fortran
-	url = https://github.com/TEOS-10/GSW-Fortran
+	url = https://github.com/NorESMhub/GSW-Fortran
+	fxtag = gsw-fortran_v3.05-6_noresm_v1
+	fxrequired = AlwaysRequired
+	fxDONOTUSEurl = https://github.com/TEOS-10/GSW-Fortran
