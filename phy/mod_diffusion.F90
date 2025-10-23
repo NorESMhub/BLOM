@@ -53,14 +53,17 @@ module mod_diffusion
       bdmc1, &  ! Background diapycnal diffusivity times buoyancy frequency
                 ! [m2 s-2].
       bdmc2, &  ! Background diapycnal diffusivity [m2 s-1].
+      iwdfac, & ! Internal wave dissipation factor under sea ice [].
       nubmin, & ! Minimum background diapycnal diffusivity [m2 s-1].
       tkepf     ! Fraction of surface TKE that penetrates beneath mixed layer
                 ! [].
    integer :: &
-      bdmtyp    ! Type of background diapycnal mixing. If bdmtyp = 1 the
+      bdmtyp, & ! Type of background diapycnal mixing. If bdmtyp = 1 the
                 ! background diffusivity is a constant divided by the
                 ! Brunt-Vaisala frequency, if bdmtyp = 2 the background
                 ! diffusivity is constant [].
+      iwdflg    ! If iwdflg=1, reduce background diapycnal diffusivity due to
+                ! internal wave damping under sea-ice.
    logical :: &
       eddf2d, & ! If true, eddy diffusivity has a 2d structure.
       edsprs, & ! If true, apply eddy mixing suppression away from steering
@@ -175,11 +178,11 @@ module mod_diffusion
 
    ! Public variables
    public :: egc, eggam, eglsmn, egmndf, egmxdf, egidfq, rhiscf, ri0, &
-             bdmc1, bdmc2, bdmldp, nubmin, tkepf, bdmtyp, eddf2d, edsprs, &
-             edanis, redi3d, rhsctp, tbfile, edfsmo, smobld, lngmtp, &
-             eitmth_opt, eitmth_intdif, eitmth_gm, edritp_opt, edritp_shear, &
-             edritp_large_scale, edwmth_opt, edwmth_smooth, edwmth_step, &
-             ltedtp_opt, ltedtp_layer, ltedtp_neutral, &
+             bdmc1, bdmc2, bdmldp, iwdflg, iwdfac, nubmin, tkepf, bdmtyp, &
+             eddf2d, edsprs, edanis, redi3d, rhsctp, tbfile, edfsmo, smobld, &
+             lngmtp, eitmth_opt, eitmth_intdif, eitmth_gm, edritp_opt, &
+             edritp_shear, edritp_large_scale, edwmth_opt, edwmth_smooth, &
+             edwmth_step, ltedtp_opt, ltedtp_layer, ltedtp_neutral, &
              difint, difiso, difdia, difmxp, difmxq, difwgt, &
              umfltd, vmfltd, umflsm, vmflsm, utfltd, vtfltd, &
              utflsm, vtflsm, utflld, vtflld, usfltd, vsfltd, &
@@ -204,9 +207,9 @@ contains
 
       namelist /diffusion/ &
          egc, eggam, eglsmn, egmndf, egmxdf, egidfq, rhiscf, ri0, &
-         bdmc1, bdmc2, bdmldp, nubmin, tkepf, bdmtyp, eddf2d, edsprs, edanis, &
-         redi3d, rhsctp, tbfile, edfsmo, smobld, lngmtp, eitmth, edritp, &
-         edwmth, ltedtp
+         bdmc1, bdmc2, bdmldp, iwdflg, iwdfac, nubmin, tkepf, bdmtyp, eddf2d, &
+         edsprs, edanis, redi3d, rhsctp, tbfile, edfsmo, smobld, lngmtp, &
+         eitmth, edritp, edwmth, ltedtp
 
       ! Read variables in the namelist group 'diffusion'.
       if (mnproc == 1) then
@@ -247,6 +250,8 @@ contains
         call xcbcst(bdmc1)
         call xcbcst(bdmc2)
         call xcbcst(bdmldp)
+        call xcbcst(iwdflg)
+        call xcbcst(iwdfac)
         call xcbcst(nubmin)
         call xcbcst(tkepf)
         call xcbcst(bdmtyp)
@@ -277,6 +282,8 @@ contains
          write (lp,*) '  bdmc1  = ', bdmc1
          write (lp,*) '  bdmc2  = ', bdmc2
          write (lp,*) '  bdmldp = ', bdmldp
+         write (lp,*) '  iwdflg = ', iwdflg
+         write (lp,*) '  iwdfac = ', iwdfac
          write (lp,*) '  nubmin = ', nubmin
          write (lp,*) '  tkepf  = ', tkepf
          write (lp,*) '  bdmtyp = ', bdmtyp

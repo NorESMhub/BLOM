@@ -1638,6 +1638,26 @@
     <desc>Make the background mixing latitude dependent according to</desc>
   </entry>
 
+  <entry id="iwdflg">
+    <type>integer</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>1</value>
+    </values>
+    <desc>If iwdflg=1, reduce background diapycnal diffusivity due to internal wave damping under sea-ice</desc>
+  </entry>
+
+  <entry id="iwdfac">
+    <type>real</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>.06</value>
+    </values>
+    <desc>Internal wave dissipation factor under sea ice () (f)</desc>
+  </entry>
+
   <entry id="nubmin">
     <type>real</type>
     <category>diffusion</category>

@@ -164,6 +164,9 @@
 ! BDMC2    : Background diapycnal diffusivity (m**2/s) (f)
 ! BDMLDP   : Make the background mixing latitude dependent according to
 !            Gregg et al. (2003) (l)
+! IWDFLG   : If iwdflg=1, reduce background diapycnal diffusivity due to
+!            internal wave damping under sea-ice
+! IWDFAC   : Internal wave dissipation factor under sea ice () (f)
 ! NUBMIN   : Minimum background diapycnal diffusivity (m**2/s) (f)
 ! TKEPF    : Fraction of surface TKE that penetrates beneath mixed layer
 !            () (f)
