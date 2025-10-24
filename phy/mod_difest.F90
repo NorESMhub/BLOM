@@ -33,11 +33,11 @@ module mod_difest
                                    pbu, pbv, ubflxs_p, vbflxs_p, kfpla
   use mod_diffusion,         only: egc, eggam, eglsmn, egmndf, egmxdf, &
                                    egidfq, rhiscf, ri0, bdmc1, bdmc2, bdmldp, &
-                                   nubmin, tkepf, bdmtyp, eddf2d, edsprs, &
-                                   edanis, redi3d, rhsctp, edfsmo, smobld, &
-                                   lngmtp, edritp_opt, edritp_shear, &
-                                   edritp_large_scale, edwmth_opt, &
-                                   edwmth_smooth, edwmth_step, &
+                                   iwdflg, iwdfac, nubmin, tkepf, bdmtyp, &
+                                   eddf2d, edsprs, edanis, redi3d, rhsctp, &
+                                   edfsmo, smobld, lngmtp, edritp_opt, &
+                                   edritp_shear, edritp_large_scale, &
+                                   edwmth_opt, edwmth_smooth, edwmth_step, &
                                    ltedtp_opt, ltedtp_neutral, &
                                    difint, difiso, difdia, difmxp, difwgt, &
                                    Kvisc_m, Kdiff_t, Kdiff_s, &
@@ -115,8 +115,6 @@ module mod_difest
   !            iidtyp=2 the diffusivities are parameterized according
   !            to Eden and Greatbatch (2008).
   !   tdmflg - If tdmflg=1, apply tidally driven diapycnal mixing.
-  !   iwdflg - If iwdflg=1, reduce background diapycnal diffusivity
-  !            due to internal wave damping under sea-ice.
   !   dpbmin - smallest layer thickness allowed in evaluating
   !            local gradient richardson number [kg/m/s^2].
   !   drhomn - minimum density difference in evaluations the
@@ -131,7 +129,6 @@ module mod_difest
   !   drho0  - critical local interface density difference [kg/m^3]
   !   nuls0  - maximum diapycnal diffusivity applied when local
   !            stability is weak [m^2/s].
-  !   iwdfac - internal wave dissipation factor under sea ice [].
   !   dmxeff - diapycnal mixing efficiency [].
   !   tdmq   - tidal dissipation efficiency [].
   !   tdmls0 - tidal driven mixing length scale below critical
@@ -169,7 +166,6 @@ module mod_difest
   !            [m/s].
   integer , parameter :: iidtyp=2
   integer , parameter :: tdmflg=1
-  integer , parameter :: iwdflg=1
   integer , parameter :: dptmin = onem
   real    , parameter ::  dpbmin=onecm
   real    , parameter :: drhomn = 6.e-3
@@ -180,7 +176,6 @@ module mod_difest
   real    , parameter :: nug0 = 2.5e-1
   real    , parameter :: drho0 = 6.e-3
   real    , parameter :: nuls0=5.e-2
-  real    , parameter :: iwdfac = .06
   real    , parameter :: dmxeff=.2
   real    , parameter :: tdmq=1./3.
   real    , parameter :: tdmls0 = 500.*onem

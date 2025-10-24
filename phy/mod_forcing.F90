@@ -40,29 +40,33 @@ module mod_forcing
 
    ! Variables to be set in namelist:
    logical :: &
-      aptflx, &       ! If true, apply diagnosed heat flux.
-      apsflx, &       ! If true, apply diagnosed freshwater flux.
-      ditflx, &       ! If true, diagnose heat flux.
-      disflx, &       ! If true, diagnose freshwater flux.
-      srxbal, &       ! If true, globally balance the SSS relaxation flux.
-      sprfac          ! If true, apply factor to precipitation and runoff for
-                      ! balancing the freshwater forcing budget. In case of
-                      ! coupling to CESM, this implies sending the factor to the
-                      ! coupler for application.
+      aptflx, &         ! If true, apply diagnosed heat flux.
+      apsflx, &         ! If true, apply diagnosed freshwater flux.
+      ditflx, &         ! If true, diagnose heat flux.
+      disflx, &         ! If true, diagnose freshwater flux.
+      srxbal, &         ! If true, globally balance the SSS relaxation flux.
+      sprfac            ! If true, apply factor to precipitation and runoff for
+                        ! balancing the freshwater forcing budget. In case of
+                        ! coupling to CESM, this implies sending the factor to
+                        ! the coupler for application.
    real(r8) :: &
-      trxday, &       ! e-folding relaxation time scale for SST [days].
-      srxday, &       ! e-folding relaxation time scale for SSS [days].
-      trxdpt, &       ! Maximum mixed layer depth nudged by SST relaxation [m].
-      srxdpt, &       ! Maximum mixed layer depth nudged by SSS relaxation [m].
-      trxlim, &       ! Maximum absolute value of SST difference in relaxation
-                      ! [deg C].
-      srxlim          ! Maximum absolute value of SSS difference in relaxation
-                      ! [g kg-1].
+      trxday, &         ! e-folding relaxation time scale for SST [days].
+      srxday, &         ! e-folding relaxation time scale for SSS [days].
+      trxdpt, &         ! Maximum mixed layer depth nudged by SST relaxation
+                        ! [m].
+      srxdpt, &         ! Maximum mixed layer depth nudged by SSS relaxation
+                        ! [m].
+      trxlim, &         ! Maximum absolute value of SST difference in relaxation
+                        ! [deg C].
+      srxlim, &         ! Maximum absolute value of SSS difference in relaxation
+                        ! [g kg-1].
+      brine_mlbase_frac ! Fraction of brine absorption concentrated at mixed
+                        ! layer base [].
 
    character(len = fnmlen) :: &
-      scfile, &       ! Name of file containing monthly SSS climatology.
-      wavsrc          ! Source of wave fields. Valid source: 'none', 'param',
-                      ! 'extern'.
+      scfile, &         ! Name of file containing monthly SSS climatology.
+      wavsrc            ! Source of wave fields. Valid source: 'none', 'param',
+                        ! 'extern'.
 
    ! Options derived from string options.
    integer :: &
@@ -190,7 +194,7 @@ module mod_forcing
    public :: aptflx, apsflx, ditflx, disflx, srxbal, sprfac, &
              trxday, srxday, trxdpt, srxdpt, trxlim, srxlim, scfile, &
              wavsrc, wavsrc_opt, wavsrc_none, wavsrc_param, wavsrc_extern, &
-             sref, tflxap, sflxap, tflxdi, sflxdi, nflxdi, &
+             brine_mlbase_frac, sref, tflxap, sflxap, tflxdi, sflxdi, nflxdi, &
              sstclm, ricclm, sssclm, prfac, eiacc, pracc, &
              swa, nsf, hmltfz, hmat, lip, sop, eva, rnf, rfi, fmltfz, sfl, &
              ztx, mty, ustarw, slp, abswnd, lamult, lasl, ustokes, vstokes, &
