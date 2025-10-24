@@ -37,7 +37,7 @@
     <values>
       <value>0</value>
     </values>
-    <desc>First day of integration (i)</desc>
+    <desc>First day of integration</desc>
   </entry>
 
   <entry id="nday2">
@@ -47,7 +47,7 @@
     <values>
       <value>0</value>
     </values>
-    <desc>Last day of integration (i)</desc>
+    <desc>Last day of integration</desc>
   </entry>
 
   <entry id="idate">
@@ -57,7 +57,7 @@
     <values>
       <value>9999999</value>
     </values>
-    <desc>Model date in YYYYMMDD (i)</desc>
+    <desc>Model date in YYYYMMDD</desc>
   </entry>
 
   <entry id="idate0">
@@ -67,7 +67,7 @@
     <values>
       <value>9999999</value>
     </values>
-    <desc>Initial experiment date in YYYYMMDD (i)</desc>
+    <desc>Initial experiment date in YYYYMMDD</desc>
   </entry>
 
   <entry id="runid">
@@ -164,7 +164,7 @@
     <values>
       <value>2000.e4</value>
     </values>
-    <desc>Reference pressure for potential density (kg/m/s2) (f)</desc>
+    <desc>Reference pressure for potential density (kg/m/s2)</desc>
   </entry>
 
   <entry id="baclin">
@@ -182,7 +182,7 @@
       <value ocn_grid="tnx0.25v4">900.</value>
       <value ocn_grid="tnx0.125v4">300.</value>
     </values>
-    <desc>Baroclinic time step (sec) (f)</desc>
+    <desc>Baroclinic time step (sec)</desc>
   </entry>
 
   <entry id="batrop">
@@ -200,7 +200,7 @@
       <value ocn_grid="tnx0.25v4">15.</value>
       <value ocn_grid="tnx0.125v4">6.</value>
     </values>
-    <desc>Barotropic time step (sec) (f)</desc>
+    <desc>Barotropic time step (sec)</desc>
   </entry>
 
   <entry id="mdv2hi">
@@ -212,7 +212,7 @@
       <value ocn_grid="tnx0.25v4" >.0015</value>
       <value ocn_grid="tnx0.125v4">.001</value>
     </values>
-    <desc>Laplacian diffusion velocity for momentum dissipation (m/s) (f)</desc>
+    <desc>Laplacian diffusion velocity for momentum dissipation (m/s)</desc>
   </entry>
 
   <entry id="mdv2lo">
@@ -224,7 +224,7 @@
       <value ocn_grid="tnx0.25v4" >.0015</value>
       <value ocn_grid="tnx0.125v4">.001</value>
     </values>
-    <desc>Laplacian diffusion velocity for momentum dissipation (m/s) (f)</desc>
+    <desc>Laplacian diffusion velocity for momentum dissipation (m/s)</desc>
   </entry>
 
   <entry id="mdv4hi">
@@ -234,7 +234,7 @@
     <values>
       <value>0.</value>
     </values>
-    <desc>Biharmonic diffusion velocity for momentum dissipation (m/s) (f)</desc>
+    <desc>Biharmonic diffusion velocity for momentum dissipation (m/s)</desc>
   </entry>
 
   <entry id="mdv4lo">
@@ -244,7 +244,7 @@
     <values>
       <value>0.</value>
     </values>
-    <desc>Biharmonic diffusion velocity for momentum dissipation (m/s) (f)</desc>
+    <desc>Biharmonic diffusion velocity for momentum dissipation (m/s)</desc>
   </entry>
 
   <entry id="mdc2hi">
@@ -256,7 +256,7 @@
       <value ocn_grid="tnx0.25v4" >300.</value>
       <value ocn_grid="tnx0.125v4">300.</value>
     </values>
-    <desc>Laplacian diffusivity for momentum dissipation (m**2/s) (f)</desc>
+    <desc>Laplacian diffusivity for momentum dissipation (m**2/s)</desc>
   </entry>
 
   <entry id="mdc2lo">
@@ -268,7 +268,7 @@
       <value ocn_grid="tnx0.25v4" >300.</value>
       <value ocn_grid="tnx0.125v4">100.</value>
     </values>
-    <desc>Laplacian diffusivity for momentum dissipation (m**2/s) (f)</desc>
+    <desc>Laplacian diffusivity for momentum dissipation (m**2/s)</desc>
   </entry>
 
   <entry id="vsc2hi">
@@ -280,7 +280,7 @@
       <value ocn_grid="tnx0.25v4">.15</value>
       <value ocn_grid="tnx0.125v4">0.</value>
     </values>
-    <desc>Parameter in deformation-dependent Laplacian viscosity (f)</desc>
+    <desc>Parameter in deformation-dependent Laplacian viscosity</desc>
   </entry>
 
   <entry id="vsc2lo">
@@ -292,7 +292,7 @@
       <value ocn_grid="tnx0.25v4">.15</value>
       <value ocn_grid="tnx0.125v4">0.</value>
     </values>
-    <desc>Parameter in deformation-dependent Laplacian viscosity (f)</desc>
+    <desc>Parameter in deformation-dependent Laplacian viscosity</desc>
   </entry>
 
   <entry id="vsc4hi">
@@ -304,7 +304,7 @@
       <value ocn_grid="tnx0.25v4">0.0625</value>
       <value ocn_grid="tnx0.125v4">0.06</value>
     </values>
-    <desc>Parameter in deformation-dependent Biharmonic viscosity (f)</desc>
+    <desc>Parameter in deformation-dependent Biharmonic viscosity</desc>
   </entry>
 
   <entry id="vsc4lo">
@@ -316,7 +316,7 @@
       <value ocn_grid="tnx0.25v4">0.0625</value>
       <value ocn_grid="tnx0.125v4">0.06</value>
     </values>
-    <desc>Parameter in deformation-dependent Biharmonic viscosity (f)</desc>
+    <desc>Parameter in deformation-dependent Biharmonic viscosity</desc>
   </entry>
 
   <entry id="cbar">
@@ -326,7 +326,7 @@
     <values>
       <value>.05</value>
     </values>
-    <desc>rms flow speed for linear bottom friction law (m/s) (f)</desc>
+    <desc>rms flow speed for linear bottom friction law (m/s)</desc>
   </entry>
 
   <entry id="cb">
@@ -336,7 +336,7 @@
     <values>
       <value>.002</value>
     </values>
-    <desc>Nondimensional coefficient of quadratic bottom friction (f)</desc>
+    <desc>Nondimensional coefficient of quadratic bottom friction</desc>
   </entry>
 
   <entry id="cwbdts">
@@ -351,7 +351,7 @@
       <value ocn_grid="tnx0.25v4" >.75e-4</value>
       <value ocn_grid="tnx0.125v4">.75e-4</value>
     </values>
-    <desc>Coastal wave breaking damping reciprocal time scale (1/s) (f)</desc>
+    <desc>Coastal wave breaking damping reciprocal time scale (1/s)</desc>
   </entry>
 
   <entry id="cwbdls">
@@ -361,7 +361,7 @@
     <values>
       <value>25.</value>
     </values>
-    <desc>Coastal wave breaking damping length scale (m) (f)</desc>
+    <desc>Coastal wave breaking damping length scale (m)</desc>
   </entry>
 
   <entry id="mommth">
@@ -659,7 +659,7 @@
     <values>
       <value>3</value>
     </values>
-    <desc>Number indicating the Jerlov (1968) water type (i)</desc>
+    <desc>Number indicating the Jerlov (1968) water type</desc>
   </entry>
 
   <entry id="chlopt">
@@ -708,7 +708,7 @@
     <values>
       <value>0.</value>
     </values>
-    <desc>e-folding time scale (days) for SST relax., if 0 no relax. (f)</desc>
+    <desc>e-folding time scale (days) for SST relax., if 0 no relax.</desc>
   </entry>
 
   <entry id="srxday">
@@ -720,7 +720,7 @@
       <value blom_coupling="partial">60.</value>
       <value blom_coupling="partial" blom_vcoord="isopyc_bulkml">6.</value>
     </values>
-    <desc>e-folding time scale (days) for SSS relax., if 0 no relax. (f)</desc>
+    <desc>e-folding time scale (days) for SSS relax., if 0 no relax.</desc>
   </entry>
 
   <entry id="trxdpt">
@@ -730,7 +730,7 @@
     <values>
       <value>1.</value>
     </values>
-    <desc>Maximum mixed layer depth for e-folding SST relaxation (m) (f)</desc>
+    <desc>Maximum mixed layer depth for e-folding SST relaxation (m)</desc>
   </entry>
 
   <entry id="srxdpt">
@@ -743,7 +743,7 @@
       <value blom_coupling="partial" blom_vcoord="cntiso_hybrid">10.</value>
       <value blom_coupling="partial" blom_vcoord="plevel"       >10.</value>
     </values>
-    <desc>Maximum mixed layer depth for e-folding SSS relaxation (m) (f)</desc>
+    <desc>Maximum mixed layer depth for e-folding SSS relaxation (m)</desc>
   </entry>
 
   <entry id="trxlim">
@@ -753,7 +753,7 @@
     <values>
       <value>1.5</value>
     </values>
-    <desc>Max. absolute value of SST difference in relaxation (degC) (f)</desc>
+    <desc>Max. absolute value of SST difference in relaxation (degC)</desc>
   </entry>
 
   <entry id="srxlim">
@@ -763,7 +763,7 @@
     <values>
       <value>.5</value>
     </values>
-    <desc>Max. absolute value of SSS difference in relaxation (psu) (f)</desc>
+    <desc>Max. absolute value of SSS difference in relaxation (psu)</desc>
   </entry>
 
   <entry id="aptflx">
@@ -773,7 +773,7 @@
     <values>
       <value>.false.</value>
     </values>
-    <desc>Apply diagnosed heat flux flag (l)</desc>
+    <desc>Apply diagnosed heat flux flag</desc>
   </entry>
 
   <entry id="apsflx">
@@ -783,7 +783,7 @@
     <values>
       <value>.false.</value>
     </values>
-    <desc>Apply diagnosed freshwater flux flag (l)</desc>
+    <desc>Apply diagnosed freshwater flux flag</desc>
   </entry>
 
   <entry id="ditflx">
@@ -793,7 +793,7 @@
     <values>
       <value>.false.</value>
     </values>
-    <desc>Diagnose heat flux flag (l)</desc>
+    <desc>Diagnose heat flux flag</desc>
   </entry>
 
   <entry id="disflx">
@@ -803,7 +803,7 @@
     <values>
       <value>.false.</value>
     </values>
-    <desc>Diagnose freshwater flux flag (l)</desc>
+    <desc>Diagnose freshwater flux flag</desc>
   </entry>
 
   <entry id="srxbal">
@@ -814,7 +814,7 @@
       <value>.false.</value>
       <value blom_coupling="partial">.true.</value>
     </values>
-    <desc>Balance the SSS relaxation (l)</desc>
+    <desc>Balance the SSS relaxation</desc>
   </entry>
 
   <entry id="scfile" is_inputdata="yes">
@@ -851,7 +851,7 @@
       <value>.true.</value>
       <value ocn_grid="tnx1v4" ocn_ncpl="24">.false.</value>
     </values>
-    <desc>Smooth NorESM forcing (l)</desc>
+    <desc>Smooth NorESM forcing</desc>
   </entry>
 
   <entry id="sprfac">
@@ -862,7 +862,17 @@
       <value>.false.</value>
       <value blom_coupling="partial">.true.</value>
     </values>
-    <desc>Send precipitation/runoff factor to NorESM coupler (l)</desc>
+    <desc>Send precipitation/runoff factor to NorESM coupler</desc>
+  </entry>
+
+  <entry id="brine_mlbase_frac">
+    <type>real</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>1.0</value>
+    </values>
+    <desc>Fraction of brine absorption concentrated at mixed layer base</desc>
   </entry>
 
   <entry id="atm_path">
@@ -882,7 +892,7 @@
     <values>
       <value>60</value>
     </values>
-    <desc>Global i-index of point diagnostics (i)</desc>
+    <desc>Global i-index of point diagnostics</desc>
   </entry>
 
   <entry id="jtest">
@@ -892,7 +902,7 @@
     <values>
       <value>60</value>
     </values>
-    <desc>Global j-index of point diagnostics (i)</desc>
+    <desc>Global j-index of point diagnostics</desc>
   </entry>
 
   <entry id="cnsvdi">
@@ -902,7 +912,7 @@
     <values>
       <value>.false.</value>
     </values>
-    <desc>Conservation diagnostics flag (l)</desc>
+    <desc>Conservation diagnostics flag</desc>
   </entry>
 
   <entry id="csdiag">
@@ -912,7 +922,7 @@
     <values>
       <value>.false.</value>
     </values>
-    <desc>Checksum diagnostics flag (l)</desc>
+    <desc>Checksum diagnostics flag</desc>
   </entry>
 
   <entry id="rstfrq">
@@ -922,7 +932,7 @@
     <values>
       <value>1</value>
     </values>
-    <desc>Restart frequency in days (30=1month,365=1year) (i)</desc>
+    <desc>Restart frequency in days (30=1month,365=1year)</desc>
   </entry>
 
   <entry id="rstfmt">
@@ -944,7 +954,7 @@
     <values>
       <value>0</value>
     </values>
-    <desc>Compression flag for restart file (i)</desc>
+    <desc>Compression flag for restart file</desc>
   </entry>
 
   <entry id="iotype">
@@ -1445,7 +1455,7 @@
     <values>
       <value>.true.</value>
     </values>
-    <desc>If true, eddy diffusivity has a 2d structure (l)</desc>
+    <desc>If true, eddy diffusivity has a 2d structure</desc>
   </entry>
 
   <entry id="edsprs">
@@ -1455,7 +1465,7 @@
     <values>
       <value>.false.</value>
     </values>
-    <desc>Apply eddy mixing suppression away from steering level (l)</desc>
+    <desc>Apply eddy mixing suppression away from steering level</desc>
   </entry>
 
   <entry id="egc">
@@ -1465,7 +1475,7 @@
     <values>
       <value>2.0</value>
     </values>
-    <desc>Parameter c in Eden and Greatbatch (2008) parameterization (f)</desc>
+    <desc>Parameter c in Eden and Greatbatch (2008) parameterization</desc>
   </entry>
 
   <entry id="eggam">
@@ -1475,7 +1485,7 @@
     <values>
       <value>200.</value>
     </values>
-    <desc>Parameter gamma in E. and G. (2008) param. (f)</desc>
+    <desc>Parameter gamma in E. and G. (2008) param.</desc>
   </entry>
 
   <entry id="eglsmn">
@@ -1485,7 +1495,7 @@
     <values>
       <value>4000.</value>
     </values>
-    <desc>Minimum eddy length scale in  E. and G. (2008) param. (m) (f)</desc>
+    <desc>Minimum eddy length scale in  E. and G. (2008) param. (m)</desc>
   </entry>
 
   <entry id="egmndf">
@@ -1496,7 +1506,7 @@
       <value>50.</value>
       <value ocn_grid="tnx0.125v4">0.</value>
     </values>
-    <desc>Minimum diffusivity in E. and G. (2008) param. (m**2/s) (f)</desc>
+    <desc>Minimum diffusivity in E. and G. (2008) param. (m**2/s)</desc>
   </entry>
 
   <entry id="egmxdf">
@@ -1507,7 +1517,7 @@
       <value>2500.</value>
       <value ocn_grid="tnx0.125v4">0.</value>
     </values>
-    <desc>Maximum diffusivity in E. and G. (2008) param. (m**2/s) (f)</desc>
+    <desc>Maximum diffusivity in E. and G. (2008) param. (m**2/s)</desc>
   </entry>
 
   <entry id="egidfq">
@@ -1542,7 +1552,7 @@
     <values>
       <value>5.0</value>
     </values>
-    <desc>Linear scaling parameter for topographic rhines scale () (f)</desc>
+    <desc>Linear scaling parameter for topographic rhines scale ()</desc>
   </entry>
 
   <entry id="edanis">
@@ -1552,7 +1562,7 @@
     <values>
       <value>.true.</value>
     </values>
-    <desc>If true, apply anisotropy correction to eddy diffusivity (l)</desc>
+    <desc>If true, apply anisotropy correction to eddy diffusivity</desc>
   </entry>
 
   <entry id="redi3d">
@@ -1625,7 +1635,7 @@
       <value>1.5e-5</value>
       <value blom_vcoord="isopyc_bulkml">1.e-5</value>
     </values>
-    <desc>Background diapycnal diffusivity (m**2/s) (f)</desc>
+    <desc>Background diapycnal diffusivity (m**2/s)</desc>
   </entry>
 
   <entry id="bdmldp">
@@ -1655,7 +1665,7 @@
     <values>
       <value>.06</value>
     </values>
-    <desc>Internal wave dissipation factor under sea ice () (f)</desc>
+    <desc>Internal wave dissipation factor under sea ice</desc>
   </entry>
 
   <entry id="nubmin">
@@ -1665,7 +1675,7 @@
     <values>
       <value>2.e-6</value>
     </values>
-    <desc>Minimum background diapycnal diffusivity (m**2/s) (f)</desc>
+    <desc>Minimum background diapycnal diffusivity (m**2/s)</desc>
   </entry>
 
   <entry id="tkepf">
@@ -1751,7 +1761,7 @@
       <value ocn_grid="tnx1v4">105,106</value>
       <value ocn_grid="tnx0.5v1">209,210,307,307,274,279</value>
     </values>
-    <desc>Array of grid cell i-indices (i)</desc>
+    <desc>Array of grid cell i-indices</desc>
   </entry>
 
   <entry id="cwmj">
@@ -1764,7 +1774,7 @@
       <value ocn_grid="tnx1v4">273,273</value>
       <value ocn_grid="tnx0.5v1">417,417,353,354,429,431</value>
     </values>
-    <desc>Array of grid cell j-indices (i)</desc>
+    <desc>Array of grid cell j-indices</desc>
   </entry>
 
   <entry id="cwmwth">
@@ -1777,7 +1787,7 @@
       <value ocn_grid="tnx1v4">30.e3,30.e3</value>
       <value ocn_grid="tnx0.5v1">30.e3,30.e3,30.e3,30.e3,5.e3,5.e3</value>
     </values>
-    <desc>Array of modified grid cell widths (m) (f)</desc>
+    <desc>Array of modified grid cell widths (m)</desc>
   </entry>
 
   <!-- ========================= -->
@@ -4163,7 +4173,7 @@
     <values>
       <value>-34.,-34.,-34.,-90.</value>
     </values>
-    <desc>Minimum latitude to be considered for each region (f)</desc>
+    <desc>Minimum latitude to be considered for each region</desc>
   </entry>
 
   <entry id="mer_maxlat">
@@ -4173,7 +4183,7 @@
     <values>
       <value>90.,90.,90.,90.</value>
     </values>
-    <desc>Maximum latitude to be considered for each region (f)</desc>
+    <desc>Maximum latitude to be considered for each region</desc>
   </entry>
 
   <!-- ========================= -->
@@ -8494,7 +8504,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>index of point diagnostics (i)</desc>
+    <desc>index of point diagnostics</desc>
   </entry>
 
   <entry id="lyr_wphy">

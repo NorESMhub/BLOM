@@ -30,7 +30,8 @@ module mod_ale_forcing
   use mod_state,     only: dp, temp, saln, p
   use mod_swabs,     only: swamxd, swfc1, swfc2, swal1, swal2
   use mod_forcing,   only: surflx, sswflx, salflx, brnflx, buoyfl, &
-                           t_sw_nonloc, s_br_nonloc
+                           t_sw_nonloc, s_br_nonloc, &
+                           brine_mlbase_frac
   use mod_cmnfld,    only: mlts
   use mod_checksum,  only: csdiag, chksum
 
@@ -54,10 +55,8 @@ contains
     ! Numeric constants for brine absorption profile.
     real(r8), parameter :: cbra1 = 2._r8**(1._r8/3._r8)
     real(r8), parameter :: cbra2 = cbra1*cbra1/12._r8
-    ! real(r8), parameter :: cbra1 = 2._r8**(1._r8/3._r8), &
-    ! real(r8), parameter :: cbra2 = cbra1*cbra1/288._r8
-    real(r8) :: cpi, gaa, pmax, lei1, lei2, lei, q, q3, pmaxi, nlbot, &
-                dsgdt, dsgds
+    real(r8) :: cpi, gaa, pmax, lei1, lei2, lei, q, q_c, q3, q_c3, pmaxi, &
+                nlbot, & dsgdt, dsgds
     real(r8) :: hf, hfsw, hfns, sf, sfbr, sfnb
     integer  :: i, j, k, l, kmax, kn
 
@@ -121,7 +120,8 @@ contains
     ! Compute brine flux penetration factors.
     ! --------------------------------------------------------------------------
 
-    !$omp parallel do private(l, i, lei, pmax, kmax, k, kn, q, q3, pmaxi, nlbot)
+    !$omp parallel do private(l, i, lei, pmax, kmax, k, kn, q, q_c, q3, q_c3, &
+    !$omp                     pmaxi, nlbot)
     do j = 1, jj
       do l = 1, isp(j)
         do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
@@ -135,10 +135,14 @@ contains
             kn = k + nn
             if (dp(i,j,kn) > onemu) then
               q = min(cbra1, lei*p(i,j,k+1))
+              q_c = q/cbra1
               q3 = q*q*q
-              ! s_br_nonloc(i,j,k+1) = &
-              !    1._r8 - cbra2*q*q3*q3*(q3*(35._r8*q3 - 182._r8) + 260._r8)
-              s_br_nonloc(i,j,k+1) = 1._r8 - cbra2*q*q3*(7._r8-2._r8*q3)
+              q_c3 = q_c*q_c*q_c
+              s_br_nonloc(i,j,k+1) = &
+                  brine_mlbase_frac*(1._r8 - cbra2*q*q3*(7._r8 - 2._r8*q3)) &
+                + (1._r8 - brine_mlbase_frac) &
+                  *(1._r8 - q + q_c3*q_c3*(  6._r8*cbra1 - 7._r8 &
+                                          - (5._r8*cbra1 - 6._r8)*q_c))
               kmax = k
             else
               s_br_nonloc(i,j,k+1) = s_br_nonloc(i,j,k)

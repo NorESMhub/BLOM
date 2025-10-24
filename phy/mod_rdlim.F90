@@ -45,8 +45,8 @@ module mod_rdlim
                              wavsrc, wavsrc_opt, wavsrc_none, &
                              wavsrc_param, wavsrc_extern, &
                              trxday, srxday, trxdpt, srxdpt, trxlim, &
-                             srxlim, srxbal, sprfac, use_stream_relaxation, &
-                             use_stream_dust
+                             srxlim, srxbal, sprfac, brine_mlbase_frac, &
+                             use_stream_relaxation, use_stream_dust
   use mod_swabs,       only: swamth, jwtype, chlopt, ccfile, svfile
   use mod_diffusion,   only: readnml_diffusion
   use mod_eddtra,      only: mlrmth, ce, cl, tau_mlr, tau_growing_hbl, &
@@ -142,7 +142,7 @@ contains
          swamth,jwtype,chlopt,ccfile,svfile, &
          trxday,srxday,trxdpt,srxdpt,trxlim,srxlim, &
          aptflx,apsflx,ditflx,disflx,srxbal,scfile, &
-         wavsrc,smtfrc,sprfac, &
+         wavsrc,smtfrc,sprfac,brine_mlbase_frac, &
          atm_path, &
          itest,jtest, &
          cnsvdi, &
@@ -251,6 +251,7 @@ contains
       write (lp,*) 'WAVSRC ',trim(WAVSRC)
       write (lp,*) 'SMTFRC',SMTFRC
       write (lp,*) 'SPRFAC',SPRFAC
+      write (lp,*) 'BRINE_MLBASE_FRAC',brine_mlbase_frac
       write (lp,*) 'ATM_PATH ',trim(ATM_PATH)
       write (lp,*) 'ITEST',ITEST
       write (lp,*) 'JTEST',JTEST
@@ -343,6 +344,7 @@ contains
     call xcbcst(wavsrc)
     call xcbcst(smtfrc)
     call xcbcst(sprfac)
+    call xcbcst(brine_mlbase_frac)
     call xcbcst(atm_path)
     call xcbcst(itest)
     call xcbcst(jtest)
