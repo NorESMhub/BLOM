@@ -111,8 +111,8 @@
 ! WAVSRC   : Source of wave fields. Valid source: 'none', 'param', 'extern' (a)
 ! SMTFRC   : Smooth NorESM forcing (l)
 ! SPRFAC   : Send precipitation/runoff factor to NorESM coupler (l)
-! BRINE_MLBASE_FRAC ! Fraction of brine absorption concentrated at mixed
-                    ! layer base (f)
+! BRINE_MLBASE_FRAC : Fraction of brine absorption concentrated at mixed
+!                     layer base (f)
 ! ATM_PATH : Path to forcing fields in case of EXPCNF 'ben02clim' or
 !            'ben02syn' (a)
 ! ITEST    : Global i-index of point diagnostics (i)

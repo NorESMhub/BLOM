@@ -56,7 +56,7 @@ contains
     real(r8), parameter :: cbra1 = 2._r8**(1._r8/3._r8)
     real(r8), parameter :: cbra2 = cbra1*cbra1/12._r8
     real(r8) :: cpi, gaa, pmax, lei1, lei2, lei, q, q_c, q3, q_c3, pmaxi, &
-                nlbot, & dsgdt, dsgds
+                nlbot, dsgdt, dsgds
     real(r8) :: hf, hfsw, hfns, sf, sfbr, sfnb
     integer  :: i, j, k, l, kmax, kn
 
