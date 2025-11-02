@@ -23,7 +23,8 @@ module mod_blom_init
   use mod_config,          only: expcnf, runtyp
   use mod_time,            only: date, nday1, nday2, nstep1, nstep2, nstep, delt1, &
                                  time0, baclin
-  use mod_timing,          only: init_timing, get_time
+  use mod_timing,          only: timer_init, timer_start, timer_stop, &
+                                 timer_reset, timer_statistics
   use mod_xc,              only: xcspmd, xcbcst, xctilr, xchalt, mnproc, nproc, &
                                  lp, ii, jj, kk, isp, ifp, isu, ifu, ilp, isv, ifv, &
                                  ilu, ilv, jpr, i0, nbdy, &
@@ -85,13 +86,8 @@ contains
     ! Initialize timing.
     ! --------------------------------------------------------------------------
 
-    call init_timing
-
-    ! print seconds elapsed since startup (should be almost zero)
-    if (mnproc == 1) then
-      write (lp,'(f12.4,a,i8)') get_time(),' Time 0 BLOM starting up'
-      call flush(lp)
-    end if
+    call timer_init(8, 2)
+    call timer_start(1)
 
     ! --------------------------------------------------------------------------
     ! Read limits file.
@@ -202,6 +198,8 @@ contains
     call xcbcst(icrest)
 
     if (icrest .and. woa_nuopc_provided) woa_nuopc_provided = .false.
+
+    call timer_stop(1,'blom_init_phase1')
 
   end subroutine blom_init_phase1
 
@@ -435,7 +433,13 @@ contains
 
     call diaout_alarms
 
+    call timer_stop(1,'blom_init_phase2')
+
     ! --------------------------------------------------------------------------
+    ! Write timer diagnostics to stdout.
+    ! --------------------------------------------------------------------------
+
+    call timer_statistics(1)
 
     if (mnproc == 1.and.expcnf /= 'cesm') then
       write (lp,'(/2(a,i6),2(a,i9),a/)') &
@@ -444,11 +448,9 @@ contains
       call flush(lp)
     end if
 
-    ! Print seconds elapsed since last call to system_clock (Time 0).
-    if (mnproc == 1) then
-      write (lp,'(f12.4,a,i8)') get_time(),' Time 1 Just before main loop'
-      call flush(lp)
-    end if
+    call timer_reset(1)
+    call timer_start(1)
+    call timer_start(2)
 
   end subroutine blom_init_phase2
 
