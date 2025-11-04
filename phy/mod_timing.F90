@@ -35,19 +35,24 @@ module mod_timing
    integer, parameter :: &
       maxlen_name = 52
 
+   type :: group_struct
+      logical :: used
+      integer(int32) :: checksum
+      integer :: mode, num_timers, first_tmridx, last_tmridx
+      real(r8) :: last_time
+   end type group_struct
+
    type :: timer_struct
       logical :: used
       integer(int32) :: checksum
       character(len = maxlen_name) :: name
-      integer :: acc_num
+      integer :: acc_num, next_tmridx
       real(r8) :: acc_time
    end type timer_struct
 
-   type(timer_struct), allocatable, dimension(:,:) :: timer
-   integer, allocatable, dimension(:,:) :: timer_idx_list
-   integer, allocatable, dimension(:) :: timer_num, timer_mode
-   real(r8), allocatable, dimension(:) :: last_time
-   integer :: maxnum_timers, maxnum_groups, hash_mask
+   type(group_struct), allocatable, dimension(:) :: group
+   type(timer_struct), allocatable, dimension(:) :: timer
+   integer :: maxnum_timers, maxnum_groups, hash_mask_group, hash_mask_timer
    logical :: initialized = .false.
 
    public :: timer_init, timer_start, timer_stop, timer_reset, &
@@ -55,27 +60,77 @@ module mod_timing
 
 contains
 
-   subroutine timer_init(maxnum_timers_log2, maxnum_groups_arg)
+   ! ---------------------------------------------------------------------------
+   ! Private procedures.
+   ! ---------------------------------------------------------------------------
+
+   function group_index(group_name) result(grpidx)
+   ! ---------------------------------------------------------------------------
+   ! Return group array index associated with argument group_name.
+   ! ---------------------------------------------------------------------------
+
+      character(len = *), intent(in) :: group_name
+
+      integer :: grpidx
+
+      integer(int32) :: checksum
+      integer :: grpidx_start
+
+      checksum = crc32(trim(group_name))
+      grpidx_start = iand(checksum, hash_mask_group) + 1
+
+      grpidx = grpidx_start
+      do
+         if (group(grpidx)%used) then
+            if (group(grpidx)%checksum == checksum) return
+         else
+            group(grpidx)%checksum = checksum
+            group(grpidx)%num_timers = 0
+            group(grpidx)%mode = 0
+            return
+         endif
+         grpidx = iand(grpidx, hash_mask_group) + 1
+         if (grpidx == grpidx_start) then
+            if (mnproc == 1) &
+               write(lp,*) &
+                  'Too many groups! Increase maxnum_groups_log2 in call '// &
+                  'to timers_init'
+            call xcstop('(group_index)')
+                   stop '(group_index)'
+         endif
+      enddo
+
+   end function group_index
+
+   ! ---------------------------------------------------------------------------
+   ! Public procedures.
+   ! ---------------------------------------------------------------------------
+
+   subroutine timer_init(maxnum_groups_log2, maxnum_timers_log2)
    ! ---------------------------------------------------------------------------
    ! Initialize timers. Arguments:
-   ! - maxnum_timers_log2: Number of timers will be 2**maxnum_timers_log2.
-   ! - maxnum_groups_arg : Maximum number of timer groups.
+   !    maxnum_groups_log2: Number of groups will be 2**maxnum_groups_log2.
+   !    maxnum_timers_log2: Number of timers will be 2**maxnum_timers_log2.
    ! ---------------------------------------------------------------------------
 
-      integer, intent(in) :: maxnum_timers_log2, maxnum_groups_arg
+      integer, intent(in) :: maxnum_groups_log2, maxnum_timers_log2
 
       integer :: errstat
-      integer :: checksum, hash
 
-      maxnum_groups = maxnum_groups_arg
+      if (initialized) then
+         if (mnproc == 1) &
+            write(lp,*) 'Timer already initialized!'
+         call xcstop('(timer_init)')
+                stop '(timer_init)'
+      endif
+
+      maxnum_groups = 2**maxnum_groups_log2
       maxnum_timers = 2**maxnum_timers_log2
-      hash_mask = maskr(maxnum_timers_log2)
+      hash_mask_group = maskr(maxnum_groups_log2)
+      hash_mask_timer = maskr(maxnum_timers_log2)
 
-      allocate(timer(maxnum_timers,maxnum_groups), &
-               timer_idx_list(maxnum_timers,maxnum_groups), &
-               timer_num(maxnum_groups), &
-               timer_mode(maxnum_groups), &
-               last_time(maxnum_groups), &
+      allocate(group(maxnum_groups), &
+               timer(maxnum_timers), &
                stat = errstat)
       if (errstat /= 0) then
          write(lp,*) 'Failed to allocate timing arrays!'
@@ -83,20 +138,22 @@ contains
                 stop '(timer_init)'
       endif
 
-      timer(:,:)%used = .false.
-      timer_num(:) = 0
-      timer_mode(:) = 0
+      group(:)%used = .false.
+      timer(:)%used = .false.
 
       initialized = .true.
 
    end subroutine timer_init
 
-   subroutine timer_start(group)
+   subroutine timer_start(group_name)
    ! ---------------------------------------------------------------------------
-   ! Record the current time for the timer group, provided as argument.
+   ! Record the current time for the timer group associated with argument
+   ! group_name.
    ! ---------------------------------------------------------------------------
 
-      integer, intent(in) :: group
+      character(len = *), intent(in) :: group_name
+
+      integer :: grpidx
 
       if (.not.initialized) then
          if (mnproc == 1) &
@@ -104,35 +161,40 @@ contains
          call xcstop('(timer_start)')
                 stop '(timer_start)'
       endif
-      if (group < 1 .or. group > maxnum_groups) then
-         if (mnproc == 1) write(lp,*) 'Group number out of bounds!'
-         call xcstop('(timer_start)')
-                stop '(timer_start)'
+
+      grpidx = group_index(group_name)
+
+      if (.not.group(grpidx)%used) then
+         group(grpidx)%used = .true.
+         group(grpidx)%mode = 0
+         group(grpidx)%num_timers = 0
       endif
 
-      last_time(group) = wtime()
+      group(grpidx)%last_time = wtime()
 
    end subroutine timer_start
 
-   subroutine timer_stop(group, name)
+   subroutine timer_stop(group_name, timer_name)
    ! ---------------------------------------------------------------------------
    ! Record the elapsed time since previous call to either timer_start or
-   ! timer_stop for the timer group, provided as argument. If the optional name
-   ! argument is not provided, the timer group is in single-timer mode. In
-   ! multi-timer mode, each unique name is associated with its own timer within
-   ! the group. For additional calls to timer_stop with previously used group
-   ! and name arguments, elapsed time is accumulated in the existing timer. For
-   ! multiple timers where a combined timer statistic output is preferred, it is
-   ! possible to use names of the form "<prefix>_sg<suffix>", which defines a
-   ! subgroup within the timer group. The <prefix> must be the same for all
-   ! timers in the subgroup, while the <suffix> must be unique.
+   ! timer_stop for the timer group associated with the argument group_name. If
+   ! the optional timer_name argument is not provided, the timer group is in
+   ! single-timer mode. In multi-timer mode, each unique timer_name is
+   ! associated with its own timer within the group. For additional calls to
+   ! timer_stop with previously used group_name and timer_name arguments,
+   ! elapsed time is accumulated in the existing timer. For multiple timers
+   ! where a combined timer statistic output is preferred, it is possible to use
+   ! timer_name of the form "<prefix>_sg<suffix>", which defines a subgroup
+   ! within the timer group. The <prefix> must be the same for all timers in the
+   ! subgroup, while the <suffix> must be unique.
    ! ---------------------------------------------------------------------------
 
-      integer, intent(in) :: group
-      character(len = *), optional, intent(in) :: name
+      character(len = *), intent(in) :: group_name
+      character(len = *), optional, intent(in) :: timer_name
 
       real(r8) :: curr_time
-      integer :: checksum, idx_start, idx
+      integer(int32) :: checksum
+      integer :: grpidx, tmridx_start, tmridx
 
       if (.not.initialized) then
          if (mnproc == 1) &
@@ -140,99 +202,87 @@ contains
          call xcstop('(timer_stop)')
                 stop '(timer_stop)'
       endif
-      if (group < 1 .or. group > maxnum_groups) then
-         if (mnproc == 1) write(lp,*) 'Group number out of bounds!'
+
+      grpidx = group_index(group_name)
+
+      if (.not.group(grpidx)%used) then
+         if (mnproc == 1) &
+            write(lp,*) 'Timer group not started, call timer_start first!'
          call xcstop('(timer_stop)')
                 stop '(timer_stop)'
       endif
 
-      if (present(name)) then
-
-         if (timer_mode(group) == 1) then
+      if (present(timer_name)) then
+         if (group(grpidx)%mode == 1) then
             if (mnproc == 1) &
-               write(lp,*) 'Timer is already in single-timer mode!'
+               write(lp,*) 'Timer group is already in single-timer mode!'
             call xcstop('(timer_stop)')
                    stop '(timer_stop)'
-            
          endif
+         group(grpidx)%mode = 2
+         checksum = crc32(trim(group_name)//trim(timer_name))
+      else
+         if (group(grpidx)%mode == 2) then
+            if (mnproc == 1) &
+               write(lp,*) 'Timer group is already in multi-timer mode!'
+            call xcstop('(timer_stop)')
+                   stop '(timer_stop)'
+         endif
+         group(grpidx)%mode = 1
+         checksum = crc32(trim(group_name))
+      endif
 
-         checksum = crc32(name)
-         idx_start = iand(checksum, hash_mask) + 1
-
-         idx = idx_start
-         do
-            if (timer(idx,group)%used) then
-               if (timer(idx,group)%checksum == checksum) then
-                  timer(idx,group)%acc_num = timer(idx,group)%acc_num + 1
-                  curr_time = wtime()
-                  timer(idx,group)%acc_time = timer(idx,group)%acc_time &
-                                            + curr_time - last_time(group)
-                  last_time(group) = curr_time
-                  return
-               endif
-            else
-               timer(idx,group)%used = .true.
-               timer(idx,group)%checksum = checksum
-               timer(idx,group)%name = name
-               timer(idx,group)%acc_num = 1
-               timer_num(group) = timer_num(group) + 1
-               timer_mode(group) = 2
-               timer_idx_list(timer_num(group),group) = idx
+      tmridx_start = iand(checksum, hash_mask_timer) + 1
+      tmridx = tmridx_start
+      do
+         if (timer(tmridx)%used) then
+            if (timer(tmridx)%checksum == checksum) then
+               timer(tmridx)%acc_num = timer(tmridx)%acc_num + 1
                curr_time = wtime()
-               timer(idx,group)%acc_time = curr_time - last_time(group)
-               last_time(group) = curr_time
+               timer(tmridx)%acc_time = timer(tmridx)%acc_time &
+                                      + curr_time - group(grpidx)%last_time
+               group(grpidx)%last_time = curr_time
                return
             endif
-            idx = iand(idx, hash_mask) + 1
-            if (idx == idx_start) then
-               if (mnproc == 1) &
-                  write(lp,*) &
-                     'Too many timers! Increase maxnum_timers_log2 in call '// &
-                     'to timers_init'
-               call xcstop('(timer_stop)')
-                      stop '(timer_stop)'
-            endif
-         enddo
-
-      else
-
-         if (timer_mode(group) == 2) then
-            if (mnproc == 1) &
-               write(lp,*) 'Timer is already in multi-timer mode!'
-            call xcstop('(timer_stop)')
-                   stop '(timer_stop)'
-            
-         endif
-
-         idx = 1
-         if (timer(idx,group)%used) then
-            timer(idx,group)%acc_num = timer(idx,group)%acc_num + 1
-            curr_time = wtime()
-            timer(idx,group)%acc_time = timer(idx,group)%acc_time &
-                                      + curr_time - last_time(group)
-            last_time(group) = curr_time
          else
-            timer(idx,group)%used = .true.
-            timer(idx,group)%acc_num = 1
-            timer_num(group) = 1
-            timer_mode(group) = 1
-            timer_idx_list(timer_num(group),group) = idx
+            timer(tmridx)%used = .true.
+            timer(tmridx)%checksum = checksum
+            timer(tmridx)%name = timer_name
+            timer(tmridx)%acc_num = 1
+            timer(tmridx)%next_tmridx = 0
+            group(grpidx)%num_timers = group(grpidx)%num_timers + 1
+            if (group(grpidx)%num_timers == 1) then
+               group(grpidx)%first_tmridx = tmridx
+            else
+               timer(group(grpidx)%last_tmridx)%next_tmridx = tmridx
+            endif
+            group(grpidx)%last_tmridx = tmridx
             curr_time = wtime()
-            timer(idx,group)%acc_time = curr_time - last_time(group)
-            last_time(group) = curr_time
+            timer(tmridx)%acc_time = curr_time - group(grpidx)%last_time
+            group(grpidx)%last_time = curr_time
             return
          endif
-
-      endif
+         tmridx = iand(tmridx, hash_mask_timer) + 1
+         if (tmridx == tmridx_start) then
+            if (mnproc == 1) &
+               write(lp,*) &
+                  'Too many timers! Increase maxnum_timers_log2 in call '// &
+                  'to timers_init'
+            call xcstop('(timer_stop)')
+                   stop '(timer_stop)'
+         endif
+      enddo
 
    end subroutine timer_stop
 
-   subroutine timer_reset(group)
+   subroutine timer_reset(group_name)
    ! ---------------------------------------------------------------------------
-   ! Reset the timer group, provided as argument.
+   ! Reset the timer group associated with argument group_name.
    ! ---------------------------------------------------------------------------
 
-      integer, intent(in) :: group
+      character(len = *), intent(in) :: group_name
+
+      integer :: grpidx, tmridx, grpidx_start, i, j
 
       if (.not.initialized) then
          if (mnproc == 1) &
@@ -240,29 +290,51 @@ contains
          call xcstop('(timer_reset)')
                 stop '(timer_reset)'
       endif
-      if (group < 1 .or. group > maxnum_groups) then
-         if (mnproc == 1) write(lp,*) 'Group number out of bounds!'
-         call xcstop('(timer_reset)')
-                stop '(timer_reset)'
+
+      grpidx = group_index(group_name)
+
+      if (.not.group(grpidx)%used) return
+
+      if (group(grpidx)%num_timers > 0) then
+         tmridx = group(grpidx)%first_tmridx
+         do while (tmridx /= 0)
+            timer(tmridx)%used = .false.
+            tmridx = timer(tmridx)%next_tmridx
+         enddo
       endif
 
-      timer(:,group)%used = .false.
-      timer_num(group) = 0
-      timer_mode(group) = 0
+      group(grpidx)%used = .false.
+      i = iand(grpidx, hash_mask_group) + 1
+      do while (i /= grpidx)
+         grpidx_start = iand(group(i)%checksum, hash_mask_group) + 1
+         j = grpidx_start
+         do
+            if (group(j)%used) then
+               if (group(j)%checksum == group(i)%checksum) exit
+            else
+               group(j) = group(i)
+               group(i)%used = .false.
+               exit
+            endif
+            j = iand(j, hash_mask_group) + 1
+         enddo
+         i = iand(i, hash_mask_group) + 1
+      enddo
 
    end subroutine timer_reset
 
-   subroutine timer_statistics(group)
+   subroutine timer_statistics(group_name)
    ! ---------------------------------------------------------------------------
-   ! Output statistics of the timer group, provided as argument, to stdout.
+   ! Output statistics of the timer group, associated with argument group_name,
+   ! to stdout.
    ! ---------------------------------------------------------------------------
 
-      integer, intent(in) :: group
+      character(len = *), intent(in) :: group_name
 
-      real(r8), dimension(timer_num(group)+1) :: cumsum_time
-      logical, dimension(timer_num(group)+1) :: contributed
+      real(r8), allocatable, dimension(:) :: cumsum_time
+      logical, allocatable, dimension(:) :: contributed
       real(r8) :: group_time, sg_time
-      integer :: i, idx, acc_num, sg_index, j, jdx
+      integer :: grpidx, tmridx, acc_num, errstat, i, sg_index, tmrjdx, j
       logical :: equal_acc_nums
 
       if (.not.initialized) then
@@ -271,27 +343,29 @@ contains
          call xcstop('(timer_statistics)')
                 stop '(timer_statistics)'
       endif
-      if (group < 1 .or. group > maxnum_groups) then
-         if (mnproc == 1) write(lp,*) 'Group number out of bounds!'
-         call xcstop('(timer_statistics)')
-                stop '(timer_statistics)'
-      endif
 
-      if (timer_num(group) == 0) then
-         if (mnproc == 1) write(lp,*) 'No timer statistics of group:', group
+      grpidx = group_index(group_name)
+
+      if     (.not.group(grpidx)%used) then
+         if (mnproc == 1) &
+            write(lp,*) 'No timer group associated with '//trim(group_name)
+         return
+      elseif (group(grpidx)%num_timers == 0) then
+         if (mnproc == 1) &
+            write(lp,*) 'No timers of group '//trim(group_name)
          return
       endif
 
       if (mnproc == 1) then
          write(lp,*) ''
-         write(lp,'(a,i3,a)') 'Timer statistics of group ', group, ':'
+         write(lp,'(a)') 'Timer statistics of group '//trim(group_name)//':'
       endif
 
-      if (timer_mode(group) == 1) then
+      if (group(grpidx)%mode == 1) then
 
-         idx = 1
-         group_time = timer(idx,group)%acc_time
-         acc_num = timer(idx,group)%acc_num
+         tmridx = group(grpidx)%first_tmridx
+         group_time = timer(tmridx)%acc_time
+         acc_num = timer(tmridx)%acc_num
          call xcmax(group_time)
 
          if (mnproc == 1) then
@@ -300,25 +374,34 @@ contains
                   group_time/acc_num, '  sec average time for ', &
                   acc_num, ' accumulations'
             write(lp,'(f12.4,a)') group_time, '  sec total time'
-            write(lp,*) ''
          endif
 
       else
 
+          allocate(cumsum_time(group(grpidx)%num_timers+1), &
+                   contributed(group(grpidx)%num_timers), &
+                   stat = errstat)
+          if (errstat /= 0) then
+             write(lp,*) 'Failed to allocate timing arrays!'
+             call xchalt('(timer_statistics)')
+                    stop '(timer_statistics)'
+          endif
+
+         tmridx = group(grpidx)%first_tmridx
+         acc_num = timer(tmridx)%acc_num
+         i = 1
          cumsum_time(1) = 0._r8
-         acc_num = 0
          equal_acc_nums = .true.
-         do i = 1, timer_num(group)
-            idx = timer_idx_list(i,group)
-            cumsum_time(i+1) = cumsum_time(i) + timer(idx,group)%acc_time
-            if (i > 1 .and. timer(idx,group)%acc_num /= acc_num) &
-               equal_acc_nums = .false.
-            acc_num = timer(idx,group)%acc_num
+         do while (tmridx /= 0)
+            cumsum_time(i+1) = cumsum_time(i) + timer(tmridx)%acc_time
+            if (timer(tmridx)%acc_num /= acc_num) equal_acc_nums = .false.
+            tmridx = timer(tmridx)%next_tmridx
+            i = i + 1
          enddo
          call xcmax(cumsum_time)
 
          if (mnproc == 1) then
-            group_time = cumsum_time(timer_num(group)+1)
+            group_time = cumsum_time(group(grpidx)%num_timers+1)
             if (acc_num > 1 .and. equal_acc_nums) &
                write(lp,'(f12.4,a,i6,a)') &
                   group_time/acc_num, ' sec average time for ', &
@@ -326,56 +409,57 @@ contains
             write(lp,'(f12.4,a)') group_time, &
                                   ' sec total time with contributions:'
             contributed(:) = .false.
-            do i = 1, timer_num(group)
+            tmridx = group(grpidx)%first_tmridx
+            i = 1
+            do while (tmridx /= 0)
                if (.not.contributed(i)) then
-                  idx = timer_idx_list(i,group)
-                  sg_index = index(timer(idx,group)%name, '_sg')
+                  sg_index = index(timer(tmridx)%name, '_sg')
                   if (sg_index <= 1) then
                      write(lp,'(f12.4,a,f8.4,a)') &
                          cumsum_time(i+1) - cumsum_time(i),' sec ', &
                         (cumsum_time(i+1) - cumsum_time(i)) &
                         /group_time*100._r8, &
-                        '%  '//trim(timer(idx,group)%name)
+                        '%  '//trim(timer(tmridx)%name)
                      contributed(i) = .true.
                   else
                      sg_time = cumsum_time(i+1) - cumsum_time(i)
                      contributed(i) = .true.
-                     do j = i + 1, timer_num(group)
-                        jdx = timer_idx_list(j,group)
-                        if (timer(jdx,group)%name(1:sg_index+2) == &
-                            timer(idx,group)%name(1:sg_index+2)) then
+                     tmrjdx = timer(tmridx)%next_tmridx
+                     j = i + 1
+                     do while (tmrjdx /= 0)
+                        if (timer(tmrjdx)%name(1:sg_index+2) == &
+                            timer(tmridx)%name(1:sg_index+2)) then
                            sg_time = sg_time + cumsum_time(j+1) - cumsum_time(j)
                            contributed(j) = .true.
                         endif
+                        tmrjdx = timer(tmrjdx)%next_tmridx
+                        j = j + 1
                      enddo
                      write(lp,'(f12.4,a,f8.4,a)') &
                         sg_time, ' sec ', &
                         sg_time/group_time*100._r8, &
-                        '%  '//timer(idx,group)%name(1:sg_index-1)
+                        '%  '//timer(tmridx)%name(1:sg_index-1)
                   endif
                endif
+               tmridx = timer(tmridx)%next_tmridx
+               i = i + 1
             enddo
-            write(lp,*) ''
          endif
 
       endif
 
    end subroutine timer_statistics
 
-   subroutine timer_group_time(group, group_time)
+   subroutine timer_group_time(group_name, group_time)
    ! ---------------------------------------------------------------------------
-   ! Provide the total accumulated time for the timer group, provided as
-   ! argument, in group_time.
+   ! Provide the total accumulated time for the timer group, associated with
+   ! argument group_name, in group_time.
    ! ---------------------------------------------------------------------------
 
-      integer, intent(in) :: group
+      character(len = *), intent(in) :: group_name
       real(r8), intent(out) :: group_time
 
-      real(r8), dimension(timer_num(group)+1) :: cumsum_time
-      logical, dimension(timer_num(group)+1) :: contributed
-      real(r8) :: sg_time
-      integer :: i, idx, acc_num, sg_index, j, jdx
-      logical :: equal_acc_nums
+      integer :: grpidx, tmridx
 
       if (.not.initialized) then
          if (mnproc == 1) &
@@ -383,16 +467,21 @@ contains
          call xcstop('(timer_group_time)')
                 stop '(timer_group_time)'
       endif
-      if (group < 1 .or. group > maxnum_groups) then
-         if (mnproc == 1) write(lp,*) 'Group number out of bounds!'
-         call xcstop('(timer_group_time)')
-                stop '(timer_group_time)'
+
+      grpidx = group_index(group_name)
+      
+      group_time = 0._r8
+
+      if     (.not.group(grpidx)%used) then
+         return
+      elseif (group(grpidx)%num_timers == 0) then
+         return
       endif
 
-      group_time = 0._r8
-      do i = 1, timer_num(group)
-         idx = timer_idx_list(i,group)
-         group_time = group_time + timer(idx,group)%acc_time
+      tmridx = group(grpidx)%first_tmridx
+      do while (tmridx /= 0)
+         group_time = group_time + timer(tmridx)%acc_time
+         tmridx = timer(tmridx)%next_tmridx
       enddo
       call xcmax(group_time)
 

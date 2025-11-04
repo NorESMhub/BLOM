@@ -50,6 +50,8 @@ module ocn_comp_nuopc
    use mod_cesm,          only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
    use mod_config,        only: inst_index, inst_name, inst_suffix, runtyp
    use mod_time,          only: blom_time
+   use mod_timing,        only: timer_init, timer_start, timer_stop, &
+                                timer_reset, timer_statistics
    use mod_forcing,       only: srxday, trxday
    use mod_constants,     only: epsilt
    use mod_blom_init,     only: blom_init_phase1, blom_init_phase2
@@ -66,6 +68,7 @@ module ocn_comp_nuopc
 #endif
    use ocn_map_woa,       only: map_woa
    use mod_inicon,        only: woa_nuopc_provided
+   use mod_dia,           only: diagmon_phy, alarm_phy, nphy
 
    implicit none
 
@@ -470,6 +473,7 @@ contains
       ! ------------------------------------------------------------------------
 
       call blom_init_phase1
+      call timer_stop('initialization', 'blom_init_phase1')
 
       ! ------------------------------------------------------------------------
       ! Get ScalarField attributes.
@@ -832,7 +836,10 @@ contains
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
       end if
 
+      call timer_stop('initialization', &
+                      'between blom_init_phase1 and blom_init_phase2')
       call blom_init_phase2
+      call timer_stop('initialization', 'blom_init_phase2')
 
       ! ------------------------------------------------------------------------
       ! Query the Component for its exportState.
@@ -867,6 +874,12 @@ contains
 
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
 
+      call timer_stop('initialization', 'after blom_init_phase2')
+      call timer_statistics('initialization')
+      call timer_reset('initialization')
+      call timer_start('ModelAdvance')
+      call timer_start('total_step_time')
+
    end subroutine DataInitialize
 
    !================================================================================
@@ -890,10 +903,9 @@ contains
       type(ESMF_Time)  :: currTime
       type(ESMF_Alarm) :: restart_alarm, stop_alarm
       integer :: shrlogunit, yr_sync, mon_sync, day_sync, tod_sync, ymd_sync, &
-                 ymd, tod
+                 ymd, tod, nfu, iogrp
       logical :: first_call = .true., restart_alarm_on, stop_alarm_on, wrtrst
       character(len=cllen) :: msg
-      integer :: nfu
       character(len = fnmlen) :: restartfn
       character(len = fnmlen) :: rpfile
 
@@ -956,6 +968,9 @@ contains
       ! Advance the model in time over a coupling interval.
       ! ------------------------------------------------------------------------
 
+      call timer_stop('ModelAdvance', 'before blom_loop')
+      call timer_start('blom_loop')
+
       blom_loop: do
 
          if (nint(tlast_coupled) == 0) then
@@ -963,16 +978,19 @@ contains
             call ocn_import(importState, rc)
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
          endif
+         call timer_stop('blom_loop', 'ocn_import')
 
          ! Advance sss stream relaxation if needed
          if (srxday > epsilt) then
             call ocn_stream_sss_interp(clock, rc)
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
          end if
+         call timer_stop('blom_loop', 'ocn_stream_sss_interp')
          if (trxday > epsilt) then
             call ocn_stream_sst_interp(clock, rc)
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
          end if
+         call timer_stop('blom_loop', 'ocn_stream_sst_interp')
 
 #ifdef HAMOCC
          ! Advance dust stream input if appropriate
@@ -981,20 +999,27 @@ contains
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
          end if
 #endif
+         call timer_stop('blom_loop', 'ocn_stream_dust_interp')
 
          ! Advance the model a time step.
          call blom_step
+         call timer_stop('blom_loop', 'blom_step')
 
          ! Accumulate BLOM export fields.
          call blom_accflds
+         call timer_stop('blom_loop', 'blom_accflds')
 
          if (nint(ocn_cpl_dt_cesm-tlast_coupled) == 0) then
             ! Return export state to driver and exit integration loop
             call ocn_export(exportState, rc)
+            call timer_stop('blom_loop', 'ocn_export')
             exit blom_loop
+         else
+            call timer_stop('blom_loop', 'ocn_export')
          endif
 
       enddo blom_loop
+      call timer_stop('ModelAdvance', 'blom_loop')
 
       ! ------------------------------------------------------------------------
       ! If restart alarm is ringing - write restart file. TODO do we need to
@@ -1039,6 +1064,22 @@ contains
             close(unit = nfu)
          endif
       endif
+
+      call timer_stop('ModelAdvance', 'restart_write')
+
+      ! ------------------------------------------------------------------------
+      ! Write timer diagnostics to standard at end of month or when restart is
+      ! written.
+      ! ------------------------------------------------------------------------
+
+      do iogrp = 1, nphy
+         if (diagmon_phy(iogrp) .and. (alarm_phy(iogrp) == 1 .or. wrtrst)) then
+            call timer_statistics('ModelAdvance')
+            call timer_statistics('blom_loop')
+            call timer_statistics('blom_step')
+            exit
+         endif
+      enddo
 
       ! ------------------------------------------------------------------------
       ! Reset shr logging to original values.

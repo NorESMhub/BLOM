@@ -26,6 +26,8 @@ c
       use mod_time, only: nstep2, nstep
       use mod_xc
       use mod_state, only: dp
+      use mod_timing, only: timer_start, timer_stop, timer_reset,
+     .                      timer_statistics
       use mod_checksum, only: chksum
       use mod_blom_init, only: blom_init_phase1, blom_init_phase2
       use mod_blom_step, only: blom_step
@@ -36,7 +38,13 @@ c
 c
 c --- initialize the model
       call blom_init_phase1
+      call timer_stop('initialization', 'blom_init_phase1')
       call blom_init_phase2
+      call timer_stop('initialization', 'blom_init_phase2')
+
+      call timer_statistics('initialization')
+      call timer_reset('initialization')
+      call timer_start('total_step_time')
 c
 c --- advance the model from time step nstep1 to nstep2
       blom_loop: do

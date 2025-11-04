@@ -48,7 +48,8 @@ module mod_blom_step
                                  difest_vertical_hybrid
   use mod_chkvar,          only: chkvar
   use mod_dia,             only: diaacc, diaout_alarms, diaout, &
-                                 rstann, rstmon, rstfrq
+                                 rstann, rstmon, rstfrq, diagmon_phy, &
+                                 alarm_phy, nphy
   use mod_diapfl,          only: diapfl
   use mod_state,           only: temp, saln, dp, init_fluxes
   use mod_thermf,          only: thermf
@@ -77,8 +78,10 @@ contains
 
     ! Local variables
     real    :: total_step_time
-    integer :: i,m,n,mm,nn,k1m,k1n
-    logical :: update_flux_halos
+    integer :: i,m,n,mm,nn,k1m,k1n,iogrp
+    logical :: update_flux_halos,wrtrst
+
+    call timer_start('blom_step')
 
     ! letter 'm' refers to mid-time level (example: dp(i,j,km) )
     ! letter 'n' refers to old and new time level
@@ -90,10 +93,8 @@ contains
     k1m = 1+mm
     k1n = 1+nn
 
-    call timer_stop(2,'auxil_sg1')
-
     call budget_sums(1,n,nn)
-    call timer_stop(2,'budget_sg1')
+    call timer_stop('blom_step','budget_sg1')
 
     call step_time
 
@@ -106,7 +107,7 @@ contains
     update_flux_halos = nreg == 2 .and. mod(nstep,nstep_in_day) == 1
     call init_fluxes(m,n,mm,nn,k1m,k1n,update_flux_halos)
 
-    call timer_stop(2,'auxil_sg2')
+    call timer_stop('blom_step','init_fluxes')
 
     ! ------------------------------------------------------------------
     ! Get forcing
@@ -120,136 +121,136 @@ contains
 
     call updswa
 
-    call timer_stop(2,'getfrc')
+    call timer_stop('blom_step','getfrc')
 
     if (vcoord_tag /= vcoord_isopyc_bulkml) then
       call ale_regrid_remap(m,n,mm,nn,k1m,k1n)
-      call timer_stop(2,'ale_regrid_remap')
+      call timer_stop('blom_step','ale_regrid_remap')
       call budget_sums(2,n,nn)
-      call timer_stop(2,'budget_sg2')
+      call timer_stop('blom_step','budget_sg2')
     end if
 
     call cmnfld2(m,n,mm,nn,k1m,k1n)
-    call timer_stop(2,'cmnfld2')
+    call timer_stop('blom_step','cmnfld2')
 
     call tmsmt1(nn)
-    call timer_stop(2,'tmsmt1')
+    call timer_stop('blom_step','tmsmt1')
 
     if (vcoord_tag == vcoord_isopyc_bulkml) then
       call difest_isobml(m,n,mm,nn,k1m,k1n)
-      call timer_stop(2,'difest_isobml')
+      call timer_stop('blom_step','difest_isobml')
     else
       call difest_lateral_hybrid(m,n,mm,nn,k1m,k1n)
-      call timer_stop(2,'difest_lateral_hybrid')
+      call timer_stop('blom_step','difest_lateral_hybrid')
     end if
     call eddtra(m,n,mm,nn,k1m,k1n)
-    call timer_stop(2,'eddtra')
+    call timer_stop('blom_step','eddtra')
     call advect(m,n,mm,nn,k1m,k1n)
-    call timer_stop(2,'advect')
+    call timer_stop('blom_step','advect')
     call pbcor1(m,n,mm,nn,k1m,k1n)
-    call timer_stop(2,'pbcor1')
+    call timer_stop('blom_step','pbcor1')
     call diffus(m,n,mm,nn,k1m,k1n)
-    call timer_stop(2,'diffus')
+    call timer_stop('blom_step','diffus')
 
     if (vcoord_tag == vcoord_isopyc_bulkml) then
       call budget_sums(2,n,nn)
-      call timer_stop(2,'budget_sg3')
+      call timer_stop('blom_step','budget_sg3')
     else
       call budget_sums(3,n,nn)
-      call timer_stop(2,'budget_sg4')
+      call timer_stop('blom_step','budget_sg4')
     end if
 
     call sfcstr(m,n,mm,nn,k1m,k1n)
-    call timer_stop(2,'sfcstr')
+    call timer_stop('blom_step','sfcstr')
 
     call pgforc(m,n,mm,nn,k1m,k1n)
-    call timer_stop(2,'pgforc')
+    call timer_stop('blom_step','pgforc')
 
     call momtum(m,n,mm,nn,k1m,k1n)
-    call timer_stop(2,'momtum')
+    call timer_stop('blom_step','momtum')
 
     if (vcoord_tag == vcoord_isopyc_bulkml) then
 
       call convec(m,n,mm,nn,k1m,k1n)
-      call timer_stop(2,'convec')
+      call timer_stop('blom_step','convec')
 
       call budget_sums(3,n,nn)
-      call timer_stop(2,'budget_sg5')
+      call timer_stop('blom_step','budget_sg5')
 
       call diapfl(n,nn,k1n)
-      call timer_stop(2,'diapfl')
+      call timer_stop('blom_step','diapfl')
 
       call budget_sums(4,n,nn)
-      call timer_stop(2,'budget_sg6')
+      call timer_stop('blom_step','budget_sg6')
 
     end if
 
     call thermf(m,n,mm,nn,k1m,k1n)
-    call timer_stop(2,'thermf')
+    call timer_stop('blom_step','thermf')
 
     if (vcoord_tag == vcoord_isopyc_bulkml) then
       call mxlayr(m,n,mm,nn,k1m,k1n)
-      call timer_stop(2,'mxlayr')
+      call timer_stop('blom_step','mxlayr')
     else
       call cmnfld_bfsqi_ale(m,n,mm,nn,k1m,k1n)
-      call timer_stop(2,'cmnfld_bfsqi_ale')
+      call timer_stop('blom_step','cmnfld_bfsqi_ale')
       call ale_forcing(m,n,mm,nn,k1m,k1n)
-      call timer_stop(2,'ale_forcing')
+      call timer_stop('blom_step','ale_forcing')
       call difest_vertical_hybrid(m,n,mm,nn,k1m,k1n)
-      call timer_stop(2,'difest_vertical_hybrid')
+      call timer_stop('blom_step','difest_vertical_hybrid')
       call ale_vdifft(m,n,mm,nn,k1m,k1n)
-      call timer_stop(2,'ale_vdifft')
+      call timer_stop('blom_step','ale_vdifft')
       call ale_vdiffm(m,n,mm,nn,k1m,k1n)
-      call timer_stop(2,'ale_vdiffm')
+      call timer_stop('blom_step','ale_vdiffm')
       call budget_sums(4,n,nn)
-      call timer_stop(2,'budget_sg7')
+      call timer_stop('blom_step','budget_sg7')
     end if
 
     if (use_TRC) then
       ! update tracer due to non-passive processes
       call updtrc(m,n,mm,nn,k1m,k1n)
-      call timer_stop(2,'updtrc')
+      call timer_stop('blom_step','updtrc')
     end if
 
     call budget_sums(5,n,nn)
-    call timer_stop(2,'budget_sg8')
+    call timer_stop('blom_step','budget_sg8')
 
     call barotp(m,n,mm,nn,k1m,k1n)
-    call timer_stop(2,'barotp')
+    call timer_stop('blom_step','barotp')
 
     call pbcor2(m,n,mm,nn,k1m,k1n)
-    call timer_stop(2,'pbcor2')
+    call timer_stop('blom_step','pbcor2')
 
     call budget_sums(6,m,mm)
-    call timer_stop(2,'budget_sg9')
+    call timer_stop('blom_step','budget_sg9')
 
     call tmsmt2(m,mm,nn,k1m)
-    call timer_stop(2,'tmsmt2')
+    call timer_stop('blom_step','tmsmt2')
 
     call budget_sums(7,m,mm)
-    call timer_stop(2,'budget_sg10')
+    call timer_stop('blom_step','budget_sg10')
 
     call cmnfld1(m,n,mm,nn,k1m,k1n)
-    call timer_stop(2,'cmnfld1')
+    call timer_stop('blom_step','cmnfld1')
 
     call sigref_adapt(m,n,mm,nn,k1m,k1n)
-    call timer_stop(2,'sigref_adapt')
+    call timer_stop('blom_step','sigref_adapt')
 
     call diaacc(m,n,mm,nn,k1m,k1n)
-    call timer_stop(2,'diaacc')
+    call timer_stop('blom_step','diaacc')
 
     call fwbbal(m,n,mm,nn,k1m,k1n)
-    call timer_stop(2,'fwbbal')
+    call timer_stop('blom_step','fwbbal')
 
     call budget_output(m)
-    call timer_stop(2,'budget_sg11')
+    call timer_stop('blom_step','budget_sg11')
 
     !-------------------------------------------------------------------
     ! output and diagnostic calculations
     !-------------------------------------------------------------------
 
     call chkvar(m,n,mm,nn,k1m,k1n)
-    call timer_stop(2,'chkvar')
+    call timer_stop('blom_step','chkvar')
 
     if (mod(nstep,nstep_in_day) == 0.and.nday_of_year == 1) then
 
@@ -273,8 +274,9 @@ contains
 
     call diaout(m,n,mm,nn,k1m,k1n)
 
-    call timer_stop(2,'diaout')
+    call timer_stop('blom_step','diaout')
 
+    wrtrst = .false.
     if (((rstann.and.nday_of_year == 1.or.rstmon.and.date%day == 1) &
          .and.mod(nstep,nstep_in_day) == 0).or. &
          .not.(rstann.or.rstmon).and.mod(nstep+.5,rstfrq) < 1.) then
@@ -285,39 +287,39 @@ contains
         ! output restart files
         ! ------------------------------------------------------------------
 
+        wrtrst = .true.
         call restart_write()
 
       end if
 
-      call timer_stop(2,'restart_write')
-
-      ! ------------------------------------------------------------------
-      ! write timer diagnostics to standard out
-      ! ------------------------------------------------------------------
-
-      call timer_statistics(2)
-
     else
-
-      call timer_stop(2,'restart_write')
-
-      ! ------------------------------------------------------------------
-      ! write time spent for current time step
-      ! ------------------------------------------------------------------
-
-      call timer_stop(1)
-      call timer_group_time(1,total_step_time)
-
-      if (mnproc == 1) then
-        write (lp,'(f12.4,a,i8)') total_step_time, ' sec for step ', nstep
-      end if
-
-      call timer_reset(1)
-      call timer_start(1)
-
     end if
 
+    if (expcnf /= 'cesm') call timer_stop('blom_step','restart_write')
+
     delt1 = baclin + baclin
+
+    ! --------------------------------------------------------------------
+    ! write timing diagnostics to standard out
+    ! --------------------------------------------------------------------
+
+    call timer_stop('total_step_time')
+    call timer_group_time('total_step_time',total_step_time)
+    call timer_reset('total_step_time')
+    call timer_start('total_step_time')
+
+    if (mnproc == 1) then
+      write (lp,'(f12.4,a,i8)') total_step_time, ' sec for step ', nstep
+    end if
+
+    if (expcnf /= 'cesm') then
+      do iogrp = 1, nphy
+        if (diagmon_phy(iogrp) .and. (alarm_phy(iogrp) == 1 .or. wrtrst)) then
+          call timer_statistics('blom_step')
+          exit
+        endif
+      enddo
+    endif
 
   end subroutine blom_step
 
