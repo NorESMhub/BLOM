@@ -123,6 +123,9 @@ contains
 
     call timer_stop('blom_step','getfrc')
 
+    call tmsmt1(nn)
+    call timer_stop('blom_step','tmsmt1')
+
     if (vcoord_tag /= vcoord_isopyc_bulkml) then
       call ale_regrid_remap(m,n,mm,nn,k1m,k1n)
       call timer_stop('blom_step','ale_regrid_remap')
@@ -132,9 +135,6 @@ contains
 
     call cmnfld2(m,n,mm,nn,k1m,k1n)
     call timer_stop('blom_step','cmnfld2')
-
-    call tmsmt1(nn)
-    call timer_stop('blom_step','tmsmt1')
 
     if (vcoord_tag == vcoord_isopyc_bulkml) then
       call difest_isobml(m,n,mm,nn,k1m,k1n)

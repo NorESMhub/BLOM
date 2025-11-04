@@ -167,8 +167,7 @@ contains
     integer, intent(in)  :: mm
 
     ! Local variables
-    integer :: nt
-    integer :: i,j,k,l,km
+    integer :: i,j,k,l,km,nt
     character(len = 2) cnt
 
     !$omp parallel do private(k,km,l,i,nt)
@@ -216,25 +215,47 @@ contains
     integer, intent(in) :: nn
 
     ! Local variables
-    integer :: i,j,k,l,kn
+    integer :: i,j,k,l,kn,nt
+    character(len = 2) cnt
 
-    !$omp parallel do private(k,kn,l,i)
+    !$omp parallel do private(k,kn,l,i,nt)
     do j = 1,jj
       do k = 1,kk
         kn = k+nn
-        do l = 1,isu(j)
-          do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
-            dpuold(i,j,k) = dpu(i,j,kn)
+        do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            dpold(i,j,kn)=dp(i,j,kn)
+            told(i,j,k)=temp(i,j,kn)
+            sold(i,j,k)=saln(i,j,kn)
+            if (use_TRC) then
+              do nt=1,ntr
+                trcold(i,j,k,nt)=trc(i,j,kn,nt)
+              enddo
+            end if
+          enddo
+        enddo
+      enddo
+    end do
+    !$omp end parallel do
+    if (vcoord_tag == vcoord_isopyc_bulkml) then
+      !$omp parallel do private(k,kn,l,i)
+      do j = 1,jj
+        do k = 1,kk
+          kn = k+nn
+          do l = 1,isu(j)
+            do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
+              dpuold(i,j,k) = dpu(i,j,kn)
+            end do
           end do
-        end do
-        do l = 1,isv(j)
-          do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
-            dpvold(i,j,k) = dpv(i,j,kn)
+          do l = 1,isv(j)
+            do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
+              dpvold(i,j,k) = dpv(i,j,kn)
+            end do
           end do
         end do
       end do
-    end do
-    !$omp end parallel do
+      !$omp end parallel do
+    endif
 
     if (csdiag) then
       if (mnproc == 1) then
@@ -243,8 +264,14 @@ contains
       call chksum(dpold , 2*kk, halo_ps, 'dpold' )
       call chksum(told  , kk  , halo_ps, 'told'  )
       call chksum(sold  , kk  , halo_ps, 'sold'  )
-      call chksum(dpuold, kk  , halo_us, 'dpuold')
-      call chksum(dpvold, kk  , halo_vs, 'dpvold')
+      do nt = 1,ntr
+        write(cnt, '(i2.2)') nt
+        call chksum(trcold(1-nbdy,1-nbdy,1,nt), kk, halo_ps, 'trcold'//cnt)
+      end do
+      if (vcoord_tag == vcoord_isopyc_bulkml) then
+        call chksum(dpuold, kk  , halo_us, 'dpuold')
+        call chksum(dpvold, kk  , halo_vs, 'dpvold')
+      end if
     end if
 
   end subroutine tmsmt1
@@ -299,25 +326,21 @@ contains
             pmid = max(0.,dp(i,j,km))
             pnew = max(0.,dp(i,j,kn)*pbfacn(i))
             dp(i,j,km) = wts1*pmid+wts2*(pold+pnew)
-            dpold(i,j,km) = dp(i,j,km)
             pold = pold+epsilp
             pmid = pmid+epsilp
             pnew = pnew+epsilp
             temp(i,j,km) = (wts1*pmid*temp(i,j,km) &
                            +wts2*(pold*told(i,j,k)+pnew*temp(i,j,kn))) &
                            /(dp(i,j,km)+epsilp)
-            told(i,j,k) = temp(i,j,km)
             saln(i,j,km) = (wts1*pmid*saln(i,j,km) &
-                 +wts2*(pold*sold(i,j,k)+pnew*saln(i,j,kn))) &
-                 /(dp(i,j,km)+epsilp)
-            sold(i,j,k) = saln(i,j,km)
+                           +wts2*(pold*sold(i,j,k)+pnew*saln(i,j,kn))) &
+                           /(dp(i,j,km)+epsilp)
             if (use_TRC) then
               do nt = 1,ntr
                 trc(i,j,km,nt) = (wts1*pmid*trc(i,j,km,nt) &
                                  +wts2*(pold*trcold(i,j,k,nt) &
                                  +pnew*trc(i,j,kn,nt))) &
                                  /(dp(i,j,km)+epsilp)
-                trcold(i,j,k,nt) = trc(i,j,km,nt)
               end do
             end if
           end do
