@@ -35,6 +35,7 @@ module mod_ale_regrid_remap
    use mod_eos,       only: sig, dsigdt, dsigds
    use mod_state,     only: u, v, dp, dpu, dpv, temp, saln, sigma, p, pu, pv, &
                             ub, vb, utflx, vtflx, usflx, vsflx
+   use mod_tmsmt,     only: dpuold, dpvold
    use mod_hor3map,   only: recon_grd_struct, recon_src_struct, remap_struct, &
                             hor3map_plm, hor3map_ppm, hor3map_pqm, &
                             hor3map_monotonic, hor3map_non_oscillatory, &
@@ -1712,6 +1713,7 @@ contains
                   dpu(i,j,kn) = &
                        .5_r8*( (min(q, p(i-1,j,k+1)) - min(q, p(i-1,j,k))) &
                              + (min(q, p(i  ,j,k+1)) - min(q, p(i  ,j,k))))
+                  dpuold(i,j,k) = dpu(i,j,kn)
                enddo
             enddo
             do l = 1, isv(j)
@@ -1720,6 +1722,7 @@ contains
                   dpv(i,j,kn) = &
                        .5_r8*( (min(q, p(i,j-1,k+1)) - min(q, p(i,j-1,k))) &
                              + (min(q, p(i,j  ,k+1)) - min(q, p(i,j  ,k))))
+                  dpvold(i,j,k) = dpv(i,j,kn)
                enddo
             enddo
          enddo

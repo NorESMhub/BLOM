@@ -144,6 +144,10 @@ contains
 
     getfrc_time = get_time()
 
+    !diag write (lp,*) 'tmsmt1...'
+    call tmsmt1(nn)
+    tmsmt1_time = get_time()
+
     if (vcoord_tag /= vcoord_isopyc_bulkml) then
       call ale_regrid_remap(m,n,mm,nn,k1m,k1n)
       convec_time = get_time()
@@ -151,10 +155,6 @@ contains
     end if
 
     call cmnfld2(m,n,mm,nn,k1m,k1n)
-
-    !diag write (lp,*) 'tmsmt1...'
-    call tmsmt1(nn)
-    tmsmt1_time = get_time()
 
     !diag write (lp,*) 'advdif...'
     if (vcoord_tag == vcoord_isopyc_bulkml) then
