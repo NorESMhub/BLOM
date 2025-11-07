@@ -33,11 +33,12 @@ module mo_param1_bgc
   use mo_control_bgc, only: use_BROMO, use_AGG, use_WLIN, use_natDIC, use_CFC,                     &
                             use_cisonew, use_PBGC_OCNP_TIMESTEP, use_PBGC_CK_TIMESTEP,             &
                             use_FB_BGC_OCE, use_BOXATM, use_sedbypass, use_extNcycle,              &
-                            use_pref_tracers,use_sediment_quality
+                            use_pref_tracers,use_sediment_quality,use_sedflexi
   implicit none
   public
 
-  integer, parameter :: ks=12,ksp=ks+1       ! ks: nb of sediment layers
+  integer, protected :: ks=12
+  integer, protected :: ksp=12+1       ! ks: nb of sediment layers
   real(rp),parameter :: safediv = 1.0e-25_rp ! added to the denominator of isotopic ratios (avoid div. by zero)
 
   ! ------------------
@@ -285,12 +286,13 @@ contains
                               use_coupler_ndep,use_shelfsea_res_time,use_river2omip,use_DOMclasses
 
     integer :: iounit
+    integer :: ks_flexi
 
     namelist / config_bgc / use_BROMO,use_AGG,use_WLIN,use_natDIC,use_CFC,use_cisonew,             &
                             use_sedbypass,use_PBGC_OCNP_TIMESTEP,use_PBGC_CK_TIMESTEP,             &
                             use_FB_BGC_OCE,use_BOXATM,use_extNcycle,use_pref_tracers,              &
                             use_coupler_ndep,use_shelfsea_res_time,use_sediment_quality,           &
-                            use_river2omip,use_DOMclasses
+                            use_river2omip,use_DOMclasses,use_sedflexi,ks_flexi
 
     io_stdo_bgc = lp              !  standard out.
 
@@ -303,6 +305,11 @@ contains
       write(io_stdo_bgc,*)
       write(io_stdo_bgc,*) 'iHAMOCC: reading namelist CONFIG_BGC'
       write(io_stdo_bgc,nml=config_bgc)
+    endif
+
+    if (use_sedflexi) then
+      ks  = ks_flexi
+      ksp = ks+1
     endif
 
     ! Tracer indices

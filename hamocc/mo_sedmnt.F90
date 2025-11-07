@@ -43,9 +43,9 @@ module mo_sedmnt
   private :: ini_sedmnt_por    ! Initialize 2D and 3D sediment fields
 
   ! Module variables
-  real(rp), protected, public :: dzs(ksp)    = 0.0_rp
-  real(rp), protected, public :: seddzi(ksp) = 0.0_rp
-  real(rp), protected, public :: seddw(ks)   = 0.0_rp
+  real(rp), dimension (:), allocatable, public :: dzs    ! (ksp)
+  real(rp), dimension (:), allocatable, public :: seddzi ! (ksp)
+  real(rp), dimension (:), allocatable, public :: seddw  ! (ks)
 
   real(rp), dimension (:,:,:,:), allocatable, public :: sedlay
   real(rp), dimension (:,:,:,:), allocatable, public :: powtra
@@ -82,10 +82,11 @@ module mo_sedmnt
 
 CONTAINS
 
-  subroutine ini_sedmnt(kpie,kpje,omask,sed_por,sed_POCage_init,prorca_mavg_init)
+  subroutine ini_sedmnt(kpie,kpje,omask,sed_por,sed_POCage_init,prorca_mavg_init,dzs_flexi,porwat_flexi)
     !***********************************************************************************************
 
     use mo_param_bgc, only: claydens,calcwei,calcdens,opalwei,opaldens,orgwei,orgdens,sedict
+    use mo_control_bgc,only: use_sedflexi
 
     ! Arguments
     integer, intent(in) :: kpie,kpje
@@ -93,6 +94,8 @@ CONTAINS
     real(rp),intent(in) :: sed_por(kpie,kpje,ks)
     real(rp),intent(in) :: sed_POCage_init(kpie,kpje,ks)
     real(rp),intent(in) :: prorca_mavg_init(kpie,kpje)
+    real(rp),intent(in) :: dzs_flexi(ks+1)
+    real(rp),intent(in) :: porwat_flexi(ks)
 
     ! Local variables
     integer :: k
@@ -104,19 +107,25 @@ CONTAINS
     clafa = 1._rp / claydens    !clay is calculated in kg/m3
 
     ! sediment layer thickness
-    dzs(1) = 0.001_rp
-    dzs(2) = 0.003_rp
-    dzs(3) = 0.005_rp
-    dzs(4) = 0.007_rp
-    dzs(5) = 0.009_rp
-    dzs(6) = 0.011_rp
-    dzs(7) = 0.013_rp
-    dzs(8) = 0.015_rp
-    dzs(9) = 0.017_rp
-    dzs(10) = 0.019_rp
-    dzs(11) = 0.021_rp
-    dzs(12) = 0.023_rp
-    dzs(13) = 0.025_rp
+    if (use_sedflexi) then
+      do k = 1, ks+1
+        dzs(k) = dzs_flexi(k)
+      enddo
+    else
+      dzs(1) = 0.001_rp
+      dzs(2) = 0.003_rp
+      dzs(3) = 0.005_rp
+      dzs(4) = 0.007_rp
+      dzs(5) = 0.009_rp
+      dzs(6) = 0.011_rp
+      dzs(7) = 0.013_rp
+      dzs(8) = 0.015_rp
+      dzs(9) = 0.017_rp
+      dzs(10) = 0.019_rp
+      dzs(11) = 0.021_rp
+      dzs(12) = 0.023_rp
+      dzs(13) = 0.025_rp
+    endif
 
     if (mnproc == 1) then
       write(io_stdo_bgc,*)  ' '
@@ -134,7 +143,7 @@ CONTAINS
     if (.not. use_sedbypass) then
       ! 2d and 3d fields are not allocated in case of sedbypass
       ! so only initialize them if we are using the sediment
-      call ini_sedmnt_por(kpie,kpje,omask,sed_por)
+      call ini_sedmnt_por(kpie,kpje,omask,sed_por,porwat_flexi)
       if (use_sediment_quality) then
         call ini_sed_qual(kpie,kpje,omask,sed_POCage_init,prorca_mavg_init)
       endif
@@ -143,20 +152,21 @@ CONTAINS
 
   end subroutine ini_sedmnt
 
-  subroutine ini_sedmnt_por(kpie,kpje,omask,sed_por)
+  subroutine ini_sedmnt_por(kpie,kpje,omask,sed_por,porwat_flexi)
     !***********************************************************************************************
     ! Initialization of:
     ! - 3D porosity field (cell center and cell boundaries)
     ! - solid volume fraction at cell center
     ! - vertical molecular diffusion coefficients scaled with porosity
     !***********************************************************************************************
-    use mo_control_bgc, only: l_3Dvarsedpor
+    use mo_control_bgc, only: l_3Dvarsedpor,use_sedflexi
     use mo_param_bgc,   only: sedict
 
     ! Arguments
     integer, intent(in) :: kpie,kpje
     real(rp),intent(in) :: omask(kpie,kpje)
     real(rp),intent(in) :: sed_por(kpie,kpje,ks)
+    real(rp),intent(in) :: porwat_flexi(ks)
 
     ! local
     integer :: i,j,k
@@ -174,7 +184,7 @@ CONTAINS
           enddo
         enddo
       enddo
-    else
+    else if (.not.use_sedflexi) then
       porwat(:,:,1) = 0.85_rp
       porwat(:,:,2) = 0.83_rp
       porwat(:,:,3) = 0.8_rp
@@ -187,6 +197,10 @@ CONTAINS
       porwat(:,:,10) = 0.66_rp
       porwat(:,:,11) = 0.64_rp
       porwat(:,:,12) = 0.62_rp
+    else
+      do k=1,ks
+        porwat(:,:,k) = porwat_flexi(k)
+      enddo
     endif
 
     if (mnproc == 1) then
@@ -517,6 +531,31 @@ CONTAINS
         sed_rem_sulf(:,:,:) = 0.0_rp
       endif
     endif ! use_sedbypass
+
+
+    if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable dzs ...'
+        write(io_stdo_bgc,*)'First dimension    : ',ksp
+    endif
+    allocate (dzs(ksp),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory dzs'
+    dzs(:) = 0.0_rp
+
+    if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable seddzi ...'
+        write(io_stdo_bgc,*)'First dimension    : ',ksp
+    endif
+    allocate (seddzi(ksp),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory seddzi'
+    seddzi(:) = 0.0_rp
+
+    if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable seddw ...'
+        write(io_stdo_bgc,*)'First dimension    : ',ks
+    endif
+    allocate (seddw(ks),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory seddw'
+    seddw(:) = 0.0_rp
 
   end subroutine alloc_mem_sedmnt
 

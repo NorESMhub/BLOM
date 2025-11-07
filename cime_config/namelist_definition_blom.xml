@@ -4590,6 +4590,30 @@
     </desc>
   </entry>
 
+  <entry id="sed_dzs_flexi">
+    <type>real(:)</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>''</value>
+    </values>
+    <desc>
+      Vertical sediment layer thickness vector (length=ks_flexi+1)
+    </desc>
+  </entry>
+
+  <entry id="sed_porwat_flexi">
+    <type>real(:)</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>''</value>
+    </values>
+    <desc>
+      Vertical sediment porosity vector (length=ks_flexi)
+    </desc>
+  </entry>
+
   <entry id="shelfsea_maskfile" is_inputdata="yes">
     <type>char</type>
     <category>bgcnml</category>
@@ -4776,6 +4800,26 @@
       <value hamocc_sediment_quality="yes">.true.</value>
     </values>
     <desc>activate the HAMOCC sediment quality-based remineralization code</desc>
+  </entry>
+
+  <entry id="use_sedflexi">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>enable flexible HAMOCC sediment depth and porosity settings</desc>
+  </entry>
+
+  <entry id="ks_flexi">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>12</value>
+    </values>
+    <desc>Number of vertical sediment layers - default = 12</desc>
   </entry>
 
   <entry id="use_river2omip">
