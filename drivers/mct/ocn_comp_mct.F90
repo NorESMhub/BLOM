@@ -49,6 +49,8 @@ module ocn_comp_mct
    use mod_types,        only: r8
    use mod_config,       only: inst_index, inst_name, inst_suffix, resume_flag
    use mod_time,         only: blom_time, nstep, baclin, delt1, dlt
+   use mod_timing,       only: timer_init, timer_start, timer_stop, &
+                               timer_reset, timer_statistics
    use mod_cesm,         only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
    use mod_xc,           only: mnproc, mpicom_external, xctilr, lp, nbdy, &
                                ii, jj, kk, i0, j0, nproc, jpr, cplmsk, halo_ps, &
@@ -63,6 +65,7 @@ module ocn_comp_mct
    use mod_cesm,         only: frzpot
    use mod_utility,      only: fnmlen
    use blom_cpl_indices
+   use mod_dia,           only: diagmon_phy, alarm_phy, nphy
 
    implicit none
    private
@@ -159,7 +162,9 @@ module ocn_comp_mct
 
       call t_startf('blom_init')
       call blom_init_phase1
+      call timer_stop('initialization', 'blom_init_phase1')
       call blom_init_phase2
+      call timer_stop('initialization', 'blom_init_phase2')
       call t_stopf('blom_init')
 
       ! ----------------------------------------------------------------
@@ -249,6 +254,11 @@ module ocn_comp_mct
         write (lp, *) 'blom: completed initialization!'
       endif
 
+      call timer_stop('initialization', 'after blom_init_phase2')
+      call timer_statistics('initialization')
+      call timer_reset('initialization')
+      call timer_start('ocn_run_mct')
+
       !-----------------------------------------------------------------
       ! Reset shr logging to original values
       !-----------------------------------------------------------------
@@ -273,7 +283,8 @@ module ocn_comp_mct
       ! Local variables
       type(seq_infodata_type), pointer :: infodata   ! Input init object
       integer :: shrlogunit, shrloglev, ymd, tod, ymd_sync, tod_sync
-      integer :: nfu
+      integer :: nfu,  iogrp
+      logical :: wrtrst
       character(len = fnmlen) :: restartfn
 
       ! ----------------------------------------------------------------
@@ -298,24 +309,34 @@ module ocn_comp_mct
       ! Advance the model in time over a coupling interval
       !-----------------------------------------------------------------
 
+      call timer_stop('ocn_run_mct', 'before blom_loop')
+      call timer_start('blom_loop')
+      call timer_start('total_step_time')
+
       blom_loop: do
 
          if (nint(tlast_coupled) == 0) then
             ! Obtain import state from driver
             call import_mct(x2o_o, lsize, perm, jjcpl)
          endif
+         call timer_stop('blom_loop', 'import_mct')
 
          ! Advance the model a time step
          call blom_step
+         call timer_stop('blom_loop', 'blom_step')
 
          ! Add fields to send buffer sums
          call sumsbuff_mct(nsend, sbuff, tlast_coupled)
+         call timer_stop('blom_loop', 'sumsbuff_mct')
 
          if (nint(ocn_cpl_dt_cesm-tlast_coupled) == 0) then
             ! Return export state to driver and exit integration loop
             call export_mct(o2x_o, lsize, perm, jjcpl, nsend, sbuff, &
                             tlast_coupled)
+            call timer_stop('blom_loop', 'export_mct')
             exit blom_loop
+         else
+            call timer_stop('blom_loop', 'export_mct')
          endif
 
          if (mnproc == 1) then
@@ -323,6 +344,7 @@ module ocn_comp_mct
          endif
 
       enddo blom_loop
+      call timer_stop('ocn_run_mct', 'blom_loop')
 
       call getprecipfact_mct(lsend_precip_fact, precip_fact)
       if ( lsend_precip_fact ) then
@@ -333,8 +355,10 @@ module ocn_comp_mct
       ! if requested, write restart file
       !-----------------------------------------------------------------
 
+      wrtrst = .false.
       if (seq_timemgr_RestartAlarmIsOn(EClock) .or. &
           seq_timemgr_pauseAlarmIsOn(EClock)) then
+         wrtrst = .true.
          call restart_write (restartfn)
         ! Write restart filename to rpointer.ocn.
         ! we do not use rpoint variable, since it's only for restart read
@@ -345,6 +369,8 @@ module ocn_comp_mct
          endif
       endif
       if (seq_timemgr_pauseAlarmIsOn(EClock)) resume_flag = .true.
+
+      call timer_stop('ocn_run_mct', 'restart_write')
 
       !-----------------------------------------------------------------
       ! check that internal clock is in sync with master clock
@@ -361,6 +387,21 @@ module ocn_comp_mct
                ":: Internal blom clock not in sync with Sync Clock")
          endif
       endif
+
+      !-----------------------------------------------------------------
+      ! Write timer diagnostics to standard at end of month or when
+      ! restart is written.
+      !-----------------------------------------------------------------
+
+      do iogrp = 1, nphy
+         if (diagmon_phy(iogrp) .and. (alarm_phy(iogrp) == 1 .or. wrtrst)) then
+            call timer_statistics('ocn_run_mct')
+            call timer_statistics('blom_loop')
+            call timer_statistics('blom_step')
+            write(lp,*) ''
+            exit
+         endif
+      enddo
 
       !-----------------------------------------------------------------
       ! Reset shr logging to original values

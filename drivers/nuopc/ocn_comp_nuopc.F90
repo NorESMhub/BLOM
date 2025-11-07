@@ -878,7 +878,6 @@ contains
       call timer_statistics('initialization')
       call timer_reset('initialization')
       call timer_start('ModelAdvance')
-      call timer_start('total_step_time')
 
    end subroutine DataInitialize
 
@@ -970,6 +969,7 @@ contains
 
       call timer_stop('ModelAdvance', 'before blom_loop')
       call timer_start('blom_loop')
+      call timer_start('total_step_time')
 
       blom_loop: do
 
@@ -1077,6 +1077,7 @@ contains
             call timer_statistics('ModelAdvance')
             call timer_statistics('blom_loop')
             call timer_statistics('blom_step')
+            write(lp,*) ''
             exit
          endif
       enddo

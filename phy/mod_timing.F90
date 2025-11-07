@@ -26,7 +26,7 @@ module mod_timing
    use mod_types, only: r8
    use mod_crc32, only: crc32
    use mod_wtime, only: wtime
-   use mod_xc   , only: xchalt, xcstop, xcmax, mnproc, lp
+   use mod_xc   , only: xchalt, xcstop, xcmax, xcsync, mnproc, lp
 
    implicit none
 
@@ -47,7 +47,7 @@ module mod_timing
       integer(int32) :: checksum
       character(len = maxlen_name) :: name
       integer :: acc_num, next_tmridx
-      real(r8) :: acc_time
+      real(r8) :: acc_dtime
    end type timer_struct
 
    type(group_struct), allocatable, dimension(:) :: group
@@ -85,8 +85,6 @@ contains
             if (group(grpidx)%checksum == checksum) return
          else
             group(grpidx)%checksum = checksum
-            group(grpidx)%num_timers = 0
-            group(grpidx)%mode = 0
             return
          endif
          grpidx = iand(grpidx, hash_mask_group) + 1
@@ -170,6 +168,7 @@ contains
          group(grpidx)%num_timers = 0
       endif
 
+      call xcsync(.false.)
       group(grpidx)%last_time = wtime()
 
    end subroutine timer_start
@@ -207,7 +206,8 @@ contains
 
       if (.not.group(grpidx)%used) then
          if (mnproc == 1) &
-            write(lp,*) 'Timer group not started, call timer_start first!'
+            write(lp,*) 'Timer group '''//trim(group_name)// &
+                        ''' not started, call timer_start first!'
          call xcstop('(timer_stop)')
                 stop '(timer_stop)'
       endif
@@ -215,7 +215,8 @@ contains
       if (present(timer_name)) then
          if (group(grpidx)%mode == 1) then
             if (mnproc == 1) &
-               write(lp,*) 'Timer group is already in single-timer mode!'
+               write(lp,*) 'Timer group '''//trim(group_name)// &
+                           '''is already in single-timer mode!'
             call xcstop('(timer_stop)')
                    stop '(timer_stop)'
          endif
@@ -224,7 +225,8 @@ contains
       else
          if (group(grpidx)%mode == 2) then
             if (mnproc == 1) &
-               write(lp,*) 'Timer group is already in multi-timer mode!'
+               write(lp,*) 'Timer group '''//trim(group_name)// &
+                           '''is already in multi-timer mode!'
             call xcstop('(timer_stop)')
                    stop '(timer_stop)'
          endif
@@ -239,8 +241,8 @@ contains
             if (timer(tmridx)%checksum == checksum) then
                timer(tmridx)%acc_num = timer(tmridx)%acc_num + 1
                curr_time = wtime()
-               timer(tmridx)%acc_time = timer(tmridx)%acc_time &
-                                      + curr_time - group(grpidx)%last_time
+               timer(tmridx)%acc_dtime = timer(tmridx)%acc_dtime &
+                                       + curr_time - group(grpidx)%last_time
                group(grpidx)%last_time = curr_time
                return
             endif
@@ -258,7 +260,7 @@ contains
             endif
             group(grpidx)%last_tmridx = tmridx
             curr_time = wtime()
-            timer(tmridx)%acc_time = curr_time - group(grpidx)%last_time
+            timer(tmridx)%acc_dtime = curr_time - group(grpidx)%last_time
             group(grpidx)%last_time = curr_time
             return
          endif
@@ -348,23 +350,25 @@ contains
 
       if     (.not.group(grpidx)%used) then
          if (mnproc == 1) &
-            write(lp,*) 'No timer group associated with '//trim(group_name)
+            write(lp,*) 'No timer group associated with name '''// &
+                        trim(group_name)//''''
+
          return
       elseif (group(grpidx)%num_timers == 0) then
          if (mnproc == 1) &
-            write(lp,*) 'No timers of group '//trim(group_name)
+            write(lp,*) 'No timers of group '''//trim(group_name)//''''
          return
       endif
 
       if (mnproc == 1) then
          write(lp,*) ''
-         write(lp,'(a)') 'Timer statistics of group '//trim(group_name)//':'
+         write(lp,'(a)') 'Timer statistics of group '''//trim(group_name)//''':'
       endif
 
       if (group(grpidx)%mode == 1) then
 
          tmridx = group(grpidx)%first_tmridx
-         group_time = timer(tmridx)%acc_time
+         group_time = timer(tmridx)%acc_dtime
          acc_num = timer(tmridx)%acc_num
          call xcmax(group_time)
 
@@ -393,7 +397,7 @@ contains
          cumsum_time(1) = 0._r8
          equal_acc_nums = .true.
          do while (tmridx /= 0)
-            cumsum_time(i+1) = cumsum_time(i) + timer(tmridx)%acc_time
+            cumsum_time(i+1) = cumsum_time(i) + timer(tmridx)%acc_dtime
             if (timer(tmridx)%acc_num /= acc_num) equal_acc_nums = .false.
             tmridx = timer(tmridx)%next_tmridx
             i = i + 1
@@ -480,7 +484,7 @@ contains
 
       tmridx = group(grpidx)%first_tmridx
       do while (tmridx /= 0)
-         group_time = group_time + timer(tmridx)%acc_time
+         group_time = group_time + timer(tmridx)%acc_dtime
          tmridx = timer(tmridx)%next_tmridx
       enddo
       call xcmax(group_time)
