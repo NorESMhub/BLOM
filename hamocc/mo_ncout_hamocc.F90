@@ -38,9 +38,9 @@ contains
     use mo_control_bgc, only: dtbgc,use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO,              &
                               use_sedbypass,use_BOXATM,use_M4AGO,use_extNcycle,use_pref_tracers,   &
                               use_shelfsea_res_time,use_sediment_quality,use_river2omip,           &
-                              use_DOMclasses
+                              use_DOMclasses,l_3Dvarsedpor
     use mo_vgrid,       only: k0100,k0500,k1000,k2000,k4000
-    use mo_param1_bgc,  only: ks
+    use mo_param1_bgc,  only: ks,ksp
     use mod_nctools,    only: ncwrt1,ncdims,nctime,ncfcls,ncfopn,ncdimc,ncputr,ncputi,ncwrtr
     use mo_bgcmean,     only: domassfluxes,flx_ndepnoy,flx_tdust,flx_sfe,flx_oalk,                 &
                               flx_cal0100,flx_cal0500,flx_cal1000,                                 &
@@ -242,6 +242,7 @@ contains
                               jzeunutlim_fe,jzeunutlim_n,jzeunutlim_phosph
     use mo_param_bgc,   only: c14fac,param4nc,nentries,controls4nc,centries
     use mo_kind,        only: bgc_fnmlen,rp
+    use mo_sedmnt,      only: sed_porosity,dzs
 
     ! Arguments
     integer                  :: i,j,k,l,nt
@@ -311,6 +312,7 @@ contains
     call ncdims('sigma',kdm)
     call ncdims('depth',ddm)
     call ncdims('ks',ks)
+    call ncdims('ksp',ksp)
     call ncdims('bounds',2)
     call ncdims('time',0)
     do i=1,centries
@@ -333,6 +335,11 @@ contains
     else
       call ncwrtr('plon','x y',plon(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),dummy,0,1._rp,0._rp,8)
       call ncwrtr('plat','x y',plat(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),dummy,0,1._rp,0._rp,8)
+    endif
+    ! --- sediment info
+    call ncwrt1('seddz','ksp',dzs)
+    if (.not. l_3Dvarsedpor) then
+      call ncwrt1('sedpor','ks',sed_porosity)
     endif
 
     ! --- finalize accumulation
@@ -1500,7 +1507,7 @@ contains
     use mo_control_bgc, only: use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO,                    &
                               use_sedbypass,use_BOXATM,use_extNcycle,use_pref_tracers,use_M4AGO,   &
                               use_shelfsea_res_time,use_sediment_quality,use_river2omip,           &
-                              use_DOMclasses
+                              use_DOMclasses,l_3Dvarsedpor
     use mo_bgcmean,     only: srf_kwco2,srf_fco2,srf_pco2,srf_xco2,srf_pco2_gex,srf_dmsflux,       &
                               srf_co2fxd,srf_co2fxu,srf_kwco2sol,srf_co2sol,                       &
                               srf_oxflux,srf_niflux,srf_pn2om,srf_dms,srf_dmsprod,                 &
@@ -1645,6 +1652,17 @@ contains
     endif
     call ncattr('long_name','latitude')
     call ncattr('units','degrees_north')
+
+    ! Sediment info
+    call ncdefvar('seddz','ksp',ndouble,8)
+    call ncattr('long_name','Sediment layer thickness')
+    call ncattr('units','m')
+
+    if (.not. l_3Dvarsedpor) then
+      call ncdefvar('sedpor','ks',ndouble,8)
+      call ncattr('long_name','Sediment porosity')
+      call ncattr('units','-')
+    endif
 
     call ncdefvar3d(SRF_KWCO2(iogrp),cmpflg,'p',                                &
          &   'kwco2','CO2 piston velocity',' ','m s-1',0)

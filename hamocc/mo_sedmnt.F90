@@ -43,9 +43,10 @@ module mo_sedmnt
   private :: ini_sedmnt_por    ! Initialize 2D and 3D sediment fields
 
   ! Module variables
-  real(rp), dimension (:), allocatable, public :: dzs    ! (ksp)
-  real(rp), dimension (:), allocatable, public :: seddzi ! (ksp)
-  real(rp), dimension (:), allocatable, public :: seddw  ! (ks)
+  real(rp), dimension (:), allocatable, public :: dzs          ! (ksp)
+  real(rp), dimension (:), allocatable, public :: seddzi       ! (ksp)
+  real(rp), dimension (:), allocatable, public :: seddw        ! (ks)
+  real(rp), dimension (:), allocatable, public :: sed_porosity ! (ks)
 
   real(rp), dimension (:,:,:,:), allocatable, public :: sedlay
   real(rp), dimension (:,:,:,:), allocatable, public :: powtra
@@ -80,6 +81,12 @@ module mo_sedmnt
 
   real(rp), protected, public :: calfa, oplfa, orgfa, clafa
 
+  real(rp), parameter :: porwat_def(12) = (/ 0.85_rp, 0.83_rp, 0.8_rp, 0.79_rp, 0.77_rp,0.75_rp,   &
+                                             0.73_rp, 0.7_rp, 0.68_rp, 0.66_rp, 0.64_rp, 0.62_rp /)
+  real(rp), parameter :: dzs_def(13) = (/ 0.001_rp, 0.003_rp, 0.005_rp, 0.007_rp, 0.009_rp,        &
+                                          0.011_rp, 0.013_rp, 0.015_rp, 0.017_rp, 0.019_rp,        &
+                                          0.021_rp, 0.023_rp, 0.025_rp /)
+
 CONTAINS
 
   subroutine ini_sedmnt(kpie,kpje,omask,sed_por,sed_POCage_init,prorca_mavg_init,dzs_flexi,porwat_flexi)
@@ -91,11 +98,11 @@ CONTAINS
     ! Arguments
     integer, intent(in) :: kpie,kpje
     real(rp),intent(in) :: omask(kpie,kpje)
-    real(rp),intent(in) :: sed_por(kpie,kpje,ks)
+    real(rp),intent(in) :: sed_por(kpie,kpje,ks)         ! sediment porosity from file (3D)
     real(rp),intent(in) :: sed_POCage_init(kpie,kpje,ks)
     real(rp),intent(in) :: prorca_mavg_init(kpie,kpje)
-    real(rp),intent(in) :: dzs_flexi(ks+1)
-    real(rp),intent(in) :: porwat_flexi(ks)
+    real(rp),intent(in) :: dzs_flexi(ks+1)               ! vertical sediment gridbox sizes via nml
+    real(rp),intent(in) :: porwat_flexi(ks)              ! sediment porosity via nml
 
     ! Local variables
     integer :: k
@@ -108,23 +115,9 @@ CONTAINS
 
     ! sediment layer thickness
     if (use_sedflexi) then
-      do k = 1, ks+1
-        dzs(k) = dzs_flexi(k)
-      enddo
+      dzs(:) = dzs_flexi(:)
     else
-      dzs(1) = 0.001_rp
-      dzs(2) = 0.003_rp
-      dzs(3) = 0.005_rp
-      dzs(4) = 0.007_rp
-      dzs(5) = 0.009_rp
-      dzs(6) = 0.011_rp
-      dzs(7) = 0.013_rp
-      dzs(8) = 0.015_rp
-      dzs(9) = 0.017_rp
-      dzs(10) = 0.019_rp
-      dzs(11) = 0.021_rp
-      dzs(12) = 0.023_rp
-      dzs(13) = 0.025_rp
+      dzs(:) = dzs_def(:)
     endif
 
     if (mnproc == 1) then
@@ -165,8 +158,8 @@ CONTAINS
     ! Arguments
     integer, intent(in) :: kpie,kpje
     real(rp),intent(in) :: omask(kpie,kpje)
-    real(rp),intent(in) :: sed_por(kpie,kpje,ks)
-    real(rp),intent(in) :: porwat_flexi(ks)
+    real(rp),intent(in) :: sed_por(kpie,kpje,ks) ! sediment porosity from input file
+    real(rp),intent(in) :: porwat_flexi(ks)      ! 1D sediment porosity from nml of length ks
 
     ! local
     integer :: i,j,k
@@ -184,22 +177,15 @@ CONTAINS
           enddo
         enddo
       enddo
-    else if (.not.use_sedflexi) then
-      porwat(:,:,1) = 0.85_rp
-      porwat(:,:,2) = 0.83_rp
-      porwat(:,:,3) = 0.8_rp
-      porwat(:,:,4) = 0.79_rp
-      porwat(:,:,5) = 0.77_rp
-      porwat(:,:,6) = 0.75_rp
-      porwat(:,:,7) = 0.73_rp
-      porwat(:,:,8) = 0.7_rp
-      porwat(:,:,9) = 0.68_rp
-      porwat(:,:,10) = 0.66_rp
-      porwat(:,:,11) = 0.64_rp
-      porwat(:,:,12) = 0.62_rp
     else
+      if (use_sedflexi) then
+        sed_porosity(:) = porwat_flexi(:)
+      else
+        sed_porosity(:) = porwat_def(:)
+      endif
+
       do k=1,ks
-        porwat(:,:,k) = porwat_flexi(k)
+        porwat(:,:,k) = sed_porosity(k)
       enddo
     endif
 
@@ -556,6 +542,15 @@ CONTAINS
     allocate (seddw(ks),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory seddw'
     seddw(:) = 0.0_rp
+
+    if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable sed_porosity ...'
+        write(io_stdo_bgc,*)'First dimension    : ',ks
+    endif
+    allocate (sed_porosity(ks),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory sed_porosity'
+    sed_porosity(:) = 0.0_rp
+
 
   end subroutine alloc_mem_sedmnt
 
