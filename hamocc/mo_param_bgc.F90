@@ -44,7 +44,7 @@ module mo_param_bgc
                             lkwrbioz_off,lTO2depremin,use_shelfsea_res_time,use_sediment_quality,  &
                             use_pref_tracers,use_coupler_ndep,use_river2omip,use_DOMclasses,       &
                             linit_DOMclasses_sim,ldyn_sed_age,sedspin_yr_s,sedspin_yr_e,           &
-                            sedspin_ncyc,ldtbgc
+                            sedspin_ncyc,ldtbgc,use_sedflexi
   use mod_xc,         only: mnproc,xchalt
 
   implicit none
@@ -954,6 +954,7 @@ contains
       call cinfo_add_entry('use_FB_BGC_OCE',         use_FB_BGC_OCE)
       call cinfo_add_entry('use_BOXATM',             use_BOXATM)
       call cinfo_add_entry('use_sedbypass',          use_sedbypass)
+      call cinfo_add_entry('use_sedflexi',           use_sedflexi)
       write(io_stdo_bgc,*) '*   ocn_co2_type           = ',ocn_co2_type
       call cinfo_add_entry('do_ndep',                do_ndep)
       call cinfo_add_entry('do_rivinpt',             do_rivinpt)
