@@ -81,12 +81,6 @@ module mo_sedmnt
 
   real(rp), protected, public :: calfa, oplfa, orgfa, clafa
 
- ! real(rp), parameter :: porwat_def(12) = (/ 0.85_rp, 0.83_rp, 0.8_rp, 0.79_rp, 0.77_rp,0.75_rp,   &
- !                                            0.73_rp, 0.7_rp, 0.68_rp, 0.66_rp, 0.64_rp, 0.62_rp /)
- ! real(rp), parameter :: dzs_def(13) = (/ 0.001_rp, 0.003_rp, 0.005_rp, 0.007_rp, 0.009_rp,        &
- !                                         0.011_rp, 0.013_rp, 0.015_rp, 0.017_rp, 0.019_rp,        &
- !                                         0.021_rp, 0.023_rp, 0.025_rp /)
-
 CONTAINS
 
   subroutine ini_sedmnt(kpie,kpje,omask,sed_por,sed_POCage_init,prorca_mavg_init)
