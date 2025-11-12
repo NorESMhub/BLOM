@@ -91,7 +91,7 @@ contains
     namelist /bgcnml/ atm_co2,fedepfile,fedep_source,do_rivinpt,rivinfile,do_ndep,ndepfile,do_oalk,&
          &            do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,                         &
          &            inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c,inidom,swaclimfile,&
-         &            with_dmsph,pi_ph_file,l_3Dvarsedpor,sedporfile,ocn_co2_type,use_M4AGO,       &
+         &            with_dmsph,pi_ph_file,l_3Dvarsedpor,sedporfile,ocn_co2_type,                 &
          &            do_n2o_coupled,do_nh3_coupled,lkwrbioz_off,lTO2depremin,shelfsea_maskfile,   &
          &            sedqualfile,ldyn_sed_age,linit_DOMclasses_sim,dzs,sed_porosity
     !
@@ -118,12 +118,37 @@ contains
       write(io_stdo_bgc,*) 'nday_in_year ',nday_in_year
     endif
 
-    ! holds dzs and sed_porosity allocation, which needs to be alocated before reading the namelist
-    call alloc_mem_sedmnt(idm,jdm)
+    !
+    ! --- Memory allocation
+    !
+    allocate (sed_por(idm,jdm,ks),stat=errstat)
+    if (mnproc==1 .and. errstat.ne.0) then
+      write(io_stdo_bgc,*) 'Memory allocation failed for sed_por in mo_hamocc_init'
+    endif
+    sed_por(:,:,:)         = 0._rp
+    allocate (sed_POCage_init(idm,jdm,ks),stat=errstat)
+    if (mnproc==1 .and. errstat.ne.0) then
+      write(io_stdo_bgc,*) 'Memory allocation failed for sed_POCage_init in mo_hamocc_init'
+    endif
+    sed_POCage_init(:,:,:) = 0._rp
+    call alloc_mem_intfcblom(idm,jdm,kdm)
+    call alloc_mem_bgcmean(idm,jdm,kdm)
+    call alloc_mem_vgrid(idm,jdm,kdm)
+    call alloc_mem_biomod(idm,jdm,kdm)
+    call alloc_mem_carbch(idm,jdm,kdm)
+    call alloc_mem_sedmnt(idm,jdm) ! allocates dzs and sed_porosity before reading the namelist!
+    if (use_extNcycle .and. .not. use_sedbypass) then
+      call alloc_mem_extNsediment_diag(idm,jdm,ks)
+    endif
+    ! init the index-mapping between pore water and ocean tracers
+    call init_por2octra_mapping()
+    if (use_M4AGO) then
+      call alloc_mem_M4AGO(idm,jdm,kdm)
+    endif
+
     !
     ! --- Read the HAMOCC BGCNML namelist and check the value of some variables.
     !
-
     if(.not. allocated(bgc_namelist)) call get_bgc_namelist
     open (newunit=iounit, file=bgc_namelist, status='old', action='read')
     read (unit=iounit, nml=BGCNML)
@@ -147,32 +172,6 @@ contains
       endif
     endif
 
-    ! init the index-mapping between pore water and ocean tracers
-    call init_por2octra_mapping()
-    !
-    ! --- Memory allocation
-    !
-    allocate (sed_por(idm,jdm,ks),stat=errstat)
-    if (mnproc==1 .and. errstat.ne.0) then
-      write(io_stdo_bgc,*) 'Memory allocation failed for sed_por in mo_hamocc_init'
-    endif
-    sed_por(:,:,:)         = 0._rp
-    allocate (sed_POCage_init(idm,jdm,ks),stat=errstat)
-    if (mnproc==1 .and. errstat.ne.0) then
-      write(io_stdo_bgc,*) 'Memory allocation failed for sed_POCage_init in mo_hamocc_init'
-    endif
-    sed_POCage_init(:,:,:) = 0._rp
-    call alloc_mem_intfcblom(idm,jdm,kdm)
-    call alloc_mem_bgcmean(idm,jdm,kdm)
-    call alloc_mem_vgrid(idm,jdm,kdm)
-    call alloc_mem_biomod(idm,jdm,kdm)
-    call alloc_mem_carbch(idm,jdm,kdm)
-    if (use_M4AGO) then
-      call alloc_mem_M4AGO(idm,jdm,kdm)
-    endif
-    if (use_extNcycle .and. .not. use_sedbypass) then
-      call alloc_mem_extNsediment_diag(idm,jdm,ks)
-    endif
     !
     ! --- initialise trc array (two time levels)
     !

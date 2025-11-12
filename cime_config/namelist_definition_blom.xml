@@ -4342,17 +4342,6 @@
     <desc>Switch to couple NH3 fluxes to atmosphere</desc>
   </entry>
 
-  <entry id="use_m4ago">
-    <type>logical</type>
-    <category>bgcnml</category>
-    <group>bgcnml</group>
-    <values>
-      <value>.false.</value>
-      <value use_m4ago="yes">.true.</value>
-    </values>
-    <desc>Switch for M4AGO settling scheme</desc>
-  </entry>
-
   <entry id="lkwrbioz_off">
     <type>logical</type>
     <category>bgcnml</category>
@@ -4647,6 +4636,17 @@
       <value use_wlin="no">.false.</value>
     </values>
     <desc>Use POC sinking scheme with increasing sinking velocity with depth</desc>
+  </entry>
+
+  <entry id="use_m4ago">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+      <value use_m4ago="yes">.true.</value>
+    </values>
+    <desc>Switch for M4AGO settling scheme</desc>
   </entry>
 
   <entry id="use_cfc">
