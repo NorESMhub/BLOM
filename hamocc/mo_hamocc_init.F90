@@ -48,13 +48,14 @@ contains
                               lkwrbioz_off,do_n2o_coupled,do_nh3_coupled,                          &
                               ocn_co2_type, use_sedbypass, use_BOXATM, use_BROMO,use_extNcycle,    &
                               use_coupler_ndep,lTO2depremin,use_sediment_quality,ldyn_sed_age,     &
-                              linit_DOMclasses_sim,use_sedflexi
+                              linit_DOMclasses_sim
     use mo_param1_bgc,  only: ks,init_por2octra_mapping
     use mo_param_bgc,   only: ini_parambgc,claydens,calcdens,calcwei,opaldens,opalwei,ropal,       &
                             & ini_bgctimes,sec_per_day
     use mo_carbch,      only: alloc_mem_carbch,ocetra,atm,atm_co2
     use mo_biomod,      only: alloc_mem_biomod
-    use mo_sedmnt,      only: alloc_mem_sedmnt,sedlay,powtra,burial,ini_sedmnt,prorca_mavg
+    use mo_sedmnt,      only: alloc_mem_sedmnt,sedlay,powtra,burial,ini_sedmnt,prorca_mavg,        &
+                              sed_porosity,dzs
     use mo_vgrid,       only: alloc_mem_vgrid,set_vgrid
     use mo_bgcmean,     only: alloc_mem_bgcmean
     use mo_read_rivin,  only: ini_read_rivin,rivinfile
@@ -85,7 +86,6 @@ contains
     integer  :: iounit
 
     real(rp), dimension(:,:,:), allocatable :: sed_por,sed_POCage_init
-    real(rp), dimension(:),     allocatable :: sed_dzs_flexi,sed_porwat_flexi
     real(rp) :: prorca_mavg_init(idm,jdm)   = 0._rp
 
     namelist /bgcnml/ atm_co2,fedepfile,fedep_source,do_rivinpt,rivinfile,do_ndep,ndepfile,do_oalk,&
@@ -93,7 +93,7 @@ contains
          &            inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c,inidom,swaclimfile,&
          &            with_dmsph,pi_ph_file,l_3Dvarsedpor,sedporfile,ocn_co2_type,use_M4AGO,       &
          &            do_n2o_coupled,do_nh3_coupled,lkwrbioz_off,lTO2depremin,shelfsea_maskfile,   &
-         &            sedqualfile,ldyn_sed_age,linit_DOMclasses_sim,sed_dzs_flexi,sed_porwat_flexi
+         &            sedqualfile,ldyn_sed_age,linit_DOMclasses_sim,dzs,sed_porosity
     !
     ! --- Set io units and some control parameters
     !
@@ -117,13 +117,12 @@ contains
       write(io_stdo_bgc,*) 'time step',dtbgc
       write(io_stdo_bgc,*) 'nday_in_year ',nday_in_year
     endif
+
+    ! holds dzs and sed_porosity allocation, which needs to be alocated before reading the namelist
+    call alloc_mem_sedmnt(idm,jdm)
     !
     ! --- Read the HAMOCC BGCNML namelist and check the value of some variables.
     !
-    allocate (sed_dzs_flexi(ks+1), stat=errstat)
-    allocate (sed_porwat_flexi(ks),stat=errstat)
-    sed_dzs_flexi    = 0._rp
-    sed_porwat_flexi = 0._rp
 
     if(.not. allocated(bgc_namelist)) call get_bgc_namelist
     open (newunit=iounit, file=bgc_namelist, status='old', action='read')
@@ -167,7 +166,6 @@ contains
     call alloc_mem_bgcmean(idm,jdm,kdm)
     call alloc_mem_vgrid(idm,jdm,kdm)
     call alloc_mem_biomod(idm,jdm,kdm)
-    call alloc_mem_sedmnt(idm,jdm)
     call alloc_mem_carbch(idm,jdm,kdm)
     if (use_M4AGO) then
       call alloc_mem_M4AGO(idm,jdm,kdm)
@@ -225,7 +223,7 @@ contains
     call read_sedpor(idm,jdm,ks,omask,sed_por)
     !     Second, read the sediment POC age and climatological prorca and pot. apply it in ini_sedmnt
     call read_sedqual(idm,jdm,ks,omask,sed_POCage_init,prorca_mavg_init)
-    call ini_sedmnt(idm,jdm,omask,sed_por,sed_POCage_init,prorca_mavg_init,sed_dzs_flexi,sed_porwat_flexi)
+    call ini_sedmnt(idm,jdm,omask,sed_por,sed_POCage_init,prorca_mavg_init)
 
     !
     ! --- Initialise reading of input data (dust, n-deposition, river, etc.)

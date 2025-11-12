@@ -4578,6 +4578,18 @@
     </desc>
   </entry>
 
+  <entry id="sed_porosity">
+    <type>real</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>0.85, 0.83, 0.8, 0.79, 0.77,0.75, 0.73, 0.7, 0.68, 0.66, 0.64, 0.62</value>
+    </values>
+    <desc>
+      1D vertical sediment porosity vector (length=ks) - default values used in the sediment, if not l_3Dvarsedpor
+    </desc>
+  </entry>
+
   <entry id="sedqualfile" is_inputdata="yes">
     <type>char</type>
     <category>bgcnml</category>
@@ -4590,7 +4602,7 @@
     </desc>
   </entry>
 
-  <entry id="sed_dzs_flexi">
+  <entry id="dzs">
     <type>real</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -4598,19 +4610,7 @@
       <value>0.001, 0.003, 0.005, 0.007, 0.009, 0.011, 0.013, 0.015, 0.017, 0.019, 0.021, 0.023, 0.025</value>
     </values>
     <desc>
-      Vertical sediment layer thickness vector (length=ks_flexi+1)  - here default values are given (but not used as long as use_sedflexi=False)
-    </desc>
-  </entry>
-
-  <entry id="sed_porwat_flexi">
-    <type>real</type>
-    <category>bgcnml</category>
-    <group>bgcnml</group>
-    <values>
-      <value>0.85, 0.83, 0.8, 0.79, 0.77,0.75, 0.73, 0.7, 0.68, 0.66, 0.64, 0.62</value>
-    </values>
-    <desc>
-      Vertical sediment porosity vector (length=ks_flexi) - here default values are given (but not used as long as use_sedflexi=False)
+      1D vertical sediment layer thickness vector (length=ks+1)  - default values that are used in the sediment)
     </desc>
   </entry>
 
@@ -4802,17 +4802,7 @@
     <desc>activate the HAMOCC sediment quality-based remineralization code</desc>
   </entry>
 
-  <entry id="use_sedflexi">
-    <type>logical</type>
-    <category>config_bgc</category>
-    <group>config_bgc</group>
-    <values>
-      <value>.false.</value>
-    </values>
-    <desc>enable flexible HAMOCC sediment depth and porosity settings</desc>
-  </entry>
-
-  <entry id="ks_flexi">
+  <entry id="ks">
     <type>integer</type>
     <category>config_bgc</category>
     <group>config_bgc</group>

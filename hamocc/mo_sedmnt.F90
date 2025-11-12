@@ -81,19 +81,18 @@ module mo_sedmnt
 
   real(rp), protected, public :: calfa, oplfa, orgfa, clafa
 
-  real(rp), parameter :: porwat_def(12) = (/ 0.85_rp, 0.83_rp, 0.8_rp, 0.79_rp, 0.77_rp,0.75_rp,   &
-                                             0.73_rp, 0.7_rp, 0.68_rp, 0.66_rp, 0.64_rp, 0.62_rp /)
-  real(rp), parameter :: dzs_def(13) = (/ 0.001_rp, 0.003_rp, 0.005_rp, 0.007_rp, 0.009_rp,        &
-                                          0.011_rp, 0.013_rp, 0.015_rp, 0.017_rp, 0.019_rp,        &
-                                          0.021_rp, 0.023_rp, 0.025_rp /)
+ ! real(rp), parameter :: porwat_def(12) = (/ 0.85_rp, 0.83_rp, 0.8_rp, 0.79_rp, 0.77_rp,0.75_rp,   &
+ !                                            0.73_rp, 0.7_rp, 0.68_rp, 0.66_rp, 0.64_rp, 0.62_rp /)
+ ! real(rp), parameter :: dzs_def(13) = (/ 0.001_rp, 0.003_rp, 0.005_rp, 0.007_rp, 0.009_rp,        &
+ !                                         0.011_rp, 0.013_rp, 0.015_rp, 0.017_rp, 0.019_rp,        &
+ !                                         0.021_rp, 0.023_rp, 0.025_rp /)
 
 CONTAINS
 
-  subroutine ini_sedmnt(kpie,kpje,omask,sed_por,sed_POCage_init,prorca_mavg_init,dzs_flexi,porwat_flexi)
+  subroutine ini_sedmnt(kpie,kpje,omask,sed_por,sed_POCage_init,prorca_mavg_init)
     !***********************************************************************************************
 
     use mo_param_bgc, only: claydens,calcwei,calcdens,opalwei,opaldens,orgwei,orgdens,sedict
-    use mo_control_bgc,only: use_sedflexi
 
     ! Arguments
     integer, intent(in) :: kpie,kpje
@@ -101,8 +100,6 @@ CONTAINS
     real(rp),intent(in) :: sed_por(kpie,kpje,ks)         ! sediment porosity from file (3D)
     real(rp),intent(in) :: sed_POCage_init(kpie,kpje,ks)
     real(rp),intent(in) :: prorca_mavg_init(kpie,kpje)
-    real(rp),intent(in) :: dzs_flexi(ks+1)               ! vertical sediment gridbox sizes via nml
-    real(rp),intent(in) :: porwat_flexi(ks)              ! sediment porosity via nml
 
     ! Local variables
     integer :: k
@@ -113,14 +110,8 @@ CONTAINS
     orgfa = orgwei / orgdens
     clafa = 1._rp / claydens    !clay is calculated in kg/m3
 
-    ! sediment layer thickness
-    if (use_sedflexi) then
-      dzs(:) = dzs_flexi(:)
-    else
-      dzs(:) = dzs_def(:)
-    endif
-
     if (mnproc == 1) then
+      ! dzs provided through namelist bgcnml in mo_hamocc_init!
       write(io_stdo_bgc,*)  ' '
       write(io_stdo_bgc,*)  'Sediment layer thickness [m] : '
       write(io_stdo_bgc,'(5F9.3)') dzs
@@ -136,7 +127,7 @@ CONTAINS
     if (.not. use_sedbypass) then
       ! 2d and 3d fields are not allocated in case of sedbypass
       ! so only initialize them if we are using the sediment
-      call ini_sedmnt_por(kpie,kpje,omask,sed_por,porwat_flexi)
+      call ini_sedmnt_por(kpie,kpje,omask,sed_por)
       if (use_sediment_quality) then
         call ini_sed_qual(kpie,kpje,omask,sed_POCage_init,prorca_mavg_init)
       endif
@@ -145,21 +136,20 @@ CONTAINS
 
   end subroutine ini_sedmnt
 
-  subroutine ini_sedmnt_por(kpie,kpje,omask,sed_por,porwat_flexi)
+  subroutine ini_sedmnt_por(kpie,kpje,omask,sed_por)
     !***********************************************************************************************
     ! Initialization of:
     ! - 3D porosity field (cell center and cell boundaries)
     ! - solid volume fraction at cell center
     ! - vertical molecular diffusion coefficients scaled with porosity
     !***********************************************************************************************
-    use mo_control_bgc, only: l_3Dvarsedpor,use_sedflexi
+    use mo_control_bgc, only: l_3Dvarsedpor
     use mo_param_bgc,   only: sedict
 
     ! Arguments
     integer, intent(in) :: kpie,kpje
     real(rp),intent(in) :: omask(kpie,kpje)
     real(rp),intent(in) :: sed_por(kpie,kpje,ks) ! sediment porosity from input file
-    real(rp),intent(in) :: porwat_flexi(ks)      ! 1D sediment porosity from nml of length ks
 
     ! local
     integer :: i,j,k
@@ -178,12 +168,6 @@ CONTAINS
         enddo
       enddo
     else
-      if (use_sedflexi) then
-        sed_porosity(:) = porwat_flexi(:)
-      else
-        sed_porosity(:) = porwat_def(:)
-      endif
-
       do k=1,ks
         porwat(:,:,k) = sed_porosity(k)
       enddo

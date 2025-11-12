@@ -92,7 +92,6 @@ module mo_control_bgc
   logical           :: use_pref_tracers       = .true.  ! Run code with pre-formed tracers
   logical           :: use_shelfsea_res_time  = .false. ! Include shelf sea residence time tracer
   logical           :: use_sediment_quality   = .false. ! Use sediment quality code to determine aerobic remineralization rates
-  logical           :: use_sedflexi           = .false. ! enable to set up sediment depths and porosity in a flexible way
   logical           :: use_river2omip         = .false. ! River2ocean MIP protocol
   logical           :: use_DOMclasses         = .false. ! DOM classes (labile, semi-labile,semi-refractory and refractory)
 
