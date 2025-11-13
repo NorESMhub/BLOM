@@ -63,8 +63,8 @@ contains
     use mo_read_ndep,   only: ini_read_ndep,ndepfile
     use mo_read_oafx,   only: ini_read_oafx
     use mo_read_pi_ph,  only: ini_pi_ph,pi_ph_file
-    use mo_read_sedpor, only: read_sedpor,sedporfile
-    use mo_read_sedqual,only: read_sedqual,sedqualfile
+    use mo_read_sedpor, only: read_sedpor,sedporfile,sed_por
+    use mo_read_sedqual,only: read_sedqual,sedqualfile, sed_POCage_init,prorca_mavg_init
     use mo_clim_swa,    only: ini_swa_clim,swaclimfile
     use mo_Gdata_read,  only: inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c,inidom
     use mo_intfcblom,   only: alloc_mem_intfcblom,nphys,bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask,        &
@@ -84,9 +84,6 @@ contains
     ! Local variables
     integer  :: i,j,k,l,nt,errstat
     integer  :: iounit
-
-    real(rp), dimension(:,:,:), allocatable :: sed_por,sed_POCage_init
-    real(rp) :: prorca_mavg_init(idm,jdm)   = 0._rp
 
     namelist /bgcnml/ atm_co2,fedepfile,fedep_source,do_rivinpt,rivinfile,do_ndep,ndepfile,do_oalk,&
          &            do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,                         &
@@ -121,16 +118,6 @@ contains
     !
     ! --- Memory allocation
     !
-    allocate (sed_por(idm,jdm,ks),stat=errstat)
-    if (mnproc==1 .and. errstat.ne.0) then
-      write(io_stdo_bgc,*) 'Memory allocation failed for sed_por in mo_hamocc_init'
-    endif
-    sed_por(:,:,:)         = 0._rp
-    allocate (sed_POCage_init(idm,jdm,ks),stat=errstat)
-    if (mnproc==1 .and. errstat.ne.0) then
-      write(io_stdo_bgc,*) 'Memory allocation failed for sed_POCage_init in mo_hamocc_init'
-    endif
-    sed_POCage_init(:,:,:) = 0._rp
     call alloc_mem_intfcblom(idm,jdm,kdm)
     call alloc_mem_bgcmean(idm,jdm,kdm)
     call alloc_mem_vgrid(idm,jdm,kdm)
@@ -219,9 +206,9 @@ contains
 
     ! --- Initialize sediment layering
     !     First, read the porosity and potentially apply it in ini_sedmnt
-    call read_sedpor(idm,jdm,ks,omask,sed_por)
+    call read_sedpor(idm,jdm,ks,omask)
     !     Second, read the sediment POC age and climatological prorca and pot. apply it in ini_sedmnt
-    call read_sedqual(idm,jdm,ks,omask,sed_POCage_init,prorca_mavg_init)
+    call read_sedqual(idm,jdm,ks,omask)
     call ini_sedmnt(idm,jdm,omask,sed_por,sed_POCage_init,prorca_mavg_init)
 
     !
