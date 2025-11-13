@@ -64,7 +64,7 @@
       <value compset="_BLOM.*%ECO"           >constant</value>
       <value compset="_BLOM.*%ECO.*_BGC%BPRP">prognostic</value>
       <value compset="_BLOM.*%ECO.*_BGC%BDRD">diagnostic</value>
-      <value compset="_DATM%CPLHIST.*_BLOM.*%ECO">diagnostic</value>
+      <value compset="_DATM%CPLHIST.*_BLOM.*%ECO">constant</value>
       <value compset="20TR_DATM%IAF.*_BLOM.*%ECO">diagnostic</value>
     </values>
     <group>run_component_blom</group>
@@ -155,6 +155,7 @@
       <value compset="2000_.*_BLOM.*%ECO"   >2000</value>
       <value compset="HIST_.*_BLOM.*%ECO"   >hist</value>
       <value compset="20TR_.*_BLOM.*%ECO"   >hist</value>
+      <value compset="CPLHIST_.*_BLOM.*%ECO">1850</value>
       <value compset="SSP119_.*_BLOM.*%ECO" >ssp119</value>
       <value compset="SSP126_.*_BLOM.*%ECO" >ssp126</value>
       <value compset="SSP245_.*_BLOM.*%ECO" >ssp245</value>
