@@ -82,7 +82,7 @@ contains
     character(len=*), intent(in) :: rstfnm_hamocc ! restart filename.
 
     ! Local variables
-    integer  :: i,j,k,l,nt,errstat
+    integer  :: i,j,k,l,nt
     integer  :: iounit
 
     namelist /bgcnml/ atm_co2,fedepfile,fedep_source,do_rivinpt,rivinfile,do_ndep,ndepfile,do_oalk,&
