@@ -63,7 +63,6 @@ module mo_control_bgc
   logical           :: do_sedspinup           = .false. ! apply sediment spin-up
   logical           :: do_oalk                = .false. ! apply ocean alkalinization
   logical           :: with_dmsph             = .false. ! apply DMS with pH dependence
-  logical           :: use_M4AGO              = .false. ! run with M4AGO settling scheme
   logical           :: lkwrbioz_off           = .true.  ! if true, allow remin and primary prod throughout full water column
   logical           :: lTO2depremin           = .true.  ! Temperature- and O2-dependent remineralization of POM
   logical           :: ldyn_sed_age           = .false. ! switch for dynamic sediment age in combination with use_sediment_quality
@@ -79,6 +78,7 @@ module mo_control_bgc
   logical           :: use_BROMO              = .false. ! Bromoforme code
   logical           :: use_AGG                = .false. ! Aggregation scheme of Iris Kriest
   logical           :: use_WLIN               = .true.  ! Linear increase of sinking velocity with depth - mimicking a Martin curve
+  logical           :: use_M4AGO              = .false. ! run with M4AGO settling scheme
   logical           :: use_natDIC             = .false. ! natural DIC tracers
   logical           :: use_CFC                = .false. ! CFCs
   logical           :: use_cisonew            = .false. ! Carbon isotope code

@@ -25,7 +25,7 @@ module mo_read_sedqual
   ! sed_POCage_init holds then the age that can be applied later in mo_sedmnt (ini_sed_qual)
   !*************************************************************************************************
 
-  use mo_kind, only: bgc_fnmlen
+  use mo_kind, only: bgc_fnmlen,rp
 
   implicit none
   private
@@ -36,9 +36,12 @@ module mo_read_sedqual
   ! Module variables
   character(len=bgc_fnmlen), public :: sedqualfile = ''
 
+  real(rp), dimension(:,:,:), allocatable, public :: sed_POCage_init
+  real(rp), dimension(:,:),   allocatable, public :: prorca_mavg_init
+
 contains
 
-  subroutine read_sedqual(kpie,kpje,ks,omask,sed_POCage_init,prorca_mavg_init)
+  subroutine read_sedqual(kpie,kpje,ks,omask)
 
     use mod_xc,             only: mnproc,xchalt
     use mo_kind,            only: rp
@@ -53,24 +56,42 @@ contains
     integer, intent(in)    :: kpje
     integer, intent(in)    :: ks
     real(rp),intent(in)    :: omask(kpie,kpje)
-    real(rp),intent(inout) :: sed_POCage_init(kpie,kpje,ks)
-    real(rp),intent(inout) :: prorca_mavg_init(kpie,kpje)
 
     ! Local variables
     integer :: i,j,k
     real(rp):: sed_age(kpie,kpje,ks)
     real(rp):: mavg_prorca(kpie,kpje)
     logical :: file_exists = .false.
-    integer :: ncid,ncstat
+    integer :: ncid,ncstat,errstat
 
     ! Return if use_sediment_quality is turned off
     if (.not. use_sediment_quality) then
       if (mnproc.eq.1) then
         write(io_stdo_bgc,*) ''
-        write(io_stdo_bgc,*) 'read_sedqual: sediment quality-based remineralization is not activated'
+        write(io_stdo_bgc,*) 'read_sedqual: sediment quality-based remineralization is not activated.'
+      endif
+      allocate (sed_POCage_init(1,1,1),stat=errstat) ! Dummy allocation to pass allocation check in hamocc_init
+      if (mnproc==1 .and. errstat.ne.0) then
+        write(io_stdo_bgc,*) 'Dummy memory allocation failed for sed_POCage_init in mo_read_sedqual'
+      endif
+      allocate (prorca_mavg_init(1,1),stat=errstat) ! Dummy allocation to pass allocation check in hamocc_init
+      if (mnproc==1 .and. errstat.ne.0) then
+        write(io_stdo_bgc,*) 'Dummy memory allocation failed for prorca_mavg_init in mo_read_sedqual'
       endif
       return
     endif
+
+    allocate (sed_POCage_init(kpie,kpje,ks),stat=errstat)
+    if (mnproc==1 .and. errstat.ne.0) then
+      write(io_stdo_bgc,*) 'Memory allocation failed for sed_POCage_init in mo_read_sedqual'
+    endif
+    sed_POCage_init(:,:,:)         = 0._rp
+
+    allocate (prorca_mavg_init(kpie,kpje),stat=errstat)
+    if (mnproc==1 .and. errstat.ne.0) then
+      write(io_stdo_bgc,*) 'Memory allocation failed for prorca_mavg_init in mo_read_sedqual'
+    endif
+    prorca_mavg_init(:,:)         = 0._rp
 
     ! Check if sediment quality file exists. If not, abort.
     inquire(file=sedqualfile,exist=file_exists)
