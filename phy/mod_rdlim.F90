@@ -33,7 +33,7 @@ module mod_rdlim
   use mod_eos,         only: pref
   use mod_inicon,      only: icfile, woa_nuopc_provided
   use mod_advect,      only: advmth
-  use mod_cppm,        only: cppm_limiting
+  use mod_cppm,        only: cppm_compatibility, cppm_limiting
   use mod_pbcor,       only: bmcmth
   use mod_momtum,      only: mdv2hi, mdv2lo, mdv4hi, mdv4lo, mdc2hi, &
                              mdc2lo, vsc2hi, vsc2lo, vsc4hi, vsc4lo, &
@@ -45,14 +45,14 @@ module mod_rdlim
                              wavsrc, wavsrc_opt, wavsrc_none, &
                              wavsrc_param, wavsrc_extern, &
                              trxday, srxday, trxdpt, srxdpt, trxlim, &
-                             srxlim, srxbal, sprfac, use_stream_relaxation, &
-                             use_stream_dust
+                             srxlim, srxbal, sprfac, brine_mlbase_frac, &
+                             use_stream_relaxation, use_stream_dust
   use mod_swabs,       only: swamth, jwtype, chlopt, ccfile, svfile
   use mod_diffusion,   only: readnml_diffusion
   use mod_eddtra,      only: mlrmth, ce, cl, tau_mlr, tau_growing_hbl, &
                              tau_decaying_hbl, tau_growing_hml, &
                              tau_decaying_hml, lfmin, mstar, nstar, &
-                             wpup_min
+                             wpup_min, mlbl_max_ratio
   use mod_mxlayr,      only: rm0, rm5, mlrttp
   use mod_niw,         only: niwgf, niwbf, niwlf
   use mod_tidaldissip, only: tdfile
@@ -82,7 +82,7 @@ module mod_rdlim
                              msc_massgs, msc_volgs, msc_salnga, msc_tempga, msc_sssga,  &
                              msc_sstga,  &
                              h2d_abswnd, h2d_alb, h2d_btmstr, h2d_brnflx, h2d_brnpd,  &
-                             h2d_dfl, h2d_eva, h2d_fice, h2d_fmltfz, h2d_hice,  &
+                             h2d_dfl, h2d_eva, h2d_fice, h2d_fmltfz, h2d_hice, h2d_hmat,  &
                              h2d_hmltfz, h2d_hsnw, h2d_iage, h2d_idkedt, h2d_lamult,  &
                              h2d_lasl, h2d_lip, h2d_maxmld, h2d_mld, h2d_mlts,  &
                              h2d_mltsmn, h2d_mltsmx, h2d_mltssq, h2d_mtkeus, h2d_mtkeni,  &
@@ -135,14 +135,14 @@ contains
          grfile,icfile,woa_nuopc_provided,pref,baclin,batrop, &
          mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo, &
          vsc2hi,vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls, &
-         mommth,pgfmth,bmcmth,advmth,cppm_limiting, &
+         mommth,pgfmth,bmcmth,advmth,cppm_compatibility,cppm_limiting, &
          mlrmth,ce,cl,tau_mlr,tau_growing_hbl,tau_decaying_hbl, &
          tau_growing_hml,tau_decaying_hml,lfmin,mstar,nstar,wpup_min, &
-         mlrttp,rm0,rm5,tdfile,niwgf,niwbf,niwlf, &
+         mlbl_max_ratio,mlrttp,rm0,rm5,tdfile,niwgf,niwbf,niwlf, &
          swamth,jwtype,chlopt,ccfile,svfile, &
          trxday,srxday,trxdpt,srxdpt,trxlim,srxlim, &
          aptflx,apsflx,ditflx,disflx,srxbal,scfile, &
-         wavsrc,smtfrc,sprfac, &
+         wavsrc,smtfrc,sprfac,brine_mlbase_frac, &
          atm_path, &
          itest,jtest, &
          cnsvdi, &
@@ -209,6 +209,7 @@ contains
       write (lp,*) 'PGFMTH ',trim(PGFMTH)
       write (lp,*) 'BMCMTH ',trim(BMCMTH)
       write (lp,*) 'ADVMTH ',trim(ADVMTH)
+      write (lp,*) 'CPPM_COMPATIBILITY ',trim(CPPM_COMPATIBILITY)
       write (lp,*) 'CPPM_LIMITING ',trim(CPPM_LIMITING)
       write (lp,*) 'MLRMTH ',trim(MLRMTH)
       write (lp,*) 'CE',CE
@@ -222,6 +223,7 @@ contains
       write (lp,*) 'MSTAR',MSTAR
       write (lp,*) 'NSTAR',NSTAR
       write (lp,*) 'WPUP_MIN',WPUP_MIN
+      write (lp,*) 'MLBL_MAX_RATIO',MLBL_MAX_RATIO
       write (lp,*) 'MLRTTP ',trim(MLRTTP)
       write (lp,*) 'RM0',RM0
       write (lp,*) 'RM5',RM5
@@ -249,6 +251,7 @@ contains
       write (lp,*) 'WAVSRC ',trim(WAVSRC)
       write (lp,*) 'SMTFRC',SMTFRC
       write (lp,*) 'SPRFAC',SPRFAC
+      write (lp,*) 'BRINE_MLBASE_FRAC',brine_mlbase_frac
       write (lp,*) 'ATM_PATH ',trim(ATM_PATH)
       write (lp,*) 'ITEST',ITEST
       write (lp,*) 'JTEST',JTEST
@@ -299,6 +302,7 @@ contains
     call xcbcst(pgfmth)
     call xcbcst(bmcmth)
     call xcbcst(advmth)
+    call xcbcst(cppm_compatibility)
     call xcbcst(cppm_limiting)
     call xcbcst(mlrmth)
     call xcbcst(ce)
@@ -312,6 +316,7 @@ contains
     call xcbcst(mstar)
     call xcbcst(nstar)
     call xcbcst(wpup_min)
+    call xcbcst(mlbl_max_ratio)
     call xcbcst(mlrttp)
     call xcbcst(rm0)
     call xcbcst(rm5)
@@ -339,6 +344,7 @@ contains
     call xcbcst(wavsrc)
     call xcbcst(smtfrc)
     call xcbcst(sprfac)
+    call xcbcst(brine_mlbase_frac)
     call xcbcst(atm_path)
     call xcbcst(itest)
     call xcbcst(jtest)
@@ -479,6 +485,7 @@ contains
       write (lp,*) 'H2D_FMLTFZ  ',H2D_FMLTFZ(1:nphy)
       write (lp,*) 'H2D_FICE    ',H2D_FICE(1:nphy)
       write (lp,*) 'H2D_HICE    ',H2D_HICE(1:nphy)
+      write (lp,*) 'H2D_HMAT    ',H2D_HMAT(1:nphy)
       write (lp,*) 'H2D_HMLTFZ  ',H2D_HMLTFZ(1:nphy)
       write (lp,*) 'H2D_HSNW    ',H2D_HSNW(1:nphy)
       write (lp,*) 'H2D_IAGE    ',H2D_IAGE(1:nphy)
@@ -657,6 +664,7 @@ contains
     call xcbcst(H2D_FICE)
     call xcbcst(H2D_FMLTFZ)
     call xcbcst(H2D_HICE)
+    call xcbcst(H2D_HMAT)
     call xcbcst(H2D_HMLTFZ)
     call xcbcst(H2D_HSNW)
     call xcbcst(H2D_IAGE)

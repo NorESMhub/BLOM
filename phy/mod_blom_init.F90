@@ -23,7 +23,7 @@ module mod_blom_init
   use mod_config,          only: expcnf, runtyp
   use mod_time,            only: date, nday1, nday2, nstep1, nstep2, nstep, delt1, &
                                  time0, baclin
-  use mod_timing,          only: init_timing, get_time
+  use mod_timing,          only: timer_init, timer_start
   use mod_xc,              only: xcspmd, xcbcst, xctilr, xchalt, mnproc, nproc, &
                                  lp, ii, jj, kk, isp, ifp, isu, ifu, ilp, isv, ifv, &
                                  ilu, ilv, jpr, i0, nbdy, &
@@ -38,7 +38,7 @@ module mod_blom_init
   use mod_eos,             only: inieos
   use mod_swabs,           only: iniswa
   use mod_tmsmt,           only: initms
-  use mod_dia,             only: diaini, diasg1
+  use mod_dia,             only: diaini, diaout_alarms
   use mod_inicon,          only: inicon, woa_nuopc_provided
   use mod_budget,          only: budget_init
   use mod_cmnfld_routines, only: cmnfld1
@@ -46,7 +46,8 @@ module mod_blom_init
   use mod_rdlim,           only: rdlim
   use mod_inifrc,          only: inifrc
   use mod_inivar,          only: inivar
-  use mod_vcoord,          only: vcoord_tag, vcoord_isopyc_bulkml, sigmar
+  use mod_vcoord,          only: vcoord_tag, vcoord_isopyc_bulkml, sigmar, &
+                                 extract_sigref
   use mod_ale_regrid_remap, only: init_ale_regrid_remap
   use mod_cppm,            only: init_cppm
   use mod_inigeo,          only: inigeo
@@ -84,19 +85,8 @@ contains
     ! Initialize timing.
     ! --------------------------------------------------------------------------
 
-    call init_timing
-
-    ! print seconds elapsed since startup (should be almost zero)
-    if (mnproc == 1) then
-      write (lp,'(f12.4,a,i8)') get_time(),' Time 0 BLOM starting up'
-      call flush(lp)
-    end if
-
-    ! --------------------------------------------------------------------------
-    ! Initialize check sum algorithm.
-    ! --------------------------------------------------------------------------
-
-    call crcinit
+    call timer_init(2, 6)
+    call timer_start('initialization')
 
     ! --------------------------------------------------------------------------
     ! Read limits file.
@@ -428,24 +418,26 @@ contains
     call cmnfld1(m,n,mm,nn,k1m,k1n)
 
     ! --------------------------------------------------------------------------
-    ! Extract reference potential density vector representative of the
-    ! dominating ocean domain.
+    ! In case it is not otherwise specified, extract reference potential density
+    ! vector representative of the dominating ocean domain.
     ! --------------------------------------------------------------------------
 
-    call diasg1
+    call extract_sigref
 
+    ! --------------------------------------------------------------------------
+    ! Set output io group alarms.
+    ! --------------------------------------------------------------------------
+
+    call diaout_alarms
+
+    ! --------------------------------------------------------------------------
+    ! Write timer diagnostics to stdout.
     ! --------------------------------------------------------------------------
 
     if (mnproc == 1.and.expcnf /= 'cesm') then
       write (lp,'(/2(a,i6),2(a,i9),a/)') &
            'model starts at day',nday1,', goes to day',nday2,'   (steps', &
            nstep1,' --',nstep2,')'
-      call flush(lp)
-    end if
-
-    ! Print seconds elapsed since last call to system_clock (Time 0).
-    if (mnproc == 1) then
-      write (lp,'(f12.4,a,i8)') get_time(),' Time 1 Just before main loop'
       call flush(lp)
     end if
 
@@ -463,7 +455,7 @@ contains
     use mod_grid,      only: scqx, scqy, scpx, scpy, scuy, scvx, scp2, depths
     use mod_diffusion, only: difmxp, difmxq
     use mod_utility,   only: umax, vmax
-    use mod_checksum,  only: csdiag, chksummsk
+    use mod_checksum,  only: csdiag, chksum
 
     ! Local variables
     real(r8) :: dx2, dy2, btdtmx, umaxmin, vmaxmin, umaxmax, vmaxmax
@@ -554,10 +546,10 @@ contains
       if (mnproc == 1) then
         write (lp, *) 'numerical_bounds:'
       endif
-      call chksummsk(difmxp, ip, 1,'difmxp')
-      call chksummsk(difmxq, iq, 1,'difmxq')
-      call chksummsk(umax, iu, 1,'umax')
-      call chksummsk(vmax, iv, 1,'vmax')
+      call chksum(difmxp, 1, halo_ps, 'difmxp')
+      call chksum(difmxq, 1, halo_ps, 'difmxq')
+      call chksum(umax  , 1, halo_us, 'umax'  )
+      call chksum(vmax  , 1, halo_vs, 'vmax'  )
     endif
 
   end subroutine numerical_bounds

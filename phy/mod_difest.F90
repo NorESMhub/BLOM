@@ -32,12 +32,12 @@ module mod_difest
   use mod_state,             only: u, v, dp, dpu, dpv, temp, saln, sigma, p, &
                                    pbu, pbv, ubflxs_p, vbflxs_p, kfpla
   use mod_diffusion,         only: egc, eggam, eglsmn, egmndf, egmxdf, &
-                                   egidfq, rhiscf, ri0, bdmc1, bdmc2, &
-                                   bdmldp, tkepf, bdmtyp, eddf2d, edsprs, &
-                                   edanis, redi3d, rhsctp, edfsmo, smobld, &
-                                   lngmtp, edritp_opt, edritp_shear, &
-                                   edritp_large_scale, edwmth_opt, &
-                                   edwmth_smooth, edwmth_step, &
+                                   egidfq, rhiscf, ri0, bdmc1, bdmc2, bdmldp, &
+                                   iwdflg, iwdfac, nubmin, tkepf, bdmtyp, &
+                                   eddf2d, edsprs, edanis, redi3d, rhsctp, &
+                                   edfsmo, smobld, lngmtp, edritp_opt, &
+                                   edritp_shear, edritp_large_scale, &
+                                   edwmth_opt, edwmth_smooth, edwmth_step, &
                                    ltedtp_opt, ltedtp_neutral, &
                                    difint, difiso, difdia, difmxp, difwgt, &
                                    Kvisc_m, Kdiff_t, Kdiff_s, &
@@ -52,7 +52,7 @@ module mod_difest
   use mod_niw,               only: niwgf, niwbf, niwlf, idkedt, niw_ke_tendency
   use mod_seaice,            only: ficem
   use mod_utility,           only: util1, util2
-  use mod_checksum,          only: csdiag, chksummsk
+  use mod_checksum,          only: csdiag, chksum
   use CVMix_kpp,             only: CVMix_coeffs_kpp
   use CVMix_kpp,             only: CVMix_kpp_compute_turbulent_scales
   use CVMix_kpp,             only: CVMix_kpp_compute_bulk_Richardson
@@ -115,8 +115,6 @@ module mod_difest
   !            iidtyp=2 the diffusivities are parameterized according
   !            to Eden and Greatbatch (2008).
   !   tdmflg - If tdmflg=1, apply tidally driven diapycnal mixing.
-  !   iwdflg - If iwdflg=1, reduce background diapycnal diffusivity
-  !            due to internal wave damping under sea-ice.
   !   dpbmin - smallest layer thickness allowed in evaluating
   !            local gradient richardson number [kg/m/s^2].
   !   drhomn - minimum density difference in evaluations the
@@ -131,7 +129,6 @@ module mod_difest
   !   drho0  - critical local interface density difference [kg/m^3]
   !   nuls0  - maximum diapycnal diffusivity applied when local
   !            stability is weak [m^2/s].
-  !   iwdfac - internal wave dissipation factor under sea ice [].
   !   dmxeff - diapycnal mixing efficiency [].
   !   tdmq   - tidal dissipation efficiency [].
   !   tdmls0 - tidal driven mixing length scale below critical
@@ -148,7 +145,6 @@ module mod_difest
   !   cori30 - coriolis parameter at 30N [1/s].
   !   bvf0   - reference stratification in the parameterization of
   !            latitude dependent background diapycnal mixing [1/s].
-  !   nubmin - minimum background diapycnal diffusivity [m^2/s].
   !   dpgc   - thickness of region near the bottom where the maximum
   !            diffusivity is increased due to gravity current mixing
   !            processes [kg/m/s^2].
@@ -170,7 +166,6 @@ module mod_difest
   !            [m/s].
   integer , parameter :: iidtyp=2
   integer , parameter :: tdmflg=1
-  integer , parameter :: iwdflg=1
   integer , parameter :: dptmin = onem
   real    , parameter ::  dpbmin=onecm
   real    , parameter :: drhomn = 6.e-3
@@ -181,7 +176,6 @@ module mod_difest
   real    , parameter :: nug0 = 2.5e-1
   real    , parameter :: drho0 = 6.e-3
   real    , parameter :: nuls0=5.e-2
-  real    , parameter :: iwdfac = .06
   real    , parameter :: dmxeff=.2
   real    , parameter :: tdmq=1./3.
   real    , parameter :: tdmls0 = 500.*onem
@@ -192,7 +186,6 @@ module mod_difest
   real    , parameter :: niwls=300.*onem
   real    , parameter :: cori30 = 7.2722e-5
   real    , parameter :: bvf0=5.24e-3
-  real    , parameter :: nubmin = 1.e-6
   real    , parameter :: dpgc=300.*onem
   real    , parameter :: dpgrav=100.*onem
   real    , parameter :: dpdiav = 100.*onem
@@ -585,9 +578,9 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'difest_common_iso:'
       end if
-      call chksummsk(drhol,ip,kk,'drhol')
-      call chksummsk(du2l,ip,kk,'du2l')
-      call chksummsk(rig,ip,kk,'rig')
+      call chksum(drhol, kk, halo_ps, 'drhol')
+      call chksum(du2l , kk, halo_ps, 'du2l' )
+      call chksum(rig  , kk, halo_ps, 'rig'  )
     end if
 
   end subroutine difest_common_iso
@@ -732,9 +725,9 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'difest_common_hyb:'
       end if
-      call chksummsk(rig,ip,kk+1,'rig')
-      call chksummsk(up,ip,kk,'up')
-      call chksummsk(vp,ip,kk,'vp')
+      call chksum(rig, kk+1, halo_ps, 'rig')
+      call chksum(up , kk  , halo_ps, 'up' )
+      call chksum(vp , kk  , halo_ps, 'vp' )
     end if
 
   end subroutine difest_common_hyb
@@ -810,7 +803,7 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'difest_isobml:'
       end if
-      call chksummsk(ustar3,ip,1,'ustar3')
+      call chksum(ustar3, 1, halo_ps, 'ustar3')
     end if
 
   end subroutine difest_isobml
@@ -863,7 +856,7 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'difest_lateral_hybrid:'
       end if
-      call chksummsk(ustar3,ip,1,'ustar3')
+      call chksum(ustar3, 1, halo_ps, 'ustar3')
     end if
 
   end subroutine difest_lateral_hybrid
@@ -986,17 +979,13 @@ contains
             ww = .125*ip(i-1,j  )*min(onem,dp(i-1,j  ,kn))/onem
             we = .125*ip(i+1,j  )*min(onem,dp(i+1,j  ,kn))/onem
             wn = .125*ip(i  ,j+1)*min(onem,dp(i  ,j+1,kn))/onem
-            wc = 1. - (ws + ww + we + wn)
-            rig_lf(i,j,k) =   ws*rig(i  ,j-1,k) &
-                            + ww*rig(i-1,j  ,k) &
-                            + wc*rig(i  ,j  ,k) &
-                            + we*rig(i+1,j  ,k) &
-                            + wn*rig(i  ,j+1,k)
-            bfsqi_lf(i,j,k) =   ws*bfsqi(i  ,j-1,k) &
-                              + ww*bfsqi(i-1,j  ,k) &
-                              + wc*bfsqi(i  ,j  ,k) &
-                              + we*bfsqi(i+1,j  ,k) &
-                              + wn*bfsqi(i  ,j+1,k)
+            wc = - ((ws + ww) + (we + wn)) + 1.
+            rig_lf(i,j,k) = (ws*rig(i  ,j-1,k) + ww*rig(i-1,j  ,k)) &
+                          + (we*rig(i+1,j  ,k) + wn*rig(i  ,j+1,k)) &
+                          + wc*rig(i,j,k)
+            bfsqi_lf(i,j,k) = (ws*bfsqi(i  ,j-1,k) + ww*bfsqi(i-1,j  ,k)) &
+                            + (we*bfsqi(i+1,j  ,k) + wn*bfsqi(i  ,j+1,k)) &
+                            + wc*bfsqi(i,j,k)
           end do
         end do
       end do
@@ -1175,12 +1164,10 @@ contains
             ww = .125*ip(i-1,j  )
             we = .125*ip(i+1,j  )
             wn = .125*ip(i  ,j+1)
-            wc = 1. - (ws + ww + we + wn)
-            OBLdepth(i,j) = ws*util1(i  ,j-1) &
-                          + ww*util1(i-1,j  ) &
-                          + wc*util1(i  ,j  ) &
-                          + we*util1(i+1,j  ) &
-                          + wn*util1(i  ,j+1)
+            wc = - ((ws + ww) + (we + wn)) + 1._r8
+            OBLdepth(i,j) = (ws*util1(i  ,j-1) + ww*util1(i-1,j  )) &
+                          + (we*util1(i+1,j  ) + wn*util1(i  ,j+1)) &
+                          + wc*util1(i,j)
             OBLdepth(i,j) = min(OBLdepth(i,j), -z_int(i,j,kk+1))
           end do
         end do
@@ -1437,13 +1424,13 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'difest_vertical_hyb:'
       end if
-      call chksummsk(Kvisc_m,ip,kk+1,'Kvisc_m')
-      call chksummsk(Kdiff_t,ip,kk+1,'Kdiff_t')
-      call chksummsk(Kdiff_s,ip,kk+1,'Kdiff_s')
-      call chksummsk(t_ns_nonloc,ip,kk+1,'t_ns_nonloc')
-      call chksummsk(s_nb_nonloc,ip,kk+1,'s_nb_nonloc')
-      call chksummsk(mu_nonloc,iu,kk+1,'mu_nonloc')
-      call chksummsk(mv_nonloc,iv,kk+1,'mv_nonloc')
+      call chksum(Kvisc_m    , kk+1, halo_ps, 'Kvisc_m'    )
+      call chksum(Kdiff_t    , kk+1, halo_ps, 'Kdiff_t'    )
+      call chksum(Kdiff_s    , kk+1, halo_ps, 'Kdiff_s'    )
+      call chksum(t_ns_nonloc, kk+1, halo_ps, 't_ns_nonloc')
+      call chksum(s_nb_nonloc, kk+1, halo_ps, 's_nb_nonloc')
+      call chksum(mu_nonloc  , kk+1, halo_us, 'mu_nonloc'  )
+      call chksum(mv_nonloc  , kk+1, halo_vs, 'mv_nonloc'  )
     end if
 
   end subroutine difest_vertical_hyb
@@ -2019,22 +2006,18 @@ contains
         util2(:,:) = difiso(:,:,k)
         do j = 1 - mrg, jj + mrg
           do l = 1, isp(j)
-          do i = max(1 - mrg, ifp(j, l)), min(ii + mrg, ilp(j, l))
+          do i = max(1 - mrg, ifp(j,l)), min(ii + mrg, ilp(j,l))
             ws = .125_r8*ip(i  ,j-1)*min(onem,dp(i  ,j-1,kn))/onem
             ww = .125_r8*ip(i-1,j  )*min(onem,dp(i-1,j  ,kn))/onem
             we = .125_r8*ip(i+1,j  )*min(onem,dp(i+1,j  ,kn))/onem
             wn = .125_r8*ip(i  ,j+1)*min(onem,dp(i  ,j+1,kn))/onem
-            wc = 1._r8 - (ws + ww + we + wn)
-            difint(i,j,k) = ws*util1(i  ,j-1) &
-                          + ww*util1(i-1,j  ) &
-                          + wc*util1(i  ,j  ) &
-                          + we*util1(i+1,j  ) &
-                          + wn*util1(i  ,j+1)
-            difiso(i,j,k) = ws*util2(i  ,j-1) &
-                          + ww*util2(i-1,j  ) &
-                          + wc*util2(i  ,j  ) &
-                          + we*util2(i+1,j  ) &
-                          + wn*util2(i  ,j+1)
+            wc = 1._r8 - ((ws + ww) + (we + wn))
+            difint(i,j,k) = (ws*util1(i  ,j-1) + ww*util1(i-1,j  )) &
+                          + (we*util1(i+1,j  ) + wn*util1(i  ,j+1)) &
+                          + wc*util1(i,j)
+            difiso(i,j,k) = (ws*util2(i  ,j-1) + ww*util2(i-1,j  )) &
+                          + (we*util2(i+1,j  ) + wn*util2(i  ,j+1)) &
+                          + wc*util2(i,j)
           enddo
           enddo
         enddo
@@ -2048,8 +2031,8 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'difest_lateral_hyb:'
       end if
-      call chksummsk(difint,ip,kk,'difint')
-      call chksummsk(difiso,ip,kk,'difiso')
+      call chksum(difint, kk, halo_ps, 'difint')
+      call chksum(difiso, kk, halo_ps, 'difiso')
     end if
 
   end subroutine difest_lateral_hyb
@@ -2612,22 +2595,18 @@ contains
         util2(:,:) = difiso(:,:,k)
         do j = 1 - mrg, jj + mrg
           do l = 1, isp(j)
-          do i = max(1 - mrg, ifp(j, l)), min(ii + mrg, ilp(j, l))
+          do i = max(1 - mrg, ifp(j,l)), min(ii + mrg, ilp(j,l))
             ws = .125_r8*ip(i  ,j-1)*min(onem,dp(i  ,j-1,kn))/onem
             ww = .125_r8*ip(i-1,j  )*min(onem,dp(i-1,j  ,kn))/onem
             we = .125_r8*ip(i+1,j  )*min(onem,dp(i+1,j  ,kn))/onem
             wn = .125_r8*ip(i  ,j+1)*min(onem,dp(i  ,j+1,kn))/onem
-            wc = 1._r8 - (ws + ww + we + wn)
-            difint(i,j,k) = ws*util1(i  ,j-1) &
-                          + ww*util1(i-1,j  ) &
-                          + wc*util1(i  ,j  ) &
-                          + we*util1(i+1,j  ) &
-                          + wn*util1(i  ,j+1)
-            difiso(i,j,k) = ws*util2(i  ,j-1) &
-                          + ww*util2(i-1,j  ) &
-                          + wc*util2(i  ,j  ) &
-                          + we*util2(i+1,j  ) &
-                          + wn*util2(i  ,j+1)
+            wc = - ((ws + ww) + (we + wn)) + 1._r8
+            difint(i,j,k) = (ws*util1(i  ,j-1) + ww*util1(i-1,j  )) &
+                          + (we*util1(i+1,j  ) + wn*util1(i  ,j+1)) &
+                          + wc*util1(i,j)
+            difiso(i,j,k) = (ws*util2(i  ,j-1) + ww*util2(i-1,j  )) &
+                          + (we*util2(i+1,j  ) + wn*util2(i  ,j+1)) &
+                          + wc*util2(i,j)
           enddo
           enddo
         enddo
@@ -2641,8 +2620,8 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'difest_lateral_iso:'
       end if
-      call chksummsk(difint,ip,kk,'difint')
-      call chksummsk(difiso,ip,kk,'difiso')
+      call chksum(difint, kk, halo_ps, 'difint')
+      call chksum(difiso, kk, halo_ps, 'difiso')
     end if
 
   end subroutine difest_lateral_iso
@@ -3092,12 +3071,12 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'difest_vertical_iso:'
       end if
-      call chksummsk(idkedt,ip,1,'idkedt')
-      call chksummsk(difdia,ip,kk,'difdia')
+      call chksum(idkedt, 1, halo_ps, 'idkedt')
+      call chksum(difdia, kk, halo_ps, 'difdia')
       if (use_TRC .and. use_TKE) then
-        call chksummsk(trc(1-nbdy,1-nbdy,1,itrtke),ip,2*kk,'tke')
+        call chksum(trc(1-nbdy,1-nbdy,1,itrtke), 2*kk, halo_ps, 'tke')
         if (use_GLS) then
-          call chksummsk(trc(1-nbdy,1-nbdy,1,itrgls),ip,2*kk,'gls_psi')
+          call chksum(trc(1-nbdy,1-nbdy,1,itrgls), 2*kk, halo_ps, 'gls_psi')
         end if
       end if
     end if

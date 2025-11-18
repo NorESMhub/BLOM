@@ -33,7 +33,9 @@ module mod_ale_regrid_remap
                             vcoord_cntiso_hybrid, vcoord_plevel, &
                             sigmar, plevel
    use mod_eos,       only: sig, dsigdt, dsigds
-   use mod_state,     only: u, v, dp, dpu, dpv, temp, saln, sigma, p, pu, pv
+   use mod_state,     only: u, v, dp, dpu, dpv, temp, saln, sigma, p, pu, pv, &
+                            ub, vb, utflx, vtflx, usflx, vsflx
+   use mod_tmsmt,     only: dpuold, dpvold
    use mod_hor3map,   only: recon_grd_struct, recon_src_struct, remap_struct, &
                             hor3map_plm, hor3map_ppm, hor3map_pqm, &
                             hor3map_monotonic, hor3map_non_oscillatory, &
@@ -43,11 +45,19 @@ module mod_ale_regrid_remap
                             extract_polycoeff, regrid, &
                             prepare_remapping, remap, &
                             hor3map_noerr, hor3map_errstr
-   use mod_diffusion, only: ltedtp_opt, ltedtp_neutral, difiso, difmxp
+   use mod_diffusion, only: ltedtp_opt, ltedtp_neutral, difmxp, &
+                            utflld, vtflld, usflld, vsflld
    use mod_ndiff,     only: ndiff_prep_jslice, ndiff_uflx_jslice, &
                             ndiff_vflx_jslice, ndiff_update_trc_jslice
-   use mod_checksum,  only: csdiag, chksummsk
-   use mod_tracers,   only: ntr, trc
+   use mod_dia,       only: ddm, nphy, alarm_phy, &
+                            depthslev_bnds, pbath, ubath, vbath, phylvl, &
+                            acc_templvl, acc_salnlvl, &
+                            acc_uvellvl, acc_vvellvl, &
+                            acc_idlagelvl
+   use mod_checksum,  only: csdiag, chksum
+   use mod_tracers,   only: ntr, itriag, trc
+   use mod_ifdefs,    only: use_TRC, use_IDLAGE
+   use mod_utility,   only: util1
 
    implicit none
    private
@@ -70,6 +80,7 @@ module mod_ale_regrid_remap
         dpmin_interior         = .1_r8, &
         regrid_nudge_ts        = 86400._r8, &
         stab_fac_limit         = .75_r8, &
+        dpvar_fac              = .75_r8, &
         smooth_diff_max        = 50000._r8
    integer :: &
         upper_bndr_ord = 6, &
@@ -95,7 +106,7 @@ module mod_ale_regrid_remap
                                       ! construction of Bezier curves.
    integer, parameter :: &
         regrid_method_direct = 1, &   ! Regrid method (vcoord_tag ==
-                                      ! vcoord_cntiso_hybrid): On the basis of 
+                                      ! vcoord_cntiso_hybrid): On the basis of
                                       ! reconstructed potential density, regrid
                                       ! interface pressures so interface
                                       ! potential densities match target values.
@@ -110,11 +121,11 @@ module mod_ale_regrid_remap
    type(recon_grd_struct) :: rcgs
    type(recon_src_struct) :: d_rcss, v_rcss
    type(recon_src_struct), allocatable, dimension(:) :: trc_rcss
-   type(remap_struct) :: rms
+   type(remap_struct) :: rms, rms_diazlv
 
    public :: regrid_method_tag, regrid_method_direct, &
              readnml_ale_regrid_remap, init_ale_regrid_remap, &
-             ale_regrid_remap
+             ale_regrid_remap, ale_remap_diazlv
 
 contains
 
@@ -282,7 +293,7 @@ contains
 
       real(r8), dimension(kdm+1) :: sig_trg
       real(r8), dimension(kdm) :: sig_src
-      real(r8) :: beta, sdpsum, smean, dpmin_int, pku, pku_test, pmin, dpt, &
+      real(r8) :: beta, sdpsum, smean, dpmin, pku, pku_test, pmin, dpt, &
                   pt, ptu1, ptl1, ptu2, ptl2, w1, x
       integer :: l, i, k, kn, ks, ke, kl, ku, errstat
       logical :: thin_layers, layer_added
@@ -430,24 +441,24 @@ contains
 
             ! Modify interface pressures so that layer thicknesses are
             ! above a specified threshold.
-            dpmin_int = min(plevel(2) - plevel(1), dpmin_interior)
+            dpmin = min(plevel(2) - plevel(1), dpmin_interior)
             ks = max(2, ks)
             ke = min(kk, ke)
             k = ks
             do while (k <= ke)
-               if (p_dst(k+1,i) - p_dst(k,i) < dpmin_int) then
+               if (p_dst(k+1,i) - p_dst(k,i) < dpmin) then
                   if (k == ke) then
                      p_dst(k,i) = p_dst(ke+1,i)
                   else
                      ku = k
                      kl = k + 1
-                     pku = .5_r8*(p_dst(kl,i) + p_dst(ku,i) - dpmin_int)
+                     pku = .5_r8*(p_dst(kl,i) + p_dst(ku,i) - dpmin)
                      do
                         layer_added = .false.
                         kl = kl + 1
-                        pku_test = ((pku - dpmin_int)*(kl - ku) + p_dst(kl,i)) &
+                        pku_test = ((pku - dpmin)*(kl - ku) + p_dst(kl,i)) &
                                    /(kl - ku + 1)
-                        if (pku_test + (kl - ku)*dpmin_int > p_dst(kl,i)) then
+                        if (pku_test + (kl - ku)*dpmin > p_dst(kl,i)) then
                            if (kl == ke + 1) exit
                            pku = pku_test
                            layer_added = .true.
@@ -455,7 +466,7 @@ contains
                            kl = kl - 1
                         endif
                         ku = ku - 1
-                        pku_test = ((pku - dpmin_int)*(kl - ku) + p_dst(ku,i)) &
+                        pku_test = ((pku - dpmin)*(kl - ku) + p_dst(ku,i)) &
                                    /(kl - ku + 1)
                         if (pku_test < p_dst(ku,i)) then
                            if (ku == 1) exit
@@ -469,12 +480,12 @@ contains
                      if     (ku == 1) then
                         do k = 2, kl
                            p_dst(k,i) = min(p_dst(ke+1,i), &
-                                            p_dst(k -1,i) + dpmin_int)
+                                            p_dst(k -1,i) + dpmin)
                         enddo
                         do k = kl+1, ke
                            p_dst(k,i) = &
                               min(p_dst(ke+1,i), &
-                              max(p_dst(k,i), p_dst(1,i) + dpmin_int*(k - 1)))
+                              max(p_dst(k,i), p_dst(1,i) + dpmin*(k - 1)))
                         enddo
                      elseif (kl == ke + 1) then
                         do k = ku, kl
@@ -483,7 +494,7 @@ contains
                      else
                         p_dst(ku,i) = pku
                         do k = ku+1, kl
-                           p_dst(k,i) = p_dst(k-1,i) + dpmin_int
+                           p_dst(k,i) = p_dst(k-1,i) + dpmin
                         enddo
                      endif
                      k = kl
@@ -517,8 +528,7 @@ contains
                   x = .5_r8*(p_dst(k+1,i) - ptu2)/dpt
                   pt = w1*pt + (1._r8 - w1)*(pmin + dpt*x*x)
                endif
-               p_dst(k,i) = min(p_dst(ke+1,i), &
-                                max(p_dst(k-1,i) + dpmin_int, pt))
+               p_dst(k,i) = min(p_dst(ke+1,i), max(p_dst(k-1,i) + dpmin, pt))
             enddo
 
          enddo
@@ -527,7 +537,7 @@ contains
    end subroutine regrid_cntiso_hybrid_direct_jslice
 
    subroutine regrid_cntiso_hybrid_nudge_jslice( &
-                 p_src, ksmx, tpc_src, t_srcdi, p_dst, stab_fac, ilb, iub, j)
+                 p_src, ksmx, tpc_src, t_srcdi, p_dst, smooth_fac, ilb, iub, j)
    ! ---------------------------------------------------------------------------
    ! For vcoord == 'cntiso_hybrid' and regrid_method = 'nudge', nudge the
    ! interface pressures to reduce the deviation from interface target potential
@@ -537,7 +547,7 @@ contains
       real(r8), dimension(:,1-nbdy:), intent(in) :: p_src
       integer, dimension(1-nbdy:), intent(in) :: ksmx
       real(r8), dimension(:,:,:,1-nbdy:), intent(in) :: tpc_src, t_srcdi
-      real(r8), dimension(:,1-nbdy:), intent(out) :: p_dst, stab_fac
+      real(r8), dimension(:,1-nbdy:), intent(out) :: p_dst, smooth_fac
       integer, intent(in) :: ilb, iub, j
 
       integer, parameter :: &
@@ -548,11 +558,13 @@ contains
       integer, dimension(1-nbdy:idm+nbdy) :: kdmx
 
       real(r8), dimension(kdm+1) :: sig_trg, sig_pmin
-      real(r8), dimension(kdm) :: dsig_trg, pmin
+      real(r8), dimension(kdm) :: dsig_trg, pmin, dpmin
       real(r8) :: sig_max, ckt, sig_up, sig_lo, dk, dki, &
                   dsigdx_up, dsigdx_lo, x, xi, si, t, nudge_fac, &
-                  dsig, dsigdx, dp_up, dp_lo, sig_intrp
-      integer :: l, i, k, kt, kl, ktzmin, ktzmax
+                  dsig, dsigdx, stab_fac, dp_up, dp_lo, sig_intrp, &
+                  dpmin_sum, dp_sum, dpmin_sum_test, dp_sum_test
+      integer :: l, i, k, kt, kl, ktzmin, ktzmax, ks, ke, ku
+      logical :: layer_added
 
       do l = 1, isp(j)
          do i = max(ilb, ifp(j,l)), min(iub, ilp(j,l))
@@ -599,7 +611,7 @@ contains
             kl = 1
             sig_pmin(1) = sig_srcdi(1,1)
             p_dst(1,i) = pmin(1)
-            stab_fac(1,i) = 0._r8
+            smooth_fac(1,i) = 1._r8
             do k = 2, k_range_plevel
                do while (p_src(kl+1,i) < pmin(k))
                   kl = kl + 1
@@ -611,7 +623,7 @@ contains
                p_dst(k,i) = min(max(p_dst(k,i), pmin(k), &
                                     p_dst(k-1,i) + dpmin_interior), &
                                 p_src(kk+1,i))
-               stab_fac(k,i) = 0._r8
+               smooth_fac(k,i) = 1._r8
             enddo
 
             ! Find the index of the first interface with potential density at
@@ -695,7 +707,7 @@ contains
                p_dst(kt,i) = min(max(p_dst(kt,i), pmin(kt), &
                                      p_dst(kt-1,i) + dpmin_interior), &
                                  p_src(kk+1,i))
-               stab_fac(kt,i) = 0._r8
+               smooth_fac(kt,i) = 1._r8
                kt = kt + 1
             enddo
 
@@ -705,7 +717,7 @@ contains
 
             do k = kt, kk+1
                p_dst(k,i) = p_src(kk+1,i)
-               stab_fac(k,i) = 1._r8
+               smooth_fac(k,i) = 0._r8
             enddo
 
             do k = kt, min(ksmx(i), kdmx(i))
@@ -716,8 +728,8 @@ contains
                            *dpeval1(tpc_src(:,k-1,it,i)) &
                          + dsigds(t_srcdi(2,k-1,it,i), t_srcdi(2,k-1,is,i)) &
                            *dpeval1(tpc_src(:,k-1,is,i))
-                  stab_fac(k,i) = dsigdx/dsig_trg(k-1)
-                  dsigdx = dsig_trg(k-1)*max(stab_fac(k,i), stab_fac_limit)
+                  stab_fac = dsigdx/dsig_trg(k-1)
+                  dsigdx = dsig_trg(k-1)*max(stab_fac, stab_fac_limit)
                   p_dst(k,i) = p_src(k,i) &
                              + max(- .5_r8, dsig*nudge_fac/dsigdx) &
                                *(p_src(k,i) - p_src(k-1,i))
@@ -728,8 +740,8 @@ contains
                            *dpeval0(tpc_src(:,k,it,i)) &
                          + dsigds(t_srcdi(1,k,it,i), t_srcdi(1,k,is,i)) &
                            *dpeval0(tpc_src(:,k,is,i))
-                  stab_fac(k,i) = dsigdx/dsig_trg(k)
-                  dsigdx = dsig_trg(k)*max(stab_fac(k,i), stab_fac_limit)
+                  stab_fac = dsigdx/dsig_trg(k)
+                  dsigdx = dsig_trg(k)*max(stab_fac, stab_fac_limit)
                   p_dst(k,i) = p_src(k,i) &
                              + min(.5_r8, dsig*nudge_fac/dsigdx) &
                                *(p_src(k+1,i) - p_src(k,i))
@@ -753,15 +765,15 @@ contains
                   dsig = sig_trg(k) - sig_intrp
                   if (dsig < 0._r8) then
                      dsigdx = dsigdx_up + 2._r8*(sig_intrp - sig_srcdi(2,k-1))
-                     stab_fac(k,i) = dsigdx/dsig_trg(k-1)
-                     dsigdx = dsig_trg(k-1)*max(stab_fac(k,i), stab_fac_limit)
+                     stab_fac = dsigdx/dsig_trg(k-1)
+                     dsigdx = dsig_trg(k-1)*max(stab_fac, stab_fac_limit)
                      p_dst(k,i) = p_src(k,i) &
                                 + max(- .5_r8, dsig*nudge_fac/dsigdx) &
                                   *(p_src(k,i) - p_src(k-1,i))
                   else
                      dsigdx = dsigdx_lo + 2._r8*(sig_srcdi(1,k  ) - sig_intrp)
-                     stab_fac(k,i) = dsigdx/dsig_trg(k)
-                     dsigdx = dsig_trg(k)*max(stab_fac(k,i), stab_fac_limit)
+                     stab_fac = dsigdx/dsig_trg(k)
+                     dsigdx = dsig_trg(k)*max(stab_fac, stab_fac_limit)
                      p_dst(k,i) = p_src(k,i) &
                                 + min(.5_r8, dsig*nudge_fac/dsigdx) &
                                   *(p_src(k+1,i) - p_src(k,i))
@@ -770,6 +782,9 @@ contains
                p_dst(k,i) = min(max(p_dst(k,i), pmin(k), &
                                     p_dst(k-1,i) + dpmin_interior), &
                                 p_src(kk+1,i))
+               smooth_fac(k,i) = &
+                  max(0._r8, min(1._r8, (stab_fac_limit - stab_fac) &
+                                        /stab_fac_limit))
             enddo
 
             do k = max(kt, min(ksmx(i), kdmx(i))) + 1, kdmx(i)
@@ -781,16 +796,92 @@ contains
                          + dsigds(t_srcdi(2,ksmx(i),it,i), &
                                   t_srcdi(2,ksmx(i),is,i)) &
                            *dpeval1(tpc_src(:,ksmx(i),is,i))
-                  stab_fac(k,i) = dsigdx/dsig_trg(ksmx(i)-1)
-                  dsigdx = dsig_trg(ksmx(i)-1) &
-                           *max(stab_fac(k,i), stab_fac_limit)
+                  stab_fac = dsigdx/dsig_trg(ksmx(i)-1)
+                  dsigdx = dsig_trg(ksmx(i)-1)*max(stab_fac, stab_fac_limit)
                   p_dst(k,i) = p_src(kk+1,i) &
                              + max(- .5_r8, dsig*nudge_fac/dsigdx) &
                                *(p_src(kk+1,i) - p_src(ksmx(i),i))
                   p_dst(k,i) = min(max(p_dst(k,i), pmin(k), &
                                        p_dst(k-1,i) + dpmin_interior), &
                                    p_src(kk+1,i))
+                  smooth_fac(k,i) = &
+                     max(0._r8, min(1._r8, (stab_fac_limit - stab_fac) &
+                                           /stab_fac_limit))
                endif
+            enddo
+
+            ! Limit the local vertical layer thickness variation. The overall
+            ! goal is that layer thickness of layer k has a lower bound of:
+            !
+            !    dpvar_fac*(dp(k-1) + dp(k) + dp(k+1))/3
+
+            ks = kt
+            ke = kk
+            do k = kk, 1, -1
+               if (p_dst(k,i) == p_dst(kk+1,i)) ke = k - 1
+            enddo
+
+            do k = ks, ke - 1
+               dpmin(k) = &
+                  min(2._r8*p_dst(ke+1,i) - p_dst(k+1,i) - p_dst(k,i), &
+                      max(dpmin_interior, &
+                          dpvar_fac*(p_dst(k+2,i) - p_dst(k-1,i))/3._r8))
+            enddo
+
+            k = ks
+            do while (k < ke)
+               if (p_dst(k+1,i) - p_dst(k,i) < dpmin(k)) then
+                  ku = k
+                  kl = k + 1
+                  dpmin_sum = dpmin(ku)
+                  dp_sum = p_dst(k+1,i) - p_dst(k,i)
+                  layer_added = .true.
+                  do while (layer_added)
+                     layer_added = .false.
+                     if (kl + 1 < ke) then
+                        dpmin_sum_test = dpmin_sum + dpmin(kl)
+                        dp_sum_test = dp_sum + p_dst(kl+1,i) - p_dst(kl,i)
+                        if (dpmin_sum_test > dp_sum_test) then
+                           dpmin_sum = dpmin_sum_test
+                           dp_sum = dp_sum_test
+                           kl = kl + 1
+                           layer_added = .true.
+                        endif
+                     endif
+                     if (ku > ks) then
+                        dpmin_sum_test = dpmin_sum + dpmin(ku-1)
+                        dp_sum_test = dp_sum + p_dst(ku,i) - p_dst(ku-1,i)
+                        if (dpmin_sum_test > dp_sum_test) then
+                           dpmin_sum = dpmin_sum_test
+                           dp_sum = dp_sum_test
+                           ku = ku - 1
+                           layer_added = .true.
+                        endif
+                     endif
+                  enddo
+                  if (ku == ks) then
+                     do k = ks, kl - 1
+                        p_dst(k+1,i) = min(p_dst(ke+1,i), p_dst(k,i) + dpmin(k))
+                     enddo
+                     do k = kl, ke - 1
+                        p_dst(k+1,i) = max(p_dst(k+1,i), p_dst(k,i))
+                     enddo
+                     ks = kl - 1
+                     k = ks
+                  else
+                     dp_up = p_dst(ku,i) - p_dst(ku-1,i)
+                     dp_lo = p_dst(kl+1,i) - p_dst(kl,i)
+                     p_dst(ku,i) = &
+                        max(p_dst(ku-1,i), &
+                            p_dst(ku,i) - (dpmin_sum - dp_sum)*dp_up &
+                                          /max(epsilp, dp_up + dp_lo))
+                     do k = ku, kl - 1
+                        p_dst(k+1,i) = min(p_dst(ke+1,i), p_dst(k,i) + dpmin(k))
+                     enddo
+                     k = kl
+                  endif
+               endif
+               k = k + 1
             enddo
 
          enddo
@@ -798,7 +889,7 @@ contains
 
    end subroutine regrid_cntiso_hybrid_nudge_jslice
 
-   subroutine regrid_jslice(p_src, ksmx, tpc_src, t_srcdi, p_dst, stab_fac, &
+   subroutine regrid_jslice(p_src, ksmx, tpc_src, t_srcdi, p_dst, smooth_fac, &
                             ilb, iub, j, js, nn)
    ! ---------------------------------------------------------------------------
    ! Carry out regridding layer interfaces.
@@ -807,7 +898,7 @@ contains
       real(r8), dimension(:,1-nbdy:), intent(in) :: p_src
       integer, dimension(1-nbdy:), intent(in) :: ksmx
       real(r8), dimension(:,:,:,1-nbdy:), intent(in) :: tpc_src, t_srcdi
-      real(r8), dimension(:,1-nbdy:), intent(out) :: p_dst, stab_fac
+      real(r8), dimension(:,1-nbdy:), intent(out) :: p_dst, smooth_fac
       integer, intent(in) :: ilb, iub, j, js, nn
 
       if (vcoord_tag == vcoord_plevel) then
@@ -818,14 +909,14 @@ contains
                                                     ilb, iub, j, js, nn)
          else
             call regrid_cntiso_hybrid_nudge_jslice(p_src, ksmx, tpc_src, &
-                                                   t_srcdi, p_dst, stab_fac, &
+                                                   t_srcdi, p_dst, smooth_fac, &
                                                    ilb, iub, j)
          endif
       endif
 
    end subroutine regrid_jslice
 
-   subroutine regrid_smooth_jslice(p_dst_js, stab_fac_js, smtflxconv_js, &
+   subroutine regrid_smooth_jslice(p_dst_js, smooth_fac_js, smtflxconv_js, &
                                    ilb, iub, j, js2, js3)
    ! ---------------------------------------------------------------------------
    ! For vcoord == 'cntiso_hybrid' and regrid_method == 'nudge', apply lateral
@@ -834,10 +925,10 @@ contains
    ! ---------------------------------------------------------------------------
 
       real(r8), dimension(:,1-nbdy:,:), intent(inout) :: &
-         p_dst_js, stab_fac_js, smtflxconv_js
+         p_dst_js, smooth_fac_js, smtflxconv_js
       integer, intent(in) :: ilb, iub, j, js2, js3
 
-      real(r8) :: cdiff, difmx, flxhi, flxlo, flx, q, sdiff
+      real(r8) :: cdiff, difmx, flxhi, flxlo, flx, sdiff
       integer :: l, i, k
 
       smtflxconv_js(:,:,js3) = 0._r8
@@ -855,12 +946,9 @@ contains
                                      - p_dst_js(k-1,i  ,js3))*scp2(i  ,j+1), &
                                      ( p_dst_js(k+1,i-1,js3) &
                                      - p_dst_js(k  ,i-1,js3))*scp2(i-1,j+1))
-               q = .5_r8*( max(0._r8, min(stab_fac_limit, &
-                                          stab_fac_js(k,i-1,js3))) &
-                         + max(0._r8, min(stab_fac_limit, &
-                                          stab_fac_js(k,i  ,js3))))
-               sdiff = min((stab_fac_limit - q)*smooth_diff_max &
-                           /stab_fac_limit, difmx)
+               sdiff = min(.5_r8*( smooth_fac_js(k,i-1,js3) &
+                                 + smooth_fac_js(k,i  ,js3))*smooth_diff_max, &
+                           difmx)
                flx = min(flxhi, max(flxlo, cdiff*sdiff*( p_dst_js(k,i-1,js3) &
                                                        - p_dst_js(k,i  ,js3))))
                smtflxconv_js(k,i-1,js3) = smtflxconv_js(k,i-1,js3) + flx
@@ -882,12 +970,9 @@ contains
                                      - p_dst_js(k-1,i,js3))*scp2(i,j+1), &
                                      ( p_dst_js(k+1,i,js2) &
                                      - p_dst_js(k  ,i,js2))*scp2(i,j  ))
-               q = .5_r8*( max(0._r8, min(stab_fac_limit, &
-                                          stab_fac_js(k,i,js2))) &
-                         + max(0._r8, min(stab_fac_limit, &
-                                          stab_fac_js(k,i,js3))))
-               sdiff = min((stab_fac_limit - q)*smooth_diff_max &
-                           /stab_fac_limit, difmx)
+               sdiff = min(.5_r8*( smooth_fac_js(k,i,js2) &
+                                 + smooth_fac_js(k,i,js3))*smooth_diff_max, &
+                           difmx)
                flx = min(flxhi, max(flxlo, cdiff*sdiff*( p_dst_js(k,i,js2) &
                                                        - p_dst_js(k,i,js3))))
                smtflxconv_js(k,i,js2) = smtflxconv_js(k,i,js2) + flx
@@ -900,7 +985,7 @@ contains
          do i = max(ilb, ifp(j,l)), min(iub, ilp(j,l))
             do k = 2, kk
                p_dst_js(k,i,js2) = p_dst_js(k,i,js2) &
-                                   - smtflxconv_js(k,i,js2)*scp2i(i,j)
+                                 - smtflxconv_js(k,i,js2)*scp2i(i,j)
             enddo
          enddo
       enddo
@@ -943,6 +1028,100 @@ contains
       enddo
 
    end subroutine remap_trc_jslice
+
+   subroutine remap_trc_diazlv_jslice(p_src, ilb, iub, j, js, &
+                                      do_acc_templvl, do_acc_salnlvl, &
+                                      do_acc_idlagelvl)
+   ! ---------------------------------------------------------------------------
+   ! Remap tracers from source to diagnostic z-levels.
+   ! ---------------------------------------------------------------------------
+
+      real(r8), dimension(:,1-nbdy:), intent(in) :: p_src
+      integer, intent(in) :: ilb, iub, j, js
+      logical, intent(in) :: do_acc_templvl, do_acc_salnlvl, do_acc_idlagelvl
+
+      real(r8), dimension(ddm+1) :: p_dst
+      real(r8), dimension(ddm) :: trc_rm
+      real(r8) :: q
+      integer :: l, i, kd, errstat, iogrp
+
+      if (.not. (do_acc_templvl .or. do_acc_salnlvl .or. &
+                 do_acc_idlagelvl)) return
+
+      do l = 1, isp(j)
+         do i = max(ilb, ifp(j,l)), min(iub, ilp(j,l))
+
+            ! Prepare remapping to destination z-levels.
+            p_dst(1) = p_src(1,i)
+            q = 1._r8/pbath(i,j)
+            do kd = 2, ddm
+               p_dst(kd) = min(depthslev_bnds(1,kd)*q, 1._r8) &
+                           *(p_src(kk+1,i) - p_src(1,i)) + p_src(1,i)
+            enddo
+            p_dst(ddm+1) = p_src(kk+1,i)
+            errstat = prepare_remapping(rcgs, rms_diazlv, p_dst, i, js)
+            if (errstat /= hor3map_noerr) then
+               write(lp,*) trim(hor3map_errstr(errstat))
+               call xchalt('(remap_trc_diazlv_jslice)')
+               stop '(remap_trc_diazlv_jslice)'
+            endif
+
+            ! Remap tracers.
+
+            if (do_acc_templvl) then
+               errstat = remap(trc_rcss(1), rms_diazlv, trc_rm, i, js)
+               if (errstat /= hor3map_noerr) then
+                  write(lp,*) trim(hor3map_errstr(errstat))
+                  call xchalt('(remap_trc_diazlv_jslice)')
+                  stop '(remap_trc_diazlv_jslice)'
+               endif
+               do iogrp = 1, nphy
+                  if (acc_templvl(iogrp) /= 0) then
+                     do kd = 1, ddm
+                        phylvl(i,j,kd,acc_templvl(iogrp)) = &
+                           phylvl(i,j,kd,acc_templvl(iogrp)) + trc_rm(kd)
+                     enddo
+                  endif
+               enddo
+            endif
+
+            if (do_acc_salnlvl) then
+               errstat = remap(trc_rcss(2), rms_diazlv, trc_rm, i, js)
+               if (errstat /= hor3map_noerr) then
+                  write(lp,*) trim(hor3map_errstr(errstat))
+                  call xchalt('(remap_trc_diazlv_jslice)')
+                  stop '(remap_trc_diazlv_jslice)'
+               endif
+               do iogrp = 1, nphy
+                  if (acc_salnlvl(iogrp) /= 0) then
+                     do kd = 1, ddm
+                        phylvl(i,j,kd,acc_salnlvl(iogrp)) = &
+                           phylvl(i,j,kd,acc_salnlvl(iogrp)) + trc_rm(kd)
+                     enddo
+                  endif
+               enddo
+            endif
+
+            if (do_acc_idlagelvl) then
+               errstat = remap(trc_rcss(itriag+2), rms_diazlv, trc_rm, i, js)
+               if (errstat /= hor3map_noerr) then
+                  write(lp,*) trim(hor3map_errstr(errstat))
+                  call xchalt('(remap_trc_diazlv_jslice)')
+                  stop '(remap_trc_diazlv_jslice)'
+               endif
+               do iogrp = 1, nphy
+                  if (acc_idlagelvl(iogrp) /= 0) then
+                     do kd = 1, ddm
+                        phylvl(i,j,kd,acc_idlagelvl(iogrp)) = trc_rm(kd)
+                     enddo
+                  endif
+               enddo
+            endif
+
+         enddo
+      enddo
+
+   end subroutine remap_trc_diazlv_jslice
 
    subroutine copy_jslice_to_3d(p_dst, trc_rm, ilb, iub, j, nn)
 
@@ -993,7 +1172,7 @@ contains
          tracer_pc_upper_bndr, tracer_pc_lower_bndr, &
          velocity_pc_upper_bndr, velocity_pc_lower_bndr, dpmin_interior, &
          regrid_method, k_range_plevel, regrid_nudge_ts, stab_fac_limit, &
-         smooth_diff_max, dktzu, dktzl
+         dpvar_fac, smooth_diff_max, dktzu, dktzl
 
       ! Return if ALE method is not required.
       if (vcoord_tag == vcoord_isopyc_bulkml) return
@@ -1044,6 +1223,7 @@ contains
          call xcbcst(k_range_plevel)
          call xcbcst(regrid_nudge_ts)
          call xcbcst(stab_fac_limit)
+         call xcbcst(dpvar_fac)
          call xcbcst(smooth_diff_max)
          call xcbcst(dktzu)
          call xcbcst(dktzl)
@@ -1067,6 +1247,7 @@ contains
          write (lp,*) '  k_range_plevel =         ', k_range_plevel
          write (lp,*) '  regrid_nudge_ts =        ', regrid_nudge_ts
          write (lp,*) '  stab_fac_limit =         ', stab_fac_limit
+         write (lp,*) '  dpvar_fac =              ', dpvar_fac
          write (lp,*) '  smooth_diff_max =        ', smooth_diff_max
          write (lp,*) '  dktzu =                  ', dktzu
          write (lp,*) '  dktzl =                  ', dktzl
@@ -1224,6 +1405,9 @@ contains
       ! Configuration of remapping data structure.
       rms%n_dst = kk
 
+      ! Configuration of remapping data structure for diagnostic z-levels.
+      rms_diazlv%n_dst = ddm
+
       ! Initialize reconstruction and remapping data structures.
 
       errstat = initialize_rcgs(rcgs)
@@ -1263,35 +1447,62 @@ contains
          stop '(init_ale_regrid_remap)'
       endif
 
+      errstat = initialize_rms(rcgs, rms_diazlv)
+      if (errstat /= hor3map_noerr) then
+         write(lp,*) trim(hor3map_errstr(errstat))
+         call xchalt('(init_ale_regrid_remap)')
+         stop '(init_ale_regrid_remap)'
+      endif
+
    end subroutine init_ale_regrid_remap
 
    subroutine ale_regrid_remap(m, n, mm, nn, k1m, k1n)
    ! ---------------------------------------------------------------------------
-   ! Regrid, remap and carry out additional operations that makes use of the
-   ! reconstructed vertical profiles, such as neutral diffusion.
+   ! Regrid, remap and carry out additional operations that make use of the
+   ! reconstructed vertical profiles, such as neutral diffusion and remapping to
+   ! diagnostic z-levels.
    ! ---------------------------------------------------------------------------
 
       integer, intent(in) :: m, n, mm, nn, k1m, k1n
 
       integer, parameter :: p_ord = 4
 
+      real(r8), dimension(kdm,1-nbdy:idm+nbdy,3) :: smtflxconv_js
       real(r8), dimension(kdm+1,1-nbdy:idm+nbdy,3) :: &
-         p_src_js, p_dst_js, stab_fac_js, smtflxconv_js
+         p_src_js, p_dst_js, smooth_fac_js
       real(r8), dimension(p_ord+1,kdm,ntr_loc,1-nbdy:idm+nbdy,3) :: tpc_src_js
       real(r8), dimension(2,kdm,ntr_loc,1-nbdy:idm+nbdy,3) :: t_srcdi_js
       real(r8), dimension(2,kdm,1-nbdy:idm+nbdy,3) :: &
          p_srcdi_js, drhodt_srcdi_js, drhods_srcdi_js
       real(r8), dimension(kdm,ntr_loc,1-nbdy:idm+nbdy,3) :: flxconv_js
       real(r8), dimension(kdm,ntr_loc,1-nbdy:idm+nbdy) :: trc_rm
-      real(r8), dimension(kdm+1) :: p_1d, p_dst_1d
-      real(r8), dimension(kdm) :: u_1d, v_1d
+      real(r8), dimension(kdm+1) :: p_src, p_dst
+      real(r8), dimension(kdm) :: v_src, v_rm
+      real(r8), dimension(ddm+1) :: p_dst_diazlv
+      real(r8), dimension(ddm) :: v_rm_diazlv
       real(r8) :: q
       integer, dimension(1-nbdy:idm+nbdy,3) :: ksmx_js, kdmx_js
       integer :: ilb1, ilb2, ilb3, iub1, iub2, iub3, jofs2, jofs3, &
                  jlb_regrid_smooth, jlb_ndiff_prep, jlb_ndiff_uflx, &
                  jlb_ndiff_vflx, jlb_ndiff_update_trc, &
-                 js1, js2, js3, j, nt, i, k, l, kn, errstat
-      logical :: do_regrid_smooth, do_ndiff
+                 js1, js2, js3, j, nt, i, k, l, kn, kd, iogrp, errstat
+      logical :: do_regrid_smooth, do_ndiff, do_acc_templvl, do_acc_salnlvl, &
+                 do_acc_uvellvl, do_acc_vvellvl, do_acc_idlagelvl
+      character(len = 2) cnt
+
+      ! ------------------------------------------------------------------------
+      ! Check if accumulation of diagnostic variables should be done.
+      ! ------------------------------------------------------------------------
+
+      do_acc_templvl = sum(acc_templvl(1:nphy)) /= 0 .and. &
+                       sum(acc_templvl(1:nphy)*alarm_phy(1:nphy)) == 0
+      do_acc_salnlvl = sum(acc_salnlvl(1:nphy)) /= 0 .and. &
+                       sum(acc_salnlvl(1:nphy)*alarm_phy(1:nphy)) == 0
+      do_acc_uvellvl = sum(acc_uvellvl(1:nphy)) /= 0 .and. &
+                       sum(acc_uvellvl(1:nphy)*alarm_phy(1:nphy)) == 0
+      do_acc_vvellvl = sum(acc_vvellvl(1:nphy)) /= 0 .and. &
+                       sum(acc_vvellvl(1:nphy)*alarm_phy(1:nphy)) == 0
+      do_acc_idlagelvl = .false.
 
       ! ------------------------------------------------------------------------
       ! Regrid and remap tracers. Also carry out neutral diffusion if requested.
@@ -1358,7 +1569,6 @@ contains
 
       ! Update halos as needed.
       if (jofs3 > 0) then
-         call xctilr(dp   (1-nbdy,1-nbdy,k1n), 1, kk, jofs3, jofs3, halo_ps)
          call xctilr(temp (1-nbdy,1-nbdy,k1n), 1, kk, jofs3, jofs3, halo_ps)
          call xctilr(saln (1-nbdy,1-nbdy,k1n), 1, kk, jofs3, jofs3, halo_ps)
          call xctilr(sigma(1-nbdy,1-nbdy,k1n), 1, kk, jofs3, jofs3, halo_ps)
@@ -1369,7 +1579,7 @@ contains
          enddo
       end if
 
-      ! Inital j-slice indices.
+      ! Initial j-slice indices.
       js1 = 1
       js2 = js1 + jofs2
       js3 = js1 + jofs3
@@ -1388,50 +1598,56 @@ contains
                                      ilb3, iub3, j+jofs3, js3, nn)
 
          ! Regrid.
-         call regrid_jslice         (p_src_js(:,:,js3), ksmx_js(:,js3), &
-                                     tpc_src_js(:,:,:,:,js3), &
-                                     t_srcdi_js(:,:,:,:,js3), &
-                                     p_dst_js(:,:,js3), stab_fac_js(:,:,js3), &
-                                     ilb3, iub3, j+jofs3, js3, nn)
+         call regrid_jslice(p_src_js(:,:,js3), ksmx_js(:,js3), &
+                            tpc_src_js(:,:,:,:,js3), &
+                            t_srcdi_js(:,:,:,:,js3), &
+                            p_dst_js(:,:,js3), &
+                            smooth_fac_js(:,:,js3), &
+                            ilb3, iub3, j+jofs3, js3, nn)
 
          ! If requested, apply lateral smoothing of the interfaces after
          ! regridding.
          if (j >= jlb_regrid_smooth) &
-            call regrid_smooth_jslice   (p_dst_js, stab_fac_js, smtflxconv_js, &
-                                         ilb2, iub2, j+jofs2, js2, js3)
+            call regrid_smooth_jslice(p_dst_js, smooth_fac_js, smtflxconv_js, &
+                                      ilb2, iub2, j+jofs2, js2, js3)
 
          ! If requested, prepare neutral diffusion.
          if (j >= jlb_ndiff_prep) &
-            call ndiff_prep_jslice      (p_src_js, ksmx_js, &
-                                         tpc_src_js, t_srcdi_js, &
-                                         p_dst_js, kdmx_js, p_srcdi_js, &
-                                         drhodt_srcdi_js, drhods_srcdi_js, &
-                                         flxconv_js, &
-                                         ilb2, iub2, j+jofs2, js2, mm)
+            call ndiff_prep_jslice(p_src_js, ksmx_js, &
+                                   tpc_src_js, t_srcdi_js, &
+                                   p_dst_js, kdmx_js, p_srcdi_js, &
+                                   drhodt_srcdi_js, drhods_srcdi_js, &
+                                   flxconv_js, &
+                                   ilb2, iub2, j+jofs2, js2, mm)
 
          ! If requested, compute the contribution of u-component fluxes to the
          ! flux convergence of neutral diffusion.
          if (j >= jlb_ndiff_uflx) &
-            call ndiff_uflx_jslice      (ksmx_js, tpc_src_js, t_srcdi_js, &
-                                         p_dst_js, kdmx_js, p_srcdi_js, &
-                                         drhodt_srcdi_js, drhods_srcdi_js, &
-                                         flxconv_js, &
-                                         ntr_loc, ilb1, iub2, j, js1, mm, nn)
+            call ndiff_uflx_jslice(ksmx_js, tpc_src_js, t_srcdi_js, &
+                                   p_dst_js, kdmx_js, p_srcdi_js, &
+                                   drhodt_srcdi_js, drhods_srcdi_js, &
+                                   flxconv_js, &
+                                   ntr_loc, ilb1, iub2, j, js1, mm, nn)
 
          ! If requested, compute the contribution of v-component fluxes to the
          ! flux convergence of neutral diffusion.
          if (j >= jlb_ndiff_vflx) &
-            call ndiff_vflx_jslice      (ksmx_js, tpc_src_js, t_srcdi_js, &
-                                         p_dst_js, kdmx_js, p_srcdi_js, &
-                                         drhodt_srcdi_js, drhods_srcdi_js, &
-                                         flxconv_js, &
-                                         ntr_loc, ilb1, iub1, j+jofs2, &
-                                         js1, js2, mm, nn)
+            call ndiff_vflx_jslice(ksmx_js, tpc_src_js, t_srcdi_js, &
+                                   p_dst_js, kdmx_js, p_srcdi_js, &
+                                   drhodt_srcdi_js, drhods_srcdi_js, &
+                                   flxconv_js, &
+                                   ntr_loc, ilb1, iub1, j+jofs2, &
+                                   js1, js2, mm, nn)
 
-         ! Remap tracers to the regridded layers.
-         if (j >= 1) &
-            call remap_trc_jslice       (p_dst_js(:,:,js1), trc_rm, &
-                                         ilb1, iub1, j, js1)
+         ! Remap tracers to regridded layers and diagnostic z-levels.
+         if (j >= 1) then
+            call remap_trc_jslice(p_dst_js(:,:,js1), trc_rm, &
+                                  ilb1, iub1, j, js1)
+            call remap_trc_diazlv_jslice(p_src_js(:,:,js1), &
+                                         ilb1, iub1, j, js1, &
+                                         do_acc_templvl, do_acc_salnlvl, &
+                                         do_acc_idlagelvl)
+         endif
 
          ! If requested, update the tracers by applying the neutral diffusion
          ! flux convergence.
@@ -1441,8 +1657,8 @@ contains
 
          ! Copy from the j-slice array to the full tracer array.
          if (j >= 1) &
-            call copy_jslice_to_3d      (p_dst_js(:,:,js1), trc_rm, &
-                                         ilb1, iub1, j, nn)
+            call copy_jslice_to_3d(p_dst_js(:,:,js1), trc_rm, &
+                                   ilb1, iub1, j, nn)
       enddo
 
       ! ------------------------------------------------------------------------
@@ -1471,6 +1687,11 @@ contains
 
       !$omp parallel do private(k, kn, l, i)
       do j = -2, jj+3
+          do l = 1, isp(j)
+             do i = max(-1, ifp(j,l)), min(ii, ilp(j,l))
+                util1(i,j) = p(i,j,kk+1)
+             enddo
+          enddo
          do k = 1, kk
             kn = k + nn
             do l = 1, isp(j)
@@ -1491,7 +1712,8 @@ contains
                   q = min(p(i,j,kk+1), p(i-1,j,kk+1))
                   dpu(i,j,kn) = &
                        .5_r8*( (min(q, p(i-1,j,k+1)) - min(q, p(i-1,j,k))) &
-                       + (min(q, p(i  ,j,k+1)) - min(q, p(i  ,j,k))))
+                             + (min(q, p(i  ,j,k+1)) - min(q, p(i  ,j,k))))
+                  dpuold(i,j,k) = dpu(i,j,kn)
                enddo
             enddo
             do l = 1, isv(j)
@@ -1499,7 +1721,8 @@ contains
                   q = min(p(i,j,kk+1), p(i,j-1,kk+1))
                   dpv(i,j,kn) = &
                        .5_r8*( (min(q, p(i,j-1,k+1)) - min(q, p(i,j-1,k))) &
-                       + (min(q, p(i,j  ,k+1)) - min(q, p(i,j  ,k))))
+                             + (min(q, p(i,j  ,k+1)) - min(q, p(i,j  ,k))))
+                  dpvold(i,j,k) = dpv(i,j,kn)
                enddo
             enddo
          enddo
@@ -1513,19 +1736,19 @@ contains
 
                ! Copy variables into 1D arrays. Rescale source interfaces so the
                ! pressure range of source and destination columns match.
-               p_dst_1d(1) = pu(i,j,1)
+               p_dst(1) = pu(i,j,1)
                do k = 1, kk
                   kn = k + nn
-                  u_1d(k) = u(i,j,kn)
-                  p_dst_1d(k+1) = p_dst_1d(k) + dpu(i,j,kn)
+                  v_src(k) = u(i,j,kn)
+                  p_dst(k+1) = p_dst(k) + dpu(i,j,kn)
                enddo
-               q = p_dst_1d(kk+1)/pu(i,j,kk+1)
+               q = min(util1(i-1,j), util1(i,j))/pu(i,j,kk+1)
                do k = 1, kk+1
-                  p_1d(k) = pu(i,j,k)*q
+                  p_src(k) = pu(i,j,k)*q
                enddo
 
                ! Prepare reconstruction with current interface pressures.
-               errstat = prepare_reconstruction(rcgs, p_1d, i, 1)
+               errstat = prepare_reconstruction(rcgs, p_src, i, 1)
                if (errstat /= hor3map_noerr) then
                   write(lp,*) trim(hor3map_errstr(errstat))
                   call xchalt('(ale_regrid_remap)')
@@ -1534,32 +1757,72 @@ contains
 
                ! Prepare remapping to layer structure with regridded interface
                ! pressures.
-               errstat = prepare_remapping(rcgs, rms, p_dst_1d, i, 1)
+               errstat = prepare_remapping(rcgs, rms, p_dst, i, 1)
                if (errstat /= hor3map_noerr) then
                   write(lp,*) trim(hor3map_errstr(errstat))
                   call xchalt('(ale_regrid_remap)')
                   stop '(ale_regrid_remap)'
                endif
 
-               ! Reconstruct and remap u-component of velocity.
-               errstat = reconstruct(rcgs, v_rcss, u_1d, i, 1)
-               if (errstat /= hor3map_noerr) then
-                  write(lp,*) trim(hor3map_errstr(errstat))
-                  call xchalt('(ale_regrid_remap)')
-                  stop '(ale_regrid_remap)'
-               endif
-               errstat = remap(v_rcss, rms, u_1d, i, 1)
+               ! Reconstruct u-component of velocity.
+               errstat = reconstruct(rcgs, v_rcss, v_src, i, 1)
                if (errstat /= hor3map_noerr) then
                   write(lp,*) trim(hor3map_errstr(errstat))
                   call xchalt('(ale_regrid_remap)')
                   stop '(ale_regrid_remap)'
                endif
 
-               ! Update 3D arrays
+               ! Remap u-component of velocity to regridded layers.
+               errstat = remap(v_rcss, rms, v_rm, i, 1)
+               if (errstat /= hor3map_noerr) then
+                  write(lp,*) trim(hor3map_errstr(errstat))
+                  call xchalt('(ale_regrid_remap)')
+                  stop '(ale_regrid_remap)'
+               endif
+
+               ! Update 3D array.
                do k = 1, kk
                   kn = k + nn
-                  u(i,j,kn) = u_1d(k)
+                  u(i,j,kn) = v_rm(k)
                enddo
+
+               if (do_acc_uvellvl) then
+
+                  ! Prepare remapping to destination z-levels.
+                  p_dst_diazlv(1) = p_src(1)
+                  q = 1._r8/ubath(i,j)
+                  do kd = 2, ddm
+                     p_dst_diazlv(kd) = min(depthslev_bnds(1,kd)*q, 1._r8) &
+                                        *(p_src(kk+1) - p_src(1)) + p_src(1)
+                  enddo
+                  p_dst_diazlv(ddm+1) = p_src(kk+1)
+                  errstat = prepare_remapping(rcgs, rms_diazlv, p_dst_diazlv, &
+                                              i, 1)
+                  if (errstat /= hor3map_noerr) then
+                     write(lp,*) trim(hor3map_errstr(errstat))
+                     call xchalt('(ale_regrid_remap)')
+                     stop '(ale_regrid_remap)'
+                  endif
+
+                  ! Remap u-component of velocity to diagnostic z-levels and
+                  ! accumulate.
+                  errstat = remap(v_rcss, rms_diazlv, v_rm_diazlv, i, 1)
+                  if (errstat /= hor3map_noerr) then
+                     write(lp,*) trim(hor3map_errstr(errstat))
+                     call xchalt('(ale_regrid_remap)')
+                     stop '(ale_regrid_remap)'
+                  endif
+                  do iogrp = 1, nphy
+                     if (acc_uvellvl(iogrp) /= 0) then
+                        do kd = 1, ddm
+                           phylvl(i,j,kd,acc_uvellvl(iogrp)) = &
+                                phylvl(i,j,kd,acc_uvellvl(iogrp)) &
+                              + v_rm_diazlv(kd) + ub(i,j,n)
+                        enddo
+                     endif
+                  enddo
+
+               endif
 
             enddo
          enddo
@@ -1569,19 +1832,19 @@ contains
 
                ! Copy variables into 1D arrays. Rescale source interfaces so the
                ! pressure range of source and destination columns match.
-               p_dst_1d(1) = pv(i,j,1)
+               p_dst(1) = pv(i,j,1)
                do k = 1, kk
                   kn = k + nn
-                  v_1d(k) = v(i,j,kn)
-                  p_dst_1d(k+1) = p_dst_1d(k) + dpv(i,j,kn)
+                  v_src(k) = v(i,j,kn)
+                  p_dst(k+1) = p_dst(k) + dpv(i,j,kn)
                enddo
-               q = p_dst_1d(kk+1)/pv(i,j,kk+1)
+               q = min(util1(i,j-1), util1(i,j))/pv(i,j,kk+1)
                do k = 1, kk+1
-                  p_1d(k) = pv(i,j,k)*q
+                  p_src(k) = pv(i,j,k)*q
                enddo
 
                ! Prepare reconstruction with current interface pressures.
-               errstat = prepare_reconstruction(rcgs, p_1d, i, 1)
+               errstat = prepare_reconstruction(rcgs, p_src, i, 1)
                if (errstat /= hor3map_noerr) then
                   write(lp,*) trim(hor3map_errstr(errstat))
                   call xchalt('(ale_regrid_remap)')
@@ -1590,32 +1853,72 @@ contains
 
                ! Prepare remapping to layer structure with regridded interface
                ! pressures.
-               errstat = prepare_remapping(rcgs, rms, p_dst_1d, i, 1)
+               errstat = prepare_remapping(rcgs, rms, p_dst, i, 1)
                if (errstat /= hor3map_noerr) then
                   write(lp,*) trim(hor3map_errstr(errstat))
                   call xchalt('(ale_regrid_remap)')
                   stop '(ale_regrid_remap)'
                endif
 
-               ! Reconstruct and remap v-component of velocity.
-               errstat = reconstruct(rcgs, v_rcss, v_1d, i, 1)
-               if (errstat /= hor3map_noerr) then
-                  write(lp,*) trim(hor3map_errstr(errstat))
-                  call xchalt('(ale_regrid_remap)')
-                  stop '(ale_regrid_remap)'
-               endif
-               errstat = remap(v_rcss, rms, v_1d, i, 1)
+               ! Reconstruct v-component of velocity.
+               errstat = reconstruct(rcgs, v_rcss, v_src, i, 1)
                if (errstat /= hor3map_noerr) then
                   write(lp,*) trim(hor3map_errstr(errstat))
                   call xchalt('(ale_regrid_remap)')
                   stop '(ale_regrid_remap)'
                endif
 
-               ! Update 3D arrays
+               ! Remap v-component of velocity to regridded layers.
+               errstat = remap(v_rcss, rms, v_rm, i, 1)
+               if (errstat /= hor3map_noerr) then
+                  write(lp,*) trim(hor3map_errstr(errstat))
+                  call xchalt('(ale_regrid_remap)')
+                  stop '(ale_regrid_remap)'
+               endif
+
+               ! Update 3D array.
                do k = 1, kk
                   kn = k + nn
-                  v(i,j,kn) = v_1d(k)
+                  v(i,j,kn) = v_rm(k)
                enddo
+
+               if (do_acc_vvellvl) then
+
+                  ! Prepare remapping to destination z-levels.
+                  p_dst_diazlv(1) = p_src(1)
+                  q = 1._r8/vbath(i,j)
+                  do kd = 2, ddm
+                     p_dst_diazlv(kd) = min(depthslev_bnds(1,kd)*q, 1._r8) &
+                                        *(p_src(kk+1) - p_src(1)) + p_src(1)
+                  enddo
+                  p_dst_diazlv(ddm+1) = p_src(kk+1)
+                  errstat = prepare_remapping(rcgs, rms_diazlv, p_dst_diazlv, &
+                                              i, 1)
+                  if (errstat /= hor3map_noerr) then
+                     write(lp,*) trim(hor3map_errstr(errstat))
+                     call xchalt('(ale_regrid_remap)')
+                     stop '(ale_regrid_remap)'
+                  endif
+
+                  ! Remap v-component of velocity to diagnostic z-levels and
+                  ! accumulate.
+                  errstat = remap(v_rcss, rms_diazlv, v_rm_diazlv, i, 1)
+                  if (errstat /= hor3map_noerr) then
+                     write(lp,*) trim(hor3map_errstr(errstat))
+                     call xchalt('(ale_regrid_remap)')
+                     stop '(ale_regrid_remap)'
+                  endif
+                  do iogrp = 1, nphy
+                     if (acc_vvellvl(iogrp) /= 0) then
+                        do kd = 1, ddm
+                           phylvl(i,j,kd,acc_vvellvl(iogrp)) = &
+                                phylvl(i,j,kd,acc_vvellvl(iogrp)) &
+                              + v_rm_diazlv(kd) + vb(i,j,n)
+                        enddo
+                     endif
+                  enddo
+
+               endif
 
             enddo
          enddo
@@ -1626,19 +1929,247 @@ contains
          if (mnproc == 1) then
             write (lp,*) 'ale_regrid_remap:'
          endif
-         call chksummsk(dp   (1-nbdy,1-nbdy,k1n), ip, kk, 'dp')
-         call chksummsk(temp (1-nbdy,1-nbdy,k1n), ip, kk, 'temp')
-         call chksummsk(saln (1-nbdy,1-nbdy,k1n), ip, kk, 'saln')
-         call chksummsk(sigma(1-nbdy,1-nbdy,k1n), ip, kk, 'sigma')
+         call chksum(dp   (1-nbdy,1-nbdy,k1n), kk, halo_ps, 'dp'   )
+         call chksum(temp (1-nbdy,1-nbdy,k1n), kk, halo_ps, 'temp' )
+         call chksum(saln (1-nbdy,1-nbdy,k1n), kk, halo_ps, 'saln' )
+         call chksum(sigma(1-nbdy,1-nbdy,k1n), kk, halo_ps, 'sigma')
          do nt = 1, ntr
-            call chksummsk(trc(1-nbdy,1-nbdy,k1n,nt), ip, kk, 'trc')
+            write(cnt, '(i2.2)') nt
+            call chksum(trc(1-nbdy,1-nbdy,k1n,nt), kk, halo_ps, 'trc'//cnt)
          enddo
-         call chksummsk(dpu(1-nbdy,1-nbdy,k1n), iu, kk, 'dpu')
-         call chksummsk(dpv(1-nbdy,1-nbdy,k1n), iv, kk, 'dpv')
-         call chksummsk(u  (1-nbdy,1-nbdy,k1n), iu, kk, 'u')
-         call chksummsk(v  (1-nbdy,1-nbdy,k1n), iv, kk, 'v')
+         if (ltedtp_opt == ltedtp_neutral) then
+            call chksum(utflld(1-nbdy,1-nbdy,k1m), kk, halo_uv, 'utflld')
+            call chksum(vtflld(1-nbdy,1-nbdy,k1m), kk, halo_vv, 'vtflld')
+            call chksum(usflld(1-nbdy,1-nbdy,k1m), kk, halo_uv, 'usflld')
+            call chksum(vsflld(1-nbdy,1-nbdy,k1m), kk, halo_vv, 'vsflld')
+            call chksum(utflx (1-nbdy,1-nbdy,k1m), kk, halo_uv, 'utflx')
+            call chksum(vtflx (1-nbdy,1-nbdy,k1m), kk, halo_vv, 'vtflx')
+            call chksum(usflx (1-nbdy,1-nbdy,k1m), kk, halo_uv, 'usflx')
+            call chksum(vsflx (1-nbdy,1-nbdy,k1m), kk, halo_vv, 'vsflx')
+         endif
+         call chksum(dpu(1-nbdy,1-nbdy,k1n), kk, halo_us, 'dpu')
+         call chksum(dpv(1-nbdy,1-nbdy,k1n), kk, halo_vs, 'dpv')
+         call chksum(u  (1-nbdy,1-nbdy,k1n), kk, halo_uv, 'u'  )
+         call chksum(v  (1-nbdy,1-nbdy,k1n), kk, halo_vv, 'v'  )
       endif
 
    end subroutine ale_regrid_remap
+
+   subroutine ale_remap_diazlv(m, n, mm, nn, k1m, k1n)
+   ! ---------------------------------------------------------------------------
+   ! Remap mid time-level variables to diagnostic z-levels.
+   ! ---------------------------------------------------------------------------
+
+      integer, intent(in) :: m, n, mm, nn, k1m, k1n
+
+      integer, parameter :: p_ord = 4
+
+      real(r8), dimension(kdm+1,1-nbdy:idm+nbdy) :: p_src_js
+      real(r8), dimension(p_ord+1,kdm,ntr_loc,1-nbdy:idm+nbdy) :: tpc_src_js
+      real(r8), dimension(2,kdm,ntr_loc,1-nbdy:idm+nbdy) :: t_srcdi_js
+      real(r8), dimension(kdm+1) :: pu_tmp, pv_tmp, p_src
+      real(r8), dimension(kdm) :: v_src
+      real(r8), dimension(ddm+1) :: p_dst_diazlv
+      real(r8), dimension(ddm) :: v_rm_diazlv
+      real(r8) :: q
+      integer, dimension(1-nbdy:idm+nbdy) :: ksmx_js
+      integer :: j, i, k, l, km, kd, iogrp, errstat
+      logical :: do_acc_templvl  , do_acc_salnlvl, &
+                 do_acc_uvellvl  , do_acc_vvellvl, &
+                 do_acc_idlagelvl
+
+      ! ------------------------------------------------------------------------
+      ! Check if diagnostic variables should be remapped, either to be
+      ! accumulated or instantaneously recorded.
+      ! ------------------------------------------------------------------------
+
+      do_acc_templvl = sum(acc_templvl  (1:nphy)*alarm_phy(1:nphy)) /= 0
+      do_acc_salnlvl = sum(acc_salnlvl  (1:nphy)*alarm_phy(1:nphy)) /= 0
+      do_acc_uvellvl = sum(acc_uvellvl  (1:nphy)*alarm_phy(1:nphy)) /= 0
+      do_acc_vvellvl = sum(acc_vvellvl  (1:nphy)*alarm_phy(1:nphy)) /= 0
+      do_acc_idlagelvl = &
+         sum(acc_idlagelvl(1:nphy)*alarm_phy(1:nphy)) /= 0 .and. &
+         use_TRC .and. use_IDLAGE
+
+      ! ------------------------------------------------------------------------
+      ! Remap tracers.
+      ! ------------------------------------------------------------------------
+
+      if (do_acc_templvl .or. do_acc_salnlvl .or. do_acc_idlagelvl) then
+
+         do j = 1, jj
+
+            ! Vertically reconstruct tracers.
+            call reconstruct_trc_jslice(p_src_js, ksmx_js, &
+                                        tpc_src_js, t_srcdi_js, &
+                                        1, ii, j, 1, mm)
+
+            ! Remap tracers to diagnostic z-levels.
+            call remap_trc_diazlv_jslice(p_src_js, &
+                                         1, ii, j, 1, &
+                                         do_acc_templvl, do_acc_salnlvl, &
+                                         do_acc_idlagelvl)
+
+         enddo
+
+      endif
+
+      ! ------------------------------------------------------------------------
+      ! Remap velocity.
+      ! ------------------------------------------------------------------------
+
+      if (.not. (do_acc_uvellvl .or. do_acc_vvellvl)) return
+
+      do j = 1, jj
+
+         if (do_acc_uvellvl) then
+
+            do l = 1, isu(j)
+               do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
+
+                  ! Copy variables into 1D arrays. Rescale source interfaces so
+                  ! the pressure range of source and destination columns match.
+                  pu_tmp(1) = pu(i,j,1)
+                  do k = 1, kk
+                     km = k + mm
+                     v_src(k) = u(i,j,km)
+                     pu_tmp(k+1) = pu_tmp(k) + dpu(i,j,km)
+                  enddo
+                  q = min(p(i-1,j,kk+1), p(i,j,kk+1))/pu_tmp(kk+1)
+                  do k = 1, kk+1
+                     p_src(k) = pu_tmp(k)*q
+                  enddo
+
+                  ! Prepare reconstruction with current interface pressures.
+                  errstat = prepare_reconstruction(rcgs, p_src, i, 1)
+                  if (errstat /= hor3map_noerr) then
+                     write(lp,*) trim(hor3map_errstr(errstat))
+                     call xchalt('(ale_regrid_remap)')
+                     stop '(ale_regrid_remap)'
+                  endif
+
+                  ! Reconstruct u-component of velocity.
+                  errstat = reconstruct(rcgs, v_rcss, v_src, i, 1)
+                  if (errstat /= hor3map_noerr) then
+                     write(lp,*) trim(hor3map_errstr(errstat))
+                     call xchalt('(ale_regrid_remap)')
+                     stop '(ale_regrid_remap)'
+                  endif
+
+                  ! Prepare remapping to destination z-levels.
+                  p_dst_diazlv(1) = p_src(1)
+                  q = 1._r8/ubath(i,j)
+                  do kd = 2, ddm
+                     p_dst_diazlv(kd) = min(depthslev_bnds(1,kd)*q, 1._r8) &
+                                        *(p_src(kk+1) - p_src(1)) + p_src(1)
+                  enddo
+                  p_dst_diazlv(ddm+1) = p_src(kk+1)
+                  errstat = prepare_remapping(rcgs, rms_diazlv, p_dst_diazlv, &
+                                              i, 1)
+                  if (errstat /= hor3map_noerr) then
+                     write(lp,*) trim(hor3map_errstr(errstat))
+                     call xchalt('(ale_regrid_remap)')
+                     stop '(ale_regrid_remap)'
+                  endif
+
+                  ! Remap u-component of velocity to diagnostic z-levels and
+                  ! accumulate.
+                  errstat = remap(v_rcss, rms_diazlv, v_rm_diazlv, i, 1)
+                  if (errstat /= hor3map_noerr) then
+                     write(lp,*) trim(hor3map_errstr(errstat))
+                     call xchalt('(ale_regrid_remap)')
+                     stop '(ale_regrid_remap)'
+                  endif
+                  do iogrp = 1, nphy
+                     if (acc_uvellvl(iogrp) /= 0) then
+                        do kd = 1, ddm
+                           phylvl(i,j,kd,acc_uvellvl(iogrp)) = &
+                                phylvl(i,j,kd,acc_uvellvl(iogrp)) &
+                              + v_rm_diazlv(kd) + ub(i,j,m)
+                        enddo
+                     endif
+                  enddo
+
+               enddo
+            enddo
+
+         endif
+
+         if (do_acc_vvellvl) then
+
+            do l = 1, isv(j)
+               do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
+
+                  ! Copy variables into 1D arrays. Rescale source interfaces so
+                  ! the pressure range of source and destination columns match.
+                  pv_tmp(1) = pv(i,j,1)
+                  do k = 1, kk
+                     km = k + mm
+                     v_src(k) = v(i,j,km)
+                     pv_tmp(k+1) = pv_tmp(k) + dpv(i,j,km)
+                  enddo
+                  q = min(p(i,j-1,kk+1), p(i,j,kk+1))/pv_tmp(kk+1)
+                  do k = 1, kk+1
+                     p_src(k) = pv_tmp(k)*q
+                  enddo
+
+                  ! Prepare reconstruction with current interface pressures.
+                  errstat = prepare_reconstruction(rcgs, p_src, i, 1)
+                  if (errstat /= hor3map_noerr) then
+                     write(lp,*) trim(hor3map_errstr(errstat))
+                     call xchalt('(ale_regrid_remap)')
+                     stop '(ale_regrid_remap)'
+                  endif
+
+                  ! Reconstruct v-component of velocity.
+                  errstat = reconstruct(rcgs, v_rcss, v_src, i, 1)
+                  if (errstat /= hor3map_noerr) then
+                     write(lp,*) trim(hor3map_errstr(errstat))
+                     call xchalt('(ale_regrid_remap)')
+                     stop '(ale_regrid_remap)'
+                  endif
+
+                  ! Prepare remapping to destination z-levels.
+                  p_dst_diazlv(1) = p_src(1)
+                  q = 1._r8/vbath(i,j)
+                  do kd = 2, ddm
+                     p_dst_diazlv(kd) = min(depthslev_bnds(1,kd)*q, 1._r8) &
+                                        *(p_src(kk+1) - p_src(1)) + p_src(1)
+                  enddo
+                  p_dst_diazlv(ddm+1) = p_src(kk+1)
+                  errstat = prepare_remapping(rcgs, rms_diazlv, p_dst_diazlv, &
+                                              i, 1)
+                  if (errstat /= hor3map_noerr) then
+                     write(lp,*) trim(hor3map_errstr(errstat))
+                     call xchalt('(ale_regrid_remap)')
+                     stop '(ale_regrid_remap)'
+                  endif
+
+                  ! Remap v-component of velocity to diagnostic z-levels and
+                  ! accumulate.
+                  errstat = remap(v_rcss, rms_diazlv, v_rm_diazlv, i, 1)
+                  if (errstat /= hor3map_noerr) then
+                     write(lp,*) trim(hor3map_errstr(errstat))
+                     call xchalt('(ale_regrid_remap)')
+                     stop '(ale_regrid_remap)'
+                  endif
+                  do iogrp = 1, nphy
+                     if (acc_vvellvl(iogrp) /= 0) then
+                        do kd = 1, ddm
+                           phylvl(i,j,kd,acc_vvellvl(iogrp)) = &
+                                phylvl(i,j,kd,acc_vvellvl(iogrp)) &
+                              + v_rm_diazlv(kd) + vb(i,j,m)
+                        enddo
+                     endif
+                  enddo
+
+               enddo
+            enddo
+
+         endif
+
+      enddo
+
+   end subroutine ale_remap_diazlv
 
 end module mod_ale_regrid_remap

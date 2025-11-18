@@ -46,7 +46,7 @@ module mod_barotp
   use mod_momtum,    only: mommth
   use mod_tmsmt,     only: wbaro
   use mod_utility,   only: utotn, vtotn, umax, vmax
-  use mod_checksum,  only: csdiag, chksummsk
+  use mod_checksum,  only: csdiag, chksum
 
   implicit none
   private
@@ -140,17 +140,6 @@ contains
 
     call xctilr(vbflx,  1,   2, nbdy,nbdy, halo_vs)
     call xctilr(vbflx_mn, 1,   2, nbdy,nbdy, halo_vs)
-
-    if (csdiag) then
-      if (mnproc == 1) then
-        write (lp,*) 'inivar_barotp:'
-      end if
-      ! call chksummsk(pb_mn,ip,2,'pb')
-      ! call chksummsk(ubflx,iu,2,'ubflx')
-      ! call chksummsk(vbflx,iv,2,'vbflx')
-      ! call chksummsk(ubflx_mn,iu,2,'ubflx')
-      ! call chksummsk(vbflx_mn,iv,2,'vbflx')
-    end if
 
   end subroutine inivar_barotp
 
@@ -993,22 +982,22 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'barotp:'
       end if
-      call chksummsk(pb,ip,2,'pb')
-      call chksummsk(pbu,iu,2,'pbu')
-      call chksummsk(ubflx,iu,2,'ubflx')
-      call chksummsk(ub,iu,2,'ub')
-      call chksummsk(ubflxs,iu,3,'ubflxs')
-      call chksummsk(pbv,iv,2,'pbv')
-      call chksummsk(vbflx,iv,2,'vbflx')
-      call chksummsk(vb,iv,2,'vb')
-      call chksummsk(vbflxs,iv,3,'vbflxs')
-      call chksummsk(pb_p,ip,1,'pb_p')
-      call chksummsk(pbu_p,iu,1,'pbu_p')
-      call chksummsk(ubflxs_p,iu,2,'ubflxs_p')
-      call chksummsk(ubcors_p,iu,1,'ubcors_p')
-      call chksummsk(pbv_p,iv,1,'pbv_p')
-      call chksummsk(vbflxs_p,iv,2,'vbflxs_p')
-      call chksummsk(vbcors_p,iv,1,'vbcors_p')
+      call chksum(pb      , 2, halo_ps, 'pb'      )
+      call chksum(pbu     , 2, halo_us, 'pbu'     )
+      call chksum(ubflx   , 2, halo_uv, 'ubflx'   )
+      call chksum(ub      , 2, halo_uv, 'ub'      )
+      call chksum(ubflxs  , 3, halo_uv, 'ubflxs'  )
+      call chksum(pbv     , 2, halo_vs, 'pbv'     )
+      call chksum(vbflx   , 2, halo_vv, 'vbflx'   )
+      call chksum(vb      , 2, halo_vv, 'vb'      )
+      call chksum(vbflxs  , 3, halo_vv, 'vbflxs'  )
+      call chksum(pb_p    , 1, halo_ps, 'pb_p'    )
+      call chksum(pbu_p   , 1, halo_us, 'pbu_p'   )
+      call chksum(ubflxs_p, 2, halo_uv, 'ubflxs_p')
+      call chksum(ubcors_p, 1, halo_uv, 'ubcors_p')
+      call chksum(pbv_p   , 1, halo_vs, 'pbv_p'   )
+      call chksum(vbflxs_p, 2, halo_vv, 'vbflxs_p')
+      call chksum(vbcors_p, 1, halo_vv, 'vbcors_p')
     end if
 
   end subroutine barotp

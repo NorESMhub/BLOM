@@ -50,6 +50,8 @@ module ocn_comp_nuopc
    use mod_cesm,          only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
    use mod_config,        only: inst_index, inst_name, inst_suffix, runtyp
    use mod_time,          only: blom_time
+   use mod_timing,        only: timer_init, timer_start, timer_stop, &
+                                timer_reset, timer_statistics
    use mod_forcing,       only: srxday, trxday
    use mod_constants,     only: epsilt
    use mod_blom_init,     only: blom_init_phase1, blom_init_phase2
@@ -66,6 +68,7 @@ module ocn_comp_nuopc
 #endif
    use ocn_map_woa,       only: map_woa
    use mod_inicon,        only: woa_nuopc_provided
+   use mod_dia,           only: diagmon_phy, alarm_phy, nphy
 
    implicit none
 
@@ -396,6 +399,7 @@ contains
       character(len=cllen) :: msg, cvalue
       logical :: isPresent, isSet
       logical :: ocn2glc_coupling
+      character(len=cllen) :: component_computes_enthalpy_flux
       logical :: flds_co2a, flds_co2c, flds_dms, flds_brf
       logical :: hamocc_defined
 #ifndef HAMOCC
@@ -491,6 +495,7 @@ contains
       ! ------------------------------------------------------------------------
 
       call blom_init_phase1
+      call timer_stop('initialization', 'blom_init_phase1')
 
       ! ------------------------------------------------------------------------
       ! Get ScalarField attributes.
@@ -560,6 +565,17 @@ contains
       read(cvalue,*) flds_co2c
       call blom_logwrite(subname//': flds_co2c = '//trim(cvalue))
 
+      ! Determine if atm computes enthalpy fluxes
+      call NUOPC_CompAttributeGet(gcomp, name="component_computes_enthalpy_flux", value=cvalue, &
+           ispresent=ispresent, isset=isset, rc=rc)
+      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      component_computes_enthalpy_flux = 'none'
+      if (isPresent .and. isSet) then
+         component_computes_enthalpy_flux = trim(cvalue)
+      end if
+      write(msg,'(a)') subname//': component_computes_enthalpy_flux is '//trim(component_computes_enthalpy_flux)
+      call blom_logwrite(msg)
+
       ! Determine if ocn is sending temperature and salinity data to glc
       ! If data is sent to glc will need to determine number of ocean
       ! levels and ocean level indices
@@ -616,13 +632,15 @@ contains
       write(msg,'(a,l1)') subname//': export brf ', flds_brf
       call blom_logwrite(msg)
 
+
+
 if (mediator_present) then !jm offline-sediment-spinup
       ! ------------------------------------------------------------------------
       ! Advertise import fields.
       ! ------------------------------------------------------------------------
 
       call blom_advertise_imports(flds_scalar_name, fldsToOcn_num, fldsToOcn, &
-           flds_co2a, flds_co2c)
+           flds_co2a, flds_co2c, component_computes_enthalpy_flux)
 
       do n = 1,fldsToOcn_num
          call NUOPC_Advertise(importState, standardName=fldsToOcn(n)%stdname, &
@@ -781,6 +799,7 @@ if (mediator_present) then
       end if
 ! jm offline sediment spinup
 endif
+
       ! Find if restart is needed at the end of the run
       call NUOPC_CompAttributeGet(gcomp, name="write_restart_at_endofrun", value=cvalue, isPresent=isPresent, isSet=isSet, rc=rc)
       if (ChkErr(rc,__LINE__,u_FILE_u)) return
@@ -807,6 +826,10 @@ endif
    !================================================================================
 
    subroutine DataInitialize(gcomp, rc)
+
+      use shr_pio_mod  , only : shr_pio_getiosys, shr_pio_getiotype, shr_pio_getioformat
+      use ocn_pio_share, only : pio_subsystem, io_type, io_format
+
    ! ---------------------------------------------------------------------------
    ! Called by NUOPC to do the initial data export from ocean to mediator.
    ! ---------------------------------------------------------------------------
@@ -829,6 +852,11 @@ endif
       ! Phase 2 of BLOM initialization.
       ! ------------------------------------------------------------------------
 
+      ! Initialize pio
+      pio_subsystem => shr_pio_getiosys('OCN')
+      io_type       =  shr_pio_getiotype('OCN')
+      io_format     =  shr_pio_getioformat('OCN')
+
       ! map woa climatological initial data to blom mesh
       ! woa_nuopc_provided is read in as a namelist during blom_init_phase1 and
       ! is a module variable in mod_inicon.F90
@@ -840,9 +868,12 @@ endif
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
       end if
 
+      call timer_stop('initialization', &
+                      'between blom_init_phase1 and blom_init_phase2')
 ! jm offline sediment spinup
 if (mediator_present) then
       call blom_init_phase2
+      call timer_stop('initialization', 'blom_init_phase2')
 
       ! ------------------------------------------------------------------------
       ! Query the Component for its exportState.
@@ -879,6 +910,11 @@ endif
 
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
 
+      call timer_stop('initialization', 'after blom_init_phase2')
+      call timer_statistics('initialization')
+      call timer_reset('initialization')
+      call timer_start('ModelAdvance')
+
    end subroutine DataInitialize
 
    !================================================================================
@@ -902,10 +938,9 @@ endif
       type(ESMF_Time)  :: currTime
       type(ESMF_Alarm) :: restart_alarm, stop_alarm
       integer :: shrlogunit, yr_sync, mon_sync, day_sync, tod_sync, ymd_sync, &
-                 ymd, tod
+                 ymd, tod, nfu, iogrp
       logical :: first_call = .true., restart_alarm_on, stop_alarm_on, wrtrst
       character(len=cllen) :: msg
-      integer :: nfu
       character(len = fnmlen) :: restartfn
       character(len = fnmlen) :: rpfile
 
@@ -968,6 +1003,10 @@ endif
       ! Advance the model in time over a coupling interval.
       ! ------------------------------------------------------------------------
 
+      call timer_stop('ModelAdvance', 'before blom_loop')
+      call timer_start('blom_loop')
+      call timer_start('total_step_time')
+
       blom_loop: do
 
          if (nint(tlast_coupled) == 0) then
@@ -975,16 +1014,19 @@ endif
             call ocn_import(importState, rc)
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
          endif
+         call timer_stop('blom_loop', 'ocn_import')
 
          ! Advance sss stream relaxation if needed
          if (srxday > epsilt) then
             call ocn_stream_sss_interp(clock, rc)
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
          end if
+         call timer_stop('blom_loop', 'ocn_stream_sss_interp')
          if (trxday > epsilt) then
             call ocn_stream_sst_interp(clock, rc)
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
          end if
+         call timer_stop('blom_loop', 'ocn_stream_sst_interp')
 
 #ifdef HAMOCC
          ! Advance dust stream input if appropriate
@@ -993,20 +1035,27 @@ endif
             if (ChkErr(rc, __LINE__, u_FILE_u)) return
          end if
 #endif
+         call timer_stop('blom_loop', 'ocn_stream_dust_interp')
 
          ! Advance the model a time step.
          call blom_step
+         call timer_stop('blom_loop', 'blom_step')
 
          ! Accumulate BLOM export fields.
          call blom_accflds
+         call timer_stop('blom_loop', 'blom_accflds')
 
          if (nint(ocn_cpl_dt_cesm-tlast_coupled) == 0) then
             ! Return export state to driver and exit integration loop
             call ocn_export(exportState, rc)
+            call timer_stop('blom_loop', 'ocn_export')
             exit blom_loop
+         else
+            call timer_stop('blom_loop', 'ocn_export')
          endif
 
       enddo blom_loop
+      call timer_stop('ModelAdvance', 'blom_loop')
 
       ! ------------------------------------------------------------------------
       ! If restart alarm is ringing - write restart file. TODO do we need to
@@ -1051,6 +1100,23 @@ endif
             close(unit = nfu)
          endif
       endif
+
+      call timer_stop('ModelAdvance', 'restart_write')
+
+      ! ------------------------------------------------------------------------
+      ! Write timer diagnostics to standard at end of month or when restart is
+      ! written.
+      ! ------------------------------------------------------------------------
+
+      do iogrp = 1, nphy
+         if (diagmon_phy(iogrp) .and. (alarm_phy(iogrp) == 1 .or. wrtrst)) then
+            call timer_statistics('ModelAdvance')
+            call timer_statistics('blom_loop')
+            call timer_statistics('blom_step')
+            write(lp,*) ''
+            exit
+         endif
+      enddo
 
       ! ------------------------------------------------------------------------
       ! Reset shr logging to original values.

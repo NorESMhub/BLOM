@@ -64,7 +64,7 @@
       <value compset="_BLOM.*%ECO"           >constant</value>
       <value compset="_BLOM.*%ECO.*_BGC%BPRP">prognostic</value>
       <value compset="_BLOM.*%ECO.*_BGC%BDRD">diagnostic</value>
-      <value compset="_DATM%CPLHIST.*_BLOM.*%ECO">diagnostic</value>
+      <value compset="_DATM%CPLHIST.*_BLOM.*%ECO">constant</value>
       <value compset="20TR_DATM%IAF.*_BLOM.*%ECO">diagnostic</value>
     </values>
     <group>run_component_blom</group>
@@ -92,7 +92,7 @@
     <valid_values/>
     <default_value>53</default_value>
     <values>
-      <value compset="_BLOM%HYB">56</value>
+      <value compset="_BLOM%HYB">72</value>
       <value compset="_BLOM%LVL">56</value>
     </values>
     <group>build_component_blom</group>
@@ -131,7 +131,7 @@
   <entry id="HAMOCC_FEDEP_SOURCE">
     <type>char</type>
     <valid_values>mahw2006,GESAMP2018</valid_values>
-    <default_value>mahw2006</default_value>
+    <default_value>GESAMP2018</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
     <desc>Source of dust/iron deposition data. Requires module ecosys</desc>
@@ -151,19 +151,19 @@
     <valid_values>UNSET,1850,2000,hist,ssp119,ssp126,ssp245,ssp370,ssp434,ssp460,ssp534os,ssp585</valid_values>
     <default_value>1850</default_value>
     <values>
-      <value compset="1850_.*_BLOM.*%ECO"   >1850</value>
-      <value compset="2000_.*_BLOM.*%ECO"   >2000</value>
-      <value compset="HIST_.*_BLOM.*%ECO"   >hist</value>
-      <value compset="20TR_.*_BLOM.*%ECO"   >hist</value>
-      <value compset="SSP119_.*_BLOM.*%ECO" >ssp119</value>
-      <value compset="SSP126_.*_BLOM.*%ECO" >ssp126</value>
-      <value compset="SSP245_.*_BLOM.*%ECO" >ssp245</value>
-      <value compset="SSP370_.*_BLOM.*%ECO" >ssp370</value>
-      <value compset="SSP434_.*_BLOM.*%ECO" >ssp434</value>
-      <value compset="SSP460_.*_BLOM.*%ECO" >ssp460</value>
-      <value compset="SSP534_.*_BLOM.*%ECO" >ssp534os</value>
-      <value compset="SSP585_.*_BLOM.*%ECO" >ssp585</value>
-      <value compset="SSP370.*_BLOM.*%ECO"  >ssp370</value>
+      <value compset="^1850_.*_BLOM.*%ECO"   >1850</value>
+      <value compset="^2000_.*_BLOM.*%ECO"   >2000</value>
+      <value compset="^HIST_.*_BLOM.*%ECO"   >hist</value>
+      <value compset="^20TR_.*_BLOM.*%ECO"   >hist</value>
+      <value compset="^SSP119_.*_BLOM.*%ECO" >ssp119</value>
+      <value compset="^SSP126_.*_BLOM.*%ECO" >ssp126</value>
+      <value compset="^SSP245_.*_BLOM.*%ECO" >ssp245</value>
+      <value compset="^SSP370_.*_BLOM.*%ECO" >ssp370</value>
+      <value compset="^SSP434_.*_BLOM.*%ECO" >ssp434</value>
+      <value compset="^SSP460_.*_BLOM.*%ECO" >ssp460</value>
+      <value compset="^SSP534_.*_BLOM.*%ECO" >ssp534os</value>
+      <value compset="^SSP585_.*_BLOM.*%ECO" >ssp585</value>
+      <value compset="^SSP370.*_BLOM.*%ECO"  >ssp370</value>
      </values>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
@@ -174,7 +174,7 @@
   <entry id="HAMOCC_EXTNCYCLE">
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
-    <default_value>FALSE</default_value>
+    <default_value>TRUE</default_value>
     <values>
        <value compset="_BGC.*%N2OC">TRUE</value>
        <value compset="_BGC.*%NH3C">TRUE</value>
@@ -321,7 +321,7 @@
   <entry id="HAMOCC_SEDSPINUP_YR_END">
     <type>integer</type>
     <valid_values/>
-    <default_value>800</default_value>
+    <default_value>500</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
     <desc>Set end year for HAMOCC sediment spin-up if HAMOCC_SEDSPINUP == TRUE.
@@ -331,7 +331,7 @@
   <entry id="HAMOCC_SEDSPINUP_NCYCLE">
     <type>integer</type>
     <valid_values/>
-    <default_value>20</default_value>
+    <default_value>30</default_value>
     <group>run_component_blom</group>
     <file>env_run.xml</file>
     <desc>Set the number of sub-cycles for HAMOCC sediment spin-up if HAMOCC_SEDSPINUP == TRUE.

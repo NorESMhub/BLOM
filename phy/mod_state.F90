@@ -25,7 +25,7 @@ module mod_state
    use mod_types, only: r8
    use mod_constants, only: spval
    use mod_xc
-   use mod_checksum, only: csdiag, chksummsk
+   use mod_checksum, only: csdiag, chksum
 
    implicit none
 
@@ -308,32 +308,32 @@ contains
          if (mnproc == 1) then
             write (lp, *) 'inivar_state:'
          endif
-         call chksummsk(p, ip, kk + 1, 'p')
-         call chksummsk(pu, iu, kk + 1, 'pu')
-         call chksummsk(pv, iv, kk + 1, 'pv')
-         call chksummsk(pb, ip, 2, 'pb')
-         call chksummsk(pb_p, ip, 1, 'pb_p')
-         call chksummsk(ub, iu, 2, 'ub')
-         call chksummsk(vb, iv, 2, 'vb')
-         call chksummsk(pbu, iu, 2, 'pbu')
-         call chksummsk(pbu_p, iu, 1, 'pbu_p')
-         call chksummsk(pbv, iv, 2, 'pbv')
-         call chksummsk(pbv_p, iv, 1, 'pbv_p')
-         call chksummsk(ubflxs, iu, 3, 'ubflxs')
-         call chksummsk(ubflxs_p, iu, 2, 'ubflxs_p')
-         call chksummsk(vbflxs, iv, 3, 'vbflxs')
-         call chksummsk(vbflxs_p, iv, 2, 'vbflxs_p')
-         call chksummsk(ubcors_p, iu, 1, 'ubcors_p')
-         call chksummsk(vbcors_p, iv, 1, 'vbcors_p')
-         call chksummsk(u, iu, 2*kk, 'u')
-         call chksummsk(v, iv, 2*kk, 'v')
-         call chksummsk(cau, iu, kk, 'cau')
-         call chksummsk(cav, iv, kk, 'cav')
-         call chksummsk(uflx, iu, 2*kk, 'uflx')
-         call chksummsk(vflx, iv, 2*kk, 'vflx')
-         call chksummsk(dp, ip, 2*kk, 'dp')
-         call chksummsk(dpu, iu, 2*kk, 'dpu')
-         call chksummsk(dpv, iv, 2*kk, 'dpv')
+         call chksum(p       , kk + 1, halo_ps, 'p'       )
+         call chksum(pu      , kk + 1, halo_us, 'pu'      )
+         call chksum(pv      , kk + 1, halo_vs, 'pv'      )
+         call chksum(pb      , 2     , halo_ps, 'pb'      )
+         call chksum(pb_p    , 1     , halo_ps, 'pb_p'    )
+         call chksum(ub      , 2     , halo_uv, 'ub'      )
+         call chksum(vb      , 2     , halo_vv, 'vb'      )
+         call chksum(pbu     , 2     , halo_us, 'pbu'     )
+         call chksum(pbu_p   , 1     , halo_us, 'pbu_p'   )
+         call chksum(pbv     , 2     , halo_vs, 'pbv'     )
+         call chksum(pbv_p   , 1     , halo_vs, 'pbv_p'   )
+         call chksum(ubflxs  , 3     , halo_uv, 'ubflxs'  )
+         call chksum(ubflxs_p, 2     , halo_uv, 'ubflxs_p')
+         call chksum(vbflxs  , 3     , halo_vv, 'vbflxs'  )
+         call chksum(vbflxs_p, 2     , halo_vv, 'vbflxs_p')
+         call chksum(ubcors_p, 1     , halo_uv, 'ubcors_p')
+         call chksum(vbcors_p, 1     , halo_vv, 'vbcors_p')
+         call chksum(u       , 2*kk  , halo_uv, 'u'       )
+         call chksum(v       , 2*kk  , halo_vv, 'v'       )
+         call chksum(cau     , kk    , halo_uv, 'cau'     )
+         call chksum(cav     , kk    , halo_vv, 'cav'     )
+         call chksum(uflx    , 2*kk  , halo_uv, 'uflx'    )
+         call chksum(vflx    , 2*kk  , halo_vv, 'vflx'    )
+         call chksum(dp      , 2*kk  , halo_ps, 'dp'      )
+         call chksum(dpu     , 2*kk  , halo_us, 'dpu'     )
+         call chksum(dpv     , 2*kk  , halo_vs, 'dpv'     )
       endif
 
    end subroutine inivar_state

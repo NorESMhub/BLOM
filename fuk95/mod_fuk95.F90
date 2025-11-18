@@ -39,7 +39,6 @@ module mod_fuk95
                            taux, tauy
   use mod_mxlayr,    only: mltmin
   use mod_state,     only: v, temp, saln, sigma, phi
-  use mod_checksum,  only: csdiag, chksummsk
 
   implicit none
 

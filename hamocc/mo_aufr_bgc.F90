@@ -139,7 +139,7 @@ CONTAINS
 #ifdef PNETCDF
 #   include <pnetcdf.inc>
 #   include <mpif.h>
-    integer*4, save  :: info=MPI_INFO_NULL
+    integer, save    :: info=MPI_INFO_NULL
 #endif
     character(len=3) :: stripestr
     character(len=9) :: stripestr2

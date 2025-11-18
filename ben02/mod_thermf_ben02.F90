@@ -47,7 +47,7 @@ module mod_thermf_ben02
                            hice_shmn, sagets, sice, cwi, cuc
   use mod_seaice,    only: ficem, hicem, hsnwm, ustari, iagem
   use mod_utility,   only: util1, util2, util3
-  use mod_checksum,  only: csdiag, chksummsk
+  use mod_checksum,  only: csdiag, chksum
   use mod_intp1d,    only: intp1d
   use mod_tracers,   only: ntr, itrtke, itrgls, trc, trflx
   use mod_diffusion, only: difdia
@@ -674,29 +674,29 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'thermf_ben02:'
       end if
-      call chksummsk(alb,ip,1,'alb')
-      call chksummsk(ficem,ip,1,'ficem')
-      call chksummsk(hicem,ip,1,'hicem')
-      call chksummsk(hsnwm,ip,1,'hsnwm')
-      call chksummsk(tsrfm,ip,1,'tsrfm')
-      call chksummsk(ticem,ip,1,'ticem')
-      call chksummsk(alb_tda,ip,1,'alb_tda')
-      call chksummsk(tml_tda,ip,1,'tml_tda')
-      call chksummsk(sml_tda,ip,1,'sml_tda')
-      call chksummsk(fice_tda,ip,1,'fice_tda')
-      call chksummsk(tsi_tda,ip,1,'tsi_tda')
-      call chksummsk(rnfres,ip,1,'rnfres')
-      call chksummsk(surflx,ip,1,'surflx')
-      call chksummsk(sswflx,ip,1,'sswflx')
-      call chksummsk(salflx,ip,1,'salflx')
-      call chksummsk(brnflx,ip,1,'brnflx')
-      call chksummsk(surrlx,ip,1,'surrlx')
-      call chksummsk(salrlx,ip,1,'salrlx')
-      call chksummsk(iagem,ip,1,'iagem')
-      call chksummsk(ustar,ip,1,'ustar')
+      call chksum(alb     , 1, halo_ps, 'alb'     )
+      call chksum(ficem   , 1, halo_ps, 'ficem'   )
+      call chksum(hicem   , 1, halo_ps, 'hicem'   )
+      call chksum(hsnwm   , 1, halo_ps, 'hsnwm'   )
+      call chksum(tsrfm   , 1, halo_ps, 'tsrfm'   )
+      call chksum(ticem   , 1, halo_ps, 'ticem'   )
+      call chksum(alb_tda , 1, halo_ps, 'alb_tda' )
+      call chksum(tml_tda , 1, halo_ps, 'tml_tda' )
+      call chksum(sml_tda , 1, halo_ps, 'sml_tda' )
+      call chksum(fice_tda, 1, halo_ps, 'fice_tda')
+      call chksum(tsi_tda , 1, halo_ps, 'tsi_tda' )
+      call chksum(rnfres  , 1, halo_ps, 'rnfres'  )
+      call chksum(surflx  , 1, halo_ps, 'surflx'  )
+      call chksum(sswflx  , 1, halo_ps, 'sswflx'  )
+      call chksum(salflx  , 1, halo_ps, 'salflx'  )
+      call chksum(brnflx  , 1, halo_ps, 'brnflx'  )
+      call chksum(surrlx  , 1, halo_ps, 'surrlx'  )
+      call chksum(salrlx  , 1, halo_ps, 'salrlx'  )
+      call chksum(iagem   , 1, halo_ps, 'iagem'   )
+      call chksum(ustar   , 1, halo_ps, 'ustar'   )
       if (vcoord_tag /= vcoord_isopyc_bulkml) then
-        call chksummsk(t_rs_nonloc, ip, kk+1, 't_rs_nonloc')
-        call chksummsk(s_rs_nonloc, ip, kk+1, 's_rs_nonloc')
+        call chksum(t_rs_nonloc, kk+1, halo_ps, 't_rs_nonloc')
+        call chksum(s_rs_nonloc, kk+1, halo_ps, 's_rs_nonloc')
       end if
     end if
 

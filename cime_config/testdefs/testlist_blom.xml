@@ -29,15 +29,6 @@
       <option name="comment">debug mode; 1 degree; hybrid coordinates; hamocc; IAF forcing</option>
     </options>
   </test>
-  <test name="SMS_D_Ld1" grid="T62_tn14" compset="NOIIAOC20TR">
-    <machines>
-      <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
-    </machines>
-    <options>
-      <option name="wallclock">00:20:00</option>
-      <option name="comment">debug mode; 1 degree; hybrid coordinates; hamocc; IAF forcing; 20TR historical</option>
-    </options>
-  </test>
   <test name="SMS_D_Ld1" grid="T62_tn14" compset="NOIIAJRAOC1850">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
@@ -160,6 +151,16 @@
       <option name="comment">restart test; 1 degree; hybrid coordinates; wave code; core forcing</option>
     </options>
   </test>
+  <!-- New test for on-line interpolation of WOA initial conditions -->
+  <test name="ERS_Ld5" grid="T62_tn14" compset="NOINY" testmods="blom/woa_nuopc">
+    <machines>
+      <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
+    </machines>
+    <options>
+      <option name="wallclock">00:20:00</option>
+      <option name="comment">on-line interpolation of WOA initial conditions</option>
+    </options>
+  </test>
   <!-- Declarations for tests with different iHAMOCC settings: aux_hamocc_noresm -->
   <test name="SMS_D_Ld1" grid="T62_tn14" compset="NOINYOC" testmods="blom/hamocc/hamocc1">
     <machines>
@@ -231,16 +232,6 @@
     <options>
       <option name="wallclock">00:20:00</option>
       <option name="comment">test extNcycle, DOM classes and M4AGO code</option>
-    </options>
-  </test>
-  <!-- New test for on-line interpolation of WOA initial conditions -->
-  <test name="ERS_Ld5" grid="T62_tn14" compset="NOINY" testmods="blom/woa_nuopc">
-    <machines>
-      <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
-    </machines>
-    <options>
-      <option name="wallclock">00:20:00</option>
-      <option name="comment">on-line interpolation of WOA initial conditions</option>
     </options>
   </test>
 </testlist>

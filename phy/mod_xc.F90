@@ -22,9 +22,11 @@
 module mod_xc
 
   ! Note that dimensions.F is auto-generated
+  use mod_types,  only: i2, r4
   use dimensions, only: idm,jdm,kdm,itdm,jtdm,iqr,jqr,ijqr,&
                         ii_pe,jj_pe,i0_pe,j0_pe,nreg
   use mod_wtime,  only: wtime
+  use mod_crc32,  only: crc32
   use mod_ifdefs, only: use_arctic
 
   implicit none
@@ -773,9 +775,9 @@ contains
   !-----------------------------------------------------------------------
   subroutine xclput4(aline,nl, a, i1,j1,iinc,jinc)
 
-    integer, intent(in)    ::  nl,i1,j1,iinc,jinc
-    real*4,  intent(in)    ::  aline(nl)
-    real*4,  intent(inout) ::  a(ii,jj)
+    integer,   intent(in)    ::  nl,i1,j1,iinc,jinc
+    real(r4),  intent(in)    ::  aline(nl)
+    real(r4),  intent(inout) ::  a(ii,jj)
 
     !-----------
     !  1) fill a line of elements in the non-tiled 2-D grid.
@@ -2015,6 +2017,7 @@ contains
       call xctmrn( 4,'xcaput')
       call xctmrn( 5,'xcXput')
       call xctmrn( 6,'xcsum ')
+      call xctmrn( 7,'xccrc ')
       call xctmrn( 8,'xcbcst')
       call xctmrn( 9,'xcmax ')
       call xctmrn(10,'xcmin ')
@@ -2084,7 +2087,7 @@ contains
 
     real(8), parameter :: zero8 = 0.0
     integer, parameter :: mxsum = (idm+3*nbdy)/(2*nbdy+1)
-    real(8) :: sum8t(mxsum*jdm),sum8j(jdm),sum8s
+    real(8) :: arow(1-nbdy:idm+nbdy),sum8t(mxsum*jdm),sum8j(jdm),sum8s
     real(8) :: sum8
     real    :: vsave
     integer :: i,i1,j,l,mp,np
@@ -2098,6 +2101,9 @@ contains
 
     ! halo update so that 2*nbdy+1 wide strips are on chip.
 
+    if (nreg == 2 .and. nproc == jpr) then
+      arow(:) = a(:,jj)
+    endif
     vsave = vland
     vland = 0.0
     call xctilr(a,1,1, nbdy,0, halo_ps)
@@ -2171,6 +2177,12 @@ contains
     call mpi_bcast(sum8s,1,MTYPED,idproc1(1),mpicomm,mpierr)
     sum = sum8s
 
+    ! in case of arctic patch, copy back the final global j-row to undo any
+    ! changes the call to xctilr might have caused.
+    if (nreg == 2 .and. nproc == jpr) then
+      a(:,jj) = arow(:)
+    endif
+
     if (use_TIMER) then
       if (nxc ==  6) then
         call xctmr1( 6)
@@ -2178,6 +2190,136 @@ contains
       end if
     end if
   end subroutine xcsum
+
+  !-----------------------------------------------------------------------
+  subroutine xccrc(crc, a, ld, mask, itype)
+    integer, intent(out)   :: crc ! checksum of a
+    integer, intent(in)    :: ld
+    integer, intent(in)    :: itype
+    real,    intent(inout) :: a(   1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ld)
+    integer, intent(in)    :: mask(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy)
+
+    !-----------
+    !  1) checksum a 3-d array, where mask==1
+    !  2) parameters:
+    !       name            type         usage            description
+    !    ----------      ----------     -------  ----------------------------
+    !    crc             integer        output    checksum of a
+    !    a               real           input     source array
+    !    ld              integer        input     3rd dimension of a
+    !    mask            integer        input     mask array
+
+    !  3) checksum is reproducable for the same halo size, nbdy.
+    !-----------
+
+    integer, parameter :: mxsum = (idm+3*nbdy)/(2*nbdy+1)
+    integer :: crc8t(mxsum*jdm),crc8j(jdm),crc8s,crc8
+    real    :: arow(1-nbdy:idm+nbdy,ld)
+    real    :: vsave
+    integer :: i,i1,j,k,l,mp,np
+
+    if (use_TIMER) then
+      if (nxc == 0) then
+        call xctmr0( 7)
+        nxc = 7
+      end if
+    end if
+
+    ! halo update so that 2*nbdy+1 wide strips are on chip.
+
+    if (nreg == 2 .and. nproc == jpr) then
+      do k = 1,ld
+        arow(:,k) = a(:,jj,k)
+      end do
+    endif
+    vsave = vland
+    vland = 0.0
+    call xctilr(a,1,ld, nbdy,0, itype)
+    vland = vsave
+
+    ! row checksums in 2*nbdy+1 wide strips.
+
+    !$omp parallel do private(j,i1,i,l,crc8) &
+    !$omp schedule(static,jblk)
+    do j = 1,jj
+      do l= 1,iisum(mproc,nproc)
+        i1   = i1sum(mproc,nproc) + (l-1)*(2*nbdy+1)
+        crc8 = 0
+        do i= max(i1,1-nbdy),min(i1+2*nbdy,ii+nbdy,itdm-i0)
+          if (mask(i,j) == 1) then
+            crc8 = crc32(a(i,j,:), crc8)
+          end if
+        end do
+        crc8t(l + (j-1)*iisum(mproc,nproc)) = crc8
+      end do
+    end do
+    !$omp end parallel do
+
+    ! complete row checksums on first processor in each row.
+    if (mproc == mpe_1(nproc)) then
+      do j = 1,jj
+        crc8j(j) = 0
+        do l= 1,iisum(mproc,nproc)
+          crc8j(j) = crc32(crc8t(l + (j-1)*iisum(mproc,nproc)), crc8j(j))
+        end do
+      end do
+
+      ! remote checksums.
+      do mp= mpe_1(nproc)+1,mpe_e(nproc)
+        l = iisum(mp,nproc)*jj
+        if (l > 0) then
+          call MPI_RECV(crc8t,l,mpi_integer,idproc(mp,nproc), 9910,mpicomm, mpistat, mpierr)
+          do j = 1,jj
+            do l= 1,iisum(mp,nproc)
+              crc8j(j) = crc32(crc8t(l + (j-1)*iisum(mp,nproc)), crc8j(j))
+            end do
+          end do
+        end if
+      end do
+    else
+      l = iisum(mproc,nproc)*jj
+      if (l > 0) then
+        call MPI_SEND(crc8t,l,mpi_integer,idproc(mpe_1(nproc),nproc), 9910,mpicomm, mpierr)
+      end if
+    end if
+
+    ! checksum of row checksums, on first processor.
+    if (mnproc == 1) then
+      crc8 = 0
+      do j= 1,jj
+        crc8 = crc32(crc8j(j), crc8)
+      end do
+      do np= 2,jpr
+        mp = mpe_1(np)
+        call MPI_RECV(crc8j,jj_pe(mp,np),mpi_integer,idproc(mp,np), 9911,mpicomm, mpistat, mpierr)
+        do j= 1,jj_pe(mp,np)
+          crc8 = crc32(crc8j(j), crc8)
+        end do
+      end do
+      crc8s = crc8
+    else if (mproc == mpe_1(nproc)) then
+      call MPI_SEND(crc8j,jj,mpi_integer,idproc1(1), 9911,mpicomm, mpierr)
+    end if
+
+    ! broadcast result to all processors.
+    call mpi_bcast(crc8s,1,mpi_integer,idproc1(1),mpicomm,mpierr)
+    crc = crc8s
+
+    ! in case of arctic patch, copy back the final global j-row to undo any
+    ! changes the call to xctilr might have caused.
+    if (nreg == 2 .and. nproc == jpr) then
+      do k = 1,ld
+        a(:,jj,k) = arow(:,k)
+      end do
+    endif
+
+    if (use_TIMER) then
+      if (nxc ==  7) then
+        call xctmr1( 7)
+        nxc = 0
+      end if
+    end if
+  end subroutine xccrc
 
   !-----------------------------------------------------------------------
   subroutine xcsync(lflush)
@@ -3296,17 +3438,17 @@ contains
 
   !-----------------------------------------------------------------------
   subroutine xcgetrow4(outm,inm, kt)
-    integer, intent(in)      :: kt
-    real*4,    intent(out)   :: outm(itdm,jj,kt)
-    real*4,    intent(in)    :: inm(ii,jj,kt)
+    integer,   intent(in)    :: kt
+    real(r4),  intent(out)   :: outm(itdm,jj,kt)
+    real(r4),  intent(in)    :: inm(ii,jj,kt)
 
     !-----------
     !  convert an entire 2-D array from tiled to non-tiled layout.
     !-----------
 
-    integer :: mpireqb(ipr)
-    real*4  :: at(idm*jdm*2*kk),ata(idm*jdm*2*kk,iqr)
-    integer :: i,j,k,l,mp
+    integer  :: mpireqb(ipr)
+    real(r4) :: at(idm*jdm*2*kk),ata(idm*jdm*2*kk,iqr)
+    integer  :: i,j,k,l,mp
 
     !  gather each row of tiles onto the first tile in the row.
     if (mproc == mpe_1(nproc)) then
@@ -3356,17 +3498,17 @@ contains
 
   !-----------------------------------------------------------------------
   subroutine xcgetrowint2(outm,inm, kt)
-    integer,   intent(in)  :: kt
-    integer*2, intent(out) :: outm(itdm,jj,kt)
-    integer*2, intent(in)  :: inm(ii,jj,kt)
+    integer,   intent(in)    :: kt
+    integer(i2), intent(out) :: outm(itdm,jj,kt)
+    integer(i2), intent(in)  :: inm(ii,jj,kt)
 
     !-----------
     ! convert an entire 2-D array from tiled to non-tiled layout.
     !-----------
 
-    integer   :: mpireqb(ipr)
-    integer*2 :: at(idm*jdm*kt),ata(idm*jdm*kt,iqr)
-    integer   :: i,j,k,l,mp,np
+    integer     :: mpireqb(ipr)
+    integer(i2) :: at(idm*jdm*kt),ata(idm*jdm*kt,iqr)
+    integer     :: i,j,k,l,mp,np
 
     !     gather each row of tiles onto the first tile in the row.
 
@@ -3942,6 +4084,7 @@ contains
       call xctmrn( 3,'xclget')
       call xctmrn( 4,'xcXput')
       call xctmrn( 5,'xcsum ')
+      call xctmrn( 6,'xccrc ')
       call xctmrn( 8,'xcbcst')
       call xctmrn( 9,'xcmax ')
       call xctmrn(10,'xcmin ')
@@ -4016,6 +4159,50 @@ contains
       call xctmr1( 5)
     end if
   end subroutine xcsum
+
+  !-----------------------------------------------------------------------
+  subroutine xccrc(crc, a, ld, mask, itype)
+    integer,  intent(out) :: crc ! checksum of a
+    integer,  intent(in)  :: ld
+    integer,  intent(in)  :: itype
+    real,     intent(in)  :: a(   1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ld) ! source array
+    integer,  intent(in)  :: mask(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ! mask array
+
+    !-----------
+    ! checksum a 3-d array, where mask==1
+    ! checksum is reproducable for the same halo size, nbdy.
+    !-----------
+    ! Local variables
+    integer :: crc8,crc8p,crc8j(jdm)
+    integer :: i,i1,j
+    if (use_TIMER) then
+      call xctmr0( 6)
+    end if
+
+    ! row checksums in 2*nbdy+1 wide strips.
+    !$OMP PARALLEL DO PRIVATE(j,i1,i,crc8,crc8p) &
+    !$OMP SCHEDULE(STATIC,jblk)
+    do j = 1,jdm
+      crc8 = 0
+      do i1 = 1,idm,2*nbdy+1
+        crc8p = 0
+        do i= i1,min(i1+2*nbdy,idm)
+          if (mask(i,j) == 1) then
+            crc8p = crc32(a(i,j,:), crc8p)
+          end if
+        end do
+        crc8 = crc32(crc8p,crc8)
+      end do
+      crc8j(j) = crc8
+    end do
+    !$OMP END PARALLEL DO
+
+    ! checksum of rwo checksums.
+    crc = crc32(crc8j)
+    if (use_TIMER) then
+      call xctmr1( 6)
+    end if
+  end subroutine xccrc
 
   !-----------------------------------------------------------------------
   subroutine xcsync(lflush)

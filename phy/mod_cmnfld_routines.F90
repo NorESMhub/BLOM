@@ -39,7 +39,7 @@ module mod_cmnfld_routines
                             edritp_opt, edritp_large_scale, &
                             ltedtp_opt, ltedtp_neutral
    use mod_utility,   only: util1
-   use mod_checksum,  only: csdiag, chksummsk
+   use mod_checksum,  only: csdiag, chksum
 
    implicit none
 
@@ -221,9 +221,9 @@ module mod_cmnfld_routines
          if (mnproc == 1) then
             write(lp,*) 'cmnfld_bfsqf_isopyc_bulkml:'
          endif
-         call chksummsk(bfsqi, ip, kk + 1, 'bfsqi')
-         call chksummsk(bfsql, ip, kk, 'bfsql')
-         call chksummsk(bfsqf, ip, kk + 1, 'bfsqf')
+         call chksum(bfsqi, kk + 1, halo_ps, 'bfsqi')
+         call chksum(bfsql, kk    , halo_ps, 'bfsql')
+         call chksum(bfsqf, kk + 1, halo_ps, 'bfsqf')
       endif
 
    end subroutine cmnfld_bfsqf_isopyc_bulkml
@@ -348,9 +348,9 @@ module mod_cmnfld_routines
          if (mnproc == 1) then
             write(lp,*) 'cmnfld_bfsqf_ale:'
          endif
-         call chksummsk(bfsqi, ip, kk + 1, 'bfsqi')
-         call chksummsk(bfsql, ip, kk, 'bfsql')
-         call chksummsk(bfsqf, ip, kk + 1, 'bfsqf')
+         call chksum(bfsqi, kk + 1, halo_ps, 'bfsqi')
+         call chksum(bfsql, kk    , halo_ps, 'bfsql')
+         call chksum(bfsqf, kk + 1, halo_ps, 'bfsqf')
       endif
 
    end subroutine cmnfld_bfsqf_ale
@@ -421,7 +421,7 @@ module mod_cmnfld_routines
          if (mnproc == 1) then
             write(lp,*) 'cmnfld_bfsqi_ale:'
          endif
-         call chksummsk(bfsqi, ip, kk + 1, 'bfsqi')
+         call chksum(bfsqi, kk + 1, halo_ps, 'bfsqi')
       endif
 
    end subroutine cmnfld_bfsqi_ale
@@ -649,10 +649,10 @@ module mod_cmnfld_routines
          if (mnproc == 1) then
            write (lp,*) 'cmnfld_nslope_isopyc_bulkml:'
          endif
-         call chksummsk(nslpx, iu, kk, 'nslpx')
-         call chksummsk(nslpy, iv, kk, 'nslpy')
-         call chksummsk(nnslpx, iu, kk, 'nnslpx')
-         call chksummsk(nnslpy, iv, kk, 'nnslpy')
+         call chksum(nslpx , kk, halo_uv, 'nslpx' )
+         call chksum(nslpy , kk, halo_vv, 'nslpy' )
+         call chksum(nnslpx, kk, halo_uv, 'nnslpx')
+         call chksum(nnslpy, kk, halo_vv, 'nnslpy')
       endif
 
    end subroutine cmnfld_nslope_isopyc_bulkml
@@ -808,10 +808,10 @@ module mod_cmnfld_routines
          if (mnproc == 1) then
            write (lp,*) 'cmnfld_nslope_ale:'
          endif
-         call chksummsk(nslpx, iu, kk, 'nslpx')
-         call chksummsk(nslpy, iv, kk, 'nslpy')
-         call chksummsk(nnslpx, iu, kk, 'nnslpx')
-         call chksummsk(nnslpy, iv, kk, 'nnslpy')
+         call chksum(nslpx , kk, halo_uv, 'nslpx' )
+         call chksum(nslpy , kk, halo_vv, 'nslpy' )
+         call chksum(nnslpx, kk, halo_uv, 'nnslpx')
+         call chksum(nnslpy, kk, halo_vv, 'nnslpy')
       endif
 
    end subroutine cmnfld_nslope_ale
@@ -882,8 +882,8 @@ module mod_cmnfld_routines
          if (mnproc == 1) then
            write (lp,*) 'cmnfld_nnslope_ale:'
          endif
-         call chksummsk(nnslpx, iu, kk, 'nnslpx')
-         call chksummsk(nnslpy, iv, kk, 'nnslpy')
+         call chksum(nnslpx, kk, halo_uv, 'nnslpx')
+         call chksum(nnslpy, kk, halo_vv, 'nnslpy')
       endif
 
    end subroutine cmnfld_nnslope_ale
@@ -930,8 +930,8 @@ module mod_cmnfld_routines
          if (mnproc == 1) then
            write (lp,*) 'cmnfld_z:'
          endif
-         call chksummsk(z, ip, kk+1, 'z')
-         call chksummsk(dz, ip, kk, 'dz')
+         call chksum(z , kk+1, halo_ps, 'z' )
+         call chksum(dz, kk  , halo_ps, 'dz')
       endif
 
    end subroutine cmnfld_z
@@ -994,8 +994,8 @@ module mod_cmnfld_routines
          if (mnproc == 1) then
            write (lp,*) 'cmnfld_mlts:'
          endif
-         call chksummsk(mlts, ip, 1, 'mlts')
-         call chksummsk(dpml, ip, 1, 'dpml')
+         call chksum(mlts, 1, halo_ps, 'mlts')
+         call chksum(dpml, 1, halo_ps, 'dpml')
       endif
 
    end subroutine cmnfld_mlts

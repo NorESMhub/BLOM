@@ -243,12 +243,12 @@
   <grid name="a%TL319.+oi%tnx1v4">
     <mach name="any">
       <pes pesize="M" compset="any">
-        <comment>none</comment>
+        <comment>PE-layout with 374/512 pes yielding about 13.8/12 myears/wday for BLOM/total</comment>
         <ntasks>
           <ntasks_atm>128</ntasks_atm>
           <ntasks_rof>128</ntasks_rof>
           <ntasks_ice>128</ntasks_ice>
-          <ntasks_ocn>354</ntasks_ocn>
+          <ntasks_ocn>374</ntasks_ocn>
           <ntasks_cpl>128</ntasks_cpl>
           <ntasks_lnd>128</ntasks_lnd>
           <ntasks_glc>128</ntasks_glc>
@@ -278,56 +278,16 @@
     </mach>
   </grid>
 
-  <!-- 512 pes is minimum setting for normal job size on betzy !-->
   <grid name="a%TL319.+oi%tnx1v4">
     <mach name="betzy">
       <pes pesize="L" compset="any">
-        <comment>Large pe-layout with 512 pes in total</comment>
+        <comment>PE-layout with 500/640 pes yielding about 19.2/15.5 myears/wday for BLOM/total</comment>
         <ntasks>
-          <ntasks_atm>128</ntasks_atm>
-          <ntasks_rof>128</ntasks_rof>
+          <ntasks_atm>6</ntasks_atm>
+          <ntasks_rof>6</ntasks_rof>
           <ntasks_ice>128</ntasks_ice>
-          <ntasks_ocn>354</ntasks_ocn>
-          <ntasks_cpl>128</ntasks_cpl>
-          <ntasks_lnd>128</ntasks_lnd>
-          <ntasks_glc>128</ntasks_glc>
-          <ntasks_wav>128</ntasks_wav>
-        </ntasks>
-        <nthrds>
-          <nthrds_atm>1</nthrds_atm>
-          <nthrds_lnd>1</nthrds_lnd>
-          <nthrds_rof>1</nthrds_rof>
-          <nthrds_ice>1</nthrds_ice>
-          <nthrds_ocn>1</nthrds_ocn>
-          <nthrds_glc>1</nthrds_glc>
-          <nthrds_wav>1</nthrds_wav>
-          <nthrds_cpl>1</nthrds_cpl>
-        </nthrds>
-        <rootpe>
-          <rootpe_atm>0</rootpe_atm>
-          <rootpe_lnd>0</rootpe_lnd>
-          <rootpe_rof>0</rootpe_rof>
-          <rootpe_ice>0</rootpe_ice>
-          <rootpe_ocn>128</rootpe_ocn>
-          <rootpe_glc>0</rootpe_glc>
-          <rootpe_wav>0</rootpe_wav>
-          <rootpe_cpl>0</rootpe_cpl>
-        </rootpe>
-      </pes>
-    </mach>
-  </grid>
-  <!-- GRID: TL319_tn14 : end !-->
-
-  <grid name="a%0.9x1.25.+oi%tnx1v4|a%1.9x2.5.+oi%tnx1v4">
-    <mach name="any">
-      <pes pesize="M" compset="_DATM%CPLHIST.*_BLOM">
-        <comment>none</comment>
-        <ntasks>
-          <ntasks_atm>1</ntasks_atm>
-          <ntasks_rof>1</ntasks_rof>
-          <ntasks_ice>96</ntasks_ice>
-          <ntasks_ocn>354</ntasks_ocn>
-          <ntasks_cpl>126</ntasks_cpl>
+          <ntasks_ocn>500</ntasks_ocn>
+          <ntasks_cpl>140</ntasks_cpl>
           <ntasks_lnd>1</ntasks_lnd>
           <ntasks_glc>1</ntasks_glc>
           <ntasks_wav>1</ntasks_wav>
@@ -343,11 +303,87 @@
           <nthrds_cpl>1</nthrds_cpl>
         </nthrds>
         <rootpe>
-          <rootpe_atm>96</rootpe_atm>
-          <rootpe_lnd>97</rootpe_lnd>
-          <rootpe_rof>98</rootpe_rof>
+          <rootpe_atm>128</rootpe_atm>
+          <rootpe_lnd>128</rootpe_lnd>
+          <rootpe_rof>134</rootpe_rof>
           <rootpe_ice>0</rootpe_ice>
-          <rootpe_ocn>126</rootpe_ocn>
+          <rootpe_ocn>140</rootpe_ocn>
+          <rootpe_glc>128</rootpe_glc>
+          <rootpe_wav>128</rootpe_wav>
+          <rootpe_cpl>0</rootpe_cpl>
+        </rootpe>
+      </pes>
+    </mach>
+  </grid>
+
+  <grid name="a%TL319.+oi%tnx1v4">
+    <mach name="betzy">
+      <pes pesize="XL" compset="any">
+        <comment>PE-layout with 623/768 pes yielding about 21.5/17 myears/wday for BLOM/total</comment>
+        <ntasks>
+          <ntasks_atm>8</ntasks_atm>
+          <ntasks_rof>8</ntasks_rof>
+          <ntasks_ice>128</ntasks_ice>
+          <ntasks_ocn>623</ntasks_ocn>
+          <ntasks_cpl>145</ntasks_cpl>
+          <ntasks_lnd>1</ntasks_lnd>
+          <ntasks_glc>1</ntasks_glc>
+          <ntasks_wav>1</ntasks_wav>
+        </ntasks>
+        <nthrds>
+          <nthrds_atm>1</nthrds_atm>
+          <nthrds_lnd>1</nthrds_lnd>
+          <nthrds_rof>1</nthrds_rof>
+          <nthrds_ice>1</nthrds_ice>
+          <nthrds_ocn>1</nthrds_ocn>
+          <nthrds_glc>1</nthrds_glc>
+          <nthrds_wav>1</nthrds_wav>
+          <nthrds_cpl>1</nthrds_cpl>
+        </nthrds>
+        <rootpe>
+          <rootpe_atm>129</rootpe_atm>
+          <rootpe_lnd>128</rootpe_lnd>
+          <rootpe_rof>137</rootpe_rof>
+          <rootpe_ice>0</rootpe_ice>
+          <rootpe_ocn>145</rootpe_ocn>
+          <rootpe_glc>128</rootpe_glc>
+          <rootpe_wav>128</rootpe_wav>
+          <rootpe_cpl>0</rootpe_cpl>
+        </rootpe>
+      </pes>
+    </mach>
+  </grid>
+
+  <grid name="a%TL319.+oi%tnx1v4">
+    <mach name="betzy">
+      <pes pesize="XXL" compset="any">
+        <comment>PE-layout with 761/896 pes yielding 25.5/19.5 myears/wday for BLOM/total</comment>
+        <ntasks>
+          <ntasks_atm>64</ntasks_atm>
+          <ntasks_rof>7</ntasks_rof>
+          <ntasks_ice>128</ntasks_ice>
+          <ntasks_ocn>761</ntasks_ocn>
+          <ntasks_cpl>135</ntasks_cpl>
+          <ntasks_lnd>1</ntasks_lnd>
+          <ntasks_glc>1</ntasks_glc>
+          <ntasks_wav>1</ntasks_wav>
+        </ntasks>
+        <nthrds>
+          <nthrds_atm>1</nthrds_atm>
+          <nthrds_lnd>1</nthrds_lnd>
+          <nthrds_rof>1</nthrds_rof>
+          <nthrds_ice>1</nthrds_ice>
+          <nthrds_ocn>1</nthrds_ocn>
+          <nthrds_glc>1</nthrds_glc>
+          <nthrds_wav>1</nthrds_wav>
+          <nthrds_cpl>1</nthrds_cpl>
+        </nthrds>
+        <rootpe>
+          <rootpe_atm>64</rootpe_atm>
+          <rootpe_lnd>0</rootpe_lnd>
+          <rootpe_rof>128</rootpe_rof>
+          <rootpe_ice>0</rootpe_ice>
+          <rootpe_ocn>135</rootpe_ocn>
           <rootpe_glc>0</rootpe_glc>
           <rootpe_wav>0</rootpe_wav>
           <rootpe_cpl>0</rootpe_cpl>
@@ -355,6 +391,125 @@
       </pes>
     </mach>
   </grid>
+  <!-- GRID: TL319_tn14 : end !-->
+
+
+  <!-- Configurations for running with CPLHIST output from NorESM2/3 !-->
+  
+  <grid name="a%0.9x1.25.+oi%tnx1v4|a%1.9x2.5.+oi%tnx1v4">
+    <mach name="any">
+      <pes pesize="M" compset="_DATM%CPLHIST.*_BLOM">
+        <comment>none</comment>
+        <ntasks>
+          <ntasks_atm>128</ntasks_atm>
+          <ntasks_rof>128</ntasks_rof>
+          <ntasks_ice>128</ntasks_ice>
+          <ntasks_ocn>374</ntasks_ocn>
+          <ntasks_cpl>128</ntasks_cpl>
+          <ntasks_lnd>128</ntasks_lnd>
+          <ntasks_glc>128</ntasks_glc>
+          <ntasks_wav>128</ntasks_wav>
+        </ntasks>
+        <nthrds>
+          <nthrds_atm>1</nthrds_atm>
+          <nthrds_lnd>1</nthrds_lnd>
+          <nthrds_rof>1</nthrds_rof>
+          <nthrds_ice>1</nthrds_ice>
+          <nthrds_ocn>1</nthrds_ocn>
+          <nthrds_glc>1</nthrds_glc>
+          <nthrds_wav>1</nthrds_wav>
+          <nthrds_cpl>1</nthrds_cpl>
+        </nthrds>
+        <rootpe>
+          <rootpe_atm>0</rootpe_atm>
+          <rootpe_lnd>0</rootpe_lnd>
+          <rootpe_rof>0</rootpe_rof>
+          <rootpe_ice>0</rootpe_ice>
+          <rootpe_ocn>128</rootpe_ocn>
+          <rootpe_glc>0</rootpe_glc>
+          <rootpe_wav>0</rootpe_wav>
+          <rootpe_cpl>0</rootpe_cpl>
+        </rootpe>
+      </pes>
+    </mach>
+  </grid>
+  
+  <grid name="a%ne16np4.pg3.+oi%tnx1v4|a%ne30np4.pg3.+oi%tnx1v4">
+    <mach name="betzy">
+      <pes pesize="any" compset="_DATM%CPLHIST.*_BLOM">
+        <comment>none</comment>
+        <ntasks>
+          <ntasks_atm>6</ntasks_atm>
+          <ntasks_rof>6</ntasks_rof>
+          <ntasks_ice>128</ntasks_ice>
+          <ntasks_ocn>500</ntasks_ocn>
+          <ntasks_cpl>140</ntasks_cpl>
+          <ntasks_lnd>1</ntasks_lnd>
+          <ntasks_glc>1</ntasks_glc>
+          <ntasks_wav>1</ntasks_wav>
+        </ntasks>
+        <nthrds>
+          <nthrds_atm>1</nthrds_atm>
+          <nthrds_lnd>1</nthrds_lnd>
+          <nthrds_rof>1</nthrds_rof>
+          <nthrds_ice>1</nthrds_ice>
+          <nthrds_ocn>1</nthrds_ocn>
+          <nthrds_glc>1</nthrds_glc>
+          <nthrds_wav>1</nthrds_wav>
+          <nthrds_cpl>1</nthrds_cpl>
+        </nthrds>
+        <rootpe>
+          <rootpe_atm>128</rootpe_atm>
+          <rootpe_lnd>128</rootpe_lnd>
+          <rootpe_rof>134</rootpe_rof>
+          <rootpe_ice>0</rootpe_ice>
+          <rootpe_ocn>140</rootpe_ocn>
+          <rootpe_glc>128</rootpe_glc>
+          <rootpe_wav>128</rootpe_wav>
+          <rootpe_cpl>0</rootpe_cpl>
+        </rootpe>
+      </pes>
+    </mach>
+  </grid>
+
+  <grid name="a%ne16np4.pg3.+oi%tnx1v4|a%ne30np4.pg3.+oi%tnx1v4">
+    <mach name="betzy">
+      <pes pesize="XL" compset="_DATM%CPLHIST.*_BLOM">
+        <comment>none</comment>
+        <ntasks>
+          <ntasks_atm>8</ntasks_atm>
+          <ntasks_rof>8</ntasks_rof>
+          <ntasks_ice>128</ntasks_ice>
+          <ntasks_ocn>623</ntasks_ocn>
+          <ntasks_cpl>145</ntasks_cpl>
+          <ntasks_lnd>1</ntasks_lnd>
+          <ntasks_glc>1</ntasks_glc>
+          <ntasks_wav>1</ntasks_wav>
+        </ntasks>
+        <nthrds>
+          <nthrds_atm>1</nthrds_atm>
+          <nthrds_lnd>1</nthrds_lnd>
+          <nthrds_rof>1</nthrds_rof>
+          <nthrds_ice>1</nthrds_ice>
+          <nthrds_ocn>1</nthrds_ocn>
+          <nthrds_glc>1</nthrds_glc>
+          <nthrds_wav>1</nthrds_wav>
+          <nthrds_cpl>1</nthrds_cpl>
+        </nthrds>
+        <rootpe>
+          <rootpe_atm>129</rootpe_atm>
+          <rootpe_lnd>128</rootpe_lnd>
+          <rootpe_rof>137</rootpe_rof>
+          <rootpe_ice>0</rootpe_ice>
+          <rootpe_ocn>145</rootpe_ocn>
+          <rootpe_glc>128</rootpe_glc>
+          <rootpe_wav>128</rootpe_wav>
+          <rootpe_cpl>0</rootpe_cpl>
+        </rootpe>
+      </pes>
+    </mach>
+  </grid>
+
 
   <!-- Configurations for the 1/2 degree tripolar (tnx0.5) grid  !-->
 
@@ -825,6 +980,45 @@
     </mach>
   </grid>
 
+  <!-- GRID: TL319_tn21 !-->
+  <grid name="a%TL319.+oi%tnx2v1">
+    <mach name="any">
+      <pes pesize="any" compset="_DATM.*_BLOM.*%ECO">
+        <comment>Large pe-layout with 512 pes in total</comment>
+        <ntasks>
+          <ntasks_atm>4</ntasks_atm>
+          <ntasks_rof>4</ntasks_rof>
+          <ntasks_ice>96</ntasks_ice>
+          <ntasks_ocn>406</ntasks_ocn>
+          <ntasks_cpl>106</ntasks_cpl>
+          <ntasks_lnd>1</ntasks_lnd>
+          <ntasks_glc>1</ntasks_glc>
+          <ntasks_wav>1</ntasks_wav>
+        </ntasks>
+        <nthrds>
+          <nthrds_atm>1</nthrds_atm>
+          <nthrds_lnd>1</nthrds_lnd>
+          <nthrds_rof>1</nthrds_rof>
+          <nthrds_ice>1</nthrds_ice>
+          <nthrds_ocn>1</nthrds_ocn>
+          <nthrds_glc>1</nthrds_glc>
+          <nthrds_wav>1</nthrds_wav>
+          <nthrds_cpl>1</nthrds_cpl>
+        </nthrds>
+        <rootpe>
+          <rootpe_atm>0</rootpe_atm>
+          <rootpe_lnd>8</rootpe_lnd>
+          <rootpe_rof>4</rootpe_rof>
+          <rootpe_ice>10</rootpe_ice>
+          <rootpe_ocn>106</rootpe_ocn>
+          <rootpe_glc>9</rootpe_glc>
+          <rootpe_wav>9</rootpe_wav>
+          <rootpe_cpl>0</rootpe_cpl>
+        </rootpe>
+      </pes>
+    </mach>
+  </grid>
+
   <!-- Offline sediment spinup - testwise - needs adjustment to reduce idling -->
   <grid name="a%null.+oi%tnx2v1">
     <mach name="any">
@@ -863,6 +1057,5 @@
       </pes>
     </mach>
   </grid>
-
 
 </config_pes>

@@ -1,5 +1,4 @@
 sources += files(
-'crc.c',
 'mod_advect.F90',
 'mod_ale_forcing.F90',
 'mod_ale_regrid_remap.F90',
@@ -18,6 +17,7 @@ sources += files(
 'mod_constants.F90',
 'mod_convec.F90',
 'mod_cppm.F90',
+'mod_crc32.F90',
 'mod_dia.F90',
 'mod_diapfl.F90',
 'mod_difest.F90',

@@ -97,6 +97,7 @@ module mod_nctools
   use mod_calendar, only: date_type, daynum_diff, calendar_noerr, &
                           calendar_errstr
   use netcdf
+  use mod_types,    only: i2, i4, r4
 
   implicit none
   public
@@ -128,9 +129,9 @@ module mod_nctools
 #ifdef PNETCDF
   integer(kind = mpi_offset_kind) :: clen,istart(5),icount(5),tkd
 #endif
-  integer*2, parameter :: i2fill=-32768,i2max = 32767
+  integer(kind = i2), parameter :: i2fill=-32768,i2max = 32767
   real, parameter :: fillr8 = 9.9692099683868690e+36
-  real(kind=4), parameter :: fillr4 = 9.9692099683868690e+36
+  real(kind = r4), parameter :: fillr4 = 9.9692099683868690e+36
   integer :: ndouble,nchar,nfint
 
 contains
@@ -160,7 +161,7 @@ contains
     integer, parameter :: nf90__64bit_offset = 512
     integer, parameter :: nf90__hdf5 = 4096
 #ifdef PNETCDF
-    integer*4, save :: info = MPI_INFO_NULL
+    integer(i4), save  :: info = MPI_INFO_NULL
     character(len = 3) :: stripestr
     character(len = 9) :: stripestr2
     integer :: ierr
@@ -1216,7 +1217,7 @@ contains
     real :: scf,ofs,arng(2),fldmin,fldmax
     logical :: uvflg
     integer, dimension(maxdm) :: start,count
-    integer*2, allocatable, dimension(:,:,:) :: fldout,fld_out
+    integer(i2), allocatable, dimension(:,:,:) :: fldout,fld_out
     real, allocatable, dimension(:,:,:) ::rfld
     integer :: dimid,dimids(maxdm),strn,strind(2,maxdm)
     real, dimension(itdm,jtdm) :: rfldt
@@ -1621,7 +1622,7 @@ contains
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: rfld,rmsk
     real, dimension(itdm,jtdm) :: rfldt,rmskt
     real, dimension(itdm*jtdm) :: fldout
-    real(kind = 4), dimension(itdm*jtdm) :: fldoutr4
+    real(kind = r4), dimension(itdm*jtdm) :: fldoutr4
     character(len=4) :: c4
     integer :: i,j,ij,ijk,k,n,kd
     integer, dimension(maxdm) :: start,count
@@ -1814,7 +1815,7 @@ contains
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: rfld,rmsk
     real, dimension(itdm,jtdm) :: rfldt,rmskt
     real :: scf,ofs,arng(2),fldmin,fldmax
-    integer*2, dimension(itdm*jtdm) :: fldout
+    integer(i2), dimension(itdm*jtdm) :: fldout
     logical :: uvflg
     integer, dimension(maxdm) :: start,count
 
@@ -2203,8 +2204,8 @@ contains
     integer, parameter :: maxdm=5
     integer, parameter :: ijdm = (idm+2*nbdy)*(jdm+2*nbdy)
     integer :: dimid,dimids(maxdm),strn,strind(2,maxdm)
-    real(kind = 4), allocatable, dimension(:,:,:) :: r4fldt
-    real(kind = 4), allocatable, dimension(:,:,:) :: wr4fldt
+    real(kind = r4), allocatable, dimension(:,:,:) :: r4fldt
+    real(kind = r4), allocatable, dimension(:,:,:) :: wr4fldt
     real, allocatable, dimension(:,:,:) :: rfld,wrfld
     real, allocatable, dimension(:,:) :: rmsk,rfldt,rmskt
     integer, dimension(maxdm) :: start,count
@@ -3113,7 +3114,7 @@ contains
     integer, dimension(maxdm) :: dimids
 
     real :: arng(2)
-    integer*2 i2min,vrng(2)
+    integer(i2) :: i2min,vrng(2)
     if (rec == 1) then
       i2min = -i2max
       vrng(1) = i2min
@@ -3137,6 +3138,12 @@ contains
           dims = gridid(1:1)//'comp sigma time'
         else
           dims = 'x y sigma time'
+        end if
+      else if (isize  ==  11) then
+        if (cmpflg == 1) then
+          dims = gridid(1:1)//'comp layer time'
+        else
+          dims = 'x y layer time'
         end if
       else if (isize  ==  2) then
         if (cmpflg == 1) then

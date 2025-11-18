@@ -43,7 +43,7 @@ module mod_ben02
   use mod_swtfrz,      only: swtfrz
   use mod_ben02func
   use mod_bulktf
-  use mod_checksum,    only: csdiag, chksummsk
+  use mod_checksum,    only: csdiag, chksum
   use netcdf
   use mod_rdcsss,      only: rdcsss
   use mod_fill_global, only: fill_global
@@ -321,8 +321,8 @@ contains
     character :: filename*(*)
 
     integer :: status,ncid,varid,i,j
-    real*4 r4lon(atm_idm),r4lat(atm_jdm)
-    integer*2 i2field(atm_idm,atm_jdm)
+    real(r4) :: r4lon(atm_idm),r4lat(atm_jdm)
+    integer(i2) :: i2field(atm_idm,atm_jdm)
 
     ! --- Open netcdf file.
     status = nf90_open(filename,nf90_nowrite,ncid)
@@ -408,7 +408,7 @@ contains
     character :: filename*(*)
 
     integer :: status,ncid,varid,i,j
-    real*4 r4field(atm_idm,atm_jdm)
+    real(r4) :: r4field(atm_idm,atm_jdm)
 
     ! --- Open netcdf file.
     status = nf90_open(filename,nf90_nowrite,ncid)
@@ -468,9 +468,9 @@ contains
 
     integer :: status,ncid,dimid,atm_idm_t,atm_jdm_t,timeid,varid, &
          vartype,start(3),count(3),stride(3),i,j
-    integer*2 i2field(atm_idm,atm_jdm),i2_mval
+    integer(i2) :: i2field(atm_idm,atm_jdm),i2_mval
     real :: time
-    real*4 offset,scale_factor
+    real(r4) :: offset,scale_factor
 
     ! --- open netcdf file
     status = nf90_open(filename,nf90_nowrite,ncid)
@@ -910,7 +910,7 @@ contains
           do n = 1,atm_nwgt
             is = atm_iwgt(n,it,jt)
             js = atm_jwgt(n,it,jt)
-            if (atm_mask(is,js) == 1.and. &
+            if (atm_mask(is,js) == 1 .and. &
                  adata(is,js) /= atm_mval) then
               w = atm_wgt(n,it,jt)
               w_sum = w_sum+w
@@ -1580,19 +1580,19 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'rdatm_syn:'
       end if
-      call chksummsk(ricec(1-nbdy,1-nbdy,l5gi),ip,1,'ricec')
-      call chksummsk(dswrfl(1-nbdy,1-nbdy,l5gi),ip,1,'dswrfl')
-      call chksummsk(nlwrfs(1-nbdy,1-nbdy,l5gi),ip,1,'nlwrfs')
-      call chksummsk(clouds(1-nbdy,1-nbdy,l5gi),ip,1,'clouds')
-      call chksummsk(precip(1-nbdy,1-nbdy,l5gi),ip,1,'precip')
-      call chksummsk(lhtflx(1-nbdy,1-nbdy,l5gi),ip,1,'lhtflx')
-      call chksummsk(shtflx(1-nbdy,1-nbdy,l5gi),ip,1,'shtflx')
-      call chksummsk(tmpsfc(1-nbdy,1-nbdy,l5gi),ip,1,'tmpsfc')
-      call chksummsk(slpres(1-nbdy,1-nbdy,l5gi),ip,1,'slpres')
-      call chksummsk(tauxd(1-nbdy,1-nbdy,l5gi),ip,1,'tauxd')
-      call chksummsk(tauyd(1-nbdy,1-nbdy,l5gi),ip,1,'tauyd')
-      call chksummsk(taud(1-nbdy,1-nbdy,l5gi),ip,1,'taud')
-      call chksummsk(runoff(1-nbdy,1-nbdy,l5gi),ip,1,'runoff')
+      call chksum(ricec (1-nbdy,1-nbdy,l5gi), 1, halo_ps, 'ricec')
+      call chksum(dswrfl(1-nbdy,1-nbdy,l5gi), 1, halo_ps, 'dswrfl')
+      call chksum(nlwrfs(1-nbdy,1-nbdy,l5gi), 1, halo_ps, 'nlwrfs')
+      call chksum(clouds(1-nbdy,1-nbdy,l5gi), 1, halo_ps, 'clouds')
+      call chksum(precip(1-nbdy,1-nbdy,l5gi), 1, halo_ps, 'precip')
+      call chksum(lhtflx(1-nbdy,1-nbdy,l5gi), 1, halo_ps, 'lhtflx')
+      call chksum(shtflx(1-nbdy,1-nbdy,l5gi), 1, halo_ps, 'shtflx')
+      call chksum(tmpsfc(1-nbdy,1-nbdy,l5gi), 1, halo_ps, 'tmpsfc')
+      call chksum(slpres(1-nbdy,1-nbdy,l5gi), 1, halo_ps, 'slpres')
+      call chksum(tauxd (1-nbdy,1-nbdy,l5gi), 1, halo_ps, 'tauxd')
+      call chksum(tauyd (1-nbdy,1-nbdy,l5gi), 1, halo_ps, 'tauyd')
+      call chksum(taud  (1-nbdy,1-nbdy,l5gi), 1, halo_ps, 'taud')
+      call chksum(runoff(1-nbdy,1-nbdy,l5gi), 1, halo_ps, 'runoff')
     end if
 
   end subroutine rdatm_syn
@@ -1899,20 +1899,20 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'asflux:'
       end if
-      call chksummsk(swa,ip,1,'swa')
-      call chksummsk(nsf,ip,1,'nsf')
-      call chksummsk(dfl,ip,1,'dfl')
-      call chksummsk(lip,ip,1,'lip')
-      call chksummsk(sop,ip,1,'sop')
-      call chksummsk(eva,ip,1,'eva')
-      call chksummsk(ztx,iu,1,'ztx')
-      call chksummsk(mty,iv,1,'mty')
-      call chksummsk(rnfins,ip,1,'rnfins')
-      call chksummsk(ustarw,ip,1,'ustarw')
-      call chksummsk(tsi,ip,1,'tsi')
-      call chksummsk(slp,ip,1,'slp')
-      call chksummsk(abswnd,ip,1,'abswnd')
-      call chksummsk(albw,ip,1,'albw')
+      call chksum(swa   , 1, halo_ps, 'swa'   )
+      call chksum(nsf   , 1, halo_ps, 'nsf'   )
+      call chksum(dfl   , 1, halo_ps, 'dfl'   )
+      call chksum(lip   , 1, halo_ps, 'lip'   )
+      call chksum(sop   , 1, halo_ps, 'sop'   )
+      call chksum(eva   , 1, halo_ps, 'eva'   )
+      call chksum(ztx   , 1, halo_uv, 'ztx'   )
+      call chksum(mty   , 1, halo_vv, 'mty'   )
+      call chksum(rnfins, 1, halo_ps, 'rnfins')
+      call chksum(ustarw, 1, halo_ps, 'ustarw')
+      call chksum(tsi   , 1, halo_ps, 'tsi'   )
+      call chksum(slp   , 1, halo_ps, 'slp'   )
+      call chksum(abswnd, 1, halo_ps, 'abswnd')
+      call chksum(albw  , 1, halo_ps, 'albw'  )
     end if
 
   end subroutine asflux
@@ -1926,7 +1926,7 @@ contains
     ! --- ------------------------------------------------------------------
 
     real, dimension(atm_idm,atm_jdm) :: atm_field
-    real*4, dimension(atm_idm,atm_jdm) :: atm_field_r4
+    real(r4), dimension(atm_idm,atm_jdm) :: atm_field_r4
     real, dimension(itdm,jtdm) :: tmp2d
     integer :: i,j,k,nfu
 
@@ -1964,7 +1964,7 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'rdcsic:'
       end if
-      call chksummsk(ricclm,ip,12,'ricclm')
+      call chksum(ricclm, 12, halo_ps, 'ricclm')
     end if
 
   end subroutine rdcsic
@@ -1978,7 +1978,7 @@ contains
     ! --- ------------------------------------------------------------------
 
     real, dimension(atm_idm,atm_jdm) :: atm_field
-    real*4, dimension(atm_idm,atm_jdm) :: atm_field_r4
+    real(r4), dimension(atm_idm,atm_jdm) :: atm_field_r4
     real, dimension(itdm,jtdm) :: tmp2d
     real :: dx2,dy2
     integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: smtmsk
@@ -2073,7 +2073,7 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'rdctsf:'
       end if
-      call chksummsk(sstclm,ip,12,'sstclm')
+      call chksum(sstclm, 12, halo_ps, 'sstclm')
     end if
 
   end subroutine rdctsf
@@ -2088,15 +2088,15 @@ contains
 
     real, allocatable, dimension(:,:,:) :: atm_sktclm
     real, allocatable, dimension(:,:) :: atm_field
-    real*4, allocatable, dimension(:,:) :: atm_field_r4
+    real(r4), allocatable, dimension(:,:) :: atm_field_r4
     real, dimension(itdm,jtdm) :: tmp2d
     integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12) :: smtmsk
     real :: dx2,dy2,prc_sum,eva_sum,rnf_sum,swa_sum,lwa_sum,lht_sum, &
          sht_sum,fwf_fac,dangle,garea,le,albedo,fac,swa_ave,lwa_ave, &
          lht_ave,sht_ave,crnf,cswa
-    real*4 :: rw4
+    real(r4) :: rw4
     integer :: i,j,k,l,il,jl,nfu
-    integer*2 :: rn2,ri2,rj2
+    integer(i2) :: rn2,ri2,rj2
 
     ! --- Allocate memory for additional monthly forcing fields.
     allocate(taud  (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12), &
@@ -2897,17 +2897,17 @@ contains
       if (mnproc == 1) then
         write (lp,*) 'inifrc_ben02clim:'
       end if
-      call chksummsk(dswrfl,ip,12,'dswrfl')
-      call chksummsk(nlwrfs,ip,12,'nlwrfs')
-      call chksummsk(clouds,ip,12,'clouds')
-      call chksummsk(precip,ip,12,'precip')
-      call chksummsk(lhtflx,ip,12,'lhtflx')
-      call chksummsk(shtflx,ip,12,'shtflx')
-      call chksummsk(slpres,ip,12,'slpres')
-      call chksummsk(taud,ip,12,'taud')
-      call chksummsk(tauxd,iu,12,'tauxd')
-      call chksummsk(tauyd,iv,12,'tauyd')
-      call chksummsk(runoff,ip,12,'runoff')
+      call chksum(dswrfl, 12, halo_ps, 'dswrfl')
+      call chksum(nlwrfs, 12, halo_ps, 'nlwrfs')
+      call chksum(clouds, 12, halo_ps, 'clouds')
+      call chksum(precip, 12, halo_ps, 'precip')
+      call chksum(lhtflx, 12, halo_ps, 'lhtflx')
+      call chksum(shtflx, 12, halo_ps, 'shtflx')
+      call chksum(slpres, 12, halo_ps, 'slpres')
+      call chksum(taud  , 12, halo_ps, 'taud'  )
+      call chksum(tauxd , 12, halo_uv, 'tauxd' )
+      call chksum(tauyd , 12, halo_vv, 'tauyd' )
+      call chksum(runoff, 12, halo_ps, 'runoff')
     end if
 
   end subroutine inifrc_ben02clim
@@ -2921,9 +2921,9 @@ contains
     ! --- ------------------------------------------------------------------
 
     real :: dx2,dy2
-    real*4 :: rw4
+    real(r4) :: rw4
     integer :: errstat,i,j,k,l,nfu
-    integer*2 :: rn2,ri2,rj2
+    integer(i2) :: rn2,ri2,rj2
 
     ! --- Allocate memory for daily forcing fields.
     allocate(taud  (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5), &

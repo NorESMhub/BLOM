@@ -25,7 +25,7 @@ module mod_cesm
 ! ------------------------------------------------------------------------------
 
    use mod_types,      only: r8
-   use mod_constants,  only: pi
+   use mod_constants,  only: pi, spval
    use mod_time,       only: nstep
    use mod_xc
    use mod_forcing,    only: trxday, srxday, swa, nsf, lip, sop, eva, rnf, rfi, &
@@ -33,12 +33,13 @@ module mod_cesm
                              lamult, lasl, ustokes, vstokes, atmco2, atmbrf, &
                              flxdms, flxbrf, &
                              atmn2o, atmnh3, atmnhxdep, atmnoydep, &
-                             use_stream_relaxation
+                             use_stream_relaxation, &
+                             hmat
    use mod_ben02,      only: initai, rdcsic, rdctsf, fnlzai
    use mod_rdcsss,     only: rdcsss
    use mod_idarlx,     only: idarlx
    use mod_seaice,     only: ficem
-   use mod_checksum,   only: csdiag, chksummsk
+   use mod_checksum,   only: csdiag, chksum
 #ifdef HAMOCC
    use mo_control_bgc, only: use_bromo
 #endif
@@ -66,6 +67,7 @@ module mod_cesm
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy, 2) :: &
       swa_da, &          ! Solar heat flux [W m-2].
       nsf_da, &          ! Non-solar heat flux [W m-2].
+      hmat_da, &         ! surf.mat.enth.flx
       hmlt_da, &         ! Heat flux due to melting [W m-2].
       lip_da, &          ! Liquid water flux [kg m-2 s-1].
       sop_da, &          ! Solid precipitation [kg m-2 s-1].
@@ -103,25 +105,67 @@ module mod_cesm
    public :: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm, nstep_in_cpl, hmlt, &
              frzpot, mltpot, swa_da, nsf_da, hmlt_da, lip_da, sop_da, eva_da, &
              rnf_da, rfi_da, fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da, &
-             slp_da, abswnd_da, ficem_da, lamult_da, lasl_da, flxdms_da, flxbrf_da, &
-             ustokes_da, vstokes_da, atmco2_da, atmbrf_da,atmn2o_da,atmnh3_da,&
-             atmnhxdep_da,atmnoydep_da, &
-             smtfrc, l1ci, l2ci,inicon_cesm, inifrc_cesm, getfrc_cesm
+             slp_da, abswnd_da, ficem_da, lamult_da, lasl_da, flxdms_da, &
+             flxbrf_da, ustokes_da, vstokes_da, atmco2_da, atmbrf_da, &
+             atmn2o_da, atmnh3_da, atmnhxdep_da,atmnoydep_da, smtfrc, &
+             l1ci, l2ci, inivar_cesm, inicon_cesm, inifrc_cesm, getfrc_cesm, &
+             hmat_da
 
 contains
+
+   subroutine inivar_cesm
+   ! ---------------------------------------------------------------------------
+   ! Initialize arrays.
+   ! ---------------------------------------------------------------------------
+
+      hmlt(:,:) = spval
+      frzpot(:,:) = spval
+      mltpot(:,:) = spval
+      swa_da(:,:,:) = spval
+      nsf_da(:,:,:) = spval
+      hmlt_da(:,:,:) = spval
+      lip_da(:,:,:) = spval
+      sop_da(:,:,:) = spval
+      eva_da(:,:,:) = spval
+      rnf_da(:,:,:) = spval
+      rfi_da(:,:,:) = spval
+      fmltfz_da(:,:,:) = spval
+      sfl_da(:,:,:) = spval
+      ztx_da(:,:,:) = spval
+      mty_da(:,:,:) = spval
+      ustarw_da(:,:,:) = spval
+      slp_da(:,:,:) = spval
+      abswnd_da(:,:,:) = spval
+      ficem_da(:,:,:) = spval
+      lamult_da(:,:,:) = spval
+      lasl_da(:,:,:) = spval
+      ustokes_da(:,:,:) = spval
+      vstokes_da(:,:,:) = spval
+      atmco2_da(:,:,:) = spval
+      atmbrf_da(:,:,:) = spval
+      flxdms_da(:,:,:) = spval
+      flxbrf_da(:,:,:) = spval
+      atmn2o_da(:,:,:) = spval
+      atmnh3_da(:,:,:) = spval
+      atmnhxdep_da(:,:,:) = spval
+      atmnoydep_da(:,:,:) = spval
+
+   end subroutine inivar_cesm
 
    subroutine inicon_cesm
    ! ---------------------------------------------------------------------------
    ! Set initial conditions for variables specifically when coupled to CESM.
    ! ---------------------------------------------------------------------------
 
-      integer :: i, j
+      integer :: i, j, l
 
-      !$omp parallel do private(i)
-      do j = 1, jj
-         do i = 1, ii
+      !$omp parallel do private(l,i)
+      do j = 1,jj
+         do l = 1,isp(j)
+         do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
             frzpot(i, j) = 0._r8
             mltpot(i, j) = 0._r8
+         enddo
          enddo
       enddo
       !$omp end parallel do
@@ -188,6 +232,7 @@ contains
            sfl(i, j)     = w1*sfl_da(i, j, l1ci)     + w2*sfl_da(i, j, l2ci)
            swa(i, j)     = w1*swa_da(i, j, l1ci)     + w2*swa_da(i, j, l2ci)
            nsf(i, j)     = w1*nsf_da(i, j, l1ci)     + w2*nsf_da(i, j, l2ci)
+           hmat(i, j)    = w1*hmat_da(i, j, l1ci)    + w2*hmat_da(i, j, l2ci)
            hmlt(i, j)    = w1*hmlt_da(i, j, l1ci)    + w2*hmlt_da(i, j, l2ci)
            slp(i, j)     = w1*slp_da(i, j, l1ci)     + w2*slp_da(i, j, l2ci)
            abswnd(i, j)  = w1*abswnd_da(i, j, l1ci)  + w2*abswnd_da(i, j, l2ci)
@@ -197,9 +242,9 @@ contains
            ustokes(i, j) = w1*ustokes_da(i, j, l1ci) + w2*ustokes_da(i, j, l2ci)
            vstokes(i, j) = w1*vstokes_da(i, j, l1ci) + w2*vstokes_da(i, j, l2ci)
            atmco2(i, j)  = w1*atmco2_da(i, j, l1ci)  + w2*atmco2_da(i, j, l2ci)
-           atmbrf(i, j)  = w1*atmbrf_da(i, j, l1ci)  + w2*atmbrf_da(i, j, l2ci)
-           atmn2o(i, j)  = w1*atmn2o_da(i, j, l1ci)  + w2*atmn2o_da(i, j, l2ci)
-           atmnh3(i, j)  = w1*atmnh3_da(i, j, l1ci)  + w2*atmnh3_da(i, j, l2ci)
+           atmbrf(i, j)  = - 1._r8
+           atmn2o(i, j)  = - 1._r8
+           atmnh3(i, j)  = - 1._r8
            atmnhxdep(i, j)  = w1*atmnhxdep_da(i, j, l1ci)  + w2*atmnhxdep_da(i, j, l2ci)
            atmnoydep(i, j)  = w1*atmnoydep_da(i, j, l1ci)  + w2*atmnoydep_da(i, j, l2ci)
         enddo
@@ -231,6 +276,7 @@ contains
         call ncdefvar('sfl_da', 'x y', ndouble, 8)
         call ncdefvar('swa_da', 'x y', ndouble, 8)
         call ncdefvar('nsf_da', 'x y', ndouble, 8)
+        call ncdefvar('hmat_da', 'x y', ndouble, 8)
         call ncdefvar('hmlt_da', 'x y', ndouble, 8)
         call ncdefvar('slp_da', 'x y', ndouble, 8)
         call ncdefvar('abswnd_da', 'x y', ndouble, 8)
@@ -268,6 +314,8 @@ contains
         call ncwrtr('swa_da', 'x y', swa_da(1 - nbdy, 1 - nbdy, l2ci), &
              ip, 1, 1._r8, 0._r8, 8)
         call ncwrtr('nsf_da', 'x y', nsf_da(1 - nbdy, 1 - nbdy, l2ci), &
+             ip, 1, 1._r8, 0._r8, 8)
+        call ncwrtr('hmat_da', 'x y', hmat_da(1 - nbdy, 1 - nbdy, l2ci), &
              ip, 1, 1._r8, 0._r8, 8)
         call ncwrtr('hmlt_da', 'x y', hmlt_da(1 - nbdy, 1 - nbdy, l2ci), &
              ip, 1, 1._r8, 0._r8, 8)
@@ -308,32 +356,33 @@ contains
          if (mnproc == 1) then
             write (lp, *) 'getfrc_cesm:'
          endif
-         call chksummsk(ustarw, ip, 1, 'ustarw')
-         call chksummsk(ztx, iu, 1, 'ztx')
-         call chksummsk(mty, iv, 1, 'mty')
-         call chksummsk(lip, ip, 1, 'lip')
-         call chksummsk(sop, ip, 1, 'sop')
-         call chksummsk(eva, ip, 1, 'eva')
-         call chksummsk(rnf, ip, 1, 'rnf')
-         call chksummsk(rfi, ip, 1, 'rfi')
-         call chksummsk(fmltfz, ip, 1, 'fmltfz')
-         call chksummsk(sfl, ip, 1, 'sfl')
-         call chksummsk(swa, ip, 1, 'swa')
-         call chksummsk(nsf, ip, 1, 'nsf')
-         call chksummsk(hmlt, ip, 1, 'hmlt')
-         call chksummsk(slp, ip, 1, 'slp')
-         call chksummsk(abswnd, ip, 1, 'abswnd')
-         call chksummsk(ficem, ip, 1, 'ficem')
-         call chksummsk(lamult, ip, 1, 'lamult')
-         call chksummsk(lasl, ip, 1, 'lasl')
-         call chksummsk(ustokes, ip, 1, 'ustokes')
-         call chksummsk(vstokes, ip, 1, 'vstokes')
-         call chksummsk(atmco2, ip, 1, 'atmco2')
-         call chksummsk(atmbrf, ip, 1, 'atmbrf')
-         call chksummsk(atmn2o, ip, 1, 'atmn2o')
-         call chksummsk(atmnh3, ip, 1, 'atmnh3')
-         call chksummsk(atmnhxdep, ip, 1, 'atmnhxdep')
-         call chksummsk(atmnoydep, ip, 1, 'atmnoydep')
+         call chksum(ustarw, 1, halo_ps, 'ustarw')
+         call chksum(ztx, 1, halo_uv, 'ztx')
+         call chksum(mty, 1, halo_vv, 'mty')
+         call chksum(lip, 1, halo_ps, 'lip')
+         call chksum(sop, 1, halo_ps, 'sop')
+         call chksum(eva, 1, halo_ps, 'eva')
+         call chksum(rnf, 1, halo_ps, 'rnf')
+         call chksum(rfi, 1, halo_ps, 'rfi')
+         call chksum(fmltfz, 1, halo_ps, 'fmltfz')
+         call chksum(sfl, 1, halo_ps, 'sfl')
+         call chksum(swa, 1, halo_ps, 'swa')
+         call chksum(nsf, 1, halo_ps, 'nsf')
+         call chksum(hmlt, 1, halo_ps, 'hmlt')
+         call chksum(hmat, 1, halo_ps, 'hmat')
+         call chksum(slp, 1, halo_ps, 'slp')
+         call chksum(abswnd, 1, halo_ps, 'abswnd')
+         call chksum(ficem, 1, halo_ps, 'ficem')
+         call chksum(lamult, 1, halo_ps, 'lamult')
+         call chksum(lasl, 1, halo_ps, 'lasl')
+         call chksum(ustokes, 1, halo_ps, 'ustokes')
+         call chksum(vstokes, 1, halo_ps, 'vstokes')
+         call chksum(atmco2, 1, halo_ps, 'atmco2')
+         call chksum(atmbrf, 1, halo_ps, 'atmbrf')
+         call chksum(atmn2o, 1, halo_ps, 'atmn2o')
+         call chksum(atmnh3, 1, halo_ps, 'atmnh3')
+         call chksum(atmnhxdep, 1, halo_ps, 'atmnhxdep')
+         call chksum(atmnoydep, 1, halo_ps, 'atmnoydep')
       endif
 
    end subroutine getfrc_cesm

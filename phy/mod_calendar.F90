@@ -18,71 +18,71 @@
 ! ------------------------------------------------------------------------------
 
 module mod_calendar
-  ! ------------------------------------------------------------------------------
-  ! This module contains calendar routines.
-  !
-  ! The supported calendars are the same as in the NetCDF Climate and Forecast
-  ! (CF) Metadata Conventions:
-  !
-  !    - 'gregorian' or 'standard': Mixed Gregorian/Julian calendar as defined by
-  !                                 UDUNITS.
-  !    - 'proleptic_gregorian':     A Gregorian calendar extended to dates before
-  !                                 15 Oct 1582. That is, a year is a leap year if
-  !                                 either (i) it is divisible by 4 but not by 100
-  !                                 or (ii) it is divisible by 400.
-  !    - 'julian':                  Julian calendar.
-  !    - 'noleap' or '365_day':     Gregorian calendar without leap years, i.e.,
-  !                                 all years are 365 days long.
-  !    - 'all_leap' or '366_day':   Gregorian calendar with every year being a
-  !                                 leap year, i.e., all years are 366 days long.
-  !    - '360_day':                 All years are 360 days divided into 30 day
-  !                                 months.
-  !
-  ! For Julian and Gregorian calendars, the Chronological Julian Day Number (CJDN)
-  ! is used (algorithms at https://www.aa.quae.nl/en/reken/juliaansedag.html).
-  ! Zero CJDN corresponds to 1 Jan -4712 and in the Julian calendar and 24 Nov
-  ! -4713 in the proleptic Gregorian calendar. The other calendars uses a day
-  ! number where zero day number corresponds to 1 Jan 1.
-  !
-  ! The available functions are invoked by:
-  !
-  !    errstat = date_to_daynum(calendar, date, daynum)
-  !    errstat = daynum_to_date(calendar, daynum, date)
-  !    errstat = daynum_diff(calendar, date1, date2, dndiff)
-  !    errstat = date_offset(calendar, date, dnoffset)
-  !    errstat = date_check(calendar, date)
-  !    errstr = calendar_errstr(errstat)
-  !
-  ! The 'calendar' argument (character(len = *)) gives the calendar type. The
-  ! arguments 'date', 'date1', 'date2' are of type 'date_type' defined by the
-  ! module. All other arguments are of default integer type. The first 5 functions
-  ! returns an integer error status value which is equal to 'calendar_noerr' in
-  ! case of no error. The function 'calendar_errstr' returns a static reference to
-  ! an error message string (character(len = 80)) corresponding to an integer
-  ! error status.
-  !
-  ! With default 4-byte integer type, the valid range of the various calendar
-  ! types are:
-  !
-  !    - 'gregorian' or 'standard':
-  !       - Day number range: [     -535149630,      538592031]
-  !       - Date range:       [ 1 Mar -1469872, 18 Oct 1469902]
-  !    - 'proleptic_gregorian':
-  !       - Day number range: [     -535148831,      538592031]
-  !       - Date range:       [ 1 Mar -1469900, 18 Oct 1469902]
-  !    - 'julian':
-  !       - Day number range: [     -535149630,      538592029]
-  !       - Date range:       [ 1 Mar -1469872,  8 Nov 1469872]
-  !    - 'noleap' or '365_day':
-  !       - Day number range: [    -2147483648,     2147483341]
-  !       - Date range:       [27 Feb -5883516,  2 Jan 5883517]
-  !    - 'all_leap' or '366_day':
-  !       - Day number range: [    -2147483648,     2147483341]
-  !       - Date range:       [ 4 May -5867441, 28 Oct 5867441]
-  !    - '360_day':
-  !       - Day number range: [    -2147483648,     2147483647]
-  !       - Date range:       [23 Aug -5965232,  8 May 5965233]
-  ! ------------------------------------------------------------------------------
+! ------------------------------------------------------------------------------
+! This module contains calendar routines.
+!
+! The supported calendars are the same as in the NetCDF Climate and Forecast
+! (CF) Metadata Conventions:
+!
+!    - 'gregorian' or 'standard': Mixed Gregorian/Julian calendar as defined by
+!                                 UDUNITS.
+!    - 'proleptic_gregorian':     A Gregorian calendar extended to dates before
+!                                 15 Oct 1582. That is, a year is a leap year if
+!                                 either (i) it is divisible by 4 but not by 100
+!                                 or (ii) it is divisible by 400.
+!    - 'julian':                  Julian calendar.
+!    - 'noleap' or '365_day':     Gregorian calendar without leap years, i.e.,
+!                                 all years are 365 days long.
+!    - 'all_leap' or '366_day':   Gregorian calendar with every year being a
+!                                 leap year, i.e., all years are 366 days long.
+!    - '360_day':                 All years are 360 days divided into 30 day
+!                                 months.
+!
+! For Julian and Gregorian calendars, the Chronological Julian Day Number (CJDN)
+! is used (algorithms at https://www.aa.quae.nl/en/reken/juliaansedag.html).
+! Zero CJDN corresponds to 1 Jan -4712 and in the Julian calendar and 24 Nov
+! -4713 in the proleptic Gregorian calendar. The other calendars uses a day
+! number where zero day number corresponds to 1 Jan 1.
+!
+! The available functions are invoked by:
+!
+!    errstat = date_to_daynum(calendar, date, daynum)
+!    errstat = daynum_to_date(calendar, daynum, date)
+!    errstat = daynum_diff(calendar, date1, date2, dndiff)
+!    errstat = date_offset(calendar, date, dnoffset)
+!    errstat = date_check(calendar, date)
+!    errstr = calendar_errstr(errstat)
+!
+! The 'calendar' argument (character(len = *)) gives the calendar type. The
+! arguments 'date', 'date1', 'date2' are of type 'date_type' defined by the
+! module. All other arguments are of default integer type. The first 5 functions
+! returns an integer error status value which is equal to 'calendar_noerr' in
+! case of no error. The function 'calendar_errstr' returns a static reference to
+! an error message string (character(len = 80)) corresponding to an integer
+! error status.
+!
+! With default 4-byte integer type, the valid range of the various calendar
+! types are:
+!
+!    - 'gregorian' or 'standard':
+!       - Day number range: [     -535149630,      538592031]
+!       - Date range:       [ 1 Mar -1469872, 18 Oct 1469902]
+!    - 'proleptic_gregorian':
+!       - Day number range: [     -535148831,      538592031]
+!       - Date range:       [ 1 Mar -1469900, 18 Oct 1469902]
+!    - 'julian':
+!       - Day number range: [     -535149630,      538592029]
+!       - Date range:       [ 1 Mar -1469872,  8 Nov 1469872]
+!    - 'noleap' or '365_day':
+!       - Day number range: [    -2147483648,     2147483341]
+!       - Date range:       [27 Feb -5883516,  2 Jan 5883517]
+!    - 'all_leap' or '366_day':
+!       - Day number range: [    -2147483648,     2147483341]
+!       - Date range:       [ 4 May -5867441, 28 Oct 5867441]
+!    - '360_day':
+!       - Day number range: [    -2147483648,     2147483647]
+!       - Date range:       [23 Aug -5965232,  8 May 5965233]
+! ------------------------------------------------------------------------------
 
   implicit none
   private
@@ -133,9 +133,9 @@ module mod_calendar
   end interface operator(>=)
 
   public :: date_type, date_to_daynum, daynum_to_date, daynum_diff, &
-       date_offset, date_check, calendar_noerr, calendar_errstr, &
-       operator(==), operator(<), operator(>), operator(/=), &
-       operator(<=), operator(>=)
+            date_offset, date_check, calendar_noerr, calendar_errstr, &
+            operator(==), operator(<), operator(>), operator(/=), &
+            operator(<=), operator(>=)
 
 contains
 
@@ -428,9 +428,9 @@ contains
   end function date_to_daynum
 
   function daynum_to_date(calendar, daynum, date) result(errstat)
-    ! ---------------------------------------------------------------------------
-    ! Convert from day number to calendar date.
-    ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Convert from day number to calendar date.
+  ! ---------------------------------------------------------------------------
 
     character(len = *), intent(in) :: calendar ! Calendar type.
     integer, intent(in) :: daynum              ! Day number.
@@ -599,10 +599,10 @@ contains
 
     date1_lt_date2 =  date1%year  <  date2%year   .or.  &
                      (date1%year  == date2%year   .and. &
-                     date1%month <  date2%month) .or.  &
+                      date1%month <  date2%month) .or.  &
                      (date1%year  == date2%year   .and. &
-                     date1%month == date2%month  .and. &
-                     date1%day   <  date2%day)
+                      date1%month == date2%month  .and. &
+                      date1%day   <  date2%day)
 
   end function date1_lt_date2
 
@@ -615,10 +615,10 @@ contains
 
     date1_gt_date2 =  date1%year  >  date2%year   .or.  &
                      (date1%year  == date2%year   .and. &
-                     date1%month >  date2%month) .or.  &
+                      date1%month >  date2%month) .or.  &
                      (date1%year  == date2%year   .and. &
-                     date1%month == date2%month  .and. &
-                     date1%day   >  date2%day)
+                      date1%month == date2%month  .and. &
+                      date1%day   >  date2%day)
 
   end function date1_gt_date2
 

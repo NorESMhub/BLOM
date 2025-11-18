@@ -26,7 +26,7 @@ module mod_tidaldissip
    use mod_types, only: r8
    use mod_constants, only: spval
    use mod_xc
-   use mod_checksum, only: csdiag, chksummsk
+   use mod_checksum, only: csdiag, chksum
    use mod_utility, only: fnmlen
    use netcdf
 
@@ -152,7 +152,7 @@ contains
          if (mnproc == 1) then
             write (lp, *) 'read_tidaldissip:'
          endif
-         call chksummsk(twedon, ip, 1, 'twedon')
+         call chksum(twedon, 1, halo_ps, 'twedon')
       endif
 
    end subroutine read_tidaldissip

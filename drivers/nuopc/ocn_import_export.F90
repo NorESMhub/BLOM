@@ -32,7 +32,7 @@ module ocn_import_export
    use mod_constants,  only: rearth, onem
    use mod_time,       only: nstep, baclin, delt1, dlt
    use mod_xc
-   use mod_grid,       only: scuy, scvx, scp2, scuxi, scvyi, plon, plat, cosang, sinang
+   use mod_grid,       only: scuy, scvx, scp2, scuxi, scvyi, plon, plat, cosang, sinang, area
    use mod_state,      only: u, v, dp, temp, saln, pbu, pbv, ubflxs, vbflxs, sealv
    use mod_forcing,    only: wavsrc_opt, wavsrc_extern, sprfac, prfac, &
                              flxco2, flxdms, flxbrf, flxn2o, flxnh3
@@ -44,9 +44,9 @@ module ocn_import_export
                              ustarw_da, slp_da, abswnd_da, ficem_da, lamult_da, &
                              lasl_da, ustokes_da, vstokes_da, atmco2_da, &
                              atmnhxdep_da, atmnoydep_da, &
-                             l1ci, l2ci
-   use mod_utility,    only: util1, util2
-   use mod_checksum,   only: csdiag, chksummsk
+                             l1ci, l2ci, hmat_da
+   use mod_utility,    only: util1, util2, util3, util4
+   use mod_checksum,   only: csdiag, chksum
 #ifdef HAMOCC
    use mo_control_bgc, only: use_BROMO, ocn_co2_type
 #endif
@@ -143,6 +143,9 @@ module ocn_import_export
         index_Faxa_snow   = -1, &
         index_Faxa_rain   = -1, &
         index_Faxa_ndep   = -1, &
+        index_Faxa_hmat   = -1, &
+        index_Faxa_hlat   = -1, &
+        index_Faxa_hmoa   = -1, &
         index_Sa_pslv     = -1, &
         index_Sa_co2diag  = -1, &
         index_Sa_co2prog  = -1, &
@@ -216,7 +219,7 @@ contains
    ! ---------------------------------------------------------------------------
 
    subroutine blom_advertise_imports(flds_scalar_name, fldsToOcn_num, fldsToOcn, &
-        flds_co2a, flds_co2c)
+        flds_co2a, flds_co2c, component_computes_enthalpy_flux)
 
      ! -------------------------------------------------------------------
      ! Determine fldsToOcn for import fields
@@ -227,6 +230,7 @@ contains
      type(fldlist_type) , intent(inout) :: fldsToOcn(:)
      logical            , intent(in)    :: flds_co2a
      logical            , intent(in)    :: flds_co2c
+     character(len=*)   , intent(in)    :: component_computes_enthalpy_flux
 
      integer :: index_scalar
 
@@ -272,6 +276,13 @@ contains
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_rain' , index_Faxa_rain)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_ndep' , index_Faxa_ndep, &
           ungridded_lbound=1, ungridded_ubound=2)
+     if (trim(component_computes_enthalpy_flux) == 'atm') then
+        call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_hmat'    , index_Faxa_hmat)
+        call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_hmat_oa' , index_Faxa_hmoa)
+        ! Note the following was added to avoid a mapping in the mediator of
+        ! Faxa_hlat from the atm to the ocn grid - it is not used in BLOM at the moment
+        call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_hlat'    , index_Faxa_hlat)
+     end if
      if (flds_co2a .or. flds_co2c) then
         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sa_co2diag' ,index_Sa_co2diag)
         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sa_co2prog', index_Sa_co2prog)
@@ -725,13 +736,14 @@ contains
       real(r8), parameter :: &
          mval = - 1.e12_r8, &
          fval = - 1.e13_r8
+
       logical :: first_call = .true.
+      integer :: hmat_method = 2
 
       ! Local variables.
-      real(r8) :: afac, utmp, vtmp
-      integer :: n, i, j, l
-      integer :: index_co2
-      real(r8):: rofi_heat_flx, snow_heat_flx
+      real(r8) :: afac, utmp, vtmp, rofi_heat_flx, snow_heat_flx, &
+                  hmat_oa_asum, oocn_asum, hmat_asum, hmat_oa_avg, hmat_avg
+      integer :: n, i, j, l, index_co2
 
       ! Update time level indices.
       if (l1ci == 1 .and. l2ci == 1) then
@@ -812,6 +824,8 @@ contains
                slp_da(i,j,l2ci) = mval
                abswnd_da(i,j,l2ci) = mval
                ficem_da(i,j,l2ci) = mval
+               atmnhxdep_da(i,j,l2ci) = mval
+               atmnoydep_da(i,j,l2ci) = mval
             elseif (cplmsk(i,j) == 0) then
                lip_da(i,j,l2ci) = 0._r8
                sop_da(i,j,l2ci) = 0._r8
@@ -826,6 +840,8 @@ contains
                slp_da(i,j,l2ci) = fval
                abswnd_da(i,j,l2ci) = fval
                ficem_da(i,j,l2ci) = fval
+               atmnhxdep_da(i,j,l2ci) = 0._r8
+               atmnoydep_da(i,j,l2ci) = 0._r8
             else
                n = (j - 1)*ii + i
                afac = med2mod_areacor(n)
@@ -896,6 +912,111 @@ contains
       enddo
       !$omp end parallel do
 
+      if (index_Faxa_hmat > 0 .and. index_Faxa_hmoa > 0) then
+         !$omp parallel do private(i, n, afac)
+         do j = 1, jjcpl
+            do i = 1, ii
+               if (ip(i,j) == 0) then
+                  hmat_da(i,j,l1ci)= mval
+               elseif (cplmsk(i,j) == 0) then
+                  hmat_da(i,j,l1ci) = 0._r8
+               else
+                  n = (j - 1)*ii + i
+                  afac = med2mod_areacor(n)
+                  ! Heat flux components due to material material enthalpy flux of
+                  ! water exchange with atmosphere [W m-2]. Here, index_Faxa_hmat
+                  ! is related to enthalpy flux of evaporation and index_Faxa_hmoa
+                  ! related to the ocean average of all other enthalpy flux
+                  ! components.
+                  util1(i,j) = fldlist(index_Faxa_hmat)%dataptr(n)*afac
+                  util2(i,j) = fldlist(index_Faxa_hmoa)%dataptr(n)*afac
+               end if
+            end do
+         end do
+         !$omp end parallel do
+
+         select case (hmat_method)
+         case (1)
+            ! Apply enthalpy flux components directly.
+            do j = 1, jjcpl
+               do l = 1, isp(j)
+                  do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                     hmat_da(i,j,l2ci) = util1(i,j) + util2(i,j)
+                     nsf_da(i,j,l2ci) = nsf_da(i,j,l2ci) + hmat_da(i,j,l2ci)
+                  enddo
+               enddo
+            enddo
+         case (2)
+            ! Redistribute 'hmat_oa' to open ocean area.
+            do j = 1, jjcpl
+               do l = 1, isp(j)
+                  do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                     util3(i,j) = util2(i,j)*scp2(i,j)
+                     util4(i,j) = (1._r8 - ficem_da(i,j,l2ci))*scp2(i,j)
+                  enddo
+               enddo
+            enddo
+            call xcsum(hmat_oa_asum, util3, ips)
+            call xcsum(oocn_asum   , util4, ips)
+            hmat_oa_avg = hmat_oa_asum/oocn_asum
+            do j = 1, jjcpl
+               do l = 1, isp(j)
+                  do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                     hmat_da(i,j,l2ci) = &
+                          util1(i,j) + hmat_oa_avg*(1._r8 - ficem_da(i,j,l2ci))
+                     nsf_da(i,j,l2ci) = nsf_da(i,j,l2ci) + hmat_da(i,j,l2ci)
+                  enddo
+               enddo
+            enddo
+         case (3)
+            ! Apply global average enthalpy flux.
+            do j = 1, jjcpl
+               do l = 1, isp(j)
+                  do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                     util3(i,j) = (util1(i,j) + util2(i,j))*scp2(i,j)
+                  enddo
+               enddo
+            enddo
+            call xcsum(hmat_asum, util3, ips)
+            hmat_avg = hmat_asum/area
+            do j = 1, jjcpl
+               do l = 1, isp(j)
+                  do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                     hmat_da(i,j,l2ci) = hmat_avg
+                     nsf_da(i,j,l2ci) = nsf_da(i,j,l2ci) + hmat_da(i,j,l2ci)
+                  enddo
+               enddo
+            enddo
+         case (4)
+            ! Apply global average enthalpy flux over open ocean.
+            do j = 1, jjcpl
+               do l = 1, isp(j)
+                  do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                     util3(i,j) = (util1(i,j) + util2(i,j))*scp2(i,j)
+                     util4(i,j) = (1._r8 - ficem_da(i,j,l2ci))*scp2(i,j)
+                  enddo
+               enddo
+            enddo
+            call xcsum(hmat_asum, util3, ips)
+            call xcsum(oocn_asum, util4, ips)
+            hmat_avg = hmat_asum/oocn_asum
+            do j = 1, jjcpl
+               do l = 1, isp(j)
+                  do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                     hmat_da(i,j,l2ci) = hmat_avg*(1._r8 - ficem_da(i,j,l2ci))
+                     nsf_da(i,j,l2ci) = nsf_da(i,j,l2ci) + hmat_da(i,j,l2ci)
+                  enddo
+               enddo
+            enddo
+         case default
+            write(lp,*) subname//': BLOM ERROR: Unsupported hmat_method'
+            call xcstop(subname)
+            stop subname
+         end select
+      else
+         hmat_da(:,:,:) = mval
+      end if
+
       if (nreg == 2) then
          call xctilr(lip_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
          call xctilr(sop_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
@@ -907,6 +1028,9 @@ contains
          call xctilr(swa_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
          call xctilr(nsf_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
          call xctilr(hmlt_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
+         if (index_Faxa_hmat > 0) then
+            call xctilr(hmat_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
+         end if
          call xctilr(atmnhxdep_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
          call xctilr(atmnoydep_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
       endif
@@ -973,6 +1097,27 @@ contains
          enddo
          !$omp end parallel do
 
+      else
+         !$omp parallel do private(i)
+         do j = 1, jj
+            do i = 1, ii
+               if (ip(i,j) == 0) then
+                  lamult_da(i,j,l2ci) = mval
+                  lasl_da(i,j,l2ci) = mval
+                  ustokes_da(i,j,l2ci) = mval
+                  vstokes_da(i,j,l2ci) = mval
+               else
+                  lamult_da(i,j,l2ci) = 0._r8
+                  lasl_da(i,j,l2ci) = 0._r8
+                  ustokes_da(i,j,l2ci) = 0._r8
+                  vstokes_da(i,j,l2ci) = 0._r8
+               endif
+            enddo
+         enddo
+         !$omp end parallel do
+         if (mnproc == 1 .and. first_call)  then
+            write(lp,*) subname//': wave fields not obtained from mediator'
+         endif
       end if
 
       ! CO2 flux
@@ -1011,7 +1156,7 @@ contains
                if (ip(i,j) == 0) then
                   atmco2_da(i,j,l2ci) = mval
                else
-                  atmco2_da(i,j,l2ci) = -1
+                  atmco2_da(i,j,l2ci) = -1._r8
                endif
             enddo
          enddo
@@ -1025,25 +1170,28 @@ contains
          if (mnproc == 1 .and. first_call) then
             write(lp,*) subname//':'
          endif
-         call chksummsk(ustarw_da(1-nbdy,1-nbdy,l2ci),ip,1,'ustarw')
-         call chksummsk(   ztx_da(1-nbdy,1-nbdy,l2ci),iu,1,'ztx')
-         call chksummsk(   mty_da(1-nbdy,1-nbdy,l2ci),iv,1,'mty')
-         call chksummsk(   lip_da(1-nbdy,1-nbdy,l2ci),ip,1,'lip')
-         call chksummsk(   sop_da(1-nbdy,1-nbdy,l2ci),ip,1,'sop')
-         call chksummsk(   eva_da(1-nbdy,1-nbdy,l2ci),ip,1,'eva')
-         call chksummsk(   rnf_da(1-nbdy,1-nbdy,l2ci),ip,1,'rnf')
-         call chksummsk(   rfi_da(1-nbdy,1-nbdy,l2ci),ip,1,'rfi')
-         call chksummsk(fmltfz_da(1-nbdy,1-nbdy,l2ci),ip,1,'fmltfz')
-         call chksummsk(   sfl_da(1-nbdy,1-nbdy,l2ci),ip,1,'sfl')
-         call chksummsk(   swa_da(1-nbdy,1-nbdy,l2ci),ip,1,'swa')
-         call chksummsk(   nsf_da(1-nbdy,1-nbdy,l2ci),ip,1,'nsf')
-         call chksummsk(  hmlt_da(1-nbdy,1-nbdy,l2ci),ip,1,'hmlt')
-         call chksummsk(   slp_da(1-nbdy,1-nbdy,l2ci),ip,1,'slp')
-         call chksummsk(abswnd_da(1-nbdy,1-nbdy,l2ci),ip,1,'abswnd')
-         call chksummsk( ficem_da(1-nbdy,1-nbdy,l2ci),ip,1,'ficem')
-         call chksummsk(atmco2_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmco2')
-         call chksummsk(atmnhxdep_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmnhxdep')
-         call chksummsk(atmnoydep_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmnoydep')
+         call chksum(ustarw_da   (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'ustarw'   )
+         call chksum(ztx_da      (1-nbdy,1-nbdy,l2ci), 1, halo_uv, 'ztx'      )
+         call chksum(mty_da      (1-nbdy,1-nbdy,l2ci), 1, halo_vv, 'mty'      )
+         call chksum(lip_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'lip'      )
+         call chksum(sop_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'sop'      )
+         call chksum(eva_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'eva'      )
+         call chksum(rnf_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'rnf'      )
+         call chksum(rfi_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'rfi'      )
+         call chksum(fmltfz_da   (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'fmltfz'   )
+         call chksum(sfl_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'sfl'      )
+         call chksum(swa_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'swa'      )
+         call chksum(nsf_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'nsf'      )
+         call chksum(hmlt_da     (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'hmlt'     )
+         call chksum(slp_da      (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'slp'      )
+         call chksum(abswnd_da   (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'abswnd'   )
+         call chksum(ficem_da    (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'ficem'    )
+         call chksum(atmco2_da   (1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'atmco2'   )
+         call chksum(atmnhxdep_da(1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'atmnhxdep')
+         call chksum(atmnoydep_da(1-nbdy,1-nbdy,l2ci), 1, halo_ps, 'atmnoydep')
+         if (index_Faxa_hmat > 0) then
+            call chksum(hmat_da(1-nbdy,1-nbdy,l2ci),1,halo_ps,'hmat')
+         end if
       endif
 
       if (first_call) then
