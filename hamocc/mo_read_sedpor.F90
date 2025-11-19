@@ -27,20 +27,22 @@ module mo_read_sedpor
   ! sed_por holds then the porosity that can be applied later in mo_sedmnt (ini_sedmnt_por)
   !*************************************************************************************************
 
-  use mo_kind, only: bgc_fnmlen
+  use mo_kind, only: bgc_fnmlen,rp
 
   implicit none
   private
 
-  ! Routintes
+  ! Routines
   public :: read_sedpor ! read sediment porosity file
 
   ! Module variables
   character(len=bgc_fnmlen), public :: sedporfile = ''
 
+  real(rp), dimension(:,:,:), allocatable, public :: sed_por
+
 contains
 
-  subroutine read_sedpor(kpie,kpje,ks,omask,sed_por)
+  subroutine read_sedpor(kpie,kpje,ks,omask)
 
     use mod_xc,             only: mnproc,xchalt
     use mo_kind,            only: rp
@@ -55,13 +57,12 @@ contains
     integer, intent(in)    :: kpje
     integer, intent(in)    :: ks
     real(rp),intent(in)    :: omask(kpie,kpje)
-    real(rp),intent(inout) :: sed_por(kpie,kpje,ks)
 
     !local variables
     integer :: i,j,k
     real(rp):: sed_por_in(kpie,kpje,ks)
     logical :: file_exists = .false.
-    integer :: ncid,ncstat
+    integer :: ncid,ncstat,errstat
 
     ! Return if l_3Dvarsedpor is turned off
     if (.not. l_3Dvarsedpor) then
@@ -69,8 +70,18 @@ contains
         write(io_stdo_bgc,*) ''
         write(io_stdo_bgc,*) 'read_sedpor: spatially variable sediment porosity is not activated.'
       endif
+      allocate (sed_por(1,1,1),stat=errstat) ! Dummy allocation to pass allocation check in hamocc_init
+      if (mnproc==1 .and. errstat.ne.0) then
+        write(io_stdo_bgc,*) 'Dummy memory allocation failed for sed_por in mo_read_sedpor'
+      endif
       return
     endif
+
+    allocate (sed_por(kpie,kpje,ks),stat=errstat)
+    if (mnproc==1 .and. errstat.ne.0) then
+      write(io_stdo_bgc,*) 'Memory allocation failed for sed_por in mo_read_sedpor'
+    endif
+    sed_por(:,:,:)         = 0._rp
 
     ! Check if sediment porosity file exists. If not, abort.
     inquire(file=sedporfile,exist=file_exists)
