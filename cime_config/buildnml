@@ -84,6 +84,7 @@ def buildnml(case, caseroot, compname):
     hamocc_ciso               = case.get_value("HAMOCC_CISO")
     hamocc_extncycle          = case.get_value("HAMOCC_EXTNCYCLE")
     hamocc_n2oc               = case.get_value("HAMOCC_N2OC")
+    hamocc_nh3c               = case.get_value("HAMOCC_NH3C")
     hamocc_atmndepc           = case.get_value("HAMOCC_ATMNDEPC")
     hamocc_sinking_scheme     = case.get_value("HAMOCC_SINKING_SCHEME")
     hamocc_shelf_res_time     = case.get_value("HAMOCC_SHELFSEA_RES_TIME")
@@ -239,6 +240,7 @@ def buildnml(case, caseroot, compname):
         config["hamocc_ciso"] = "yes" if hamocc_ciso else "no"
         config["hamocc_extncycle"] = "yes" if hamocc_extncycle else "no"
         config["hamocc_n2oc"] = "yes" if hamocc_n2oc else "no"
+        config["hamocc_nh3c"] = "yes" if hamocc_nh3c else "no"
         config["hamocc_atmndepc"] = "yes" if hamocc_atmndepc else "no"
         config["hamocc_sedbypass"] = "yes" if hamocc_sedbypass else "no"
         config["hamocc_sedspinup"] = "yes" if hamocc_sedspinup else "no"
