@@ -1124,14 +1124,24 @@
     <desc>e-folding time scale (years) for adjusting mixed layer climatology</desc>
   </entry>
 
-  <entry id="sra_param_ts">
+  <entry id="sra_param_ts1">
     <type>real</type>
     <category>vcoord</category>
     <group>vcoord</group>
     <values>
       <value>5.0</value>
     </values>
-    <desc>e-folding time scale (years) for adjusting to optimized reference potential densities</desc>
+    <desc>e-folding time scale (years) for adjusting sp1 and zp2 parameters in adaption of reference potential densities</desc>
+  </entry>
+
+  <entry id="sra_param_ts2">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>10.0</value>
+    </values>
+    <desc>e-folding time scale (years) for adjusting sp4 and s_bot parameters in adaption of reference potential densities</desc>
   </entry>
 
   <entry id="sra_massfrac_bot">
