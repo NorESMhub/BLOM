@@ -87,7 +87,7 @@ module mod_vcoord
       dpmin_inflation_factor = 1._r8, &
       sra_clim_ts            = 5._r8, &
       sra_param_ts1          = 5._r8, &
-      sra_param_ts2          = 5._r8, &
+      sra_param_ts2          = 10._r8, &
       sra_massfrac_bot       = .01, &
       sra_massfrac_eps       = .0001
    type(sigref_fun_spec_type) :: &
