@@ -86,7 +86,8 @@ module mod_vcoord
       dpmin_surface          = 1.5_r8, &
       dpmin_inflation_factor = 1._r8, &
       sra_clim_ts            = 5._r8, &
-      sra_param_ts           = 5._r8, &
+      sra_param_ts1          = 5._r8, &
+      sra_param_ts2          = 10._r8, &
       sra_massfrac_bot       = .01, &
       sra_massfrac_eps       = .0001
    type(sigref_fun_spec_type) :: &
@@ -353,35 +354,37 @@ contains
 
       integer, intent(in) :: m, n, mm, nn, k1m, k1n
 
-      real(r8) :: wgt_tf1, wgt_tf2, sp1_tf1, zp2_tf1, sp4_tf1, s_bot_tf1
+      real(r8) :: wgt_tf0, wgt_tf1, wgt_tf2, &
+                  sp1_tf0, zp2_tf0, sp4_tf0, s_bot_tf0
       integer :: i, j, k
 
       ! Time filter weights.
-      wgt_tf1 = ( real(nday_of_year - 1, r8) &
+      wgt_tf0 = ( real(nday_of_year - 1, r8) &
                 + real(mod(nstep, nstep_in_day), r8)/real(nstep_in_day, r8)) &
                 /real(nday_in_year, r8)
-      wgt_tf2 = baclin/(86400._r8*real(nday_in_year, r8)*sra_param_ts + baclin)
+      wgt_tf1 = baclin/(86400._r8*real(nday_in_year, r8)*sra_param_ts1 + baclin)
+      wgt_tf2 = baclin/(86400._r8*real(nday_in_year, r8)*sra_param_ts2 + baclin)
 
       ! Create signals, which vary linearly from old to new parameter values
       ! over a year, for the final time filter.
-      sp1_tf1   = (1._r8 - wgt_tf1)*sigref_fun_spec_old%sp1 &
-                +          wgt_tf1 *sigref_fun_spec_new%sp1
-      zp2_tf1   = (1._r8 - wgt_tf1)*sigref_fun_spec_old%zp2 &
-                +          wgt_tf1 *sigref_fun_spec_new%zp2
-      sp4_tf1   = (1._r8 - wgt_tf1)*sigref_fun_spec_old%sp4 &
-                +          wgt_tf1 *sigref_fun_spec_new%sp4
-      s_bot_tf1 = (1._r8 - wgt_tf1)*sigref_fun_spec_old%s_bot &
-                +          wgt_tf1 *sigref_fun_spec_new%s_bot
+      sp1_tf0   = (1._r8 - wgt_tf0)*sigref_fun_spec_old%sp1 &
+                +          wgt_tf0 *sigref_fun_spec_new%sp1
+      zp2_tf0   = (1._r8 - wgt_tf0)*sigref_fun_spec_old%zp2 &
+                +          wgt_tf0 *sigref_fun_spec_new%zp2
+      sp4_tf0   = (1._r8 - wgt_tf0)*sigref_fun_spec_old%sp4 &
+                +          wgt_tf0 *sigref_fun_spec_new%sp4
+      s_bot_tf0 = (1._r8 - wgt_tf0)*sigref_fun_spec_old%s_bot &
+                +          wgt_tf0 *sigref_fun_spec_new%s_bot
 
       ! Apply final time filter.
-      sigref_fun_spec%sp1   = (1._r8 - wgt_tf2)*sigref_fun_spec%sp1 &
-                            +          wgt_tf2 *sp1_tf1
-      sigref_fun_spec%zp2   = (1._r8 - wgt_tf2)*sigref_fun_spec%zp2 &
-                            +          wgt_tf2 *zp2_tf1
+      sigref_fun_spec%sp1   = (1._r8 - wgt_tf1)*sigref_fun_spec%sp1 &
+                            +          wgt_tf1 *sp1_tf0
+      sigref_fun_spec%zp2   = (1._r8 - wgt_tf1)*sigref_fun_spec%zp2 &
+                            +          wgt_tf1 *zp2_tf0
       sigref_fun_spec%sp4   = (1._r8 - wgt_tf2)*sigref_fun_spec%sp4 &
-                            +          wgt_tf2 *sp4_tf1
+                            +          wgt_tf2 *sp4_tf0
       sigref_fun_spec%s_bot = (1._r8 - wgt_tf2)*sigref_fun_spec%s_bot &
-                            +          wgt_tf2 *s_bot_tf1
+                            +          wgt_tf2 *s_bot_tf0
 
       ! Obtain updated reference potential densities.
       sigref(1:kdm) = sigref_fun(sigref_fun_spec, kdm)
@@ -711,17 +714,9 @@ contains
          else
             ! Adjust s_bot to balance the mass fraction of the two densest
             ! layers.
-            if (massfracdc(kdm-1) > massfracdc(kdm)) then
-               s_bot_new = &
-                  s_bot_mean &
-               - .5_r8*(massfracdc(kdm-1) - massfracdc(kdm)) &
-                      *(s_bot_mean - sigref_mean(kdm-1))/massfracdc(kdm-1)
-            else
-               s_bot_new = &
-                  s_bot_mean &
-                + (massfracdc(kdm) - massfracdc(kdm-1)) &
-                  *(sigdc(kdm) - s_bot_mean)/massfracdc(kdm)
-            endif
+            s_bot_new = s_bot_mean + (massfracdc(kdm) - massfracdc(kdm-1)) &
+                                     *(s_bot_mean - sigref_mean(kdm-1)) &
+                                     /(massfracdc(kdm) + massfracdc(kdm-1))
          endif
          s_bot_new = max(s_bot_new, sp4_new)
 
@@ -819,8 +814,8 @@ contains
       namelist /vcoord/ &
          vcoord_type, dpmin_surface, dpmin_inflation_factor, &
          sigref_spec, plevel_spec, sigref_fun_spec, sigref, plevel, &
-         sigref_adaption, sra_clim_ts, sra_param_ts, sra_massfrac_bot, &
-         sra_massfrac_eps
+         sigref_adaption, sra_clim_ts, sra_param_ts1, sra_param_ts2, &
+         sra_massfrac_bot, sra_massfrac_eps
 
       ! Read variables in the namelist group 'vcoord'.
       if (mnproc == 1) then
@@ -868,7 +863,8 @@ contains
          call xcbcst(plevel)
          call xcbcst(sigref_adaption)
          call xcbcst(sra_clim_ts)
-         call xcbcst(sra_param_ts)
+         call xcbcst(sra_param_ts1)
+         call xcbcst(sra_param_ts2)
          call xcbcst(sra_massfrac_bot)
          call xcbcst(sra_massfrac_eps)
       endif
@@ -882,7 +878,8 @@ contains
          write (lp,*) '  plevel_spec =            ', trim(plevel_spec)
          write (lp,*) '  sigref_adaption =        ', sigref_adaption
          write (lp,*) '  sra_clim_ts =            ', sra_clim_ts
-         write (lp,*) '  sra_param_ts =           ', sra_param_ts
+         write (lp,*) '  sra_param_ts1 =          ', sra_param_ts1
+         write (lp,*) '  sra_param_ts2 =          ', sra_param_ts2
          write (lp,*) '  sra_massfrac_bot =       ', sra_massfrac_bot
          write (lp,*) '  sra_massfrac_eps =       ', sra_massfrac_eps
       endif
