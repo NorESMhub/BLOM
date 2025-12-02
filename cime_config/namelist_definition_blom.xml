@@ -870,7 +870,7 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>1.0</value>
+      <value>0.5</value>
     </values>
     <desc>Fraction of brine absorption concentrated at mixed layer base</desc>
   </entry>
@@ -1673,7 +1673,8 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>.06</value>
+      <value>.35</value>
+      <value blom_vcoord="isopyc_bulkml">.06</value>
     </values>
     <desc>Internal wave dissipation factor under sea ice</desc>
   </entry>
