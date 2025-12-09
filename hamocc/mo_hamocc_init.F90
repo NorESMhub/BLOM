@@ -48,7 +48,7 @@ contains
                               lkwrbioz_off,do_n2o_coupled,do_nh3_coupled,                          &
                               ocn_co2_type, use_sedbypass, use_BOXATM, use_BROMO,use_extNcycle,    &
                               use_coupler_ndep,lTO2depremin,use_sediment_quality,ldyn_sed_age,     &
-                              linit_DOMclasses_sim
+                              linit_DOMclasses_sim,offline_sediment_spinup
     use mo_param1_bgc,  only: ks,init_por2octra_mapping
     use mo_param_bgc,   only: ini_parambgc,claydens,calcdens,calcwei,opaldens,opalwei,ropal,       &
                             & ini_bgctimes,sec_per_day
@@ -65,6 +65,7 @@ contains
     use mo_read_pi_ph,  only: ini_pi_ph,pi_ph_file
     use mo_read_sedpor, only: read_sedpor,sedporfile,sed_por
     use mo_read_sedqual,only: read_sedqual,sedqualfile, sed_POCage_init,prorca_mavg_init
+    use mo_read_sedspinoff,only: read_sedspinoff,sedspinoff_file
     use mo_clim_swa,    only: ini_swa_clim,swaclimfile
     use mo_Gdata_read,  only: inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c,inidom
     use mo_intfcblom,   only: alloc_mem_intfcblom,nphys,bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask,        &
@@ -90,7 +91,7 @@ contains
          &            inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c,inidom,swaclimfile,&
          &            with_dmsph,pi_ph_file,l_3Dvarsedpor,sedporfile,ocn_co2_type,                 &
          &            do_n2o_coupled,do_nh3_coupled,lkwrbioz_off,lTO2depremin,shelfsea_maskfile,   &
-         &            sedqualfile,ldyn_sed_age,linit_DOMclasses_sim,dzs,sed_porosity
+         &            sedqualfile,ldyn_sed_age,linit_DOMclasses_sim,dzs,sed_porosity,sedspinoff_file
     !
     ! --- Set io units and some control parameters
     !
@@ -113,6 +114,13 @@ contains
       write(io_stdo_bgc,*) 'date',date
       write(io_stdo_bgc,*) 'time step',dtbgc
       write(io_stdo_bgc,*) 'nday_in_year ',nday_in_year
+      if (offline_sediment_spinup) then
+        write(io_stdo_bgc,*) '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+        write(io_stdo_bgc,*) ' '
+        write(io_stdo_bgc,*) 'Performing offline sediment spinup - NO WATER COLUMN BGC!!!!'
+        write(io_stdo_bgc,*) ' '
+        write(io_stdo_bgc,*) '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+      endif
     endif
 
     !
@@ -209,6 +217,9 @@ contains
     call read_sedpor(idm,jdm,ks,omask)
     !     Second, read the sediment POC age and climatological prorca and pot. apply it in ini_sedmnt
     call read_sedqual(idm,jdm,ks,omask)
+    !     Third, potentially read climatology for offline sediment spinup
+    call read_sedspinoff(idm,jdm,omask)
+    !     Eventually, initialize the sediment
     call ini_sedmnt(idm,jdm,omask,sed_por,sed_POCage_init,prorca_mavg_init)
 
     !
