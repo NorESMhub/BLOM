@@ -10808,7 +10808,7 @@
     <desc>stream mesh file</desc>
     <values>
       <value hamocc_fedep_source="mahw2006">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_T42_ESMFmesh_cdf5.nc</value>
-      <value hamocc_fedep_source="GESAMP2018">/cluster/projects/nn9560k/matsbn/WOA_mesh/WOA_1.00_degree_ESMFmesh_20250506_cdf5.nc</value>
+      <value hamocc_fedep_source="GESAMP2018">$DIN_LOC_ROOT/ocn/woa/WOA_1.00_degree_ESMFmesh_20250506_cdf5.nc</value>
     </values>
   </entry>
   <entry id="stream_dust_data_filename">
