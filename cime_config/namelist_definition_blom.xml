@@ -5050,8 +5050,8 @@
     <group>bgcparams</group>
     <values>
       <value>None</value>
-      <value use_wlin="yes">0.7</value>
-      <value use_agg="yes">0.5</value>
+      <value use_wlin="yes">None</value>
+      <value use_agg="yes">None</value>
     </values>
     <desc>zooplankton parameter: dimensionless fraction -assimilation efficiency</desc>
   </entry>
@@ -6063,17 +6063,15 @@
     <desc>Half-saturation constant for NO2 for nitrification on NO2 (kmol/m3)</desc>
   </entry>
 
-
-  <!-- TODO: how to handle mathematical expressions like below -->
-  <!-- <entry id="wlin"> -->
-  <!--   <type>real</type> -->
-  <!--   <category>bgcparams</category> -->
-  <!--   <group>bgcparams</group> -->
-  <!--   <values> -->
-  <!--     <value>60./2400.</value> -->
-  <!--   </values> -->
-  <!--   <desc>Sinking parameter: m/d/m constant describing incr. with depth, r/a=1.0</desc> -->
-  <!-- </entry> -->
+  <entry id="wlin">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sinking parameter: m/d/m constant describing increase with depth</desc>
+  </entry>
 
   <!-- ========================= -->
   <!-- namelist group: diabgc -->
