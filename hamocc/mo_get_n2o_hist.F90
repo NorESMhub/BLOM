@@ -42,7 +42,7 @@ contains
     integer, save        :: kplyear_old = 0
 
     ! N2O atmospheric concentration
-    ! Meinhausen et al. 2017: Historical greenhouse gas concentrations for climate modelling (CMIP6)
+    ! Meinshausen et al. 2017: Historical greenhouse gas concentrations for climate modelling (CMIP6)
     ! generated from shared LBC_1750-2015_CMIP6_GlobAnnAvg_c180926.nc file.
     ! First (last) data represents year 1750.5 (2015.5), units are [ppb]
 
