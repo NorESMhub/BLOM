@@ -209,7 +209,16 @@
     <file>env_run.xml</file>
     <desc>N2O fluxes coupled from atmosphere. Requires module ecosys and extncycle</desc>
   </entry>
-  
+
+  <entry id="HAMOCC_N2O_HIST">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Provide historical N2O concentrations (uncoupled). Requires module ecosys and extncycle</desc>
+  </entry>
+
   <entry id="HAMOCC_NH3C">
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
