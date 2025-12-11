@@ -724,10 +724,11 @@ contains
                          bkoxdnra_sed,bkdnra_sed,q10anh4nitr_sed,                &
                          bkoxamox_sed,bkanh4nitr_sed,q10ano2nitr_sed,            &
                          bkoxnitr_sed,bkano2nitr_sed,sed_alpha_poc,sed_qual_sc,  &
-                         sed_denit,sed_sulf,                                     &
-                         sed_O2thresh_hypoxic,sed_O2thresh_sulf,sed_NO3thresh_sulf,&
-                         gammapsl,gammazsl,alphasl,alphasr,docl_remin,docsl_remin, &
-                         docsr_remin,docr_remin,yield_n2o_inf,bkamoxn2o
+                         sed_denit,sed_sulf,sed_O2thresh_hypoxic,                &
+                         sed_O2thresh_sulf,sed_NO3thresh_sulf,gammapsl,          &
+                         gammazsl,alphasl,alphasr,docl_remin,docsl_remin,        &
+                         docsr_remin,docr_remin,yield_n2o_inf,bkamoxn2o,         &
+                         dmsp3,dmsp4,dmsp5
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)
