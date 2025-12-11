@@ -496,9 +496,9 @@ module mo_param_bgc
   ! Set constants for dms scheme following Kloster et al. (2006), Table 1
   real(rp), protected :: dmsp1 = 10._rp             ! 2*5. production with temp
   real(rp), protected :: dmsp2 = 0.0011_rp
-  real(rp), protected :: dmsp3 = 0.0864_rp          ! bacterial removal, but reduced 50% to increase dms emissions
+  real(rp), protected :: dmsp3 = 0.1296_rp          ! bacterial removal, but reduced 50% to increase dms emissions
   real(rp), protected :: dmsp4 = 1.25_rp*0.10_rp    ! production with delcar, but reduced by ~7%
-  real(rp), protected :: dmsp5 = 1.25_rp*0.02_rp    ! production with delsil, but increased by a factor of ~2
+  real(rp), protected :: dmsp5 = 1.36e-02_rp        ! production with delsil
   real(rp), protected :: dmsp6 = 0.1e-07_rp         ! half saturation microbial
 
   ! Scaling factor for pH dependency (used if with_dmsph=.true.)
@@ -724,10 +724,11 @@ contains
                          bkoxdnra_sed,bkdnra_sed,q10anh4nitr_sed,                &
                          bkoxamox_sed,bkanh4nitr_sed,q10ano2nitr_sed,            &
                          bkoxnitr_sed,bkano2nitr_sed,sed_alpha_poc,sed_qual_sc,  &
-                         sed_denit,sed_sulf,                                     &
-                         sed_O2thresh_hypoxic,sed_O2thresh_sulf,sed_NO3thresh_sulf,&
-                         gammapsl,gammazsl,alphasl,alphasr,docl_remin,docsl_remin, &
-                         docsr_remin,docr_remin,yield_n2o_inf,bkamoxn2o
+                         sed_denit,sed_sulf,sed_O2thresh_hypoxic,                &
+                         sed_O2thresh_sulf,sed_NO3thresh_sulf,gammapsl,          &
+                         gammazsl,alphasl,alphasr,docl_remin,docsl_remin,        &
+                         docsr_remin,docr_remin,yield_n2o_inf,bkamoxn2o,         &
+                         dmsp3,dmsp4,dmsp5
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)

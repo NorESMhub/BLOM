@@ -6063,6 +6063,36 @@
     <desc>Half-saturation constant for NO2 for nitrification on NO2 (kmol/m3)</desc>
   </entry>
 
+  <entry id="dmsp3">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>bacterial removal; constant for DMS scheme (Kloster et al. (2006), Table 1)</desc>
+  </entry>
+
+  <entry id="dmsp4">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>production with delcar; constant for DMS scheme (Kloster et al. (2006), Table 1)</desc>
+  </entry>
+
+  <entry id="dmsp5">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>production with delsil; constant for DMS scheme (Kloster et al. (2006), Table 1)</desc>
+  </entry>
+
   <entry id="wlin">
     <type>real</type>
     <category>bgcparams</category>
