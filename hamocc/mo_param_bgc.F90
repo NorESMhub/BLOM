@@ -496,9 +496,9 @@ module mo_param_bgc
   ! Set constants for dms scheme following Kloster et al. (2006), Table 1
   real(rp), protected :: dmsp1 = 10._rp             ! 2*5. production with temp
   real(rp), protected :: dmsp2 = 0.0011_rp
-  real(rp), protected :: dmsp3 = 0.1296_rp          ! bacterial removal, but reduced 50% to increase dms emissions
+  real(rp), protected :: dmsp3 = 0.0864_rp          ! bacterial removal, but reduced 50% to increase dms emissions
   real(rp), protected :: dmsp4 = 1.25_rp*0.10_rp    ! production with delcar, but reduced by ~7%
-  real(rp), protected :: dmsp5 = 1.36e-02_rp        ! production with delsil
+  real(rp), protected :: dmsp5 = 1.25_rp*0.02_rp    ! production with delsil, but increased by a factor of ~2
   real(rp), protected :: dmsp6 = 0.1e-07_rp         ! half saturation microbial
 
   ! Scaling factor for pH dependency (used if with_dmsph=.true.)
