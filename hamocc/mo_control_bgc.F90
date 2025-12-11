@@ -58,6 +58,7 @@ module mo_control_bgc
   logical           :: l_3Dvarsedpor          = .false. ! apply spatially variable sediment porosity
   logical           :: do_ndep                = .true.  ! apply n-deposition
   logical           :: do_n2o_coupled         = .false. ! for coupled simulations, use field provided by atmosphere
+  logical           :: do_n2o_hist            = .false. ! provide historical N2O concentration in non-interactive-N2O historical sim
   logical           :: do_nh3_coupled         = .false. ! for coupled simulations, use field provided by atmosphere
   logical           :: do_rivinpt             = .true.  ! apply riverine input
   logical           :: do_sedspinup           = .false. ! apply sediment spin-up
