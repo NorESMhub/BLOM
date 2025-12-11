@@ -104,7 +104,7 @@ contains
                               iatmnco2,inatalkali,inatcalc,inatsco212,                             &
                               ks,issso14,isssc14,ipowc14,                                          &
                               iatmbromo,ibromo,iatmnh3,ianh4
-    use mo_param_bgc,   only: dremcalc,srfdic_min,c14dec,atm_co2_nat,atm_n2o
+    use mo_param_bgc,   only: dremcalc,srfdic_min,c14dec,atm_co2_nat
     use mo_vgrid,       only: dp_min,kmle,kbo,ptiestu
     use mo_carbch,      only: atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,                 &
                               atm_sf6_nh,atm_sf6_sh,                                               &

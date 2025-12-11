@@ -44,7 +44,7 @@ module mo_param_bgc
                             lkwrbioz_off,lTO2depremin,use_shelfsea_res_time,use_sediment_quality,  &
                             use_pref_tracers,use_coupler_ndep,use_river2omip,use_DOMclasses,       &
                             linit_DOMclasses_sim,ldyn_sed_age,sedspin_yr_s,sedspin_yr_e,           &
-                            sedspin_ncyc,ldtbgc
+                            sedspin_ncyc,ldtbgc,do_n2o_hist
   use mod_xc,         only: mnproc,xchalt
 
   implicit none
@@ -980,6 +980,7 @@ contains
       call pinfo_add_entry('ldtbgc',                 real(ldtbgc))
       if (use_extNcycle) then
         call cinfo_add_entry('do_n2o_coupled',       do_n2o_coupled)
+        call cinfo_add_entry('do_n2o_hist',          do_n2o_hist)
         call cinfo_add_entry('do_nh3_coupled',       do_nh3_coupled)
       endif
       write(io_stdo_bgc,*) '* '

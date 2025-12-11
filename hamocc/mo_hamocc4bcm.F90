@@ -68,6 +68,7 @@ contains
     use mo_inventory_bgc, only: inventory_bgc
     use mo_sedshi,        only: sedshi
     use mo_get_cfc,       only: get_cfc
+    use mo_get_n2o_hist,  only: get_n2o_hist
     use mo_powach,        only: powach
     use mo_preftrc,       only: preftrc
     use mo_cyano,         only: cyano
@@ -187,6 +188,9 @@ contains
         enddo
         !$OMP END PARALLEL DO
         if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting N2O conc. from atm'
+      else
+        ! Get historical atmospheric N2O concentration, if requested via do_n2o_hist
+        call get_n2o_hist(kplyear)
       endif
       if (do_nh3_coupled) then
         !$OMP PARALLEL DO PRIVATE(i)

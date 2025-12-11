@@ -3649,6 +3649,17 @@
     <desc>Switch to couple N2O fluxes to atmosphere</desc>
   </entry>
 
+  <entry id="do_n2o_hist" modify_via_xml="HAMOCC_N2O_HIST">
+    <type>logical</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>.false.</value>
+      <value hamocc_n2o_hist="yes" hamocc_extncycle="yes">.true.</value>
+    </values>
+    <desc>Switch provide atmospheric N2O in historical period (uncoupled)</desc>
+  </entry>
+
   <entry id="do_nh3_coupled" modify_via_xml="HAMOCC_NH3C">
     <type>logical</type>
     <category>bgcnml</category>
