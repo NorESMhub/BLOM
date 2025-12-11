@@ -44,7 +44,7 @@ contains
     ! N2O atmospheric concentration
     ! Meinhausen et al. 2017: Historical greenhouse gas concentrations for climate modelling (CMIP6)
     ! generated from shared LBC_1750-2015_CMIP6_GlobAnnAvg_c180926.nc file.
-    ! First (last) data represents year 1750.5 (2015.5), units are [ppb]
+    ! First (last) data represents year 1750.5 (2015.5), units are [ppt]
 
     data atm_n2o_conc /                                                                            &
               273864.96875_rp, 273894.06250_rp, 273927.09375_rp, 273972.81250_rp, 274016.18750_rp, &
