@@ -6638,7 +6638,7 @@
   <!-- Entries for Kuroshio pacemaker experiment. See
        <NorESM>/cime_config/usermods_dirs/n1850_SST_pacemaker_Kuroshio
   -->
-  <entry id="Kuroshio_pacemaker_SST_file" is_inputdata="yes">
+  <entry id="pacemaker_SST_file" is_inputdata="yes">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
@@ -6648,7 +6648,7 @@
     <desc>Daily sea surface temperatures for the Kuroshio current pacemaker experiment</desc>
   </entry>
 
-  <entry id="Kuroshio_pacemaker_mask_file" is_inputdata="yes">
+  <entry id="pacemaker_mask_file" is_inputdata="yes">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
