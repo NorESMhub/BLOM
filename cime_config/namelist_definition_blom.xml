@@ -6635,8 +6635,8 @@
     <desc>(ssster) [mol m-3]</desc>
   </entry>
 
-  <!-- Entries for Kuroshio pacemaker experiment. See
-  <!-- Entries for pacemaker experiments. See Kuroshio current pacemaker experiment
+  <!-- Entries for pacemaker experiments.
+       See Kuroshio current pacemaker experiment at
        <NorESM>/cime_config/usermods_dirs/n1850_SST_pacemaker_Kuroshio
   -->
   <entry id="pacemaker_SST_file" is_inputdata="yes">
