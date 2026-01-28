@@ -321,14 +321,14 @@
       <pes pesize="L" compset="any">
         <comment>PE-layout with 500/640 pes yielding about 19.2/15.5 myears/wday for BLOM/total</comment>
         <ntasks>
-          <ntasks_atm>6</ntasks_atm>
-          <ntasks_rof>6</ntasks_rof>
+          <ntasks_atm>128</ntasks_atm>
+          <ntasks_rof>12</ntasks_rof>
           <ntasks_ice>128</ntasks_ice>
           <ntasks_ocn>500</ntasks_ocn>
           <ntasks_cpl>140</ntasks_cpl>
-          <ntasks_lnd>1</ntasks_lnd>
-          <ntasks_glc>1</ntasks_glc>
-          <ntasks_wav>1</ntasks_wav>
+          <ntasks_lnd>128</ntasks_lnd>
+          <ntasks_glc>128</ntasks_glc>
+          <ntasks_wav>128</ntasks_wav>
         </ntasks>
         <nthrds>
           <nthrds_atm>1</nthrds_atm>
@@ -341,13 +341,13 @@
           <nthrds_cpl>1</nthrds_cpl>
         </nthrds>
         <rootpe>
-          <rootpe_atm>128</rootpe_atm>
-          <rootpe_lnd>128</rootpe_lnd>
-          <rootpe_rof>134</rootpe_rof>
+          <rootpe_atm>0</rootpe_atm>
+          <rootpe_lnd>0</rootpe_lnd>
+          <rootpe_rof>128</rootpe_rof>
           <rootpe_ice>0</rootpe_ice>
           <rootpe_ocn>140</rootpe_ocn>
-          <rootpe_glc>128</rootpe_glc>
-          <rootpe_wav>128</rootpe_wav>
+          <rootpe_glc>0</rootpe_glc>
+          <rootpe_wav>0</rootpe_wav>
           <rootpe_cpl>0</rootpe_cpl>
         </rootpe>
       </pes>
@@ -359,14 +359,14 @@
       <pes pesize="XL" compset="any">
         <comment>PE-layout with 623/768 pes yielding about 21.5/17 myears/wday for BLOM/total</comment>
         <ntasks>
-          <ntasks_atm>8</ntasks_atm>
-          <ntasks_rof>8</ntasks_rof>
+          <ntasks_atm>128</ntasks_atm>
+          <ntasks_rof>17</ntasks_rof>
           <ntasks_ice>128</ntasks_ice>
           <ntasks_ocn>623</ntasks_ocn>
           <ntasks_cpl>145</ntasks_cpl>
-          <ntasks_lnd>1</ntasks_lnd>
-          <ntasks_glc>1</ntasks_glc>
-          <ntasks_wav>1</ntasks_wav>
+          <ntasks_lnd>128</ntasks_lnd>
+          <ntasks_glc>128</ntasks_glc>
+          <ntasks_wav>128</ntasks_wav>
         </ntasks>
         <nthrds>
           <nthrds_atm>1</nthrds_atm>
@@ -379,13 +379,13 @@
           <nthrds_cpl>1</nthrds_cpl>
         </nthrds>
         <rootpe>
-          <rootpe_atm>129</rootpe_atm>
-          <rootpe_lnd>128</rootpe_lnd>
-          <rootpe_rof>137</rootpe_rof>
+          <rootpe_atm>0</rootpe_atm>
+          <rootpe_lnd>0</rootpe_lnd>
+          <rootpe_rof>128</rootpe_rof>
           <rootpe_ice>0</rootpe_ice>
           <rootpe_ocn>145</rootpe_ocn>
-          <rootpe_glc>128</rootpe_glc>
-          <rootpe_wav>128</rootpe_wav>
+          <rootpe_glc>0</rootpe_glc>
+          <rootpe_wav>0</rootpe_wav>
           <rootpe_cpl>0</rootpe_cpl>
         </rootpe>
       </pes>
@@ -397,14 +397,14 @@
       <pes pesize="XXL" compset="any">
         <comment>PE-layout with 761/896 pes yielding 25.5/19.5 myears/wday for BLOM/total</comment>
         <ntasks>
-          <ntasks_atm>64</ntasks_atm>
-          <ntasks_rof>7</ntasks_rof>
+          <ntasks_atm>128</ntasks_atm>
+          <ntasks_rof>128</ntasks_rof>
           <ntasks_ice>128</ntasks_ice>
           <ntasks_ocn>761</ntasks_ocn>
           <ntasks_cpl>135</ntasks_cpl>
-          <ntasks_lnd>1</ntasks_lnd>
-          <ntasks_glc>1</ntasks_glc>
-          <ntasks_wav>1</ntasks_wav>
+          <ntasks_lnd>128</ntasks_lnd>
+          <ntasks_glc>128</ntasks_glc>
+          <ntasks_wav>128</ntasks_wav>
         </ntasks>
         <nthrds>
           <nthrds_atm>1</nthrds_atm>
@@ -417,9 +417,9 @@
           <nthrds_cpl>1</nthrds_cpl>
         </nthrds>
         <rootpe>
-          <rootpe_atm>64</rootpe_atm>
+          <rootpe_atm>0</rootpe_atm>
           <rootpe_lnd>0</rootpe_lnd>
-          <rootpe_rof>128</rootpe_rof>
+          <rootpe_rof>0</rootpe_rof>
           <rootpe_ice>0</rootpe_ice>
           <rootpe_ocn>135</rootpe_ocn>
           <rootpe_glc>0</rootpe_glc>
