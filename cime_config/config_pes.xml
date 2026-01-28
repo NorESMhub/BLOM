@@ -284,7 +284,7 @@
         <comment>PE-layout with 374/512 pes yielding about 13.8/12 myears/wday for BLOM/total</comment>
         <ntasks>
           <ntasks_atm>128</ntasks_atm>
-          <ntasks_rof>128</ntasks_rof>
+          <ntasks_rof>10</ntasks_rof>
           <ntasks_ice>128</ntasks_ice>
           <ntasks_ocn>374</ntasks_ocn>
           <ntasks_cpl>128</ntasks_cpl>
@@ -305,9 +305,9 @@
         <rootpe>
           <rootpe_atm>0</rootpe_atm>
           <rootpe_lnd>0</rootpe_lnd>
-          <rootpe_rof>0</rootpe_rof>
+          <rootpe_rof>128</rootpe_rof>
           <rootpe_ice>0</rootpe_ice>
-          <rootpe_ocn>128</rootpe_ocn>
+          <rootpe_ocn>138</rootpe_ocn>
           <rootpe_glc>0</rootpe_glc>
           <rootpe_wav>0</rootpe_wav>
           <rootpe_cpl>0</rootpe_cpl>
