@@ -116,10 +116,10 @@ module mo_bgcmean
        & SRF_ATMBROMO  =0    ,SRF_BROMO     =0    ,SRF_BROMOFX   =0    ,  &
        & SRF_ANH4      =0    ,SRF_ANO2      =0    ,SRF_ANH3FX    =0    ,  &
        & SRF_PN2OM     =0    ,SRF_PNH3      =0    ,SRF_ATMNH3    =0    ,  &
-       & SRF_ATMN2O    =0    ,SRF_CO3       =0    ,INT_BROMOPRO  =0    ,  &
-       & INT_BROMOUV   =0    ,INT_POC       =0    ,CO3SATARAG_0  =0    ,  &
+       & SRF_ATMN2O    =0    ,SRF_CO3       =0    ,SRF_CO3SATARAG=0    ,  &
        & PHYC_200      =0    ,PH_200        =0    ,CO3_200       =0    ,  &
        & CO3SATARAG_200=0    ,O2_200        =0    ,O2MIN         =0    ,  &
+       & INT_BROMOPRO  =0    ,INT_BROMOUV   =0    ,INT_POC       =0    ,  &
        & INT_PHOSY     =0    ,INT_NFIX      =0    ,INT_DNIT      =0    ,  &
        & INT_EXUDL     =0    ,INT_EXUDSL    =0    ,INT_EXCRL     =0    ,  &
        & INT_EXCRSL    =0    ,INT_DOCL_REM  =0    ,INT_DOCSL_REM =0    ,  &
@@ -254,10 +254,10 @@ module mo_bgcmean
        & SRF_ATMBROMO      ,SRF_BROMO         ,SRF_BROMOFX       ,        &
        & SRF_ANH4          ,SRF_ANO2          ,SRF_ANH3FX        ,        &
        & SRF_PN2OM         ,SRF_PNH3          ,SRF_ATMNH3        ,        &
-       & SRF_ATMN2O        ,SRF_CO3           ,INT_BROMOPRO      ,        &
-       & INT_BROMOUV       ,INT_POC           ,CO3SATARAG_0      ,        &
+       & SRF_ATMN2O        ,SRF_CO3           ,SRF_CO3SATARAG    ,        &
        & PHYC_200          ,PH_200            ,CO3_200           ,        &
        & CO3SATARAG_200    ,O2_200            ,O2MIN             ,        &
+       & INT_BROMOPRO      ,INT_BROMOUV       ,INT_POC           ,        &
        & INT_PHOSY         ,INT_NFIX          ,INT_DNIT          ,        &
        & INT_EXUDL         ,INT_EXUDSL        ,INT_EXCRL         ,        &
        & INT_EXCRSL        ,INT_DOCL_REM      ,INT_DOCSL_REM     ,        &
@@ -436,6 +436,8 @@ module mo_bgcmean
        &          jsrfdic    = 0 ,                                        &
        &          jsrfphyto  = 0 ,                                        &
        &          jsrfph     = 0 ,                                        &
+       &          jsrfco3    = 0 ,                                        &
+       &          jsrfco3satarag= 0 ,                                     &
        &          jintphosy  = 0 ,                                        &
        &          jintnfix   = 0 ,                                        &
        &          jintdnit   = 0 ,                                        &
@@ -480,8 +482,6 @@ module mo_bgcmean
        &          jzeunutlim_fe      = 0 ,                                &
        &          jzeunutlim_phosph  = 0 ,                                &
        &          jzeunutlim_n       = 0 ,                                &
-       &          jsrfco3            = 0 ,                                &
-       &          jco3satarag_0      = 0 ,                                &
        &          jphyc_200          = 0 ,                                &
        &          jph_200            = 0 ,                                &
        &          jco3_200           = 0 ,                                &
@@ -932,6 +932,12 @@ CONTAINS
       jsrfphyto(n)=i_bsc_m2d*min(1,SRF_PHYTO(n))
       if (SRF_PH(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jsrfph(n)=i_bsc_m2d*min(1,SRF_PH(n))
+      if (SRF_CO3(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jsrfco3(n)=i_bsc_m2d*min(1,SRF_CO3(n))
+      if (SRF_CO3SATARAG(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jsrfco3satarag(n)=i_bsc_m2d*min(1,SRF_CO3SATARAG(n))
+      if (INT_POC(n) > 0) i_bsc_m2d=i_bsc_m2d+1
+      jintpoc(n)=i_bsc_m2d*min(1,INT_POC(n))
       if (INT_PHOSY(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jintphosy(n)=i_bsc_m2d*min(1,INT_PHOSY(n))
       if (INT_NFIX(n) > 0) i_bsc_m2d=i_bsc_m2d+1
@@ -1000,12 +1006,6 @@ CONTAINS
       jzeunutlim_phosph(n)=i_bsc_m2d*min(1,ZEU_NUTLIM_PHOSPH(n))
       if (ZEU_NUTLIM_N(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jzeunutlim_N(n)=i_bsc_m2d*min(1,ZEU_NUTLIM_N(n))
-      if (SRF_CO3(n) > 0) i_bsc_m2d=i_bsc_m2d+1
-      jsrfco3(n)=i_bsc_m2d*min(1,SRF_CO3(n))
-      if (INT_POC(n) > 0) i_bsc_m2d=i_bsc_m2d+1
-      jintpoc(n)=i_bsc_m2d*min(1,INT_POC(n))
-      if (CO3SATARAG_0(n) > 0) i_bsc_m2d=i_bsc_m2d+1
-      jco3satarag_0(n)=i_bsc_m2d*min(1,CO3SATARAG_0(n))
       if (PHYC_200(n) > 0) i_bsc_m2d=i_bsc_m2d+1
       jphyc_200(n)=i_bsc_m2d*min(1,PHYC_200(n))
       if (PH_200(n) > 0) i_bsc_m2d=i_bsc_m2d+1

@@ -108,7 +108,7 @@ contains
                                 jsrfphyto,jsrfsilica,jsrfph,jwnos,jwphy,jndepnoyfx,jtdustfx,       &
                                 jsfefx,joalkfx,nbgc,nacc_bgc,bgcwrt,glb_inventory,                 &
                                 bgct2d,acclvl,acclyr,accsrf,bgczlv,                                &
-                                jsrfco3,jintpoc,jphyc_200, jco3satarag_0,jph_200,jco3_200,         &
+                                jsrfco3,jintpoc,jphyc_200, jsrfco3satarag,jph_200,jco3_200,        &
                                 jco3satarag_200,jo2_200,jo2min,                                    &
                                 jatmbromo,jbromo,jbromo_prod,jbromo_uv,jbromofx,jsrfbromo,         &
                                 jcfc11,jcfc11fx,jcfc12,jcfc12fx,jsf6,jsf6fx,                       &
@@ -153,7 +153,7 @@ contains
                                 use_CFC,use_sedbypass,use_cisonew,use_BOXATM,use_M4AGO,            &
                                 use_extNcycle,use_pref_tracers,use_shelfsea_res_time,              &
                                 use_sediment_quality,use_river2omip,use_DOMclasses
-    use mo_param1_bgc,    only: ialkali,ian2o,iano3,iatmco2,iatmdms,iatmn2,iatmn2o,iatmo2,         &
+    use mo_param1_bgc,    only: safediv,ialkali,ian2o,iano3,iatmco2,iatmdms,iatmn2,iatmn2o,iatmo2, &
                                 icalc,idet,idms,idicsat,idoc,iiron,iopal,itdoc_lc,itdoc_hc,        &
                                 ioxygen,iphosph,iphy,iprefalk,iprefdic,                            &
                                 iprefpo4,iprefo2,isco212,isilica,izoo,itdust,isfe,                 &
@@ -171,7 +171,7 @@ contains
     use mo_sedmnt,        only: powtra,sedlay,burial,prorca_mavg,sed_reactivity_a,                 &
                                 sed_reactivity_k,sed_applied_reminrate,sed_rem_aerob,sed_rem_denit,&
                                 sed_rem_sulf
-    use mo_vgrid,         only: dp_min,k0200
+    use mo_vgrid,         only: dp_min,kmle,k0200
     use mo_inventory_bgc, only: inventory_bgc
     use mo_ncwrt_bgc    , only: ncwrt_bgc
     use mo_ihamocc4m4ago, only: aggregate_diagnostics,kav_dp,kav_rho_p,kav_d_C,kws_agg,kdf_agg,    &
@@ -192,23 +192,24 @@ contains
     real(rp), intent(in) :: omask(kpie,kpje)      ! land/ocean mask
 
     ! Local variables
-    integer  :: i,j,k,l
+    integer  :: i,j,k,k1,l
     integer  :: ind1(kpie,kpje),ind2(kpie,kpje)
     real(rp) :: wghts(kpie,kpje,ddm)
-    real(rp) :: di12C                   ! cisonew
-    real(rp) :: d13C(kpie,kpje,kpke)    ! cisonew
-    real(rp) :: d14C(kpie,kpje,kpke)    ! cisonew
-    real(rp) :: bigd14C(kpie,kpje,kpke) ! cisonew
-
-    ! CMIP7 additional daily outputs
+    real(rp) :: di12C 
+    real(rp) :: d13C(kpie,kpje,kpke)
+    real(rp) :: d14C(kpie,kpje,kpke)
+    real(rp) :: bigd14C(kpie,kpje,kpke)
     real(rp) :: intpoc(kpie,kpje)               ! Vertically integrated detritus concentration 
-    real(rp) :: co3satarag_0(kpie,kpje)         ! Mole carbonate anion (CO3) for sea water in equilibrium with pure Aragonite @sfc
+	real(rp) :: srfph(kpie,kpje)                ! Temporary variable for calculation of surface pH
+    real(rp) :: srfco3satarag(kpie,kpje)        ! Mole carbonate anion (CO3) for sea water in equilibrium with pure Aragonite @sfc
     real(rp) :: phyc_200(kpie,kpje)             ! phytoplankton 200m
     real(rp) :: ph_200(kpie,kpje)               ! pH 200m
     real(rp) :: co3_200(kpie,kpje)              ! co3 200m
     real(rp) :: co3satarag_200(kpie,kpje)       ! Mole carbonate anion (CO3) for sea water in equilibrium with pure Aragonite @200m
     real(rp) :: o2_200(kpie,kpje)               ! o2 200m
-    real(rp) :: o2min(kpie,kpje)                ! in vertical space)
+    real(rp) :: o2min(kpie,kpje)                ! o2 minimum closest to surface
+	
+	real(rp),parameter :: himin = 1.0e-11       ! Minimum [H+] for calculation of pH
 
     if (use_cisonew) then
       ! Calculation d13C, d14C and Dd14C: Delta notation for output
@@ -233,7 +234,8 @@ contains
     endif
 
     intpoc        (:,:)=0._rp
-    co3satarag_0  (:,:)=0._rp
+	srfph         (:,:)=0._rp
+    srfco3satarag (:,:)=0._rp
     phyc_200      (:,:)=0._rp
     ph_200        (:,:)=0._rp
     co3_200       (:,:)=0._rp
@@ -241,26 +243,41 @@ contains
     o2_200        (:,:)=0._rp
     o2min         (:,:)=0._rp
 
- 
-
     do j=1,kpje
       do i=1,kpie
-        if(omask(i,j).gt.0.5_rp) then
-          co3satarag_0(i,j)=co3(i,j,1)/OmegaA(i,j,1)
+        if(omask(i,j)>0.5_rp) then
+
+          srfco3satarag(i,j)  = co3(i,j,1)/(OmegaA(i,j,1) + safediv)
+
           k=k0200(i,j)
-          phyc_200(i,j)=ocetra(i,j,k,iphy)
-          ph_200(i,j)  =-log10(hi(i,j,k))
-          co3_200(i,j) =co3(i,j,k)
-          co3satarag_200(i,j)=co3_200(i,j)/OmegaA(i,j,k)
-          o2_200(i,j)  =ocetra(i,j,k,ioxygen)
-          o2min(i,j)   =ocetra(i,j,1,ioxygen)
+          phyc_200(i,j)       = ocetra(i,j,k,iphy)
+          co3_200(i,j)        = co3(i,j,k)
+          co3satarag_200(i,j) = co3_200(i,j)/(OmegaA(i,j,k) + safediv)
+          o2_200(i,j)         = ocetra(i,j,k,ioxygen)
+          ph_200(i,j)         = -log10(max(hi(i,j,k),himin))
+		  
+          ! integrated POC in kmol P m-2
           do k=1,kpke
-            intpoc(i,j)  =intpoc(i,j)  +ocetra(i,j,k,idet)*pddpo(i,j,k)       ! integrated POC in kmol P m-2
-            o2min(i,j)   =min(o2min(i,j),ocetra(i,j,k,ioxygen))
+            intpoc(i,j) = intpoc(i,j) + ocetra(i,j,k,idet)*pddpo(i,j,k)
           enddo
-        endif
+          
+          ! O2 minimum closest to surface (but below mixed layer)
+          k1 = kmle(i,j)
+          o2min(i,j) = ocetra(i,j,k1,ioxygen)
+          do k=k1+1,kpke
+            if(pddpo(i,j,k) > dp_min) then
+              if(o2min(i,j) > ocetra(i,j,k,ioxygen)) then
+                o2min(i,j) = ocetra(i,j,k,ioxygen)
+              else
+                exit
+              endif 
+            endif
+          enddo
+
+        endif ! omask > 0.5
       enddo
     enddo
+
 
     ! Accumulated fluxes for inventory.F90. Note that these are currently not written to restart!
     ! Division by 2 is to account for leap-frog timestepping (but this is not exact)
@@ -364,7 +381,8 @@ contains
     call accsrf(jsrfsilica,ocetra(1,1,1,isilica),omask,0)
     call accsrf(jsrfdic,ocetra(1,1,1,isco212),omask,0)
     call accsrf(jsrfphyto,ocetra(1,1,1,iphy),omask,0)
-    call accsrf(jsrfph,hi(1,1,1),omask,0)
+	srfph = -log10(max(hi(:,:,1),himin))
+    call accsrf(jsrfph,srfph,omask,0)
     call accsrf(jdms,ocetra(1,1,1,idms),omask,0)
     call accsrf(jsrfpn2om,pn2om,omask,0)
     call accsrf(jexport,expoor,omask,0)
@@ -381,7 +399,7 @@ contains
     call accsrf(jzeunutlim_n,zeu_nutlim_diag(1,1,inutlim_n),omask,0)
     call accsrf(jsrfco3,co3(1,1,1),omask,0)
     call accsrf(jintpoc,intpoc,omask,0)
-    call accsrf(jco3satarag_0,co3satarag_0,omask,0)
+    call accsrf(jsrfco3satarag,srfco3satarag,omask,0)
     call accsrf(jphyc_200,phyc_200,omask,0)
     call accsrf(jph_200,ph_200,omask,0)
     call accsrf(jco3_200,co3_200,omask,0)
@@ -392,7 +410,8 @@ contains
       call accsrf(jsrfnatdic,ocetra(1,1,1,inatsco212),omask,0)
       call accsrf(jsrfnatalk,ocetra(1,1,1,inatalkali),omask,0)
       call accsrf(jnatpco2,natpco2,omask,0)
-      call accsrf(jsrfnatph,nathi(1,1,1),omask,0)
+	  srfph = -log10(max(nathi(:,:,1),himin))
+      call accsrf(jsrfnatph,srfph,omask,0)
     endif
     if (use_BROMO) then
       call accsrf(jsrfbromo,ocetra(1,1,1,ibromo),omask,0)
@@ -490,7 +509,7 @@ contains
     call acclyr(jopal,ocetra(1,1,1,iopal),pddpo,1)
     call acclyr(jn2o,ocetra(1,1,1,ian2o),pddpo,1)
     call acclyr(jco3,co3,pddpo,1)
-    call acclyr(jph,hi,pddpo,1)
+    call acclyr(jph,-log10(max(hi,himin)),pddpo,1)
     call acclyr(jomegaa,OmegaA,pddpo,1)
     call acclyr(jomegac,OmegaC,pddpo,1)
     call acclyr(jphosy,phosy3d,pddpo,1)
@@ -511,7 +530,7 @@ contains
       call acclyr(jnatdic,ocetra(1,1,1,inatsco212),pddpo,1)
       call acclyr(jnatcalc,ocetra(1,1,1,inatcalc),pddpo,1)
       call acclyr(jnatco3,natco3,pddpo,1)
-      call acclyr(jnatph,nathi,pddpo,1)
+      call acclyr(jnatph,-log10(max(nathi,himin)),pddpo,1)
       call acclyr(jnatomegaa,natOmegaA,pddpo,1)
       call acclyr(jnatomegac,natOmegaC,pddpo,1)
     endif
@@ -639,7 +658,7 @@ contains
         call acclvl(jlvlopal,ocetra(1,1,1,iopal),k,ind1,ind2,wghts)
         call acclvl(jlvln2o,ocetra(1,1,1,ian2o),k,ind1,ind2,wghts)
         call acclvl(jlvlco3,co3,k,ind1,ind2,wghts)
-        call acclvl(jlvlph,hi,k,ind1,ind2,wghts)
+        call acclvl(jlvlph,-log10(max(hi,himin)),k,ind1,ind2,wghts)
         call acclvl(jlvlomegaa,OmegaA,k,ind1,ind2,wghts)
         call acclvl(jlvlomegac,OmegaC,k,ind1,ind2,wghts)
         call acclvl(jlvlphosy,phosy3d,k,ind1,ind2,wghts)
@@ -660,7 +679,7 @@ contains
           call acclvl(jlvlnatalkali,ocetra(1,1,1,inatalkali),k,ind1,ind2,wghts)
           call acclvl(jlvlnatcalc,ocetra(1,1,1,inatcalc),k,ind1,ind2,wghts)
           call acclvl(jlvlnatco3,natco3,k,ind1,ind2,wghts)
-          call acclvl(jlvlnatph,nathi,k,ind1,ind2,wghts)
+          call acclvl(jlvlnatph,-log10(max(nathi,himin)),k,ind1,ind2,wghts)
           call acclvl(jlvlnatomegaa,natOmegaA,k,ind1,ind2,wghts)
           call acclvl(jlvlnatomegac,natOmegaC,k,ind1,ind2,wghts)
         endif

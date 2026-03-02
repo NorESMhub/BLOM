@@ -7116,7 +7116,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,0</value>
+      <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
@@ -7124,25 +7124,12 @@
     <desc>Surface carbonate ion concentrations [mol C -m3]</desc>
   </entry>
 
-  <entry id="int_poc">
+  <entry id="srf_co3satarag">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,0</value>
-      <value is_test="yes">4,2,2</value>
-      <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value hamocc_output_size="spinup">2,2</value>
-    </values>
-    <desc>Column-integrated POC concentration [mol P -m2]</desc>
-  </entry>
-
-  <entry id="co3satarag_0">
-    <type>integer(3)</type>
-    <category>diabgc</category>
-    <group>diabgc</group>
-    <values>
-      <value>0,0,0</value>
+      <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
@@ -7155,7 +7142,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,0</value>
+      <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
@@ -7168,7 +7155,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,0</value>
+      <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
@@ -7181,7 +7168,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,0</value>
+      <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7194,7 +7181,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,0</value>
+      <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
@@ -7207,7 +7194,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,0</value>
+      <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
@@ -7220,12 +7207,25 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,0</value>
+      <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Minimum oxygen concentration in the water column [mol O2 m-3]</desc>
+  </entry>
+
+  <entry id="int_poc">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Column-integrated POC concentration [mol P -m2]</desc>
   </entry>
 
   <entry id="int_bromopro">
