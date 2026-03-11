@@ -413,7 +413,7 @@ contains
          if (mnproc == 1) then
             write (lp, *) &
                'new correction factor for precipitation/runoff:', prfac
-            call flush(lp)
+            flush(lp)
          endif
 
          ! Reset accumulation arrays.

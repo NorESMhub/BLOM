@@ -68,7 +68,7 @@ contains
 
       if (mnproc == 1) then
          write (lp,'(3a,z8.8)') ' chksum: ', trim(text), ': 0x', crc
-         call flush(lp)
+         flush(lp)
       endif
 
    end subroutine chksum

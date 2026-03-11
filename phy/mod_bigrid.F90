@@ -100,7 +100,7 @@ contains
         write(lp,'(a,l1)')  'bigrid: larctic  =',larctic
         write(lp,'(a,l1)')  'bigrid: lperiodj =',lperiodj
         write(lp,'(a/)')    'basin depth array inconsistent with nreg'
-        call flush(lp)
+        flush(lp)
       end if
       call xcstop('(bigrid)')
       stop '(bigrid)'
@@ -119,7 +119,7 @@ contains
       else if (nreg == 4) then
         write(lp,'(a/)') 'bigrid: periodic domain in j-index'
       end if
-      call flush(lp)
+      flush(lp)
     end if
 
     ! nreg is defined, so now safe to update halo
@@ -186,7 +186,7 @@ contains
       if (mnproc == 1) then
         write(lp,'(/a/)') &
              'Must correct bathymetry before running BLOM'
-        call flush(lp)
+        flush(lp)
       end if
       call xcstop('(bigrid)')
       stop '(bigrid)'

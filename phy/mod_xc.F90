@@ -4214,7 +4214,7 @@ contains
     !  3) Only one processor, so the barrier is a no-op in this case.
     !-----------
     if (lflush) then
-      call flush(lp)
+      flush(lp)
     end if
   end subroutine xcsync
 
