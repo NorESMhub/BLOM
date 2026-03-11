@@ -48,7 +48,7 @@ contains
           write (lp, '(a,i4,a,i4,a,i5)') &
              ' itest = ', itest,', jtest = ', jtest, &
              ' found on processor ', mnproc
-          call flush(lp)
+          flush(lp)
           ptest = mnproc
           itest = itest - i0
           jtest = jtest - j0

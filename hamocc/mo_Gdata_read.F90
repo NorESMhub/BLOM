@@ -791,7 +791,7 @@ contains
 
     write(io_stdo_bgc,*) 'NetCDF error: ',nf90_strerror(status)
     write(io_stdo_bgc,*) 'Abort... '
-    call flush(io_stdo_bgc)
+    flush(io_stdo_bgc)
     call xchalt('(Module mo_Gdata_read, ncerr)')
     stop '(Module mo_Gdata_read, ncerr)'
     !--------------------------------------------------------------------------------
@@ -807,7 +807,7 @@ contains
 
     write(io_stdo_bgc,'(/3a)') routinestr, ': ', errstr
     write(io_stdo_bgc,*) 'Abort... '
-    call flush(io_stdo_bgc)
+    flush(io_stdo_bgc)
     call xchalt('(Module mo_Gdata_read)')
     stop '(Module mo_Gdata_read)'
     !--------------------------------------------------------------------------------

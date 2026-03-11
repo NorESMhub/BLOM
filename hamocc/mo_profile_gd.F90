@@ -75,6 +75,11 @@ contains
     integer             :: ifld(maxflds)
     character(len=3)    :: vname(maxflds)
 
+    ! Ensure all data buffered by Fortran runtime library is written to external file.
+    ! This overcomes a problem encountered when running in debug mode on Olivia, where
+    ! IFLD index can be altered if this flush statement is not present.
+    flush(io_stdo_bgc)
+
     nflds = nread_base
     vname( 1:nflds) = (/ 'dic',  'alk',  'pho',  'nit','sil',  'oxy'  /)
     ifld( 1:nflds) = (/ isco212,ialkali,iphosph,iano3,isilica,ioxygen/)
@@ -164,11 +169,11 @@ contains
                 if(zbnds(1,l) > ptiestw(i,j,k+1) .or. l==izmax) then
                   wgt(:) = wgt(:)/(ptiestw(i,j,k+1)-ptiestw(i,j,k))
                   if( abs(sum(wgt(:))-1.0_rp) > 1.0e-6_rp ) then
-                    write(io_stdo_bgc,*) 'profile_gd error: inconsisten weihts'
+                    write(io_stdo_bgc,*) 'profile_gd error: inconsistent weights'
                     write(io_stdo_bgc,*) 'profile_gd error: ', k,l,abs(sum(wgt(:))-1.0_rp)
                     write(io_stdo_bgc,*) 'profile_gd error: ', wgt(1:izmax)
                     write(io_stdo_bgc,*) 'profile_gd error: ', ptiestw(i,j,k),ptiestw(i,j,k+1)
-                    call flush(io_stdo_bgc)
+                    flush(io_stdo_bgc)
                     call xchalt('(profile_gd)')
                   endif
                   do ll=1,l

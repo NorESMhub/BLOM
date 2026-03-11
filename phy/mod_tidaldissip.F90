@@ -77,7 +77,7 @@ contains
       if (mnproc == 1) then
          write (lp, '(2a)') ' reading tidal dissipation data from ', &
                             trim(tdfile)
-         call flush(lp)
+         flush(lp)
 
          ! Open netcdf file.
          errstat = nf90_open(tdfile, nf90_nowrite, ncid)

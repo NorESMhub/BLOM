@@ -4030,7 +4030,7 @@ contains
                   jind(nind(l),l) > jtdm) then
                 write(lp,*) 'iind=',iind(nind(l),l),' itdm = ',itdm
                 write(lp,*) 'jind=',jind(nind(l),l),' jtdm = ',jtdm
-                call flush(lp)
+                flush(lp)
                 write(lp,*) 'indices out of range!'
                 call xchalt('(diamer)')
                 stop '(diamer)'

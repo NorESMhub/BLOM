@@ -224,7 +224,7 @@ contains
         if (mnproc == 1) then
           write (lp,*) &
                'Warning! date is inconsistent with ini. cond. (Jan 1st)!'
-          call flush(lp)
+          flush(lp)
         end if
       end if
 
@@ -438,7 +438,7 @@ contains
       write (lp,'(/2(a,i6),2(a,i9),a/)') &
            'model starts at day',nday1,', goes to day',nday2,'   (steps', &
            nstep1,' --',nstep2,')'
-      call flush(lp)
+      flush(lp)
     end if
 
   end subroutine blom_init_phase2
@@ -497,7 +497,7 @@ contains
     call xcmin(btdtmx)
     if (mnproc == 1) then
       write (lp, *) 'estimated max. barotropic time step:', btdtmx/sqrt(2._r8)
-      call flush(lp)
+      flush(lp)
     endif
 
     ! Set maximum velocities allowable ensuring stability of the upwind scheme.
@@ -539,7 +539,7 @@ contains
     if (mnproc == 1) then
       write (lp, *) 'min/max umax:', umaxmin, umaxmax
       write (lp, *) 'min/max vmax:', vmaxmin, vmaxmax
-      call flush(lp)
+      flush(lp)
     endif
 
     if (csdiag) then
