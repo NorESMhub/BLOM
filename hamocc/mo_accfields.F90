@@ -251,11 +251,12 @@ contains
 
           ! Accumulate fields where depth > 200m
           if(k0200(i,j)>0) then
-            phyc_200(i,j)       = ocetra(i,j,k0200(i,j),iphy)
-            co3_200(i,j)        = co3(i,j,k0200(i,j))
-            co3satarag_200(i,j) = co3_200(i,j)/(OmegaA(i,j,k0200(i,j)) + safediv)
-            o2_200(i,j)         = ocetra(i,j,k0200(i,j),ioxygen)
-            ph_200(i,j)         = -log10(max(hi(i,j,k0200(i,j)),himin))
+            k = k0200(i,j)
+            phyc_200(i,j)       = ocetra(i,j,k,iphy)
+            co3_200(i,j)        = co3(i,j,k)
+            co3satarag_200(i,j) = co3_200(i,j)/(OmegaA(i,j,k) + safediv)
+            o2_200(i,j)         = ocetra(i,j,k,ioxygen)
+            ph_200(i,j)         = -log10(max(hi(i,j,k),himin))
          endif
 		  
           ! integrated POC in kmol P m-2
