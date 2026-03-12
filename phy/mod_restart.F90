@@ -2273,14 +2273,14 @@ contains
                   call readfld('umfltdl_phy'//c2, lm_unitconv, &
                                phylyr(1-nbdy,1-nbdy,1,ACC_UMFLTDL(n)), iuu)
                if (ACC_VMFLTDL(n) /= 0) &
-                  call readfld('vmflsml_phy'//c2, lm_unitconv, &
-                               phylyr(1-nbdy,1-nbdy,1,ACC_VMFLSML(n)), ivv)
+                  call readfld('vmfltdl_phy'//c2, lm_unitconv, &
+                               phylyr(1-nbdy,1-nbdy,1,ACC_VMFLTDL(n)), ivv)
                if (ACC_UMFLSML(n) /= 0) &
                   call readfld('umflsml_phy'//c2, lm_unitconv, &
                                phylyr(1-nbdy,1-nbdy,1,ACC_UMFLSML(n)), iuu)
                if (ACC_VMFLSML(n) /= 0) &
-                  call readfld('vmfltdl_phy'//c2, lm_unitconv, &
-                               phylyr(1-nbdy,1-nbdy,1,ACC_VMFLTDL(n)), ivv)
+                  call readfld('vmflsml_phy'//c2, lm_unitconv, &
+                               phylyr(1-nbdy,1-nbdy,1,ACC_VMFLSML(n)), ivv)
                if (ACC_UTFLTD(n) /= 0) &
                   call readfld('utfltd_phy'//c2, lm_unitconv, &
                                phylyr(1-nbdy,1-nbdy,1,ACC_UTFLTD(n)), iuu)
