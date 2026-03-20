@@ -300,6 +300,10 @@
 !            types: 'none', 'vr12-ma', 'lf17'
 ! LTEDTP   : Type of lateral tracer eddy diffusion: Valid methods:
 !            'layer', 'neutral'.
+! NDIFF_SURFACE_ALIGN : If true, layers constructed for diffusive flux
+!                       computations are gradually aligned with the surface
+!                       within the mixed layer.
+
 &DIFFUSION
   EITMTH   = 'gm'
   EDRITP   = 'large scale'
@@ -330,6 +334,7 @@
   SMOBLD   = .true.
   LNGMTP   = 'none'
   LTEDTP   = 'layer'
+  NDIFF_SURFACE_ALIGN = .false.
 /
 
 ! NAMELIST FOR CHANNEL WIDTH MODIFICATIONS

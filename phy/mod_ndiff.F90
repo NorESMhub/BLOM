@@ -29,8 +29,9 @@ module mod_ndiff
   use mod_grid,      only: scuy, scvx, scp2, scuxi, scvyi
   use mod_eos,       only: drhodt, drhods, rho
   use mod_state,     only: dp, temp, saln, utflx, vtflx, usflx, vsflx, pu, pv
-  use mod_diffusion, only: difiso, utflld, vtflld, usflld, vsflld
-  use mod_cmnfld,    only: nslpx, nslpy
+  use mod_diffusion, only: ndiff_surface_align, difiso, utflld, vtflld, &
+                           usflld, vsflld
+  use mod_cmnfld,    only: nslpx, nslpy, dpml
   use mod_tracers,   only: trc
 
   implicit none
@@ -192,18 +193,19 @@ contains
     real(r8), dimension(ntr_loc,2) :: t_ni_m, t_ni_p
     real(r8), dimension(ntr_loc) :: t_nl_m, t_nl_p
     real(r8), dimension(2) :: x_ni_m, x_ni_p, p_ni_m, p_ni_p
-    real(r8) :: drho_curr, p_ni_m_prev, p_ni_p_prev, &
-         drhodt_x0, drhodt_x1, drhods_x0, drhods_x1, &
-         x_ni, p_ni, drho_prev, dp_dst_u, dp_dst_l, pu_m, pl_m, pu_p, pl_p, &
-         pp1, pp2, dp_ni_m, dp_ni_p, dp_ni, q, dt, ds, &
-         tflx, sflx, p_ni_up, p_ni_lo, dp_ni_i, mlfrac, p_nslp_dst
-    integer :: nns, is_m, is_p, ks_m, ks_p, k, ks_m_prev, ks_p_prev, &
-         kd_m, kd_p, isn_m, isn_p, ksn_m, ksn_p, &
-         nip, nic, kuv, case_m, case_p, nt, kuvm, kd, ks
+    real(r8) :: pml, drho_curr, p_ni_m_prev, p_ni_p_prev, &
+                drhodt_x0, drhodt_x1, drhods_x0, drhods_x1, &
+                x_ni, p_ni, drho_prev, p1_m, p2_m, p1_p, p2_p, &
+                dp_dst_u, dp_dst_l, pu_m, pl_m, pu_p, pl_p, &
+                pp1, pp2, dp_ni_m, dp_ni_p, dp_ni, q, dt, ds, &
+                tflx, sflx, p_ni_up, p_ni_lo, dp_ni_i, mlfrac, p_nslp_dst
+    integer :: nns, issa_m, issa_p, kssa_m, kssa_p, is_m, is_p, ks_m, ks_p, k, &
+               ks_m_prev, ks_p_prev, kd_m, kd_p, isn_m, isn_p, ksn_m, ksn_p, &
+               nip, nic, kuv, case_m, case_p, nt, kuvm, kd, ks
     logical, dimension(kk) :: stab_src_m, stab_src_p
     logical :: drho_neg, drho_pos, drho_zero, &
-         advance_src_m, advance_src_p, advance_dst_m, advance_dst_p, &
-         found_ni
+               advance_src_m, advance_src_p, advance_dst_m, advance_dst_p, &
+               found_ni
 
     real(r8), parameter :: mval = 1.e30_r8
 
@@ -221,22 +223,55 @@ contains
 
     nns = 0
 
-    is_m = 1
-    ks_m = 1
-    ks_p = 1
-    is_p = 1
-    drho_curr = drho(t_srcdi_m(is_m,ks_m,it), &
-                     t_srcdi_m(is_m,ks_m,is), &
-                     t_srcdi_p(is_p,ks_p,it), &
-                     t_srcdi_p(is_p,ks_p,is), &
-                    .5_r8*( drhodt_srcdi_m(is_m,ks_m) &
-                          + drhodt_srcdi_p(is_p,ks_p)), &
-                    .5_r8*( drhods_srcdi_m(is_m,ks_m) &
-                          + drhods_srcdi_p(is_p,ks_p)))
-    p_ni_m_prev = p_srcdi_m(1,1)
-    p_ni_p_prev = p_srcdi_p(1,1)
+    if (ndiff_surface_align) then
 
-    search_loop1: do
+      ! With ndiff_surface_align = .true., interfaces of layers constructed for
+      ! diffusive flux computations are gradually aligned with the surface
+      ! within the mixed layer. Therefore, start the search for neutral
+      ! interfaces for layer interfaces below the mixed layer depth.
+
+      pml = .5_r8*( p_srcdi_m(1,1) + dpml(i_m,j_m) &
+                  + p_srcdi_p(1,1) + dpml(i_p,j_p))
+      kssa_m = 2
+      do while (kssa_m <= ksmx_m)
+        if (p_srcdi_m(1,kssa_m) > pml) exit
+        kssa_m = kssa_m + 1
+      enddo
+      kssa_p = 2
+      do while (kssa_p <= ksmx_p)
+        if (p_srcdi_p(1,kssa_p) > pml) exit
+        kssa_p = kssa_p + 1
+      enddo
+      is_m = 1
+      ks_m = kssa_m
+      is_p = 1
+      ks_p = kssa_p
+      p_ni_m_prev = pml
+      p_ni_p_prev = pml
+    else
+
+      ! Start the search for neutral interfaces from the uppermost source layer
+      ! interface.
+
+      is_m = 1
+      ks_m = 1
+      is_p = 1
+      ks_p = 1
+      p_ni_m_prev = p_srcdi_m(1,1)
+      p_ni_p_prev = p_srcdi_p(1,1)
+    endif
+
+    if (ks_m <= ksmx_m .and. ks_p <= ksmx_p) &
+      drho_curr = drho(t_srcdi_m(is_m,ks_m,it), &
+                       t_srcdi_m(is_m,ks_m,is), &
+                       t_srcdi_p(is_p,ks_p,it), &
+                       t_srcdi_p(is_p,ks_p,is), &
+                       .5_r8*( drhodt_srcdi_m(is_m,ks_m) &
+                             + drhodt_srcdi_p(is_p,ks_p)), &
+                       .5_r8*( drhods_srcdi_m(is_m,ks_m) &
+                             + drhods_srcdi_p(is_p,ks_p)))
+
+    search_loop1: do while (ks_m <= ksmx_m .and. ks_p <= ksmx_p)
 
       drho_neg = drho_curr <= - rho_eps
       drho_pos = drho_curr >=   rho_eps
@@ -252,7 +287,7 @@ contains
             drhods_x0 = .5_r8*( drhods_srcdi_m(1   ,ks_m) &
                               + drhods_srcdi_p(is_p,ks_p))
             drhods_x1 = .5_r8*( drhods_srcdi_m(2   ,ks_m) &
-                             + drhods_srcdi_p(is_p,ks_p))
+                              + drhods_srcdi_p(is_p,ks_p))
             x_ni = drhoroot(tpc_src_m(:,ks_m,it), tpc_src_m(:,ks_m,is), &
                             t_srcdi_p(is_p,ks_p,it), t_srcdi_p(is_p,ks_p,is), &
                             drhodt_x1, drhodt_x0, drhods_x1, drhods_x0)
@@ -358,6 +393,81 @@ contains
 
     enddo search_loop1
 
+    if (ndiff_surface_align) then
+
+      ! Above the uppermost identified neutral interface, gradually align
+      ! interfaces of layers for diffusive flux computations with the surface.
+
+      issa_m = 1
+      do while (kssa_m <= ksmx_m)
+        if (p_ni_srcdi_m(issa_m,kssa_m) /= mval) exit
+        if (issa_m == 1) then
+          issa_m = 2
+        else
+          kssa_m = kssa_m + 1
+          issa_m = 1
+        endif
+      enddo
+      issa_p = 1
+      do while (kssa_p <= ksmx_p)
+        if (p_ni_srcdi_p(issa_p,kssa_p) /= mval) exit
+        if (issa_p == 1) then
+          issa_p = 2
+        else
+          kssa_p = kssa_p + 1
+          issa_p = 1
+        endif
+      enddo
+      if (kssa_m > ksmx_m .or. kssa_p > ksmx_p) then
+        p_ni_srcdi_m(1,1) = p_srcdi_m(1,1)
+        do ks_m = 1, ksmx_m - 1
+          if (p_srcdi_m(1,ks_m) > p_srcdi_p(2,ksmx_p)) exit
+          p_ni = min(p_srcdi_m(2,ks_m), p_srcdi_p(2,ksmx_p))
+          p_ni_srcdi_m(1,ks_m+1) = p_ni
+          p_ni_srcdi_m(2,ks_m  ) = p_ni
+          stab_src_m(ks_m) = .true.
+        enddo
+        p_ni_srcdi_p(1,1) = p_srcdi_p(1,1)
+        do ks_p = 1, ksmx_p - 1
+          if (p_srcdi_p(1,ks_p) > p_srcdi_m(2,ksmx_m)) exit
+          p_ni = min(p_srcdi_p(2,ks_p), p_srcdi_m(2,ksmx_m))
+          p_ni_srcdi_p(1,ks_p+1) = p_ni
+          p_ni_srcdi_p(2,ks_p  ) = p_ni
+          stab_src_p(ks_p) = .true.
+        enddo
+      else
+        if (p_srcdi_m(issa_m,kssa_m) < p_ni_srcdi_p(issa_p,kssa_p)) then
+          p1_m = p_srcdi_m(1,1)
+          p2_m = p_srcdi_m(issa_m,kssa_m)
+          p1_p = p_srcdi_p(1,1)
+          p2_p = p_ni_srcdi_m(issa_m,kssa_m)
+        else
+          p1_m = p_srcdi_m(1,1)
+          p2_m = p_ni_srcdi_p(issa_p,kssa_p)
+          p1_p = p_srcdi_p(1,1)
+          p2_p = p_srcdi_p(issa_p,kssa_p)
+        endif
+        p_ni_srcdi_m(1,1) = p1_p
+        do ks_m = 1, kssa_m - 1
+          p_ni = ( (p_srcdi_m(2,ks_m) - p1_m)*p2_p &
+                 + (p2_m - p_srcdi_m(2,ks_m))*p1_p) &
+                 /(p2_m - p1_m)
+          p_ni_srcdi_m(1,ks_m+1) = p_ni
+          p_ni_srcdi_m(2,ks_m  ) = p_ni
+          stab_src_m(ks_m) = .true.
+        enddo
+        p_ni_srcdi_p(1,1) = p1_m
+        do ks_p = 1, kssa_p -1
+          p_ni = ( (p_srcdi_p(2,ks_p) - p1_p)*p2_m &
+                 + (p2_p - p_srcdi_p(2,ks_p))*p1_m) &
+                 /(p2_p - p1_p)
+          p_ni_srcdi_p(1,ks_p+1) = p_ni
+          p_ni_srcdi_p(2,ks_p  ) = p_ni
+          stab_src_p(ks_p) = .true.
+        enddo
+      endif
+    endif
+
     ! ------------------------------------------------------------------------
     ! Do another search from the surface, this time including destination
     ! interfaces, to identify neutral layers and compute fluxes that are added
@@ -434,8 +544,7 @@ contains
             ks_m = ks_m + 1
             if (ks_m > ksmx_m) exit search_loop2
             is_m = 1
-            if (stab_src_m(ks_m) .and. p_ni_srcdi_m(is_m,ks_m) /= mval) &
-                 exit
+            if (stab_src_m(ks_m) .and. p_ni_srcdi_m(is_m,ks_m) /= mval) exit
           endif
         enddo
         isn_m = is_m
@@ -460,9 +569,7 @@ contains
             ks_p = ks_p + 1
             if (ks_p > ksmx_p) exit search_loop2
             is_p = 1
-            if (stab_src_p(ks_p) .and. p_ni_srcdi_p(is_p,ks_p) /= mval) then
-              exit
-            end if
+            if (stab_src_p(ks_p) .and. p_ni_srcdi_p(is_p,ks_p) /= mval) exit
           endif
         enddo
         isn_p = is_p
@@ -503,14 +610,12 @@ contains
         if (kd_p > kdmx_p) exit search_loop2
       endif
 
-      do while (p_dstsnp_m(kd_m+1) &
-           <= max(p_srcdi_m(1,ks_m), p_ni_m(nip)))
+      do while (p_dstsnp_m(kd_m+1) <= max(p_srcdi_m(1,ks_m), p_ni_m(nip)))
         kd_m = kd_m + 1
         if (kd_m > kdmx_m) exit search_loop2
       enddo
 
-      do while (p_dstsnp_p(kd_p+1) &
-           <= max(p_srcdi_p(1,ks_p), p_ni_p(nip)))
+      do while (p_dstsnp_p(kd_p+1) <= max(p_srcdi_p(1,ks_p), p_ni_p(nip)))
         kd_p = kd_p + 1
         if (kd_p > kdmx_p) exit search_loop2
       enddo
