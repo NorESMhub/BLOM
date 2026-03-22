@@ -45,10 +45,11 @@ module mod_ale_regrid_remap
                             extract_polycoeff, regrid, &
                             prepare_remapping, remap, &
                             hor3map_noerr, hor3map_errstr
-   use mod_diffusion, only: ltedtp_opt, ltedtp_neutral, difmxp, &
-                            utflld, vtflld, usflld, vsflld
+   use mod_diffusion, only: ltedtp_opt, ltedtp_neutral, ndiff_surface_align, &
+                            difmxp, utflld, vtflld, usflld, vsflld
    use mod_ndiff,     only: ndiff_prep_jslice, ndiff_uflx_jslice, &
                             ndiff_vflx_jslice, ndiff_update_trc_jslice
+   use mod_cmnfld,    only: dpml
    use mod_dia,       only: ddm, nphy, alarm_phy, &
                             depthslev_bnds, pbath, ubath, vbath, phylvl, &
                             acc_templvl, acc_salnlvl, &
@@ -1603,6 +1604,7 @@ contains
          do nt = 1, ntr
             call xctilr(trc(1-nbdy,1-nbdy,k1n,nt), 1, kk, 1, 1, halo_ps)
          enddo
+         if (ndiff_surface_align) call xctilr(dpml, 1, 1, 1, 1, halo_ps)
       end if
 
       ! Initial j-slice indices.

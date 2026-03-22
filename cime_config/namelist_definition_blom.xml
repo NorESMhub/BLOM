@@ -1853,6 +1853,17 @@
     <desc>Type of lateral tracer eddy diffusion: Valid methods:</desc>
   </entry>
 
+  <entry id="ndiff_surface_align">
+    <type>logical</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>If true, layers constructed for diffusive flux computations are gradually aligned with the surface within the mixed layer</desc>
+  </entry>
+
+
   <!-- ========================= -->
   <!-- namelist group: cwmod -->
   <!-- ========================= -->
