@@ -7275,7 +7275,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>Vertically integrated primary production (ppint) [mol C m-3 s-1]</desc>
+    <desc>Vertically integrated primary production (ppint) [mol C m-2 s-1]</desc>
   </entry>
 
   <entry id="int_nfix">
@@ -7296,12 +7296,12 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,2,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value hamocc_output_size="spinup">2,2</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>Vertically integrated denitrification (dnitint)</desc>
+    <desc>Vertically integrated denitrification (dnitint), currently not functional in combination with ext. N-cycle</desc>
   </entry>
 
   <entry id="int_exudl">
