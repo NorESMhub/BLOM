@@ -62,6 +62,8 @@
     <default_value>constant</default_value>
     <values>
       <value compset="_BLOM.*%ECO"           >constant</value>
+      <value compset="1850_CAM"              >constant</value>
+      <value compset="HIST_CAM"              >diagnostic</value>
       <value compset="_BLOM.*%ECO.*_BGC%BPRP">prognostic</value>
       <value compset="_BLOM.*%ECO.*_BGC%BDRD">diagnostic</value>
       <value compset="_DATM%CPLHIST.*_BLOM.*%ECO">constant</value>
