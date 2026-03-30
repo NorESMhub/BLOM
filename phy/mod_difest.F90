@@ -33,9 +33,9 @@ module mod_difest
                                    pbu, pbv, ubflxs_p, vbflxs_p, kfpla
   use mod_diffusion,         only: egc, eggam, eglsmn, egmndf, egmxdf, &
                                    egidfq, rhiscf, ri0, bdmc1, bdmc2, bdmldp, &
-                                   iwdflg, iwdfac, nubmin, tkepf, bdmtyp, &
-                                   eddf2d, edsprs, edanis, redi3d, rhsctp, &
-                                   edfsmo, smobld, lngmtp, edritp_opt, &
+                                   iwdflg, iwdfac, nubmin, tkepf, lau10f, &
+                                   bdmtyp, eddf2d, edsprs, edanis, redi3d, &
+                                   rhsctp, edfsmo, smobld, lngmtp, edritp_opt, &
                                    edritp_shear, edritp_large_scale, &
                                    edwmth_opt, edwmth_smooth, edwmth_step, &
                                    ltedtp_opt, ltedtp_neutral, &
@@ -1099,7 +1099,7 @@ contains
 
           if (wavsrc_opt == wavsrc_param) then
             lamult(i,j) = cvmix_kpp_EFactor_model( &
-                          abswnd(i,j), &
+                          lau10f*abswnd(i,j), &
                           surfFricVel, &
                           OBLdepth(i,j), &
                           CVMix_glb_params)
