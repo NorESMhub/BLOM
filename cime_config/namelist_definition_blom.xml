@@ -6436,7 +6436,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,2,2</value>
+      <value>4,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
@@ -6532,7 +6532,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>Dissolved carbon (dissic) [mol C m-3]</desc>
+    <desc>Surface dissolved carbon (srfdissic) [mol C m-3]</desc>
   </entry>
 
   <entry id="srf_phyto">
@@ -6545,7 +6545,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>Phytoplankton (phyc) [mol P m-3]</desc>
+    <desc>Surface phytoplankton (srfphyc) [mol P m-3]</desc>
   </entry>
 
   <entry id="srf_ph">
@@ -6553,12 +6553,12 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,2,2</value>
+      <value>4,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>pH (ph) [-log10([h+])]</desc>
+    <desc>Surface pH (srfph) [-log10([h+])]</desc>
   </entry>
 
   <entry id="srf_export">
@@ -6571,7 +6571,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>Export production (epc100) [mol C m-2 s-1]</desc>
+    <desc>Production of detritus (epc100) [mol C m-2 s-1]</desc>
   </entry>
 
   <entry id="srf_exposi">
@@ -6584,7 +6584,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>Si export production (epsi100) [mol Si m-2 s-1]</desc>
+    <desc>Opal production (epsi100) [mol Si m-2 s-1]</desc>
   </entry>
 
   <entry id="srf_expoca">
@@ -6597,7 +6597,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>Ca export production (epcalc100) [mol Ca m-2 s-1]</desc>
+    <desc>Ca production (epcalc100) [mol Ca m-2 s-1]</desc>
   </entry>
 
   <entry id="srf_kwco2">
@@ -6948,7 +6948,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>Natural alkalinity (nattalk) [eq m-3]</desc>
+    <desc>Surface natural alkalinity (srfnattalk) [eq m-3]</desc>
   </entry>
 
   <entry id="srf_natph">
@@ -6961,7 +6961,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>Natural pH (natph) [-log10([h+])]</desc>
+    <desc>Surface natural pH (srfnatph) [-log10([h+])]</desc>
   </entry>
 
   <entry id="srf_natpco2">
@@ -7125,12 +7125,12 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,2,2</value>
+      <value>4,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>Surface carbonate ion concentrations [mol C -m3]</desc>
+    <desc>Surface carbonate ion concentration (srfco3) [mol C -m3]</desc>
   </entry>
 
   <entry id="srf_co3satarag">
@@ -7138,12 +7138,12 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,2,2</value>
+      <value>4,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>Carbonate concentration in equil. with aragonite [mol C -m3]</desc>
+    <desc>Surface carbonate concentration in equil. with aragonite [mol C -m3]</desc>
   </entry>
 
   <entry id="co3satarag_200">
@@ -7151,7 +7151,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,2,2</value>
+      <value>4,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
@@ -7164,7 +7164,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,2,2</value>
+      <value>4,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
@@ -7177,7 +7177,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,2,2</value>
+      <value>4,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7190,7 +7190,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,2,2</value>
+      <value>4,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
@@ -7203,7 +7203,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,2,2</value>
+      <value>4,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
@@ -7216,7 +7216,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,2,2</value>
+      <value>4,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
@@ -7229,7 +7229,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,2,2</value>
+      <value>4,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
@@ -7273,7 +7273,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>Primary production (pp) [mol C m-3 s-1]</desc>
+    <desc>Vertically integrated primary production (ppint) [mol C m-2 s-1]</desc>
   </entry>
 
   <entry id="int_nfix">
@@ -7286,7 +7286,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>Vertically integrated nitrogen fixation</desc>
+    <desc>Vertically integrated nitrogen fixation (nfixint)</desc>
   </entry>
 
   <entry id="int_dnit">
@@ -7294,12 +7294,12 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,2,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value hamocc_output_size="spinup">2,2</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>Vertically integrated denitrification</desc>
+    <desc>Vertically integrated denitrification (dnitint), currently not functional in combination with ext. N-cycle</desc>
   </entry>
 
   <entry id="int_exudl">
@@ -7470,7 +7470,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>namelist for diagnostic iHAMOCC output</desc>
+    <desc>Flux of alkalinity by OAE into the surface ocean [mol TA m-2 s-1]</desc>
   </entry>
 
   <entry id="flx_car0100">
@@ -7790,7 +7790,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7803,7 +7803,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7816,7 +7816,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7829,7 +7829,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7842,7 +7842,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7855,7 +7855,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7868,7 +7868,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7881,7 +7881,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7894,7 +7894,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7907,7 +7907,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7920,7 +7920,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7933,7 +7933,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7946,7 +7946,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,4</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7959,7 +7959,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7972,7 +7972,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7985,7 +7985,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7998,7 +7998,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8172,7 +8172,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
     </values>
-    <desc>PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only </desc>
+    <desc>PP consumption of NO3 [mol NO3 m-3 s-1] - ext. N cycle only </desc>
   </entry>
 
   <entry id="lyr_remin_aerob">
@@ -8206,7 +8206,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8219,7 +8219,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8232,7 +8232,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8245,7 +8245,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8258,7 +8258,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8271,7 +8271,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8284,7 +8284,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8297,7 +8297,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8310,7 +8310,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8323,7 +8323,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8336,7 +8336,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8349,7 +8349,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8362,7 +8362,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8375,7 +8375,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8388,7 +8388,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8401,7 +8401,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8414,7 +8414,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8427,7 +8427,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8440,7 +8440,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8466,7 +8466,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8479,7 +8479,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8492,7 +8492,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8505,7 +8505,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,4</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8518,7 +8518,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,4</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8531,7 +8531,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8544,7 +8544,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,4</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8557,7 +8557,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8570,7 +8570,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8583,7 +8583,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,4,4</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8596,7 +8596,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -8609,7 +8609,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -8622,7 +8622,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -8635,7 +8635,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -8648,7 +8648,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8661,7 +8661,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8674,7 +8674,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8687,7 +8687,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8700,7 +8700,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8713,7 +8713,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8726,7 +8726,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8739,7 +8739,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8752,7 +8752,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8765,7 +8765,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8778,7 +8778,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8791,7 +8791,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8804,7 +8804,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8817,7 +8817,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8830,7 +8830,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8843,7 +8843,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8856,7 +8856,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8869,7 +8869,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8882,7 +8882,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8895,7 +8895,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8908,7 +8908,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8921,7 +8921,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8934,7 +8934,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8947,7 +8947,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8986,7 +8986,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Bromoform [mol CHBr3 m-3]</desc>
@@ -9752,7 +9752,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -9841,7 +9841,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,4,4</value>
+      <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -9880,7 +9880,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,4,4</value>
+      <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -10270,7 +10270,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,2,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -10283,7 +10283,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,2,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -10296,7 +10296,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,2,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -10309,7 +10309,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,2,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -10322,7 +10322,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,2,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -10335,7 +10335,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,2,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -10348,7 +10348,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -10361,7 +10361,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -10374,7 +10374,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -10387,7 +10387,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,2,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
