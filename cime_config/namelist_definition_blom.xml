@@ -3516,7 +3516,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,0,1</value>
+      <value>0,0,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,0,0</value>
