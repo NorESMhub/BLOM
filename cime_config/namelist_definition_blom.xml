@@ -1820,6 +1820,16 @@
     <desc>Fraction of surface TKE that penetrates beneath mixed layer</desc>
   </entry>
 
+  <entry id="lau10f">
+    <type>real</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>1.</value>
+    </values>
+    <desc>Factor applied to 10 m absolute wind entering parameterization of Langmuir turbulence enhancement factor</desc>
+  </entry>
+
   <entry id="smobld">
     <type>logical</type>
     <category>diffusion</category>

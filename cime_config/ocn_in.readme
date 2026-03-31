@@ -176,6 +176,8 @@
 ! NUBMIN   : Minimum background diapycnal diffusivity (m**2/s) (f)
 ! TKEPF    : Fraction of surface TKE that penetrates beneath mixed layer
 !            () (f)
+! LAU10F   : Factor applied to 10 m absolute wind entering parameterization
+!            of Langmuir turbulence enhancement factor () (f)
 ! SMOBLD   : If true, apply lateral smoothing of CVMix estimated
 !            boundary layer depth (l)
 ! LNGMTP   : Type of CVMix Langmuir turbulence parameterization. Valid

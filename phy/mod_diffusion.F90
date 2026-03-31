@@ -55,8 +55,10 @@ module mod_diffusion
       bdmc2, &  ! Background diapycnal diffusivity [m2 s-1].
       iwdfac, & ! Internal wave dissipation factor under sea ice [].
       nubmin, & ! Minimum background diapycnal diffusivity [m2 s-1].
-      tkepf     ! Fraction of surface TKE that penetrates beneath mixed layer
+      tkepf, &  ! Fraction of surface TKE that penetrates beneath mixed layer
                 ! [].
+      lau10f    ! Factor applied to 10 m absolute wind entering parameterization
+                ! of Langmuir turbulence enhancement factor [].
    integer :: &
       bdmtyp, & ! Type of background diapycnal mixing. If bdmtyp = 1 the
                 ! background diffusivity is a constant divided by the
@@ -181,9 +183,9 @@ module mod_diffusion
 
    ! Public variables
    public :: egc, eggam, eglsmn, egmndf, egmxdf, egidfq, rhiscf, ri0, &
-             bdmc1, bdmc2, bdmldp, iwdflg, iwdfac, nubmin, tkepf, bdmtyp, &
-             eddf2d, edsprs, edanis, redi3d, rhsctp, tbfile, edfsmo, smobld, &
-             ndiff_surface_align, lngmtp, eitmth_opt, eitmth_intdif, &
+             bdmc1, bdmc2, bdmldp, iwdflg, iwdfac, nubmin, tkepf, lau10f, &
+             bdmtyp, eddf2d, edsprs, edanis, redi3d, rhsctp, tbfile, edfsmo, &
+             smobld, ndiff_surface_align, lngmtp, eitmth_opt, eitmth_intdif, &
              eitmth_gm, edritp_opt, edritp_shear, edritp_large_scale, &
              edwmth_opt, edwmth_smooth, edwmth_step, ltedtp_opt, ltedtp_layer, &
              ltedtp_neutral, &
@@ -211,9 +213,9 @@ contains
 
       namelist /diffusion/ &
          egc, eggam, eglsmn, egmndf, egmxdf, egidfq, rhiscf, ri0, &
-         bdmc1, bdmc2, bdmldp, iwdflg, iwdfac, nubmin, tkepf, bdmtyp, eddf2d, &
-         edsprs, edanis, redi3d, rhsctp, tbfile, edfsmo, smobld, lngmtp, &
-         eitmth, edritp, edwmth, ltedtp, ndiff_surface_align
+         bdmc1, bdmc2, bdmldp, iwdflg, iwdfac, nubmin, tkepf, lau10f, bdmtyp, &
+         eddf2d, edsprs, edanis, redi3d, rhsctp, tbfile, edfsmo, smobld, &
+         lngmtp, eitmth, edritp, edwmth, ltedtp, ndiff_surface_align
 
       ! Read variables in the namelist group 'diffusion'.
       if (mnproc == 1) then
@@ -258,6 +260,7 @@ contains
         call xcbcst(iwdfac)
         call xcbcst(nubmin)
         call xcbcst(tkepf)
+        call xcbcst(lau10f)
         call xcbcst(bdmtyp)
         call xcbcst(eddf2d)
         call xcbcst(edsprs)
@@ -291,6 +294,7 @@ contains
          write (lp,*) '  iwdfac = ', iwdfac
          write (lp,*) '  nubmin = ', nubmin
          write (lp,*) '  tkepf  = ', tkepf
+         write (lp,*) '  lau10f = ', lau10f
          write (lp,*) '  bdmtyp = ', bdmtyp
          write (lp,*) '  eddf2d = ', eddf2d
          write (lp,*) '  edsprs = ', edsprs
