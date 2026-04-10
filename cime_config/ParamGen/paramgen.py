@@ -140,9 +140,11 @@ class ParamGen:
         """
 
         # First check whether the given xml file conforms to the entry_id_pg.xsd schema
+        # First try python's built-in shutils. As a last resort try setup tools.
         try:
             xmllint = shutil.which("xmllint")
         except:
+            from distutils.spawn import find_executable
             xmllint = find_executable("xmllint")
             
         if xmllint is None:
