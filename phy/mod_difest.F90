@@ -33,9 +33,9 @@ module mod_difest
                                    pbu, pbv, ubflxs_p, vbflxs_p, kfpla
   use mod_diffusion,         only: egc, eggam, eglsmn, egmndf, egmxdf, &
                                    egidfq, rhiscf, ri0, bdmc1, bdmc2, bdmldp, &
-                                   iwdflg, iwdfac, nubmin, tkepf, bdmtyp, &
-                                   eddf2d, edsprs, edanis, redi3d, rhsctp, &
-                                   edfsmo, smobld, lngmtp, edritp_opt, &
+                                   iwdflg, iwdfac, nubmin, tkepf, lau10f, &
+                                   bdmtyp, eddf2d, edsprs, edanis, redi3d, &
+                                   rhsctp, edfsmo, smobld, lngmtp, edritp_opt, &
                                    edritp_shear, edritp_large_scale, &
                                    edwmth_opt, edwmth_smooth, edwmth_step, &
                                    ltedtp_opt, ltedtp_neutral, &
@@ -43,7 +43,7 @@ module mod_difest
                                    Kvisc_m, Kdiff_t, Kdiff_s, &
                                    t_ns_nonloc, s_nb_nonloc, &
                                    mu_nonloc, mv_nonloc
-  use mod_cmnfld,            only: bfsqi, nnslpx, nnslpy, mlts
+  use mod_cmnfld,            only: bfsqi, nnslpx, nnslpy, mld
   use mod_forcing,           only: wavsrc_opt, wavsrc_param, &
                                    abswnd, lamult, lasl, &
                                    ustar, ustarb, ustar3, wstar3, &
@@ -1099,7 +1099,7 @@ contains
 
           if (wavsrc_opt == wavsrc_param) then
             lamult(i,j) = cvmix_kpp_EFactor_model( &
-                          abswnd(i,j), &
+                          lau10f*abswnd(i,j), &
                           surfFricVel, &
                           OBLdepth(i,j), &
                           CVMix_glb_params)
@@ -1472,7 +1472,7 @@ contains
     do j = 1,jj
       do l = 1,isp(j)
         do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-          piso(i,j) = mlts(i,j)*onem + 100.*onem
+          piso(i,j) = mld(i,j)*onem + 100.*onem
           pgrav(i,j) = piso(i,j) + dpgrav
           pdiav(i,j) = piso(i,j) + dpdiav
         end do

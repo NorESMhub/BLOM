@@ -223,7 +223,7 @@ contains
 
          if (mnproc.eq.1) then
             write (lp,'(1a)') ' idealized initial conditions'
-            call flush(lp)
+            flush(lp)
          endif
 
          !

@@ -45,16 +45,26 @@ module mod_cmnfld
                                  ! computation of filtered BFSQ [].
       bfsqmn = 1.e-7_r8, &       ! Minimum value of BFSQ used in the
                                  ! computation of neutral slope [s-2].
-      dbcrit = .0003_r8          ! Critical buoyancy difference used in the
+      dbcl82 = .0003_r8, &       ! Buoyancy difference criterion used in the
                                  ! mixed layer thickness estimation (Levitus,
                                  ! 1982) [m s-2].
+      drcb04 = .03_r8, &         ! Density difference criterion used in the
+                                 ! mixed layer thickness estimation (de Boyer
+                                 ! Montégut et al., 2004) [kg m-3].
+      zrefb04 = 10._r8           ! Reference depth of de Boyer Montégut et al.
+                                 ! (2004) mixed layer depth estimate [m].
 
-   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, kdm + 1) :: &
+   ! Options with default values, modifiable by namelist.
+   character(len = 80) :: &
+      mldmth = 'lev82'           ! Method for estimating mixed layer depth.
+                                 ! Valid methods: 'lev82', 'boy04'.
+
+   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm+1) :: &
       bfsqi, &                   ! Interface buoyancy frequency squared [s-2].
       bfsqf, &                   ! Filtered interface buoyancy frequency
                                  ! squared [s-2].
       z                          ! Interface depth [m].
-   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, kdm) :: &
+   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: &
       bfsql, &                   ! Layer buoyancy frequency squared [s-2].
       nslpx, &                   ! x-component of local neutral slope [].
       nslpy, &                   ! y-component of local neutral slope [].
@@ -63,15 +73,19 @@ module mod_cmnfld
       nnslpy, &                  ! y-component of local neutral slope times
                                  ! buoyancy frequency [s-1].
       dz                         ! Layer thickness [m].
-   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
-      mlts, &                    ! Mixed layer depth defined by density
-                                 ! criterion [m].
-      dpml                       ! Mixed layer pressure thickness defined by
-                                 ! density criterion [kg m-1 s-2].
+   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
+      mldl82, &                  ! Mixed layer depth as defined by Levitus
+                                 ! (1982) [m].
+      mldb04, &                  ! Mixed layer depth as defined by de Boyer
+                                 ! Montégut et al. (2004) [m].
+      mld, &                     ! Mixed layer depth used in BLOM (selected by
+                                 ! namelist variable mldmth) [m].
+      dpml                       ! Mixed layer pressure thickness consistent
+                                 ! with mld [kg m-1 s-2].
 
-   public :: sls0, slsmfq, slsels, bfsqmn, dbcrit, &
+   public :: sls0, slsmfq, slsels, bfsqmn, dbcl82, drcb04, zrefb04, mldmth, &
              bfsqi, bfsqf, z, bfsql, nslpx, nslpy, nnslpx, nnslpy, dz, &
-             mlts, dpml, inivar_cmnfld
+             mldl82, mldb04, mld, dpml, inivar_cmnfld
 
    contains
 
@@ -93,7 +107,9 @@ module mod_cmnfld
       nnslpx(:,:,:) = spval
       nnslpy(:,:,:) = spval
       dz    (:,:,:) = spval
-      mlts  (:,:) = spval
+      mldl82(:,:) = spval
+      mldb04(:,:) = spval
+      mld   (:,:) = spval
       dpml  (:,:) = spval
 
    end subroutine inivar_cmnfld

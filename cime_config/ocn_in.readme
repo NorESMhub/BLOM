@@ -44,8 +44,11 @@
 !            'uc' (upstream column), 'dluc' (depth limited upstream
 !            column) (a)
 ! ADVMTH   : Advection method. Valid methods: 'remap', 'cppm' (a)
+! CPPM_COMPATIBILITY : CPPM compatibility. Valid options: 'full', 'partial' (a)
 ! CPPM_LIMITING : CPPM limiting. Valid methods: 'monotonic',
 !                 'non_oscillatory' (a)
+! MLDMTH   : Method for estimating mixed layer depth. Valid methods:
+!            'lev82', 'boy04' (a)
 ! MLRMTH   : Mixed layer restratification method. Valid methods: 'none',
 !            'fox08','bod23' (a)
 ! CE       : Efficiency factor for the restratification by mixed layer
@@ -173,12 +176,17 @@
 ! NUBMIN   : Minimum background diapycnal diffusivity (m**2/s) (f)
 ! TKEPF    : Fraction of surface TKE that penetrates beneath mixed layer
 !            () (f)
+! LAU10F   : Factor applied to 10 m absolute wind entering parameterization
+!            of Langmuir turbulence enhancement factor () (f)
 ! SMOBLD   : If true, apply lateral smoothing of CVMix estimated
 !            boundary layer depth (l)
 ! LNGMTP   : Type of CVMix Langmuir turbulence parameterization. Valid
 !            types: 'none', 'vr12-ma', 'lf17'
 ! LTEDTP   : Type of lateral tracer eddy diffusion: Valid methods:
 !            'layer', 'neutral'.
+! NDIFF_SURFACE_ALIGN : If true, layers constructed for diffusive flux
+!                       computations are gradually aligned with the surface
+!                       within the mixed layer.
 
 !===========================================================================
 ! NAMELIST FOR CHANNEL WIDTH MODIFICATIONS
@@ -279,12 +287,16 @@
 !   LAMULT   - Langmuir enhancement factor []
 !   LASL     - Surface layer averaged Langmuir number []
 !   LIP      - liquid precipitation [kg m-2 s-1]
-!   MAXMLD   - maximum mixed layer depth [m]
-!   MLD      - mixed layer depth [m]
-!   MLTS     - mixed layer thickness using "sigma-t" criterion [m]
-!   MLTSMN   - minimum mixed layer thickness using "sigma-t" criterion [m]
-!   MLTSMX   - maximum mixed layer thickness using "sigma-t" criterion [m]
-!   MLTSSQ   - mixed layer thickness squared using "sigma-t" criterion [m2]
+!   MAXBLD   - maximum boundary layer depth [m]
+!   BLD      - boundary layer depth [m]
+!   MLDL82   - mixed layer thickness (Levitus, 1982) [m]
+!   MLDL82MN - minimum mixed layer thickness (Levitus, 1982) [m]
+!   MLDL82MX - maximum mixed layer thickness (Levitus, 1982) [m]
+!   MLDL82SQ - mixed layer thickness squared (Levitus, 1982) [m2]
+!   MLDB04   - mixed layer thickness (de Boyer Montégut et al., 2004) [m]
+!   MLDB04MN - minimum mixed layer thickn. (de Boyer Montégut et al., 2004) [m]
+!   MLDB04MX - maximum mixed layer thickn. (de Boyer Montégut et al., 2004) [m]
+!   MLDB04SQ - mixed layer thick. squared (de Boyer Montégut et al., 2004) [m2]
 !   MTKEUS   - mixed layer TKE tendency related to friction velocity [kg s-3]
 !   MTKENI   - mixed layer TKE tendency related to near inertial mot. [kg s-3]
 !   MTKEBF   - mixed layer TKE tendency related to buoyancy forcing [kg s-3]
@@ -313,6 +325,7 @@
 !   SURRLX   - restoring heat flux received by ocean [W m-2]
 !   SWA      - short-wave heat flux [W m-2]
 !   T20D     - 20C isoterm depth [m]
+!   T17D     - 17C isoterm depth [m]
 !   TAUX     - momentum flux received by ocean x-component [N m-2]
 !   TAUY     - momentum flux received by ocean y-component [N m-2]
 !   TBOT     - bottom temperature [degC]
@@ -370,9 +383,9 @@
 !   GLS_PSI  - generic length scale [m2 s-3]
 !   IDLAGE   - ideal age [year]
 !   MMFLXL   - meridional overturning circ. (MOC) on isopycnic layers [kg s-1]
-!   MMFLXD   - MOC on z-levels [kg s-1]
 !   MMFTDL   - MOC due to thickness diffusion on isopycnic layers [kg s-1]
 !   MMFSML   - MOC due to submesoscale transport on isopycnic layers [kg s-1]
+!   MMFLXD   - MOC on z-levels [kg s-1]
 !   MMFTDD   - MOC due to thickness diffusion on z-levels [kg s-1]
 !   MMFSMD   - MOC due to submesoscale transport on z-levels [kg s-1]
 !   MHFLX    - meridional heat flux [W]
@@ -383,7 +396,9 @@
 !   MSFTD    - meridional salt flux due to thickness diffusion [kg s-1]
 !   MSFSM    - meridional salt flux due to submesoscale transport [kg s-1]
 !   MSFLD    - meridional salt flux due to lateral diffusion [kg s-1]
-!   VOLTR    - section transports [kg s-1]
+!   MASSTR   - section mass transports [kg s-1]
+!   HEATTR   - section heat transports [W]
+!   SALTTR   - section salt transports [kg s-1]
 !   MASSGS   - global sum of mass [kg]
 !   VOLGS    - global sum of volume [m3]
 !   SALNGA   - global average temperature [degC]

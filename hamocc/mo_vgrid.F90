@@ -56,6 +56,7 @@ module mo_vgrid
   real(rp),dimension(:,:,:), allocatable, public :: ptiestu ! depth of layer centres.
   real(rp),dimension(:,:,:), allocatable, public :: ptiestw ! depth of layer interfaces.
   integer, dimension(:,:),   allocatable, public :: k0100   ! k-index of gridbox comprising 100 m depth
+  integer, dimension(:,:),   allocatable, public :: k0200   ! k-index of gridbox comprising 200 m depth
   integer, dimension(:,:),   allocatable, public :: k0500   ! k-index of gridbox comprising 500 m depth
   integer, dimension(:,:),   allocatable, public :: k1000   ! k-index of gridbox comprising 1000 m depth
   integer, dimension(:,:),   allocatable, public :: k2000   ! k-index of gridbox comprising 2000 m depth
@@ -144,6 +145,7 @@ contains
     !$OMP END PARALLEL DO
 
     k0100(:,:)=0
+    k0200(:,:)=0
     k0500(:,:)=0
     k1000(:,:)=0
     k2000(:,:)=0
@@ -156,6 +158,13 @@ contains
         do k=2,kpke
           if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 100.0_rp ) then
             k0100(i,j)=k
+            exit
+          endif
+        enddo
+
+        do k=2,kpke
+          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 200.0_rp ) then
+            k0200(i,j)=k
             exit
           endif
         enddo
@@ -274,18 +283,20 @@ contains
     kwrbioz(:,:) = 0
 
     if (mnproc.eq.1) then
-      write(io_stdo_bgc,*)'Memory allocation for variables k0100, k0500, k1000, k2000 ...'
+      write(io_stdo_bgc,*)'Memory allocation for variables k0100, k0200, k0500, k1000, k2000 ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
     endif
 
     allocate(k0100(kpie,kpje),stat=errstat)
+    allocate(k0200(kpie,kpje),stat=errstat)
     allocate(k0500(kpie,kpje),stat=errstat)
     allocate(k1000(kpie,kpje),stat=errstat)
     allocate(k2000(kpie,kpje),stat=errstat)
     allocate(k4000(kpie,kpje),stat=errstat)
-    if(errstat.ne.0) stop 'not enough memory k0100, k0500, k1000, k2000'
+    if(errstat.ne.0) stop 'not enough memory k0100, k0200, k0500, k1000, k2000'
     k0100(:,:) = 0
+    k0200(:,:) = 0
     k0500(:,:) = 0
     k1000(:,:) = 0
     k2000(:,:) = 0

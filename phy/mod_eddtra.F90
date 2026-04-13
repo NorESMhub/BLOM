@@ -36,7 +36,7 @@ module mod_eddtra
                             difint, umfltd, vmfltd, umflsm, vmflsm, &
                             utfltd, vtfltd, utflsm, vtflsm, &
                             usfltd, vsfltd, usflsm, vsflsm
-   use mod_cmnfld,    only: dbcrit, nslpx, nslpy, mlts
+   use mod_cmnfld,    only: dbcl82, nslpx, nslpy, mld
    use mod_forcing,   only: ustar3, wstar3
    use mod_difest,    only: OBLdepth
    use mod_utility,   only: util1
@@ -1067,7 +1067,7 @@ contains
                                  wf_growing_hbl, wf_decaying_hbl)
                   call rmeanfilt(wpup_tf(i,j), wpup, &
                                  wf_growing_hbl, wf_decaying_hbl)
-                  call rmeanfilt(hml_tf1(i,j), mlts(i,j)   , &
+                  call rmeanfilt(hml_tf1(i,j), mld(i,j)   , &
                                  wf_growing_hbl, wf_decaying_hbl)
                   call rmeanfilt(hml_tf(i,j) , hml_tf1(i,j), &
                                  wf_growing_hml, wf_decaying_hml)
@@ -1087,7 +1087,7 @@ contains
                   hbl = OBLdepth(i,j)
                   call rmeanfilt(hbl_tf(i,j) , hbl , &
                                  wf_growing_hbl, wf_decaying_hbl)
-                  call rmeanfilt(hml_tf1(i,j), mlts(i,j)   , &
+                  call rmeanfilt(hml_tf1(i,j), mld(i,j)   , &
                                  wf_growing_hbl, wf_decaying_hbl)
                   call rmeanfilt(hml_tf(i,j) , hml_tf1(i,j), &
                                  wf_growing_hml, wf_decaying_hml)
@@ -1163,7 +1163,7 @@ contains
                   hml = .5_r8*(hml_tfbnd(i-1,j) + hml_tfbnd(i,j))
                   f = .5_r8*(coriop(i-1,j) + coriop(i,j))
                   absfi = 1._r8/sqrt(f*f + rtau*rtau)
-                  lfi = 1._r8/max(sqrt(dbcrit*hml)*absfi, lfmin)
+                  lfi = 1._r8/max(sqrt(dbcl82*hml)*absfi, lfmin)
 !                 lfi = 1._r8/lfmin
                   drho = util1(i,j) - util1(i-1,j)
                   upssmx(i,j) = csm*hml*hml*drho*lfi*absfi
@@ -1174,7 +1174,7 @@ contains
                   hml = .5_r8*(hml_tfbnd(i,j-1) + hml_tfbnd(i,j))
                   f = .5_r8*(coriop(i,j-1) + coriop(i,j))
                   absfi = 1._r8/sqrt(f*f + rtau*rtau)
-                  lfi = 1._r8/max(sqrt(dbcrit*hml)*absfi, lfmin)
+                  lfi = 1._r8/max(sqrt(dbcl82*hml)*absfi, lfmin)
 !                 lfi = 1._r8/lfmin
                   drho = util1(i,j) - util1(i,j-1)
                   upssmy(i,j) = csm*hml*hml*drho*lfi*absfi

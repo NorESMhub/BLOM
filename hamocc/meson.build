@@ -7,6 +7,7 @@ sources += files(
   'mo_cyano.F90',
   'mo_dipowa.F90',
   'mo_get_cfc.F90',
+  'mo_get_n2o_hist.F90',
   'mo_hamocc4bcm.F90',
   'mo_hamocc_init.F90',
   'mo_hamocc_step.F90',

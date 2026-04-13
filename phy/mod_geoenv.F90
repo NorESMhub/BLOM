@@ -69,7 +69,7 @@ contains
 
     if (mnproc == 1) then
       write (lp,'(2a)') ' reading grid information from ',trim(grfile)
-      call flush(lp)
+      flush(lp)
 
       ! open netcdf file
       status = nf90_open(grfile,nf90_nowrite,ncid)
@@ -719,7 +719,7 @@ contains
       if (mnproc == 1) then
         write (lp,'(2a)') ' reading topographic beta from ', &
              trim(tbfile)
-        call flush(lp)
+        flush(lp)
         status = nf90_open(tbfile,nf90_nowrite,ncid)
         if (status /= nf90_noerr) then
           write(lp,'(4a)') ' nf90_open: ',trim(tbfile),': ', &

@@ -39,7 +39,7 @@ contains
                               use_sedbypass,use_BOXATM,use_M4AGO,use_extNcycle,use_pref_tracers,   &
                               use_shelfsea_res_time,use_sediment_quality,use_river2omip,           &
                               use_DOMclasses,l_3Dvarsedpor
-    use mo_vgrid,       only: k0100,k0500,k1000,k2000,k4000
+    use mo_vgrid,       only: k0100,k0200,k0500,k1000,k2000,k4000
     use mo_param1_bgc,  only: ks,ksp
     use mod_nctools,    only: ncwrt1,ncdims,nctime,ncfcls,ncfopn,ncdimc,ncputr,ncputi,ncwrtr
     use mo_bgcmean,     only: domassfluxes,flx_ndepnoy,flx_tdust,flx_sfe,flx_oalk,                 &
@@ -71,7 +71,7 @@ contains
                               jco2fxd,jco2fxu,jco3,jdic,jdicsat,                                   &
                               jdms,jdms_bac,jdms_uv,jdmsflux,jdmsprod,                             &
                               jdoc,jdp,jeps,jexpoca,jexport,jexposi,jgrazer,                       &
-                              jintdnit,jintnfix,jintphosy,jiron,jirsi,                             &
+                              jintdnit,jintnfix,jintphosy,jintpoc,jiron,jirsi,                     &
                               jintexudl,jintexudsl,jintexcrl,jintexcrsl,jintdocl_rem,              &
                               jintdocsl_rem,jintdocsr_rem,jintdocr_rem,                            &
                               jkwco2,jlvlalkali,jlvlano3,jlvlasize,                                &
@@ -95,10 +95,10 @@ contains
                               jlvlprefdoc,jlvlprefdocsl,jlvlprefdocsr,jlvlprefdocr,                &
                               jph,jphosph,jphosy,jphyto,jpoc,jprefalk,                             &
                               jprefdic,jprefo2,jprefpo4,jsilica,jprefsilica,                       &
-                              jshelfage,                                                           &
-                              jsrfalkali,jsrfano3,jsrfdic,jsrfiron,                                &
-                              jsrfoxygen,jsrfphosph,jsrfphyto,jsrfsilica,jsrfph,                   &
+                              jshelfage,jsrfalkali,jsrfano3,jsrfdic,jsrfiron,jsrfoxygen,           &
+                              jsrfphosph,jsrfphyto,jsrfsilica,jsrfph,jsrfco3,jsrfco3satarag,       &
                               jwnos,jwphy,jprefdoc,jprefdocsl,jprefdocsr,jprefdocr,                &
+                              jphyc_200,jph_200,jco3_200,jco3satarag_200,jo2_200,jo2min,           &
                               lyr_dp,lyr_dic,lyr_alkali,lyr_phosph,                                &
                               lyr_oxygen,lyr_ano3,lyr_silica,lyr_doc,                              &
                               lyr_phyto,lyr_grazer,lyr_poc,lyr_calc,                               &
@@ -124,10 +124,11 @@ contains
                               srf_dmsprod,srf_dms_bac,srf_dms_uv,                                  &
                               srf_export,srf_exposi,srf_expoca,srf_dic,                            &
                               srf_alkali,srf_phosph,srf_oxygen,srf_ano3,                           &
-                              srf_silica,srf_iron,srf_phyto,srf_ph,                                &
-                              int_phosy,int_nfix,int_dnit,                                         &
+                              srf_silica,srf_iron,srf_phyto,srf_ph,srf_co3,srf_co3satarag,         &
+                              int_phosy,int_poc,int_nfix,int_dnit,                                 &
                               int_exudl,int_exudsl,int_excrl,int_excrsl,                           &
                               int_docl_rem,int_docsl_rem,int_docsr_rem,int_docr_rem,               &
+                              phyc_200,ph_200,co3_200,co3satarag_200,o2_200,o2min,                 &
                               nbgc,nacc_bgc,bgcwrt,glb_inventory,bgct2d,                           &
                               nbgcmax,glb_ncformat,glb_compflag,                                   &
                               glb_fnametag,filefq_bgc,diagfq_bgc,                                  &
@@ -486,6 +487,13 @@ contains
     call msksrf(jdustflx2000(iogrp),k2000)
     call msksrf(jdustflx4000(iogrp),k4000)
 
+    ! --- Mask sea floor in 200m fields
+    call msksrf(jphyc_200(iogrp),k0200)
+    call msksrf(jph_200(iogrp),k0200)
+    call msksrf(jco3_200(iogrp),k0200)
+    call msksrf(jco3satarag_200(iogrp),k0200)
+    call msksrf(jo2_200(iogrp),k0200)
+
     ! --- Mask sea floor in level data
     call msklvl(jlvlphyto(iogrp),depths)
     call msklvl(jlvlnutlim_fe(iogrp),depths)
@@ -611,15 +619,16 @@ contains
       call msklvl(jlvlprefdocr(iogrp),depths)
     endif
 
-    ! --- Compute log10 of pH
-    if (SRF_PH(iogrp).ne.0) call logsrf(jsrfph(iogrp),rnacc,0._rp)
-    if (LYR_PH(iogrp).ne.0) call loglyr(jph(iogrp),1._rp,0._rp)
-    if (LVL_PH(iogrp).ne.0) call loglvl(jlvlph(iogrp),rnacc,0._rp)
-    if (use_natDIC) then
-      if (SRF_NATPH(iogrp).ne.0) call logsrf(jsrfnatph(iogrp),rnacc,0._rp)
-      if (LYR_NATPH(iogrp).ne.0) call loglyr(jnatph(iogrp),1._rp,0._rp)
-      if (LVL_NATPH(iogrp).ne.0) call loglvl(jlvlnatph(iogrp),rnacc,0._rp)
-    endif
+    ! --- Log10 of hi is currently calculated before averaging, i.e. we average pH and not [H+]
+	! --- Compute log10 of pH
+    !if (SRF_PH(iogrp).ne.0) call logsrf(jsrfph(iogrp),rnacc,0._rp)
+    !if (LYR_PH(iogrp).ne.0) call loglyr(jph(iogrp),1._rp,0._rp)
+    !if (LVL_PH(iogrp).ne.0) call loglvl(jlvlph(iogrp),rnacc,0._rp)
+    !if (use_natDIC) then
+    !  if (SRF_NATPH(iogrp).ne.0) call logsrf(jsrfnatph(iogrp),rnacc,0._rp)
+    !  if (LYR_NATPH(iogrp).ne.0) call loglyr(jnatph(iogrp),1._rp,0._rp)
+    !  if (LVL_NATPH(iogrp).ne.0) call loglvl(jlvlnatph(iogrp),rnacc,0._rp)
+    !endif
 
     ! --- Store 2d fields
     call wrtsrf(jkwco2(iogrp),       SRF_KWCO2(iogrp),    rnacc,              0._rp,cmpflg,'kwco2')
@@ -651,8 +660,17 @@ contains
     call wrtsrf(jsrfsilica(iogrp),   SRF_SILICA(iogrp),   rnacc*1.e3_rp,      0._rp,cmpflg,'srfsi')
     call wrtsrf(jsrfiron(iogrp),     SRF_IRON(iogrp),     rnacc*1.e3_rp,      0._rp,cmpflg,'srfdfe')
     call wrtsrf(jsrfphyto(iogrp),    SRF_PHYTO(iogrp),    rnacc*1.e3_rp,      0._rp,cmpflg,'srfphyc')
-    call wrtsrf(jsrfph(iogrp),       SRF_PH(iogrp),       -1._rp,             0._rp,cmpflg,'srfph')
+    call wrtsrf(jsrfph(iogrp),       SRF_PH(iogrp),       rnacc,              0._rp,cmpflg,'srfph')
+    call wrtsrf(jsrfco3(iogrp),      SRF_CO3(iogrp),      rnacc*1.e3_rp,      0._rp,cmpflg,'srfco3')
+    call wrtsrf(jsrfco3satarag(iogrp),SRF_CO3SATARAG(iogrp),rnacc*1.e3_rp,    0._rp,cmpflg,'srfco3satarag')
     call wrtsrf(jintphosy(iogrp),    INT_PHOSY(iogrp),    rnacc*1.e3_rp/dtbgc,0._rp,cmpflg,'ppint')
+    call wrtsrf(jintpoc(iogrp),      INT_POC(iogrp),      rnacc*1.e3_rp,      0._rp,cmpflg,'intpoc')
+    call wrtsrf(jphyc_200(iogrp),    PHYC_200(iogrp),     rnacc*1.e3_rp,      0._rp,cmpflg,'phyc_200')
+    call wrtsrf(jph_200(iogrp),      PH_200(iogrp),       rnacc,              0._rp,cmpflg,'ph_200')
+    call wrtsrf(jco3_200(iogrp),     CO3_200(iogrp),      rnacc*1.e3_rp,      0._rp,cmpflg,'co3_200')
+    call wrtsrf(jco3satarag_200(iogrp),CO3SATARAG_200(iogrp),rnacc*1.e3_rp,   0._rp,cmpflg,'co3satarag_200')
+    call wrtsrf(jo2_200(iogrp),      O2_200(iogrp),       rnacc*1.e3_rp,      0._rp,cmpflg,'o2_200')
+    call wrtsrf(jo2min(iogrp),       O2MIN(iogrp),        rnacc*1.e3_rp,      0._rp,cmpflg,'o2min')
     call wrtsrf(jintnfix(iogrp),     INT_NFIX(iogrp),     rnacc*1.e3_rp/dtbgc,0._rp,cmpflg,'nfixint')
     call wrtsrf(jintdnit(iogrp),     INT_DNIT(iogrp),     rnacc*1.e3_rp/dtbgc,0._rp,cmpflg,'dnitint')
     call wrtsrf(jndepnoyfx(iogrp),   FLX_NDEPNOY(iogrp),  rnacc*1.e3_rp/dtbgc,0._rp,cmpflg,'ndepnoy')
@@ -723,7 +741,7 @@ contains
       call wrtsrf(jsrfnatalk(iogrp),   SRF_NATALKALI(iogrp),rnacc*1.e3_rp,     0._rp,cmpflg,'srfnattalk')
       call wrtsrf(jnatpco2(iogrp),     SRF_NATPCO2(iogrp),  rnacc,             0._rp,cmpflg,'natpco2')
       call wrtsrf(jnatco2fx(iogrp),    SRF_NATCO2FX(iogrp), rnacc*12._rp/dtbgc,0._rp,cmpflg,'natco2fx')
-      call wrtsrf(jsrfnatph(iogrp),    SRF_NATPH(iogrp),    -1._rp,            0._rp,cmpflg,'srfnatph')
+      call wrtsrf(jsrfnatph(iogrp),    SRF_NATPH(iogrp),    rnacc,             0._rp,cmpflg,'srfnatph')
     endif
     if (use_BROMO) then
       call wrtsrf(jbromofx(iogrp),     SRF_BROMOFX(iogrp),  rnacc*1.e3_rp/dtbgc,0._rp,cmpflg,'bromofx')
@@ -778,7 +796,7 @@ contains
     call wrtlyr(jiron(iogrp),        LYR_IRON(iogrp),     1.e3_rp,            0._rp,cmpflg,'dfe')
     call wrtlyr(jphosy(iogrp),       LYR_PHOSY(iogrp),    1.e3_rp/dtbgc,      0._rp,cmpflg,'pp')
     call wrtlyr(jco3(iogrp),         LYR_CO3(iogrp),      1.e3_rp,            0._rp,cmpflg,'co3')
-    call wrtlyr(jph(iogrp),          LYR_PH(iogrp),       -1._rp,             0._rp,cmpflg,'ph')
+    call wrtlyr(jph(iogrp),          LYR_PH(iogrp),       1._rp,              0._rp,cmpflg,'ph')
     call wrtlyr(jomegaa(iogrp),      LYR_OMEGAA(iogrp),   1._rp,              0._rp,cmpflg,'omegaa')
     call wrtlyr(jomegac(iogrp),      LYR_OMEGAC(iogrp),   1._rp,              0._rp,cmpflg,'omegac')
     call wrtlyr(jn2o(iogrp),         LYR_N2O(iogrp),      1.e3_rp,            0._rp,cmpflg,'n2o')
@@ -831,7 +849,7 @@ contains
       call wrtlyr(jnatalkali(iogrp),   LYR_NATALKALI(iogrp),1.e3_rp,            0._rp,cmpflg,'nattalk')
       call wrtlyr(jnatdic(iogrp),      LYR_NATDIC(iogrp),   1.e3_rp,            0._rp,cmpflg,'natdissic')
       call wrtlyr(jnatcalc(iogrp),     LYR_NATCALC(iogrp),  1.e3_rp,            0._rp,cmpflg,'natcalc')
-      call wrtlyr(jnatph(iogrp),       LYR_NATPH(iogrp),    -1._rp,             0._rp,cmpflg,'natph')
+      call wrtlyr(jnatph(iogrp),       LYR_NATPH(iogrp),    1._rp,              0._rp,cmpflg,'natph')
       call wrtlyr(jnatomegaa(iogrp),   LYR_NATOMEGAA(iogrp),1._rp,              0._rp,cmpflg,'natomegaa')
       call wrtlyr(jnatomegac(iogrp),   LYR_NATOMEGAC(iogrp),1._rp,              0._rp,cmpflg,'natomegac')
     endif
@@ -900,7 +918,7 @@ contains
     call wrtlvl(jlvliron(iogrp),     LVL_IRON(iogrp),     rnacc*1.e3_rp,      0._rp,cmpflg,'dfelvl')
     call wrtlvl(jlvlphosy(iogrp),    LVL_PHOSY(iogrp),    rnacc*1.e3_rp/dtbgc,0._rp,cmpflg,'pplvl')
     call wrtlvl(jlvlco3(iogrp),      LVL_CO3(iogrp),      rnacc*1.e3_rp,      0._rp,cmpflg,'co3lvl')
-    call wrtlvl(jlvlph(iogrp),       LVL_PH(iogrp),       -1._rp,             0._rp,cmpflg,'phlvl')
+    call wrtlvl(jlvlph(iogrp),       LVL_PH(iogrp),       rnacc,              0._rp,cmpflg,'phlvl')
     call wrtlvl(jlvlomegaa(iogrp),   LVL_OMEGAA(iogrp),   rnacc,              0._rp,cmpflg,'omegaalvl')
     call wrtlvl(jlvlomegac(iogrp),   LVL_OMEGAC(iogrp),   rnacc,              0._rp,cmpflg,'omegaclvl')
     call wrtlvl(jlvln2o(iogrp),      LVL_N2O(iogrp),      rnacc*1.e3_rp,      0._rp,cmpflg,'n2olvl')
@@ -956,7 +974,7 @@ contains
       call wrtlvl(jlvlnatalkali(iogrp),LVL_NATALKALI(iogrp),rnacc*1.e3_rp,      0._rp,cmpflg,'nattalklvl')
       call wrtlvl(jlvlnatdic(iogrp),   LVL_NATDIC(iogrp),   rnacc*1.e3_rp,      0._rp,cmpflg,'natdissiclvl')
       call wrtlvl(jlvlnatcalc(iogrp),  LVL_NATCALC(iogrp),  rnacc*1.e3_rp,      0._rp,cmpflg,'natcalclvl')
-      call wrtlvl(jlvlnatph(iogrp),    LVL_NATPH(iogrp),    -1._rp,             0._rp,cmpflg,'natphlvl')
+      call wrtlvl(jlvlnatph(iogrp),    LVL_NATPH(iogrp),    rnacc,              0._rp,cmpflg,'natphlvl')
       call wrtlvl(jlvlnatomegaa(iogrp),LVL_NATOMEGAA(iogrp),rnacc,              0._rp,cmpflg,'natomegaalvl')
       call wrtlvl(jlvlnatomegac(iogrp),LVL_NATOMEGAC(iogrp),rnacc,              0._rp,cmpflg,'natomegaclvl')
     endif
@@ -1092,13 +1110,22 @@ contains
     call inisrf(jsrfiron(iogrp),0._rp)
     call inisrf(jsrfphyto(iogrp),0._rp)
     call inisrf(jsrfph(iogrp),0._rp)
+    call inisrf(jsrfco3(iogrp),0._rp)
+    call inisrf(jsrfco3satarag(iogrp),0._rp)
     call inisrf(jintphosy(iogrp),0._rp)
+    call inisrf(jintpoc(iogrp),0._rp)
     call inisrf(jintnfix(iogrp),0._rp)
     call inisrf(jintdnit(iogrp),0._rp)
     call inisrf(jndepnoyfx(iogrp),0._rp)
     call inisrf(jtdustfx(iogrp),0._rp)
     call inisrf(jsfefx(iogrp),0._rp)
     call inisrf(joalkfx(iogrp),0._rp)
+    call inisrf(jphyc_200(iogrp),0._rp)
+    call inisrf(jph_200(iogrp),0._rp)
+    call inisrf(jco3_200(iogrp),0._rp)
+    call inisrf(jco3satarag_200(iogrp),0._rp)
+    call inisrf(jo2_200(iogrp),0._rp)
+    call inisrf(jo2min(iogrp),0._rp)
     call inisrf(jcarflx0100(iogrp),0._rp)
     call inisrf(jcarflx0500(iogrp),0._rp)
     call inisrf(jcarflx1000(iogrp),0._rp)
@@ -1513,9 +1540,10 @@ contains
                               srf_oxflux,srf_niflux,srf_pn2om,srf_dms,srf_dmsprod,                 &
                               srf_dms_bac,srf_dms_uv,srf_export,srf_exposi,srf_expoca,             &
                               srf_dic,srf_alkali,srf_phosph,srf_oxygen,srf_ano3,srf_silica,        &
-                              srf_iron,srf_phyto,srf_ph,int_phosy,int_nfix,int_dnit,               &
-                              int_exudl,int_exudsl,int_excrl,int_excrsl,                           &
+                              srf_iron,srf_phyto,srf_ph,srf_co3,srf_co3satarag,int_phosy,int_poc,  &
+                              int_nfix,int_dnit,int_exudl,int_exudsl,int_excrl,int_excrsl,         &
                               int_docl_rem,int_docsl_rem,int_docsr_rem,int_docr_rem,               &
+                              phyc_200,ph_200,co3_200,co3satarag_200,o2_200,o2min,                 &
                               flx_ndepnoy,flx_tdust,flx_sfe,flx_oalk,flx_car0100,flx_car0500,      &
                               flx_car1000,flx_car2000,flx_car4000,flx_car_bot,                     &
                               flx_bsi0100,flx_bsi0500,flx_bsi1000,flx_bsi2000,flx_bsi4000,         &
@@ -1726,8 +1754,26 @@ contains
          &   'Surface phytoplankton',' ','mol P m-3',0)
     call ncdefvar3d(SRF_PH(iogrp),cmpflg,'p','srfph',                           &
          &   'Surface pH',' ','-log10([H+])',0)
+    call ncdefvar3d(SRF_CO3(iogrp),cmpflg,'p','srfco3',                         &
+         &   'Surface Carbonate ions',' ','mol C m-3',0)
+    call ncdefvar3d(SRF_CO3SATARAG(iogrp),cmpflg,'p','srfco3satarag',           &
+         &   'Surface carbonate in equil. with Aragonite',' ','mol C m-3',0)
+    call ncdefvar3d(PHYC_200(iogrp),cmpflg,'p','phyc_200',                      &
+         &   'Phytoplankton concentration at 200m',' ','mol P m-3',0)
+    call ncdefvar3d(PH_200(iogrp),cmpflg,'p','ph_200',                          &
+         &   'pH at 200m',' ','-log10([H+])',0)
+    call ncdefvar3d(CO3_200(iogrp),cmpflg,'p','co3_200',                        &
+         &   'Carbonate concentration at 200m',' ','mol C m-3',0)
+    call ncdefvar3d(CO3SATARAG_200(iogrp),cmpflg,'p','co3satarag_200',          &
+         &   'Carbonate in equil. with Aragonite at 200m',' ','mol C m-3',0)
+    call ncdefvar3d(O2_200(iogrp),cmpflg,'p','o2_200',                          &
+         &   'Oxygen concentration at 200m',' ','mol O2 m-3',0)
+    call ncdefvar3d(O2MIN(iogrp),cmpflg,'p','o2min',                            &
+         &   'Minimum oxygen concentration in water column',' ','mol O2 m-3',0)
     call ncdefvar3d(INT_PHOSY(iogrp),cmpflg,'p','ppint',                        &
          &   'Integrated primary production',' ','mol C m-2 s-1',0)
+    call ncdefvar3d(INT_POC(iogrp),cmpflg,'p','intpoc',                         &
+         &   'Integrated detritus',' ','mol P m-2',0)
     call ncdefvar3d(INT_NFIX(iogrp),cmpflg,'p','nfixint',                       &
          &   'Integrated nitrogen fixation',' ','mol N m-2 s-1',0)
     call ncdefvar3d(INT_DNIT(iogrp),cmpflg,'p','dnitint',                       &

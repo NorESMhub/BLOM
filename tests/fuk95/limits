@@ -43,8 +43,11 @@
 !            'uc' (upstream column), 'dluc' (depth limited upstream
 !            column) (a)
 ! ADVMTH   : Advection method. Valid methods: 'remap', 'cppm' (a)
+! CPPM_COMPATIBILITY : CPPM compatibility. Valid options: 'full', 'partial' (a)
 ! CPPM_LIMITING : CPPM limiting. Valid methods: 'monotonic',
 !                 'non_oscillatory' (a)
+! MLDMTH   : Method for estimating mixed layer depth. Valid methods:
+!            'lev82', 'boy04' (a)
 ! MLRMTH   : Mixed layer restratification method. Valid methods: 'none',
 !            'fox08','bod23' (a)
 ! CE       : Efficiency factor for the restratification by mixed layer
@@ -152,10 +155,12 @@
   CWBDTS   = 0.
   CWBDLS   = 25.
   MOMMTH   = 'enscon'
-  PGFMTH   = 'geopotential'
+  PGFMTH   = 'dynamic enthalpy'
   BMCMTH   = 'uc'
-  ADVMTH   = 'remap'
+  ADVMTH   = 'cppm'
+  CPPM_COMPATIBILITY = 'full'
   CPPM_LIMITING = 'non_oscillatory'
+  MLDMTH   = 'lev82'
   MLRTTP   = 'constant'
   RM0      = 1.2
   RM5      = 0.
@@ -193,6 +198,53 @@
   RSTFMT   = 1
   RSTCMP   = 1
   IOTYPE   = 0
+/
+
+! VCOORD_TYPE            : Vertical coordinate type. Valid types:
+!                          'isopyc_bulkml', 'cntiso_hybrid', 'plevel' (a)
+! DPMIN_SURFACE          : Minimum surface layer thickness (m) (f)
+! DPMIN_INFLATION_FACTOR : Minimum layer thickness inflation factor (m) (f)
+! SIGREF_SPEC            : Reference potential density specification: Valid
+!                          specifications: 'inicon', 'function', 'namelist' (a)
+! PLEVEL_SPEC            : Pressure level specification: Valid specifications:
+!                          'inflation', 'namelist' (a)
+! SIGDIA_SPEC            : Diagnostic potential density specification: Valid
+!                          specifications: 'inicon', 'function', 'namelist' (a)
+! SIGREF                 : Array of reference potential densities (kg/m3) (f)
+! PLEVEL                 : Array of pressure levels (m) (f)
+! SIGDIA                 : Array of diagnostic potential densities (kg/m3) (f)
+! SIGREF_ADAPTION        : Flag to enable adaption of reference potential
+!                          densities to model state (l)
+! SRA_TS                 : e-folding time scale (years) for adjusting to
+!                          optimized reference potential densities (f)
+! SRA_MASSFRAC_BOT       : Target mass fraction of the density classes within
+!                          the bottom parabolic shape [z_bot 1] (f)
+! SRA_MASSFRAC_EPS       : A small mass fraction (f)
+&VCOORD
+  VCOORD_TYPE            = 'cntiso_hybrid'
+/
+
+&ALE_REGRID_REMAP
+  RECONSTRUCTION_METHOD  = 'ppm'
+  UPPER_BNDR_ORD         = 6
+  LOWER_BNDR_ORD         = 4
+  DENSITY_LIMITING       = 'monotonic'
+  TRACER_LIMITING        = 'non_oscillatory'
+  VELOCITY_LIMITING      = 'non_oscillatory'
+  DENSITY_PC_UPPER_BNDR  = .false.
+  DENSITY_PC_LOWER_BNDR  = .false.
+  TRACER_PC_UPPER_BNDR   = .true.
+  TRACER_PC_LOWER_BNDR   = .false.
+  VELOCITY_PC_UPPER_BNDR = .true.
+  VELOCITY_PC_LOWER_BNDR = .false.
+  DPMIN_INTERIOR         = .1
+  REGRID_METHOD          = 'nudge'
+  K_RANGE_PLEVEL         = 4
+  REGRID_NUDGE_TS        = 86400.
+  STAB_FAC_LIMIT         = .75
+  SMOOTH_DIFF_MAX        = 50000.
+  DKTZU                  = 4
+  DKTZL                  = 2
 /
  
 ! NAMELIST FOR DIFFUSION PARAMETERS
@@ -242,12 +294,18 @@
 ! NUBMIN   : Minimum background diapycnal diffusivity (m**2/s) (f)
 ! TKEPF    : Fraction of surface TKE that penetrates beneath mixed layer
 !            () (f)
+! LAU10F   : Factor applied to 10 m absolute wind entering parameterization
+!            of Langmuir turbulence enhancement factor () (f)
 ! SMOBLD   : If true, apply lateral smoothing of CVMix estimated
 !            boundary layer depth (l)
 ! LNGMTP   : Type of CVMix Langmuir turbulence parameterization. Valid
 !            types: 'none', 'vr12-ma', 'lf17'
 ! LTEDTP   : Type of lateral tracer eddy diffusion: Valid methods:
 !            'layer', 'neutral'.
+! NDIFF_SURFACE_ALIGN : If true, layers constructed for diffusive flux
+!                       computations are gradually aligned with the surface
+!                       within the mixed layer.
+
 &DIFFUSION
   EITMTH   = 'gm'
   EDRITP   = 'large scale'
@@ -265,6 +323,7 @@
   EDANIS   = .false.
   REDI3D   = .false.
   RHSCTP   = .false.
+  EDFSMO   = .false.
   RI0      = 1.2
   BDMTYP   = 2
   BDMC1    = 5.e-8
@@ -274,9 +333,11 @@
   IWDFAC   = .06
   NUBMIN   = 1.e-6
   TKEPF    = 0.
+  LAU10F   = 1.
   SMOBLD   = .true.
   LNGMTP   = 'none'
   LTEDTP   = 'layer'
+  NDIFF_SURFACE_ALIGN = .false.
 /
 
 ! NAMELIST FOR CHANNEL WIDTH MODIFICATIONS
@@ -395,12 +456,16 @@
 !   LAMULT   - Langmuir enhancement factor []
 !   LASL     - Surface layer averaged Langmuir number []
 !   LIP      - liquid precipitation [kg m-2 s-1]
-!   MAXMLD   - maximum mixed layer depth [m]
-!   MLD      - mixed layer depth [m]
-!   MLTS     - mixed layer thickness using "sigma-t" criterion [m]
-!   MLTSMN   - minimum mixed layer thickness using "sigma-t" criterion [m]
-!   MLTSMX   - maximum mixed layer thickness using "sigma-t" criterion [m]
-!   MLTSSQ   - mixed layer thickness squared using "sigma-t" criterion [m2]
+!   MAXBLD   - maximum boundary layer depth [m]
+!   BLD      - boundary layer depth [m]
+!   MLDL82   - mixed layer thickness (Levitus, 1982) [m]
+!   MLDL82MN - minimum mixed layer thickness (Levitus, 1982) [m]
+!   MLDL82MX - maximum mixed layer thickness (Levitus, 1982) [m]
+!   MLDL82SQ - mixed layer thickness squared (Levitus, 1982) [m2]
+!   MLDB04   - mixed layer thickness (de Boyer Montégut et al., 2004) [m]
+!   MLDB04MN - minimum mixed layer thickn. (de Boyer Montégut et al., 2004) [m]
+!   MLDB04MX - maximum mixed layer thickn. (de Boyer Montégut et al., 2004) [m]
+!   MLDB04SQ - mixed layer thick. squared (de Boyer Montégut et al., 2004) [m2]
 !   MTKEUS   - mixed layer TKE tendency related to friction velocity [kg s-3]
 !   MTKENI   - mixed layer TKE tendency related to near inertial mot. [kg s-3]
 !   MTKEBF   - mixed layer TKE tendency related to buoyancy forcing [kg s-3]
@@ -429,6 +494,7 @@
 !   SURRLX   - restoring heat flux received by ocean [W m-2]
 !   SWA      - short-wave heat flux [W m-2]
 !   T20D     - 20C isoterm depth [m]
+!   T17D     - 17C isoterm depth [m]
 !   TAUX     - momentum flux received by ocean x-component [N m-2]
 !   TAUY     - momentum flux received by ocean y-component [N m-2]
 !   TBOT     - bottom temperature [degC]
@@ -530,12 +596,16 @@
   H2D_LAMULT   = 0,   4
   H2D_LASL     = 0,   4
   H2D_LIP      = 0,   0
-  H2D_MAXMLD   = 4,   4
-  H2D_MLD      = 0,   4
-  H2D_MLTS     = 0,   4
-  H2D_MLTSMN   = 0,   4
-  H2D_MLTSMX   = 0,   4
-  H2D_MLTSSQ   = 0,   4
+  H2D_MAXBLD   = 4,   4
+  H2D_BLD      = 0,   4
+  H2D_MLDL82   = 0,   4
+  H2D_MLDL82MN = 0,   4
+  H2D_MLDL82MX = 0,   4
+  H2D_MLDL82SQ = 0,   4
+  H2D_MLDB04   = 0,   0
+  H2D_MLDB04MN = 0,   0
+  H2D_MLDB04MX = 0,   0
+  H2D_MLDB04SQ = 0,   0
   H2D_MTKEUS   = 0,   0
   H2D_MTKENI   = 0,   0
   H2D_MTKEBF   = 0,   0
@@ -564,6 +634,7 @@
   H2D_SURRLX   = 0,   0
   H2D_SWA      = 0,   0
   H2D_T20D     = 0,   0
+  H2D_T17D     = 0,   0
   H2D_TAUX     = 0,   0
   H2D_TAUY     = 0,   0
   H2D_TBOT     = 0,   4

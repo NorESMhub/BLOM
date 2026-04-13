@@ -427,6 +427,16 @@
     <desc>CPPM limiting. Valid methods: 'monotonic', 'non_oscillatory'.</desc>
   </entry>
 
+  <entry id="mldmth">
+    <type>char</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>lev82</value>
+    </values>
+    <desc>Method for estimating mixed layer depth</desc>
+  </entry>
+
   <entry id="mlrmth">
     <type>char</type>
     <category>limits</category>
@@ -870,7 +880,7 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>1.0</value>
+      <value>0.5</value>
     </values>
     <desc>Fraction of brine absorption concentrated at mixed layer base</desc>
   </entry>
@@ -1000,7 +1010,7 @@
       <value>function</value>
       <value blom_vcoord="isopyc_bulkml">inicon</value>
     </values>
-    <desc>Reference potential density specification: Valid specs.: 'inicon', 'namelist'</desc>
+    <desc>Reference potential density specification: Valid specs.: 'inicon', 'function', 'namelist'</desc>
   </entry>
 
   <entry id="plevel_spec">
@@ -1012,6 +1022,17 @@
       <value blom_vcoord="plevel">inflation</value>
     </values>
     <desc>Pressure level specification: Valid specs.: 'inflation', 'namelist'</desc>
+  </entry>
+
+  <entry id="sigdia_spec">
+    <type>char</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>function</value>
+      <value blom_vcoord="isopyc_bulkml">inicon</value>
+    </values>
+    <desc>Diagnostic potential density specification: Valid specs.: 'inicon', 'function', 'namelist'</desc>
   </entry>
 
   <entry id="sigref_fun_spec%dsdz_bot">
@@ -1104,6 +1125,96 @@
     <desc>Sigma value of parabola at z = 1 [kg m-3]</desc>
   </entry>
 
+  <entry id="sigdia_fun_spec%dsdz_bot">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>1.125</value>
+    </values>
+    <desc>Derivative of sigma with respect to z at Bezier point 4 (z = 1) [kg m-3]</desc>
+  </entry>
+
+  <entry id="sigdia_fun_spec%sp1">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>23.0</value>
+    </values>
+    <desc>Sigma value at Bezier point 1 (z = 0) [kg m-3]</desc>
+  </entry>
+
+  <entry id="sigdia_fun_spec%zp2">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>0.27</value>
+    </values>
+    <desc>z value at Bezier point 2 []</desc>
+  </entry>
+
+  <entry id="sigdia_fun_spec%zp3">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>0.36</value>
+    </values>
+    <desc>z value at Bezier point 3 []</desc>
+  </entry>
+
+  <entry id="sigdia_fun_spec%sp4">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>37.40</value>
+    </values>
+    <desc>Sigma value at Bezier point 4 (z = 1) [kg m-3]</desc>
+  </entry>
+
+  <entry id="sigdia_fun_spec%z_top">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>0.06</value>
+    </values>
+    <desc>z value at transition from Bezier curve to parabola covering the z-range [0, z_top]</desc>
+  </entry>
+
+  <entry id="sigdia_fun_spec%s_top">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>0.</value>
+    </values>
+    <desc>Sigma value of parabola at z = 0 [kg m-3]</desc>
+  </entry>
+
+  <entry id="sigdia_fun_spec%z_bot">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>0.92</value>
+    </values>
+    <desc>z value at transition from Bezier curve to parabola covering the z-range [z_bot, 1]</desc>
+  </entry>
+
+  <entry id="sigdia_fun_spec%s_bot">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>37.8</value>
+    </values>
+    <desc>Sigma value of parabola at z = 1 [kg m-3]</desc>
+  </entry>
+
   <entry id="sigref_adaption">
     <type>logical</type>
     <category>vcoord</category>
@@ -1124,14 +1235,24 @@
     <desc>e-folding time scale (years) for adjusting mixed layer climatology</desc>
   </entry>
 
-  <entry id="sra_param_ts">
+  <entry id="sra_param_ts1">
     <type>real</type>
     <category>vcoord</category>
     <group>vcoord</group>
     <values>
       <value>5.0</value>
     </values>
-    <desc>e-folding time scale (years) for adjusting to optimized reference potential densities</desc>
+    <desc>e-folding time scale (years) for adjusting sp1 and zp2 parameters in adaption of reference potential densities</desc>
+  </entry>
+
+  <entry id="sra_param_ts2">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>10.0</value>
+    </values>
+    <desc>e-folding time scale (years) for adjusting sp4 and s_bot parameters in adaption of reference potential densities</desc>
   </entry>
 
   <entry id="sra_massfrac_bot">
@@ -1194,6 +1315,16 @@
       <value>0.000,    2.000,    4.061,    6.185,    8.374,   10.631,   12.959,   15.362,   17.843,   20.408,   23.061,   25.808,   28.659,   31.621,   34.706,   37.925,   41.294,   44.830,   48.553,   52.487,   56.661,61.104,   65.854,   70.953,   76.446,   82.389,   88.841,   95.868,  103.544,  111.949,  121.172,  131.306,  142.450,  154.708,  168.188,  182.999,  199.248,  217.040,  236.479,  257.657,  280.661,  305.568,  332.442,  361.336,  392.292,  425.339,  460.498,  497.778,  537.183,  578.707,  622.344,  668.083,  715.914, 765.827,  817.814,  871.871,  927.997,  986.197, 1046.481, 1108.863, 1173.364, 1240.010, 1308.833, 1379.870, 1453.162, 1528.755, 1606.702, 1687.056, 1769.879, 1855.233, 1943.185, 2033.806</value>
     </values>
     <desc>Array of pressure levels (m)</desc>
+  </entry>
+
+  <entry id="sigdia">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>-1.,-1.</value>
+    </values>
+    <desc>Array of diagnostic potential densities (kg/m3)</desc>
   </entry>
 
   <!-- ========================= -->
@@ -1663,7 +1794,8 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>.06</value>
+      <value>.35</value>
+      <value blom_vcoord="isopyc_bulkml">.06</value>
     </values>
     <desc>Internal wave dissipation factor under sea ice</desc>
   </entry>
@@ -1686,6 +1818,16 @@
       <value>.006</value>
     </values>
     <desc>Fraction of surface TKE that penetrates beneath mixed layer</desc>
+  </entry>
+
+  <entry id="lau10f">
+    <type>real</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>1.</value>
+    </values>
+    <desc>Factor applied to 10 m absolute wind entering parameterization of Langmuir turbulence enhancement factor</desc>
   </entry>
 
   <entry id="smobld">
@@ -1720,6 +1862,17 @@
     </values>
     <desc>Type of lateral tracer eddy diffusion: Valid methods:</desc>
   </entry>
+
+  <entry id="ndiff_surface_align">
+    <type>logical</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>If true, layers constructed for diffusive flux computations are gradually aligned with the surface within the mixed layer</desc>
+  </entry>
+
 
   <!-- ========================= -->
   <!-- namelist group: cwmod -->
@@ -2107,20 +2260,7 @@
     <desc>liquid precipitation [kg m-2 s-1]</desc>
   </entry>
 
-  <entry id="h2d_maxmld">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>4,4,0</value>
-      <value is_test="yes">4,4,0</value>
-      <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value blom_output_size="spinup">0,4,0</value>
-    </values>
-    <desc>maximum mixed layer depth [m]</desc>
-  </entry>
-
-  <entry id="h2d_mld">
+  <entry id="h2d_maxbld">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2130,10 +2270,23 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,0</value>
     </values>
-    <desc>mixed layer depth [m]</desc>
+    <desc>maximum boundary layer depth [m]</desc>
   </entry>
 
-  <entry id="h2d_mlts">
+  <entry id="h2d_bld">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
+    </values>
+    <desc>boundary layer depth [m]</desc>
+  </entry>
+
+  <entry id="h2d_mldl82">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2143,10 +2296,10 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">4,4,0</value>
     </values>
-    <desc>mixed layer thickness using "sigma-t" criterion [m]</desc>
+    <desc>mixed layer thickness defined by Levitus (1982) [m]</desc>
   </entry>
 
-  <entry id="h2d_mltsmn">
+  <entry id="h2d_mldl82mn">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2156,10 +2309,10 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,0</value>
     </values>
-    <desc>minimum mixed layer thickness using "sigma-t" criterion [m]</desc>
+    <desc>minimum mixed layer thickness defined by Levitus (1982) [m]</desc>
   </entry>
 
-  <entry id="h2d_mltsmx">
+  <entry id="h2d_mldl82mx">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2169,10 +2322,10 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,0</value>
     </values>
-    <desc>maximum mixed layer thickness using "sigma-t" criterion [m]</desc>
+    <desc>maximum mixed layer thickness defined by Levitus (1982) [m]</desc>
   </entry>
 
-  <entry id="h2d_mltssq">
+  <entry id="h2d_mldl82sq">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2182,7 +2335,59 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,0,0</value>
     </values>
-    <desc>mixed layer thickness squared using "sigma-t" criterion [m2]</desc>
+    <desc>mixed layer thickness squared defined by Levitus (1982) [m2]</desc>
+  </entry>
+
+  <entry id="h2d_mldb04">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>4,4,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">4,4,0</value>
+    </values>
+    <desc>mixed layer thickness defined by de Boyer Montégut et al. (2004) [m]</desc>
+  </entry>
+
+  <entry id="h2d_mldb04mn">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
+    </values>
+    <desc>minimum mixed layer thickness defined by de Boyer Montégut et al. (2004) [m]</desc>
+  </entry>
+
+  <entry id="h2d_mldb04mx">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
+    </values>
+    <desc>maximum mixed layer thickness defined by de Boyer Montégut et al. (2004) [m]</desc>
+  </entry>
+
+  <entry id="h2d_mldb04sq">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
+    </values>
+    <desc>mixed layer thickness squared defined by de Boyer Montégut et al. (2004) [m2]</desc>
   </entry>
 
   <entry id="h2d_mtkeus">
@@ -2549,6 +2754,19 @@
     <desc>20C isoterm depth [m]</desc>
   </entry>
 
+  <entry id="h2d_t17d">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>4,4,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
+    </values>
+    <desc>17C isoterm depth [m]</desc>
+  </entry>
+
   <entry id="h2d_taux">
     <type>integer(3)</type>
     <category>diaphy</category>
@@ -2736,7 +2954,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,0,0</value>
@@ -3217,7 +3435,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,0,0</value>
@@ -3230,7 +3448,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,0,0</value>
@@ -3295,7 +3513,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,0,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,0,4</value>
@@ -3308,7 +3526,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,0,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,0,0</value>
@@ -3321,7 +3539,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,0,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,0,4</value>
@@ -3334,7 +3552,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,0,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,0,0</value>
@@ -3347,7 +3565,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,0,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,0,4</value>
@@ -3360,7 +3578,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,0,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,0,4</value>
@@ -3373,7 +3591,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -3386,7 +3604,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -3399,7 +3617,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -3568,7 +3786,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -3595,8 +3813,6 @@
     <group>diaphy</group>
     <values>
       <value>0,4,0</value>
-      <value is_test="yes">4,4,0</value>
-      <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,0,4</value>
@@ -3726,7 +3942,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -3752,7 +3968,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,0,0</value>
@@ -3765,7 +3981,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,0,0</value>
@@ -3804,7 +4020,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -3817,20 +4033,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
-      <value is_test="yes">4,4,0</value>
-      <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value blom_output_size="spinup">0,4,4</value>
-    </values>
-    <desc>add desc</desc>
-  </entry>
-
-  <entry id="msc_mmflxd">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -3843,7 +4046,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -3856,7 +4059,20 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="msc_mmflxd">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -3869,7 +4085,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -3882,7 +4098,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -3895,7 +4111,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -3908,7 +4124,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -3921,7 +4137,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -3934,7 +4150,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -3947,7 +4163,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -3960,7 +4176,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -3973,7 +4189,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -3986,7 +4202,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -3994,12 +4210,38 @@
     <desc>add desc</desc>
   </entry>
 
-  <entry id="msc_voltr">
+  <entry id="msc_masstr">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="msc_heattr">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,4</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="msc_salttr">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -4012,7 +4254,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -4025,7 +4267,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -4038,7 +4280,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -4051,7 +4293,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -4064,7 +4306,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -4077,7 +4319,7 @@
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,4,0</value>
+      <value>0,4,4</value>
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,4</value>
@@ -4329,6 +4571,17 @@
       <value hamocc_n2oc="yes" hamocc_extncycle="yes">.true.</value>
     </values>
     <desc>Switch to couple N2O fluxes to atmosphere</desc>
+  </entry>
+
+  <entry id="do_n2o_hist" modify_via_xml="HAMOCC_N2O_HIST">
+    <type>logical</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>.false.</value>
+      <value hamocc_n2o_hist="yes" hamocc_extncycle="yes">.true.</value>
+    </values>
+    <desc>Switch provide atmospheric N2O in historical period (uncoupled)</desc>
   </entry>
 
   <entry id="do_nh3_coupled" modify_via_xml="HAMOCC_NH3C">
@@ -5051,8 +5304,8 @@
     <group>bgcparams</group>
     <values>
       <value>None</value>
-      <value use_wlin="yes">0.7</value>
-      <value use_agg="yes">0.5</value>
+      <value use_wlin="yes">None</value>
+      <value use_agg="yes">None</value>
     </values>
     <desc>zooplankton parameter: dimensionless fraction -assimilation efficiency</desc>
   </entry>
@@ -6064,17 +6317,45 @@
     <desc>Half-saturation constant for NO2 for nitrification on NO2 (kmol/m3)</desc>
   </entry>
 
+  <entry id="dmsp3">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>bacterial removal; constant for DMS scheme (Kloster et al. (2006), Table 1)</desc>
+  </entry>
 
-  <!-- TODO: how to handle mathematical expressions like below -->
-  <!-- <entry id="wlin"> -->
-  <!--   <type>real</type> -->
-  <!--   <category>bgcparams</category> -->
-  <!--   <group>bgcparams</group> -->
-  <!--   <values> -->
-  <!--     <value>60./2400.</value> -->
-  <!--   </values> -->
-  <!--   <desc>Sinking parameter: m/d/m constant describing incr. with depth, r/a=1.0</desc> -->
-  <!-- </entry> -->
+  <entry id="dmsp4">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>production with delcar; constant for DMS scheme (Kloster et al. (2006), Table 1)</desc>
+  </entry>
+
+  <entry id="dmsp5">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>production with delsil; constant for DMS scheme (Kloster et al. (2006), Table 1)</desc>
+  </entry>
+
+  <entry id="wlin">
+    <type>real</type>
+    <category>bgcparams</category>
+    <group>bgcparams</group>
+    <values>
+      <value>None</value>
+    </values>
+    <desc>Sinking parameter: m/d/m constant describing increase with depth</desc>
+  </entry>
 
   <!-- ========================= -->
   <!-- namelist group: diabgc -->
@@ -6177,7 +6458,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,2,2</value>
+      <value>4,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
@@ -6273,7 +6554,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>Dissolved carbon (dissic) [mol C m-3]</desc>
+    <desc>Surface dissolved carbon (srfdissic) [mol C m-3]</desc>
   </entry>
 
   <entry id="srf_phyto">
@@ -6286,7 +6567,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>Phytoplankton (phyc) [mol P m-3]</desc>
+    <desc>Surface phytoplankton (srfphyc) [mol P m-3]</desc>
   </entry>
 
   <entry id="srf_ph">
@@ -6294,12 +6575,12 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,2,2</value>
+      <value>4,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>pH (ph) [-log10([h+])]</desc>
+    <desc>Surface pH (srfph) [-log10([h+])]</desc>
   </entry>
 
   <entry id="srf_export">
@@ -6312,7 +6593,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>Export production (epc100) [mol C m-2 s-1]</desc>
+    <desc>Production of detritus (epc100) [mol C m-2 s-1]</desc>
   </entry>
 
   <entry id="srf_exposi">
@@ -6325,7 +6606,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>Si export production (epsi100) [mol Si m-2 s-1]</desc>
+    <desc>Opal production (epsi100) [mol Si m-2 s-1]</desc>
   </entry>
 
   <entry id="srf_expoca">
@@ -6338,7 +6619,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>Ca export production (epcalc100) [mol Ca m-2 s-1]</desc>
+    <desc>Ca production (epcalc100) [mol Ca m-2 s-1]</desc>
   </entry>
 
   <entry id="srf_kwco2">
@@ -6689,7 +6970,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>Natural alkalinity (nattalk) [eq m-3]</desc>
+    <desc>Surface natural alkalinity (srfnattalk) [eq m-3]</desc>
   </entry>
 
   <entry id="srf_natph">
@@ -6702,7 +6983,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>Natural pH (natph) [-log10([h+])]</desc>
+    <desc>Surface natural pH (srfnatph) [-log10([h+])]</desc>
   </entry>
 
   <entry id="srf_natpco2">
@@ -6861,6 +7142,123 @@
     <desc>Surface bromoform flux [mol CHBr3 -m2 s-1]</desc>
   </entry>
 
+  <entry id="srf_co3">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>4,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Surface carbonate ion concentration (srfco3) [mol C -m3]</desc>
+  </entry>
+
+  <entry id="srf_co3satarag">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>4,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Surface carbonate concentration in equil. with aragonite [mol C -m3]</desc>
+  </entry>
+
+  <entry id="co3satarag_200">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>4,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Carbonate concentration in equil. with aragonite at 200m [mol C -m3]</desc>
+  </entry>
+
+  <entry id="ph_200">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>4,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>pH at 200m [-log10([h+])]</desc>
+  </entry>
+
+  <entry id="phyc_200">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>4,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">0,0</value>
+    </values>
+    <desc>Phytoplankton at 200m [mol P m-3]</desc>
+  </entry>
+
+  <entry id="co3_200">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>4,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Carbonate concentration at 200m [mol C m-3]</desc>
+  </entry>
+
+  <entry id="o2_200">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>4,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Oxygen concentration at 200m [mol O2 m-3]</desc>
+  </entry>
+
+  <entry id="o2min">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>4,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Minimum oxygen concentration in the water column [mol O2 m-3]</desc>
+  </entry>
+
+  <entry id="int_poc">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>4,2,2</value>
+      <value is_test="yes">4,2,2</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value hamocc_output_size="spinup">2,2</value>
+    </values>
+    <desc>Column-integrated POC concentration [mol P -m2]</desc>
+  </entry>
+
   <entry id="int_bromopro">
     <type>integer(3)</type>
     <category>diabgc</category>
@@ -6897,7 +7295,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>Primary production (pp) [mol C m-3 s-1]</desc>
+    <desc>Vertically integrated primary production (ppint) [mol C m-2 s-1]</desc>
   </entry>
 
   <entry id="int_nfix">
@@ -6910,7 +7308,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">2,2</value>
     </values>
-    <desc>Vertically integrated nitrogen fixation</desc>
+    <desc>Vertically integrated nitrogen fixation (nfixint)</desc>
   </entry>
 
   <entry id="int_dnit">
@@ -6918,12 +7316,12 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,2,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value hamocc_output_size="spinup">2,2</value>
+      <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>Vertically integrated denitrification</desc>
+    <desc>Vertically integrated denitrification (dnitint), currently not functional in combination with ext. N-cycle</desc>
   </entry>
 
   <entry id="int_exudl">
@@ -7094,7 +7492,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
-    <desc>namelist for diagnostic iHAMOCC output</desc>
+    <desc>Flux of alkalinity by OAE into the surface ocean [mol TA m-2 s-1]</desc>
   </entry>
 
   <entry id="flx_car0100">
@@ -7414,7 +7812,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7427,7 +7825,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7440,7 +7838,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7453,7 +7851,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7466,7 +7864,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7479,7 +7877,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7492,7 +7890,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7505,7 +7903,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7518,7 +7916,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7531,7 +7929,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7544,7 +7942,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7557,7 +7955,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7570,7 +7968,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,4</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7583,7 +7981,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7596,7 +7994,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7609,7 +8007,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7622,7 +8020,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7796,7 +8194,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
     </values>
-    <desc>PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only </desc>
+    <desc>PP consumption of NO3 [mol NO3 m-3 s-1] - ext. N cycle only </desc>
   </entry>
 
   <entry id="lyr_remin_aerob">
@@ -7830,7 +8228,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7843,7 +8241,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7856,7 +8254,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7869,7 +8267,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7882,7 +8280,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7895,7 +8293,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7908,7 +8306,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7921,7 +8319,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7934,7 +8332,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7947,7 +8345,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7960,7 +8358,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7973,7 +8371,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7986,7 +8384,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -7999,7 +8397,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8012,7 +8410,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8025,7 +8423,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8038,7 +8436,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8051,7 +8449,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8064,7 +8462,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8090,7 +8488,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8103,7 +8501,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8116,7 +8514,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8129,7 +8527,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,4</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8142,7 +8540,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,4</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8155,7 +8553,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8168,7 +8566,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,4</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8181,7 +8579,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8194,7 +8592,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8207,7 +8605,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,4,4</value>
+      <value>0,0,0</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8220,7 +8618,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -8233,7 +8631,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -8246,7 +8644,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -8259,7 +8657,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -8272,7 +8670,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8285,7 +8683,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8298,7 +8696,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8311,7 +8709,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8324,7 +8722,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8337,7 +8735,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8350,7 +8748,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8363,7 +8761,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8376,7 +8774,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8389,7 +8787,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8402,7 +8800,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8415,7 +8813,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8428,7 +8826,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8441,7 +8839,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8454,7 +8852,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8467,7 +8865,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8480,7 +8878,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8493,7 +8891,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8506,7 +8904,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8519,7 +8917,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8532,7 +8930,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8545,7 +8943,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8558,7 +8956,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8571,7 +8969,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -8610,7 +9008,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
     </values>
     <desc>Bromoform [mol CHBr3 m-3]</desc>
@@ -9376,7 +9774,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -9465,7 +9863,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,4,4</value>
+      <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -9504,7 +9902,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,4,4</value>
+      <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,0</value>
@@ -9894,7 +10292,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,2,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -9907,7 +10305,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,2,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -9920,7 +10318,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,2,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -9933,7 +10331,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,2,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -9946,7 +10344,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,2,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -9959,7 +10357,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,2,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -9972,7 +10370,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -9985,7 +10383,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -9998,7 +10396,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -10011,7 +10409,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,0,2</value>
+      <value>0,2,2</value>
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value hamocc_output_size="spinup">0,2</value>
@@ -10809,7 +11207,7 @@
     <desc>stream mesh file</desc>
     <values>
       <value hamocc_fedep_source="mahw2006">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_T42_ESMFmesh_cdf5.nc</value>
-      <value hamocc_fedep_source="GESAMP2018">/cluster/projects/nn9560k/matsbn/WOA_mesh/WOA_1.00_degree_ESMFmesh_20250506_cdf5.nc</value>
+      <value hamocc_fedep_source="GESAMP2018">$DIN_LOC_ROOT/ocn/woa/WOA_1.00_degree_ESMFmesh_20250506_cdf5.nc</value>
     </values>
   </entry>
   <entry id="stream_dust_data_filename">

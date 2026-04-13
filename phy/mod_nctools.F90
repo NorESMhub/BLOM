@@ -871,7 +871,7 @@ contains
       if (status /= nf_noerr) then
         if (mnproc == 1) then
           write(lp,*) 'WARNING: Problems reading variable ',trim(vnm)
-          call flush(lp)
+          flush(lp)
         end if
         call ncerro(status)
       end if
@@ -1062,7 +1062,7 @@ contains
         status = nf90_inq_varid(ncid,vnm,rhid)
         if (status /= nf90_noerr) then
           write(lp,*) 'WARNING: Problems reading variable ',trim(vnm)
-          call flush(lp)
+          flush(lp)
           call ncerro(status)
         end if
         call ncerro(nf90_inquire_variable(ncid,rhid,ndims = ndims))
@@ -2104,7 +2104,7 @@ contains
       if (strn > 2) then
         if (mnproc == 1) then
           write(lp,*) 'ncwrtc: number of dimensions has to be <=2'
-          call flush(lp)
+          flush(lp)
         end if
         call xcstop('(ncerro)')
         stop '(ncerro)'
@@ -2147,7 +2147,7 @@ contains
         call ncsevl(dims,strn,strind)
         if (strn > 2) then
           write(lp,*) 'ncwrtc: number of dimensions has to be <=2'
-          call flush(lp)
+          flush(lp)
           call xchalt('(ncerro)')
           stop '(ncerro)'
         end if
@@ -2850,7 +2850,7 @@ contains
 #ifdef PNETCDF
       if (ncstatus /= nf_noerr) then
         write(lp,*) 'NetCDF error:',nfmpi_strerror(ncstatus)
-        call flush(lp)
+        flush(lp)
         call xchalt('(ncerro)')
         stop '(ncerro)'
       end if
@@ -2858,7 +2858,7 @@ contains
     else if(io_type  ==  0) then
       if (ncstatus /= nf90_noerr) then
         write(lp,*) 'NetCDF error: ',nf90_strerror(ncstatus)
-        call flush(lp)
+        flush(lp)
         call xchalt('(ncerro)')
         stop '(ncerro)'
       end if

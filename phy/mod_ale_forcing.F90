@@ -32,7 +32,7 @@ module mod_ale_forcing
   use mod_forcing,   only: surflx, sswflx, salflx, brnflx, buoyfl, &
                            t_sw_nonloc, s_br_nonloc, &
                            brine_mlbase_frac
-  use mod_cmnfld,    only: mlts
+  use mod_cmnfld,    only: mld
   use mod_checksum,  only: csdiag, chksum
 
   implicit none
@@ -127,8 +127,8 @@ contains
         do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
 
           ! Penetration factors at layer interfaces.
-          lei = 1._r8/(mlts(i,j)*onem)
-          pmax = cbra1*mlts(i,j)*onem
+          lei = 1._r8/(mld(i,j)*onem)
+          pmax = cbra1*mld(i,j)*onem
           kmax = 1
           s_br_nonloc(i,j,1) = 1._r8
           do k = 1, kk

@@ -55,8 +55,10 @@ module mod_diffusion
       bdmc2, &  ! Background diapycnal diffusivity [m2 s-1].
       iwdfac, & ! Internal wave dissipation factor under sea ice [].
       nubmin, & ! Minimum background diapycnal diffusivity [m2 s-1].
-      tkepf     ! Fraction of surface TKE that penetrates beneath mixed layer
+      tkepf, &  ! Fraction of surface TKE that penetrates beneath mixed layer
                 ! [].
+      lau10f    ! Factor applied to 10 m absolute wind entering parameterization
+                ! of Langmuir turbulence enhancement factor [].
    integer :: &
       bdmtyp, & ! Type of background diapycnal mixing. If bdmtyp = 1 the
                 ! background diffusivity is a constant divided by the
@@ -77,8 +79,11 @@ module mod_diffusion
                 ! diffusivities.
       bdmldp, & ! If true, make the background mixing latitude dependent
                 ! according to Gregg et al. (2003).
-      smobld    ! If true, apply lateral smoothing of CVMix estimated boundary
+      smobld, & ! If true, apply lateral smoothing of CVMix estimated boundary
                 ! layer depth.
+      ndiff_surface_align ! If true, layers constructed for diffusive flux
+                          ! computations are gradually aligned with the surface
+                          ! within the mixed layer.
    character(len = fnmlen) :: &
       tbfile    ! Name of file containing topographic beta parameter.
    character(len = 80) :: &
@@ -178,11 +183,12 @@ module mod_diffusion
 
    ! Public variables
    public :: egc, eggam, eglsmn, egmndf, egmxdf, egidfq, rhiscf, ri0, &
-             bdmc1, bdmc2, bdmldp, iwdflg, iwdfac, nubmin, tkepf, bdmtyp, &
-             eddf2d, edsprs, edanis, redi3d, rhsctp, tbfile, edfsmo, smobld, &
-             lngmtp, eitmth_opt, eitmth_intdif, eitmth_gm, edritp_opt, &
-             edritp_shear, edritp_large_scale, edwmth_opt, edwmth_smooth, &
-             edwmth_step, ltedtp_opt, ltedtp_layer, ltedtp_neutral, &
+             bdmc1, bdmc2, bdmldp, iwdflg, iwdfac, nubmin, tkepf, lau10f, &
+             bdmtyp, eddf2d, edsprs, edanis, redi3d, rhsctp, tbfile, edfsmo, &
+             smobld, ndiff_surface_align, lngmtp, eitmth_opt, eitmth_intdif, &
+             eitmth_gm, edritp_opt, edritp_shear, edritp_large_scale, &
+             edwmth_opt, edwmth_smooth, edwmth_step, ltedtp_opt, ltedtp_layer, &
+             ltedtp_neutral, &
              difint, difiso, difdia, difmxp, difmxq, difwgt, &
              umfltd, vmfltd, umflsm, vmflsm, utfltd, vtfltd, &
              utflsm, vtflsm, utflld, vtflld, usfltd, vsfltd, &
@@ -207,9 +213,9 @@ contains
 
       namelist /diffusion/ &
          egc, eggam, eglsmn, egmndf, egmxdf, egidfq, rhiscf, ri0, &
-         bdmc1, bdmc2, bdmldp, iwdflg, iwdfac, nubmin, tkepf, bdmtyp, eddf2d, &
-         edsprs, edanis, redi3d, rhsctp, tbfile, edfsmo, smobld, lngmtp, &
-         eitmth, edritp, edwmth, ltedtp
+         bdmc1, bdmc2, bdmldp, iwdflg, iwdfac, nubmin, tkepf, lau10f, bdmtyp, &
+         eddf2d, edsprs, edanis, redi3d, rhsctp, tbfile, edfsmo, smobld, &
+         lngmtp, eitmth, edritp, edwmth, ltedtp, ndiff_surface_align
 
       ! Read variables in the namelist group 'diffusion'.
       if (mnproc == 1) then
@@ -254,6 +260,7 @@ contains
         call xcbcst(iwdfac)
         call xcbcst(nubmin)
         call xcbcst(tkepf)
+        call xcbcst(lau10f)
         call xcbcst(bdmtyp)
         call xcbcst(eddf2d)
         call xcbcst(edsprs)
@@ -268,6 +275,7 @@ contains
         call xcbcst(edritp)
         call xcbcst(edwmth)
         call xcbcst(ltedtp)
+        call xcbcst(ndiff_surface_align)
       endif
       if (mnproc == 1) then
          write (lp,*) 'readnml_diffusion: diffusion variables:'
@@ -286,6 +294,7 @@ contains
          write (lp,*) '  iwdfac = ', iwdfac
          write (lp,*) '  nubmin = ', nubmin
          write (lp,*) '  tkepf  = ', tkepf
+         write (lp,*) '  lau10f = ', lau10f
          write (lp,*) '  bdmtyp = ', bdmtyp
          write (lp,*) '  eddf2d = ', eddf2d
          write (lp,*) '  edsprs = ', edsprs
@@ -300,6 +309,7 @@ contains
          write (lp,*) '  edritp = ', trim(edritp)
          write (lp,*) '  edwmth = ', trim(edwmth)
          write (lp,*) '  ltedtp = ', trim(ltedtp)
+         write (lp,*) '  ndiff_surface_align = ', ndiff_surface_align
       endif
 
       ! Resolve options.

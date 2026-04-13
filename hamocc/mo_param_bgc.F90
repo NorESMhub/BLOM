@@ -40,7 +40,7 @@ module mo_param_bgc
                             do_ndep,do_oalk,do_rivinpt,do_sedspinup,l_3Dvarsedpor,                 &
                             use_BOXATM,use_CFC,use_PBGC_CK_TIMESTEP,                               &
                             use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type,use_M4AGO,&
-                            do_n2o_coupled,do_nh3_coupled,use_extNcycle,                           &
+                            do_n2o_coupled,do_n2o_hist,do_nh3_coupled,use_extNcycle,               &
                             lkwrbioz_off,lTO2depremin,use_shelfsea_res_time,use_sediment_quality,  &
                             use_pref_tracers,use_coupler_ndep,use_river2omip,use_DOMclasses,       &
                             linit_DOMclasses_sim,ldyn_sed_age,sedspin_yr_s,sedspin_yr_e,           &
@@ -724,10 +724,11 @@ contains
                          bkoxdnra_sed,bkdnra_sed,q10anh4nitr_sed,                &
                          bkoxamox_sed,bkanh4nitr_sed,q10ano2nitr_sed,            &
                          bkoxnitr_sed,bkano2nitr_sed,sed_alpha_poc,sed_qual_sc,  &
-                         sed_denit,sed_sulf,                                     &
-                         sed_O2thresh_hypoxic,sed_O2thresh_sulf,sed_NO3thresh_sulf,&
-                         gammapsl,gammazsl,alphasl,alphasr,docl_remin,docsl_remin, &
-                         docsr_remin,docr_remin,yield_n2o_inf,bkamoxn2o
+                         sed_denit,sed_sulf,sed_O2thresh_hypoxic,                &
+                         sed_O2thresh_sulf,sed_NO3thresh_sulf,gammapsl,          &
+                         gammazsl,alphasl,alphasr,docl_remin,docsl_remin,        &
+                         docsr_remin,docr_remin,yield_n2o_inf,bkamoxn2o,         &
+                         dmsp3,dmsp4,dmsp5
 
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*)
@@ -980,6 +981,7 @@ contains
       call pinfo_add_entry('ldtbgc',                 real(ldtbgc))
       if (use_extNcycle) then
         call cinfo_add_entry('do_n2o_coupled',       do_n2o_coupled)
+        call cinfo_add_entry('do_n2o_hist',          do_n2o_hist)
         call cinfo_add_entry('do_nh3_coupled',       do_nh3_coupled)
       endif
       write(io_stdo_bgc,*) '* '

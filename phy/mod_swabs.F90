@@ -227,7 +227,7 @@ contains
                   write (lp,*) &
                      'reading chlorophyll concentration climatology from '// &
                      trim(ccfile)
-                  call flush(lp)
+                  flush(lp)
 
                   ! Open netCDF file.
                   errstat = nf90_open(ccfile, nf90_nowrite, ncid)
@@ -366,7 +366,7 @@ contains
                write (lp,*) &
                   'reading spatially varying spectral band fractions and '// &
                   'attenuation lengths from '//trim(svfile)
-               call flush(lp)
+               flush(lp)
 
                ! Open netCDF file.
                errstat = nf90_open(svfile, nf90_nowrite, ncid)

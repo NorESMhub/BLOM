@@ -1,6 +1,7 @@
 import os
 import sys
 import re
+import shutil
 from copy import deepcopy
 import logging
 import subprocess
@@ -139,9 +140,13 @@ class ParamGen:
         """
 
         # First check whether the given xml file conforms to the entry_id_pg.xsd schema
-        from distutils.spawn import find_executable
-
-        xmllint = find_executable("xmllint")
+        # First try python's built-in shutils. As a last resort try setup tools.
+        try:
+            xmllint = shutil.which("xmllint")
+        except:
+            from distutils.spawn import find_executable
+            xmllint = find_executable("xmllint")
+            
         if xmllint is None:
             logger.warning("Couldn't find xmllint. Skipping schema check")
         else:
