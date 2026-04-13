@@ -85,13 +85,16 @@ contains
           ndepnoyflx(i,j) = ndep(i,j,idepnoy)*dtb/365._rp
           ocetra(i,j,1,iano3)=ocetra(i,j,1,iano3)+ndepnoyflx(i,j)/pddpo(i,j,1)
           ocetra(i,j,1,ialkali)=ocetra(i,j,1,ialkali)-ndepnoyflx(i,j)/pddpo(i,j,1)
-          if (use_natDIC) then
-            ocetra(i,j,1,inatalkali)=ocetra(i,j,1,inatalkali)-ndepnoyflx(i,j)/pddpo(i,j,1)
-          endif
           if (use_extNcycle) then
             ndepnhxflx(i,j)       = ndep(i,j,idepnhx)*dtb/365._rp
             ocetra(i,j,1,ianh4)   = ocetra(i,j,1,ianh4)   + ndepnhxflx(i,j)/pddpo(i,j,1)
             ocetra(i,j,1,ialkali) = ocetra(i,j,1,ialkali) + ndepnhxflx(i,j)/pddpo(i,j,1)
+          endif
+          if (use_natDIC) then
+            ocetra(i,j,1,inatalkali)=ocetra(i,j,1,inatalkali) - ndepnoyflx(i,j)/pddpo(i,j,1)
+            if (use_extNcycle) then
+                   ocetra(i,j,1,inatalkali)=ocetra(i,j,1,inatalkali) + ndepnhxflx(i,j)/pddpo(i,j,1)
+            endif
           endif
         endif
       enddo

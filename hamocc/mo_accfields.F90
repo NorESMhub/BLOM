@@ -199,8 +199,8 @@ contains
     real(rp) :: d13C(kpie,kpje,kpke)
     real(rp) :: d14C(kpie,kpje,kpke)
     real(rp) :: bigd14C(kpie,kpje,kpke)
-    real(rp) :: intpoc(kpie,kpje)               ! Vertically integrated detritus concentration 
-	real(rp) :: srfph(kpie,kpje)                ! Temporary variable for calculation of surface pH
+    real(rp) :: intpoc(kpie,kpje)               ! Vertically integrated detritus concentration
+    real(rp) :: srfph(kpie,kpje)                ! Temporary variable for calculation of surface pH
     real(rp) :: srfco3satarag(kpie,kpje)        ! Mole carbonate anion (CO3) for sea water in equilibrium with pure Aragonite @sfc
     real(rp) :: phyc_200(kpie,kpje)             ! phytoplankton 200m
     real(rp) :: ph_200(kpie,kpje)               ! pH 200m
@@ -208,8 +208,7 @@ contains
     real(rp) :: co3satarag_200(kpie,kpje)       ! Mole carbonate anion (CO3) for sea water in equilibrium with pure Aragonite @200m
     real(rp) :: o2_200(kpie,kpje)               ! o2 200m
     real(rp) :: o2min(kpie,kpje)                ! o2 minimum closest to surface
-	
-	real(rp),parameter :: himin = 1.0e-11       ! Minimum [H+] for calculation of pH
+    real(rp),parameter :: himin = 1.0e-11       ! Minimum [H+] for calculation of pH
 
     if (use_cisonew) then
       ! Calculation d13C, d14C and Dd14C: Delta notation for output
@@ -234,7 +233,7 @@ contains
     endif
 
     intpoc        (:,:)=0._rp
-	srfph         (:,:)=0._rp
+    srfph         (:,:)=0._rp
     srfco3satarag (:,:)=0._rp
     phyc_200      (:,:)=0._rp
     ph_200        (:,:)=0._rp
@@ -258,12 +257,12 @@ contains
             o2_200(i,j)         = ocetra(i,j,k,ioxygen)
             ph_200(i,j)         = -log10(max(hi(i,j,k),himin))
          endif
-		  
+
           ! integrated POC in kmol P m-2
           do k=1,kpke
             intpoc(i,j) = intpoc(i,j) + ocetra(i,j,k,idet)*pddpo(i,j,k)
           enddo
-          
+
           ! O2 minimum closest to surface (but below mixed layer)
           k1 = kmle(i,j)
           o2min(i,j) = ocetra(i,j,k1,ioxygen)
@@ -384,7 +383,7 @@ contains
     call accsrf(jsrfsilica,ocetra(1,1,1,isilica),omask,0)
     call accsrf(jsrfdic,ocetra(1,1,1,isco212),omask,0)
     call accsrf(jsrfphyto,ocetra(1,1,1,iphy),omask,0)
-	srfph = -log10(max(hi(:,:,1),himin))
+    srfph = -log10(max(hi(:,:,1),himin))
     call accsrf(jsrfph,srfph,omask,0)
     call accsrf(jdms,ocetra(1,1,1,idms),omask,0)
     call accsrf(jsrfpn2om,pn2om,omask,0)
@@ -413,7 +412,7 @@ contains
       call accsrf(jsrfnatdic,ocetra(1,1,1,inatsco212),omask,0)
       call accsrf(jsrfnatalk,ocetra(1,1,1,inatalkali),omask,0)
       call accsrf(jnatpco2,natpco2,omask,0)
-	  srfph = -log10(max(nathi(:,:,1),himin))
+      srfph = -log10(max(nathi(:,:,1),himin))
       call accsrf(jsrfnatph,srfph,omask,0)
     endif
     if (use_BROMO) then
