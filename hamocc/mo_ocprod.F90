@@ -1932,6 +1932,10 @@ contains
                 ocetra(i,j,k,isco213) = ocetra(i,j,k,isco213)+flca13
                 ocetra(i,j,k,isco214) = ocetra(i,j,k,isco214)+flca14
               endif
+              if (use_natDIC) then
+                ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)+2._rp*flcaca
+                ocetra(i,j,k,inatsco212) = ocetra(i,j,k,inatsco212)+flcaca
+              endif
             enddo ! k=1,kpke
 
           endif ! omask > 0.5
