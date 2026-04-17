@@ -66,6 +66,7 @@ module mo_sedmnt
   real(rp), dimension (:,:),     allocatable, public :: pror14
   real(rp), dimension (:,:),     allocatable, public :: prca14
   real(rp), dimension (:,:),     allocatable, public :: prcaca
+  real(rp), dimension (:,:),     allocatable, public :: prnatcaca
   real(rp), dimension (:,:),     allocatable, public :: produs
   real(rp), dimension (:,:,:),   allocatable, public :: burial
 
@@ -252,7 +253,7 @@ CONTAINS
     !***********************************************************************************************
     !  Allocate variables in this module
     !***********************************************************************************************
-    use mo_control_bgc, only: use_extNcycle
+    use mo_control_bgc, only: use_extNcycle,use_natDIC
 
     ! Arguments
     integer, intent(in) :: kpie,kpje
@@ -350,6 +351,16 @@ CONTAINS
       allocate (prca14(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory prca14'
       prca14(:,:) = 0.0_rp
+    endif
+    if(use_natDIC) then
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable prnatcaca ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      endif
+      allocate (prnatcaca(kpie,kpje),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory prnatcaca'
+      prnatcaca(:,:) = 0.0_rp
     endif
 
     if (mnproc.eq.1) then
