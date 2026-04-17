@@ -227,7 +227,7 @@ module mo_param_bgc
   real(rp), protected :: atm_n2o     = 270.1e3_rp ! atmosphere N2O conc. pre-industrial: 270.1 (+-6ppb) IPCC 2021, p708, provided in ppt,300ppb = 300e3ppt = 3e-7 mol/mol
   real(rp), protected :: atm_nh3     = 0._rp      ! Six & Mikolajewicz 2022: less than 1nmol m-3
   real(rp), protected :: atm_o2      = 196800._rp ! atmosphere oxygen concentration
-  real(rp), protected :: atm_co2_nat = 284.32_rp  ! atmosphere CO2 concentration CMIP6 pre-industrial reference
+  real(rp), protected :: atm_co2_nat = 284.7_rp   ! atmosphere CO2 concentration CAM pre-industrial reference
   real(rp), protected :: atm_bromo   = 3.4_rp     ! atmosphere bromophorme concentration
                                            ! For now use 3.4ppt from Hense and Quack (2009; Biogeosciences) NEED TO
                                            ! BE UPDATED WITH Ziska et al. (2013) climatology database
