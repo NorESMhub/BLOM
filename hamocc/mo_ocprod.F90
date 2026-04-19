@@ -66,7 +66,7 @@ contains
     use mo_kind,          only: rp
     use mo_carbch,        only: ocetra,satoxy,hi,co2star,nutlim_diag,inutlim_fe,inutlim_phosph,    &
                               & inutlim_n,zeu_nutlim_diag
-    use mo_sedmnt,        only: prcaca,produs,prorca,silpro,pror13,pror14,prca13,prca14
+    use mo_sedmnt,        only: prcaca,produs,prorca,silpro,pror13,pror14,prca13,prca14,prnatcaca
     use mo_param_bgc,     only: drempoc,drempoc_anaerob,bkox_drempoc,dremn2o,dremopal,dremsul,     &
                                 dyphy,ecan,epsher,fesoly,                                          &
                                 gammap,gammaz,grami,grazra,pi_alpha,phytomi,                       &
@@ -158,7 +158,7 @@ contains
     ! DOM
     real(rp) :: exudsl,excdocsl,bacfrasl,docremsl,bacfrasr,docremsr,bacfrar,docremr,doclimfct
     ! sedbypass
-    real(rp) :: florca,flcaca,flsil
+    real(rp) :: florca,flcaca,flsil,flnatcaca
     ! cisonew
     real(rp) :: phygrowth
     real(rp) :: phosy13,phosy14
@@ -1673,6 +1673,9 @@ contains
               prca13(i,j) = ocetra(i,j,kdonor,icalc13)*wcal
               prca14(i,j) = ocetra(i,j,kdonor,icalc14)*wcal
             endif
+            if (use_natDIC) then
+              prnatcaca(i,j) = ocetra(i,j,kdonor,inatcalc)*wcal
+            endif
           else
             prorca(i,j) = ocetra(i,j,kdonor,idet  )*wpoc
             prcaca(i,j) = ocetra(i,j,kdonor,icalc )*wcal
@@ -1683,6 +1686,9 @@ contains
               prca13(i,j) = ocetra(i,j,kdonor,icalc13)*wcal
               pror14(i,j) = ocetra(i,j,kdonor,idet14 )*wpoc
               prca14(i,j) = ocetra(i,j,kdonor,icalc14)*wcal
+            endif
+            if (use_natDIC) then
+              prnatcaca(i,j) = ocetra(i,j,kdonor,inatcalc)*wcal
             endif
           endif
 
@@ -1889,7 +1895,7 @@ contains
       ! over the water column. Detritus is kept as detritus, while opal and CaCO3
       ! are remineralised instantanously
 
-      !$OMP PARALLEL DO PRIVATE(dz,florca,flcaca,flsil,flor13,flor14,flca13,flca14,i,k) ORDERED
+      !$OMP PARALLEL DO PRIVATE(dz,florca,flcaca,flnatcaca,flsil,flor13,flor14,flca13,flca14,i,k) ORDERED
       do j=1,kpje
         do i = 1,kpie
           if(omask(i,j) > 0.5_rp) then
@@ -1918,6 +1924,9 @@ contains
               prca13(i,j) = 0._rp
               prca14(i,j) = 0._rp
             endif
+            if (use_natDIC) then
+              flnatcaca = prnatcaca(i,j)/dz
+            endif
 
             do k = 1,kpke
               if( pddpo(i,j,k) <= dp_min ) cycle
@@ -1933,8 +1942,8 @@ contains
                 ocetra(i,j,k,isco214) = ocetra(i,j,k,isco214)+flca14
               endif
               if (use_natDIC) then
-                ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)+2._rp*flcaca
-                ocetra(i,j,k,inatsco212) = ocetra(i,j,k,inatsco212)+flcaca
+                ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)+2._rp*flnatcaca
+                ocetra(i,j,k,inatsco212) = ocetra(i,j,k,inatsco212)+flnatcaca
               endif
             enddo ! k=1,kpke
 
