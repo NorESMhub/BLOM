@@ -1321,6 +1321,21 @@ contains
       end if
       call xcmin(fldmin)
       call xcmax(fldmax)
+
+      ! --- Sanity check
+      if( .not. fldmin >= fldmax) then
+        if( fldmin+10.0_rp*spacing(fldmin) > fldmax ) then  ! field is constant within round-off error
+          if (mnproc == 1) then
+            write(lp,*) 'ncpack: Output field for ', trim(vnm), ' is constant within round-off error.'
+            write(lp,*) 'Casting real to int2 can fall outside the range. Please use other output method.'
+            flush(lp)
+          end if
+          call xcstop('(ncpack)')
+          stop '(ncpack)'
+        end if
+      end if
+
+      ! --- Calculate scale factor and offset
       if (uvflg) then
         if (fldmin >= fldmax) then
           scf = 1.d0
