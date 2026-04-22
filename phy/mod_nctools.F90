@@ -1214,7 +1214,7 @@ contains
     character(len=4) :: c4
     integer :: i,j,ij,ijk,k,n,kd
     integer, parameter :: maxdm=5, ijdm = (idm+2*nbdy)*(jdm+2*nbdy)
-    real :: scf,ofs,arng(2),fldmin,fldmax
+    real :: ri2max,scf,ofs,arng(2),fldmin,fldmax
     logical :: uvflg
     integer, dimension(maxdm) :: start,count
     integer(i2), allocatable, dimension(:,:,:) :: fldout,fld_out
@@ -1223,6 +1223,7 @@ contains
     real, dimension(itdm,jtdm) :: rfldt
 
     ! --- Initialise fields
+    ri2max = i2max
     uvflg = .false.
     kd = 1
 
@@ -1362,7 +1363,9 @@ contains
             do i = 1,ii
               ij = i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
               if (msk(ij) == 1) then
-                rfld(i,j,k) = nint(((fld(ij+(k-1)*ijdm)*sfac)+offs-ofs)/scf) - i2fill
+                rfld(i,j,k) = &
+                  nint(max(-ri2max,min(ri2max, &
+                       (((fld(ij+(k-1)*ijdm)*sfac)+offs)-ofs)/scf)))-i2fill
               else
                 rfld(i,j,k) = 0
               end if
@@ -1378,7 +1381,9 @@ contains
               ij = i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
               ijk = ij+(k-1)*ijdm
               if (msk(ij) == 1.and.fld(ijk) /= fillr8) then
-                rfld(i,j,k) = nint(((fld(ijk)*sfac)+offs-ofs)/scf)-i2fill
+                rfld(i,j,k) = &
+                  nint(max(-ri2max,min(ri2max, &
+                       (((fld(ijk)*sfac)+offs)-ofs)/scf)))-i2fill
               else
                 rfld(i,j,k) = 0
               end if
@@ -1392,7 +1397,9 @@ contains
           do j = 1,jj
             do i = 1,ii
               ijk = i+nbdy+(idm+2*nbdy)*(j+nbdy-1)+(k-1)*ijdm
-              rfld(i,j,k) = nint(((fld(ijk)*sfac)+offs-ofs)/scf)-i2fill
+              rfld(i,j,k) = &
+                nint(max(-ri2max,min(ri2max, &
+                     (((fld(ijk)*sfac)+offs)-ofs)/scf)))-i2fill
             end do
           end do
         end do
@@ -1535,7 +1542,9 @@ contains
             do i = 1,ii
               ij = i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
               if (msk(ij) == 1) then
-                rfld(i,j,1) = nint(((fld(ij+(k-1)*ijdm)*sfac)+offs-ofs)/scf) - i2fill
+                rfld(i,j,1) = &
+                  nint(max(-ri2max,min(ri2max, &
+                       (((fld(ij+(k-1)*ijdm)*sfac)+offs)-ofs)/scf)))-i2fill
               else
                 rfld(i,j,1) = 0
               end if
@@ -1549,7 +1558,9 @@ contains
               ij = i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
               ijk = ij+(k-1)*ijdm
               if (msk(ij) == 1.and.fld(ijk) /= fillr8) then
-                rfld(i,j,1) = nint(((fld(ijk)*sfac)+offs-ofs)/scf)-i2fill
+                rfld(i,j,1) = &
+                  nint(max(-ri2max,min(ri2max, &
+                       (((fld(ijk)*sfac)+offs)-ofs)/scf)))-i2fill
               else
                 rfld(i,j,1) = 0
               end if
@@ -1561,7 +1572,9 @@ contains
           do j = 1,jj
             do i = 1,ii
               ijk = i+nbdy+(idm+2*nbdy)*(j+nbdy-1)+(k-1)*ijdm
-              rfld(i,j,1) = nint(((fld(ijk)*sfac)+offs-ofs)/scf)-i2fill
+              rfld(i,j,1) = &
+                nint(max(-ri2max,min(ri2max, &
+                     (((fld(ijk)*sfac)+offs)-ofs)/scf)))-i2fill
             end do
           end do
           !$omp end parallel do
@@ -1814,12 +1827,13 @@ contains
     integer :: dimid,dimids(maxdm),strn,strind(2,maxdm)
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: rfld,rmsk
     real, dimension(itdm,jtdm) :: rfldt,rmskt
-    real :: scf,ofs,arng(2),fldmin,fldmax
+    real :: ri2max,scf,ofs,arng(2),fldmin,fldmax
     integer(i2), dimension(itdm*jtdm) :: fldout
     logical :: uvflg
     integer, dimension(maxdm) :: start,count
 
     ! --- Initialise fields
+    ri2max = i2max
     uvflg = .false.
     kd = 1
 
@@ -1923,7 +1937,9 @@ contains
             ij = i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
             ijk = ij+(k-1)*ijdm
             if (msk(ij) == 1.and.fld(ijk) < fillr8) then
-              rfld(i,j) = nint(((fld(ijk)*sfac)+offs-ofs)/scf)-i2fill
+              rfld(i,j) = &
+                nint(max(-ri2max,min(ri2max, &
+                     (((fld(ijk)*sfac)+offs)-ofs)/scf)))-i2fill
             else
               rfld(i,j) = 0
             end if
@@ -2044,7 +2060,9 @@ contains
             ij = i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
             ijk = ij+(k-1)*ijdm
             if (msk(ij) == 1.and.fld(ijk) < fillr8) then
-              rfld(i,j) = nint(((fld(ijk)*sfac)+offs-ofs)/scf)-i2fill
+              rfld(i,j) = &
+                nint(max(-ri2max,min(ri2max, &
+                     (((fld(ijk)*sfac)+offs)-ofs)/scf)))-i2fill
             else
               rfld(i,j) = 0
             end if
