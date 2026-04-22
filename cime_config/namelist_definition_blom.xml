@@ -6875,10 +6875,10 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0,4,4</value>
+      <value>0,2,2</value>
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
-      <value hamocc_output_size="spinup">4,4</value>
+      <value hamocc_output_size="spinup">2,2</value>
     </values>
     <desc>Atmospheric CO2 (atmco2) [ppm]</desc>
   </entry>
