@@ -227,7 +227,7 @@ module mo_param_bgc
   real(rp), protected :: atm_n2o     = 270.1e3_rp ! atmosphere N2O conc. pre-industrial: 270.1 (+-6ppb) IPCC 2021, p708, provided in ppt,300ppb = 300e3ppt = 3e-7 mol/mol
   real(rp), protected :: atm_nh3     = 0._rp      ! Six & Mikolajewicz 2022: less than 1nmol m-3
   real(rp), protected :: atm_o2      = 196800._rp ! atmosphere oxygen concentration
-  real(rp), protected :: atm_co2_nat = 284.32_rp  ! atmosphere CO2 concentration CMIP6 pre-industrial reference
+  real(rp), protected :: atm_co2_nat = 284.7_rp   ! atmosphere CO2 concentration CAM pre-industrial reference
   real(rp), protected :: atm_bromo   = 3.4_rp     ! atmosphere bromophorme concentration
                                            ! For now use 3.4ppt from Hense and Quack (2009; Biogeosciences) NEED TO
                                            ! BE UPDATED WITH Ziska et al. (2013) climatology database
@@ -348,8 +348,8 @@ module mo_param_bgc
   real(rp), protected :: drempoc         = 0.025_rp    ! 1/d Aerob remineralization rate detritus
   real(rp), protected :: drempoc_anaerob = 1.25e-3_rp  ! =0.05*drempoc - remin in sub-/anoxic environm. - not be overwritten by M4AGO
   real(rp), protected :: bkox_drempoc    = 1.e-5_rp    ! half-saturation constant for oxygen for ammonification (aerobic remin via drempoc)
-  real(rp), protected :: dremopal        = 0.003_rp    ! 1/d Dissolution rate for opal
-  real(rp), protected :: dremcalc        = 0.018_rp    ! 1/d Dissolution rate for CaCO3 (applied if Omega_c < 1)
+  real(rp), protected :: dremopal        = 0.008_rp    ! 1/d Dissolution rate for opal
+  real(rp), protected :: dremcalc        = 0.0045_rp   ! 1/d Dissolution rate for CaCO3 (applied if Omega_c < 1)
   real(rp), protected :: dremn2o         = 0.01_rp     ! 1/d Remineralization rate of detritus on N2O
   real(rp), protected :: dremsul         = 0.005_rp    ! 1/d Remineralization rate for sulphate reduction
   real(rp), protected :: POM_remin_q10   = 2.1_rp      ! Bidle et al. 2002: Regulation of Oceanic Silicon...
@@ -390,7 +390,7 @@ module mo_param_bgc
   real(rp), protected :: NOB2AOAy      = 0.44_rp     ! Ratio of NOB versus AOA yield per energy source ~0.043/0.098 according to Zakem et al. 2022
 
   ! === Denitrification step NO3 -> NO2:
-  real(rp), protected :: rano3denit    = 0.00014_rp   ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
+  real(rp), protected :: rano3denit    = 0.0001_rp   ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
   real(rp), protected :: q10ano3denit  = 2._rp       ! Q10 factor for denitrification on NO3 (-)
   real(rp), protected :: Trefano3denit = 10._rp      ! Reference temperature for denitrification on NO3 (degr C)
   real(rp), protected :: sc_ano3denit  = 0.12e6_rp   ! Shape factor for NO3 denitrification oxygen inhibition function (m3/kmol)
@@ -496,9 +496,9 @@ module mo_param_bgc
   ! Set constants for dms scheme following Kloster et al. (2006), Table 1
   real(rp), protected :: dmsp1 = 10._rp             ! 2*5. production with temp
   real(rp), protected :: dmsp2 = 0.0011_rp
-  real(rp), protected :: dmsp3 = 0.0864_rp          ! bacterial removal, but reduced 50% to increase dms emissions
+  real(rp), protected :: dmsp3 = 0.1296_rp          ! bacterial removal
   real(rp), protected :: dmsp4 = 1.25_rp*0.10_rp    ! production with delcar, but reduced by ~7%
-  real(rp), protected :: dmsp5 = 1.25_rp*0.02_rp    ! production with delsil, but increased by a factor of ~2
+  real(rp), protected :: dmsp5 = 0.0136_rp          ! production with delsil
   real(rp), protected :: dmsp6 = 0.1e-07_rp         ! half saturation microbial
 
   ! Scaling factor for pH dependency (used if with_dmsph=.true.)
@@ -519,9 +519,10 @@ module mo_param_bgc
   real(rp), protected :: wcal_const  = 30._rp           ! m/d   Sinking speed of CaCO3 shell material
   real(rp), protected :: wopal_const = 30._rp           ! m/d   Sinking speed of opal iris : 60
   real(rp), protected :: wdust_const                    ! m/d   Sinking speed of dust
-  real(rp), protected :: wmin        =  5._rp           ! m/d   minimum sinking speed
+  real(rp), protected :: wmin        =  5.4_rp           ! m/d   minimum sinking speed
   real(rp), protected :: wmax        = 60._rp           ! m/d   maximum sinking speed
-  real(rp), protected :: wlin        = 60._rp/3120._rp  ! m/d/m constant describing incr. with depth, r/a=1.3 (r=0.025)
+! real(rp), protected :: wlin        = 60._rp/3120._rp  ! m/d/m constant describing incr. with depth, r/a=1.3 (r=0.025)
+  real(rp), protected :: wlin        = 0.0154762_rp     ! m/d/m constant describing incr. with depth, r/a=1.3 (r=0.025)
   real(rp), protected :: dustd1      = 0.0001_rp        ! cm = 1 um, boundary between clay and silt
   real(rp), protected :: dustd2                         ! dust diameter squared
   real(rp), protected :: dustd3                         ! dust diameter cubed
@@ -547,10 +548,10 @@ module mo_param_bgc
   real(rp), protected :: sed_NO3thresh_sulf   = 3.e-6_rp   ! Below sed_NO3thresh_sulf 'sufate reduction' takes place
   real(rp), protected :: sedict      = 1.e-9_rp            ! m2/s Molecular diffusion coefficient
   real(rp), protected :: silsat      = 0.001_rp            ! kmol/m3 Silicate saturation concentration is 1 mol/m3
-  real(rp), protected :: disso_poc   = 8.0e-7_rp           ! 1/(kmol O2/m3 s)      Degradation rate constant of POP
+  real(rp), protected :: disso_poc   = 3.9e-7_rp           ! 1/(kmol O2/m3 s)      Degradation rate constant of POP
 ! real(rp), protected :: disso_poc   = 0.19_rp/sec_per_day ! 1/(kmol O2/m3 s)      Degradation rate constant of POP
-  real(rp), protected :: disso_sil   = 1.3e-7_rp           ! 1/(kmol Si(OH)4/m3 s) Dissolution rate constant of opal
-  real(rp), protected :: disso_caco3 = 1.e-7_rp            ! 1/(kmol CO3--/m3 s) Dissolution rate constant of CaCO3
+  real(rp), protected :: disso_sil   = 1.0e-7_rp           ! 1/(kmol Si(OH)4/m3 s) Dissolution rate constant of opal
+  real(rp), protected :: disso_caco3 = 1.0e-7_rp           ! 1/(kmol CO3--/m3 s) Dissolution rate constant of CaCO3
   real(rp), protected :: sed_denit   = 0.01_rp/sec_per_day ! 1/s Denitrification rate constant of POP
   real(rp), protected :: sed_sulf    = 0.01_rp/sec_per_day ! 1/s "Sulfate reduction" rate constant of POP
   real(rp), protected :: sed_alpha_poc = 1._rp/90._rp         ! 1/d 1/decay time for sediment moving average - assuming ~3 month memory here
@@ -674,8 +675,8 @@ contains
       ropal  = 10.5_rp        ! opal to organic phosphorous production ratio
       calmax = 0.20_rp
     else if ((use_WLIN .eqv. .true.) .or. (use_M4AGO .eqv. .true.)) then
-      rcalc  =  8._rp         ! calcium carbonate to organic phosphorous production ratio
-      ropal  = 75._rp         ! opal to organic phosphorous production ratio
+      rcalc  =  7._rp         ! calcium carbonate to organic phosphorous production ratio
+      ropal  = 80._rp         ! opal to organic phosphorous production ratio
     else
       rcalc  = 40._rp         ! iris 40 !calcium carbonate to organic phosphorous production ratio
       ropal  = 30._rp         ! iris 25 !opal to organic phosphorous production ratio

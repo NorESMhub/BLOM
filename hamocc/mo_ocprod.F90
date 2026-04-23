@@ -66,7 +66,7 @@ contains
     use mo_kind,          only: rp
     use mo_carbch,        only: ocetra,satoxy,hi,co2star,nutlim_diag,inutlim_fe,inutlim_phosph,    &
                               & inutlim_n,zeu_nutlim_diag
-    use mo_sedmnt,        only: prcaca,produs,prorca,silpro,pror13,pror14,prca13,prca14
+    use mo_sedmnt,        only: prcaca,produs,prorca,silpro,pror13,pror14,prca13,prca14,prnatcaca
     use mo_param_bgc,     only: drempoc,drempoc_anaerob,bkox_drempoc,dremn2o,dremopal,dremsul,     &
                                 dyphy,ecan,epsher,fesoly,                                          &
                                 gammap,gammaz,grami,grazra,pi_alpha,phytomi,                       &
@@ -158,7 +158,7 @@ contains
     ! DOM
     real(rp) :: exudsl,excdocsl,bacfrasl,docremsl,bacfrasr,docremsr,bacfrar,docremr,doclimfct
     ! sedbypass
-    real(rp) :: florca,flcaca,flsil
+    real(rp) :: florca,flcaca,flsil,flnatcaca
     ! cisonew
     real(rp) :: phygrowth
     real(rp) :: phosy13,phosy14
@@ -583,7 +583,7 @@ contains
             ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+dtr
             if (.not. use_extNcycle) then
               ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)+dtr*rnit
-              ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)-2._rp*delcar-(rnit+1)*dtr
+              ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)-2._rp*delcar-(rnit+1._rp)*dtr
               ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen)-dtr*ro2ut
             else
               ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3) - (1._rp-nh4uptfrac)*phosy*rnit
@@ -669,8 +669,14 @@ contains
             endif
             if (use_natDIC) then
               ocetra(i,j,k,inatsco212) = ocetra(i,j,k,inatsco212)-delcar+rcar*dtr
-              ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)-2._rp*delcar-(rnit+1._rp)*dtr
               ocetra(i,j,k,inatcalc) = ocetra(i,j,k,inatcalc)+delcar
+              if (use_extNcycle) then
+                ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)- nh4uptfrac*phosy*(rnit-1._rp) &  ! NH4 + PO4 Uptake
+                                    &                   + (1._rp-nh4uptfrac)*phosy*(rnit+1._rp)    &  ! NO3 + PO4 Uptake
+                                    &                   + (dtr+phosy)*(rnit-1._rp) - 2._rp*delcar     ! Remin to (NH4 + PO4) and CaCO3 formation
+              else
+                ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)-2._rp*delcar-(rnit+1._rp)*dtr
+              endif
             endif
             if (lkwrbioz_off) then
                   opalrem = 0._rp
@@ -968,7 +974,7 @@ contains
 
             if (.not. use_extNcycle) then
               ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)+remin*rnit
-              ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)-(rnit+1)*remin
+              ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)-(rnit+1._rp)*remin
               ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen)-ro2ut*remin
             else
               ocetra(i,j,k,ianh4) = ocetra(i,j,k,ianh4) + remin*rnit
@@ -1006,7 +1012,11 @@ contains
                  &             -relaxfe*max(ocetra(i,j,k,iiron)-fesoly,0._rp)
             if (use_natDIC) then
               ocetra(i,j,k,inatsco212) = ocetra(i,j,k,inatsco212)+rcar*remin
-              ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)-(rnit+1._rp)*remin
+              if (use_extNcycle) then
+                ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)+(rnit-1._rp)*remin
+              else
+                ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)-(rnit+1._rp)*remin
+              endif
             endif
             if (use_cisonew) then
               ocetra(i,j,k,idet13) = ocetra(i,j,k,idet13)-pocrem13+sterph13+sterzo13
@@ -1663,6 +1673,9 @@ contains
               prca13(i,j) = ocetra(i,j,kdonor,icalc13)*wcal
               prca14(i,j) = ocetra(i,j,kdonor,icalc14)*wcal
             endif
+            if (use_natDIC) then
+              prnatcaca(i,j) = ocetra(i,j,kdonor,inatcalc)*wcal
+            endif
           else
             prorca(i,j) = ocetra(i,j,kdonor,idet  )*wpoc
             prcaca(i,j) = ocetra(i,j,kdonor,icalc )*wcal
@@ -1673,6 +1686,9 @@ contains
               prca13(i,j) = ocetra(i,j,kdonor,icalc13)*wcal
               pror14(i,j) = ocetra(i,j,kdonor,idet14 )*wpoc
               prca14(i,j) = ocetra(i,j,kdonor,icalc14)*wcal
+            endif
+            if (use_natDIC) then
+              prnatcaca(i,j) = ocetra(i,j,kdonor,inatcalc)*wcal
             endif
           endif
 
@@ -1879,7 +1895,7 @@ contains
       ! over the water column. Detritus is kept as detritus, while opal and CaCO3
       ! are remineralised instantanously
 
-      !$OMP PARALLEL DO PRIVATE(dz,florca,flcaca,flsil,flor13,flor14,flca13,flca14,i,k) ORDERED
+      !$OMP PARALLEL DO PRIVATE(dz,florca,flcaca,flnatcaca,flsil,flor13,flor14,flca13,flca14,i,k) ORDERED
       do j=1,kpje
         do i = 1,kpie
           if(omask(i,j) > 0.5_rp) then
@@ -1908,6 +1924,9 @@ contains
               prca13(i,j) = 0._rp
               prca14(i,j) = 0._rp
             endif
+            if (use_natDIC) then
+              flnatcaca = prnatcaca(i,j)/dz
+            endif
 
             do k = 1,kpke
               if( pddpo(i,j,k) <= dp_min ) cycle
@@ -1921,6 +1940,10 @@ contains
                 ocetra(i,j,k,idet14)  = ocetra(i,j,k,idet14)+flor14
                 ocetra(i,j,k,isco213) = ocetra(i,j,k,isco213)+flca13
                 ocetra(i,j,k,isco214) = ocetra(i,j,k,isco214)+flca14
+              endif
+              if (use_natDIC) then
+                ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)+2._rp*flnatcaca
+                ocetra(i,j,k,inatsco212) = ocetra(i,j,k,inatsco212)+flnatcaca
               endif
             enddo ! k=1,kpke
 

@@ -70,7 +70,7 @@ contains
     integer,  parameter :: nread_ciso = 2 ! Number of fields to read
     integer,  parameter :: nread_dom  = 4 ! Number of fields to read
     integer,  parameter :: nread_pdom = 4 ! Number of fields to read
-    integer,  parameter :: maxflds    = nread_base+nread_ndic+nread_ciso+nread_dom
+    integer,  parameter :: maxflds    = nread_base+nread_ndic+nread_ciso+nread_dom+nread_pdom
     integer             :: nflds, no
     integer             :: ifld(maxflds)
     character(len=3)    :: vname(maxflds)

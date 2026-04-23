@@ -50,8 +50,9 @@ module mo_extNwatercol
   use mod_xc,         only: mnproc
   use mo_kind,        only: rp
   use mo_param1_bgc,  only: ialkali,ianh4,iano2,ian2o,iano3,idet,igasnit,iiron,ioxygen,iphosph,    &
-                          & isco212
+                          & isco212,inatsco212,inatalkali
   use mo_carbch,      only: ocetra
+  use mo_control_bgc, only: use_natDIC
   use mo_param_bgc,   only: riron,rnit,rcar,rnoi,                                                  &
                           & q10ano3denit,sc_ano3denit,Trefano3denit,rano3denit,bkano3denit,        &
                           & rano2anmx,q10anmx,Trefanmx,alphaanmx,bkoxanmx,bkano2anmx,bkanh4anmx,   &
@@ -191,7 +192,11 @@ contains
                                   &                       - (0.5_rp - ro2nnit*fdetnitr)*nitr
             ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - (2._rp*fno2 + fn2o + rnm1*rnoi*fdetamox)*amox&
                                   &                       - rnm1*rnoi*fdetnitr*nitr
-
+            if (use_natDIC) then
+              ocetra(i,j,k,inatsco212) = ocetra(i,j,k,inatsco212) - rc2n*(fdetamox*amox + fdetnitr*nitr)
+              ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali) - (2._rp*fno2 + fn2o + rnm1*rnoi*fdetamox)*amox&
+                                  &                               - rnm1*rnoi*fdetnitr*nitr
+            endif
             ! Output
             nitr_NH4(i,j,k)       = amox               ! kmol N/m3/dtb   - NH4 consumption for nitrification on NH4-incl. usage for biomass
             nitr_NO2(i,j,k)       = nitr               ! kmol N/m3/dtb   - NO2 consumption for nitrification on NO2
@@ -244,6 +249,11 @@ contains
             ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + ano3denit*rnoxpi
             ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + ano3denit*riron*rnoxpi
             ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + ano3denit*rnm1*rnoxpi
+
+            if (use_natDIC) then
+              ocetra(i,j,k,inatsco212) = ocetra(i,j,k,inatsco212) + ano3denit*rcar*rnoxpi
+              ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali) + ano3denit*rnm1*rnoxpi
+            endif
 
             ! Output
             denit_NO3(i,j,k) = ano3denit ! kmol NO3/m3/dtb   - NO3 usage for denit on NO3
@@ -301,6 +311,11 @@ contains
             ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) - ano2anmx*rno2anmxi
             ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   - ano2anmx*riron*rno2anmxi
             ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - ano2anmx*rnm1*rno2anmxi
+
+            if (use_natDIC) then
+              ocetra(i,j,k,inatsco212) = ocetra(i,j,k,inatsco212) - ano2anmx*rcar*rno2anmxi
+              ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali) - ano2anmx*rnm1*rno2anmxi
+            endif
 
             ! Output
             anmx_N2_prod(i,j,k) = ano2anmx*(rnh4anmx-rnit)*rno2anmxi  ! kmol N2/m3/dtb - N2 prod through anammox
@@ -412,6 +427,14 @@ contains
                                   &                       + riron*rno2dnrai*ano2dnra
             ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + (295._rp*ano2denit + rnm1*an2odenit)*rnoxpi &
                                  &                        + (rno2dnra + rnh4dnra - 1._rp)*rno2dnrai*ano2dnra
+
+            if (use_natDIC) then
+              ocetra(i,j,k,inatsco212) = ocetra(i,j,k,inatsco212) + rcar*rnoxpi*(ano2denit + an2odenit) &
+                                       &                          + rcar*rno2dnrai*ano2dnra
+              ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali) + (295._rp*ano2denit + rnm1*an2odenit)*rnoxpi &
+                                       &                          + (rno2dnra + rnh4dnra - 1._rp)*rno2dnrai*ano2dnra
+            endif
+
             ! Output
             denit_NO2(i,j,k) = ano2denit ! kmol NO2/m3/dtb - denitrification on NO2
             denit_N2O(i,j,k) = an2odenit ! kmol N2O/m3/dtb - denitrification on N2O

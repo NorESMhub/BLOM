@@ -73,6 +73,7 @@ module mo_control_bgc
   character(len=64) :: ocn_co2_type                     ! indicates co2 coupling to an active atm
                                                         ! model if set to 'diagnostic'
                                                         ! or 'prognostic'
+                                                        ! otherwise 'constant' refers to atm_co2 set via namelist
   logical           :: linit_DOMclasses_sim   = .true.  ! if true, DOM classes are initialized from former simulation, else from scratch
 
   ! Logical switches set via namelist config_bgc
