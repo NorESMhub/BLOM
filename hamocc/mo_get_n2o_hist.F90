@@ -37,7 +37,7 @@ contains
 
     ! Local variables
     integer, parameter   :: start_yr = 1750   ! first year of data
-    integer, parameter   :: nyears   = 266    ! nb of years in data
+    integer, parameter   :: nyears   = 275    ! nb of years in data
     real(rp)             :: atm_n2o_conc(nyears)
     integer, save        :: kplyear_old = 0
 
@@ -45,6 +45,15 @@ contains
     ! Meinshausen et al. 2017: Historical greenhouse gas concentrations for climate modelling (CMIP6)
     ! generated from shared LBC_1750-2015_CMIP6_GlobAnnAvg_c180926.nc file.
     ! First (last) data represents year 1750.5 (2015.5), units are [ppt]
+    !
+    ! For extending the historical data by NOAA GML DATA, we remove the last entry (for 2015.5) and
+    ! start with NOAA data in the year 2015.5 until 2024.5
+    ! (NOAA File Creation: Thu Mar  5 09:58:28 2026, https://gml.noaa.gov/ccgg/trends_n2o/)
+    !
+    ! Citation for NOAA data:
+    ! Lan, X., K.W. Thoning, and E.J. Dlugokencky: Trends in globally-averaged CH4, N2O, and SF6
+    !        determined from NOAA Global Monitoring Laboratory measurements.
+    !        Version 2026-03, https://doi.org/10.15138/P8XG-AA10
 
     data atm_n2o_conc /                                                                            &
               273864.96875_rp, 273894.06250_rp, 273927.09375_rp, 273972.81250_rp, 274016.18750_rp, &
@@ -100,7 +109,9 @@ contains
               315759.18750_rp, 316493.00000_rp, 317100.81250_rp, 317729.90625_rp, 318357.00000_rp, &
               319130.03125_rp, 319933.15625_rp, 320645.96875_rp, 321574.84375_rp, 322274.96875_rp, &
               323141.00000_rp, 324159.12500_rp, 325004.78125_rp, 325918.87500_rp, 326987.93750_rp, &
-              326987.93750_rp /
+              ! NOAA data 2015.5 - 2024.5
+              328170._rp,      328950._rp,      329740._rp,      330900._rp,      331880._rp,      &
+              333010._rp,      334270._rp,      335620._rp,      336680._rp,      337710._rp /
 
     if (do_n2o_hist) then
       if ((kplyear >= start_yr) .and. (kplyear < (start_yr + nyears))) then
