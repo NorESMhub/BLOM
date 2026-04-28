@@ -1604,7 +1604,7 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>2.0</value>
+      <value>2.5</value>
     </values>
     <desc>Parameter c in Eden and Greatbatch (2008) parameterization</desc>
   </entry>
@@ -1656,7 +1656,7 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>.8</value>
+      <value>1.25</value>
     </values>
     <desc>Factor relating the isopycnal diffusivity to the layer</desc>
   </entry>
@@ -1858,7 +1858,7 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>.false.</value>
+      <value>.true.</value>
     </values>
     <desc>If true, layers constructed for diffusive flux computations are gradually aligned with the surface within the mixed layer</desc>
   </entry>
