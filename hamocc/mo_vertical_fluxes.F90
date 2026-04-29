@@ -31,7 +31,7 @@ contains
     ! Select sinking velocity for particulate tracers
     !
     use mo_kind,         only: rp
-    use mo_biomod,       only: wmass,wnumb
+    use mo_biomod,       only: wmass
     use mo_param_bgc,    only: wmin,wmax,wlin,wcal_const,wdust_const,wopal_const,wpoc_const,dustsink
     use mo_vgrid,        only: ptiestu
     use mo_control_bgc,  only: use_AGG,use_WLIN,use_M4AGO
@@ -73,8 +73,7 @@ contains
     use mod_xc,           only: mnproc
     use mo_kind,          only: rp
     use mo_carbch,        only: ocetra
-    use mo_param_bgc,     only: rcar,wmin,wmax,wlin,wcal_const,wdust_const,wopal_const,wpoc_const, &
-                                dustsink
+    use mo_param_bgc,     only: rcar,wmin
     use mo_param1_bgc,    only: idet,icalc,iopal,ifdust,iphy,inos,iadust,idet13,idet14,icalc13,    &
                                 icalc14,isco212,isco213,isco214,ialkali,inatalkali,inatsco212,     &
                                 isilica,iphy13,iphy14,inatcalc
@@ -86,8 +85,7 @@ contains
                                 calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot, &
                                 carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,carflx_bot, &
                                 dustflx0100,dustflx0500,dustflx1000,dustflx2000,dustflx4000,       &
-                                dustflx_bot,wmass,wnumb
-    use mo_inventory_bgc, only: inventory_bgc
+                                dustflx_bot
     use mo_ihamocc4m4ago, only: ws_agg
 
     ! Arguments
@@ -115,6 +113,30 @@ contains
     real(rp) :: aggregate(kpie,kpje,kpke)
     real(rp) :: dustagg(kpie,kpje,kpke)
 
+    carflx0100 (:,:) = 0._rp
+    carflx0500 (:,:) = 0._rp
+    carflx1000 (:,:) = 0._rp
+    carflx2000 (:,:) = 0._rp
+    carflx4000 (:,:) = 0._rp
+    carflx_bot (:,:) = 0._rp
+    bsiflx0100 (:,:) = 0._rp
+    bsiflx0500 (:,:) = 0._rp
+    bsiflx1000 (:,:) = 0._rp
+    bsiflx2000 (:,:) = 0._rp
+    bsiflx4000 (:,:) = 0._rp
+    bsiflx_bot (:,:) = 0._rp
+    calflx0100 (:,:) = 0._rp
+    calflx0500 (:,:) = 0._rp
+    calflx1000 (:,:) = 0._rp
+    calflx2000 (:,:) = 0._rp
+    calflx4000 (:,:) = 0._rp
+    calflx_bot (:,:) = 0._rp
+    dustflx0100(:,:) = 0._rp
+    dustflx0500(:,:) = 0._rp
+    dustflx1000(:,:) = 0._rp
+    dustflx2000(:,:) = 0._rp
+    dustflx4000(:,:) = 0._rp
+    dustflx_bot(:,:) = 0._rp
 
     ! implicit method for sinking of particles:
     ! C(k,T+dt)=C(k,T) + (w*dt/ddpo(k))*(C(k-1,T+1)-C(k,T+1))

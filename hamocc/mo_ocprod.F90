@@ -66,18 +66,16 @@ contains
     use mo_kind,          only: rp
     use mo_carbch,        only: ocetra,satoxy,hi,co2star,nutlim_diag,inutlim_fe,inutlim_phosph,    &
                               & inutlim_n,zeu_nutlim_diag
-    use mo_sedmnt,        only: prcaca,produs,prorca,silpro,pror13,pror14,prca13,prca14,prnatcaca
     use mo_param_bgc,     only: drempoc,drempoc_anaerob,bkox_drempoc,dremn2o,dremopal,dremsul,     &
                                 dyphy,ecan,epsher,fesoly,                                          &
                                 gammap,gammaz,grami,grazra,pi_alpha,phytomi,                       &
                                 rcalc,rcar,rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,                     &
                                 relaxfe,remido,riron,rnit,rnoi,ro2ut,ropal,                        &
-                                spemor,wcal_const,wdust_const,wopal_const,wpoc_const,              &
-                                zinges,alar1,alar2,alar3,                                          &
+                                spemor,zinges,alar1,alar2,alar3,                                   &
                                 alow1,alow2,alow3,calmax,cellmass,                                 &
                                 cellsink,dustd1,dustd2,dustd3,dustsink,fractdim,                   &
                                 fse,fsh,nmldmin,plower,pupper,sinkexp,stick,tmfac,                 &
-                                tsfac,vsmall,zdis,wmin,wmax,wlin,rbro,                             &
+                                tsfac,vsmall,zdis,rbro,                                            &
                                 dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma,                     &
                                 fbro1,fbro2,atten_f,atten_c,atten_uv,atten_w,bkopal,bkphy,bkzoo,   &
                                 gammapsl,gammazsl,alphasl,alphasr,                                 &
@@ -87,12 +85,7 @@ contains
                                 rcar_tdoclc,rcar_tdochc,rnit_tdoclc,rnit_tdochc,ro2ut_tdoclc,      &
                                 ro2ut_tdochc,ro2utammo_tdoclc,ro2utammo_tdochc,rem_tdoclc,         &
                                 rem_tdochc,docl_remin,docsl_remin,docsr_remin,docr_remin
-    use mo_biomod,        only: bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,bsiflx_bot, &
-                                calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot, &
-                                carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,carflx_bot, &
-                                dustflx0100,dustflx0500,dustflx1000,dustflx2000,dustflx4000,       &
-                                dustflx_bot,                                                       &
-                                expoor,exposi,expoca,intdnit,intdms_bac,intdmsprod,intdms_uv,      &
+    use mo_biomod,        only: expoor,exposi,expoca,intdnit,intdms_bac,intdmsprod,intdms_uv,      &
                                 intphosy,int_chbr3_prod,int_chbr3_uv,                              &
                                 int_exudl,int_exudsl,int_excrl,int_excrsl,                         &
                                 int_docl_rem,int_docsl_rem,int_docsr_rem,int_docr_rem,             &
@@ -110,11 +103,11 @@ contains
                                 use_AGG,use_cisonew,use_natDIC, use_WLIN,use_sedbypass,use_M4AGO,  &
                                 use_extNcycle,lkwrbioz_off,lTO2depremin,use_river2omip,            &
                                 use_DOMclasses
-    use mo_vgrid,         only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000,kwrbioz,ptiestu
+    use mo_vgrid,         only: dp_min,kwrbioz
     use mo_vgrid,         only: kmle
     use mo_clim_swa,      only: swa_clim
     use mo_inventory_bgc, only: inventory_bgc
-    use mo_ihamocc4m4ago, only: ihamocc_mean_aggregate_sinking_speed,ws_agg
+    use mo_ihamocc4m4ago, only: ihamocc_mean_aggregate_sinking_speed
     use mo_extNwatercol,  only: nitrification,denit_NO3_to_NO2,anammox,denit_dnra,extN_inv_check
     use mo_chemcon,       only: tzero
 
@@ -135,11 +128,8 @@ contains
     real(rp),intent(in) :: prho(kpie,kpje,kpke)                         ! density [g/cm^3].
 
     ! Local variables
-    integer, parameter :: nsinkmax = 12
     integer :: i,j,k,l
-    integer :: is,kdonor
     real(rp) :: abs_bgc(kpie,kpje,kpke)
-    real(rp) :: tco(nsinkmax),tcn(nsinkmax),q(nsinkmax)
     real(rp) :: atten,avphy,avanut,avanfe,pho,xa,xn,ya,yn,phosy
     real(rp) :: avgra,grazing,avsil,avdic,graton
     real(rp) :: gratpoc,grawa,bacfra,phymor,zoomor,excdoc,exud
@@ -150,15 +140,11 @@ contains
     real(rp) :: absorption,absorption_uv
     real(rp) :: dmsprod,dms_bac,dms_uv,dms_ph
     real(rp) :: dtr,dz
-    real(rp) :: wpocd,wcald,wopald,wdustd,dagg
-    real(rp) :: wcal,wdust,wopal,wpoc
     real(rp) :: o2lim ! O2 limitation of ammonification (POC remin)
     real(rp) :: tiny_val = epsilon(1._rp)
     real(rp) :: zeu
     ! DOM
     real(rp) :: exudsl,excdocsl,bacfrasl,docremsl,bacfrasr,docremsr,bacfrar,docremr,doclimfct
-    ! sedbypass
-    real(rp) :: florca,flcaca,flsil,flnatcaca
     ! cisonew
     real(rp) :: phygrowth
     real(rp) :: phosy13,phosy14
@@ -186,8 +172,6 @@ contains
     real(rp) :: rco213,rco214,rdoc13,rdoc14,rdet13,rdet14
     real(rp) :: rtdoclc13,rtdochc13,rtdoclc14,rtdochc14
     real(rp) :: rphy13,rphy14,rzoo13,rzoo14
-    ! sedbypass
-    real(rp) :: flor13,flor14,flca13,flca14
     ! AGG
     real(rp) :: aggregate(kpie,kpje,kpke)
     real(rp) :: dustagg(kpie,kpje,kpke)
@@ -195,7 +179,6 @@ contains
     real(rp) :: zmornos, eps, e1,e2,e3,e4,es1,es3
     real(rp) :: TopM,TopF, snow,fshear,sagg1,sagg2,sagg4
     real(rp) :: sett_agg,shear_agg,effsti,dfirst,dshagg,dsett
-    real(rp) :: wnos,wnosd
     ! BROMO
     real(rp) :: bro_beta,bro_uv
     real(rp) :: abs_uv(kpie,kpje,kpke)
@@ -207,30 +190,6 @@ contains
     expoor     (:,:) = 0._rp
     expoca     (:,:) = 0._rp
     exposi     (:,:) = 0._rp
-    carflx0100 (:,:) = 0._rp
-    carflx0500 (:,:) = 0._rp
-    carflx1000 (:,:) = 0._rp
-    carflx2000 (:,:) = 0._rp
-    carflx4000 (:,:) = 0._rp
-    carflx_bot (:,:) = 0._rp
-    bsiflx0100 (:,:) = 0._rp
-    bsiflx0500 (:,:) = 0._rp
-    bsiflx1000 (:,:) = 0._rp
-    bsiflx2000 (:,:) = 0._rp
-    bsiflx4000 (:,:) = 0._rp
-    bsiflx_bot (:,:) = 0._rp
-    calflx0100 (:,:) = 0._rp
-    calflx0500 (:,:) = 0._rp
-    calflx1000 (:,:) = 0._rp
-    calflx2000 (:,:) = 0._rp
-    calflx4000 (:,:) = 0._rp
-    calflx_bot (:,:) = 0._rp
-    dustflx0100(:,:) = 0._rp
-    dustflx0500(:,:) = 0._rp
-    dustflx1000(:,:) = 0._rp
-    dustflx2000(:,:) = 0._rp
-    dustflx4000(:,:) = 0._rp
-    dustflx_bot(:,:) = 0._rp
     intdnit    (:,:) = 0._rp
     intphosy   (:,:) = 0._rp
     intdmsprod (:,:) = 0._rp
