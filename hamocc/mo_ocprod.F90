@@ -1425,6 +1425,7 @@ contains
 
     endif ! use_AGG
 
+IF (.false.) THEN ! TO BE DELETED
     !
     ! implicit method for sinking of particles:
     ! C(k,T+dt)=C(k,T) + (w*dt/ddpo(k))*(C(k-1,T+1)-C(k,T+1))
@@ -1960,7 +1961,7 @@ contains
       endif
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
-
+ENDIF
   end subroutine ocprod
 
 end module mo_ocprod
