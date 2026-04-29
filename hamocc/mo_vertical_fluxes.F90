@@ -26,6 +26,46 @@ module mo_vertical_fluxes
 
 contains
 
+  subroutine get_ws(i,j,k,wpoc,wcal,wopal,wdust)
+    !***********************************************************************************************
+    ! Select sinking velocity for particulate tracers
+    !
+    use mo_kind,         only: rp
+    use mo_biomod,       only: wmass,wnumb
+    use mo_param_bgc,    only: wmin,wmax,wlin,wcal_const,wdust_const,wopal_const,wpoc_const,dustsink
+    use mo_vgrid,        only: ptiestu
+    use mo_control_bgc,  only: use_AGG,use_WLIN,use_M4AGO
+    use mo_ihamocc4m4ago,only: ws_agg
+
+    ! Arguments
+    integer, intent(in)    :: i,j,k                 ! indices for spatial domain to be used
+    real(rp),intent(inout) :: wpoc,wcal,wopal,wdust ! sinking velocities of particulates
+
+    if (use_AGG) then
+       wpoc  = wmass(i,j,k)
+       wcal  = wmass(i,j,k)
+       wopal = wmass(i,j,k)
+       wdust = dustsink
+    else if (use_WLIN) then
+       wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
+       wcal  = wcal_const
+       wopal = wopal_const
+       wdust = wdust_const
+    else if (use_M4AGO) then
+       wpoc   = ws_agg(i,j,k)
+       wcal   = ws_agg(i,j,k)
+       wopal  = ws_agg(i,j,k)
+       wdust  = ws_agg(i,j,k)
+    else
+       wpoc   = wpoc_const
+       wcal   = wcal_const
+       wopal  = wopal_const
+       wdust  = wdust_const
+    endif
+
+  end subroutine get_ws
+
+
   subroutine sinking(kpie,kpje,kpke,pddpo,omask)
     !***********************************************************************************************
     ! Particulates sinking and sedimentation
@@ -58,8 +98,8 @@ contains
     real(rp),intent(in) :: omask(kpie,kpje)                             ! land/ocean mask (1=ocean)
 
     integer, parameter :: nsinkmax = 12
-    integer :: i,j,k
-    integer :: is,kdonor
+    integer  :: i,j,k
+    integer  :: is,kdonor
     real(rp) :: dz
     real(rp) :: tco(nsinkmax),tcn(nsinkmax),q(nsinkmax)
     real(rp) :: wpoc, wcal, wopal, wdust
@@ -71,12 +111,9 @@ contains
     real(rp) :: flor13,flor14,flca13,flca14
 
 
-
     ! NEEDS TO BE MADE MORE GLOBAL:
     real(rp) :: aggregate(kpie,kpje,kpke)
     real(rp) :: dustagg(kpie,kpje,kpke)
-
-
 
 
     ! implicit method for sinking of particles:
@@ -120,49 +157,12 @@ contains
             endif
 
             if(pddpo(i,j,k) > dp_min_sink) then
-
+              call get_ws(i,j,k,     wpoc, wcal, wopal, wdust)
+              call get_ws(i,j,kdonor,wpocd,wcald,wopald,wdustd)
               if (use_AGG) then
-                wpoc   = wmass(i,j,k)
-                wpocd  = wmass(i,j,kdonor)
-                wcal   = wmass(i,j,k)
-                wcald  = wmass(i,j,kdonor)
-                wopal  = wmass(i,j,k)
-                wopald = wmass(i,j,kdonor)
-                wnos   = wnumb(i,j,k)
-                wnosd  = wnumb(i,j,kdonor)
-                wdust  = dustsink
-                wdustd = dustsink
                 dagg   = dustagg(i,j,k)
-              else if (use_WLIN) then
-                wpoc   = min(wmin+wlin*ptiestu(i,j,k),     wmax)
-                wpocd  = min(wmin+wlin*ptiestu(i,j,kdonor),wmax)
-                wcal   = wcal_const
-                wcald  = wcal_const
-                wopal  = wopal_const
-                wopald = wopal_const
-                wdust  = wdust_const
-                wdustd = wdust_const
-                dagg   = 0.0_rp
-              else if (use_M4AGO) then
-                wpoc   = ws_agg(i,j,k)
-                wpocd  = ws_agg(i,j,kdonor)
-                wcal   = ws_agg(i,j,k)
-                wcald  = ws_agg(i,j,kdonor)
-                wopal  = ws_agg(i,j,k)
-                wopald = ws_agg(i,j,kdonor)
-                wdust  = ws_agg(i,j,k)
-                wdustd = ws_agg(i,j,kdonor)
-                dagg   = 0.0_rp
               else
-                wpoc   = wpoc_const
-                wpocd  = wpoc_const
-                wcal   = wcal_const
-                wcald  = wcal_const
-                wopal  = wopal_const
-                wopald = wopal_const
-                wdust  = wdust_const
-                wdustd = wdust_const
-                dagg   = 0.0_rp
+                dagg   = 0._rp
               endif
 
               if( k == 1 ) then
@@ -364,25 +364,7 @@ contains
           ! 100 m
           k = k0100(i,j)
           if(k > 0) then
-            if (use_AGG) then
-              wpoc  = wmass(i,j,k)
-              wcal  = wmass(i,j,k)
-              wopal = wmass(i,j,k)
-              wdust = dustsink
-            else if (use_WLIN) then
-              wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
-              wdust = wdust_const
-            else if (use_M4AGO) then
-              wpoc   = ws_agg(i,j,k)
-              wcal   = ws_agg(i,j,k)
-              wopal  = ws_agg(i,j,k)
-              wdust  = ws_agg(i,j,k)
-            else
-              wpoc   = wpoc_const
-              wcal   = wcal_const
-              wopal  = wopal_const
-              wdust  = wdust_const
-            endif
+            call get_ws(i,j,k,wpoc,wcal,wopal,wdust)
 
             if (use_AGG) then
               carflx0100(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
@@ -398,25 +380,7 @@ contains
           ! 500 m
           k = k0500(i,j)
           if(k > 0) then
-            if (use_AGG) then
-              wpoc  = wmass(i,j,k)
-              wcal  = wmass(i,j,k)
-              wopal = wmass(i,j,k)
-              wdust = dustsink
-            else if (use_WLIN) then
-              wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
-              wdust = wdust_const
-            else if (use_M4AGO) then
-              wpoc   = ws_agg(i,j,k)
-              wcal   = ws_agg(i,j,k)
-              wopal  = ws_agg(i,j,k)
-              wdust  = ws_agg(i,j,k)
-            else
-              wpoc   = wpoc_const
-              wcal   = wcal_const
-              wopal  = wopal_const
-              wdust  = wdust_const
-            endif
+            call get_ws(i,j,k,wpoc,wcal,wopal,wdust)
 
             if (use_AGG) then
               carflx0500(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
@@ -432,25 +396,7 @@ contains
           ! 1000 m
           k = k1000(i,j)
           if(k > 0) then
-            if (use_AGG) then
-              wpoc  = wmass(i,j,k)
-              wcal  = wmass(i,j,k)
-              wopal = wmass(i,j,k)
-              wdust = dustsink
-            else if (use_WLIN) then
-              wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
-              wdust = wdust_const
-            else if (use_M4AGO) then
-              wpoc   = ws_agg(i,j,k)
-              wcal   = ws_agg(i,j,k)
-              wopal  = ws_agg(i,j,k)
-              wdust  = ws_agg(i,j,k)
-            else
-              wpoc   = wpoc_const
-              wcal   = wcal_const
-              wopal  = wopal_const
-              wdust  = wdust_const
-            endif
+            call get_ws(i,j,k,wpoc,wcal,wopal,wdust)
 
             if (use_AGG) then
               carflx1000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
@@ -466,25 +412,7 @@ contains
           ! 2000 m
           k = k2000(i,j)
           if(k > 0) then
-            if (use_AGG) then
-              wpoc  = wmass(i,j,k)
-              wcal  = wmass(i,j,k)
-              wopal = wmass(i,j,k)
-              wdust = dustsink
-            else if (use_WLIN) then
-              wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
-              wdust = wdust_const
-            else if (use_M4AGO) then
-              wpoc   = ws_agg(i,j,k)
-              wcal   = ws_agg(i,j,k)
-              wopal  = ws_agg(i,j,k)
-              wdust  = ws_agg(i,j,k)
-            else
-              wpoc   = wpoc_const
-              wcal   = wcal_const
-              wopal  = wopal_const
-              wdust  = wdust_const
-            endif
+            call get_ws(i,j,k,wpoc,wcal,wopal,wdust)
 
             if (use_AGG) then
               carflx2000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
@@ -500,25 +428,7 @@ contains
           ! 4000 m
           k = k4000(i,j)
           if(k > 0) then
-            if (use_AGG) then
-              wpoc  = wmass(i,j,k)
-              wcal  = wmass(i,j,k)
-              wopal = wmass(i,j,k)
-              wdust = dustsink
-            else if (use_WLIN) then
-              wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
-              wdust = wdust_const
-            else if (use_M4AGO) then
-              wpoc   = ws_agg(i,j,k)
-              wcal   = ws_agg(i,j,k)
-              wopal  = ws_agg(i,j,k)
-              wdust  = ws_agg(i,j,k)
-            else
-              wpoc   = wpoc_const
-              wcal   = wcal_const
-              wopal  = wopal_const
-              wdust  = wdust_const
-            endif
+            call get_ws(i,j,k,wpoc,wcal,wopal,wdust)
 
             if (use_AGG) then
               carflx4000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
