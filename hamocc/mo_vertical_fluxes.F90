@@ -70,7 +70,6 @@ contains
     !***********************************************************************************************
     ! Particulates sinking and sedimentation
     !
-    use mod_xc,           only: mnproc
     use mo_kind,          only: rp
     use mo_carbch,        only: ocetra
     use mo_param_bgc,     only: rcar,wmin
@@ -78,41 +77,38 @@ contains
                                 icalc14,isco212,isco213,isco214,ialkali,inatalkali,inatsco212,     &
                                 isilica,iphy13,iphy14,inatcalc
     use mo_control_bgc,   only: use_sedbypass,use_AGG,use_WLIN,use_M4AGO,use_natDIC,use_cisonew,   &
-                                io_stdo_bgc,use_PBGC_OCNP_TIMESTEP
+                                use_PBGC_OCNP_TIMESTEP
     use mo_sedmnt,        only: prcaca,produs,prorca,silpro,pror13,pror14,prca13,prca14,prnatcaca
-    use mo_vgrid,         only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000,ptiestu
+    use mo_vgrid,         only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000
     use mo_biomod,        only: bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,bsiflx_bot, &
                                 calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot, &
                                 carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,carflx_bot, &
                                 dustflx0100,dustflx0500,dustflx1000,dustflx2000,dustflx4000,       &
-                                dustflx_bot
+                                dustflx_bot,aggregate,dustagg
     use mo_ihamocc4m4ago, only: ws_agg
 
     ! Arguments
-    integer, intent(in) :: kpie                                         ! 1st dimension of model grid.
-    integer, intent(in) :: kpje                                         ! 2nd dimension of model grid.
-    integer, intent(in) :: kpke                                         ! 3rd (vertical) dimension of model grid.
-    real(rp),intent(in) :: pddpo(kpie,kpje,kpke)                        ! size of grid cell (3rd dimension) [m].
-    real(rp),intent(in) :: omask(kpie,kpje)                             ! land/ocean mask (1=ocean)
+    integer, intent(in) :: kpie                         ! 1st dimension of model grid.
+    integer, intent(in) :: kpje                         ! 2nd dimension of model grid.
+    integer, intent(in) :: kpke                         ! 3rd (vertical) dimension of model grid.
+    real(rp),intent(in) :: pddpo(kpie,kpje,kpke)        ! size of grid cell (3rd dimension) [m].
+    real(rp),intent(in) :: omask(kpie,kpje)             ! land/ocean mask (1=ocean)
 
-    integer, parameter :: nsinkmax = 12
+    ! Local parameters and variables
+    integer, parameter :: nsinkmax = 12                 ! maximum number of sinking tracers
     integer  :: i,j,k
     integer  :: is,kdonor
     real(rp) :: dz
     real(rp) :: tco(nsinkmax),tcn(nsinkmax),q(nsinkmax)
     real(rp) :: wpoc, wcal, wopal, wdust
-    real(rp) :: wpocd,wcald,wopald,wdustd,dagg
-    real(rp) :: wnos,wnosd
-
+    real(rp) :: wpocd,wcald,wopald,wdustd
+    ! use_AGG
+    real(rp) :: wnos,wnosd,dagg
     ! sedbypass
     real(rp) :: florca,flcaca,flsil,flnatcaca
     real(rp) :: flor13,flor14,flca13,flca14
 
-
-    ! NEEDS TO BE MADE MORE GLOBAL:
-    real(rp) :: aggregate(kpie,kpje,kpke)
-    real(rp) :: dustagg(kpie,kpje,kpke)
-
+    ! Set output fields to zero
     carflx0100 (:,:) = 0._rp
     carflx0500 (:,:) = 0._rp
     carflx1000 (:,:) = 0._rp

@@ -90,7 +90,7 @@ contains
                                 int_exudl,int_exudsl,int_excrl,int_excrsl,                         &
                                 int_docl_rem,int_docsl_rem,int_docsr_rem,int_docr_rem,             &
                                 phosy3d,abs_oce,strahl,asize3d,wmass,wnumb,eps3d,phosy_NH4,        &
-                                phosy_NO3,remin_aerob,remin_sulf
+                                phosy_NO3,remin_aerob,remin_sulf,aggregate,dustagg
     use mo_param1_bgc,    only: ialkali,ian2o,iano3,icalc,idet,idms,idoc,ifdust,                   &
                                 itdoc_lc,itdoc_hc,itdoc_lc13,itdoc_hc13,itdoc_lc14,itdoc_hc14,     &
                                 igasnit,iiron,iopal,ioxygen,iphosph,iphy,isco212,                  &
@@ -173,8 +173,6 @@ contains
     real(rp) :: rtdoclc13,rtdochc13,rtdoclc14,rtdochc14
     real(rp) :: rphy13,rphy14,rzoo13,rzoo14
     ! AGG
-    real(rp) :: aggregate(kpie,kpje,kpke)
-    real(rp) :: dustagg(kpie,kpje,kpke)
     real(rp) :: avmass, avnos, anosloss
     real(rp) :: zmornos, eps, e1,e2,e3,e4,es1,es3
     real(rp) :: TopM,TopF, snow,fshear,sagg1,sagg2,sagg4
