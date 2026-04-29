@@ -95,6 +95,8 @@ module mo_biomod
   real(rp), dimension (:,:,:), allocatable, public  :: wnumb
   real(rp), dimension (:,:,:), allocatable, public  :: eps3d
   real(rp), dimension (:,:,:), allocatable, public  :: asize3d
+  real(rp), dimension (:,:,:), allocatable, public  :: aggregate
+  real(rp), dimension (:,:,:), allocatable, public  :: dustagg
 
   ! Variables for bromoform scheme (use_BROMO=.true.)
   real(rp), dimension (:,:),   allocatable, public  :: int_chbr3_prod
@@ -376,6 +378,28 @@ CONTAINS
       allocate (asize3d(kpie,kpje,kpke),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory asize3d'
       asize3d(:,:,:) = 0.0_rp
+
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable aggregate ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+        write(io_stdo_bgc,*)'Third dimension    : ',kpke
+      endif
+
+      allocate (aggregate(kpie,kpje,kpke),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory aggregate'
+      aggregate(:,:,:) = 0.0_rp
+
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable dustagg ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+        write(io_stdo_bgc,*)'Third dimension    : ',kpke
+      endif
+
+      allocate (dustagg(kpie,kpje,kpke),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory dustagg'
+      dustagg(:,:,:) = 0.0_rp
     endif
 
     if (use_BROMO) then
