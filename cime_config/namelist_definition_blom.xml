@@ -4595,16 +4595,6 @@
     <desc>Switch to couple NH3 fluxes to atmosphere</desc>
   </entry>
 
-  <entry id="lkwrbioz_off">
-    <type>logical</type>
-    <category>bgcnml</category>
-    <group>bgcnml</group>
-    <values>
-      <value>.true.</value>
-    </values>
-    <desc>Switch for primary production and remineralization throughout the whole water column</desc>
-  </entry>
-
   <entry id="lto2depremin">
     <type>logical</type>
     <category>bgcnml</category>

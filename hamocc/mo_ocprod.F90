@@ -108,8 +108,7 @@ contains
     use mo_control_bgc,   only: dtb,io_stdo_bgc,with_dmsph,                                        &
                                 use_BROMO,use_AGG,use_PBGC_OCNP_TIMESTEP,use_FB_BGC_OCE,           &
                                 use_AGG,use_cisonew,use_natDIC, use_WLIN,use_sedbypass,use_M4AGO,  &
-                                use_extNcycle,lkwrbioz_off,lTO2depremin,use_river2omip,            &
-                                use_DOMclasses
+                                use_extNcycle,lTO2depremin,use_river2omip,use_DOMclasses
     use mo_vgrid,         only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000,kwrbioz,ptiestu
     use mo_vgrid,         only: kmle
     use mo_clim_swa,      only: swa_clim
@@ -142,9 +141,9 @@ contains
     real(rp) :: tco(nsinkmax),tcn(nsinkmax),q(nsinkmax)
     real(rp) :: atten,avphy,avanut,avanfe,pho,xa,xn,ya,yn,phosy
     real(rp) :: avgra,grazing,avsil,avdic,graton
-    real(rp) :: gratpoc,grawa,bacfra,phymor,zoomor,excdoc,exud
-    real(rp) :: export, delsil, delcar, sterph, sterzo, remin
-    real(rp) :: docrem,opalrem,remin2o,aou,refra,pocrem,phyrem,tdoclc_rem,tdochc_rem
+    real(rp) :: gratpoc,grawa,phymor,zoomor,excdoc,exud
+    real(rp) :: export, delsil, delcar, remin
+    real(rp) :: docrem,opalrem,remin2o,aou,refra,pocrem,tdoclc_rem,tdochc_rem
     real(rp) :: zoothresh,phythresh
     real(rp) :: temp,temfa,phofa                  ! temperature and irradiation factor for photosynthesis
     real(rp) :: absorption,absorption_uv
@@ -156,7 +155,7 @@ contains
     real(rp) :: tiny_val = epsilon(1._rp)
     real(rp) :: zeu
     ! DOM
-    real(rp) :: exudsl,excdocsl,bacfrasl,docremsl,bacfrasr,docremsr,bacfrar,docremr,doclimfct
+    real(rp) :: exudsl,excdocsl,docremsl,docremsr,docremr,doclimfct
     ! sedbypass
     real(rp) :: florca,flcaca,flsil,flnatcaca
     ! cisonew
@@ -167,7 +166,6 @@ contains
     real(rp) :: grazing13,grazing14
     real(rp) :: graton13,graton14
     real(rp) :: gratpoc13,gratpoc14
-    real(rp) :: bacfra13,bacfra14
     real(rp) :: phymor13,phymor14
     real(rp) :: grawa13,grawa14
     real(rp) :: zoomor13,zoomor14
@@ -176,12 +174,9 @@ contains
     real(rp) :: export13,export14
     real(rp) :: delcar13,delcar14
     real(rp) :: dtr13,dtr14
-    real(rp) :: sterph13,sterph14
-    real(rp) :: sterzo13,sterzo14
     real(rp) :: pocrem13,pocrem14
     real(rp) :: docrem13,docrem14
     real(rp) :: tdoclc_rem13,tdochc_rem13,tdoclc_rem14,tdochc_rem14
-    real(rp) :: phyrem13,phyrem14
     real(rp) :: rem13,rem14
     real(rp) :: rco213,rco214,rdoc13,rdoc14,rdet13,rdet14
     real(rp) :: rtdoclc13,rtdochc13,rtdoclc14,rtdochc14
@@ -294,7 +289,7 @@ contains
           absorption    = 1._rp
           absorption_uv = 1._rp
 
-          vloop: do k = 1,merge(kpke,kwrbioz(i,j),lkwrbioz_off)
+          vloop: do k = 1,kpke
 
             if(pddpo(i,j,k) > 0.0_rp) then
 
@@ -332,27 +327,41 @@ contains
       call ihamocc_mean_aggregate_sinking_speed(kpie, kpje, kpke, kbnd, pddpo, omask, ptho, psao, ppao, prho)
     endif
 
+    if (use_DOMclasses .and. use_river2omip) then
+      doclimfct = 1._rp/6._rp * 0.33_rp
+    else if (use_DOMclasses .and. .not. use_river2omip) then
+      doclimfct = 1._rp/4._rp * 0.33_rp
+    else if (.not. use_DOMclasses .and. use_river2omip) then
+      doclimfct = 1._rp/3._rp * 0.33_rp
+    else
+      doclimfct = 1._rp * 0.33_rp
+    endif
+
+
     !$OMP PARALLEL DO PRIVATE(avphy,avgra,avsil,avanut,avanfe,pho,xa,xn   &
-    !$OMP  ,phosy,ya,yn,grazing,graton,gratpoc,grawa,bacfra,phymor        &
+    !$OMP  ,phosy,ya,yn,grazing,graton,gratpoc,grawa,phymor               &
     !$OMP  ,zoomor,excdoc,exud,export,delsil,delcar,dmsprod               &
-    !$OMP  ,dms_bac,dms_uv,dtr,phofa,temfa,zoothresh,dms_ph,dz,opalrem    &
-    !$OMP  ,avmass,avnos,zmornos,tdoclc_rem,tdochc_rem                    &
-    !$OMP  ,tdoclc_rem13,tdochc_rem13,tdoclc_rem14,tdochc_rem14           &
-    !$OMP  ,exudsl,excdocsl,bacfrasl                                      &
-    !$OMP  ,rco213,rco214,rphy13,rphy14,rzoo13,rzoo14,grazing13,grazing14 &
+    !$OMP  ,dms_bac,dms_uv,dms_ph,dtr,phofa,temfa,dz,opalrem              &
+    !$OMP  ,avmass,avnos,zmornos,pocrem,docrem,tdoclc_rem,tdochc_rem      &
+    !$OMP  ,exudsl,excdocsl,phythresh,zoothresh,remin,aou,refra,o2lim     &
+    !$OMP  ,docremsl,docremr,docremsr                                     &
+    !$OMP  ,rco213,rco214,rphy13,rphy14,rzoo13,rzoo14,rdet13,rdet14       &
+    !$OMP  ,rdoc13,rdoc14,grazing13,grazing14                             &
     !$OMP  ,graton13,graton14,gratpoc13,gratpoc14,grawa13,grawa14         &
-    !$OMP  ,phosy13,phosy14,bacfra13,bacfra14,phymor13,phymor14,zoomor13  &
-    !$OMP  ,zoomor14,excdoc13,excdoc14,exud13,exud14,export13,export14    &
+    !$OMP  ,phosy13,phosy14,phymor13,phymor14,zoomor13,zoomor14           &
+    !$OMP  ,excdoc13,excdoc14,exud13,exud14,export13,export14             &
     !$OMP  ,delcar13,delcar14,dtr13,dtr14,bifr13,bifr14,bifr13_perm       &
+    !$OMP  ,tdoclc_rem13,tdochc_rem13,tdoclc_rem14,tdochc_rem14           &
+    !$OMP  ,rtdoclc13,rtdochc13,rtdoclc14,rtdochc14                       &
+    !$OMP  ,pocrem13,pocrem14,docrem13,docrem14                           &
     !$OMP  ,growth_co2,phygrowth                                          &
-    !$OMP  ,bro_beta,bro_uv                                               &
-    !$OMP  ,ano3up_inh,nutlim,anh4lim,nlim,grlim,nh4uptfrac               &
-    !$OMP  ,i,k,zeu)
+    !$OMP  ,bro_beta,bro_uv,ano3up_inh,nutlim,anh4lim,nlim,grlim          &
+    !$OMP  ,nh4uptfrac,i,k,zeu)
 
     loop1: do j = 1,kpje
       do i = 1,kpie
         zeu  = 0._rp
-        do k = 1,merge(kpke,kwrbioz(i,j),lkwrbioz_off)
+        do k = 1,kpke
 
           if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5_rp) then
 
@@ -432,44 +441,11 @@ contains
             phythresh = max(0._rp,(ocetra(i,j,k,iphy)-2._rp*phytomi))
             phymor = dyphy*phythresh
             zoothresh = max(0._rp,(ocetra(i,j,k,izoo)-2._rp*grami))
-            if (lkwrbioz_off) then
-              bacfra = 0._rp
-              if (use_river2omip) then
-                tdoclc_rem = 0._rp
-                tdochc_rem = 0._rp
-              endif
-              if (use_DOMclasses) then
-                bacfrasl   = 0._rp
-                bacfrasr   = 0._rp
-                bacfrar    = 0._rp
-                exudsl     = gammapsl*phythresh
-                excdocsl   = gammazsl*zoothresh
-              endif
-            else
-              if (use_DOMclasses) then
-                ! Loenborg et al. 2018 (Frontiers):
-                ! A=2.96e6 (day-1) (Theoretical Kc in the absence of Ea)
-                ! R=8.314 J/mol/K (Universal gas constant)
-                ! Ea=38kJ/mol (Activation energy for DOC_L decay)
-                ! A_sl=7.96e9 (day-1) (Theoretical Kc in the absence of Ea)
-                ! R=8.314 J/mol/K (Universal gas constant)
-                ! Ea_sl=58kJ/mol (Activation energy for DOC_L decay)
-                bacfra   = docl_remin*exp(-38.e3_rp/(8.314_rp*(temp+tzero)))*ocetra(i,j,k,idoc) !increased from 2e5 13082024
-                !JT if (ocetra(i,j,k,iphosph) >5.e-8) then ! Nutrient thresholds for surface bacteria activity (Anton Salgado, pers. comm.)
-                bacfrasl = docsl_remin*exp(-58.e3_rp/(8.314_rp*(temp+tzero)))*ocetra(i,j,k,idocsl)
-                bacfrasr = docsr_remin*exp(-116.e3_rp/(8.314_rp*(temp+tzero)))*ocetra(i,j,k,idocsr)
-                bacfrar  = docr_remin*exp(-179.e3_rp/(8.314_rp*(temp+tzero)))*ocetra(i,j,k,idocr)
-                exudsl   = gammapsl*phythresh
-                excdocsl = gammazsl*zoothresh
-              else
-                bacfra = remido*ocetra(i,j,k,idoc)
-              endif
-              if (use_river2omip) then
-                tdoclc_rem = rem_tdoclc*ocetra(i,j,k,itdoc_lc)
-                tdochc_rem = rem_tdochc*ocetra(i,j,k,itdoc_hc)
-              endif
-            endif
             exud = gammap*phythresh
+            if (use_DOMclasses) then
+              exudsl   = gammapsl*phythresh
+              excdocsl = gammazsl*zoothresh
+            endif
             zoomor = spemor*zoothresh*zoothresh           ! *10 compared to linear in tropics (tinka)
             excdoc = gammaz*zoothresh                     ! excretion of doc by zooplankton
             export = zoomor*(1._rp-ecan) + phymor + gratpoc  ! ecan=.95, gratpoc= .2*grazing
@@ -479,7 +455,7 @@ contains
               if(ocetra(i,j,k,iphy) < phytomi) then
                 bifr13 = 1._rp
               else
-                phygrowth   = ((ocetra(i,j,k,iphy)+phosy)/ocetra(i,j,k,iphy))/dtb ! Growth rate phytoplankton [1/d]
+                phygrowth   = ((ocetra(i,j,k,iphy)+phosy)/ocetra(i,j,k,iphy))/dtb     ! Growth rate phytoplankton [1/d]
                 growth_co2  = phygrowth/(co2star(i,j,k)*1.e6_rp+safediv)              ! CO2* in [mol/kg]
                 bifr13_perm = (6.03_rp + 5.5_rp*growth_co2)/(0.225_rp + growth_co2)   ! Permil (~20)
                 bifr13_perm = max(5._rp,min(26._rp,bifr13_perm))                      ! Limit the range to [5,26]
@@ -510,26 +486,6 @@ contains
 
               grawa13 = epsher*zinges*grazing13
               grawa14 = epsher*zinges*grazing14
-
-              if (lkwrbioz_off) then
-                bacfra13 = 0._rp
-                bacfra14 = 0._rp
-                if (use_river2omip) then
-                  tdoclc_rem13 = 0._rp
-                  tdochc_rem13 = 0._rp
-                  tdoclc_rem14 = 0._rp
-                  tdochc_rem14 = 0._rp
-                endif
-              else
-                bacfra13 = remido*ocetra(i,j,k,idoc13)
-                bacfra14 = remido*ocetra(i,j,k,idoc14)
-                if (use_river2omip) then
-                  tdoclc_rem13 = rem_tdoclc*ocetra(i,j,k,itdoc_lc13)
-                  tdochc_rem13 = rem_tdochc*ocetra(i,j,k,itdoc_hc13)
-                  tdoclc_rem14 = rem_tdoclc*ocetra(i,j,k,itdoc_lc14)
-                  tdochc_rem14 = rem_tdochc*ocetra(i,j,k,itdoc_hc14)
-                endif
-              endif
 
               phymor13 = phymor*rphy13
               phymor14 = phymor*rphy14
@@ -566,20 +522,9 @@ contains
               dms_ph  = 1._rp
             endif
             dmsprod = (dmsp5*delsil+dmsp4*delcar)*(1._rp+1._rp/(temp+dmsp1)**2)*dms_ph
-            if (lkwrbioz_off) then
-               dms_bac = 0._rp
-            else
-               dms_bac = dmsp3*abs(temp+3._rp)*ocetra(i,j,k,idms)                 &
-                       &             *(ocetra(i,j,k,idms)/(dmsp6+ocetra(i,j,k,idms)))
-            endif
             dms_uv  = dmsp2*phofa/pi_alpha*ocetra(i,j,k,idms)
 
-            if (use_DOMclasses) then
-              dtr = bacfra+(1._rp-alphasl)*bacfrasl+(1._rp-alphasr)*bacfrasr+bacfrar-phosy+graton+ecan*zoomor
-            else
-              dtr = bacfra-phosy+graton+ecan*zoomor
-            endif
-
+            dtr = -phosy+graton+ecan*zoomor
             ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+dtr
             if (.not. use_extNcycle) then
               ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)+dtr*rnit
@@ -595,54 +540,25 @@ contains
                                     &                       + (1._rp-nh4uptfrac)*phosy*ro2ut       &  ! NO3 uptake
                                     &                       - (dtr+phosy)*ro2utammo                   ! Remin to NH4
               ! Output
-              phosy_NH4(i,j,k)   =  nh4uptfrac*phosy*rnit      ! kmol N/m3/dtb - NH4 uptake during PP growth
+              phosy_NH4(i,j,k)   =  nh4uptfrac*phosy*rnit         ! kmol N/m3/dtb - NH4 uptake during PP growth
               phosy_NO3(i,j,k)   = (1._rp-nh4uptfrac)*phosy*rnit  ! kmol N/m3/dtb - NO3 uptake during PP growth
-              remin_aerob(i,j,k) = (dtr+phosy)*rnit            ! kmol N/m3/dtb - Aerob remin to ammonium  (var. sources)
-            endif
-            if (use_river2omip) then
-              ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + tdoclc_rem+tdochc_rem
-              if (.not. use_extNcycle) then
-                ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)   + tdoclc_rem*rnit_tdoclc             &
-                                      &                       + tdochc_rem*rnit_tdochc
-                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - tdoclc_rem*(rnit_tdoclc+1._rp)     &
-                                      &                       - tdochc_rem*(rnit_tdochc+1._rp)
-                ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - tdoclc_rem*ro2ut_tdoclc            &
-                                      &                       - tdochc_rem*ro2ut_tdochc
-              else
-                ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   + tdoclc_rem*rnit_tdoclc             &
-                                      &                       + tdochc_rem*rnit_tdochc
-                ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + tdoclc_rem*(rnit_tdoclc-1._rp)     &
-                                      &                       + tdochc_rem*(rnit_tdochc-1._rp)
-                ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - tdoclc_rem*ro2utammo_tdoclc        &
-                                                              - tdochc_rem*ro2utammo_tdochc
-                remin_aerob(i,j,k)    = remin_aerob(i,j,k)    + tdoclc_rem*rnit_tdoclc             &
-                                      &                       + tdochc_rem*rnit_tdochc
-              endif
-              ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + tdoclc_rem*rcar_tdoclc               &
-                                    &                       + tdochc_rem*rcar_tdochc
-              ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + (tdoclc_rem+tdochc_rem)*riron
+              remin_aerob(i,j,k) = (dtr+phosy)*rnit               ! kmol N/m3/dtb - Aerob remin to ammonium  (var. sources)
             endif
             ocetra(i,j,k,idet) = ocetra(i,j,k,idet)+export
-            ocetra(i,j,k,idms) = ocetra(i,j,k,idms)+dmsprod-dms_bac-dms_uv
+            ocetra(i,j,k,idms) = ocetra(i,j,k,idms)+dmsprod-dms_uv
             ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)-delcar+rcar*dtr
             ocetra(i,j,k,iphy) = ocetra(i,j,k,iphy)+phosy-grazing-phymor-exud
             ocetra(i,j,k,izoo) = ocetra(i,j,k,izoo)+grawa-excdoc-zoomor
-            ocetra(i,j,k,idoc) = ocetra(i,j,k,idoc)-bacfra+excdoc+exud
-            if (use_river2omip) then
-              ocetra(i,j,k,itdoc_lc) = ocetra(i,j,k,itdoc_lc)-tdoclc_rem
-              ocetra(i,j,k,itdoc_hc) = ocetra(i,j,k,itdoc_hc)-tdochc_rem
-            endif
+            ocetra(i,j,k,idoc) = ocetra(i,j,k,idoc)+excdoc+exud
             if (use_DOMclasses) then
               ocetra(i,j,k,iphy)   = ocetra(i,j,k,iphy)-exudsl
               ocetra(i,j,k,izoo)   = ocetra(i,j,k,izoo)-excdocsl
-              ocetra(i,j,k,idocsl) = ocetra(i,j,k,idocsl)-bacfrasl+excdocsl+exudsl
-              ocetra(i,j,k,idocsr) = ocetra(i,j,k,idocsr)-bacfrasr+alphasl*bacfrasl
-              ocetra(i,j,k,idocr)  = ocetra(i,j,k,idocr)-bacfrar+alphasr*bacfrasr
+              ocetra(i,j,k,idocsl) = ocetra(i,j,k,idocsl)+excdocsl+exudsl
             endif
             ocetra(i,j,k,icalc) = ocetra(i,j,k,icalc)+delcar
             if (use_cisonew) then
-              dtr13 = bacfra13-phosy13+graton13+ecan*zoomor13
-              dtr14 = bacfra14-phosy14+graton14+ecan*zoomor14
+              dtr13 = -phosy13+graton13+ecan*zoomor13
+              dtr14 = -phosy14+graton14+ecan*zoomor14
 
               ocetra(i,j,k,idet13) = ocetra(i,j,k,idet13)+export13
               ocetra(i,j,k,idet14) = ocetra(i,j,k,idet14)+export14
@@ -652,20 +568,10 @@ contains
               ocetra(i,j,k,iphy14) = ocetra(i,j,k,iphy14)+phosy14-grazing14-phymor14-exud14
               ocetra(i,j,k,izoo13) = ocetra(i,j,k,izoo13)+grawa13-excdoc13-zoomor13
               ocetra(i,j,k,izoo14) = ocetra(i,j,k,izoo14)+grawa14-excdoc14-zoomor14
-              ocetra(i,j,k,idoc13) = ocetra(i,j,k,idoc13)-bacfra13+excdoc13+exud13
-              ocetra(i,j,k,idoc14) = ocetra(i,j,k,idoc14)-bacfra14+excdoc14+exud14
+              ocetra(i,j,k,idoc13) = ocetra(i,j,k,idoc13)+excdoc13+exud13
+              ocetra(i,j,k,idoc14) = ocetra(i,j,k,idoc14)+excdoc14+exud14
               ocetra(i,j,k,icalc13) = ocetra(i,j,k,icalc13)+delcar13
               ocetra(i,j,k,icalc14) = ocetra(i,j,k,icalc14)+delcar14
-              if (use_river2omip) then
-                ocetra(i,j,k,isco213) = ocetra(i,j,k,isco213) + tdoclc_rem13*rcar_tdoclc           &
-                                      &                       + tdochc_rem13*rcar_tdochc
-                ocetra(i,j,k,isco214) = ocetra(i,j,k,isco214) + tdoclc_rem14*rcar_tdoclc           &
-                                      &                       + tdochc_rem14*rcar_tdochc
-                ocetra(i,j,k,itdoc_lc13) = ocetra(i,j,k,itdoc_lc13)-tdoclc_rem13
-                ocetra(i,j,k,itdoc_hc13) = ocetra(i,j,k,itdoc_hc13)-tdochc_rem13
-                ocetra(i,j,k,itdoc_lc14) = ocetra(i,j,k,itdoc_lc14)-tdoclc_rem14
-                ocetra(i,j,k,itdoc_hc14) = ocetra(i,j,k,itdoc_hc14)-tdochc_rem14
-              endif
             endif
             if (use_natDIC) then
               ocetra(i,j,k,inatsco212) = ocetra(i,j,k,inatsco212)-delcar+rcar*dtr
@@ -678,19 +584,10 @@ contains
                 ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)-2._rp*delcar-(rnit+1._rp)*dtr
               endif
             endif
-            if (lkwrbioz_off) then
-                  opalrem = 0._rp
-            else
-               if (use_M4AGO) then
-                  opalrem = dremopal*opal_remin_q10**((ptho(i,j,k)-opal_remin_Tref)/10._rp)*ocetra(i,j,k,iopal)
-               else
-                  opalrem = dremopal*ocetra(i,j,k,iopal)
-               endif
-            endif
-            ocetra(i,j,k,isilica) = ocetra(i,j,k,isilica)-delsil+opalrem
-            ocetra(i,j,k,iopal) = ocetra(i,j,k,iopal)+delsil-opalrem
+            ocetra(i,j,k,isilica) = ocetra(i,j,k,isilica)-delsil
+            ocetra(i,j,k,iopal) = ocetra(i,j,k,iopal)+delsil
             ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+dtr*riron                     &
-                 &                - relaxfe*max(ocetra(i,j,k,iiron)-fesoly,0._rp)
+                 &                - relaxfe*max(ocetra(i,j,k,iiron)-fesoly,0._rp)     ! This is a bug, this part should not be here, since it is done below
 
             if (use_BROMO) then
               ! Bromo source from phytoplankton production and sink to photolysis
@@ -709,136 +606,12 @@ contains
               ocetra(i,j,k,ibromo) = ocetra(i,j,k,ibromo)+bro_beta*phosy-bro_uv
             endif
 
-            if (use_AGG) then
 
-              !***********************************************************************
-              ! effects of biological processes on number of particles:
-              ! photosynthesis creates POM
-              ! exudation deletes POM
-              ! grazing deletes POM; but only the fraction that is not egested as
-              ! fecal pellets again (grawa remains in zoo, graton goes to po4)
-              ! none of the processes at the current time is assumed to change
-              ! the size distribution (subject to change)
-              ! NOTE that phosy, exud etc. are in kmol/m3!
-              ! Thus divide by avmass (kmol/m3)
-              !**********************************************************************
+            !***********************************************************************************************
+            !  Remineralization and dissolution processes
+            !***********************************************************************************************
 
-              if(avmass > 0._rp) then
-                avnos = ocetra(i,j,k,inos)
-                if (use_DOMclasses) then
-                  anosloss = (phosy-exud-exudsl-graton-grawa)*avnos/avmass
-                else
-                  anosloss = (phosy-exud-graton-grawa)*avnos/avmass
-                endif
-                ocetra(i,j,k,inos) = ocetra(i,j,k,inos)+anosloss
-              endif
-
-              !***********************************************************************
-              ! dead zooplankton corpses come with their own, flat distribution
-              ! this flow even takes place if there is neither nos nor mass
-              ! NOTE: zoomor is in kmol/m3!! Thus multiply flow by 1.e+6
-              !***********************************************************************
-
-              zmornos = zoomor * (1._rp-ecan) * zdis * 1.e+6_rp
-              ocetra(i,j,k,inos) = ocetra(i,j,k,inos)+zmornos
-            endif
-
-            ! add up for total inventory and output
-            dz = pddpo(i,j,k)
-
-            expoor(i,j)     = expoor(i,j)    +export*rcar*dz
-            expoca(i,j)     = expoca(i,j)    +delcar*dz
-            exposi(i,j)     = exposi(i,j)    +delsil*dz
-            intdmsprod(i,j) = intdmsprod(i,j)+dmsprod*dz
-            intdms_bac(i,j) = intdms_bac(i,j)+dms_bac*dz
-            intdms_uv(i,j)  = intdms_uv (i,j)+dms_uv*dz
-
-            if (use_BROMO) then
-              int_chbr3_uv(i,j)  = int_chbr3_uv (i,j) + bro_uv*dz
-              int_chbr3_prod(i,j)  = int_chbr3_prod (i,j) + bro_beta*phosy*dz
-            endif
-
-            intphosy(i,j)   = intphosy(i,j)  +phosy*rcar*dz  ! primary production in kmol C m-2
-            phosy3d(i,j,k)  = phosy*rcar                     ! primary production in kmol C m-3
-            if (use_DOMclasses) then
-              int_exudl    (i,j) = int_exudl    (i,j)+exud*rcar*dz  ! PHY exudation to DOC-L in kmol C m-2
-              int_exudsl   (i,j) = int_exudsl   (i,j)+exudsl*rcar*dz
-              int_excrl    (i,j) = int_excrl    (i,j)+excdoc*rcar*dz
-              int_excrsl   (i,j) = int_excrsl   (i,j)+excdocsl*rcar*dz
-              int_docl_rem (i,j) = int_docl_rem (i,j)+bacfra*rcar*dz
-              int_docsl_rem(i,j) = int_docsl_rem(i,j)+bacfrasl*rcar*dz
-              int_docsr_rem(i,j) = int_docsr_rem(i,j)+bacfrasr*rcar*dz
-              int_docr_rem (i,j) = int_docr_rem (i,j)+bacfrar*rcar*dz
-            endif
-            if ( k<= kwrbioz(i,j)) then
-              zeu  = zeu  + dz ! total depth considered
-              zeu_nutlim_diag(i,j,inutlim_fe)     = zeu_nutlim_diag(i,j,inutlim_fe)                &
-                                                  & + nutlim_diag(i,j,k,inutlim_fe)*dz
-              zeu_nutlim_diag(i,j,inutlim_phosph) = zeu_nutlim_diag(i,j,inutlim_phosph)            &
-                                                  & + nutlim_diag(i,j,k,inutlim_phosph)*dz
-              zeu_nutlim_diag(i,j,inutlim_n)      = zeu_nutlim_diag(i,j,inutlim_n)                 &
-                                                  & + nutlim_diag(i,j,k,inutlim_n)*dz
-            endif
-          endif         ! pddpo(i,j,k) > dp_min
-        enddo         ! kwrbioz
-        if (zeu > dp_min) then
-          zeu_nutlim_diag(i,j,inutlim_fe)    = zeu_nutlim_diag(i,j,inutlim_fe)    /zeu
-          zeu_nutlim_diag(i,j,inutlim_phosph)= zeu_nutlim_diag(i,j,inutlim_phosph)/zeu
-          zeu_nutlim_diag(i,j,inutlim_n)     = zeu_nutlim_diag(i,j,inutlim_n)     /zeu
-        endif
-      enddo         ! kpie
-    enddo loop1   ! kpje
-
-    !$OMP END PARALLEL DO
-
-    if (use_PBGC_OCNP_TIMESTEP) then
-      if (mnproc == 1) then
-        write(io_stdo_bgc,*)' '
-        write(io_stdo_bgc,*)'in OCPROD after 1st bio prod'
-      endif
-      call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-    endif
-
-
-    if (use_DOMclasses .and. use_river2omip) then
-      doclimfct = 1._rp/6._rp * 0.33_rp
-    else if (use_DOMclasses .and. .not. use_river2omip) then
-      doclimfct = 1._rp/4._rp * 0.33_rp
-    else if (.not. use_DOMclasses .and. use_river2omip) then
-      doclimfct = 1._rp/3._rp * 0.33_rp
-    else
-      doclimfct = 1._rp * 0.33_rp
-    endif
-
-    !$OMP PARALLEL DO PRIVATE(phythresh,zoothresh,sterph,sterzo,remin     &
-    !$OMP  ,opalrem,aou,refra,dms_bac,pocrem,docrem,phyrem,dz,o2lim       &
-    !$OMP  ,avmass,avnos,zmornos,tdoclc_rem,tdochc_rem                    &
-    !$OMP  ,tdoclc_rem13,tdochc_rem13,tdoclc_rem14,tdochc_rem14           &
-    !$OMP  ,rtdoclc13,rtdochc13,rtdoclc14,rtdochc14                       &
-    !$OMP  ,docremsl,docremr,docremsr                                     &
-    !$OMP  ,rphy13,rphy14,rzoo13,rzoo14,rdet13,rdet14,rdoc13,rdoc14       &
-    !$OMP  ,sterph13,sterph14,sterzo13,sterzo14,pocrem13,pocrem14         &
-    !$OMP  ,docrem13,docrem14,phyrem13,phyrem14                           &
-    !$OMP  ,i,k)
-
-    loop2: do j = 1,kpje
-      do i = 1,kpie
-        do k = merge(1,kwrbioz(i,j)+1,lkwrbioz_off),kpke
-          if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5_rp) then
-
-            if (use_AGG) then
-              avmass = ocetra(i,j,k,iphy)+ocetra(i,j,k,idet)
-            endif
-            temp = min(40._rp,max(-3._rp,ptho(i,j,k)))
-            phythresh = max(0._rp,(ocetra(i,j,k,iphy)-2._rp*phytomi))
-            zoothresh = max(0._rp,(ocetra(i,j,k,izoo)-2._rp*grami))
-            sterph = 0.5_rp*dyphy*phythresh                             ! phytoplankton to detritus
-            sterzo = spemor*zoothresh*zoothresh                         ! quadratic mortality
             if (use_cisonew) then
-              rphy13 = ocetra(i,j,k,iphy13)/(ocetra(i,j,k,iphy)+safediv)
-              rphy14 = ocetra(i,j,k,iphy14)/(ocetra(i,j,k,iphy)+safediv)
-              rzoo13 = ocetra(i,j,k,izoo13)/(ocetra(i,j,k,izoo)+safediv)
-              rzoo14 = ocetra(i,j,k,izoo14)/(ocetra(i,j,k,izoo)+safediv)
               rdet13 = ocetra(i,j,k,idet13)/(ocetra(i,j,k,idet)+safediv)
               rdet14 = ocetra(i,j,k,idet14)/(ocetra(i,j,k,idet)+safediv)
               rdoc13 = ocetra(i,j,k,idoc13)/(ocetra(i,j,k,idoc)+safediv)
@@ -849,28 +622,6 @@ contains
                 rtdoclc14 = ocetra(i,j,k,itdoc_lc14)/(ocetra(i,j,k,itdoc_lc)+safediv)
                 rtdochc14 = ocetra(i,j,k,itdoc_hc14)/(ocetra(i,j,k,itdoc_hc)+safediv)
               endif
-              sterph13 = sterph*rphy13
-              sterph14 = sterph*rphy14
-              sterzo13 = sterzo*rzoo13
-              sterzo14 = sterzo*rzoo14
-            endif
-
-            if (lkwrbioz_off) then ! dying before in PP loop
-              sterph   = 0._rp
-              sterzo   = 0._rp
-              sterph13 = 0._rp
-              sterph14 = 0._rp
-              sterzo13 = 0._rp
-              sterzo14 = 0._rp
-            endif
-
-            ocetra(i,j,k,iphy) = ocetra(i,j,k,iphy)-sterph
-            ocetra(i,j,k,izoo) = ocetra(i,j,k,izoo)-sterzo
-            if (use_cisonew) then
-              ocetra(i,j,k,iphy13) = ocetra(i,j,k,iphy13)-sterph13
-              ocetra(i,j,k,iphy14) = ocetra(i,j,k,iphy14)-sterph14
-              ocetra(i,j,k,izoo13) = ocetra(i,j,k,izoo13)-sterzo13
-              ocetra(i,j,k,izoo14) = ocetra(i,j,k,izoo14)-sterzo14
             endif
 
             if(ocetra(i,j,k,ioxygen) > O2thresh_aerob) then
@@ -882,34 +633,29 @@ contains
               else
                 pocrem = drempoc*ocetra(i,j,k,idet)
               endif
-              pocrem = min(pocrem,                    0.33_rp*ocetra(i,j,k,ioxygen)/o2csmp)
-              phyrem = min(0.5_rp*dyphy*phythresh,    0.33_rp*ocetra(i,j,k,ioxygen)/o2csmp)
+              pocrem = min(pocrem,0.33_rp*ocetra(i,j,k,ioxygen)/o2csmp)
 
               if (use_DOMclasses) then
-                !fractions of doc(s) remineralized into nutrients
-                docrem   = min(docl_remin*exp(-38.e3_rp/(8.314_rp*(temp+tzero)))*ocetra(i,j,k,idoc), &
-                         &     doclimfct*ocetra(i,j,k,ioxygen)/o2csmp)
-                docremsl = (1._rp-alphasl)*min(docsl_remin*exp(-58.e3_rp/(8.314_rp*(temp+tzero)))*ocetra(i,j,k,idocsl), &
-                         &                  doclimfct*ocetra(i,j,k,ioxygen)/o2csmp)
-                docremsr = (1._rp-alphasr)*min(docsr_remin*exp(-116.e3_rp/(8.314_rp*(temp+tzero)))*ocetra(i,j,k,idocsr),&
-                         &                  doclimfct*ocetra(i,j,k,ioxygen)/o2csmp)
-                docremr  = min(docr_remin*exp(-179.e3_rp/(8.314_rp*(temp+tzero)))*ocetra(i,j,k,idocr),&
-                         &     doclimfct*ocetra(i,j,k,ioxygen)/o2csmp)
+                ! Fractions of doc(s) remineralized into nutrients following Loenborg et al. 2018 (Frontiers):
+                ! A=2.96e6 (day-1) (Theoretical Kc in the absence of Ea)
+                ! R=8.314 J/mol/K (Universal gas constant)
+                ! Ea=38kJ/mol (Activation energy for DOC_L decay)
+                ! A_sl=7.96e9 (day-1) (Theoretical Kc in the absence of Ea)
+                ! R=8.314 J/mol/K (Universal gas constant)
+                ! Ea_sl=58kJ/mol (Activation energy for DOC_L decay)
+                docrem   = min(docl_remin *exp( -38.e3_rp/(8.314_rp*(temp+tzero)))*ocetra(i,j,k,idoc),  doclimfct*ocetra(i,j,k,ioxygen)/o2csmp)
+                docremsl = min(docsl_remin*exp( -58.e3_rp/(8.314_rp*(temp+tzero)))*ocetra(i,j,k,idocsl),doclimfct*ocetra(i,j,k,ioxygen)/o2csmp)*(1._rp-alphasl)
+                docremsr = min(docsr_remin*exp(-116.e3_rp/(8.314_rp*(temp+tzero)))*ocetra(i,j,k,idocsr),doclimfct*ocetra(i,j,k,ioxygen)/o2csmp)*(1._rp-alphasr)
+                docremr  = min(docr_remin *exp(-179.e3_rp/(8.314_rp*(temp+tzero)))*ocetra(i,j,k,idocr), doclimfct*ocetra(i,j,k,ioxygen)/o2csmp)
               else
                 docrem = min(remido*ocetra(i,j,k,idoc), doclimfct*ocetra(i,j,k,ioxygen)/o2csmp)
               endif
 
               if (use_river2omip) then
-                tdoclc_rem = min(rem_tdoclc*ocetra(i,j,k,itdoc_lc), doclimfct*ocetra(i,j,k,ioxygen)&
-                           &     /merge(ro2utammo_tdoclc,ro2ut_tdoclc,use_extNcycle))
-                tdochc_rem = min(rem_tdochc*ocetra(i,j,k,itdoc_hc), doclimfct*ocetra(i,j,k,ioxygen)&
-                           &     /merge(ro2utammo_tdochc,ro2ut_tdochc,use_extNcycle))
+                tdoclc_rem = min(rem_tdoclc*ocetra(i,j,k,itdoc_lc), doclimfct*ocetra(i,j,k,ioxygen)/merge(ro2utammo_tdoclc,ro2ut_tdoclc,use_extNcycle))
+                tdochc_rem = min(rem_tdochc*ocetra(i,j,k,itdoc_hc), doclimfct*ocetra(i,j,k,ioxygen)/merge(ro2utammo_tdochc,ro2ut_tdochc,use_extNcycle))
                 ocetra(i,j,k,itdoc_lc) = ocetra(i,j,k,itdoc_lc) - tdoclc_rem
                 ocetra(i,j,k,itdoc_hc) = ocetra(i,j,k,itdoc_hc) - tdochc_rem
-              endif
-
-              if (lkwrbioz_off) then ! dying before in PP loop
-                phyrem = 0._rp
               endif
 
               if (use_cisonew) then
@@ -917,8 +663,6 @@ contains
                 pocrem14 = pocrem*rdet14
                 docrem13 = docrem*rdoc13
                 docrem14 = docrem*rdoc14
-                phyrem13 = phyrem*rphy13
-                phyrem14 = phyrem*rphy14
                 if (use_river2omip) then
                   tdoclc_rem13 = tdoclc_rem*rtdoclc13
                   tdochc_rem13 = tdochc_rem*rtdochc13
@@ -929,7 +673,6 @@ contains
             else
               pocrem = 0._rp
               docrem = 0._rp
-              phyrem = 0._rp
               if (use_river2omip) then
                 tdoclc_rem = 0._rp
                 tdochc_rem = 0._rp
@@ -942,10 +685,8 @@ contains
               if (use_cisonew) then
                 pocrem13 = 0._rp
                 docrem13 = 0._rp
-                phyrem13 = 0._rp
                 pocrem14 = 0._rp
                 docrem14 = 0._rp
-                phyrem14 = 0._rp
                 if (use_river2omip) then
                   tdoclc_rem13 = 0._rp
                   tdochc_rem13 = 0._rp
@@ -955,19 +696,16 @@ contains
               endif
             endif
 
-            ocetra(i,j,k,idet) = ocetra(i,j,k,idet) - pocrem + sterph + sterzo
+            ocetra(i,j,k,idet) = ocetra(i,j,k,idet) - pocrem
             ocetra(i,j,k,idoc) = ocetra(i,j,k,idoc) - docrem
-            ocetra(i,j,k,iphy) = ocetra(i,j,k,iphy) - phyrem
 
             if (use_DOMclasses) then
               ocetra(i,j,k,idocsl) = ocetra(i,j,k,idocsl) - docremsl/(1._rp-alphasl)
-              ocetra(i,j,k,idocsr) = ocetra(i,j,k,idocsr) - docremsr/(1._rp-alphasr)               &
-                                   &                      + docremsl*(alphasl/(1._rp-alphasl))
-              ocetra(i,j,k,idocr ) = ocetra(i,j,k,idocr ) - docremr                                &
-                                   &                      + docremsr*(alphasr/(1._rp-alphasr))
-              remin = pocrem + docrem + docremsl + docremsr + docremr + phyrem
+              ocetra(i,j,k,idocsr) = ocetra(i,j,k,idocsr) - docremsr/(1._rp-alphasr) + docremsl*(alphasl/(1._rp-alphasl))
+              ocetra(i,j,k,idocr ) = ocetra(i,j,k,idocr ) - docremr                  + docremsr*(alphasr/(1._rp-alphasr))
+              remin = pocrem + docrem + docremsl + docremsr + docremr
             else
-              remin = pocrem + docrem + phyrem
+              remin = pocrem + docrem
             endif
 
             ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+remin
@@ -1019,17 +757,14 @@ contains
               endif
             endif
             if (use_cisonew) then
-              ocetra(i,j,k,idet13) = ocetra(i,j,k,idet13)-pocrem13+sterph13+sterzo13
-              ocetra(i,j,k,idet14) = ocetra(i,j,k,idet14)-pocrem14+sterph14+sterzo14
+              ocetra(i,j,k,idet13) = ocetra(i,j,k,idet13)-pocrem13
+              ocetra(i,j,k,idet14) = ocetra(i,j,k,idet14)-pocrem14
               ocetra(i,j,k,idoc13) = ocetra(i,j,k,idoc13)-docrem13
               ocetra(i,j,k,idoc14) = ocetra(i,j,k,idoc14)-docrem14
-              ocetra(i,j,k,iphy13) = ocetra(i,j,k,iphy13)-phyrem13
-              ocetra(i,j,k,iphy14) = ocetra(i,j,k,iphy14)-phyrem14
-
-              ocetra(i,j,k,isco213) = ocetra(i,j,k,isco213)+rcar*(pocrem13+docrem13+phyrem13)
-              ocetra(i,j,k,isco214) = ocetra(i,j,k,isco214)+rcar*(pocrem14+docrem14+phyrem14)
+              ocetra(i,j,k,isco213) = ocetra(i,j,k,isco213)+rcar*(pocrem13+docrem13)
+              ocetra(i,j,k,isco214) = ocetra(i,j,k,isco214)+rcar*(pocrem14+docrem14)
               if (use_river2omip) then
-                ocetra(i,j,k,itdoc_lc13) = ocetra(i,j,k,itdoc_lc13)-tdoclc_rem13
+                ocetra(i,j,k,itdoc_lc13) = ocetra(i,j,k,itdoc_lc13)-tdoclc_rem13  ! a line for isco213 and isco214 might be missing here (?)
                 ocetra(i,j,k,itdoc_hc13) = ocetra(i,j,k,itdoc_hc13)-tdochc_rem13
                 ocetra(i,j,k,itdoc_lc14) = ocetra(i,j,k,itdoc_lc14)-tdoclc_rem14
                 ocetra(i,j,k,itdoc_hc14) = ocetra(i,j,k,itdoc_hc14)-tdochc_rem14
@@ -1061,49 +796,100 @@ contains
               ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen)-remin*1.e-4_rp*ro2ut*refra*0.5_rp
             endif
 
-            dms_bac = dmsp3 * abs(temp+3._rp) * ocetra(i,j,k,idms)                     &
-                    &    * (ocetra(i,j,k,idms) / (dmsp6+ocetra(i,j,k,idms)))
+            ! bacterial decomposition of DMS
+            dms_bac = dmsp3*abs(temp+3._rp)*ocetra(i,j,k,idms)*(ocetra(i,j,k,idms)/(dmsp6+ocetra(i,j,k,idms)))
             ocetra(i,j,k,idms) = ocetra(i,j,k,idms)-dms_bac
 
-            dz = pddpo(i,j,k)
-            intdms_bac(i,j) =  intdms_bac(i,j)+dms_bac*dz
-
-            if (use_DOMclasses) then
-              int_docl_rem (i,j) = int_docl_rem (i,j)+docrem*rcar*dz
-              int_docsl_rem(i,j) = int_docsl_rem(i,j)+docremsl/(1._rp-alphasl)*rcar*dz
-              int_docsr_rem(i,j) = int_docsr_rem(i,j)+docremsr/(1._rp-alphasr)*rcar*dz
-              int_docr_rem (i,j) = int_docr_rem (i,j)+docremr*rcar*dz
-            endif
-
             if (use_AGG) then
+
               !***********************************************************************
-              ! loss of snow numbers due to remineralization of poc
-              ! gain of snow numbers due to zooplankton mortality
-              ! NOTE that remin is in kmol/m3. Thus divide by avmass (kmol/m3)
-              !***********************************************************************
+              ! effects of biological processes on number of particles:
+              ! photosynthesis creates POM
+              ! exudation deletes POM
+              ! grazing deletes POM; but only the fraction that is not egested as
+              ! fecal pellets again (grawa remains in zoo, graton goes to po4)
+              ! none of the processes at the current time is assumed to change
+              ! the size distribution (subject to change)
+              ! NOTE that phosy, exud etc. are in kmol/m3!
+              ! Thus divide by avmass (kmol/m3)
+              !**********************************************************************
+
               if(avmass > 0._rp) then
                 avnos = ocetra(i,j,k,inos)
-                ocetra(i,j,k,inos) = ocetra(i,j,k,inos)-remin*avnos/avmass
+                if (use_DOMclasses) then
+                  anosloss = (phosy-exud-exudsl-graton-grawa)*avnos/avmass
+                else
+                  anosloss = (phosy-exud-graton-grawa)*avnos/avmass
+                endif
+                ocetra(i,j,k,inos) = ocetra(i,j,k,inos)+anosloss
               endif
+
               !***********************************************************************
               ! dead zooplankton corpses come with their own, flat distribution
               ! this flow even takes place if there is neither nos nor mass
               ! NOTE: zoomor is in kmol/m3!! Thus multiply flow by 1.e+6
               !***********************************************************************
-              zmornos = sterzo * zdis * 1.e+6_rp
-              ocetra(i,j,k,inos) = ocetra(i,j,k,inos) + zmornos
-            endif/*AGG*/
 
-          endif
-        enddo
-      enddo
-    enddo loop2
+              zmornos = zoomor * (1._rp-ecan) * zdis * 1.e+6_rp
+              ocetra(i,j,k,inos) = ocetra(i,j,k,inos)+zmornos
+            endif
+
+
+            !***********************************************************************************************
+            ! Prepare vertically integrated output and other diagnostics
+            !***********************************************************************************************
+            dz = pddpo(i,j,k)
+
+            expoor(i,j)     = expoor(i,j)    +export*rcar*dz
+            expoca(i,j)     = expoca(i,j)    +delcar*dz
+            exposi(i,j)     = exposi(i,j)    +delsil*dz
+            intdmsprod(i,j) = intdmsprod(i,j)+dmsprod*dz
+            intdms_uv(i,j)  = intdms_uv (i,j)+dms_uv*dz
+            intdms_bac(i,j) = intdms_bac(i,j)+dms_bac*dz
+            intphosy(i,j)   = intphosy(i,j)  +phosy*rcar*dz  ! primary production in kmol C m-2
+            phosy3d(i,j,k)  = phosy*rcar                     ! primary production in kmol C m-3
+            if (use_BROMO) then
+              int_chbr3_uv(i,j)   = int_chbr3_uv(i,j)   + bro_uv*dz
+              int_chbr3_prod(i,j) = int_chbr3_prod(i,j) + bro_beta*phosy*dz
+            endif
+            if (use_DOMclasses) then
+              int_exudl    (i,j) = int_exudl    (i,j)+exud*rcar*dz  ! PHY exudation to DOC-L in kmol C m-2
+              int_exudsl   (i,j) = int_exudsl   (i,j)+exudsl*rcar*dz
+              int_excrl    (i,j) = int_excrl    (i,j)+excdoc*rcar*dz
+              int_excrsl   (i,j) = int_excrsl   (i,j)+excdocsl*rcar*dz
+              int_docl_rem (i,j) = int_docl_rem (i,j)+docrem*rcar*dz
+              int_docsl_rem(i,j) = int_docsl_rem(i,j)+docremsl/(1._rp-alphasl)*rcar*dz
+              int_docsr_rem(i,j) = int_docsr_rem(i,j)+docremsr/(1._rp-alphasr)*rcar*dz
+              int_docr_rem (i,j) = int_docr_rem (i,j)+docremr*rcar*dz
+            endif
+            if ( k<= kwrbioz(i,j)) then
+              zeu  = zeu  + dz ! total depth considered
+              zeu_nutlim_diag(i,j,inutlim_fe)     = zeu_nutlim_diag(i,j,inutlim_fe)                &
+                                                  & + nutlim_diag(i,j,k,inutlim_fe)*dz
+              zeu_nutlim_diag(i,j,inutlim_phosph) = zeu_nutlim_diag(i,j,inutlim_phosph)            &
+                                                  & + nutlim_diag(i,j,k,inutlim_phosph)*dz
+              zeu_nutlim_diag(i,j,inutlim_n)      = zeu_nutlim_diag(i,j,inutlim_n)                 &
+                                                  & + nutlim_diag(i,j,k,inutlim_n)*dz
+            endif
+
+
+          endif        ! pddpo(i,j,k) > dp_min
+        enddo        ! loop over vertical dimension
+        
+        if (zeu > dp_min) then
+          zeu_nutlim_diag(i,j,inutlim_fe)    = zeu_nutlim_diag(i,j,inutlim_fe)    /zeu
+          zeu_nutlim_diag(i,j,inutlim_phosph)= zeu_nutlim_diag(i,j,inutlim_phosph)/zeu
+          zeu_nutlim_diag(i,j,inutlim_n)     = zeu_nutlim_diag(i,j,inutlim_n)     /zeu
+        endif
+
+      enddo        ! kpie
+    enddo loop1  ! kpje
     !$OMP END PARALLEL DO
 
     if (use_PBGC_OCNP_TIMESTEP) then
       if (mnproc == 1) then
         write(io_stdo_bgc,*)' '
-        write(io_stdo_bgc,*)'in OCPROD after poc remin'
+        write(io_stdo_bgc,*)'in OCPROD after Production and remineralization loop'
       endif
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
@@ -1111,9 +897,9 @@ contains
     if (.not. use_extNcycle) then
       ! =====>>>> Regular CMIP6 iHAMOCC version for denitrification wo extended nitrogen cycle =====>>>>
       !$OMP PARALLEL DO PRIVATE(remin,remin2o,dz,avmass,avnos,rem13,rem14,i,k)
-      loop3: do j = 1,kpje
+      loop2: do j = 1,kpje
         do i = 1,kpie
-          do k = merge(1,kwrbioz(i,j)+1,lkwrbioz_off),kpke
+          do k = 1,kpke
             if(omask(i,j) > 0.5_rp) then
               if(ocetra(i,j,k,ioxygen) < O2thresh_hypoxic .and. pddpo(i,j,k) > dp_min) then
                 if (use_AGG) then
@@ -1165,7 +951,7 @@ contains
             endif
           enddo
         enddo
-      enddo loop3
+      enddo loop2
       !$OMP END PARALLEL DO
 
       if (use_PBGC_OCNP_TIMESTEP) then
@@ -1204,9 +990,9 @@ contains
     !                      does it make sense to check for oxygen and nitrate deficit?
 
     !$OMP PARALLEL DO PRIVATE(remin,avmass,avnos,rem13,rem14,i,k)
-    loop4: do j = 1,kpje
+    loop3: do j = 1,kpje
       do i = 1,kpie
-        do k = merge(1,kwrbioz(i,j)+1,lkwrbioz_off),kpke
+        do k = 1,kpke
           if(omask(i,j) > 0.5_rp .and. pddpo(i,j,k) > dp_min) then
             if(ocetra(i,j,k,ioxygen) < O2thresh_hypoxic .and. ocetra(i,j,k,iano3) < NO3thresh_sulf ) then
 
@@ -1253,7 +1039,7 @@ contains
           endif
         enddo
       enddo
-    enddo loop4
+    enddo loop3
     !$OMP END PARALLEL DO
     !    end sulphate reduction
 

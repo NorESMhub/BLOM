@@ -41,7 +41,7 @@ module mo_param_bgc
                             use_BOXATM,use_CFC,use_PBGC_CK_TIMESTEP,                               &
                             use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type,use_M4AGO,&
                             do_n2o_coupled,do_n2o_hist,do_nh3_coupled,use_extNcycle,               &
-                            lkwrbioz_off,lTO2depremin,use_shelfsea_res_time,use_sediment_quality,  &
+                            lTO2depremin,use_shelfsea_res_time,use_sediment_quality,               &
                             use_pref_tracers,use_coupler_ndep,use_river2omip,use_DOMclasses,       &
                             linit_DOMclasses_sim,ldyn_sed_age,sedspin_yr_s,sedspin_yr_e,           &
                             sedspin_ncyc,ldtbgc
@@ -966,7 +966,6 @@ contains
       call pinfo_add_entry('sedspin_yr_e',           real(sedspin_yr_e))
       call pinfo_add_entry('sedspin_ncyc',           real(sedspin_ncyc))
       call cinfo_add_entry('l_3Dvarsedpor',          l_3Dvarsedpor)
-      call cinfo_add_entry('lkwrbioz_off',           lkwrbioz_off)
       call cinfo_add_entry('lTO2depremin',           lTO2depremin)
       call cinfo_add_entry('use_shelfsea_res_time',  use_shelfsea_res_time)
       call cinfo_add_entry('use_sediment_quality',   use_sediment_quality)

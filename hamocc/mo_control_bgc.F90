@@ -64,7 +64,6 @@ module mo_control_bgc
   logical           :: do_sedspinup           = .false. ! apply sediment spin-up
   logical           :: do_oalk                = .false. ! apply ocean alkalinization
   logical           :: with_dmsph             = .false. ! apply DMS with pH dependence
-  logical           :: lkwrbioz_off           = .true.  ! if true, allow remin and primary prod throughout full water column
   logical           :: lTO2depremin           = .true.  ! Temperature- and O2-dependent remineralization of POM
   logical           :: ldyn_sed_age           = .false. ! switch for dynamic sediment age in combination with use_sediment_quality
   integer           :: sedspin_yr_s           = -1      ! start year for sediment spin-up
