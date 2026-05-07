@@ -45,7 +45,7 @@ contains
                               do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,                 &
                               dtb,dtbgc,io_stdo_bgc,ldtbgc,                                        &
                               ldtrunbgc,ndtdaybgc,with_dmsph,l_3Dvarsedpor,use_M4AGO,              &
-                              lkwrbioz_off,do_n2o_coupled,do_nh3_coupled,                          &
+                              do_n2o_coupled,do_nh3_coupled,                                       &
                               ocn_co2_type, use_sedbypass, use_BOXATM, use_BROMO,use_extNcycle,    &
                               use_coupler_ndep,lTO2depremin,use_sediment_quality,ldyn_sed_age,     &
                               linit_DOMclasses_sim,do_n2o_hist
@@ -89,7 +89,7 @@ contains
          &            do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,                         &
          &            inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c,inidom,swaclimfile,&
          &            with_dmsph,pi_ph_file,l_3Dvarsedpor,sedporfile,ocn_co2_type,                 &
-         &            do_n2o_coupled,do_nh3_coupled,lkwrbioz_off,lTO2depremin,shelfsea_maskfile,   &
+         &            do_n2o_coupled,do_nh3_coupled,lTO2depremin,shelfsea_maskfile,                &
          &            sedqualfile,ldyn_sed_age,linit_DOMclasses_sim,dzs,sed_porosity,do_n2o_hist
     !
     ! --- Set io units and some control parameters
