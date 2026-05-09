@@ -38,8 +38,8 @@ contains
     use mo_ihamocc4m4ago,only: ws_agg
 
     ! Arguments
-    integer, intent(in)    :: i,j,k                 ! indices for spatial domain to be used
-    real(rp),intent(inout) :: wpoc,wcal,wopal,wdust ! sinking velocities of particulates
+    integer, intent(in)    :: i,j,k                      ! indices for spatial domain to be used
+    real(rp),intent(inout) :: wpoc,wcal,wopal,wdust      ! sinking velocities of particulates
 
     if (use_AGG) then
        wpoc  = wmass(i,j,k)
@@ -84,7 +84,7 @@ contains
                                 calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot, &
                                 carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,carflx_bot, &
                                 dustflx0100,dustflx0500,dustflx1000,dustflx2000,dustflx4000,       &
-                                dustflx_bot,aggregate,dustagg
+                                dustflx_bot,aggregate,dustagg,wnumb
     use mo_ihamocc4m4ago, only: ws_agg
 
     ! Arguments
@@ -178,6 +178,8 @@ contains
               call get_ws(i,j,k,     wpoc, wcal, wopal, wdust)
               call get_ws(i,j,kdonor,wpocd,wcald,wopald,wdustd)
               if (use_AGG) then
+                wnos   = wnumb(i,j,k)
+                wnosd  = wnumb(i,j,kdonor)
                 dagg   = dustagg(i,j,k)
               else
                 dagg   = 0._rp
