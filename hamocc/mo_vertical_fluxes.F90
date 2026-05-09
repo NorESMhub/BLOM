@@ -85,7 +85,6 @@ contains
                                 carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,carflx_bot, &
                                 dustflx0100,dustflx0500,dustflx1000,dustflx2000,dustflx4000,       &
                                 dustflx_bot,aggregate,dustagg,wnumb
-    use mo_ihamocc4m4ago, only: ws_agg
 
     ! Arguments
     integer, intent(in) :: kpie                         ! 1st dimension of model grid.
@@ -194,8 +193,6 @@ contains
                   wnosd  = 0.0_rp
                 else if (use_WLIN) then
                   wpoc = wmin
-                else if (use_M4AGO) then
-                  wpoc = ws_agg(i,j,k)
                 endif
               endif
 
