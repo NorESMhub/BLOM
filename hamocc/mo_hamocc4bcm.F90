@@ -76,6 +76,7 @@ contains
     use mo_carchm,        only: carchm
     use mo_chemcon,       only: mw_nh3,mw_n2o
     use mo_shelfsea_restime,only: shelfsea_residence_time
+    use mo_vertical_fluxes, only: sinking
 
     ! Arguments
     integer, intent(in)  :: kpie                                            ! 1st dimension of model grid.
@@ -234,6 +235,20 @@ contains
       endif
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
+
+    !---------------------------------------------------------------------
+    ! Sinking of particulate material
+    !
+    call sinking(kpie,kpje,kpke,pddpo,omask)
+
+    if (use_PBGC_CK_TIMESTEP   ) then
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)' '
+        write(io_stdo_bgc,*)'after sinking: call INVENTORY'
+      endif
+      call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+    endif
+
 
     do l=1,nocetra
       do K=1,kpke
