@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2025 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
+! Copyright (C) 2015-2026 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -1039,7 +1039,7 @@ module mod_cmnfld_routines
 
               pup =  p(i,j,1) + zrefb04*onem
               zup = z(i,j,1) + zrefb04
-              dsup = sig0ref
+              dsup = 0._r8
               do
                  if (dp(i,j,km) > onecm) then
                     plo = p(i,j,k) + .5_r8*dp(i,j,km)
