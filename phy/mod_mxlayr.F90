@@ -39,7 +39,7 @@ module mod_mxlayr
                            dsigds, dsigds0, p_alpha,p_p_alpha
   use mod_state,     only: u, v, dp, dpu, dpv, temp, saln, sigma, &
                            p, pu, pv, kfpla
-  use mod_swabs,     only: swamxd, swfc1, swfc2, swal1, swal2
+  use mod_swabs,     only: swamxd, swfc2, swal2
   use mod_forcing,   only: surflx, surrlx, sswflx, &
                            salflx, brnflx, salrlx, salt_corr, trc_corr, &
                            ustar, ustar3, buoyfl

@@ -92,7 +92,8 @@
 ! NIWLF    : Fraction of near-inertial energy dissipated locally beneath
 !            the boundary layer () (f)
 ! SWAMTH   : Shortwave radiation absorption method. Valid methods:
-!            'top-layer', 'jerlov', 'chlorophyll', 'spatial_frac_attlen' (a)
+!            'top-layer', 'jerlov', 'chlorophyll_ma94', 'chlorophyll_ohl03',
+!            'spatial_frac_attlen' (a)
 ! JWTYPE   : Number indicating the Jerlov (1968) water type (i)
 ! CHLOPT   : Chlorophyll concentration option. Valid options:
 !            'climatology' (a)

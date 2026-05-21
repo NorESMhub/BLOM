@@ -28,19 +28,21 @@ module mod_swabs
 !
 ! where E(0) is the shortwave radiation flux immediately below the ocean
 ! surface, z is the depth, swfc1 and swal1 are the fraction and attenuation
-! length, respectively, of long visible visible wavelengths (also infrared
-! wavelengths in case of Jerlov (1968) water types) and swfc2 and swal2 are the
-! fraction and attenuation length of and short visible and ultraviolet
-! wavelengths. For vcoord_type = 'isopyc_bulkml' it is assumed that the infrared
-! and long visible wavelengths of the radiation is absorbed in the uppermost
-! model layer.
+! length, respectively, of long visible wavelengths (also infrared wavelengths
+! in case of Jerlov (1968) water types and Ohlmann (2003) parameterization) and
+! swfc2 and swal2 are the fraction and attenuation length of short visible and
+! ultraviolet wavelengths. For vcoord_type = 'isopyc_bulkml' it is assumed that
+! the infrared and long visible wavelengths of the radiation is absorbed in the
+! uppermost model layer.
 !
 ! References:
 !   Jerlov, N. G., 1968: Optical Oceanography. Elsevier, 194 pp.
-!   Paulson, C. A., and J. J. Simpson, 1977: Irradiance Measurements in the
-!     Upper Ocean. J. Phys. Oceanogr., 7, 952-956.
 !   Morel, A., and D. Antoine, 1994: Heating Rate within the Upper Ocean in
 !     Relation to Its Bio-Optical State. J. Phys. Oceanogr., 24, 1652-1665.
+!   Ohlmann, J. C., 2003: Ocean Radiant Heating in Climate Models. J. Climate,
+!     16, 1337-1352.
+!   Paulson, C. A., and J. J. Simpson, 1977: Irradiance Measurements in the
+!     Upper Ocean. J. Phys. Oceanogr., 7, 952-956.
 !   Sweeney, C., A. Gnanadesikan, S. M. Griffies, M. J. Harrison, A. J. Rosati,
 !     and B. L. Samuels, 2005: Impacts of Shortwave Penetration Depth on
 !     Large-Scale Ocean Circulation and Heat Transport. J. Phys. Oceanogr., 35,
@@ -70,9 +72,12 @@ module mod_swabs
    !                                   Simpson (1977) transmission
    !                                   parameterization of Jerlov (1968) water
    !                                   types.
-   !            'chlorophyll'        : Absorption using modified Morel and
+   !            'chlorophyll_ma94'   : Absorption using modified Morel and
    !                                   Antoine (1994) chlorophyll concentration
    !                                   dependent transmission parameterization.
+   !            'chlorophyll_ohl03'  : Absorption using Ohlmann (2003)
+   !                                   chlorophyll concentration dependent
+   !                                   transmission parameterization.
    !            'spatial_frac_attlen': Read spatially varying spectral band
    !                                   fractions and attenuation lengths from
    !                                   file.
@@ -103,8 +108,6 @@ module mod_swabs
 
   ! Parameters related to a modified Morel and Antoine (1994) transmission
   ! parameterization:
-  !    chl10_min: Minimum value of log10 of chlorophyll concentration.
-  !    chl10_max: Maximum value of log10 of chlorophyll concentration.
   !    ma94_irfc: Infrared fraction of shortwave radiation that is absorbed near
   !               the surface. The value 0.43 suggested by Sweeney et al. (2005)
   !               is used here.
@@ -115,8 +118,6 @@ module mod_swabs
   !    ma94_z2  : Coefficients of polynomial determining the attenuation length
   !               of short visible and ultraviolet wavelengths.
   real(r8), parameter :: &
-       chl10_min = -2._r8, &
-       chl10_max = 1._r8, &
        ma94_irfc = .43_r8
   real(r8), dimension(6), parameter :: &
        ma94_v2 = [  .679_r8,  -.008_r8,  -.132_r8, &
@@ -126,13 +127,67 @@ module mod_swabs
        ma94_z2 = [ 7.925_r8, -6.644_r8,  3.662_r8, &
                   -1.815_r8,  -.218_r8,   .502_r8]
 
+  ! Parameters related to Ohlmann (2003) transmission parameterization:
+  integer, parameter :: &
+       nval_tab1a = 31, &
+       nval_lut   = 401
+  real, parameter, dimension(nval_tab1a) :: &
+       chl_tab1a = [   .001,    .005,     .01,     .02, &
+                        .03,     .05,     .10,     .15, &
+                        .20,     .25,     .30,     .35, &
+                        .40,     .45,     .50,     .60, &
+                        .70,     .80,     .90,    1.00, &
+                       1.50,    2.00,    2.50,    3.00, &
+                       4.00,    5.00,    6.00,    7.00, &
+                       8.00,    9.00,   10.00], &
+       a1_tab1a =  [0.4421 , 0.4451 , 0.4488 , 0.4563 , &
+                    0.4622 , 0.4715 , 0.4877 , 0.4993 , &
+                    0.5084 , 0.5159 , 0.5223 , 0.5278 , &
+                    0.5326 , 0.5369 , 0.5408 , 0.5474 , &
+                    0.5529 , 0.5576 , 0.5615 , 0.5649 , &
+                    0.5757 , 0.5802 , 0.5808 , 0.5788 , &
+                    0.56965, 0.55638, 0.54091, 0.52442, &
+                    0.50766, 0.49110, 0.47505], &
+       a2_tab1a =  [0.2981 , 0.2963 , 0.2940 , 0.2894 , &
+                    0.2858 , 0.2800 , 0.2703 , 0.2628 , &
+                    0.2571 , 0.2523 , 0.2481 , 0.2444 , &
+                    0.2411 , 0.2382 , 0.2356 , 0.2309 , &
+                    0.2269 , 0.2235 , 0.2206 , 0.2181 , &
+                    0.2106 , 0.2089 , 0.2113 , 0.2167 , &
+                    0.23357, 0.25504, 0.27829, 0.30274, &
+                    0.32698, 0.35056, 0.37303], &
+       b1_tab1a =  [0.0287 , 0.0301 , 0.0319 , 0.0355 , &
+                    0.0384 , 0.0434 , 0.0532 , 0.0612 , &
+                    0.0681 , 0.0743 , 0.0800 , 0.0853 , &
+                    0.0902 , 0.0949 , 0.0993 , 0.1077 , &
+                    0.1154 , 0.1227 , 0.1294 , 0.1359 , &
+                    0.1640 , 0.1876 , 0.2082 , 0.2264 , &
+                    0.25808, 0.28498, 0.30844, 0.32932, &
+                    0.34817, 0.36540, 0.38132], &
+       b2_tab1a =  [0.3192 , 0.3243 , 0.3306 , 0.3433 , &
+                    0.3537 , 0.3705 , 0.4031 , 0.4262 , &
+                    0.4456 , 0.4621 , 0.4763 , 0.4889 , &
+                    0.4999 , 0.5100 , 0.5191 , 0.5347 , &
+                    0.5477 , 0.5588 , 0.5682 , 0.5764 , &
+                    0.6042 , 0.6206 , 0.6324 , 0.6425 , &
+                    0.66172, 0.68144, 0.70086, 0.72144, &
+                    0.74178, 0.76190, 0.78155]
+
   ! Other parameters:
-  !    swamxd: Maximum depth of shortwave radiation penetration [m].
-  real(r8), parameter ::  swamxd = 200._r8
+  !    chl10_min: Minimum value of log10 of chlorophyll concentration.
+  !    chl10_max: Maximum value of log10 of chlorophyll concentration.
+  !    swamxd   : Maximum depth of shortwave radiation penetration [m].
+  real(r8), parameter :: &
+       chl10_min = -2._r8, &
+       chl10_max = 1._r8, &
+       swamxd    = 200._r8
 
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12) :: chl10c
   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
      chl10, swfc1, swfc2, swal1, swal2
+  real(r8), dimension (nval_lut) :: &
+     a1_lut, a2_lut, b1_lut, b2_lut 
+  real(r8) :: log10chl_min, dlog10chl
 
   public :: swamth, chlopt, ccfile, svfile, jwtype, &
             swamxd, swfc1, swfc2, swal1, swal2, &
@@ -165,8 +220,12 @@ contains
 
       ! Local variables
       real(r8), dimension(itdm,jtdm) :: tmp2d
+      real(r8) :: chl_min, log10chl_max, log10chl_lut, chl, w1, w2
       integer, dimension(3) :: istart, icount
-      integer :: i, j, l, k, errstat, ncid, dimid, varid
+      integer :: i, j, l, k, errstat, ncid, dimid, varid, m, n, mm1
+  !! Make the table big enough so step size is smaller
+  !! in log-space that any increment in Table 1a
+
 
       select case (trim(swamth))
 
@@ -213,8 +272,8 @@ contains
                enddo
             enddo
             !$omp end parallel do
-
-         case ('chlorophyll')
+         
+         case ('chlorophyll_ma94', 'chlorophyll_ohl03')
 
             ! Initialize functionality for chlorophyll concentration dependent
             ! shortwave radiation absorption.
@@ -347,6 +406,42 @@ contains
 
                ! Make sure halos are updated.
                call xctilr(chl10c, 1, 12, nbdy, nbdy, halo_ps)
+
+               if (trim(swamth) == 'chlorophyll_ohl03') then
+
+                  ! Prepare the lookup table for the Ohlmann (2003)
+                  ! parameterization.
+
+                  chl_min = chl_tab1a(1)
+                  log10chl_min = log10(chl_tab1a(1))
+                  log10chl_max = log10(chl_tab1a(nval_tab1a))
+                  dlog10chl = (log10chl_max - log10chl_min)/(nval_lut - 1)
+
+                  ! Step through the lookup table.
+                  m = 2
+                  do n=1,nval_lut
+                     log10chl_lut = log10chl_min + (n - 1)*dlog10chl
+                     chl = 10._r8**log10chl_lut
+                     chl = max(chl_tab1a(1), min(chl,chl_tab1a(nval_tab1a)))
+             
+                     ! Find interval in Table 1a (m-1,m].
+                     do while (chl > chl_tab1a(m))
+                        m = m + 1
+                     enddo
+                     mm1 = m - 1
+             
+                     ! Interpolation weights.
+                     w2 = (chl - chl_tab1a(mm1))/(chl_tab1a(m) - chl_tab1a(mm1))
+                     w1 = 1._r8 - w2
+             
+                     ! Fill in the tables.
+                     a1_lut(n) = w1*a1_tab1a(mm1) + w2*a1_tab1a(m)
+                     a2_lut(n) = w1*a2_tab1a(mm1) + w2*a2_tab1a(m)
+                     b1_lut(n) = w1*b1_tab1a(mm1) + w2*b1_tab1a(m)
+                     b2_lut(n) = w1*b2_tab1a(mm1) + w2*b2_tab1a(m)
+                  enddo
+
+               endif
 
             else
                if (mnproc == 1) then
@@ -522,7 +617,7 @@ contains
    ! ---------------------------------------------------------------------------
 
       ! Local variables
-      integer :: i, j, l
+      integer :: i, j, l, n
       real(r8) :: q, v2
 
       select case (trim(swamth))
@@ -534,7 +629,7 @@ contains
 
             return
 
-         case ('chlorophyll')
+         case ('chlorophyll_ma94', 'chlorophyll_ohl03')
 
             if     (chlopt == 'climatology') then
                ! Time interpolation of chlorophyll concentration climatology.
@@ -558,38 +653,67 @@ contains
                       stop '(updswa)'
             endif
 
-            ! Compute penetrative shortwave radiation fractions and attenuation
-            ! lengths according to modified Morel and Antoine (1994) scheme.
-            !$omp parallel do private(l, i, q, v2)
-            do j = 1, jj
-              do l = 1, isp(j)
-                do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
-                  q = max(chl10_min, min(chl10_max, chl10(i,j)))
-                  v2 = ((((( ma94_v2(6) *q &
-                           + ma94_v2(5))*q &
-                           + ma94_v2(4))*q &
-                           + ma94_v2(3))*q &
-                           + ma94_v2(2))*q &
-                           + ma94_v2(1))
-                  swfc1(i,j) = (1._r8 - ma94_irfc)*(1._r8 - v2)
-                  swfc2(i,j) = (1._r8 - ma94_irfc)*v2
-                  swal1(i,j) = (((( ma94_z1(6) *q &
-                                  + ma94_z1(5))*q &
-                                  + ma94_z1(4))*q &
-                                  + ma94_z1(3))*q &
-                                  + ma94_z1(2))*q &
-                                  + ma94_z1(1)
-                  swal2(i,j) = (((( ma94_z2(6) *q &
-                                  + ma94_z2(5))*q &
-                                  + ma94_z2(4))*q &
-                                  + ma94_z2(3))*q &
-                                  + ma94_z2(2))*q &
-                                  + ma94_z2(1)
-                enddo
-              enddo
-            enddo
-            !$omp end parallel do
+            if (trim(swamth) == 'chlorophyll_ma94') then
 
+               ! Compute penetrative shortwave radiation fractions and
+               ! attenuation lengths according to modified Morel and Antoine
+               ! (1994) scheme.
+               !$omp parallel do private(l, i, q, v2)
+               do j = 1, jj
+                 do l = 1, isp(j)
+                   do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                     q = max(chl10_min, min(chl10_max, chl10(i,j)))
+                     v2 = ((((( ma94_v2(6) *q &
+                              + ma94_v2(5))*q &
+                              + ma94_v2(4))*q &
+                              + ma94_v2(3))*q &
+                              + ma94_v2(2))*q &
+                              + ma94_v2(1))
+                     swfc1(i,j) = (1._r8 - ma94_irfc)*(1._r8 - v2)
+                     swfc2(i,j) = (1._r8 - ma94_irfc)*v2
+                     swal1(i,j) = (((( ma94_z1(6) *q &
+                                     + ma94_z1(5))*q &
+                                     + ma94_z1(4))*q &
+                                     + ma94_z1(3))*q &
+                                     + ma94_z1(2))*q &
+                                     + ma94_z1(1)
+                     swal2(i,j) = (((( ma94_z2(6) *q &
+                                     + ma94_z2(5))*q &
+                                     + ma94_z2(4))*q &
+                                     + ma94_z2(3))*q &
+                                     + ma94_z2(2))*q &
+                                     + ma94_z2(1)
+                   enddo
+                 enddo
+               enddo
+               !$omp end parallel do
+
+            else
+
+               ! Compute penetrative shortwave radiation fractions and
+               ! attenuation lengths according to the Ohlmann (2003) scheme.
+               ! Note that the table values of A2 and 1/B2 here corresponds to
+               ! swfc1 and swal1 (for long visible and infrared wavelengths) and
+               ! table values of A1 and 1/B1 corresponds to swfc2 and swal2 (for
+               ! short visible and ultraviolet wavelengths).
+               !$omp parallel do private(l, i, q, n)
+               do j = 1, jj
+                 do l = 1, isp(j)
+                   do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                     q = max(chl10_min, min(chl10_max, chl10(i,j)))
+                     ! Do a nearest neighbor lookup.
+                     n = nint((q - log10chl_min)/dlog10chl) + 1
+                     swfc1(i,j) = a2_lut(n)
+                     swfc2(i,j) = a1_lut(n)
+                     swal1(i,j) = 1._r8/b2_lut(n)
+                     swal2(i,j) = 1._r8/b1_lut(n)
+                   enddo
+                 enddo
+               enddo
+               !$omp end parallel do
+
+            endif
+            
          case default
             if (mnproc == 1) &
                write (lp,'(3a)') ' updswa: swamth = ', trim(swamth), &
