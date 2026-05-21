@@ -2949,6 +2949,58 @@
     <desc>wind stress x-component [N m-2]</desc>
   </entry>
 
+  <entry id="h2d_swfc1">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
+    </values>
+    <desc>penetrative fraction of long visible wavelengths []</desc>
+  </entry>
+
+  <entry id="h2d_swfc2">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
+    </values>
+    <desc>penetrative fraction of short visible and ultraviolet wavelengths []</desc>
+  </entry>
+
+  <entry id="h2d_swal1">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
+    </values>
+    <desc>attenuation length of long visible wavelengths [m]</desc>
+  </entry>
+
+  <entry id="h2d_swal2">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
+    </values>
+    <desc>attenuation length of short visible and ultraviolet wavelengths [m]</desc>
+  </entry>
+
   <entry id="lyr_bfsq">
     <type>integer(3)</type>
     <category>diaphy</category>
