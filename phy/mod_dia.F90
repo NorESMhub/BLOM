@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2010-2025 Ingo Bethke, Mats Bentsen, Mehmet Ilicak,
+! Copyright (C) 2010-2026 Ingo Bethke, Mats Bentsen, Mehmet Ilicak,
 !                         Alok Kumar Gupta, Jörg Schwinger, Ping-Gin Chi,
 !                         Mariana Vertenstein
 !
@@ -62,6 +62,7 @@ module mod_dia
                            lamult, lasl, ustokes, vstokes, surflx, &
                            surrlx, salflx, brnflx, salrlx, taux, tauy, &
                            ustar, ustar3
+  use mod_swabs,     only: swfc1, swfc2, swal1, swal2
   use mod_niw,       only: idkedt
   use mod_utility,   only: util1, util2, util3, util4, fnmlen
   use mod_ben02,     only: dfl, alb
@@ -210,7 +211,7 @@ module mod_dia
        H2D_T20D    ,H2D_T17D    ,H2D_TAUX    ,H2D_TAUY    ,H2D_TBOT    , &
        H2D_TICE    ,H2D_TSRF    ,H2D_UB      ,H2D_UICE    ,H2D_USTAR   , &
        H2D_USTAR3  ,H2D_USTOKES ,H2D_VB      ,H2D_VICE    ,H2D_VSTOKES , &
-       H2D_ZTX     , &
+       H2D_ZTX     ,H2D_SWFC1   ,H2D_SWFC2   ,H2D_SWAL1   ,H2D_SWAL2   , &
        LYR_BFSQ    ,LYR_DIFDIA  ,LYR_DIFVMO  ,LYR_DIFVHO  ,LYR_DIFVSO  , &
        LYR_DIFINT  ,LYR_DIFISO  ,LYR_DP      ,LYR_DPU     ,LYR_DPV     , &
        LYR_DZ      ,LYR_SALN    ,LYR_TEMP    ,LYR_TRC     ,LYR_UFLX    , &
@@ -250,7 +251,8 @@ module mod_dia
        ACC_T17D    ,ACC_TAUX    ,ACC_TAUY    ,ACC_TBOT    ,ACC_TICE    , &
        ACC_TSRF    ,ACC_UB      ,ACC_UBFLXS  ,ACC_UICE    ,ACC_USTAR   , &
        ACC_USTAR3  ,ACC_USTOKES ,ACC_VB      ,ACC_VBFLXS  ,ACC_VICE    , &
-       ACC_VSTOKES ,ACC_ZTX     ,ACC_IVOLU   ,ACC_IVOLV   ,ACC_UTILH2D , &
+       ACC_VSTOKES ,ACC_ZTX     ,ACC_SWFC1   ,ACC_SWFC2   ,ACC_SWAL1   , &
+       ACC_SWAL2   ,ACC_IVOLU   ,ACC_IVOLV   ,ACC_UTILH2D , &
        ACC_BFSQ    ,ACC_DIFDIA  ,ACC_DIFVMO  ,ACC_DIFVHO  ,ACC_DIFVSO  , &
        ACC_DIFINT  ,ACC_DIFISO  ,ACC_DP      ,ACC_DPU     ,ACC_DPV     , &
        ACC_DZ      ,ACC_SALN    ,ACC_TEMP    ,ACC_UFLX    ,ACC_UTFLX   , &
@@ -300,7 +302,7 @@ module mod_dia
        H2D_T20D    ,H2D_T17D    ,H2D_TAUX    ,H2D_TAUY    ,H2D_TBOT    , &
        H2D_TICE    ,H2D_TSRF    ,H2D_UB      ,H2D_UICE    ,H2D_USTAR   , &
        H2D_USTAR3  ,H2D_USTOKES ,H2D_VB      ,H2D_VICE    ,H2D_VSTOKES , &
-       H2D_ZTX     , &
+       H2D_ZTX     ,H2D_SWFC1   ,H2D_SWFC2   ,H2D_SWAL1   ,H2D_SWAL2   , &
        LYR_BFSQ    ,LYR_DIFDIA  ,LYR_DIFVMO  ,LYR_DIFVHO  ,LYR_DIFVSO  , &
        LYR_DIFINT  ,LYR_DIFISO  ,LYR_DP      ,LYR_DPU     ,LYR_DPV     , &
        LYR_DZ      ,LYR_SALN    ,LYR_TEMP    ,LYR_TRC     ,LYR_UFLX    , &
@@ -575,6 +577,10 @@ contains
       ACC_VICE(n)     = H2D_VICE(n)
       ACC_VSTOKES(n)  = H2D_VSTOKES(n)
       ACC_ZTX(n)      = H2D_ZTX(n)
+      ACC_SWFC1(n)    = H2D_SWFC1(n)
+      ACC_SWFC2(n)    = H2D_SWFC2(n)
+      ACC_SWAL1(n)    = H2D_SWAL1(n)
+      ACC_SWAL2(n)    = H2D_SWAL2(n)
       ACC_BFSQ(n)     = LYR_BFSQ(n)
       ACC_BFSQLVL(n)  = LVL_BFSQ(n)
       ACC_DIFDIA(n)   = LYR_DIFDIA(n)
@@ -830,6 +836,14 @@ contains
       ACC_VSTOKES(n) = nphyh2d*min(1,ACC_VSTOKES(n))
       if (ACC_ZTX(n) /= 0) nphyh2d = nphyh2d+1
       ACC_ZTX(n) = nphyh2d*min(1,ACC_ZTX(n))
+      if (ACC_SWFC1(n) /= 0) nphyh2d = nphyh2d+1
+      ACC_SWFC1(n) = nphyh2d*min(1,ACC_SWFC1(n))
+      if (ACC_SWFC2(n) /= 0) nphyh2d = nphyh2d+1
+      ACC_SWFC2(n) = nphyh2d*min(1,ACC_SWFC2(n))
+      if (ACC_SWAL1(n) /= 0) nphyh2d = nphyh2d+1
+      ACC_SWAL1(n) = nphyh2d*min(1,ACC_SWAL1(n))
+      if (ACC_SWAL2(n) /= 0) nphyh2d = nphyh2d+1
+      ACC_SWAL2(n) = nphyh2d*min(1,ACC_SWAL2(n))
 
       if (ACC_BFSQ(n) /= 0) nphylyr = nphylyr+1
       ACC_BFSQ(n) = nphylyr*min(1,ACC_BFSQ(n))
@@ -1717,6 +1731,18 @@ contains
 
     ! brine plume pressure depth [kg/m/s^2]
     call acch2d(ACC_BRNPD,pbrnda,dummy,0,'p')
+
+    ! penetrative fraction of long visible wavelengths []
+    call acch2d(ACC_SWFC1,swfc1,dummy,0,'p')
+
+    ! penetrative fraction of short visible and ultraviolet wavelengths []
+    call acch2d(ACC_SWFC2,swfc2,dummy,0,'p')
+
+    ! attenuation length of long visible wavelengths [m]
+    call acch2d(ACC_SWAL1,swal1,dummy,0,'p')
+
+    ! attenuation length of short visible and ultraviolet wavelengths [m]
+    call acch2d(ACC_SWAL2,swal2,dummy,0,'p')
 
     !---------------------------------------------------------------
     ! store minimum or maximum of 2d diagnostic variables
@@ -3109,6 +3135,29 @@ contains
 
     call wrth2d(ACC_TBOT(iogrp),H2D_TBOT(iogrp),rnacc,0., &
          cmpflg,ip,'p','tbot','Bottom temperature',' ','degC')
+
+    call wrth2d(ACC_TBOT(iogrp),H2D_TBOT(iogrp),rnacc,0., &
+         cmpflg,ip,'p','tbot','Bottom temperature',' ','degC')
+
+    call wrth2d(ACC_SWFC1(iogrp),H2D_SWFC1(iogrp),rnacc,0., &
+         cmpflg,ip,'p','swfc1', &
+         'Penetrative fraction of long visible wavelengths', &
+         ' ','1')
+
+    call wrth2d(ACC_SWFC2(iogrp),H2D_SWFC2(iogrp),rnacc,0., &
+         cmpflg,ip,'p','swfc2', &
+         'Penetrative fraction of short visible and ultraviolet wavelengths', &
+         ' ','1')
+
+    call wrth2d(ACC_SWAL1(iogrp),H2D_SWAL1(iogrp),rnacc,0., &
+         cmpflg,ip,'p','swal1', &
+         'Attenuation length of long visible wavelengths', &
+         ' ','m')
+
+    call wrth2d(ACC_SWAL2(iogrp),H2D_SWAL2(iogrp),rnacc,0., &
+         cmpflg,ip,'p','swal2', &
+         'Attenuation length of short visible and ultraviolet wavelengths', &
+         ' ','m')
 
     ! write 3d layer fields
     call wrtlyr(ACC_DP(iogrp),LYR_DP(iogrp),rnacc,0., &
@@ -5893,6 +5942,10 @@ contains
     call inih2d(ACC_FICE(iogrp),'p',0.)
     call inih2d(ACC_TSRF(iogrp),'p',0.)
     call inih2d(ACC_TICE(iogrp),'p',0.)
+    call inih2d(ACC_SWFC1(iogrp),'p',0.)
+    call inih2d(ACC_SWFC2(iogrp),'p',0.)
+    call inih2d(ACC_SWAL1(iogrp),'p',0.)
+    call inih2d(ACC_SWAL2(iogrp),'p',0.)
 
     ! initialisation of 3d layer fields
     call inilyr(ACC_UVEL(iogrp),'u',0.)
@@ -6983,6 +7036,22 @@ contains
 
     call ncdefvar3d(H2D_TBOT(iogrp),cmpflg,'p','tbot', &
          'Bottom temperature',' ','degC',0)
+
+    call ncdefvar3d(H2D_SWFC1(iogrp),cmpflg,'p','swfc1', &
+         'Penetrative fraction of long visible wavelengths', &
+         ' ','1',0)
+
+    call ncdefvar3d(H2D_SWFC2(iogrp),cmpflg,'p','swfc2', &
+         'Penetrative fraction of short visible and ultraviolet wavelengths', &
+         ' ','1',0)
+
+    call ncdefvar3d(H2D_SWAL1(iogrp),cmpflg,'p','swal1', &
+         'Attenuation length of long visible wavelengths', &
+         ' ','m',0)
+
+    call ncdefvar3d(H2D_SWAL2(iogrp),cmpflg,'p','swal2', &
+         'Attenuation length of short visible and ultraviolet wavelengths', &
+         ' ','m',0)
 
     ! define 3d layer fields
     call ncdefvar3d(LYR_DP(iogrp),cmpflg,'p','dp', &

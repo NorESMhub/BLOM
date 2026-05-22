@@ -656,10 +656,10 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>chlorophyll</value>
+      <value>chlorophyll_ma94</value>
       <value blom_vcoord="isopyc_bulkml">jerlov</value>
     </values>
-    <desc>Shortwave radiation absorption method. Valid methods:</desc>
+    <desc>Shortwave radiation absorption method. Valid methods: 'top-layer', 'jerlov', 'chlorophyll_ma94', 'chlorophyll_ohl03', 'spatial_frac_attlen'</desc>
   </entry>
 
   <entry id="jwtype">
@@ -838,9 +838,7 @@
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx0.25v4_20170623.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx0.125v4_20221013.nc</value>
     </values>
-    <desc>Name of file containing SSS climatology used for relaxation (a)
-      Name of file containing SSS climatology used for relaxation
-    </desc>
+    <desc>Name of file containing SSS climatology used for relaxation (a)</desc>
   </entry>
 
   <entry id="wavsrc">
@@ -2947,6 +2945,58 @@
       <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>wind stress x-component [N m-2]</desc>
+  </entry>
+
+  <entry id="h2d_swfc1">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
+    </values>
+    <desc>penetrative fraction of long visible wavelengths []</desc>
+  </entry>
+
+  <entry id="h2d_swfc2">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
+    </values>
+    <desc>penetrative fraction of short visible and ultraviolet wavelengths []</desc>
+  </entry>
+
+  <entry id="h2d_swal1">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
+    </values>
+    <desc>attenuation length of long visible wavelengths [m]</desc>
+  </entry>
+
+  <entry id="h2d_swal2">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
+    </values>
+    <desc>attenuation length of short visible and ultraviolet wavelengths [m]</desc>
   </entry>
 
   <entry id="lyr_bfsq">

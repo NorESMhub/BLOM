@@ -91,7 +91,8 @@
 ! NIWLF    : Fraction of near-inertial energy dissipated locally beneath
 !            the boundary layer () (f)
 ! SWAMTH   : Shortwave radiation absorption method. Valid methods:
-!            'top-layer', 'jerlov', 'chlorophyll', 'spatial_frac_attlen' (a)
+!            'top-layer', 'jerlov', 'chlorophyll_ma94', 'chlorophyll_ohl03',
+!            'spatial_frac_attlen' (a)
 ! JWTYPE   : Number indicating the Jerlov (1968) water type (i)
 ! CHLOPT   : Chlorophyll concentration option. Valid options:
 !            'climatology' (a)
@@ -509,6 +510,10 @@
 !   VICE     - ice velocity y-component [m s-1]
 !   VSTOKES  - surface Stokes drift y-componen [m s-1]
 !   ZTX      - wind stress x-component [N m-2]
+!   SWFC1    - penetrative fraction of long visible wavelengths []
+!   SWFC2    - penetrative fraction of short vis. and ultraviolet wavelen. [m]
+!   SWAL1    - attenuation length of long visible wavelengths []
+!   SWAL2    - attenuation length of short vis. and ultraviolet wavelen. [m]
 !   BFSQ     - buoyancy frequency squared [s-1]
 !   DIFDIA   - vertical diffusivity [log10(m2 s-1)|m2 s-1]
 !   DIFVMO   - vertical momentum diffusivity [log10(m2 s-1)|m2 s-1]
@@ -552,9 +557,9 @@
 !   GLS_PSI  - generic length scale [m2 s-3]
 !   IDLAGE   - ideal age [year]
 !   MMFLXL   - meridional overturning circ. (MOC) on isopycnic layers [kg s-1]
-!   MMFLXD   - MOC on z-levels [kg s-1]
 !   MMFTDL   - MOC due to thickness diffusion on isopycnic layers [kg s-1]
 !   MMFSML   - MOC due to submesoscale transport on isopycnic layers [kg s-1]
+!   MMFLXD   - MOC on z-levels [kg s-1]
 !   MMFTDD   - MOC due to thickness diffusion on z-levels [kg s-1]
 !   MMFSMD   - MOC due to submesoscale transport on z-levels [kg s-1]
 !   MHFLX    - meridional heat flux [W]
@@ -565,7 +570,9 @@
 !   MSFTD    - meridional salt flux due to thickness diffusion [kg s-1]
 !   MSFSM    - meridional salt flux due to submesoscale transport [kg s-1]
 !   MSFLD    - meridional salt flux due to lateral diffusion [kg s-1]
-!   VOLTR    - section transports [kg s-1]
+!   MASSTR   - section mass transports [kg s-1]
+!   HEATTR   - section heat transports [W]
+!   SALTTR   - section salt transports [kg s-1]
 !   MASSGS   - global sum of mass [kg]
 !   VOLGS    - global sum of volume [m3]
 !   SALNGA   - global average temperature [degC]
@@ -649,6 +656,10 @@
   H2D_VICE     = 0,   0
   H2D_VSTOKES  = 0,   0
   H2D_ZTX      = 0,   0
+  H2D_SWFC1    = 0,   0
+  H2D_SWFC2    = 0,   0
+  H2D_SWAL1    = 0,   0
+  H2D_SWAL2    = 0,   0
   LYR_BFSQ     = 0,   4
   LYR_DIFDIA   = 0,   4
   LYR_DIFVMO   = 0,   4
@@ -746,7 +757,9 @@
   MSC_MSFTD    = 0,   0
   MSC_MSFSM    = 0,   0
   MSC_MSFLD    = 0,   0
-  MSC_VOLTR    = 0,   0
+  MSC_MASSTR   = 0,   0
+  MSC_HEATTR   = 0,   0
+  MSC_SALTTR   = 0,   0
   MSC_MASSGS   = 4,   0
   MSC_VOLGS    = 4,   0
   MSC_SALNGA   = 4,   0

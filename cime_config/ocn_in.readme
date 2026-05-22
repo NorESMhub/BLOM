@@ -92,7 +92,8 @@
 ! NIWLF    : Fraction of near-inertial energy dissipated locally beneath
 !            the boundary layer () (f)
 ! SWAMTH   : Shortwave radiation absorption method. Valid methods:
-!            'top-layer', 'jerlov', 'chlorophyll', 'spatial_frac_attlen' (a)
+!            'top-layer', 'jerlov', 'chlorophyll_ma94', 'chlorophyll_ohl03',
+!            'spatial_frac_attlen' (a)
 ! JWTYPE   : Number indicating the Jerlov (1968) water type (i)
 ! CHLOPT   : Chlorophyll concentration option. Valid options:
 !            'climatology' (a)
@@ -340,6 +341,10 @@
 !   VICE     - ice velocity y-component [m s-1]
 !   VSTOKES  - surface Stokes drift y-componen [m s-1]
 !   ZTX      - wind stress x-component [N m-2]
+!   SWFC1    - penetrative fraction of long visible wavelengths []
+!   SWFC2    - penetrative fraction of short vis. and ultraviolet wavelen. [m]
+!   SWAL1    - attenuation length of long visible wavelengths []
+!   SWAL2    - attenuation length of short vis. and ultraviolet wavelen. [m]
 !   BFSQ     - buoyancy frequency squared [s-1]
 !   DIFDIA   - vertical diffusivity [log10(m2 s-1)|m2 s-1]
 !   DIFVMO   - vertical momentum diffusivity [log10(m2 s-1)|m2 s-1]
