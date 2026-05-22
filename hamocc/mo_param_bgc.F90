@@ -519,10 +519,10 @@ module mo_param_bgc
   real(rp), protected :: wcal_const  = 30._rp           ! m/d   Sinking speed of CaCO3 shell material
   real(rp), protected :: wopal_const = 30._rp           ! m/d   Sinking speed of opal iris : 60
   real(rp), protected :: wdust_const                    ! m/d   Sinking speed of dust
-  real(rp), protected :: wmin        =  5.4_rp           ! m/d   minimum sinking speed
+  real(rp), protected :: wmin        =  5.75_rp         ! m/d   minimum sinking speed
   real(rp), protected :: wmax        = 60._rp           ! m/d   maximum sinking speed
 ! real(rp), protected :: wlin        = 60._rp/3120._rp  ! m/d/m constant describing incr. with depth, r/a=1.3 (r=0.025)
-  real(rp), protected :: wlin        = 0.0154762_rp     ! m/d/m constant describing incr. with depth, r/a=1.3 (r=0.025)
+  real(rp), protected :: wlin        = 0.0142_rp        ! m/d/m constant describing incr. with depth, r/a=1.3 (r=0.025)
   real(rp), protected :: dustd1      = 0.0001_rp        ! cm = 1 um, boundary between clay and silt
   real(rp), protected :: dustd2                         ! dust diameter squared
   real(rp), protected :: dustd3                         ! dust diameter cubed
