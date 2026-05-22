@@ -543,8 +543,7 @@ contains
             endif
             ocetra(i,j,k,isilica) = ocetra(i,j,k,isilica)-delsil
             ocetra(i,j,k,iopal) = ocetra(i,j,k,iopal)+delsil
-            ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+dtr*riron                     &
-                 &                - relaxfe*max(ocetra(i,j,k,iiron)-fesoly,0._rp)     ! This is a bug, this part should not be here, since it is done below
+            ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+dtr*riron
 
             if (use_BROMO) then
               ! Bromo source from phytoplankton production and sink to photolysis
