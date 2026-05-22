@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2010-2025 Ingo Bethke, Mats Bentsen, Mehmet Ilicak,
+! Copyright (C) 2010-2026 Ingo Bethke, Mats Bentsen, Mehmet Ilicak,
 !                         Alok Kumar Gupta, Jörg Schwinger, Ping-Gin Chi,
 !                         Mariana Vertenstein
 !

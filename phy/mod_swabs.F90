@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2017-2025 Mats Bentsen, Mariana Vertenstein, Mehmet Ilicak
+! Copyright (C) 2017-2026 Mats Bentsen, Mariana Vertenstein, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -223,9 +223,6 @@ contains
       real(r8) :: chl_min, log10chl_max, log10chl_lut, chl, w1, w2
       integer, dimension(3) :: istart, icount
       integer :: i, j, l, k, errstat, ncid, dimid, varid, m, n, mm1
-  !! Make the table big enough so step size is smaller
-  !! in log-space that any increment in Table 1a
-
 
       select case (trim(swamth))
 

@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2006-2025 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
+! Copyright (C) 2006-2026 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
 !                         Ingo Bethke, Jerry Tjiputra, Ping-Gin Chiu,
 !                         Aleksi Nummelin, Jörg Schwinger, Mariana Vertenstein,
 !                         Joeran Maerz

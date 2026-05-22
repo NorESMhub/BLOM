@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2025 Mats Bentsen, Mehmet Ilicak, Ingo Bethke,
+! Copyright (C) 2008-2026 Mats Bentsen, Mehmet Ilicak, Ingo Bethke,
 !                         Ping-Gin Chiu, Aleksi Nummelin, Mariana Vertenstein
 !
 ! This file is part of BLOM.
