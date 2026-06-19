@@ -97,7 +97,7 @@ contains
     call timer_stop('blom_step','budget_sg1')
 
     call step_time
-
+#ifndef OFFLINE_SEDIMENT_SPINUP
     ! ------------------------------------------------------------------
     ! Reset fluxes to be accumulated over a model time step and update
     ! flux halos the first time step of a day to reproduce results after
@@ -205,6 +205,7 @@ contains
       call budget_sums(4,n,nn)
       call timer_stop('blom_step','budget_sg7')
     end if
+#endif
 
     if (use_TRC) then
       ! update tracer due to non-passive processes
@@ -212,6 +213,7 @@ contains
       call timer_stop('blom_step','updtrc')
     end if
 
+#ifndef OFFLINE_SEDIMENT_SPINUP
     call budget_sums(5,n,nn)
     call timer_stop('blom_step','budget_sg8')
 
@@ -294,6 +296,7 @@ contains
 
     else
     end if
+#endif
 
     if (expcnf /= 'cesm') call timer_stop('blom_step','restart_write')
 
@@ -303,6 +306,7 @@ contains
     ! write timing diagnostics to standard out
     ! --------------------------------------------------------------------
 
+#ifndef OFFLINE_SEDIMENT_SPINUP
     call timer_stop('total_step_time')
     call timer_group_time('total_step_time',total_step_time)
     call timer_reset('total_step_time')
@@ -320,6 +324,7 @@ contains
         endif
       enddo
     endif
+#endif
 
   end subroutine blom_step
 
