@@ -453,7 +453,7 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>.06</value>
+      <value>.09</value>
       <value ocn_grid="tnx2v1"    blom_vcoord="isopyc_bulkml"              >.5</value>
       <value ocn_grid="tnx1v4"    blom_vcoord="isopyc_bulkml" ocn_ncpl="24">.5</value>
       <value ocn_grid="tnx0.5v1"  blom_vcoord="isopyc_bulkml" ocn_ncpl="24">.5</value>
@@ -656,7 +656,7 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>chlorophyll_ma94</value>
+      <value>chlorophyll_ohl03</value>
       <value blom_vcoord="isopyc_bulkml">jerlov</value>
     </values>
     <desc>Shortwave radiation absorption method. Valid methods: 'top-layer', 'jerlov', 'chlorophyll_ma94', 'chlorophyll_ohl03', 'spatial_frac_attlen'</desc>
@@ -1761,7 +1761,7 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>1.5e-5</value>
+      <value>1.2e-5</value>
       <value blom_vcoord="isopyc_bulkml">1.e-5</value>
     </values>
     <desc>Background diapycnal diffusivity (m**2/s)</desc>
@@ -1876,7 +1876,7 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>.3</value>
+      <value>.25</value>
     </values>
     <desc>CVMix parameter Ri_crit</desc>
   </entry>
@@ -1896,7 +1896,7 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>.false.</value>
+      <value>.true.</value>
     </values>
     <desc>If true, pass scalar Cv parameter to CVMix</desc>
   </entry>
