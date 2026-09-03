@@ -6644,7 +6644,8 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>ocn/n1850_SST_pacemaker_Kuroshio</value>
+      <value>unset</value>
+      <!-- <value>$DIN_LOC_ROOT/ocn/n1850_SST_pacemaker_Kuroshio</value> -->
     </values>
     <desc>Daily sea surface temperatures for pacemaker experiment</desc>
   </entry>
@@ -6654,7 +6655,8 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>ocn/n1850_SST_pacemaker_Kuroshio</value>
+      <value>unset</value>
+      <!-- <value>$DIN_LOC_ROOT/ocn/n1850_SST_pacemaker_Kuroshio</value> -->
     </values>
     <desc>SST mask file for pacemaker experiment</desc>
   </entry>
