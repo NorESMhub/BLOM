@@ -44,20 +44,6 @@
     </phase>
   </test>
 
-  <test name="ERP_Ld3_P256.T62_tn14.NOINYOC.betzy_gnu">
-    <phase name="COMPARE_base_rest">
-      <status>FAIL</status>
-      <issue>BLOM#501</issue>
-    </phase>
-  </test>
-
-  <test name="ERP_Ld3_P256.T62_tn14.NOINYOC.olivia_intel">
-    <phase name="COMPARE_base_rest">
-      <status>FAIL</status>
-      <issue>BLOM#501</issue>
-    </phase>
-  </test>
-
   <!-- ===================================== -->
   <!-- aux_hamocc_noresm test suite failures -->
   <!-- ===================================== -->
