@@ -28,7 +28,14 @@
   -->
 
 
+  <!-- =================================== -->
   <!-- aux_blom_noresm test suite failures -->
+  <!-- =================================== -->
+
+  <!-- ERP_Ld3_P256 fails on COMPARE_base_rest
+       platform: betzy, olivia
+       ref: https://github.com/NorESMhub/BLOM/discussions/501
+  -->
 
   <test name="ERP_Ld3_P256.T62_tn14.NOINYOC.betzy_intel">
     <phase name="COMPARE_base_rest">
@@ -44,23 +51,21 @@
     </phase>
   </test>
 
+  <test name="ERP_Ld3_P256.T62_tn14.NOINYOC.olivia_intel">
+    <phase name="COMPARE_base_rest">
+      <status>FAIL</status>
+      <issue>BLOM#501</issue>
+    </phase>
+  </test>
+
+  <!-- ===================================== -->
   <!-- aux_hamocc_noresm test suite failures -->
+  <!-- ===================================== -->
 
   <test name="SMS_D_Ld1.T62_tn14.NOINYOC.betzy_intel.blom-hamocc-hamocc6">
     <phase name="RUN">
       <status>FAIL</status>
       <issue>BLOM#645</issue>
-    </phase>
-  </test>
-
-  <!-- failing outdated tests -->
-
-  <!-- The NOIIAOC20TR compset is currently not working with NorESM3.
-       This test can be re-activated if we decide to update the compset. -->
-  <test name="SMS_D_Ld1.T62_tn14.NOIIAOC20TR.betzy_intel">
-    <phase name="RUN">
-      <status>FAIL</status>
-      <issue>BLOM#510</issue>
     </phase>
   </test>
 </expectedFails>
