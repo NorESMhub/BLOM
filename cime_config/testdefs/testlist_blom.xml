@@ -135,8 +135,6 @@
   <test name="ERP_Ld3_P256" grid="T62_tn14" compset="NOINYOC">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
-      <machine name="betzy" compiler="gnu" category="aux_blom_noresm"/>
-      <machine name="olivia" compiler="intel" category="aux_blom_noresm"/>
     </machines>
     <options>
       <option name="wallclock">00:20:00</option>
