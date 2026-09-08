@@ -249,6 +249,7 @@ def buildnml(case, caseroot, compname):
         groups=['limits','diffusion','merdia','secdia','diaphy']
 
         groups.append('cwmod')
+        groups.append('pacemaker')
 
         if case.get_value("BLOM_VCOORD") == "cntiso_hybrid":
             groups.append('vcoord')
