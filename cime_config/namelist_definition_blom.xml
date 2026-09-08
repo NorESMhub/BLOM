@@ -6641,8 +6641,8 @@
   -->
   <entry id="pacemaker_SST_file" is_inputdata="yes">
     <type>char</type>
-    <category>limits</category>
-    <group>limits</group>
+    <category>pacemaker</category>
+    <group>pacemaker</group>
     <values>
       <value>unset</value>
     </values>
@@ -6651,8 +6651,8 @@
 
   <entry id="pacemaker_mask_file" is_inputdata="yes">
     <type>char</type>
-    <category>limits</category>
-    <group>limits</group>
+    <category>pacemaker</category>
+    <group>pacemaker</group>
     <values>
       <value>unset</value>
     </values>
