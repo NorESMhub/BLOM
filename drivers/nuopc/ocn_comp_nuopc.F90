@@ -99,6 +99,9 @@ module ocn_comp_nuopc
 
    public :: SetServices, SetVM
 
+   logical :: mediator_present ! jm enabling to switch of mediator and data provision for sediment offline spinup
+                               ! see eg.: https://github.com/NorESMhub/CAM/blob/cda829d695a6cc8c14f56b89f4a86830c9b919a9/src/cpl/nuopc/atm_comp_nuopc.F90
+
 !================================================================================
 contains
 !================================================================================
@@ -371,6 +374,9 @@ contains
    ! The NUOPC layer uses these to match fields between components in the
    ! coupled system.
    ! ---------------------------------------------------------------------------
+!jm offline sediment spinup
+      use shr_sys_mod         , only : shr_sys_abort
+!jm end offline sediment spinup
 
       ! Input/output arguments.
       type(ESMF_GridComp)  :: gcomp
@@ -406,6 +412,22 @@ contains
       hamocc_defined = .false.
       use_BROMO = .false.
 #endif
+
+!jm offline sediment spinup
+      ! Get info if mediator is present
+      call NUOPC_CompAttributeGet(gcomp, name="mediator_present", value=cvalue, &
+                                  isPresent=isPresent, isSet=isSet, rc=rc)
+      if (ChkErr(rc,__LINE__,u_FILE_u)) return
+      if (isPresent .and. isSet) then
+        read (cvalue,*) mediator_present
+!        if (mediator_present) then
+!          call advertise_fields(gcomp, flds_scalar_name, rc)
+!          if (ChkErr(rc,__LINE__,u_FILE_u)) return
+!        end if
+      else
+       call shr_sys_abort(subname//'Need to set attribute mediator_present')
+      endif
+!jm end offline sediment spinup
 
       ! Get debug flag.
       call NUOPC_CompAttributeGet(gcomp, name='dbug_flag', value=cvalue, &
@@ -612,6 +634,7 @@ contains
 
 
 
+if (mediator_present) then !jm offline-sediment-spinup
       ! ------------------------------------------------------------------------
       ! Advertise import fields.
       ! ------------------------------------------------------------------------
@@ -637,6 +660,7 @@ contains
                               TransferOfferGeomObject='will provide', rc=rc)
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
       enddo
+endif ! mediator_present jm offline-sediment-spinup
 
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
 
@@ -730,6 +754,8 @@ contains
 
       call blom_setareacor(areaMesh, maskMesh)
 
+! jm offline sediment spinup
+if (mediator_present) then
       ! ------------------------------------------------------------------------
       ! Realize the actively coupled fields.
       ! ------------------------------------------------------------------------
@@ -771,6 +797,8 @@ contains
          call ocn_stream_sst_init(Emesh, clock, rc)
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
       end if
+! jm offline sediment spinup
+endif
 
       ! Find if restart is needed at the end of the run
       call NUOPC_CompAttributeGet(gcomp, name="write_restart_at_endofrun", value=cvalue, isPresent=isPresent, isSet=isSet, rc=rc)
@@ -780,11 +808,15 @@ contains
       end if
 
 #ifdef HAMOCC
+! jm offline sediment spinup
+if (mediator_present) then
       ! Initialize sdat for dust deposition climatology if appropriate
       if (use_stream_dust) then
          call ocn_stream_dust_init(Emesh, clock, rc)
          if (ChkErr(rc, __LINE__, u_FILE_u)) return
       end if
+! jm offline sediment spinup
+endif
 #endif
 
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
@@ -838,6 +870,8 @@ contains
 
       call timer_stop('initialization', &
                       'between blom_init_phase1 and blom_init_phase2')
+! jm offline sediment spinup
+if (mediator_present) then
       call blom_init_phase2
       call timer_stop('initialization', 'blom_init_phase2')
 
@@ -871,6 +905,8 @@ contains
          call ESMF_LogWrite("BLOM - Initialize-Data-Dependency NOT SATISFIED!!!", &
                             ESMF_LOGMSG_INFO)
       endif
+! jm offline sediment spinup
+endif
 
       if (dbug > 5) call ESMF_LogWrite(subname//': done', ESMF_LOGMSG_INFO)
 
