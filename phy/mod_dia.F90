@@ -6757,6 +6757,8 @@ contains
     call ncattr('standard_name','time')
     call ncattr('units',timeunits)
     call ncattr('calendar',calendar)
+    call ncattr('bounds','time_bnds')
+    call ncdefvar('time_bnds','bounds time',ndouble,0)
     if (irec == 1) then
       ! define sigma levels
       if (vcoord_tag /= vcoord_isopyc_bulkml) then

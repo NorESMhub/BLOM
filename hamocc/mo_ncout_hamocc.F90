@@ -1655,6 +1655,8 @@ contains
     call ncattr('standard_name','time')
     call ncattr('units',timeunits)
     call ncattr('calendar',calendar)
+    call ncattr('bounds','time_bnds')
+    call ncdefvar('time_bnds','bounds time',ndouble,0)
     call ncdefvar('sigma','sigma',ndouble,0)
     call ncattr('long_name','Potential density')
     call ncattr('standard_name','sea_water_sigma_theta')
