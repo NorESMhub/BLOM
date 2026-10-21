@@ -788,7 +788,7 @@ contains
       !=== Local variables
       character(len=:), allocatable :: prefix, sep1, sep2
       character(len=20) :: tstamp
-      character(len=33) :: timeunits
+      character(len=30) :: timeunits
       integer :: l
       integer :: ymd, tod           ! used to access blom_time
       real(rp):: datenum

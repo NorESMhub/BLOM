@@ -2343,8 +2343,8 @@ contains
     logical                     :: iniflg = .true.
     logical                     :: append2file(nphymax) = .false.
     integer                     :: i,j,k,l,cmpflg
-    character(len=33)           :: timeunits
-    character(len=23)           :: startdate
+    character(len=30)           :: timeunits
+    character(len=20)           :: startdate
     real                        :: datenum,rnacc
     real, dimension(itdm,jtdm)  :: bflxg,strg
     integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ind1,ind2
