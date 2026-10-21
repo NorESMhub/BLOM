@@ -261,10 +261,10 @@ contains
     ! --- set time information
     timeunits=' '
     startdate=' '
-    write(timeunits,'(a11,i4.4,a1,i2.2,a1,i2.2,a6)')                            &
-         &   'days since ',min(1800,date0%year),'-',1,'-',1,' 00:00'
-    write(startdate,'(i4.4,a1,i2.2,a1,i2.2,a6)')                                &
-         &   date0%year,'-',date0%month,'-',date0%day,' 00:00'
+    write(timeunits,'(a11,i4.4,a1,i2.2,a1,i2.2,a9)')                            &
+         &   'days since ',min(1800,date0%year),'-',1,'-',1,' 00:00:00'
+    write(startdate,'(i4.4,a1,i2.2,a1,i2.2,a9)')                                &
+         &   date0%year,'-',date0%month,'-',date0%day,' 00:00:00'
     datenum=time-time0-0.5_rp*diagfq_bgc(iogrp)/nstep_in_day
 
     ! --- get file name
@@ -1652,6 +1652,7 @@ contains
 
     call ncdefvar('time','time',ndouble,0)
     call ncattr('long_name','time')
+    call ncattr('standard_name','time')
     call ncattr('units',timeunits)
     call ncattr('calendar',calendar)
     call ncdefvar('sigma','sigma',ndouble,8)
@@ -1661,6 +1662,7 @@ contains
     call ncattr('positive','down')
     call ncdefvar('depth','depth',ndouble,8)
     call ncattr('long_name','z level')
+    call ncattr('standard_name','depth')
     call ncattr('units','m')
     call ncattr('positive','down')
     call ncattr('bounds','depth_bnds')
