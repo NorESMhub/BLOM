@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2025 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
+! Copyright (C) 2015-2026 Mats Bentsen, Mehmet Ilicak, Mariana Vertenstein
 !
 ! This file is part of BLOM.
 !
@@ -37,7 +37,7 @@ module mod_cmnfld_routines
    use mod_cmnfld,    only: sls0, slsmfq, slsels, bfsqmn, dbcl82, drcb04, &
                             zrefb04, mldmth, bfsqi, bfsqf, z, bfsql, &
                             nslpx, nslpy, nnslpx, nnslpy, dz, &
-                            mldl82, mldb04, mld, dpml
+                            mldl82, dpmll82, mldb04, dpmlb04, mld, dpml
    use mod_diffusion, only: eitmth_opt, eitmth_gm, &
                             edritp_opt, edritp_large_scale, &
                             ltedtp_opt, ltedtp_neutral
@@ -47,8 +47,6 @@ module mod_cmnfld_routines
    implicit none
 
    private
-
-   real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: dpmll82, dpmlb04
 
    public :: cmnfld_bfsqi_ale, cmnfld1, cmnfld2
 
@@ -406,6 +404,14 @@ module mod_cmnfld_routines
             enddo
             bfsqi(i,j,1) = bfsqi(i,j,2)
             bfsqi(i,j,kk+1) = bfsqi(i,j,kk)
+
+            ! Compute the layer BFSQ as the arithmetic mean of the layer
+            ! interface BFSQ.
+            do k = 1, kk - 1
+               bfsql(i,j,k) = .5_r8*(bfsqi(i,j,k) + bfsqi(i,j,k+1))
+            enddo
+            bfsql(i,j,kk) = bfsqi(i,j,kk)
+
          enddo
          enddo
       enddo
@@ -416,6 +422,7 @@ module mod_cmnfld_routines
             write(lp,*) 'cmnfld_bfsqi_ale:'
          endif
          call chksum(bfsqi, kk + 1, halo_ps, 'bfsqi')
+         call chksum(bfsql, kk    , halo_ps, 'bfsql')
       endif
 
    end subroutine cmnfld_bfsqi_ale
@@ -1039,7 +1046,7 @@ module mod_cmnfld_routines
 
               pup =  p(i,j,1) + zrefb04*onem
               zup = z(i,j,1) + zrefb04
-              dsup = sig0ref
+              dsup = 0._r8
               do
                  if (dp(i,j,km) > onecm) then
                     plo = p(i,j,k) + .5_r8*dp(i,j,km)

@@ -27,7 +27,7 @@ contains
 
   subroutine hamocc4bcm(kpie,kpje,kpke,kbnd,kplyear,kplmon,kplday,kldtday,pdlxp,pdlyp,pddpo,prho,  &
                         pglat,omask, dust,rivin,ndep,oafx,pi_ph,pfswr,psicomo,ppao,pfu10,ptho,psao,&
-                        patmco2,pflxco2,pflxdms,patmbromo,pflxbromo,                               &
+                        vdiff,bfsq,patmco2,pflxco2,pflxdms,patmbromo,pflxbromo,                    &
                         patmn2o,pflxn2o,patmnh3,pflxnh3,shelfmask)
 
     !***********************************************************************************************
@@ -104,6 +104,8 @@ contains
     real(rp),intent(in)  :: pfu10  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! absolute wind speed at 10m height [m/s]
     real(rp),intent(in)  :: ptho   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! potential temperature [deg C].
     real(rp),intent(in)  :: psao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! salinity [psu.].
+    real(rp),intent(in)  :: vdiff  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! vertical diffusivity [m2 s-1].
+    real(rp),intent(in)  :: bfsq   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! buoyancy frequency squared [s-2]
     real(rp),intent(in)  :: patmco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! atmospheric CO2 concentration [ppm] used in fully coupled mode
     real(rp),intent(out) :: pflxco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! CO2 flux [kg/m^2/s].
     real(rp),intent(out) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! DMS flux [kg/m^2/s].

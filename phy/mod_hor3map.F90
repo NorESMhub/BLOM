@@ -1731,7 +1731,7 @@ contains
       endif
 
       ! Obtain the right boundary edge value.
-      if (lb_ord == 1) then
+      if (rb_ord == 1) then
          uedge(ns+1) = rcss%u_src(ns)
       else
          x(1:rb_ord) = rcss%u_src((ns-rb_ord+1):ns)

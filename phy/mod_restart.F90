@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2006-2025 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
+! Copyright (C) 2006-2026 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
 !                         Ingo Bethke, Jerry Tjiputra, Ping-Gin Chiu,
 !                         Aleksi Nummelin, Jörg Schwinger, Mariana Vertenstein,
 !                         Joeran Maerz
@@ -77,6 +77,7 @@ module mod_restart
                                  acc_tsrf, acc_ub, acc_ubflxs, acc_uice, &
                                  acc_ustar, acc_ustar3, acc_ustokes,acc_vb, &
                                  acc_vbflxs, acc_vice, acc_vstokes, acc_ztx, &
+                                 acc_swfc1, acc_swfc2, acc_swal1, acc_swal2, &
                                  acc_ivolu, acc_ivolv, acc_utilh2d, acc_bfsq, &
                                  acc_difdia, acc_difvmo, acc_difvho, &
                                  acc_difvso, acc_difint, acc_difiso, acc_dp, &
@@ -810,6 +811,18 @@ contains
             if (ACC_TICE(n) /= 0) &
                call defwrtfld('tice_phy'//c2, trim(c5p)//' time', &
                               phyh2d(1-nbdy,1-nbdy,ACC_TICE(n)), ip, defmode)
+            if (ACC_SWFC1(n) /= 0) &
+               call defwrtfld('swfc1_phy'//c2, trim(c5p)//' time', &
+                              phyh2d(1-nbdy,1-nbdy,ACC_SWFC1(n)), ip, defmode)
+            if (ACC_SWFC2(n) /= 0) &
+               call defwrtfld('swfc2_phy'//c2, trim(c5p)//' time', &
+                              phyh2d(1-nbdy,1-nbdy,ACC_SWFC2(n)), ip, defmode)
+            if (ACC_SWAL1(n) /= 0) &
+               call defwrtfld('swal1_phy'//c2, trim(c5p)//' time', &
+                              phyh2d(1-nbdy,1-nbdy,ACC_SWAL1(n)), ip, defmode)
+            if (ACC_SWAL2(n) /= 0) &
+               call defwrtfld('swal2_phy'//c2, trim(c5p)//' time', &
+                              phyh2d(1-nbdy,1-nbdy,ACC_SWAL2(n)), ip, defmode)
             if (ACC_UVEL(n) /= 0) &
                call defwrtfld('uvel_phy'//c2, trim(c5u)//' kk time', &
                               phylyr(1-nbdy,1-nbdy,1,ACC_UVEL(n)), iuu, defmode)
@@ -2221,6 +2234,18 @@ contains
                if (ACC_TICE(n) /= 0) &
                   call readfld('tice_phy'//c2, no_unitconv, &
                                phyh2d(1-nbdy,1-nbdy,ACC_TICE(n)), ip)
+               if (ACC_SWFC1(n) /= 0) &
+                  call readfld('swfc1_phy'//c2, no_unitconv, &
+                               phyh2d(1-nbdy,1-nbdy,ACC_SWFC1(n)), ip)
+               if (ACC_SWFC2(n) /= 0) &
+                  call readfld('swfc2_phy'//c2, no_unitconv, &
+                               phyh2d(1-nbdy,1-nbdy,ACC_SWFC2(n)), ip)
+               if (ACC_SWAL1(n) /= 0) &
+                  call readfld('swal1_phy'//c2, no_unitconv, &
+                               phyh2d(1-nbdy,1-nbdy,ACC_SWAL1(n)), ip)
+               if (ACC_SWAL2(n) /= 0) &
+                  call readfld('swal2_phy'//c2, no_unitconv, &
+                               phyh2d(1-nbdy,1-nbdy,ACC_SWAL2(n)), ip)
                if (ACC_UVEL(n) /= 0) &
                   call readfld('uvel_phy'//c2, m_unitconv, &
                                phylyr(1-nbdy,1-nbdy,1,ACC_UVEL(n)), iuu)

@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2020-2025 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
+! Copyright (C) 2020-2026 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
 !
 ! This file is part of BLOM.
 !
@@ -57,8 +57,10 @@ module mod_diffusion
       nubmin, & ! Minimum background diapycnal diffusivity [m2 s-1].
       tkepf, &  ! Fraction of surface TKE that penetrates beneath mixed layer
                 ! [].
-      lau10f    ! Factor applied to 10 m absolute wind entering parameterization
+      lau10f, & ! Factor applied to 10 m absolute wind entering parameterization
                 ! of Langmuir turbulence enhancement factor [].
+      cvmix_ri_crit, &  ! CVMix parameter Ri_crit [].
+      cvmix_cv  ! Scalar value of CVMix parameter Cv [].
    integer :: &
       bdmtyp, & ! Type of background diapycnal mixing. If bdmtyp = 1 the
                 ! background diffusivity is a constant divided by the
@@ -81,9 +83,10 @@ module mod_diffusion
                 ! according to Gregg et al. (2003).
       smobld, & ! If true, apply lateral smoothing of CVMix estimated boundary
                 ! layer depth.
-      ndiff_surface_align ! If true, layers constructed for diffusive flux
-                          ! computations are gradually aligned with the surface
-                          ! within the mixed layer.
+      ndiff_surface_align, & ! If true, layers constructed for diffusive flux
+                             ! computations are gradually aligned with the
+                             ! surface within the mixed layer.
+      cvmix_lscalar_cv       ! If true, pass scalar Cv parameter to CVMix.
    character(len = fnmlen) :: &
       tbfile    ! Name of file containing topographic beta parameter.
    character(len = 80) :: &
@@ -184,11 +187,12 @@ module mod_diffusion
    ! Public variables
    public :: egc, eggam, eglsmn, egmndf, egmxdf, egidfq, rhiscf, ri0, &
              bdmc1, bdmc2, bdmldp, iwdflg, iwdfac, nubmin, tkepf, lau10f, &
-             bdmtyp, eddf2d, edsprs, edanis, redi3d, rhsctp, tbfile, edfsmo, &
-             smobld, ndiff_surface_align, lngmtp, eitmth_opt, eitmth_intdif, &
-             eitmth_gm, edritp_opt, edritp_shear, edritp_large_scale, &
-             edwmth_opt, edwmth_smooth, edwmth_step, ltedtp_opt, ltedtp_layer, &
-             ltedtp_neutral, &
+             cvmix_ri_crit, cvmix_cv, bdmtyp, eddf2d, edsprs, edanis, redi3d, &
+             rhsctp, tbfile, edfsmo, smobld, &
+             ndiff_surface_align, cvmix_lscalar_cv, lngmtp, &
+             eitmth_opt, eitmth_intdif, eitmth_gm, edritp_opt, edritp_shear, &
+             edritp_large_scale, edwmth_opt, edwmth_smooth, edwmth_step, &
+             ltedtp_opt, ltedtp_layer, ltedtp_neutral, &
              difint, difiso, difdia, difmxp, difmxq, difwgt, &
              umfltd, vmfltd, umflsm, vmflsm, utfltd, vtfltd, &
              utflsm, vtflsm, utflld, vtflld, usfltd, vsfltd, &
@@ -213,9 +217,10 @@ contains
 
       namelist /diffusion/ &
          egc, eggam, eglsmn, egmndf, egmxdf, egidfq, rhiscf, ri0, &
-         bdmc1, bdmc2, bdmldp, iwdflg, iwdfac, nubmin, tkepf, lau10f, bdmtyp, &
-         eddf2d, edsprs, edanis, redi3d, rhsctp, tbfile, edfsmo, smobld, &
-         lngmtp, eitmth, edritp, edwmth, ltedtp, ndiff_surface_align
+         bdmc1, bdmc2, bdmldp, iwdflg, iwdfac, nubmin, tkepf, lau10f, &
+         cvmix_ri_crit, cvmix_cv, bdmtyp, eddf2d, edsprs, edanis, redi3d, &
+         rhsctp, tbfile, edfsmo, smobld, lngmtp, eitmth, edritp, edwmth, &
+         ltedtp, ndiff_surface_align, cvmix_lscalar_cv
 
       ! Read variables in the namelist group 'diffusion'.
       if (mnproc == 1) then
@@ -261,6 +266,8 @@ contains
         call xcbcst(nubmin)
         call xcbcst(tkepf)
         call xcbcst(lau10f)
+        call xcbcst(cvmix_ri_crit)
+        call xcbcst(cvmix_cv)
         call xcbcst(bdmtyp)
         call xcbcst(eddf2d)
         call xcbcst(edsprs)
@@ -276,6 +283,7 @@ contains
         call xcbcst(edwmth)
         call xcbcst(ltedtp)
         call xcbcst(ndiff_surface_align)
+        call xcbcst(cvmix_lscalar_cv)
       endif
       if (mnproc == 1) then
          write (lp,*) 'readnml_diffusion: diffusion variables:'
@@ -295,6 +303,8 @@ contains
          write (lp,*) '  nubmin = ', nubmin
          write (lp,*) '  tkepf  = ', tkepf
          write (lp,*) '  lau10f = ', lau10f
+         write (lp,*) '  cvmix_ri_crit = ', cvmix_ri_crit
+         write (lp,*) '  cvmix_cv      = ', cvmix_cv
          write (lp,*) '  bdmtyp = ', bdmtyp
          write (lp,*) '  eddf2d = ', eddf2d
          write (lp,*) '  edsprs = ', edsprs
@@ -310,6 +320,7 @@ contains
          write (lp,*) '  edwmth = ', trim(edwmth)
          write (lp,*) '  ltedtp = ', trim(ltedtp)
          write (lp,*) '  ndiff_surface_align = ', ndiff_surface_align
+         write (lp,*) '  cvmix_lscalar_cv    = ', cvmix_lscalar_cv
       endif
 
       ! Resolve options.

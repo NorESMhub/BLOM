@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2025 Mats Bentsen, Mehmet Ilicak, Ingo Bethke,
+! Copyright (C) 2008-2026 Mats Bentsen, Mehmet Ilicak, Ingo Bethke,
 !                         Ping-Gin Chiu, Aleksi Nummelin, Mariana Vertenstein
 !
 ! This file is part of BLOM.
@@ -96,6 +96,7 @@ module mod_rdlim
                              h2d_t20d, h2d_t17d, h2d_taux, h2d_tauy, h2d_tbot, h2d_tice,  &
                              h2d_tsrf, h2d_ub, h2d_uice, h2d_ustar, h2d_ustar3,  &
                              h2d_ustokes,h2d_vb, h2d_vice, h2d_vstokes,h2d_ztx, &
+                             h2d_swfc1, h2d_swfc2, h2d_swal1, h2d_swal2, &
                              glb_aveperio, glb_filefreq, glb_compflag, glb_ncformat, &
                              merdia, mer_nreg, mer_regnam, mer_nflg, mer_orfile, mer_regflg, &
                              mer_minlat, mer_maxlat, mer_regflg, mer_mifile, &
@@ -550,6 +551,10 @@ contains
       write (lp,*) 'H2D_VICE    ',H2D_VICE(1:nphy)
       write (lp,*) 'H2D_VSTOKES ',H2D_VSTOKES(1:nphy)
       write (lp,*) 'H2D_ZTX     ',H2D_ZTX(1:nphy)
+      write (lp,*) 'H2D_SWFC1   ',H2D_SWFC1(1:nphy)
+      write (lp,*) 'H2D_SWFC2   ',H2D_SWFC2(1:nphy)
+      write (lp,*) 'H2D_SWAL1   ',H2D_SWAL1(1:nphy)
+      write (lp,*) 'H2D_SWAL2   ',H2D_SWAL2(1:nphy)
       write (lp,*) 'LYR_BFSQ    ',LYR_BFSQ(1:nphy)
       write (lp,*) 'LYR_DIFDIA  ',LYR_DIFDIA(1:nphy)
       write (lp,*) 'LYR_DIFVMO  ',LYR_DIFVMO(1:nphy)
@@ -736,6 +741,10 @@ contains
     call xcbcst(H2D_VICE)
     call xcbcst(H2D_VSTOKES)
     call xcbcst(H2D_ZTX)
+    call xcbcst(H2D_SWFC1)
+    call xcbcst(H2D_SWFC2)
+    call xcbcst(H2D_SWAL1)
+    call xcbcst(H2D_SWAL2)
     call xcbcst(LYR_BFSQ)
     call xcbcst(LYR_DIFDIA)
     call xcbcst(LYR_DIFVMO)

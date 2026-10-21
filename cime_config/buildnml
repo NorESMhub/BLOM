@@ -60,6 +60,7 @@ def buildnml(case, caseroot, compname):
     din_loc_root              = case.get_value("DIN_LOC_ROOT")
     caseroot                  = case.get_value("CASEROOT")
     rundir                    = case.get_value("RUNDIR")
+    compset                   = case.get_value("COMPSET")
     continue_run              = case.get_value("CONTINUE_RUN")
     ninst_ocn                 = case.get_value("NINST_OCN")
     run_type                  = case.get_value("RUN_TYPE")
@@ -68,6 +69,7 @@ def buildnml(case, caseroot, compname):
     run_refdate               = case.get_value("RUN_REFDATE")
     run_reftod                = case.get_value("RUN_REFTOD")
     ocn_grid                  = case.get_value("OCN_GRID")
+    atm_grid                  = case.get_value("ATM_GRID")
     ocn_ncpl                  = case.get_value("OCN_NCPL")
     pio_typename_ocn          = case.get_value("PIO_TYPENAME_OCN")
     pio_netcdf_format_ocn     = case.get_value("PIO_NETCDF_FORMAT_OCN")
@@ -224,9 +226,12 @@ def buildnml(case, caseroot, compname):
         # create config dictionary - used in namelist_definition_blom.xml
         config = {}
         config['ocn_grid'] = ocn_grid
+        config['atm_grid'] = atm_grid
         config['ocn_ncpl'] = str(ocn_ncpl)
         config['pio_typename_ocn'] = pio_typename_ocn
         config['pio_netcdf_format_ocn'] = pio_netcdf_format_ocn
+        config["ishist"] = "yes" if "HIST_" in compset else "no"
+        config["isscen"] = "yes" if "SCEN7" in compset else "no"  # compset naming to be confirmed!
         config["continue_run"] = "yes" if continue_run else "no"
         config['blom_vcoord'] = blom_vcoord
         config["blom_river_nutrients"] = "yes" if blom_river_nutrients else "no"

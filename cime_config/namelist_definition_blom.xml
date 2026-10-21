@@ -453,7 +453,7 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>.06</value>
+      <value>.09</value>
       <value ocn_grid="tnx2v1"    blom_vcoord="isopyc_bulkml"              >.5</value>
       <value ocn_grid="tnx1v4"    blom_vcoord="isopyc_bulkml" ocn_ncpl="24">.5</value>
       <value ocn_grid="tnx0.5v1"  blom_vcoord="isopyc_bulkml" ocn_ncpl="24">.5</value>
@@ -656,10 +656,10 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>chlorophyll</value>
+      <value>chlorophyll_ohl03</value>
       <value blom_vcoord="isopyc_bulkml">jerlov</value>
     </values>
-    <desc>Shortwave radiation absorption method. Valid methods:</desc>
+    <desc>Shortwave radiation absorption method. Valid methods: 'top-layer', 'jerlov', 'chlorophyll_ma94', 'chlorophyll_ohl03', 'spatial_frac_attlen'</desc>
   </entry>
 
   <entry id="jwtype">
@@ -838,9 +838,7 @@
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx0.25v4_20170623.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx0.125v4_20221013.nc</value>
     </values>
-    <desc>Name of file containing SSS climatology used for relaxation (a)
-      Name of file containing SSS climatology used for relaxation
-    </desc>
+    <desc>Name of file containing SSS climatology used for relaxation (a)</desc>
   </entry>
 
   <entry id="wavsrc">
@@ -1763,7 +1761,7 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>1.5e-5</value>
+      <value>1.2e-5</value>
       <value blom_vcoord="isopyc_bulkml">1.e-5</value>
     </values>
     <desc>Background diapycnal diffusivity (m**2/s)</desc>
@@ -1826,6 +1824,7 @@
     <group>diffusion</group>
     <values>
       <value>1.</value>
+      <value atm_grid="ne30np4.pg3">.85</value>
     </values>
     <desc>Factor applied to 10 m absolute wind entering parameterization of Langmuir turbulence enhancement factor</desc>
   </entry>
@@ -1873,6 +1872,35 @@
     <desc>If true, layers constructed for diffusive flux computations are gradually aligned with the surface within the mixed layer</desc>
   </entry>
 
+  <entry id="cvmix_ri_crit">
+    <type>real</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>.25</value>
+    </values>
+    <desc>CVMix parameter Ri_crit</desc>
+  </entry>
+
+  <entry id="cvmix_cv">
+    <type>real</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>1.2</value>
+    </values>
+    <desc>Scalar value of CVMix parameter Cv</desc>
+  </entry>
+
+  <entry id="cvmix_lscalar_cv">
+    <type>logical</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>.true.</value>
+    </values>
+    <desc>If true, pass scalar Cv parameter to CVMix</desc>
+  </entry>
 
   <!-- ========================= -->
   <!-- namelist group: cwmod -->
@@ -2947,6 +2975,58 @@
       <value blom_output_size="spinup">0,4,0</value>
     </values>
     <desc>wind stress x-component [N m-2]</desc>
+  </entry>
+
+  <entry id="h2d_swfc1">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
+    </values>
+    <desc>penetrative fraction of long visible wavelengths []</desc>
+  </entry>
+
+  <entry id="h2d_swfc2">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
+    </values>
+    <desc>penetrative fraction of short visible and ultraviolet wavelengths []</desc>
+  </entry>
+
+  <entry id="h2d_swal1">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
+    </values>
+    <desc>attenuation length of long visible wavelengths [m]</desc>
+  </entry>
+
+  <entry id="h2d_swal2">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
+    </values>
+    <desc>attenuation length of short visible and ultraviolet wavelengths [m]</desc>
   </entry>
 
   <entry id="lyr_bfsq">
@@ -4454,7 +4534,7 @@
     <desc>Source of dust/iron deposition data ('mahw2006' or 'GESAMP2018')</desc>
   </entry>
 
-  <entry id="fedepfile">
+  <entry id="fedepfile" is_inputdata="yes">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -4910,8 +4990,7 @@
     <group>config_bgc</group>
     <values>
       <value>.false.</value>
-      <value compset="HIST_CAM60%NORESM.*_BLOM.*%ECO">.true.</value>
-      <value compset="20TR_DATM.*_BLOM.*%ECO">.true.</value>
+      <value ishist="yes">.true.</value>
     </values>
     <desc>activates HAMOCC CFC code</desc>
   </entry>
@@ -4922,8 +5001,8 @@
     <group>config_bgc</group>
     <values>
       <value>.false.</value>
-      <value compset="HIST_CAM60%NORESM.*">.true.</value>
-      <value compset="20TR_DATM.*_BLOM.*%ECO">.true.</value>
+      <value ishist="yes">.true.</value>
+      <value isscen="yes">.true.</value>
     </values>
     <desc>activates HAMOCC natural tracer code</desc>
   </entry>
@@ -10996,7 +11075,7 @@
   <!-- namelist group: nuopc_woa -->
   <!-- ========================= -->
 
-  <entry id="woa_mesh">
+  <entry id="woa_mesh" is_inputdata="yes">
     <type>char</type>
     <category>nuopc_woa</category>
     <group>nuopc_woa</group>
@@ -11006,7 +11085,7 @@
     </values>
   </entry>
 
-  <entry id="woa_filename_t">
+  <entry id="woa_filename_t" is_inputdata="yes">
     <type>char</type>
     <category>nuopc_woa</category>
     <group>nuopc_woa</group>
@@ -11016,7 +11095,7 @@
     </values>
   </entry>
 
-  <entry id="woa_filename_s">
+  <entry id="woa_filename_s" is_inputdata="yes">
     <type>char</type>
     <category>nuopc_woa</category>
     <group>nuopc_woa</group>
@@ -11050,7 +11129,7 @@
   <!-- namelist group: stream_sss -->
   <!-- =========================  -->
 
-  <entry id="stream_sss_mesh_filename">
+  <entry id="stream_sss_mesh_filename" is_inputdata="yes">
     <type>char</type>
     <category>stream_sss</category>
     <group>stream_sss</group>
@@ -11060,7 +11139,7 @@
       <value>$DIN_LOC_ROOT/share/meshes/tnx0.25v4_ESMFmesh_cdf5_c20231006.nc</value>
     </values>
   </entry>
-  <entry id="stream_sss_data_filename">
+  <entry id="stream_sss_data_filename" is_inputdata="yes">
     <type>char(10)</type>
     <category>stream_sss</category>
     <group>stream_sss</group>
@@ -11121,7 +11200,7 @@
   <!-- namelist group: stream_sst -->
   <!-- =========================  -->
 
-  <entry id="stream_sst_mesh_filename">
+  <entry id="stream_sst_mesh_filename" is_inputdata="yes">
     <type>char</type>
     <category>stream_sst</category>
     <group>stream_sst</group>
@@ -11130,7 +11209,7 @@
       <value>$DIN_LOC_ROOT/atm/cam/sst/sst_HadOIBl_bc_1x1_clim_c101029_ESMFmesh_120520.nc</value>
     </values>
   </entry>
-  <entry id="stream_sst_data_filename">
+  <entry id="stream_sst_data_filename" is_inputdata="yes">
     <type>char(10)</type>
     <category>stream_sst</category>
     <group>stream_sst</group>
@@ -11190,7 +11269,7 @@
   <!-- namelist group: stream_dust -->
   <!-- =========================  -->
 
-  <entry id="stream_dust_mesh_filename">
+  <entry id="stream_dust_mesh_filename" is_inputdata="yes">
     <type>char</type>
     <category>stream_dust</category>
     <group>stream_dust</group>
@@ -11200,7 +11279,7 @@
       <value hamocc_fedep_source="GESAMP2018">$DIN_LOC_ROOT/ocn/woa/WOA_1.00_degree_ESMFmesh_20250506_cdf5.nc</value>
     </values>
   </entry>
-  <entry id="stream_dust_data_filename">
+  <entry id="stream_dust_data_filename" is_inputdata="yes">
     <type>char(10)</type>
     <category>stream_dust</category>
     <group>stream_dust</group>

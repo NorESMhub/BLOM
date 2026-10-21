@@ -34,6 +34,7 @@ module mod_difest
   use mod_diffusion,         only: egc, eggam, eglsmn, egmndf, egmxdf, &
                                    egidfq, rhiscf, ri0, bdmc1, bdmc2, bdmldp, &
                                    iwdflg, iwdfac, nubmin, tkepf, lau10f, &
+                                   cvmix_ri_crit, cvmix_lscalar_cv, cvmix_cv, &
                                    bdmtyp, eddf2d, edsprs, edanis, redi3d, &
                                    rhsctp, edfsmo, smobld, lngmtp, edritp_opt, &
                                    edritp_shear, edritp_large_scale, &
@@ -289,7 +290,7 @@ contains
          KPP_Ri_zero = ri0, &
          KPP_exp = 3.0)
     !  CVmix_kpp_params_in => CVmix_kpp_params_user
-    !       call CVMix_init_kpp(Ri_crit=0.3, &
+    !       call CVMix_init_kpp(Ri_crit=cvmix_ri_crit, &
     !             minOBLdepth=minOBLdepth, &
     !             minVtsqr=1e-10, &
     !             vonKarman=0.4, &
@@ -305,7 +306,7 @@ contains
     !             Langmuir_mixing_str=Langmuir_mixing_str, &
     !             Langmuir_entrainment_str=Langmuir_entrainment_str, &
     !             CVMix_kpp_params_user=KPP_params )
-    !       call CVMix_init_kpp(Ri_crit=0.3, &
+    !       call CVMix_init_kpp(Ri_crit=cvmix_ri_crit, &
     !             minOBLdepth=minOBLdepth, &
     !             minVtsqr=1e-10, &
     !             vonKarman=0.4, &
@@ -321,7 +322,7 @@ contains
     !             Langmuir_mixing_str=Langmuir_mixing_str, &
     !             Langmuir_entrainment_str=Langmuir_entrainment_str, &
     !             CVMix_kpp_params_user=KPP_params )
-    call CVMix_init_kpp(Ri_crit = 0.3, &
+    call CVMix_init_kpp(Ri_crit = cvmix_ri_crit, &
          minOBLdepth = minOBLdepth, &
          minVtsqr = 1e-10, &
          vonKarman = 0.4, &
@@ -337,6 +338,11 @@ contains
          Langmuir_mixing_str = langmuir_mixing_opt, &
          Langmuir_entrainment_str = langmuir_entrainment_opt, &
          CVMix_kpp_params_user = KPP_params )
+
+    if (cvmix_lscalar_cv) then
+      call cvmix_put_kpp('lscalar_Cv', .true., KPP_params)
+      call cvmix_put_kpp('Cv', cvmix_cv, KPP_params)
+    endif
 
     !$omp parallel do private(l,i)
     do j = 1,jj
@@ -1379,6 +1385,10 @@ contains
             t_sw_nonloc(i,j,k) = max(t_sw_nonloc(i,j,k), &
                  nonLocalTrans(k,1))
           end do
+
+          ! Save vertical salinity diffusivity, interpolated from interface to
+          ! layer, in difdia.
+          difdia(i,j,:) = .5_r8*(Ks_kpp(1:kk) + Ks_kpp(2:kk+1))
 
           ! Compute convective velocity cubed [m3 s-3].
           wstar3(i,j) = max(0.,-surfBuoyFlux)*OBLdepth(i,j)

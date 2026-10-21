@@ -198,7 +198,7 @@ contains
     real(rp), optional, intent(in)  :: dust_stream(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,ndust)
 
     integer :: i,j,n
-    logical :: debug = .true.
+    logical :: debug = .false.
     logical :: first_time = .true.
 
     if (present(dust_stream)) then

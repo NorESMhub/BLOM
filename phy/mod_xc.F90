@@ -1,6 +1,6 @@
 ! ------------------------------------------------------------------------------
 ! Copyright (C) 2005 HYCOM Consortium and contributors
-! Copyright (C) 2006-2025 Lars Inge Enstad, Mats Bentsen, Alok Kumar Gupta,
+! Copyright (C) 2006-2026 Lars Inge Enstad, Mats Bentsen, Alok Kumar Gupta,
 !                         Mariana Vertenstein
 !
 ! This file is part of BLOM.
@@ -2213,7 +2213,7 @@ contains
     !-----------
 
     integer, parameter :: mxsum = (idm+3*nbdy)/(2*nbdy+1)
-    integer :: crc8t(mxsum*jdm),crc8j(jdm),crc8s,crc8
+    integer :: crc_sa(mxsum*jdm),crc_j(jdm),crc_s,crc_t
     real    :: arow(1-nbdy:idm+nbdy,ld)
     real    :: vsave
     integer :: i,i1,j,k,l,mp,np
@@ -2239,18 +2239,18 @@ contains
 
     ! row checksums in 2*nbdy+1 wide strips.
 
-    !$omp parallel do private(j,i1,i,l,crc8) &
+    !$omp parallel do private(j,i1,i,l,crc_s) &
     !$omp schedule(static,jblk)
     do j = 1,jj
       do l= 1,iisum(mproc,nproc)
         i1   = i1sum(mproc,nproc) + (l-1)*(2*nbdy+1)
-        crc8 = 0
+        crc_s = 0
         do i= max(i1,1-nbdy),min(i1+2*nbdy,ii+nbdy,itdm-i0)
           if (mask(i,j) == 1) then
-            crc8 = crc32(a(i,j,:), crc8)
+            crc_s = crc32(a(i,j,:), crc_s)
           end if
         end do
-        crc8t(l + (j-1)*iisum(mproc,nproc)) = crc8
+        crc_sa(l + (j-1)*iisum(mproc,nproc)) = crc_s
       end do
     end do
     !$omp end parallel do
@@ -2258,9 +2258,10 @@ contains
     ! complete row checksums on first processor in each row.
     if (mproc == mpe_1(nproc)) then
       do j = 1,jj
-        crc8j(j) = 0
+        crc_j(j) = 0
         do l= 1,iisum(mproc,nproc)
-          crc8j(j) = crc32(crc8t(l + (j-1)*iisum(mproc,nproc)), crc8j(j))
+          crc_t = crc_sa(l + (j-1)*iisum(mproc,nproc))
+          if (crc_t /= 0) crc_j(j) = crc32(crc_t, crc_j(j))
         end do
       end do
 
@@ -2268,10 +2269,11 @@ contains
       do mp= mpe_1(nproc)+1,mpe_e(nproc)
         l = iisum(mp,nproc)*jj
         if (l > 0) then
-          call MPI_RECV(crc8t,l,mpi_integer,idproc(mp,nproc), 9910,mpicomm, mpistat, mpierr)
+          call MPI_RECV(crc_sa,l,mpi_integer,idproc(mp,nproc), 9910,mpicomm, mpistat, mpierr)
           do j = 1,jj
             do l= 1,iisum(mp,nproc)
-              crc8j(j) = crc32(crc8t(l + (j-1)*iisum(mp,nproc)), crc8j(j))
+              crc_t = crc_sa(l + (j-1)*iisum(mp,nproc))
+              if (crc_t /= 0) crc_j(j) = crc32(crc_t, crc_j(j))
             end do
           end do
         end if
@@ -2279,31 +2281,29 @@ contains
     else
       l = iisum(mproc,nproc)*jj
       if (l > 0) then
-        call MPI_SEND(crc8t,l,mpi_integer,idproc(mpe_1(nproc),nproc), 9910,mpicomm, mpierr)
+        call MPI_SEND(crc_sa,l,mpi_integer,idproc(mpe_1(nproc),nproc), 9910,mpicomm, mpierr)
       end if
     end if
 
     ! checksum of row checksums, on first processor.
     if (mnproc == 1) then
-      crc8 = 0
+      crc = 0
       do j= 1,jj
-        crc8 = crc32(crc8j(j), crc8)
+        if (crc_j(j) /= 0) crc = crc32(crc_j(j), crc)
       end do
       do np= 2,jpr
         mp = mpe_1(np)
-        call MPI_RECV(crc8j,jj_pe(mp,np),mpi_integer,idproc(mp,np), 9911,mpicomm, mpistat, mpierr)
+        call MPI_RECV(crc_j,jj_pe(mp,np),mpi_integer,idproc(mp,np), 9911,mpicomm, mpistat, mpierr)
         do j= 1,jj_pe(mp,np)
-          crc8 = crc32(crc8j(j), crc8)
+          if (crc_j(j) /= 0) crc = crc32(crc_j(j), crc)
         end do
       end do
-      crc8s = crc8
     else if (mproc == mpe_1(nproc)) then
-      call MPI_SEND(crc8j,jj,mpi_integer,idproc1(1), 9911,mpicomm, mpierr)
+      call MPI_SEND(crc_j,jj,mpi_integer,idproc1(1), 9911,mpicomm, mpierr)
     end if
 
     ! broadcast result to all processors.
-    call mpi_bcast(crc8s,1,mpi_integer,idproc1(1),mpicomm,mpierr)
-    crc = crc8s
+    call mpi_bcast(crc,1,mpi_integer,idproc1(1),mpicomm,mpierr)
 
     ! in case of arctic patch, copy back the final global j-row to undo any
     ! changes the call to xctilr might have caused.
@@ -4173,32 +4173,32 @@ contains
     ! checksum is reproducable for the same halo size, nbdy.
     !-----------
     ! Local variables
-    integer :: crc8,crc8p,crc8j(jdm)
+    integer :: crc_s,crc_p,crc_j(jdm)
     integer :: i,i1,j
     if (use_TIMER) then
       call xctmr0( 6)
     end if
 
     ! row checksums in 2*nbdy+1 wide strips.
-    !$OMP PARALLEL DO PRIVATE(j,i1,i,crc8,crc8p) &
+    !$OMP PARALLEL DO PRIVATE(j,i1,i,crc_s,crc_p) &
     !$OMP SCHEDULE(STATIC,jblk)
     do j = 1,jdm
-      crc8 = 0
+      crc_s = 0
       do i1 = 1,idm,2*nbdy+1
-        crc8p = 0
+        crc_p = 0
         do i= i1,min(i1+2*nbdy,idm)
           if (mask(i,j) == 1) then
-            crc8p = crc32(a(i,j,:), crc8p)
+            crc_p = crc32(a(i,j,:), crc_p)
           end if
         end do
-        crc8 = crc32(crc8p,crc8)
+        crc_s = crc32(crc_p,crc_s)
       end do
-      crc8j(j) = crc8
+      crc_j(j) = crc_s
     end do
     !$OMP END PARALLEL DO
 
-    ! checksum of rwo checksums.
-    crc = crc32(crc8j)
+    ! checksum of row checksums.
+    crc = crc32(crc_j)
     if (use_TIMER) then
       call xctmr1( 6)
     end if

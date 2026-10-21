@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2025 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2015-2026 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -76,8 +76,12 @@ module mod_cmnfld
    real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
       mldl82, &                  ! Mixed layer depth as defined by Levitus
                                  ! (1982) [m].
+      dpmll82, &                 ! Mixed layer pressure thickness consistent
+                                 ! with mldl82 [kg m-1 s-2].
       mldb04, &                  ! Mixed layer depth as defined by de Boyer
                                  ! Montégut et al. (2004) [m].
+      dpmlb04, &                 ! Mixed layer pressure thickness consistent
+                                 ! with mldl82 [kg m-1 s-2].
       mld, &                     ! Mixed layer depth used in BLOM (selected by
                                  ! namelist variable mldmth) [m].
       dpml                       ! Mixed layer pressure thickness consistent
@@ -85,7 +89,7 @@ module mod_cmnfld
 
    public :: sls0, slsmfq, slsels, bfsqmn, dbcl82, drcb04, zrefb04, mldmth, &
              bfsqi, bfsqf, z, bfsql, nslpx, nslpy, nnslpx, nnslpy, dz, &
-             mldl82, mldb04, mld, dpml, inivar_cmnfld
+             mldl82, dpmll82, mldb04, dpmlb04, mld, dpml, inivar_cmnfld
 
    contains
 
@@ -107,10 +111,12 @@ module mod_cmnfld
       nnslpx(:,:,:) = spval
       nnslpy(:,:,:) = spval
       dz    (:,:,:) = spval
-      mldl82(:,:) = spval
-      mldb04(:,:) = spval
-      mld   (:,:) = spval
-      dpml  (:,:) = spval
+      mldl82 (:,:) = spval
+      dpmll82(:,:) = spval
+      mldb04 (:,:) = spval
+      dpmlb04(:,:) = spval
+      mld    (:,:) = spval
+      dpml   (:,:) = spval
 
    end subroutine inivar_cmnfld
 

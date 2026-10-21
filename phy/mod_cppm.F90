@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2025 Mats Bentsen
+! Copyright (C) 2025-2026 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -114,51 +114,78 @@ contains
       real(r8), intent(out) :: hevc1, hevc2, hevc3, hevc4
       real(r8), dimension(12), intent(out) :: tmc0, tmcl, tmcr
 
-      real(r8) :: a12, a22, a32, a42, a13, a23, a33, a43, a14, a24, a34, a44
+      real(r8) :: dxmi, dx1, dx2, dx3, dx4, &
+                  a12, a22, a32, a42, a13, a23, a33, a43, a14, a24, a34, a44
+
+      ! For better conditioned matrices, normalize grid cell widths by dividing
+      ! by the mean width of eligible cells in the stencil.
+      if     (all(stencil_mask == [1, 1, 1, 1])) then
+         dxmi = c4/(dx(1) + dx(2) + dx(3) + dx(4))
+      elseif (all(stencil_mask == [1, 1, 1, 0])) then
+         dxmi = c3/(dx(1) + dx(2) + dx(3))
+      elseif (all(stencil_mask == [0, 1, 1, 1])) then
+         dxmi = c3/(dx(2) + dx(3) + dx(4))
+      elseif (all(stencil_mask == [0, 1, 1, 0])) then
+         dxmi = c2/(dx(2) + dx(3))
+      elseif (all(stencil_mask(1:2) == [1, 1])) then
+         dxmi = c2/(dx(1) + dx(2))
+      elseif (all(stencil_mask(3:4) == [1, 1])) then
+         dxmi = c2/(dx(3) + dx(4))
+      elseif (stencil_mask(2) == 1) then
+         dxmi = c1/dx(2)
+      elseif (stencil_mask(3) == 1) then
+         dxmi = c1/dx(3)
+      else
+         dxmi = c1
+      endif
+      dx1 = dx(1)*dxmi
+      dx2 = dx(2)*dxmi
+      dx3 = dx(3)*dxmi
+      dx4 = dx(4)*dxmi
 
       ! Define elements of the matrix A for the linear system of equations that
       ! relates thickness edge values to cell means for the 1111 stencil.
-      a12 = - dx(2) - c1_2*dx(1)
-      a22 = - c1_2*dx(2)
-      a32 =   c1_2*dx(3)
-      a42 =   dx(3) + c1_2*dx(4)
-      a13 =   a12*a12 + c1_12*dx(1)*dx(1)
-      a23 = - c2_3*a22*dx(2)
-      a33 =   c2_3*a32*dx(3)
-      a43 =   a42*a42 + c1_12*dx(4)*dx(4)
-      a14 =   (a13 + c1_6*dx(1)*dx(1))*a12
-      a24 = - c3_4*a23*dx(2)
-      a34 =   c3_4*a33*dx(3)
-      a44 =   (a43 + c1_6*dx(4)*dx(4))*a42
+      a12 = - dx2 - c1_2*dx1
+      a22 = - c1_2*dx2
+      a32 =   c1_2*dx3
+      a42 =   dx3 + c1_2*dx4
+      a13 =   a12*a12 + c1_12*dx1*dx1
+      a23 = - c2_3*a22*dx2
+      a33 =   c2_3*a32*dx3
+      a43 =   a42*a42 + c1_12*dx4*dx4
+      a14 =   (a13 + c1_6*dx1*dx1)*a12
+      a24 = - c3_4*a23*dx2
+      a34 =   c3_4*a33*dx3
+      a44 =   (a43 + c1_6*dx4*dx4)*a42
 
       ! Cell width dependent coefficients for the matrix elements used for
       ! solving for tracer edge value coefficients.
 
-      tmcl( 1) = - c1_12*dx(1)
-      tmcl( 2) =   (c1_10*dx(1) + c1_6*dx(2))*dx(1)
-      tmcl( 3) = - (c1_10*(dx(1) + c3*dx(2))*dx(1) + c1_4*dx(2)**2)*dx(1)
-      tmcl( 4) = - c1_12*dx(2)
-      tmcl( 5) =   c1_10*dx(2)**2
-      tmcl( 6) = - c1_10*dx(2)**3
-      tmcl( 7) = - c1_12*dx(3)
-      tmcl( 8) = - c1_15*dx(3)**2
-      tmcl( 9) = - c1_20*dx(3)**3
-      tmcl(10) = - c1_12*dx(4)
-      tmcl(11) = - (c1_15*dx(4) + c1_6*dx(3))*dx(4)
-      tmcl(12) = - (c1_5*(c1_4*dx(4) + dx(3))*dx(4) + c1_4*dx(3)**2)*dx(4)
+      tmcl( 1) = - c1_12*dx1
+      tmcl( 2) =   (c1_10*dx1 + c1_6*dx2)*dx1
+      tmcl( 3) = - (c1_10*(dx1 + c3*dx2)*dx1 + c1_4*dx2**2)*dx1
+      tmcl( 4) = - c1_12*dx2
+      tmcl( 5) =   c1_10*dx2**2
+      tmcl( 6) = - c1_10*dx2**3
+      tmcl( 7) = - c1_12*dx3
+      tmcl( 8) = - c1_15*dx3**2
+      tmcl( 9) = - c1_20*dx3**3
+      tmcl(10) = - c1_12*dx4
+      tmcl(11) = - (c1_15*dx4 + c1_6*dx3)*dx4
+      tmcl(12) = - (c1_5*(c1_4*dx4 + dx3)*dx4 + c1_4*dx3**2)*dx4
 
-      tmcr( 1) =   c1_12*dx(1)
-      tmcr( 2) = - (c1_15*dx(1) + c1_6*dx(2))*dx(1)
-      tmcr( 3) =   (c1_5*(c1_4*dx(1) + dx(2))*dx(1) + c1_4*dx(2)**2)*dx(1)
-      tmcr( 4) =   c1_12*dx(2)
-      tmcr( 5) = - c1_15*dx(2)**2
-      tmcr( 6) =   c1_20*dx(2)**3
-      tmcr( 7) =   c1_12*dx(3)
-      tmcr( 8) =   c1_10*dx(3)**2
-      tmcr( 9) =   c1_10*dx(3)**3
-      tmcr(10) =   c1_12*dx(4)
-      tmcr(11) =   (c1_10*dx(4) + c1_6*dx(3))*dx(4)
-      tmcr(12) =   (c1_10*(dx(4) + c3*dx(3))*dx(4) + c1_4*dx(3)**2)*dx(4)
+      tmcr( 1) =   c1_12*dx1
+      tmcr( 2) = - (c1_15*dx1 + c1_6*dx2)*dx1
+      tmcr( 3) =   (c1_5*(c1_4*dx1 + dx2)*dx1 + c1_4*dx2**2)*dx1
+      tmcr( 4) =   c1_12*dx2
+      tmcr( 5) = - c1_15*dx2**2
+      tmcr( 6) =   c1_20*dx2**3
+      tmcr( 7) =   c1_12*dx3
+      tmcr( 8) =   c1_10*dx3**2
+      tmcr( 9) =   c1_10*dx3**3
+      tmcr(10) =   c1_12*dx4
+      tmcr(11) =   (c1_10*dx4 + c1_6*dx3)*dx4
+      tmcr(12) =   (c1_10*(dx4 + c3*dx3)*dx4 + c1_4*dx3**2)*dx4
 
       tmc0( 1) = a12
       tmc0( 2) = a13 - tmcl( 2) - tmcr( 2)
@@ -1400,23 +1427,14 @@ contains
            c = ca(i)*ai(i)
 
            if (dl(i) > db(i)) then
-
               hb = max(c0, db(i) - du(i))
-
-              hf(i) = hb*ca(i)
-
               p0 =        hb
               p1 = - c1_2*hb*c
               p2 =   c1_3*hb*c*c
-
            else
-
-              hf(i) = (hpc0(i) - (c1_2*hpc1(i) - c1_3*hpc2(i)*c)*c)*ca(i)
-
               p0 =         hpc0(i) - (c1_2*hpc1(i) - c1_3*hpc2(i)*c)*c 
               p1 = - (c1_2*hpc0(i) - (c1_3*hpc1(i) - c1_4*hpc2(i)*c)*c)*c
               p2 =   (c1_3*hpc0(i) - (c1_4*hpc1(i) - c1_5*hpc2(i)*c)*c)*c*c
-
            endif
 
            do nt = 1, ntr_loc
@@ -1424,7 +1442,6 @@ contains
                           + p1*tpc1(nt,i) &
                           + p2*tpc2(nt,i))*ca(i)
            enddo
-
 
          else
 
@@ -1434,25 +1451,16 @@ contains
            q2 = c1 - (c1 - c1_3*c)*c
 
            if (dl(i-1) > db(i)) then
-
               hb = max(c0, db(i) - du(i-1))
-
-              hf(i) = hb*ca(i)
-
               p0 =    hb
               p1 = q1*hb
               p2 = q2*hb
-
            else
-
-              hf(i) = (hpc0(i-1) + q1*hpc1(i-1) + q2*hpc2(i-1))*ca(i)
-
               q3 = c1_4*(c1 + c3*(c1 - c)*q2)
               q4 = c1_5*(c1 + c4*(c1 - c)*q3)
               p0 =    hpc0(i-1) + q1*hpc1(i-1) + q2*hpc2(i-1)
               p1 = q1*hpc0(i-1) + q2*hpc1(i-1) + q3*hpc2(i-1)
               p2 = q2*hpc0(i-1) + q3*hpc1(i-1) + q4*hpc2(i-1)
-
            endif
 
            do nt = 1, ntr_loc
@@ -1462,6 +1470,8 @@ contains
            enddo
 
          endif
+
+         hf(i) = p0*ca(i)
 
       enddo
 
