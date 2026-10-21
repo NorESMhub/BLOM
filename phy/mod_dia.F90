@@ -6760,37 +6760,37 @@ contains
     if (irec == 1) then
       ! define sigma levels
       if (vcoord_tag /= vcoord_isopyc_bulkml) then
-        call ncdefvar('sigref','layer',ndouble,8)
+        call ncdefvar('sigref','layer',ndouble,0)
         call ncattr('long_name','Reference potential density')
         call ncattr('standard_name','sea_water_sigma_theta')
         call ncattr('units','kg m-3')
         call ncattr('positive','down')
-        call ncdefvar('sigma','sigma',ndouble,8)
+        call ncdefvar('sigma','sigma',ndouble,0)
         call ncattr('long_name','Potential density')
         call ncattr('standard_name','sea_water_sigma_theta')
         call ncattr('units','kg m-3')
         call ncattr('positive','down')
       else
-        call ncdefvar('sigma','sigma',ndouble,8)
+        call ncdefvar('sigma','sigma',ndouble,0)
         call ncattr('long_name','Potential density')
         call ncattr('standard_name','sea_water_sigma_theta')
         call ncattr('units','kg m-3')
         call ncattr('positive','down')
       end if
       ! define zlevel
-      call ncdefvar('depth','depth',ndouble,8)
+      call ncdefvar('depth','depth',ndouble,0)
       call ncattr('long_name','z level')
       call ncattr('standard_name','depth')
       call ncattr('units','m')
       call ncattr('positive','down')
       call ncattr('bounds','depth_bnds')
-      call ncdefvar('depth_bnds','bounds depth',ndouble,8)
+      call ncdefvar('depth_bnds','bounds depth',ndouble,0)
       if (MSC_MMFLXL(iogrp)+MSC_MMFTDL(iogrp)+MSC_MMFSML(iogrp) &
          +MSC_MMFLXD(iogrp)+MSC_MMFTDD(iogrp)+MSC_MMFSMD(iogrp) &
          +MSC_MHFLX (iogrp)+MSC_MHFTD (iogrp)+MSC_MHFSM (iogrp) &
          +MSC_MHFLD (iogrp)+MSC_MSFLX (iogrp)+MSC_MSFTD (iogrp) &
          +MSC_MSFSM (iogrp)+MSC_MSFLD (iogrp) /= 0) then
-        call ncdefvar('lat','lat',ndouble,8)
+        call ncdefvar('lat','lat',ndouble,0)
         call ncattr('long_name','Latitude')
         call ncattr('standard_name','latitude')
         call ncattr('units','degree_north')
