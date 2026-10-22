@@ -254,6 +254,7 @@ contains
     character(len=20)        :: startdate
     character(len=30)        :: timeunits
     real(rp)                 :: datenum,rnacc
+    real(rp), dimension(2)   :: datenum_bnds
     integer,dimension(2,2)   :: dummy
 
     data append2file /nbgcmax*.false./
@@ -266,6 +267,8 @@ contains
     write(startdate,'(i4.4,a1,i2.2,a1,i2.2,a9)')                                &
          &   date0%year,'-',date0%month,'-',date0%day,' 00:00:00'
     datenum=time-time0-0.5_rp*diagfq_bgc(iogrp)/nstep_in_day
+    datenum_bnds(1) = time - time0 - diagfq_bgc(iogrp)/nstep_in_day
+    datenum_bnds(2) = time - time0
 
     ! --- get file name
     if (.not.append2file(iogrp)) then
@@ -324,6 +327,7 @@ contains
     enddo
     call hamoccvardef(iogrp,timeunits,calendar,cmpflg)
     call nctime(datenum,calendar,timeunits,startdate)
+    call ncwrt1('time_bnds','bounds time',datenum_bnds)
 
     ! --- write auxillary dimension information
     call ncwrt1('sigma','sigma',sigref(1:kdm))

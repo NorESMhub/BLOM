@@ -2346,6 +2346,7 @@ contains
     character(len=30)           :: timeunits
     character(len=20)           :: startdate
     real                        :: datenum,rnacc
+    real, dimension(2)          :: datenum_bnds
     real, dimension(itdm,jtdm)  :: bflxg,strg
     integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ind1,ind2
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ddm) :: wghts
@@ -2702,6 +2703,8 @@ contains
     write(startdate,'(i4.4,a1,i2.2,a1,i2.2,a9)') &
          date0%year,'-',date0%month,'-',date0%day,' 00:00:00'
     datenum = time-time0-.5*diagfq_phy(iogrp)/nstep_in_day
+    datenum_bnds(1) = time - time0 - diagfq_phy(iogrp)/nstep_in_day
+    datenum_bnds(2) = time - time0
 
     ! create file name
     if (.not.append2file(iogrp)) then
@@ -2835,6 +2838,7 @@ contains
     call definevar(irec(iogrp),iogrp,cmpflg,timeunits,calendar)
 
     call nctime(datenum,calendar,timeunits,startdate)
+    call ncwrt1('time_bnds','bounds time',datenum_bnds)
 
     ! write auxillary dimension information
     if (irec(iogrp) == 1) then
