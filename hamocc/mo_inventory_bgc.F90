@@ -940,8 +940,8 @@ contains
 
         !--- set time information
         timeunits=' '
-        write(timeunits,'(a11,i4.4,a1,i2.2,a1,i2.2,a6)')                          &
-             &   'days since ',date0%year,'-',date0%month,'-',date0%day,' 00:00'
+        write(timeunits,'(a11,i4.4,a1,i2.2,a1,i2.2,a9)')                          &
+             &   'days since ',date0%year,'-',date0%month,'-',date0%day,' 00:00:00'
 
         !--- Define global attributes
         call nccheck(NF90_PUT_ATT(ncid,NF90_GLOBAL,'title','Global inventory for marine bgc') )

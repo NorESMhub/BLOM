@@ -2346,6 +2346,7 @@ contains
     character(len=30)           :: timeunits
     character(len=20)           :: startdate
     real                        :: datenum,rnacc
+    real, dimension(2)          :: datenum_bnds
     real, dimension(itdm,jtdm)  :: bflxg,strg
     integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ind1,ind2
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ddm) :: wghts
@@ -2697,11 +2698,13 @@ contains
     ! set time information
     timeunits = ' '
     startdate = ' '
-    write(timeunits,'(a11,i4.4,a1,i2.2,a1,i2.2,a6)') &
-         'days since ',min(1800,date0%year),'-',1,'-',1,' 00:00'
-    write(startdate,'(i4.4,a1,i2.2,a1,i2.2,a6)') &
-         date0%year,'-',date0%month,'-',date0%day,' 00:00'
+    write(timeunits,'(a11,i4.4,a1,i2.2,a1,i2.2,a9)') &
+         'days since ',min(1800,date0%year),'-',1,'-',1,' 00:00:00'
+    write(startdate,'(i4.4,a1,i2.2,a1,i2.2,a9)') &
+         date0%year,'-',date0%month,'-',date0%day,' 00:00:00'
     datenum = time-time0-.5*diagfq_phy(iogrp)/nstep_in_day
+    datenum_bnds(1) = time - time0 - diagfq_phy(iogrp)/nstep_in_day
+    datenum_bnds(2) = time - time0
 
     ! create file name
     if (.not.append2file(iogrp)) then
@@ -2835,6 +2838,7 @@ contains
     call definevar(irec(iogrp),iogrp,cmpflg,timeunits,calendar)
 
     call nctime(datenum,calendar,timeunits,startdate)
+    call ncwrt1('time_bnds','bounds time',datenum_bnds)
 
     ! write auxillary dimension information
     if (irec(iogrp) == 1) then
@@ -3167,10 +3171,10 @@ contains
          cmpflg,ip,'p','dz','Layer thickness',' ','m')
 
     call wrtlyr(ACC_TEMP(iogrp),LYR_TEMP(iogrp),1.,0., &
-         cmpflg,ip,'p','temp','Temperature','Ocean temperature','degC')
+         cmpflg,ip,'p','temp','Temperature','sea_water_potential_temperature','degC')
 
     call wrtlyr(ACC_SALN(iogrp),LYR_SALN(iogrp),1.,0., &
-         cmpflg,ip,'p','saln','Salinity','Ocean salinity','g kg-1')
+         cmpflg,ip,'p','saln','Salinity','sea_water_practical_salinity','g kg-1')
 
     call wrtlyr(ACC_UVEL(iogrp),LYR_UVEL(iogrp),1.,0., &
          cmpflg,iuu,'u','uvel','Velocity x-component',' ','m s-1')
@@ -3347,10 +3351,10 @@ contains
          cmpflg,ip,'p','dzlvl','Layer thickness',' ','m')
 
     call wrtlvl(ACC_TEMPLVL(iogrp),LVL_TEMP(iogrp),rnacc,0., &
-         cmpflg,ip,'p','templvl','Temperature','Ocean temperature','degC')
+         cmpflg,ip,'p','templvl','Temperature','sea_water_potential_temperature','degC')
 
     call wrtlvl(ACC_SALNLVL(iogrp),LVL_SALN(iogrp),rnacc,0., &
-         cmpflg,ip,'p','salnlvl','Salinity','Ocean salinity','g kg-1')
+         cmpflg,ip,'p','salnlvl','Salinity','sea_water_practical_salinity','g kg-1')
 
     call wrtlvl(ACC_UVELLVL(iogrp),LVL_UVEL(iogrp),rnacc,0., &
          cmpflg,iuu,'u','uvellvl','Velocity x-component',' ','m s-1')
@@ -6754,41 +6758,45 @@ contains
 
     call ncdefvar('time','time',ndouble,0)
     call ncattr('long_name','time')
+    call ncattr('standard_name','time')
     call ncattr('units',timeunits)
     call ncattr('calendar',calendar)
+    call ncattr('bounds','time_bnds')
+    call ncdefvar('time_bnds','bounds time',ndouble,0)
     if (irec == 1) then
       ! define sigma levels
       if (vcoord_tag /= vcoord_isopyc_bulkml) then
-        call ncdefvar('sigref','layer',ndouble,8)
+        call ncdefvar('sigref','layer',ndouble,0)
         call ncattr('long_name','Reference potential density')
         call ncattr('standard_name','sea_water_sigma_theta')
         call ncattr('units','kg m-3')
         call ncattr('positive','down')
-        call ncdefvar('sigma','sigma',ndouble,8)
+        call ncdefvar('sigma','sigma',ndouble,0)
         call ncattr('long_name','Potential density')
         call ncattr('standard_name','sea_water_sigma_theta')
         call ncattr('units','kg m-3')
         call ncattr('positive','down')
       else
-        call ncdefvar('sigma','sigma',ndouble,8)
+        call ncdefvar('sigma','sigma',ndouble,0)
         call ncattr('long_name','Potential density')
         call ncattr('standard_name','sea_water_sigma_theta')
         call ncattr('units','kg m-3')
         call ncattr('positive','down')
       end if
       ! define zlevel
-      call ncdefvar('depth','depth',ndouble,8)
+      call ncdefvar('depth','depth',ndouble,0)
       call ncattr('long_name','z level')
+      call ncattr('standard_name','depth')
       call ncattr('units','m')
       call ncattr('positive','down')
       call ncattr('bounds','depth_bnds')
-      call ncdefvar('depth_bnds','bounds depth',ndouble,8)
+      call ncdefvar('depth_bnds','bounds depth',ndouble,0)
       if (MSC_MMFLXL(iogrp)+MSC_MMFTDL(iogrp)+MSC_MMFSML(iogrp) &
          +MSC_MMFLXD(iogrp)+MSC_MMFTDD(iogrp)+MSC_MMFSMD(iogrp) &
          +MSC_MHFLX (iogrp)+MSC_MHFTD (iogrp)+MSC_MHFSM (iogrp) &
          +MSC_MHFLD (iogrp)+MSC_MSFLX (iogrp)+MSC_MSFTD (iogrp) &
          +MSC_MSFSM (iogrp)+MSC_MSFLD (iogrp) /= 0) then
-        call ncdefvar('lat','lat',ndouble,8)
+        call ncdefvar('lat','lat',ndouble,0)
         call ncattr('long_name','Latitude')
         call ncattr('standard_name','latitude')
         call ncattr('units','degree_north')
@@ -7061,10 +7069,10 @@ contains
          'Layer thickness',' ','m',isize_lyr)
 
     call ncdefvar3d(LYR_TEMP(iogrp),cmpflg,'p','temp', &
-         'Temperature','Ocean temperature','degC',isize_lyr)
+         'Temperature','sea_water_potential_temperature','degC',isize_lyr)
 
     call ncdefvar3d(LYR_SALN(iogrp),cmpflg,'p','saln', &
-         'Salinity','Ocean salinity','g kg-1',isize_lyr)
+         'Salinity','sea_water_practical_salinity','g kg-1',isize_lyr)
 
     call ncdefvar3d(LYR_UVEL(iogrp),cmpflg,'u','uvel', &
          'Velocity x-component',' ','m s-1',isize_lyr)
@@ -7227,10 +7235,10 @@ contains
          'Layer thickness',' ','m',2)
 
     call ncdefvar3d(LVL_TEMP(iogrp),cmpflg,'p','templvl', &
-         'Temperature','Ocean temperature','degC',2)
+         'Temperature','sea_water_potential_temperature','degC',2)
 
     call ncdefvar3d(LVL_SALN(iogrp),cmpflg,'p','salnlvl', &
-         'Salinity','Ocean salinity','g kg-1',2)
+         'Salinity','sea_water_practical_salinity','g kg-1',2)
 
     call ncdefvar3d(LVL_UVEL(iogrp),cmpflg,'u','uvellvl', &
          'Velocity x-component',' ','m s-1',2)

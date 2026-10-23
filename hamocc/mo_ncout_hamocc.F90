@@ -254,6 +254,7 @@ contains
     character(len=20)        :: startdate
     character(len=30)        :: timeunits
     real(rp)                 :: datenum,rnacc
+    real(rp), dimension(2)   :: datenum_bnds
     integer,dimension(2,2)   :: dummy
 
     data append2file /nbgcmax*.false./
@@ -261,11 +262,13 @@ contains
     ! --- set time information
     timeunits=' '
     startdate=' '
-    write(timeunits,'(a11,i4.4,a1,i2.2,a1,i2.2,a6)')                            &
-         &   'days since ',min(1800,date0%year),'-',1,'-',1,' 00:00'
-    write(startdate,'(i4.4,a1,i2.2,a1,i2.2,a6)')                                &
-         &   date0%year,'-',date0%month,'-',date0%day,' 00:00'
+    write(timeunits,'(a11,i4.4,a1,i2.2,a1,i2.2,a9)')                            &
+         &   'days since ',min(1800,date0%year),'-',1,'-',1,' 00:00:00'
+    write(startdate,'(i4.4,a1,i2.2,a1,i2.2,a9)')                                &
+         &   date0%year,'-',date0%month,'-',date0%day,' 00:00:00'
     datenum=time-time0-0.5_rp*diagfq_bgc(iogrp)/nstep_in_day
+    datenum_bnds(1) = time - time0 - diagfq_bgc(iogrp)/nstep_in_day
+    datenum_bnds(2) = time - time0
 
     ! --- get file name
     if (.not.append2file(iogrp)) then
@@ -324,6 +327,7 @@ contains
     enddo
     call hamoccvardef(iogrp,timeunits,calendar,cmpflg)
     call nctime(datenum,calendar,timeunits,startdate)
+    call ncwrt1('time_bnds','bounds time',datenum_bnds)
 
     ! --- write auxillary dimension information
     call ncwrt1('sigma','sigma',sigref(1:kdm))
@@ -1652,19 +1656,23 @@ contains
 
     call ncdefvar('time','time',ndouble,0)
     call ncattr('long_name','time')
+    call ncattr('standard_name','time')
     call ncattr('units',timeunits)
     call ncattr('calendar',calendar)
-    call ncdefvar('sigma','sigma',ndouble,8)
+    call ncattr('bounds','time_bnds')
+    call ncdefvar('time_bnds','bounds time',ndouble,0)
+    call ncdefvar('sigma','sigma',ndouble,0)
     call ncattr('long_name','Potential density')
     call ncattr('standard_name','sea_water_sigma_theta')
     call ncattr('units','kg m-3')
     call ncattr('positive','down')
-    call ncdefvar('depth','depth',ndouble,8)
+    call ncdefvar('depth','depth',ndouble,0)
     call ncattr('long_name','z level')
+    call ncattr('standard_name','depth')
     call ncattr('units','m')
     call ncattr('positive','down')
     call ncattr('bounds','depth_bnds')
-    call ncdefvar('depth_bnds','bounds depth',ndouble,8)
+    call ncdefvar('depth_bnds','bounds depth',ndouble,0)
 
     if (cmpflg == 1) then
       call ncdefvar('plon','pcomp',ndouble,0)
