@@ -93,9 +93,6 @@ contains
                               itdoc_lc13,itdoc_hc13,itdoc_lc14,itdoc_hc14,idocsl,idocsr,idocr,     &
                               iprefdoc,iprefdocsl,iprefdocsr,iprefdocr
     use mo_netcdf_bgcrw,only: write_netcdf_var,netcdf_def_vardb
-#ifdef PNETCDF
-    use mod_xc,         only: mpicomm
-#endif
 
     ! Arguments
     integer,          intent(in) :: kpie             ! 1st dimension of model grid.
@@ -130,6 +127,9 @@ contains
 #   include <mpif.h>
     integer(kind=MPI_OFFSET_KIND) :: clen
     integer*4 ,save               :: info=MPI_INFO_NULL
+    integer                       :: mpicomm,mpierr,mpireq,mpistat
+    common/xcmpii/ mpicomm,mpierr,mpireq(4),mpistat(mpi_status_size,4*max(iqr,jqr))
+    save  /xcmpii/
 #endif
 
     ! pass tracer fields in from ocean model, note that both timelevels

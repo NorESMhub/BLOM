@@ -104,9 +104,6 @@ CONTAINS
     use mo_intfcblom,       only: sedlay2,powtra2,burial2,atm2,prorca_mavg2
     use mo_param_bgc,       only: bifr13_ini,bifr14_ini,c14fac,re1312,re14to,prei13,prei14
     use mo_netcdf_bgcrw,    only: read_netcdf_var
-#ifdef PNETCDF
-    use mod_xc,             only: mpicomm
-#endif
 
     ! Arguments
     integer,          intent(in)    :: kpie                                              ! 1st dimension of model grid.
@@ -140,6 +137,9 @@ CONTAINS
 #   include <pnetcdf.inc>
 #   include <mpif.h>
     integer*4, save  :: info=MPI_INFO_NULL
+    integer          :: mpicomm,mpierr,mpireq,mpistat
+    common/xcmpii/ mpicomm,mpierr,mpireq(4),mpistat(mpi_status_size,4*max(iqr,jqr))
+    save  /xcmpii/
 #endif
     character(len=3) :: stripestr
     character(len=9) :: stripestr2
