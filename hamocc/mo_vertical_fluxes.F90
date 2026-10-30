@@ -373,7 +373,7 @@ contains
     ! fluxes are intentionally calculated using values at the NEW timelevel
     ! to be fully consistent with the implicit sinking scheme
 
-    !$OMP PARALLEL DO PRIVATE(i,k,wpoc,wcal,wopal)
+    !$OMP PARALLEL DO PRIVATE(i,k,wpoc,wcal,wopal,wdust)
     do j = 1,kpje
       do i = 1,kpie
         if(omask(i,j) > 0.5_rp) then
