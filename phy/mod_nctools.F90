@@ -1,6 +1,6 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2004-2025 Ingo Bethke, Mats Bentsen, Alok Kumar Gupta
-!                         Mariana Vertenstein
+! Copyright (C) 2004-2026 Ingo Bethke, Mats Bentsen, Alok Kumar Gupta
+!                         Mariana Vertenstein, Tomas Torsvik
 !
 ! This file is part of BLOM.
 !
@@ -691,7 +691,7 @@ contains
 
 
 
-  subroutine nctime(datenum,calendar,units,startdate)
+  subroutine nctime(datenum,calendar,units,startdate,datenum_bnds)
 
     ! ----------------------------------------------------------------------
     ! --- Description:
@@ -705,18 +705,24 @@ contains
     !       char(*) units     (in) -  time units,
     !                                 e.g. 'hours since 0001-01-01'
     !       char(*) startdate (in) -  start date, e.g. '1997-01-01'
+    !       real(2) datenum_bnds (in, optional) - time bounds. If present, the
+    !                                 calendar offset is added and the bounds
+    !                                 are written to the variable 'time_bnds',
+    !                                 which must be defined in the file
     ! --- Comment:
     !       The script assumes that the precision of startdate is not
-    !	    higher than the unit specified in the units string. E.g. if
+    !       higher than the unit specified in the units string. E.g. if
     !       units='years since 0001-01-01' and startdate='1997-06-01' then
     !       the resulting offset will be rounded to 1996 yrs.
     ! ----------------------------------------------------------------------
 
     real :: datenum
     character(len=*), intent(in) :: calendar,units,startdate
+    real, dimension(2), intent(in), optional :: datenum_bnds
 
     integer :: bstrn,sstrn,strind(2,10),by,bm,bd,bh,sy,sm,sd,sh,dndiff
     real :: caloffset
+    real, dimension(2) :: bnds
     data by/1/,bm/1/,bd/1/,bh/0/,sy/1/,sm/1/,sd/1/,sh/0/
 
     integer :: errstat
@@ -772,6 +778,27 @@ contains
 
       ! --- - Change to data mode and write time
       call ncerro(nfmpi_put_vara_double_all(ncid,rhid,istart,icount,datenum))
+
+      ! --- - Write time bounds from the master process, zero elsewhere
+      if (present(datenum_bnds)) then
+        errstat = nfmpi_inq_varid(ncid,'time_bnds',rhid)
+        if (errstat /= nf_noerr) then
+          write (lp,'(2a)') ' nctime: time_bnds is not defined in the file: ', &
+               nfmpi_strerror(errstat)
+          call xchalt('(nctime)')
+          stop '(nctime)'
+        end if
+        bnds = 0.
+        istart(1:2) = 1
+        icount(1:2) = 0
+        if (mnproc == 1) then
+          bnds = datenum_bnds+caloffset
+          istart(2) = rec
+          icount(1) = 2
+          icount(2) = 1
+        end if
+        call ncerro(nfmpi_put_vara_double_all(ncid,rhid,istart,icount,bnds))
+      end if
 #endif
     else if (io_type  ==  0) then
       if (mnproc == 1) then
@@ -811,6 +838,19 @@ contains
         end if
         datenum = datenum+caloffset
         call ncerro(nf90_put_var(ncid,rhid,datenum,(/rec/)))
+
+        ! --- --- write time bounds
+        if (present(datenum_bnds)) then
+          errstat = nf90_inq_varid(ncid,'time_bnds',rhid)
+          if (errstat /= nf90_noerr) then
+            write (lp,'(2a)') ' nctime: time_bnds is not defined in the file: ', &
+                 nf90_strerror(errstat)
+            call xchalt('(nctime)')
+            stop '(nctime)'
+          end if
+          call ncerro(nf90_put_var(ncid,rhid,datenum_bnds+caloffset, &
+                                   start=(/1,rec/),count=(/2,1/)))
+        end if
       end if
     end if
 
