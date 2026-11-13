@@ -1,6 +1,6 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2004-2025 Ingo Bethke, Mats Bentsen, Alok Kumar Gupta
-!                         Mariana Vertenstein
+! Copyright (C) 2004-2026 Ingo Bethke, Mats Bentsen, Alok Kumar Gupta
+!                         Mariana Vertenstein, Tomas Torsvik
 !
 ! This file is part of BLOM.
 !
@@ -691,7 +691,7 @@ contains
 
 
 
-  subroutine nctime(datenum,calendar,units,startdate)
+  subroutine nctime(datenum,calendar,units,startdate,datenum_bnds)
 
     ! ----------------------------------------------------------------------
     ! --- Description:
@@ -705,15 +705,19 @@ contains
     !       char(*) units     (in) -  time units,
     !                                 e.g. 'hours since 0001-01-01'
     !       char(*) startdate (in) -  start date, e.g. '1997-01-01'
+    !       real(2) datenum_bnds (inout, optional) - time bounds; the calendar
+    !                                 offset is added so that they are
+    !                                 consistent with the stored time value
     ! --- Comment:
     !       The script assumes that the precision of startdate is not
-    !	    higher than the unit specified in the units string. E.g. if
+    !       higher than the unit specified in the units string. E.g. if
     !       units='years since 0001-01-01' and startdate='1997-06-01' then
     !       the resulting offset will be rounded to 1996 yrs.
     ! ----------------------------------------------------------------------
 
     real :: datenum
     character(len=*), intent(in) :: calendar,units,startdate
+    real, dimension(2), intent(inout), optional :: datenum_bnds
 
     integer :: bstrn,sstrn,strind(2,10),by,bm,bd,bh,sy,sm,sd,sh,dndiff
     real :: caloffset
@@ -766,6 +770,7 @@ contains
           end if
         end if
         datenum = datenum+caloffset
+        if (present(datenum_bnds)) datenum_bnds = datenum_bnds+caloffset
         istart(1) = rec
         icount(1) = 1
       end if
@@ -810,6 +815,7 @@ contains
           end if
         end if
         datenum = datenum+caloffset
+        if (present(datenum_bnds)) datenum_bnds = datenum_bnds+caloffset
         call ncerro(nf90_put_var(ncid,rhid,datenum,(/rec/)))
       end if
     end if

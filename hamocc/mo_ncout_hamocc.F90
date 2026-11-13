@@ -326,7 +326,7 @@ contains
         call ncputr(param4nc(i)%pname,param4nc(i)%pvalue)
     enddo
     call hamoccvardef(iogrp,timeunits,calendar,cmpflg)
-    call nctime(datenum,calendar,timeunits,startdate)
+    call nctime(datenum,calendar,timeunits,startdate,datenum_bnds)
     call ncwrt1('time_bnds','bounds time',datenum_bnds)
 
     ! --- write auxillary dimension information

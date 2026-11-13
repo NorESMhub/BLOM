@@ -2837,7 +2837,7 @@ contains
 
     call definevar(irec(iogrp),iogrp,cmpflg,timeunits,calendar)
 
-    call nctime(datenum,calendar,timeunits,startdate)
+    call nctime(datenum,calendar,timeunits,startdate,datenum_bnds)
     call ncwrt1('time_bnds','bounds time',datenum_bnds)
 
     ! write auxillary dimension information
