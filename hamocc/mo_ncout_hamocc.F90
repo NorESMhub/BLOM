@@ -327,7 +327,6 @@ contains
     enddo
     call hamoccvardef(iogrp,timeunits,calendar,cmpflg)
     call nctime(datenum,calendar,timeunits,startdate,datenum_bnds)
-    call ncwrt1('time_bnds','bounds time',datenum_bnds)
 
     ! --- write auxillary dimension information
     call ncwrt1('sigma','sigma',sigref(1:kdm))
