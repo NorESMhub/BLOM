@@ -1,0 +1,21 @@
+# CODEOWNERS for NorESM-docs repository
+#======================================
+#
+# People with write permissions for the repository can create or edit the CODEOWNERS
+# file and be listed as code owners. People with admin or owner permissions can require
+# that pull requests have to be approved by code owners before they can be merged.
+#
+# A CODEOWNERS file uses a pattern that follows most of the same rules used in gitignore files.
+# The pattern is followed by one or more GitHub usernames or team names using the standard
+# @username or @org/team-name format. Users and teams must have explicit write access to the
+# repository, even if the team's members already have access.
+
+# default owners
+*           @matsbn  @JorgSchwinger  @jmaerz  @TomasTorsvik
+
+
+# BLOM specific
+/phy/       @matsbn  @milicak
+
+# iHAMOCC specific
+/hamocc/    @JorgSchwinger  @jmaerz  @TomasTorsvik
