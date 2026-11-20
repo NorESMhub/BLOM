@@ -87,6 +87,7 @@ def buildnml(case, caseroot, compname):
     hamocc_extncycle          = case.get_value("HAMOCC_EXTNCYCLE")
     hamocc_n2oc               = case.get_value("HAMOCC_N2OC")
     hamocc_n2o_hist           = case.get_value("HAMOCC_N2O_HIST")
+    hamocc_n2o_scenario       = case.get_value("HAMOCC_N2O_SCENARIO")
     hamocc_nh3c               = case.get_value("HAMOCC_NH3C")
     hamocc_atmndepc           = case.get_value("HAMOCC_ATMNDEPC")
     hamocc_sinking_scheme     = case.get_value("HAMOCC_SINKING_SCHEME")
