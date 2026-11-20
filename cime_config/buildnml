@@ -247,6 +247,7 @@ def buildnml(case, caseroot, compname):
         config["hamocc_extncycle"] = "yes" if hamocc_extncycle else "no"
         config["hamocc_n2oc"] = "yes" if hamocc_n2oc else "no"
         config["hamocc_n2o_hist"] = "yes" if hamocc_n2o_hist else "no"
+        config["hamocc_n2o_scenario"] =  hamocc_n2o_scenario
         config["hamocc_nh3c"] = "yes" if hamocc_nh3c else "no"
         config["hamocc_atmndepc"] = "yes" if hamocc_atmndepc else "no"
         config["hamocc_sedbypass"] = "yes" if hamocc_sedbypass else "no"
@@ -302,7 +303,7 @@ def buildnml(case, caseroot, compname):
         var_list = ('DIN_LOC_ROOT', 'RUN_TYPE', 'BLOM_VCOORD','BLOM_NDEP_SCENARIO',
                     'CCSM_CO2_PPMV','OCN_CO2_TYPE',
                     'HAMOCC_SEDSPINUP_YR_START','HAMOCC_SEDSPINUP_YR_END',
-		                'HAMOCC_SEDSPINUP_NCYCLE')
+		                'HAMOCC_SEDSPINUP_NCYCLE','HAMOCC_N2O_SCENARIO')
         for item in var_list:
             case_dict[item] = case.get_value(item)
 
