@@ -220,6 +220,24 @@
     <desc>Provide historical N2O concentrations (uncoupled). Requires module ecosys and extncycle</desc>
   </entry>
 
+  <entry id="HAMOCC_N2O_SCENARIO">
+    <type>char</type>
+    <valid_values>UNSET,h,hl,l,ln,m,ml,vl</valid_values>
+    <default_value>UNSET</default_value>
+    <values>
+      <value compset="SCEN7H_.*_BLOM.*%ECO"    >h</value>
+      <value compset="SCEN7HL_.*_BLOM.*%ECO"   >hl</value>
+      <value compset="SCEN7L_.*_BLOM.*%ECO"    >l</value>
+      <value compset="SCEN7LN_.*_BLOM.*%ECO"   >ln</value>
+      <value compset="SCEN7M_.*_BLOM.*%ECO"    >m</value>
+      <value compset="SCEN7ML_.*_BLOM.*%ECO"   >ml</value>
+      <value compset="SCEN7VL_.*_BLOM.*%ECO"   >vl</value>
+     </values>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Scenario for atm. N2O data. Requires module ecosys and HAMOCC_N2O_HIST=TRUE (to be changed later).</desc>
+  </entry>
+
   <entry id="HAMOCC_NH3C">
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>

@@ -4664,6 +4664,17 @@
     <desc>Switch provide atmospheric N2O in historical period (uncoupled)</desc>
   </entry>
 
+  <entry id="n2o_scenario" modify_via_xml="HAMOCC_N2O_SCENARIO">
+    <type>char</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>dummy</value>
+      <value hamocc_n2o_hist="yes" hamocc_extncycle="yes">$HAMOCC_N2O_SCENARIO</value>
+    </values>
+    <desc>Case switch to provide atmospheric N2O in scenarios (uncoupled)</desc>
+  </entry>
+
   <entry id="do_nh3_coupled" modify_via_xml="HAMOCC_NH3C">
     <type>logical</type>
     <category>bgcnml</category>

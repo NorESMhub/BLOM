@@ -59,6 +59,7 @@ module mo_control_bgc
   logical           :: do_ndep                = .true.  ! apply n-deposition
   logical           :: do_n2o_coupled         = .false. ! for coupled simulations, use field provided by atmosphere
   logical           :: do_n2o_hist            = .false. ! provide historical N2O concentration in non-interactive-N2O historical sim
+  character(len=64) :: N2O_scenario           = 'dummy' ! scenario N2O concentrations in non-interactive-N2O scenario sim (requires do_n2o_hist=True)
   logical           :: do_nh3_coupled         = .false. ! for coupled simulations, use field provided by atmosphere
   logical           :: do_rivinpt             = .true.  ! apply riverine input
   logical           :: do_sedspinup           = .false. ! apply sediment spin-up
